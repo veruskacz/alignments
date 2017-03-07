@@ -1,2 +1,6 @@
-
+bin/*
+lib/*
+*.Python
 *.pyc
+include/*
+pip-self*

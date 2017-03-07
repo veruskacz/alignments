@@ -1,0 +1,27 @@
+<div class="panel panel-warning">
+    <div class="panel-heading"><h4><strong>Evidence</strong></h4></div>
+    <div class="panel-body" >
+        <div class="list-group" style='scroll: both; overflow: auto; height: 15em;'>
+        {% for e in evidences|sort(attribute='pred') %}
+            <a href="#" class="list-group-item" >
+                <span class="list-group-item-heading">{{ e.pred.value }}: </span>
+                <span class="list-group-item-heading" style="color:blue"><strong>{{ e.obj.value }}</strong></span>
+            </a>
+        {% endfor %}
+        </div>
+
+      <!-- Validation box -->
+      <div class="panel panel-default">
+              <div class="panel-heading"><h4><strong>Validation</strong></h4></div>
+      <div class="panel-body">
+          <TABLE>
+          <TR>
+             <TD><textarea id="validation_textbox" name="name" rows="5" cols="90">Testing</textarea></TD>
+             <TD style='width: 2em;'> </TD>
+             <TD><a id="ValidationYes_btn" class='btn btn-success' style='width: 10em;'>Accept</a><br/><br/>
+                  <a id="ValidationNo_btn" class='btn btn-danger' style='width: 10em;'>Reject</a></TD>
+          </TABLE>
+      </div>
+
+    </div>
+</div>

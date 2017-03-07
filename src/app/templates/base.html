@@ -1,5 +1,5 @@
 {% extends "bootstrap/base.html" %}
-{% block title %}TMR4I Explorer for Clinical Guidelines{% endblock %}
+{% block title %}Alignment & Specs Explorer{% endblock %}
 
 {% block navbar %}
 <div class="navbar navbar-fixed-top">
@@ -11,15 +11,19 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <h1>TMR4I Guideline Explorer</h1>
-                <p>This web application allows you to explore several example clinical guidelines represented according to the TMR4I model developed by Veruska Zamborlini. A paper about this work has been submitted to the Semantic Web Journal: <i>"Detecting Interactions among Medical
-Recommendations in Clinical Guidelines
-enhanced by the Semantic Web - A case study on multimorbidity"</i>, Veruska Zamborlini, Rinke Hoekstra, Marcos da Silveira, Cedric Pruski, Annette ten Teije and Frank van Harmelen.</p>
+                <h1>Alignment & Specs Explorer</h1>
+                <p>This web application allows you to explore alignments and
+                  specifications represented according to the Singleton*** model
+                  developed by Al Idrissou.
+                </p>
+                  <!--A paper about this work has been submitted to [Venue]:
+                  <i>"[Title]"</i>,
+                  [Authors].</p> -->
             </div>
         </div>
         <div class="row">
             <div class='col-md-12'>
-                {% include 'guidelines.html' %}
+                {% include 'graphs.html' %}
             </div>
 
         </div>
@@ -29,15 +33,15 @@ enhanced by the Semantic Web - A case study on multimorbidity"</i>, Veruska Zamb
             </div>
         </div>
 
-        {% include 'recommendations.html' %}
-        
+        {% include 'correspondences.html' %}
+
         <div class='row'>
     </div>
 {% endblock %}
 
 {% block scripts %}
 {{super()}}
-<script src="{{url_for('.static', filename='guidelines.js')}}"></script>
+<script src="{{url_for('.static', filename='alignments.js')}}"></script>
 {% endblock %}
 
 {% block styles %}
@@ -47,5 +51,5 @@ enhanced by the Semantic Web - A case study on multimorbidity"</i>, Veruska Zamb
 {% endblock %}
 
 {% block bootstrap_js_bottom %}
-    
+
 {% endblock %}

@@ -1,8 +1,0 @@
-<span class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="guidelinesDropdown" data-toggle='dropdown'>Guidelines<span class="caret"></span></button>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="guidelinesDropdown">
-{% for gl in guidelines %}
-        <li role="presentation"><a href="#" uri='{{gl.gl.value }}' label='{{gl.gl_label.value }}' role="menuitem" tabindex="-1">{{ gl.gl_label.value }}</a></li>
-{% endfor %}
-    </ul>
-</span>

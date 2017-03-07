@@ -1,0 +1,32 @@
+<div class="row">
+    <div class="col-md-4" style='border-right: 1px solid grey; height: 63em;'>
+      <div class="panel panel-info">
+        <div class="panel-heading"><h3>Correspondences</h3>
+          <small>{{ graph_label }}</small></div>
+        <div class="panel-body" style='scroll: both; overflow: auto; height: 56em;'>
+
+          <div class="list-group" style='scroll: both; overflow: auto;'>
+            {% for c in correspondences|sort(attribute='sub') %}
+                        <a href="#" class="list-group-item" uri='{{c.pred.value }}'
+                              sub_uri='{{c.sub.value }}' obj_uri='{{c.obj.value }}'
+                              subjectTarget='{{c.subjectTarget.value }}' objectTarget='{{c.objectTarget.value }}'
+                              subjectTarget_uri='{{c.subjectTargetURI.value }}' objectTarget_uri='{{c.objectTargetURI.value }}'>
+                            <span class="list-group-item-heading">{{ c.sub.value }}<br/>
+                                <small><span class="badge alert-info">linked to</span></small><br/>
+                            </span>
+                            <span class="list-group-item-heading">{{ c.obj.value }}<br/>
+                            </span>
+                        </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8" id="corresp2_list_col">
+
+    </div>
+    <div class="col-md-8" id="evidence_list_col">
+
+    </div>
+
+</div>
