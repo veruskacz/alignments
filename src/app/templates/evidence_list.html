@@ -1,11 +1,19 @@
 <div class="panel panel-warning">
-    <div class="panel-heading"><h4><strong>Evidence</strong></h4></div>
+    <div class="panel-heading"><h4>
+      <strong><span>Evidence</span></strong>
+      {% for vc in validation_counts %}
+      <small><div align="right">
+             <span class="badge alert-success">{{vc.nGood.value}} Accepted</span>
+             <span class="badge alert-danger">{{vc.nBad.value}} Rejected</span></div></small>
+      {% endfor %}
+      </h4>
+    </div>
     <div class="panel-body" >
-        <div class="list-group" style='scroll: both; overflow: auto; height: 15em;'>
+        <div class="list-group" style='scroll: both; overflow: auto; height: 13em;'>
         {% for e in evidences|sort(attribute='pred') %}
             <a href="#" class="list-group-item" >
-                <span class="list-group-item-heading">{{ e.pred.value }}: </span>
-                <span class="list-group-item-heading" style="color:blue"><strong>{{ e.obj.value }}</strong></span>
+                <span class="list-group-item-heading">{{ e.pred_stripped.value }}: </span>
+                <span class="list-group-item-heading" style="color:blue"><strong>{{ e.obj_stripped.value }}</strong></span>
             </a>
         {% endfor %}
         </div>
@@ -16,10 +24,10 @@
       <div class="panel-body">
           <TABLE>
           <TR>
-             <TD><textarea id="validation_textbox" name="name" rows="5" cols="90">Testing</textarea></TD>
+             <TD><textarea id="validation_textbox" name="name" rows="5" cols="90"> </textarea></TD>
              <TD style='width: 2em;'> </TD>
-             <TD><a id="ValidationYes_btn" class='btn btn-success' style='width: 10em;'>Accept</a><br/><br/>
-                  <a id="ValidationNo_btn" class='btn btn-danger' style='width: 10em;'>Reject</a></TD>
+             <TD><a id="ValidationYes_btn" class='btn btn-success' style='width: 8em;'>Accept</a><br/><br/>
+                  <a id="ValidationNo_btn" class='btn btn-danger' style='width: 8em;'>Reject</a></TD>
           </TABLE>
       </div>
 

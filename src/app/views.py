@@ -44,14 +44,28 @@ def graphs():
     """
 
     query = PREFIXES + """
-    SELECT DISTINCT ?g ?g_label WHERE
+    SELECT DISTINCT ?g ?g_label ?subjectTargetURI ?subjectTarget
+                    ?objectTargetURI ?objectTarget ?triples
+                    ?alignsSubjects ?alignsObjects ?alignsMechanism
+    WHERE
     {
         GRAPH ?g
         {
             ?s ?p ?o
         }
+
+		?g
+      			<http://rdfs.org/ns/void#subjectsTarget> ?subjectTargetURI;
+      			<http://rdfs.org/ns/void#objectsTarget> ?objectTargetURI;
+      			<http://rdfs.org/ns/void#triples> ?triples;
+      			<http://risis.eu/alignment/predicate/alignsSubjects> ?alignsSubjects;
+      			<http://risis.eu/alignment/predicate/alignsObjects> ?alignsObjects;
+                <http://risis.eu/alignment/predicate/alignsMechanism> ?alignsMechanism.
+
         FILTER regex(str(?g), 'linkset', 'i')
         BIND(strafter(str(?g),'linkset/') AS ?g_label)
+        BIND(UCASE(strafter(str(?subjectTargetURI),'dataset/')) AS ?subjectTarget)
+        BIND(UCASE(strafter(str(?objectTargetURI),'dataset/')) AS ?objectTarget)
     }
     """
     linksets = sparql(query, strip=True)
@@ -63,6 +77,7 @@ def graphs():
             {
                 ?s ?p ?o
             }
+
             FILTER regex(str(?g), 'lens', 'i')
             BIND(strafter(str(?g),'lens/') AS ?g_label)
         }
@@ -85,25 +100,23 @@ def correspondences():
 
     graph_uri = request.args.get('uri', '')
     graph_label = request.args.get('label','')
+    graph_triples = request.args.get('graph_triples','')
+    alignsMechanism = request.args.get('alignsMechanism', '')
 
     query = PREFIXES + """
     select distinct *
     {
-		<""" + graph_uri + """>
-      			<http://rdfs.org/ns/void#subjectsTarget> ?subjectTargetURI;
-      			<http://rdfs.org/ns/void#objectsTarget> ?objectTargetURI.
-
         graph <""" + graph_uri + """>
         { ?sub ?pred ?obj }
-        BIND(UCASE(strafter(str(?subjectTargetURI),'dataset/')) AS ?subjectTarget)
-        BIND(UCASE(strafter(str(?objectTargetURI),'dataset/')) AS ?objectTarget)
     } limit 80
     """
     correspondences = sparql(query, strip=True)
 
     return render_template('correspondences_list.html',
                             correspondences = correspondences,
-                            graph_label = graph_label)
+                            graph_label = graph_label,
+                            graph_triples = graph_triples,
+                            alignsMechanism = alignsMechanism)
 
 ### CHANGE THE NAME TO -DETAILS-
 @app.route('/getdetails', methods=['GET'])
@@ -116,18 +129,35 @@ def details():
         are passed as parameters to the template correspondences_list.html
     """
 
-    pred_uri = request.args.get('uri', '')
+    singleton_uri = request.args.get('uri', '')
     sub_uri = request.args.get('sub_uri', '')
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
     objectTarget = request.args.get('objectTarget', '')
+    alignsSubjects = request.args.get('alignsSubjects', '')
+    alignsObjects = request.args.get('alignsObjects', '')
+
+    query = PREFIXES + """
+    select distinct *
+    {
+        graph ?gsource
+        { <""" + sub_uri + """> <""" + alignsSubjects + """> ?srcPredValue }
+
+        graph ?gtarget
+        { <""" + obj_uri + """> <""" + alignsObjects + """> ?trgPredValue }
+    }
+    """
+    details = sparql(query, strip=True)
 
     return render_template('details_list.html',
-                            pred_uri = pred_uri,
+                            details = details,
+                            pred_uri = singleton_uri,
                             sub_uri = sub_uri,
                             obj_uri = obj_uri,
                             subjectTarget = subjectTarget,
-                            objectTarget = objectTarget)
+                            objectTarget = objectTarget,
+                            alignsSubjects = alignsSubjects,
+                            alignsObjects = alignsObjects)
 
 ### CHANGE THE NAME TO -DETAILS-
 @app.route('/getdatadetails', methods=['GET'])
@@ -152,8 +182,6 @@ def dataDetails():
     """
     dataDetails = sparql(query, strip=True)
 
-    print ">>>>DATA:"
-    print dataDetails
 
     return render_template('datadetails_list.html',
                             dataDetails = dataDetails)
@@ -180,9 +208,35 @@ def evidence():
     """
     evidences = sparql(query, strip=True)
 
+    query = PREFIXES + """
+    Select distinct ?nGood ?nBad
+    {
+    	{
+         Select (count(?accepted) AS ?nGood)
+         {
+          GRAPH ?graph
+      	   { <""" + singleton_uri + """> <http://example.com/predicate/good> ?accepted
+           }
+         }
+        }
+
+    	{
+         Select (count(?rejected) AS ?nBad)
+         {
+          GRAPH ?graph
+      	   { <""" + singleton_uri + """> <http://example.com/predicate/bad> ?rejected
+           }
+         }
+        }
+    }
+    """
+    validation_counts = sparql(query, strip=True)
+
+
     return render_template('evidence_list.html',
                             singleton_uri = singleton_uri,
-                            evidences = evidences)
+                            evidences = evidences,
+                            validation_counts = validation_counts)
 
 @app.route('/updateevidence', methods=['GET'])
 def updateEvidence():
@@ -263,7 +317,7 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
 
             new_results.append(new_result)
 
-        log.debug(new_results)
+        # log.debug(new_results)
         return new_results
     else :
         return result_dict['results']['bindings']

@@ -14,13 +14,24 @@ $( document ).ready(function()
 
             $('#gl_list_col a').on('click',function()
             {
-                var uri = $(this).attr('uri');
-                var label = $(this).attr('label');
+
+                var graph_uri = $(this).attr('uri');
+                var graph_label = $(this).attr('label');
+                var subjectTarget = $(this).attr('subjectTarget');
+                var objectTarget = $(this).attr('objectTarget');
+                var subjectTarget_uri = $(this).attr('subjectTarget_uri');
+                var objectTarget_uri = $(this).attr('objectTarget_uri');
+                var graph_triples = $(this).attr('triples');
+                var alignsSubjects = $(this).attr('alignsSubjects');
+                var alignsObjects = $(this).attr('alignsObjects');
+                var alignsMechanism = $(this).attr('alignsMechanism');
 
                 $('#rec_list_col').html('Loading...');
                 $('#rec_list_row').show();
 
-                $.get('/getcorrespondences',data={'uri': uri, 'label': label},function(data)
+                $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
+                                                  'graph_triples': graph_triples,
+                                                  'alignsMechanism': alignsMechanism},function(data)
                 {
 
                     $('#rec_list_col').html(data);
@@ -44,14 +55,13 @@ $( document ).ready(function()
                         var uri = $(this).attr('uri');
                         var sub_uri = $(this).attr('sub_uri');
                         var obj_uri = $(this).attr('obj_uri');
-                        var subjectTarget = $(this).attr('subjectTarget');
-                        var objectTarget = $(this).attr('objectTarget');
-                        var subjectTarget_uri = $(this).attr('subjectTarget_uri');
-                        var objectTarget_uri = $(this).attr('objectTarget_uri');
 
                         var data = data={'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
                                           'subjectTarget': subjectTarget,
-                                          'objectTarget': objectTarget}
+                                          'objectTarget': objectTarget,
+                                          'alignsSubjects': alignsSubjects,
+                                          'alignsObjects': alignsObjects}
+
                         $.get('/getdetails',data=data,function(data)
                         {
                           $('#corresp2_list_col').html(data);

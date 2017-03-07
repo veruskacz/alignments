@@ -3,9 +3,20 @@
             data-toggle='dropdown'>Linksets<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="linksetsDropdown">
 {% for linkset in linksets %}
-        <li role="presentation"><a href="#" uri='{{linkset.g.value }}'
-            label='{{linkset.g_label.value }}' role="menuitem"
-            tabindex="-1">{{ linkset.g_label.value }}</a></li>
+        <li role="presentation">
+            <a href="#" role="menuitem" tabindex="-1"
+               uri='{{linkset.g.value }}'
+               label='{{linkset.g_label.value }}'
+               subjectTarget='{{linkset.subjectTarget.value }}'
+               objectTarget='{{linkset.objectTarget.value }}'
+               subjectTarget_uri='{{linkset.subjectTargetURI.value }}'
+               objectTarget_uri='{{linkset.objectTargetURI.value }}'
+               triples = '{{linkset.triples.value}}',
+               alignsSubjects = '{{linkset.alignsSubjects.value}}',
+               alignsObjects = '{{linkset.alignsObjects.value}}',
+               alignsMechanism = '{{linkset.alignsMechanism_stripped.value}}'>
+            {{ linkset.g_label.value }}</a>
+        </li>
 {% endfor %}
     </ul>
 </span>

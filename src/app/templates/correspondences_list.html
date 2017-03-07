@@ -1,16 +1,20 @@
 <div class="row">
-    <div class="col-md-4" style='border-right: 1px solid grey; height: 63em;'>
+    <div class="col-md-4" style='border-right: 1px solid grey; height: 65em;'>
       <div class="panel panel-info">
-        <div class="panel-heading"><h3>Correspondences</h3>
-          <small>{{ graph_label }}</small></div>
+        <div class="panel-heading">
+          <h3>Correspondences</h3>
+          <span class="badge alert-info"> {{ graph_label }} </span> contains
+          <span class="badge alert-success">{{ graph_triples }}</span> triples, aligned using
+          <span class="badge alert-info"> {{ alignsMechanism }}</span> mechanism
+          <small>
+                </small></div>
         <div class="panel-body" style='scroll: both; overflow: auto; height: 56em;'>
 
           <div class="list-group" style='scroll: both; overflow: auto;'>
             {% for c in correspondences|sort(attribute='sub') %}
                         <a href="#" class="list-group-item" uri='{{c.pred.value }}'
-                              sub_uri='{{c.sub.value }}' obj_uri='{{c.obj.value }}'
-                              subjectTarget='{{c.subjectTarget.value }}' objectTarget='{{c.objectTarget.value }}'
-                              subjectTarget_uri='{{c.subjectTargetURI.value }}' objectTarget_uri='{{c.objectTargetURI.value }}'>
+                              sub_uri='{{c.sub.value }}'
+                              obj_uri='{{c.obj.value }}'>
                             <span class="list-group-item-heading">{{ c.sub.value }}<br/>
                                 <small><span class="badge alert-info">linked to</span></small><br/>
                             </span>

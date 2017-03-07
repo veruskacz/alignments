@@ -1,6 +1,9 @@
 
 <div class="panel panel-primary">
-    <div class="panel-heading"><h4><strong>Details</strong></h4></div>
+    <div class="panel-heading"><h4><strong>Details</strong></h4>
+      {{ subjectTarget }} <span class="badge alert-info">{{ alignsSubjects }}</span> aligns with <br/>
+      {{ objectTarget }} <span class="badge alert-info">{{ alignsObjects }}</span>
+    </div>
     <div class="panel-body" style='scroll: both; overflow: auto; height: 18em;'>
         <TABLE style='width: 52em;'>
           <TR>
@@ -11,13 +14,19 @@
                  <span class="list-group-item-heading">{{ objectTarget }}</span>
              </TH>
           <TR>
-             <TD>
+            {% for d in details %}
+              <TD>
                <a href="#" class="list-group-item" id="srcDataset" uri='{{ sub_uri }}'>
-                 <span class="list-group-item-heading">{{ sub_uri }}</span></a>
+                 <span class="list-group-item-heading">
+                   <span class="badge alert-default">{{ d.srcPredValue.value }}</span>
+                 </span></a>
               </TD>
              <TD><a href="#" class="list-group-item" id="trgDataset" uri='{{ obj_uri }}'>
-                 <span class="list-group-item-heading">{{ obj_uri }}</span></a>
+                 <span class="list-group-item-heading">
+                   <span class="badge alert-default">{{ d.srcPredValue.value }}</span>
+                 </span></a>
              </TD>
+            {% endfor %}
           <TR>
              <TD id="srcDetails">
               </TD>
