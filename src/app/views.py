@@ -75,7 +75,7 @@ def graphs():
         {
             GRAPH ?g
             {
-                ?s ?p ?o
+                ?s ?singleton ?o
             }
 
             FILTER regex(str(?g), 'lens', 'i')
@@ -104,10 +104,13 @@ def correspondences():
     alignsMechanism = request.args.get('alignsMechanism', '')
 
     query = PREFIXES + """
-    select distinct *
+    select distinct ?sub ?pred ?obj
     {
-        graph <""" + graph_uri + """>
+        GRAPH <""" + graph_uri + """>
         { ?sub ?pred ?obj }
+        GRAPH ?g
+        { ?pred ?p ?o }
+
     } limit 80
     """
     correspondences = sparql(query, strip=True)
@@ -129,7 +132,7 @@ def details():
         are passed as parameters to the template correspondences_list.html
     """
 
-    singleton_uri = request.args.get('uri', '')
+    # singleton_uri = request.args.get('uri', '')
     sub_uri = request.args.get('sub_uri', '')
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
@@ -151,7 +154,7 @@ def details():
 
     return render_template('details_list.html',
                             details = details,
-                            pred_uri = singleton_uri,
+                            # pred_uri = singleton_uri,
                             sub_uri = sub_uri,
                             obj_uri = obj_uri,
                             subjectTarget = subjectTarget,
