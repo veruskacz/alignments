@@ -1,0 +1,28 @@
+
+<div class="panel panel-primary">
+    <div class="panel-heading" id="detailsHeading"><h4><strong>Details</strong></h4>
+        <div class="list-group" style='scroll: both; overflow: auto; height: 8em;'>
+            {% for dh in detailHeadings %}
+            <a href="#" class="list-group-item" >
+              <!--<span class="badge alert-info">-->
+               In graph:<span class="list-group-item-heading" style="color:blue"><strong>{{dh.graph_stripped.value}}</strong></span>
+                , the dataset.property
+              <span class="list-group-item-heading" style="color:blue">
+                  <strong>{{dh.subjectsTarget_stripped.value|upper}}.[{{dh.alignsSubjects_stripped.value|lower}}]</strong>
+                </span>
+              aligns with
+              <span class="list-group-item-heading" style="color:blue">
+                  <strong>{{dh.objectsTarget_stripped.value|upper}}.[{{dh.alignsObjects_stripped.value|lower}}]</strong>
+                </span>
+              using method:<span class="list-group-item-heading" style="color:blue"><strong>{{dh.alignsMechanism_stripped.value}}</strong>
+                </span>
+              <!--</span> <br/>-->
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel-body" style='height: 20.5em;'>
+
+    </div>
+</div>
+

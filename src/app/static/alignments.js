@@ -2,8 +2,7 @@
 
 $( document ).ready(function()
 {
-    $('#gl_list_row').hide();
-    $('#rec_list_row').hide();
+    $('#corresponsence_list_row').hide();
 
     $('#menu_list_col a').on('click',function()
     {
@@ -16,14 +15,12 @@ $( document ).ready(function()
     // CALL THE GRAPHS FUNCTION FOR LOADING GRAPHS INTO RESPECTIVE BUTTONS
     $.get('/getgraphs',function(data)
     {
-        $('#gl_list_row').hide();
-        $('#rec_list_row').hide();
+        $('#corresponsence_list_row').hide();
         $('#graphs_list_col').html(data);
 
         $('#startButton').on('click',function()
         {
-            $('#gl_list_row').hide();
-            $('#rec_list_row').hide();
+            $('#corresponsence_list_row').hide();
             window.location.reload(false);
         });
 
@@ -43,8 +40,8 @@ $( document ).ready(function()
             var alignsMechanism = $(this).attr('alignsMechanism');
             var operator = $(this).attr('operator');
 
-            $('#rec_list_col').html('Loading...');
-            $('#rec_list_row').show();
+            $('#corresponsence_list_col').html('Loading...');
+            $('#corresponsence_list_row').show();
 
             // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
             $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
@@ -54,26 +51,11 @@ $( document ).ready(function()
                                               'alignsMechanism': alignsMechanism},function(data)
             {
                 // LOAD THE CORRESPONDENCES DIV WITH THE LIST OF CORRESPONDENCES
-                $('#rec_list_col').html(data);
+                $('#corresponsence_list_col').html(data);
 
-                // $("#rec_list_col span").on('mouseover',function()
-                // {
-                //     var uri = $(this).attr('target');
-                //
-                //     $("a[uri=\""+uri+"\"]").addClass('list-group-item-warning');
-                // });
-
-
-
-                // $("#rec_list_col span").on('mouseout',function()
-                // {
-                //     var uri = $(this).attr('target');
-                //
-                //     $("a[uri=\""+uri+"\"]").removeClass('list-group-item-warning');
-                // });
                 // CLICK ON INDIVIDUAL CORRESPONDENCE TO READ DETAILS ABOUT WHY IT
                 // WAS CREATED AND VALIDATE OR REJECTS IT
-                $("#rec_list_col a").on('click', function()
+                $("#corresponsence_list_col a").on('click', function()
                 {
                     var uri = $(this).attr('uri');
                     var sub_uri = $(this).attr('sub_uri');
@@ -85,27 +67,63 @@ $( document ).ready(function()
                                       'alignsSubjects': alignsSubjects,
                                       'alignsObjects': alignsObjects}
 
-                    $.get('/getdetails',data=data,function(data)
+                    // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
+                    if (operator) // THEN IT IS A LENS
                     {
-                      $('#corresp2_list_col').html(data);
+//                        $.get('/print',data = {'msg': 'Hello'},function(){});
+                        $.get('/getLensDetail',data=data,function(data)
+                        {
+                            // DETAIL liST COLUMN
+                            $('#corresp2_list_col').html(data);
 
-                      $("#srcDataset").on('click', function()
-                      {
-                          $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
-                          {
-                            $('#srcDetails').html(data);
-                          });
-                      });
+                            // SOURCE CLICK
+                            $("#srcDataset").on('click', function()
+                            {
+                              $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
+                              {
+                                $('#srcDetails').html(data);
+                              });
+                            });
 
-                      $("#trgDataset").on('click', function()
-                      {
-                          $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
-                          {
-                            $('#trgDetails').html(data);
-                          });
-                      });
+                             // TARGET CLICK
+                            $("#trgDataset").on('click', function()
+                            {
+                              $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
+                              {
+                                $('#trgDetails').html(data);
+                              });
+                            });
 
-                    });
+                        });
+                    }
+                    else
+                    {
+                        // GEt CORRESPONDENCE DETAILS
+                        $.get('/getdetails',data=data,function(data)
+                        {
+                            // DETAIL liST COLUMN
+                            $('#corresp2_list_col').html(data);
+
+                            // SOURCE CLICK
+                            $("#srcDataset").on('click', function()
+                            {
+                              $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
+                              {
+                                $('#srcDetails').html(data);
+                              });
+                            });
+
+                             // TARGET CLICK
+                            $("#trgDataset").on('click', function()
+                            {
+                              $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
+                              {
+                                $('#trgDetails').html(data);
+                              });
+                            });
+
+                        });
+                    }
 
                     // $('#linktarget5').html(message);
 
@@ -133,8 +151,6 @@ $( document ).ready(function()
 
             })
         })
-
-        $('#gl_list_row').show();
     });
 
 

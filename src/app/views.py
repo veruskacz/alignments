@@ -4,16 +4,29 @@ import logging
 import requests
 import json
 from app import app
+import Queries as Qry
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
+handler = logging.StreamHandler()
+logger.addHandler(handler)
+import xmltodict
+import collections
+from kitchen.text.converters import to_bytes
+import urllib2
+import urllib
 import uuid
 import pprint
 
 ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
+database = "risis"
+host = "localhost:5820"
 
 REASONING_TYPE = 'SL'
 
-log = app.logger
-log.setLevel(logging.DEBUG)
+# log = app.logger
+# log.setLevel(logging.DEBUG)
 
 ### This is old style, but leaving for backwards compatibility with earlier versions of Stardog
 QUERY_HEADERS = {
@@ -35,10 +48,12 @@ PREFIXES =  """
     PREFIX alivocab: <http://risis.eu/alignment/predicate/>
     PREFIX tmpgraph: <http://risis.eu/alignment/temp-match/> """
 
-@app.route('/print')
+@app.route('/print', methods=['GET'])
 def prints():
-    print "Hello"
-    return "Hello"
+    msg = request.args.get('msg', '')
+    print "\n\n\n"
+    print msg
+    return msg
 
 
 @app.route("/")
@@ -112,20 +127,11 @@ def correspondences():
     alignsMechanism = request.args.get('alignsMechanism', '')
     operator = request.args.get('operator', '')
 
-    query = PREFIXES + """
-    select distinct ?sub ?pred ?obj
-    {
-        GRAPH <""" + graph_uri + """>
-        { ?sub ?pred ?obj }
-        GRAPH ?g
-        { ?pred ?p ?o }
-
-    } limit 80
-    """
+    query = Qry.get_correspondences(graph_uri)
     correspondences = sparql(query, strip=True)
 
     return render_template('correspondences_list.html',
-                           operator = operator,
+                            operator = operator,
                             graph_menu = graph_menu,
                             correspondences = correspondences,
                             graph_label = graph_label,
@@ -145,6 +151,7 @@ def details():
     """
 
     # singleton_uri = request.args.get('uri', '')
+
     sub_uri = request.args.get('sub_uri', '')
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
@@ -166,6 +173,43 @@ def details():
 
     return render_template('details_list.html',
                             details = details,
+                            # pred_uri = singleton_uri,
+                            sub_uri = sub_uri,
+                            obj_uri = obj_uri,
+                            subjectTarget = subjectTarget,
+                            objectTarget = objectTarget,
+                            alignsSubjects = alignsSubjects,
+                            alignsObjects = alignsObjects)
+
+
+### CHANGE THE NAME TO -DETAILS-
+@app.route('/getLensDetail', methods=['GET'])
+def detailsLens():
+    """
+    This function is called due to request /getdetails
+    It queries the dataset for both all the correspondences in a certain graph URI
+    Expected Input: uri, label (for the graph)
+    The results, ...,
+        are passed as parameters to the template correspondences_list.html
+    """
+
+    singleton_uri = request.args.get('uri', '')
+    sub_uri = request.args.get('sub_uri', '')
+    obj_uri = request.args.get('obj_uri', '')
+    subjectTarget = request.args.get('subjectTarget', '')
+    objectTarget = request.args.get('objectTarget', '')
+    alignsSubjects = request.args.get('alignsSubjects', '')
+    alignsObjects = request.args.get('alignsObjects', '')
+
+    evi_query = Qry.get_evidences(singleton_uri, "tmpgraph:wasDerivedFrom")
+    evi_matrix = sparql_xml_to_matrix(evi_query)
+    det_query = Qry.get_target_datasets(evi_matrix)
+    # print det_query
+    details = sparql(det_query, strip=True)
+    # print details
+
+    return render_template('lensDetails_list.html',
+                           detailHeadings = details,
                             # pred_uri = singleton_uri,
                             sub_uri = sub_uri,
                             obj_uri = obj_uri,
@@ -213,17 +257,17 @@ def evidence():
     """
 
     singleton_uri = request.args.get('singleton_uri', '')
-
-    query = PREFIXES + """
-    Select distinct ?pred ?obj
-    {
-      GRAPH ?graph
-  	   {
-        <""" + singleton_uri + """> ?pred ?obj
-       }
-    }
-    """
+    # print singleton_uri
+    # evi_query = Qry.get_evidences(singleton_uri, "tmpgraph:wasDerivedFrom")
+    # evi_matrix = sparql_xml_to_matrix(evi_query)
+    # det_query = Qry.get_target_datasets(evi_matrix)
+    # print det_query
+    # detail_mat = sparql(det_query, strip=True)
+    # print detail_mat
+    #
+    query = Qry.get_evidences(singleton_uri, predicate=None)
     evidences = sparql(query, strip=True)
+
 
     query = PREFIXES + """
     Select distinct ?nGood ?nBad ?nStrength
@@ -324,7 +368,7 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
         for r in result_dict['results']['bindings']:
             new_result = {}
             for k, v in r.items():
-                print k, v
+                # print k, v
                 if v['type'] == 'uri' and not k+'_label' in r.keys():
                     new_result[k+'_label'] = {}
                     new_result[k+'_label']['type'] = 'literal'
@@ -347,3 +391,257 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
         return new_results
     else :
         return result_dict['results']['bindings']
+
+
+def sparql_xml_to_matrix(query):
+
+    name_index = dict()
+
+    if type(query) is not str:
+        logger.warning("THE QUERY NEEDS TO BE OF TYPE STRING.")
+        # logger.warning(query)
+        return
+
+    if (query is None) or (query == ""):
+        logger.info("Empty query")
+        return None
+
+    # start_time = time.time()
+    matrix = None
+    logger.info("XML RESULT TO TABLE")
+    # print query
+
+    if query.lower().__contains__("optional") is True:
+        return None
+
+    response = endpoint(query)
+    logger.info("1. RESPONSE OBTAINED")
+    # print response
+
+    # DISPLAYING THE RESULT
+
+    if response is not None:
+
+        logger.info("2. RESPONSE IS NOT ''NONE''")
+
+        try:
+            xml_doc = xmltodict.parse(response)
+            # print "3. FROM XML TO DOC IN {}".format(str(time.time() - start_time))
+
+            # VARIABLES
+            # print "4. GETTING VARIABLE'S LIST FROM XML_DOC"
+            variables_list = xml_doc['sparql']['head']['variable']
+            # print "Variable List", variables_list
+            # print "5. EXTRACTED IN {} SECONDS".format(str(time.time() - start_time))
+
+            variables_size = len(variables_list)
+            # print "6. VARIABLE SIZE:", variables_size
+
+            # RESULTS
+            # print "7. GETTING RESULT'S LIST FROM XML_DOC"
+            results = xml_doc['sparql']['results']
+            # print "8. IN {}".format(str(time.time() - start_time))
+
+            if results is not None:
+                # print "9. RESULT LIST IS NOT NONE"
+                results = results['result']
+                # print results
+                # print type(results)
+            else:
+                "NO RESULT FOR THE QUERY:"
+                # print query
+
+            # SINGLE RESULT
+            if type(results) is collections.OrderedDict:
+
+                # Creates a list containing h lists, each of w items, all set to 0
+                # INITIALIZING THE MATRIX
+                w, h = variables_size, 2
+                # print "Creating matrix with size {} by {}".format(w, h)
+                # x*y*0 to avoid weak error say x and y where not used
+                matrix = [[x*y*0 for x in range(w)] for y in range(h)]
+                # print matrix
+                col = -1
+
+                if variables_size == 1:
+                    for name, variable in variables_list.items():
+                        col += 1
+                        # print variable
+                        matrix[0][col] = variable
+                    # print matrix
+
+                    # RECORDS
+                    for key, value in results.items():
+                        matrix[1][0] = value.items()[1][1]
+
+                else:
+                    # print "Variable greater than 1"
+                    # HEADER
+                    for variable in variables_list:
+                        for key, value in variable.items():
+                            col += 1
+                            matrix[0][col] = value
+                            name_index[to_bytes(value)] = col
+                            # print "{} was inserted".format(value)
+                            # print matrix
+
+                    # RECORDS
+                    # print results.items()
+                    for key, value in results.items():
+                        # COLUMNS
+                        # print "Key: ", key
+                        # print "Value: ", value
+                        for i in range(variables_size):
+                            # print "value Items: ", value.items()[i][1]
+                            # print "Length:", len(value.items())
+                            if type(value) is list:
+                                # print value
+                                data = value[i]
+                                index = name_index[data['@name']]
+                                item = value[index].items()[1][1]
+                                # print data['@name'], name_index[data['@name']]
+                            elif type(value) is collections.OrderedDict:
+                                item = value.items()[i][1]
+
+                            if type(item) is collections.OrderedDict:
+                                # print "Data is a collection"
+                                # print "{} was inserted".format(data.items()[1][1])
+                                matrix[1][i] = item.items()[1][1]
+                            else:
+                                # print "data is regular"
+                                # print "{} was inserted".format(data)
+                                matrix[1][i] = item
+                                # print matrix
+
+                    # print "The matrix is: {}".format(matrix)
+
+            # >>> MORE THAN ONE RESULT
+            if type(results) is list:
+                # print "THE LIST CONTAINS MORE THAN ONE RESULTS"
+                row = 0
+                columns = -1
+                row_size = len(results)
+
+                # Creates a list containing h lists, each of w items, all set to 0
+                w, h = variables_size, row_size + 1
+
+                # print "INITIALIZING THE MATRIX FOR: [{}][{}]".format(h, w)
+                matrix = [[x*y*0 for x in range(w)] for y in range(h)]
+
+                # HEADER
+                # print "UPDATING MATRIX'S HEADER"
+                for variable in variables_list:
+
+                    if type(variable) is collections.OrderedDict:
+                        for key, value in variable.items():
+                            columns += 1
+                            # print "COLUMN: ", columns, value
+                            # print value
+                            matrix[0][columns] = to_bytes(value)
+                            name_index[to_bytes(value)] = columns
+                    else:
+                        # print "TYPE", type(variables_list)
+                        # print "value:", variables_list.items()[0][1]
+                        columns += 1
+                        # print "COLUMN: ", columns
+                        matrix[0][columns] = to_bytes(variables_list.items()[0][1])
+
+                # RECORDS
+                # print "UPDATING MATRIX WITH VARIABLES' VALUES"
+                for result in results:
+                    # ROWS
+                    if variables_size == 1:
+                        for key, value in result.items():
+                            row += 1
+                            for c in range(variables_size):
+                                # print value.items()[1][1]
+                                item = value.items()[1][1]
+                                matrix[row][0] = item
+                    else:
+                        for key, value in result.items():
+                            # COLUMNS
+                            # print type(value)
+                            row += 1
+                            # value is a list
+                            for c in range(variables_size):
+                                # print row, c
+                                # print value[c].items()[1][1]
+                                data = value[c]
+                                # print data['@name'], name_index[data['@name']]
+                                index = name_index[data['@name']]
+                                item = data.items()[1][1]
+
+                                if type(item) is collections.OrderedDict:
+                                    matrix[row][index] = to_bytes(item.items()[1][1])
+                                    # print "r{} c{} v{}".format(row, c, data.items()[1][1])
+                                else:
+                                    matrix[row][index] = to_bytes(item)
+                                    # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
+            # print "DONE"
+            # print "out with: {}".format(matrix)
+            return matrix
+
+        except Exception as err:
+            logger.warning("\nUNACCEPTED ERROR IN THE RESPONSE.")
+            logger.warning(err)
+            return None
+
+    else:
+        logger.warning("NO RESPONSE")
+        return None
+
+def endpoint(query):
+
+    """
+        param query         : The query that is to be run against the SPARQL endpoint
+        param database_name : The name of the database () in with the named-graph resides
+        param host          : the host (server) name
+        return              : returns the result of the query in the default format of the endpoint.
+                            In the case of STARDOG, the sever returns an XML result.
+    """
+
+    q = to_bytes(query)
+    # print q
+    # Content-Type: application/json
+    # b"Accept": b"text/json"
+    # 'output': 'application/sparql-results+json'
+    # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
+    # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
+    #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
+
+    url = b"http://{}/annex/{}/sparql/query?".format(host, database)
+    # print url
+    params = urllib.urlencode(
+        {b'query': q, b'format': b'application/sparql-results+json',
+         b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
+    headers = {b"Content-Type": b"application/x-www-form-urlencoded"}
+
+    """
+        Authentication
+    """
+    user = "admin"
+    password = "admin"
+    # password = "admin"
+    passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    passman.add_password(None, url, user, password)
+    urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
+
+    request = urllib2.Request(url, data=params, headers=headers)
+
+    try:
+        response = urllib2.urlopen(request)
+        result = response.read()
+        # print result
+        return result
+
+    except Exception as err:
+        if str(err).__contains__("No connection") is True:
+            logger.warning(err)
+            return "No connection"
+
+        logger.warning(err)
+        print "\nTHERE IS AN ERROR IN THIS QUERY"
+        print query
+        return None
+
+

@@ -2,12 +2,12 @@
 <span class="list-group-item-heading" > -->
 <div class="list-group" style='scroll: both; overflow: auto; height: 15em;'>
         {% for e in dataDetails|sort(attribute='pred') %}
-            <a href="#" class="list-group-item" >
+            <li class="list-group-item" >
                 <span class="list-group-item-heading">{{ e.pred_stripped.value }}: </span>
                 <span class="list-group-item-heading" style="color:blue">
                   <strong>{{ e.obj.value }}</strong>
                 </span>
-            </a>
+            </li>
         {% endfor %}
 </div>
 <!-- </span></a> -->
