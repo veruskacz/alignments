@@ -3,6 +3,9 @@
       <strong><span>Evidence</span></strong>
       {% for vc in validation_counts %}
       <small><div align="right">
+             {% if vc.nStrength.value != '0' %}
+             <span class="badge alert-success">{{vc.nStrength.value}} Strength</span>
+              {% endif%}
              <span class="badge alert-success">{{vc.nGood.value}} Accepted</span>
              <span class="badge alert-danger">{{vc.nBad.value}} Rejected</span></div></small>
       {% endfor %}

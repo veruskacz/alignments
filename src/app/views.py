@@ -27,7 +27,19 @@ UPDATE_HEADERS = {
                  }
 
 PREFIXES =  """
-            """
+
+    PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX linkset: <http://risis.eu/linkset/>
+    PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX alivocab: <http://risis.eu/alignment/predicate/>
+    PREFIX tmpgraph: <http://risis.eu/alignment/temp-match/> """
+
+@app.route('/print')
+def prints():
+    print "Hello"
+    return "Hello"
+
 
 @app.route("/")
 def index():
@@ -49,18 +61,14 @@ def graphs():
                     ?alignsSubjects ?alignsObjects ?alignsMechanism
     WHERE
     {
-        GRAPH ?g
-        {
-            ?s ?p ?o
-        }
-
 		?g
-      			<http://rdfs.org/ns/void#subjectsTarget> ?subjectTargetURI;
-      			<http://rdfs.org/ns/void#objectsTarget> ?objectTargetURI;
-      			<http://rdfs.org/ns/void#triples> ?triples;
-      			<http://risis.eu/alignment/predicate/alignsSubjects> ?alignsSubjects;
-      			<http://risis.eu/alignment/predicate/alignsObjects> ?alignsObjects;
-                <http://risis.eu/alignment/predicate/alignsMechanism> ?alignsMechanism.
+		    rdf:type	 void:Linkset ;
+            <http://rdfs.org/ns/void#subjectsTarget> ?subjectTargetURI;
+            <http://rdfs.org/ns/void#objectsTarget> ?objectTargetURI;
+            <http://rdfs.org/ns/void#triples> ?triples;
+            <http://risis.eu/alignment/predicate/alignsSubjects> ?alignsSubjects;
+            <http://risis.eu/alignment/predicate/alignsObjects> ?alignsObjects;
+            <http://risis.eu/alignment/predicate/alignsMechanism> ?alignsMechanism.
 
         FILTER regex(str(?g), 'linkset', 'i')
         BIND(strafter(str(?g),'linkset/') AS ?g_label)
@@ -71,14 +79,14 @@ def graphs():
     linksets = sparql(query, strip=True)
 
     query2 = PREFIXES + """
-        SELECT DISTINCT ?g ?g_label WHERE
+        SELECT DISTINCT ?g ?g_label ?triples ?operator
+        WHERE
         {
-            GRAPH ?g
-            {
-                ?s ?singleton ?o
-            }
+            ?g
+                rdf:type	        bdb:Lens ;
+                alivocab:operator   ?operator ;
+                void:triples        ?triples .
 
-            FILTER regex(str(?g), 'lens', 'i')
             BIND(strafter(str(?g),'lens/') AS ?g_label)
         }
         """
@@ -97,11 +105,12 @@ def correspondences():
     The results, ...,
         are passed as parameters to the template correspondences_list.html
     """
-
+    graph_menu = request.args.get('graph_menu', '')
     graph_uri = request.args.get('uri', '')
     graph_label = request.args.get('label','')
     graph_triples = request.args.get('graph_triples','')
     alignsMechanism = request.args.get('alignsMechanism', '')
+    operator = request.args.get('operator', '')
 
     query = PREFIXES + """
     select distinct ?sub ?pred ?obj
@@ -116,10 +125,13 @@ def correspondences():
     correspondences = sparql(query, strip=True)
 
     return render_template('correspondences_list.html',
+                           operator = operator,
+                            graph_menu = graph_menu,
                             correspondences = correspondences,
                             graph_label = graph_label,
                             graph_triples = graph_triples,
                             alignsMechanism = alignsMechanism)
+
 
 ### CHANGE THE NAME TO -DETAILS-
 @app.route('/getdetails', methods=['GET'])
@@ -162,6 +174,7 @@ def details():
                             alignsSubjects = alignsSubjects,
                             alignsObjects = alignsObjects)
 
+
 ### CHANGE THE NAME TO -DETAILS-
 @app.route('/getdatadetails', methods=['GET'])
 def dataDetails():
@@ -189,6 +202,7 @@ def dataDetails():
     return render_template('datadetails_list.html',
                             dataDetails = dataDetails)
 
+
 @app.route('/getevidence', methods=['GET'])
 def evidence():
     """
@@ -212,7 +226,7 @@ def evidence():
     evidences = sparql(query, strip=True)
 
     query = PREFIXES + """
-    Select distinct ?nGood ?nBad
+    Select distinct ?nGood ?nBad ?nStrength
     {
     	{
          Select (count(?accepted) AS ?nGood)
@@ -231,6 +245,15 @@ def evidence():
            }
          }
         }
+
+        {
+         Select (count(?derivedFrom) AS ?nStrength)
+         {
+          GRAPH ?graph
+      	   { <""" + singleton_uri + """> tmpgraph:wasDerivedFrom ?derivedFrom
+           }
+         }
+        }
     }
     """
     validation_counts = sparql(query, strip=True)
@@ -240,6 +263,7 @@ def evidence():
                             singleton_uri = singleton_uri,
                             evidences = evidences,
                             validation_counts = validation_counts)
+
 
 @app.route('/updateevidence', methods=['GET'])
 def updateEvidence():
@@ -272,7 +296,6 @@ def updateEvidence():
     #render_template('evidence_list.html',
     #                        singleton_uri = singleton_uri,
     #                        evidences = evidences)
-
 
 
 def sparql_update(query, endpoint_url = UPDATE_URL):

@@ -2,8 +2,27 @@
     <div class="col-md-12">
         <!-- <h4>Guidelines</h4>
         <p>Click the 'Retrieve Guidelines' button to retrieve a list of the guidelines in your triple store</p> -->
-        <a class="btn btn-default" id="startButton">Retrieve graphs</a>
-        <span id="gl_list_col"></span>
+        <!--<a class="btn btn-default" id="modetButton">Mode: evaluation</a>-->
+
+        <!-- This is the Mode dropdown button-->
+        <span id="menu_list_col">
+        <button class="btn btn-default dropdown-toggle" type="button" id="modeDropdown"
+            data-toggle='dropdown'>Mode: Investigation {{test}} <span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="modeDropdown">
+                <li role="presentation">
+                    <a href="#" role="menuitem" tabindex="-1">Mode: Investigation</a>
+                </li>
+                <li role="presentation">
+                    <a href="#" role="menuitem" tabindex="-1">Mode: Creation</a>
+                </li>
+            </ul>
+        </span>
+
+        <!-- This is the span which will include the buttons related to specific mode -->
+        <span id="graphs_list_col"></span>
+
+        <!--This is the refresh button -->
+         <a class="btn btn-default" id="startButton">Refresh graphs</a>
     </div>
 </div>
 <!-- <div class="row" id="gl_list_row">

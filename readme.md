@@ -6,7 +6,7 @@ This web application can show off the coolness of the Sngleton*** model develope
 
 * Make sure you have `pip` and `virtualenv` installed (`easy_install pip`, `pip install virtualenv`)
 * Go to the directory in which you cloned this Git repository, and install a virtual environment: `virtualenv .`
-* Activate the virtual environment: `source bin/activate` (linux-based) | ?? (windows)
+* Activate the virtual environment: `source bin/activate` (linux-based) | Scripts\activate.bat (windows)
 * Install the required packages: `pip install -r requirements.txt`
 * Make sure you have a properly installed Stardog server running, with **security disabled** (`stardog-admin server start --disable-security`)
 * Inside the `src` directory, run `python run.py`

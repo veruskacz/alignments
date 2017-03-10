@@ -2,54 +2,64 @@
     <button class="btn btn-primary dropdown-toggle" type="button" id="linksetsDropdown"
             data-toggle='dropdown'>Linksets<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="linksetsDropdown">
-{% for linkset in linksets %}
+        {% for linkset in linksets %}
         <li role="presentation">
             <a href="#" role="menuitem" tabindex="-1"
+               graph_menu='linkset'
                uri='{{linkset.g.value }}'
                label='{{linkset.g_label.value }}'
                subjectTarget='{{linkset.subjectTarget.value }}'
                objectTarget='{{linkset.objectTarget.value }}'
                subjectTarget_uri='{{linkset.subjectTargetURI.value }}'
                objectTarget_uri='{{linkset.objectTargetURI.value }}'
-               triples = '{{linkset.triples.value}}',
-               alignsSubjects = '{{linkset.alignsSubjects.value}}',
-               alignsObjects = '{{linkset.alignsObjects.value}}',
+               triples = '{{linkset.triples.value}}'
+               alignsSubjects = '{{linkset.alignsSubjects.value}}'
+               alignsObjects = '{{linkset.alignsObjects.value}}'
                alignsMechanism = '{{linkset.alignsMechanism_stripped.value}}'>
             {{ linkset.g_label.value }}</a>
         </li>
-{% endfor %}
+        {% endfor %}
     </ul>
 </span>
+
 <span class="dropdown">
     <button class="btn btn-primary dropdown-toggle" type="button" id="lensesDropdown"
             data-toggle='dropdown'>Lenses<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="lensesDropdown">
-{% for lens in lenses %}
-        <li role="presentation"><a href="#" uri='{{lens.g.value }}'
-            label='{{lens.g_label.value }}' role="menuitem"
+        {% for lens in lenses %}
+        <li role="presentation">
+            <a href="#"
+               graph_menu = 'lens'
+               uri='{{lens.g.value }}'
+               triples = '{{lens.triples.value}}'
+               label='{{lens.g_label.value }}'
+               role="menuitem"
+               operator='{{ lens.operator.value }}'
             tabindex="-1">{{ lens.g_label.value }}</a></li>
-{% endfor %}
+        {% endfor %}
     </ul>
 </span>
+
 <span class="dropdown">
     <button class="btn btn-primary dropdown-toggle" type="button" id="viewDropdown"
             data-toggle='dropdown'>Views<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="viewDropdown">
-{% for view in views %}
+        {% for view in views %}
         <li role="presentation"><a href="#" uri='{{view.g.value }}'
             label='{{view.g_label.value }}' role="menuitem"
             tabindex="-1">{{ view.g_label.value }}</a></li>
-{% endfor %}
+        {% endfor %}
     </ul>
 </span>
+
 <span class="dropdown">
     <button class="btn btn-primary dropdown-toggle" type="button" id="designViewDropdown"
             data-toggle='dropdown'>Design Views<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="designViewDropdown">
-{% for dv in designViews %}
+        {% for dv in designViews %}
         <li role="presentation"><a href="#" uri='{{dv.g.value }}'
             label='{{dv.g_label.value }}' role="menuitem"
             tabindex="-1">{{ dv.g_label.value }}</a></li>
-{% endfor %}
+        {% endfor %}
     </ul>
 </span>

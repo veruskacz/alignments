@@ -4,8 +4,16 @@
         <div class="panel-heading">
           <h3>Correspondences</h3>
           <span class="badge alert-info"> {{ graph_label }} </span> contains
-          <span class="badge alert-success">{{ graph_triples }}</span> triples, aligned using
-          <span class="badge alert-info"> {{ alignsMechanism }}</span> mechanism
+          <span class="badge alert-success">{{ graph_triples }}</span> triples
+            {% if graph_menu == 'linkset'%}
+          , aligned using the <span class="badge alert-info"> {{ alignsMechanism|upper }}</span> mechanism.
+            {%endif%}
+
+            {% if graph_menu == 'lens'%}
+           generated using the <span class="badge alert-info"> {{ operator|upper }}</span> operator.
+            {%endif%}
+
+
           <small>
                 </small></div>
         <div class="panel-body" style='scroll: both; overflow: auto; height: 57em;'>
