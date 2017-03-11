@@ -4,7 +4,6 @@ import logging
 import requests
 import json
 from app import app
-import Queries as Qry
 import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -17,6 +16,9 @@ import urllib2
 import urllib
 import uuid
 import pprint
+# local
+import Queries as Qry
+
 
 ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
@@ -643,5 +645,3 @@ def endpoint(query):
         print "\nTHERE IS AN ERROR IN THIS QUERY"
         print query
         return None
-
-

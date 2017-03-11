@@ -61,7 +61,7 @@ $( document ).ready(function()
                     var sub_uri = $(this).attr('sub_uri');
                     var obj_uri = $(this).attr('obj_uri');
 
-                    var data = data={'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
+                    var data = {'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
                                       'subjectTarget': subjectTarget,
                                       'objectTarget': objectTarget,
                                       'alignsSubjects': alignsSubjects,
@@ -104,9 +104,17 @@ $( document ).ready(function()
                             // DETAIL liST COLUMN
                             $('#corresp2_list_col').html(data);
 
+                            // var data2 = {'subjectTarget': subjectTarget,
+                            //             'alignsSubjects': subjectTarget,
+                            //             'objectTarget': subjectTarget,
+                            //             'alignsObjects': subjectTarget}
+                            // $('#detailsHeading').html(data2);
+
                             // SOURCE CLICK
                             $("#srcDataset").on('click', function()
                             {
+                              // var message = data2['subjectTarget']; //$('#messageInput2').val();
+                            	// $('#linktarget5').html(message);
                               $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
                               {
                                 $('#srcDetails').html(data);
@@ -155,5 +163,3 @@ $( document ).ready(function()
 
 
 });
-
-

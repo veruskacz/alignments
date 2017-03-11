@@ -12,3 +12,5 @@ rdflib==4.1.2
 requests==2.4.1
 six==1.8.0
 wsgiref==0.1.2
+xmltodict==0.10.2
+kitchen==1.2.4
