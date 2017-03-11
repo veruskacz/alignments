@@ -4,27 +4,31 @@
       {{ subjectTarget }} <span class="badge alert-info">{{ alignsSubjects }}</span> aligns with <br/>
       {{ objectTarget }} <span class="badge alert-info">{{ alignsObjects }}</span>
     </div>
-    <div class="panel-body" style='height: 20.5em;'>
-        <TABLE style='width: 52em;'>
+    <div class="panel-body" style='height: 20em; width: 10em;'>
+        <TABLE style='width: 20em;'>
           <TR>
              <TH style='width: 26em;'>
-                 <span class="list-group-item-heading">{{ subjectTarget }}</span>
+                 <span class="list-group-item-heading">
+                     <span class="badge alert-default">{{ subjectTarget }}</span></span>
               </TH>
              <TH style='width: 26em;'>
-                 <span class="list-group-item-heading">{{ objectTarget }}</span>
+                 <span class="list-group-item-heading">
+                     <span class="badge alert-default">{{ objectTarget }}</span></span>
              </TH>
           <TR>
             {% for d in details %}
               <TD>
-               <a href="#" class="list-group-item" id="srcDataset" uri='{{ sub_uri }}'>
-                 <span class="list-group-item-heading">
-                   <span class="badge alert-default">{{ d.srcPredValue.value }}</span>
-                 </span></a>
+               <li class="list-group-item" id="srcDataset" uri='{{ sub_uri }}'>
+               {{alignsSubjects}} =
+                 <span class="list-group-item-heading" style="color:blue">
+                     <strong>{{ d.srcPredValue.value }}</strong>
+                 </span></li>
               </TD>
-             <TD><a href="#" class="list-group-item" id="trgDataset" uri='{{ obj_uri }}'>
-                 <span class="list-group-item-heading">
-                   <span class="badge alert-default">{{ d.srcPredValue.value }}</span>
-                 </span></a>
+             <TD><li class="list-group-item" id="trgDataset" uri='{{ obj_uri }}'>
+                 {{alignsObjects}} =
+                 <span class="list-group-item-heading" style="color:blue">
+                     <strong>{{ d.srcPredValue.value }}</strong></span>
+                 </li>
              </TD>
             {% endfor %}
           <TR>
