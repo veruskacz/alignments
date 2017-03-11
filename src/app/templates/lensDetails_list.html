@@ -1,4 +1,4 @@
-
+<!--<div id="linktarget5" class='well'>This is where your message will be copied to.</div>-->
 <div class="panel panel-primary">
     <div class="panel-heading" id="detailsHeading"><h4><strong>Details</strong></h4>
         <div class="list-group" style='scroll: both; overflow: auto; height: 8em;'>
@@ -21,8 +21,54 @@
             {% endfor %}
         </div>
     </div>
-    <div class="panel-body" style='height: 20.5em;'>
-
+    <div class="panel-body" style='height: 25.5em;'>
+        <TABLE style='width: 52em;'>
+          <TR>
+             <TH style='width: 26em;'>
+                 <span class="list-group-item-heading">{{ sub_uri }}</span>
+              </TH>
+             <TH style='width: 26em;'>
+                 <span class="list-group-item-heading">{{ obj_uri }}</span>
+             </TH>
+        {% for r in rows %}
+          <TR style= 'width: 50em;'>
+              <TD style='width: 10em;'>
+              {% if (r.col1) %}
+               <li class="list-group-item" id="srcDataset" uri='{{ sub_uri }}' dataset = '{{ r.col1.dataset }}'
+                   style='scroll: both; overflow: auto; height: 7em;'>
+                 <span class="list-group-item-heading">
+                   <span class="badge alert-default">{{ r.col1.dataset_stripped|upper }}</span><br/>
+                     {% for elem in r.col1.predicates %}
+                        {{ elem.pred }} =
+                        <span class="list-group-item-heading" style="color:blue">
+                            <strong> {{ elem.value }} </strong>
+                        </span> <br/>
+                     {% endfor %}
+                 </span></li>
+              {% endif %}
+              </TD>
+             <TD style='width: 10em;'>
+              {% if (r.col2) %}
+                 <li class="list-group-item" id="trgDataset" uri='{{ obj_uri }}' dataset = '{{ r.col2.dataset }}'
+                 style='scroll: both; overflow: auto; height: 7em;'>
+                 <span class="list-group-item-heading">
+                   <span class="badge alert-default">{{ r.col2.dataset_stripped|upper }}</span><br/>
+                     {% for elem in r.col2.predicates %}
+                        {{ elem.pred }} =
+                     <span class="list-group-item-heading" style="color:blue">
+                            <strong> {{ elem.value }} </strong>
+                        </span> <br/>
+                     {% endfor %}
+                 </span></li>
+              {% endif %}
+             </TD>
+          <TR>
+        {% endfor %}
+             <TD id="srcDetails">
+              </TD>
+             <TD id="trgDetails">
+              </TD>
+        </TABLE>
     </div>
 </div>
 

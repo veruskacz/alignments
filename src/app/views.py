@@ -14,6 +14,7 @@ import collections
 from kitchen.text.converters import to_bytes
 import urllib2
 import urllib
+import re
 import uuid
 import pprint
 # local
@@ -22,8 +23,8 @@ import Queries as Qry
 
 ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
-database = "risis"
-host = "localhost:5820"
+DATABASE = "risis"
+HOST = "localhost:5820"
 
 REASONING_TYPE = 'SL'
 
@@ -71,45 +72,13 @@ def graphs():
     The results, two lists of uris and labels,
         are passed as parameters to the template graphs_list.html
     """
-
-    query = PREFIXES + """
-    SELECT DISTINCT ?g ?g_label ?subjectTargetURI ?subjectTarget
-                    ?objectTargetURI ?objectTarget ?triples
-                    ?alignsSubjects ?alignsObjects ?alignsMechanism
-    WHERE
-    {
-		?g
-		    rdf:type	 void:Linkset ;
-            <http://rdfs.org/ns/void#subjectsTarget> ?subjectTargetURI;
-            <http://rdfs.org/ns/void#objectsTarget> ?objectTargetURI;
-            <http://rdfs.org/ns/void#triples> ?triples;
-            <http://risis.eu/alignment/predicate/alignsSubjects> ?alignsSubjects;
-            <http://risis.eu/alignment/predicate/alignsObjects> ?alignsObjects;
-            <http://risis.eu/alignment/predicate/alignsMechanism> ?alignsMechanism.
-
-        FILTER regex(str(?g), 'linkset', 'i')
-        BIND(strafter(str(?g),'linkset/') AS ?g_label)
-        BIND(UCASE(strafter(str(?subjectTargetURI),'dataset/')) AS ?subjectTarget)
-        BIND(UCASE(strafter(str(?objectTargetURI),'dataset/')) AS ?objectTarget)
-    }
-    """
-    linksets = sparql(query, strip=True)
-
-    query2 = PREFIXES + """
-        SELECT DISTINCT ?g ?g_label ?triples ?operator
-        WHERE
-        {
-            ?g
-                rdf:type	        bdb:Lens ;
-                alivocab:operator   ?operator ;
-                void:triples        ?triples .
-
-            BIND(strafter(str(?g),'lens/') AS ?g_label)
-        }
-        """
-
-    lenses = sparql(query2, strip=True)
-
+    # GET QUERY ABOUT LINKSETS AND LENSES
+    linkset_query = Qry.get_graph_linkset()
+    lens_query = Qry.get_graph_lens()
+    # RUN QUERIES AGAINST ENDPOINT
+    linksets = sparql(linkset_query, strip=True)
+    lenses = sparql(lens_query, strip=True)
+    # SEND BAK RESULTS
     return render_template('graphs_list.html',linksets = linksets, lenses = lenses)
 
 
@@ -129,8 +98,8 @@ def correspondences():
     alignsMechanism = request.args.get('alignsMechanism', '')
     operator = request.args.get('operator', '')
 
-    query = Qry.get_correspondences(graph_uri)
-    correspondences = sparql(query, strip=True)
+    corresp_query = Qry.get_correspondences(graph_uri)
+    correspondences = sparql(corresp_query, strip=True)
 
     return render_template('correspondences_list.html',
                             operator = operator,
@@ -153,26 +122,17 @@ def details():
     """
 
     # singleton_uri = request.args.get('uri', '')
-
+    # RETRIEVE VARIABLES
     sub_uri = request.args.get('sub_uri', '')
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
     objectTarget = request.args.get('objectTarget', '')
     alignsSubjects = request.args.get('alignsSubjects', '')
     alignsObjects = request.args.get('alignsObjects', '')
-
-    query = PREFIXES + """
-    select distinct *
-    {
-        graph ?gsource
-        { <""" + sub_uri + """> <""" + alignsSubjects + """> ?srcPredValue }
-
-        graph ?gtarget
-        { <""" + obj_uri + """> <""" + alignsObjects + """> ?trgPredValue }
-    }
-    """
+    # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
+    query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjects, alignsObjects)
     details = sparql(query, strip=True)
-
+    # RETURN THE RESULT
     return render_template('details_list.html',
                             details = details,
                             # pred_uri = singleton_uri,
@@ -180,8 +140,8 @@ def details():
                             obj_uri = obj_uri,
                             subjectTarget = subjectTarget,
                             objectTarget = objectTarget,
-                            alignsSubjects = alignsSubjects,
-                            alignsObjects = alignsObjects)
+                            alignsSubjects = get_URI_local_name(alignsSubjects),
+                            alignsObjects = get_URI_local_name(alignsObjects))
 
 
 ### CHANGE THE NAME TO -DETAILS-
@@ -207,14 +167,100 @@ def detailsLens():
     evi_matrix = sparql_xml_to_matrix(evi_query)
     det_query = Qry.get_target_datasets(evi_matrix)
     # print det_query
+    # print "\n\n\n\n\n"
     details = sparql(det_query, strip=True)
-    # print details
+
+
+    datasets_dict = dict()
+    for i in range(len(details)):
+
+        # DATASETS
+        src_dataset = details[i]['subjectsTarget']['value']
+        trg_dataset = details[i]['objectsTarget']['value']
+
+        # ALIGNED PREDICATES
+        src_aligns = details[i]['alignsSubjects']['value']
+        trg_aligns = details[i]['alignsObjects']['value']
+
+        src_resource = details[i]['sub']['value']
+        trg_resource = details[i]['obj']['value']
+
+        # LOAD THE DICTIONARY WITH UNIQUE DATASETS AS KEY
+        # AND LIST OF UNIQUE ALIGNED PREDICATES AS VALUE
+        if src_dataset not in datasets_dict:
+            datasets_dict[src_dataset] = (src_resource, [src_aligns], [])
+        else:
+            (res, align_list, pred_values) = datasets_dict[src_dataset]
+            if src_aligns not in align_list:
+                # datasets_dict[src_dataset] = (res, align_list+[src_aligns])
+                align_list += [src_aligns]
+        print datasets_dict
+
+        if trg_dataset not in datasets_dict:
+            datasets_dict[trg_dataset] = (trg_resource, [trg_aligns], [])
+        else:
+            (res, align_list, pred_values) = datasets_dict[trg_dataset]
+            if trg_aligns not in align_list:
+                align_list += [trg_aligns]
+
+    # FOR EACH ALIGNED PREDICATE, GET IT DESCRIPTION VALUE
+    sub_datasets = []
+    obj_datasets = []
+    for dataset, (res, align_list, pred_values)  in datasets_dict.items():
+        # print type(predicates)
+        val_query = Qry.get_resource_description(dataset, res, align_list)
+        values_matrix = sparql_xml_to_matrix(val_query)
+
+        s = u'resource identifier'
+        if s in align_list:
+            align_list.remove(s)
+        # print "\n\n",align_list
+        # print values_matrix[1]
+
+        if res == sub_uri:
+            sub_datasets += [dataset]
+        else: ## == obj_uri
+            obj_datasets += [dataset]
+
+        for i in range(len(align_list)):
+            # print align_list[i], "=", values_matrix[1][i]
+            pred_value = {'pred': get_URI_local_name(align_list[i]), 'value':values_matrix[1][i]}
+            pred_values += [pred_value]
+            # datasets_dict[dataset] = (res, align_list, pred_values)
+
+
+    # print datasets_dict
+    # print "\n\n\n"
+    # print "HERE:", sub_datasets, obj_datasets
+
+    rows = []
+    for i in range(max(len(sub_datasets),len(sub_datasets))):
+        if i < len(sub_datasets):
+            (res, align_list, pred_values) = datasets_dict[sub_datasets[i]]
+            col1 = {'dataset': sub_datasets[i],
+                    'dataset_stripped': get_URI_local_name(sub_datasets[i]),
+                    'predicates': pred_values}
+        else:
+            col1 = ""
+        if i < len(obj_datasets):
+            (res, align_list, pred_values) = datasets_dict[obj_datasets[i]]
+            col2 = {'dataset': obj_datasets[i],
+                    'dataset_stripped': get_URI_local_name(obj_datasets[i]),
+                    'predicates': pred_values}
+        else:
+            col2 = ""
+        rows += [{'col1': col1, 'col2': col2}]
+
+    # print rows
 
     return render_template('lensDetails_list.html',
                            detailHeadings = details,
                             # pred_uri = singleton_uri,
+                           rows = rows,
                             sub_uri = sub_uri,
                             obj_uri = obj_uri,
+                            sub_datasets = sub_datasets,
+                            obj_datasets = obj_datasets,
                             subjectTarget = subjectTarget,
                             objectTarget = objectTarget,
                             alignsSubjects = alignsSubjects,
@@ -235,13 +281,15 @@ def dataDetails():
     resource_uri = request.args.get('resource_uri', '')
     dataset_uri = request.args.get('dataset_uri', '')
 
-    query = PREFIXES + """
-    select distinct *
-    {
-        graph <""" + dataset_uri + """>
-        { <""" + resource_uri + """> ?pred ?obj }
-    }
-    """
+    # query = PREFIXES + """
+    # select distinct *
+    # {
+    #     graph <""" + dataset_uri + """>
+    #     { <""" + resource_uri + """> ?pred ?obj }
+    # }
+    # """
+    query = Qry.get_resource_description(dataset_uri, resource_uri, predicate=None)
+    print "\n\nQEURY:", query
     dataDetails = sparql(query, strip=True)
 
 
@@ -259,14 +307,6 @@ def evidence():
     """
 
     singleton_uri = request.args.get('singleton_uri', '')
-    # print singleton_uri
-    # evi_query = Qry.get_evidences(singleton_uri, "tmpgraph:wasDerivedFrom")
-    # evi_matrix = sparql_xml_to_matrix(evi_query)
-    # det_query = Qry.get_target_datasets(evi_matrix)
-    # print det_query
-    # detail_mat = sparql(det_query, strip=True)
-    # print detail_mat
-    #
     query = Qry.get_evidences(singleton_uri, predicate=None)
     evidences = sparql(query, strip=True)
 
@@ -592,6 +632,7 @@ def sparql_xml_to_matrix(query):
         logger.warning("NO RESPONSE")
         return None
 
+
 def endpoint(query):
 
     """
@@ -611,7 +652,7 @@ def endpoint(query):
     # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
     #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
 
-    url = b"http://{}/annex/{}/sparql/query?".format(host, database)
+    url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
     # print url
     params = urllib.urlencode(
         {b'query': q, b'format': b'application/sparql-results+json',
@@ -645,3 +686,20 @@ def endpoint(query):
         print "\nTHERE IS AN ERROR IN THIS QUERY"
         print query
         return None
+
+
+def get_URI_local_name(uri):
+    # print "URI: {}".format(uri)
+
+    if (uri is None) or (uri == ""):
+        return None
+    else:
+        non_alphanumeric_str = re.sub('[ \w]', '', uri)
+        if non_alphanumeric_str == "":
+            return uri
+        else:
+            last_char = non_alphanumeric_str[-1]
+            index = uri.rindex(last_char)
+            name = uri[index + 1:]
+            return name
+

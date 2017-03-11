@@ -70,7 +70,6 @@ $( document ).ready(function()
                     // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
                     if (operator) // THEN IT IS A LENS
                     {
-//                        $.get('/print',data = {'msg': 'Hello'},function(){});
                         $.get('/getLensDetail',data=data,function(data)
                         {
                             // DETAIL liST COLUMN
@@ -79,7 +78,10 @@ $( document ).ready(function()
                             // SOURCE CLICK
                             $("#srcDataset").on('click', function()
                             {
-                              $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
+                              var dataset = $(this).attr('dataset');
+//                              $('#linktarget5').html('Hello');
+
+                              $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
                               {
                                 $('#srcDetails').html(data);
                               });
@@ -88,7 +90,8 @@ $( document ).ready(function()
                              // TARGET CLICK
                             $("#trgDataset").on('click', function()
                             {
-                              $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
+                              var dataset = $(this).attr('dataset');
+                              $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
                               {
                                 $('#trgDetails').html(data);
                               });
