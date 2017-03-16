@@ -45,6 +45,19 @@ def get_graph_linkset():
     """
     return query
 
+def get_graph_type():
+    query = PREFIX + """
+    SELECT DISTINCT ?g
+    WHERE
+    {
+        GRAPH ?g
+        {
+            ?s ?p ?o
+        }
+    }
+    """
+    return query
+
 
 def get_correspondences(graph_uri):
 

@@ -1,0 +1,25 @@
+<span class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="sourceDropdown"
+            data-toggle='dropdown'>Source<span class="caret"></span></button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="sourceDropdown">
+        {% for graph in graphs %}
+        <li role="presentation">
+            <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'>
+            {{ graph.g_label.value }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</span>
+
+<span class="dropdown">
+    <button class="btn btn-primary dropdown-toggle" type="button" id="targetDropdown"
+            data-toggle='dropdown'>Target<span class="caret"></span></button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="targetDropdown">
+        {% for graph in graphs %}
+        <li role="presentation">
+            <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'>
+            {{ graph.g_label.value }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</span>

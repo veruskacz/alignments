@@ -32,9 +32,16 @@
                 <hr/>
             </div>
         </div>
-        {% include 'correspondences.html' %}
+        <div class='row' id='divInvestigation'>
+          {% include 'correspondences.html' %}
+          {% include 'views.html' %}
+        </div>
+        <div class='row' id='divCreation'>
+          <div class="col-md-20" id="creation_col">
+          </div>
+        </div>
         <div class='row'>
-    </div>
+        </div>
 {% endblock %}
 
 {% block scripts %}

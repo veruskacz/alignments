@@ -1,22 +1,42 @@
 //$.get('/print',function(){});
 
+function modeInvestigation(val){
+ var y = document.getElementsByClassName('btn btn-default dropdown-toggle');
+ var aNode = y[0].innerText=val;
+ $('#divCreation').hide();
+ $('#divInvestigation').show();
+ // alert(val);
+ // if (val == 'Mode: Investigation') {
+ //    alert("Test");
+ // }
+}
+
+function modeCreation(val){
+ var y = document.getElementsByClassName('btn btn-default dropdown-toggle');
+ var aNode = y[0].innerText=val;
+ $('#divInvestigation').hide();
+ $('#divCreation').show();
+ $.get('/getgraphs2',function(data)
+ {
+   $('#creation_col').html(data);
+ });
+}
+
 $( document ).ready(function()
 {
     $('#corresponsence_list_row').hide();
+    $('#views-row').hide();
 
-    $('#menu_list_col a').on('click',function()
-    {
-        document.getElementById("modeDropdown").innerText;
-        document.getElementById("modeDropdown").text="Close Curtain";
-//        var data = {'test': 'test'}
-//        $('#modeDropdown').html(data);
-    });
+    // $('#menu_list_col a').on('click',function()
+    // {
+    // });
 
     // CALL THE GRAPHS FUNCTION FOR LOADING GRAPHS INTO RESPECTIVE BUTTONS
     $.get('/getgraphs',function(data)
     {
         $('#corresponsence_list_row').hide();
         $('#graphs_list_col').html(data);
+        // $('#viewBottom').button('toggle');
 
         $('#startButton').on('click',function()
         {
@@ -27,6 +47,15 @@ $( document ).ready(function()
         // ON CLICK BUTTON FOR DISPLAYING THE LIST OF CORRESPONDENCES
         $('#graphs_list_col a').on('click',function()
         {
+            // var selectedButton = $(this).attr('aria-labelledby');
+            // if (selectedButton == 'linksetsDropdown') {
+            //   $('#viewBottom').aria-pressed('false');
+            //   $('#linksetsDropdown').button('toggle');
+            // }
+            // else if (selectedButton == 'lensesDropdown') {
+            //   $('#lensesDropdown').toggleClass("clicked");
+            // }
+
             var graph_menu = $(this).attr('graph_menu');
             var graph_uri = $(this).attr('uri');
             var graph_label = $(this).attr('label');
@@ -40,6 +69,7 @@ $( document ).ready(function()
             var alignsMechanism = $(this).attr('alignsMechanism');
             var operator = $(this).attr('operator');
 
+            $('#views-row').hide();
             $('#corresponsence_list_col').html('Loading...');
             $('#corresponsence_list_row').show();
 
@@ -73,7 +103,7 @@ $( document ).ready(function()
                         $.get('/getLensDetail',data=data,function(data)
                         {
                             // DETAIL liST COLUMN
-                            $('#corresp2_list_col').html(data);
+                            $('#details_list_col').html(data);
 
                             // SOURCE CLICK
                             $("#srcDataset").on('click', function()
@@ -105,7 +135,7 @@ $( document ).ready(function()
                         $.get('/getdetails',data=data,function(data)
                         {
                             // DETAIL liST COLUMN
-                            $('#corresp2_list_col').html(data);
+                            $('#details_list_col').html(data);
 
                             // var data2 = {'subjectTarget': subjectTarget,
                             //             'alignsSubjects': subjectTarget,
@@ -118,6 +148,8 @@ $( document ).ready(function()
                             {
                               // var message = data2['subjectTarget']; //$('#messageInput2').val();
                             	// $('#linktarget5').html(message);
+                              // $('#trgDataset').hide();
+                              // $('#srcDataset').show();
                               $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
                               {
                                 $('#srcDetails').html(data);
@@ -132,11 +164,8 @@ $( document ).ready(function()
                                 $('#trgDetails').html(data);
                               });
                             });
-
                         });
                     }
-
-                    // $('#linktarget5').html(message);
 
                     $.get('/getevidence',data={'singleton_uri': uri},function(data)
                     {
@@ -144,7 +173,7 @@ $( document ).ready(function()
 
                       $('#ValidationYes_btn').on('click', function(e)
                       {
-                           var validation_text = $('#validation_textbox').val();
+                         var validation_text = $('#validation_textbox').val();
                          var predicate = 'http://example.com/predicate/good';
                          $.get('/updateevidence',data={'singleton_uri': uri, 'predicate': predicate, 'validation_text': validation_text},function(data){});
                        });
@@ -156,13 +185,37 @@ $( document ).ready(function()
                          $.get('/updateevidence',data={'singleton_uri': uri, 'predicate': predicate, 'validation_text': validation_text},function(data){});
                        });
 
-                    })
+                    });
 
-                })
+                });
 
-            })
-        })
+            });
+        });
+
+        $('#viewBottom').on('click', function(e)
+        {
+            // $('#viewBottom').aria-pressed('true');
+            // $('#viewBottom').button('toggle');
+            $('#corresponsence_list_row').hide();
+            $('#views-row').show();
+            $('#views-results').html('This is where the server response will appear.');
+
+            $('#link14').on('click', function(e){
+
+              var query = $('#query14').val();
+              $.get('/sparql',data={'query': query}, function(data)
+              {
+                $('#views-results').html(data);
+              });
+
+            });
+
+        });
     });
-
-
 });
+
+// $(document).ready(function() {
+//     var table = $('#view-table').DataTable();
+//
+//     new $.fn.dataTable.FixedHeader( table );
+// } );

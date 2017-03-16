@@ -1,0 +1,22 @@
+<TABLE class="table table-striped" style='height: 30em; scroll: both; overflow: auto;' >
+ <thead >
+ <TR>
+ {% for col in header %}
+    <TH > {{ col }}</TH>
+ {% endfor %}
+ </thead>
+ <tbody >
+ {% for row in results %}
+ <TR>
+    {% for col in row %}
+    <TD > {{ col }} </TD>
+    {% endfor %}
+ {% endfor %}
+ </tbody>
+ <thead >
+ <TR>
+ {% for col in header %}
+    <TH > {{ col }}</TH>
+ {% endfor %}
+ </thead>
+</TABLE>

@@ -1,25 +1,82 @@
+<!-- <div class="row">
+    <div class="col-md-12">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#">Home</a></li>
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Menu 1
+          <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Submenu 1-1</a></li>
+            <li><a href="#">Submenu 1-2</a></li>
+            <li><a href="#">Submenu 1-3</a></li>
+          </ul>
+        </li>
+        <li><a href="#">Menu 2</a></li>
+        <li><a href="#">Menu 3</a></li>
+      </ul>
+    </div>
+</div> -->
+<!--
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">WebSiteName</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li class="active"><a href="#">Home</a></li>
+      <li><a href="#">Link</a></li>
+      <li><a href="#">Link</a></li>
+    </ul>
+    <button class="btn btn-danger navbar-btn">Button</button>
+  </div>
+</nav> -->
+
 <div class="row">
     <div class="col-md-12">
-        <!-- <h4>Guidelines</h4>
-        <p>Click the 'Retrieve Guidelines' button to retrieve a list of the guidelines in your triple store</p> -->
-        <!--<a class="btn btn-default" id="modetButton">Mode: evaluation</a>-->
 
         <!-- This is the Mode dropdown button-->
         <span id="menu_list_col">
+
+        <!-- <input type="checkbox" data-toggle="toggle"
+               data-on="Enabled" data-off="Disabled"
+               onstyle="primary" offstyle="default"> -->
+        <!-- <input type="checkbox" id="toggle-two">
+        <script>
+          $(function() {
+            $('#toggle-two').bootstrapToggle({
+              on: 'Enabled',
+              off: 'Disabled'
+            });
+          })
+        </script> -->
+
         <button class="btn btn-default dropdown-toggle" type="button" id="modeDropdown"
-            data-toggle='dropdown'>Mode: Investigation {{test}} <span class="caret"></span></button>
+            data-toggle='dropdown'>Mode: Investigation<span class="caret"></span></button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="modeDropdown">
-                <li role="presentation">
-                    <a href="#" role="menuitem" tabindex="-1">Mode: Investigation</a>
+                <li role="presentation" onclick="modeInvestigation(this.innerText);">
+                    <a role="menuitem" tabindex="-1">Mode: Investigation</a>
                 </li>
-                <li role="presentation">
-                    <a href="#" role="menuitem" tabindex="-1">Mode: Creation</a>
+                <li role="presentation" onclick="modeCreation(this.innerText);">
+                    <a role="menuitem" tabindex="-1">Mode: Creation</a>
                 </li>
             </ul>
         </span>
 
         <!-- This is the span which will include the buttons related to specific mode -->
         <span id="graphs_list_col"></span>
+
+        <!-- This is the View  button-->
+        <span id="views_list_col">
+              <button type="button" id="viewBottom" class="btn btn-primary" data-toggle="button" aria-pressed="false" >
+                      Views</button>
+              <!-- <ul class="dropdown-menu" role="menu" aria-labelledby="viewDropdown">
+                  {% for view in views %}
+                  <li role="presentation"><a href="#" uri='{{view.g.value }}'
+                      label='{{view.g_label.value }}' role="menuitem"
+                      tabindex="-1">{{ view.g_label.value }}</a></li>
+                  {% endfor %}
+              </ul> -->
+        </span>
 
         <!--This is the refresh button -->
          <a class="btn btn-default" id="startButton">Refresh graphs</a>

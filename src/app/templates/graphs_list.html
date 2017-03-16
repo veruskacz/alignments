@@ -35,24 +35,15 @@
                label='{{lens.g_label.value }}'
                role="menuitem"
                operator='{{ lens.operator.value }}'
-            tabindex="-1">{{ lens.g_label.value }}</a></li>
+               tabindex="-1">
+            {{ lens.g_label.value }}</a>
+        </li>
         {% endfor %}
     </ul>
 </span>
 
-<span class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="viewDropdown"
-            data-toggle='dropdown'>Views<span class="caret"></span></button>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="viewDropdown">
-        {% for view in views %}
-        <li role="presentation"><a href="#" uri='{{view.g.value }}'
-            label='{{view.g_label.value }}' role="menuitem"
-            tabindex="-1">{{ view.g_label.value }}</a></li>
-        {% endfor %}
-    </ul>
-</span>
 
-<span class="dropdown">
+<!-- <span class="dropdown">
     <button class="btn btn-primary dropdown-toggle" type="button" id="designViewDropdown"
             data-toggle='dropdown'>Design Views<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="designViewDropdown">
@@ -62,4 +53,4 @@
             tabindex="-1">{{ dv.g_label.value }}</a></li>
         {% endfor %}
     </ul>
-</span>
+</span> -->

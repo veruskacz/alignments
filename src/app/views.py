@@ -81,6 +81,21 @@ def graphs():
     # SEND BAK RESULTS
     return render_template('graphs_list.html',linksets = linksets, lenses = lenses)
 
+@app.route('/getgraphs2')
+def graphs2():
+    """
+    This function is called due to request /getgraphs
+    It queries the dataset for both linksets and lenses
+    The results, two lists of uris and labels,
+        are passed as parameters to the template graphs_list.html
+    """
+    # GET QUERY
+    graphs_query = Qry.get_graph_type()
+    # RUN QUERY AGAINST ENDPOINT
+    graphs = sparql(graphs_query, strip=True)
+    # SEND BAK RESULTS
+    return render_template('linksetsCreation.html',graphs = graphs)
+
 
 @app.route('/getcorrespondences', methods=['GET'])
 def correspondences():
@@ -435,6 +450,32 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
         return result_dict['results']['bindings']
 
 
+@app.route('/sparql', methods=['GET'])
+def sparqlDirect():
+    query = str(request.args.get('query', None))
+
+    results = []
+    header = []
+    response = sparql_xml_to_matrix(query)
+    if (response):
+        header = response[0]
+        results = response[1:]
+        # if (query_results):
+        #     size = (len(query_results)-1)/2
+        #     print "\n\n"
+        #     print size
+        #     if size > 0:
+        #         header = query_results[:size-1]
+        #         results = query_results[size:]
+        #         print "\n\n"
+        #         print header
+        #         print results
+
+    return render_template('viewsDetails_list.html',
+                            header = header,
+                            results = results)
+
+
 def sparql_xml_to_matrix(query):
 
     name_index = dict()
@@ -702,4 +743,3 @@ def get_URI_local_name(uri):
             index = uri.rindex(last_char)
             name = uri[index + 1:]
             return name
-
