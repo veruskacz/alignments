@@ -1,36 +1,114 @@
 <div class="row">
-<div class="col-md-4" id="creation_source_col">
-  <span class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="sourceDropdown"
-            data-toggle='dropdown'>Source<span class="caret"></span></button>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="sourceDropdown">
-        {% for graph in src_graphs %}
-        <li role="presentation">
-            <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'>
-            {{ graph.g_label.value }}</a>
-        </li>
-        {% endfor %}
-    </ul>
-  </span>
-</div>
+  <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_source_col">
+    <div class="row">
+      <div class="col-md-10">
+        <h3>Source</h3></div>
+      </div>
+    <div class="row">
+      <div class="col-md-3">
+         <span class="dropdown">
+          <button class="btn btn-primary dropdown-toggle" type="button" id="sourceDropdown"
+                  data-toggle='dropdown'>Graph<span class="caret"></span></button>
+          <ul class="dropdown-menu" role="menu" aria-labelledby="sourceDropdown">
+              {% for graph in src_graphs %}
+              <li role="presentation">
+                  <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'
+                  label='{{graph.g_label.value|upper}}'>
+                  {{ graph.g_label.value }}</a>
+              </li>
+              {% endfor %}
+          </ul>
+         </span>
+      </div>
+      <div class="col-md-9">
+          <div class="well well-sm" id="src_selected_graph" uri="">Select a Graph</div>
+      </div>
+   </div>
+   <div class="row">
+     <div class="col-md-12">
+         <div class="well well-sm" id="src_selected_pred">Select a Property +
+           <span style="color:blue"><strong> example value </strong>
+           </span>
+         </div>
+     </div>
+   </div>
+   <div class="row">
+     <div class="col-md-12" id="src_predicates_col"> </div>
+   </div>
+  </div>
 
-<div class="col-md-4" id="creation_target_col">
-  <span class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="targetDropdown"
-            data-toggle='dropdown'>Target<span class="caret"></span></button>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="targetDropdown">
-        {% for graph in trg_graphs %}
-        <li role="presentation">
-            <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'>
-            {{ graph.g_label.value }}</a>
-        </li>
-        {% endfor %}
-    </ul>
-  </span>
-</div>
+  <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_target_col">
+      <div class="row">
+        <div class="col-md-10">
+          <h3>Target</h3></div>
+        </div>
+      <div class="row">
+        <div class="col-md-3">
+           <span class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="sourceDropdown"
+                    data-toggle='dropdown'>Graph<span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="sourceDropdown">
+                {% for graph in trg_graphs %}
+                <li role="presentation">
+                    <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'
+                    label='{{graph.g_label.value|upper}}'>
+                    {{ graph.g_label.value }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+           </span>
+        </div>
+        <div class="col-md-9">
+           <div class="well well-sm" id="trg_selected_graph">Select a Graph</div>
+        </div>
+     </div>
+   <div class="row">
+     <div class="col-md-12">
+         <div class="well well-sm" id="trg_selected_pred">Select a Property +
+           <span style="color:blue"><strong> example value </strong>
+           </span>
+         </div>
+     </div>
+   </div>
+   <div class="row">
+     <div class="col-md-12" id="trg_predicates_col"> </div>
+   </div>
+  </div>
+
+  <div class="col-md-4" id="creation_method_col">
+      <div class="row">
+        <div class="col-md-10">
+          <h3>Method</h3></div>
+        </div>
+      <div class="row">
+        <div class="col-md-3">
+           <span class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="methodDropdown"
+                    data-toggle='dropdown'>Method<span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="methodDropdown">
+                <li role="presentation">
+                    <a href="#" role="menuitem" tabindex="-1" uri="http://risis.eu/method/exactStrSim"
+                        label='Exact Match'>Exact Match</a>
+                    <a href="#" role="menuitem" tabindex="-1" uri="http://risis.eu/method/aproxStrSim"
+                        label='Aproximate Match'>Aproximate Match</a>
+                    <a href="#" role="menuitem" tabindex="-1" uri="http://risis.eu/method/geoSim"
+                        label='Geo Match'>Geo Match</a>
+                </li>
+            </ul>
+           </span>
+        </div>
+        <div class="col-md-9">
+           <div class="well well-sm" id="selected_meth" uri="">Select a Method</div>
+        </div>
+     </div>
+  </div>
 </div>
 
 <div class="row">
-<div class="col-md-4" id="src_predicates_col"> </div>
-<div class="col-md-4" id="trg_predicates_col"> </div>
+  <div class="col-md-2">
+        <button type="button" id="createLinksetButton" class="btn btn-primary" data-toggle="button"  >
+        Create Linkset</button>
+  </div>
+  <div class="col-md-10" style="color:red" id="linkset_creation_message_col"> </div>
+
 </div>

@@ -23,7 +23,8 @@ def get_graph_lens():
             void:triples        ?triples .
     }
     """
-    print query
+    if DETAIL:
+        print query
     return query
 
 
@@ -50,12 +51,14 @@ def get_graph_linkset():
         BIND(UCASE(strafter(str(?objectTargetURI),'dataset/')) AS ?objectTarget)
     }
     """
-    print query
+    if DETAIL:
+        print query
     return query
 
 
 def get_graph_type():
     query = PREFIX + """
+    ### GET DISTINCT GRAPHS
     SELECT DISTINCT ?g
     WHERE
     {
@@ -65,6 +68,8 @@ def get_graph_type():
         }
     }
     """
+    if DETAIL:
+        print query
     return query
 
 
@@ -72,14 +77,15 @@ def get_correspondences(graph_uri):
 
     query = """
     ### GET CORRESPONDENCES
-    select distinct ?sub ?pred ?obj
+    SELECT DISTINCT ?sub ?pred ?obj
     {
         GRAPH <""" + graph_uri + """> { ?sub ?pred ?obj }
         GRAPH ?g { ?pred ?p ?o }
 
     } limit 80
         """
-    print query
+    if DETAIL:
+        print query
     return query
 
 
@@ -87,7 +93,7 @@ def get_target_datasets(singleton_matrix):
 
     sample = """
     ### LINKSET WHERE A CORRESPONDENCE MIGHT HAV HAPPENED
-    graph ?graph { ?sub <_#_> ?obj .
+    GRAPH ?graph { ?sub <_#_> ?obj .
     }"""
 
     union = "{"
@@ -101,7 +107,7 @@ def get_target_datasets(singleton_matrix):
                 union += "\n\t     }"
     else:
         union = """
-        graph ?graph
+        GRAPH ?graph
         {{
             ?sub <{}> ?obj .
         }}""".format(singleton_matrix[1][0])
@@ -109,7 +115,7 @@ def get_target_datasets(singleton_matrix):
     query = """
     ### GET TARGET DATASETS
     {}
-    select distinct ?sub ?obj ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism
+    SELECT DISTINCT ?sub ?obj ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism
     where
     {{
         ### Initially, we have A -> B via Z
@@ -131,12 +137,12 @@ def get_target_datasets(singleton_matrix):
         # ### and... VOILA!!!
         # ### The only thing is that all ?graph being linksets :(
         # ### More to come on the mixed :-)
-        # graph ?source
+        # GRAPH ?source
         # {{
         #    ?sub ?srcPre ?srcObj.
         # }}
         #
-        # graph ?target
+        # GRAPH ?target
         # {{
         #    ?obj ?trgPre ?trgObj.
         # }}
@@ -144,7 +150,8 @@ def get_target_datasets(singleton_matrix):
     }}
     """.format(PREFIX, union)
 
-    print query
+    if DETAIL:
+        print query
     return query
 
 
@@ -159,7 +166,8 @@ def get_evidences(singleton, predicate=None):
         pred = predicate
 
     query = """
-    Select distinct ?obj {0}
+    ### GET EVIDENCES FOR SINGLETON
+    SELECT DISTINCT ?obj {0}
     {{
         {{
            GRAPH ?graph
@@ -178,7 +186,8 @@ def get_evidences(singleton, predicate=None):
         }}
     }}
     """.format(variable, singleton, pred)
-    print query
+    if DETAIL:
+        print query
     return query
 
 
@@ -201,34 +210,39 @@ def get_resource_description(graph, resource, predicate=None):
 
     query = """
     ### GET RESOURCE DESCRIPTION
-    select distinct *
+    SELECT DISTINCT *
     {{
-        graph <{}>
+        GRAPH <{}>
         {{{}
         }}
     }}
     """.format(graph, triples)
-    print query
+    if DETAIL:
+        print query
     return query
 
 def get_predicates(graph):
 
     query = """
-    select distinct ?pred
+    ### GET PREDICATES WITHIN A CERTAIN GRAPH
+    SELECT ?pred (MAX(?o) AS ?obj)
     {
-        graph <""" + graph + """>
+        GRAPH <""" + graph + """>
         {
             ?s ?pred ?o
         }
-    }
+        FILTER (lcase(str(?o)) != 'null')
+    } GROUP BY ?pred
     """
-    # print query
+    if DETAIL:
+        print query
     return query
 
 def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
     query = """
-    select distinct *
+    ### GET VALUES OF ALIGNED PREDICATES
+    SELECT DISTINCT *
     {
         graph ?g_source
         { <""" + source + """> <""" + src_aligns + """> ?srcPredValue }
@@ -241,5 +255,6 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
         BIND (IF(bound(?trgPredVal), ?trgPredVal , "") AS ?trgPredValue)
     }
     """
-    print query
+    if DETAIL:
+        print query
     return query

@@ -463,7 +463,10 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
                 if v['type'] == 'uri' and not k+'_label' in r.keys():
                     new_result[k+'_label'] = {}
                     new_result[k+'_label']['type'] = 'literal'
-                    new_result[k+'_label']['value'] = v['value'][v['value'].rfind('/')+1:]
+                    temp = v['value']
+                    temp = temp[temp.rfind('/')+1:]
+                    temp = temp[temp.rfind('#')+1:]
+                    new_result[k+'_label']['value'] = temp
 
                 elif not k+'_label' in r.keys():
                     new_result[k+'_label'] = {}
@@ -472,7 +475,10 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
 
                 new_result[k+'_stripped'] = {}
                 new_result[k+'_stripped']['type'] = 'literal'
-                new_result[k+'_stripped']['value'] = v['value'][v['value'].rfind('/')+1:]
+                temp = v['value']
+                temp = temp[temp.rfind('/')+1:]
+                temp = temp[temp.rfind('#')+1:]
+                new_result[k+'_stripped']['value'] = temp
 
                 new_result[k] = v
 
