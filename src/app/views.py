@@ -81,6 +81,7 @@ def graphs():
     # SEND BAK RESULTS
     return render_template('graphs_list.html',linksets = linksets, lenses = lenses)
 
+<<<<<<< HEAD
 
 @app.route('/getgraphs2')
 def graphs2():
@@ -97,6 +98,8 @@ def graphs2():
     # SEND BAK RESULTS
     return render_template('linksetsCreation.html',graphs = graphs)
 
+=======
+>>>>>>> e3071a29e4fde7eb22c2fea417645da1ffbb65dc
 
 @app.route('/getcorrespondences', methods=['GET'])
 def correspondences():
@@ -407,6 +410,45 @@ def updateEvidence():
     #                        evidences = evidences)
 
 
+
+# --------------------------------------------
+## VIEW MODE
+
+@app.route('/getgraphs2')
+def graphs2():
+    """
+    This function is called due to request /getgraphs2
+    It queries the dataset for ...
+    The results, ...,
+        are passed as parameters to the template linksetsCreation.html
+    """
+    # GET QUERY
+    graphs_query = Qry.get_graph_type()
+    # RUN QUERY AGAINST ENDPOINT
+    graphs = sparql(graphs_query, strip=True)
+    # SEND BAK RESULTS
+    return render_template('linksetsCreation.html',src_graphs = graphs, trg_graphs = graphs)
+
+@app.route('/getpredicates')
+def predicates():
+    """
+    This function is called due to request /getpredicates
+    It queries the dataset for ...
+    The results, ...,
+        are passed as parameters to the template linksetsCreation.html
+    """
+    dataset_uri = request.args.get('dataset_uri', '')
+    # GET QUERY
+    query = Qry.get_predicates(dataset_uri)
+    print query
+    # RUN QUERY AGAINST ENDPOINT
+    dataDetails = sparql(query, strip=True)
+    # print dataDetails
+    # SEND BAK RESULTS
+    return render_template('datadetails_list.html',
+                            dataDetails = dataDetails)
+
+# --------------------------------------------
 def sparql_update(query, endpoint_url = UPDATE_URL):
 
     # log.debug(query)

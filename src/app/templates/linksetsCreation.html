@@ -1,25 +1,36 @@
-<span class="dropdown">
+<div class="row">
+<div class="col-md-4" id="creation_source_col">
+  <span class="dropdown">
     <button class="btn btn-primary dropdown-toggle" type="button" id="sourceDropdown"
             data-toggle='dropdown'>Source<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="sourceDropdown">
-        {% for graph in graphs %}
+        {% for graph in src_graphs %}
         <li role="presentation">
             <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'>
             {{ graph.g_label.value }}</a>
         </li>
         {% endfor %}
     </ul>
-</span>
+  </span>
+</div>
 
-<span class="dropdown">
+<div class="col-md-4" id="creation_target_col">
+  <span class="dropdown">
     <button class="btn btn-primary dropdown-toggle" type="button" id="targetDropdown"
             data-toggle='dropdown'>Target<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="targetDropdown">
-        {% for graph in graphs %}
+        {% for graph in trg_graphs %}
         <li role="presentation">
             <a href="#" role="menuitem" tabindex="-1" uri='{{graph.g.value }}'>
             {{ graph.g_label.value }}</a>
         </li>
         {% endfor %}
     </ul>
-</span>
+  </span>
+</div>
+</div>
+
+<div class="row">
+<div class="col-md-4" id="src_predicates_col"> </div>
+<div class="col-md-4" id="trg_predicates_col"> </div>
+</div>
