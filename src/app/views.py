@@ -1,3 +1,4 @@
+# encoding=utf-8
 from flask import render_template, g, request, jsonify, make_response
 from SPARQLWrapper import SPARQLWrapper
 import logging
@@ -43,7 +44,6 @@ UPDATE_HEADERS = {
                  }
 
 PREFIXES =  """
-
     PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX linkset: <http://risis.eu/linkset/>
@@ -80,6 +80,7 @@ def graphs():
     lenses = sparql(lens_query, strip=True)
     # SEND BAK RESULTS
     return render_template('graphs_list.html',linksets = linksets, lenses = lenses)
+
 
 @app.route('/getgraphs2')
 def graphs2():
@@ -209,7 +210,7 @@ def detailsLens():
             if src_aligns not in align_list:
                 # datasets_dict[src_dataset] = (res, align_list+[src_aligns])
                 align_list += [src_aligns]
-        print datasets_dict
+        # print datasets_dict
 
         if trg_dataset not in datasets_dict:
             datasets_dict[trg_dataset] = (trg_resource, [trg_aligns], [])
@@ -223,12 +224,16 @@ def detailsLens():
     obj_datasets = []
     for dataset, (res, align_list, pred_values)  in datasets_dict.items():
         # print type(predicates)
-        val_query = Qry.get_resource_description(dataset, res, align_list)
-        values_matrix = sparql_xml_to_matrix(val_query)
-
-        s = u'resource identifier'
+        s = u'http://risis.eu/alignment/predicate/resourceIdentifier'
+        print "align_list", align_list
         if s in align_list:
             align_list.remove(s)
+        print "align_list", align_list
+        val_query = Qry.get_resource_description(dataset, res, align_list)
+
+        values_matrix = sparql_xml_to_matrix(val_query)
+
+
         # print "\n\n",align_list
         # print values_matrix[1]
 
@@ -238,8 +243,11 @@ def detailsLens():
             obj_datasets += [dataset]
 
         for i in range(len(align_list)):
-            # print align_list[i], "=", values_matrix[1][i]
-            pred_value = {'pred': get_URI_local_name(align_list[i]), 'value':values_matrix[1][i]}
+            # print "\n", align_list[i], "=", values_matrix[1][i]
+            if values_matrix is None:
+                pred_value = {'pred': get_URI_local_name(align_list[i]), 'value': ""}
+            else:
+                pred_value = {'pred': get_URI_local_name(align_list[i]), 'value':values_matrix[1][i]}
             pred_values += [pred_value]
             # datasets_dict[dataset] = (res, align_list, pred_values)
 
@@ -581,7 +589,7 @@ def sparql_xml_to_matrix(query):
                                 # print value
                                 data = value[i]
                                 index = name_index[data['@name']]
-                                item = value[index].items()[1][1]
+                                item = to_bytes(value[index].items()[1][1])
                                 # print data['@name'], name_index[data['@name']]
                             elif type(value) is collections.OrderedDict:
                                 item = value.items()[i][1]
@@ -589,11 +597,11 @@ def sparql_xml_to_matrix(query):
                             if type(item) is collections.OrderedDict:
                                 # print "Data is a collection"
                                 # print "{} was inserted".format(data.items()[1][1])
-                                matrix[1][i] = item.items()[1][1]
+                                matrix[1][i] = to_bytes(item.items()[1][1])
                             else:
                                 # print "data is regular"
                                 # print "{} was inserted".format(data)
-                                matrix[1][i] = item
+                                matrix[1][i] = to_bytes(item)
                                 # print matrix
 
                     # print "The matrix is: {}".format(matrix)
@@ -639,7 +647,7 @@ def sparql_xml_to_matrix(query):
                             for c in range(variables_size):
                                 # print value.items()[1][1]
                                 item = value.items()[1][1]
-                                matrix[row][0] = item
+                                matrix[row][0] = to_bytes(item)
                     else:
                         for key, value in result.items():
                             # COLUMNS
@@ -652,7 +660,7 @@ def sparql_xml_to_matrix(query):
                                 data = value[c]
                                 # print data['@name'], name_index[data['@name']]
                                 index = name_index[data['@name']]
-                                item = data.items()[1][1]
+                                item = to_bytes(data.items()[1][1])
 
                                 if type(item) is collections.OrderedDict:
                                     matrix[row][index] = to_bytes(item.items()[1][1])

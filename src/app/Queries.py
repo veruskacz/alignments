@@ -7,9 +7,14 @@ PREFIX ="""
     PREFIX tmpgraph: <http://risis.eu/alignment/temp-match/>
 """
 
+INFO = False
+DETAIL = False
+
+
 def get_graph_lens():
     query = PREFIX + """
-    SELECT DISTINCT ?g ?g_label ?triples ?operator
+    ### GET THE LENSES
+    SELECT DISTINCT ?g ?triples ?operator
     WHERE
     {
         ?g
@@ -18,24 +23,26 @@ def get_graph_lens():
             void:triples        ?triples .
     }
     """
+    print query
     return query
 
 
 def get_graph_linkset():
     query = PREFIX + """
+    ### GET LINKSET GRAPHS
     SELECT DISTINCT ?g ?g_label ?subjectTargetURI ?subjectTarget
                     ?objectTargetURI ?objectTarget ?triples
                     ?alignsSubjects ?alignsObjects ?alignsMechanism
     WHERE
     {
         ?g
-            rdf:type	 void:Linkset ;
-            <http://rdfs.org/ns/void#subjectsTarget> ?subjectTargetURI;
-            <http://rdfs.org/ns/void#objectsTarget> ?objectTargetURI;
-            <http://rdfs.org/ns/void#triples> ?triples;
-            <http://risis.eu/alignment/predicate/alignsSubjects> ?alignsSubjects;
-            <http://risis.eu/alignment/predicate/alignsObjects> ?alignsObjects;
-            <http://risis.eu/alignment/predicate/alignsMechanism> ?alignsMechanism.
+            rdf:type	                                            void:Linkset ;
+            <http://rdfs.org/ns/void#subjectsTarget>                ?subjectTargetURI ;
+            <http://rdfs.org/ns/void#objectsTarget>                 ?objectTargetURI ;
+            <http://rdfs.org/ns/void#triples>                       ?triples ;
+            <http://risis.eu/alignment/predicate/alignsSubjects>    ?alignsSubjects ;
+            <http://risis.eu/alignment/predicate/alignsObjects>     ?alignsObjects ;
+            <http://risis.eu/alignment/predicate/alignsMechanism>   ?alignsMechanism .
 
         #FILTER regex(str(?g), 'linkset', 'i')
         BIND(strafter(str(?g),'linkset/') AS ?g_label)
@@ -43,7 +50,9 @@ def get_graph_linkset():
         BIND(UCASE(strafter(str(?objectTargetURI),'dataset/')) AS ?objectTarget)
     }
     """
+    print query
     return query
+
 
 def get_graph_type():
     query = PREFIX + """
@@ -62,6 +71,7 @@ def get_graph_type():
 def get_correspondences(graph_uri):
 
     query = """
+    ### GET CORRESPONDENCES
     select distinct ?sub ?pred ?obj
     {
         GRAPH <""" + graph_uri + """> { ?sub ?pred ?obj }
@@ -69,6 +79,7 @@ def get_correspondences(graph_uri):
 
     } limit 80
         """
+    print query
     return query
 
 
@@ -96,6 +107,7 @@ def get_target_datasets(singleton_matrix):
         }}""".format(singleton_matrix[1][0])
 
     query = """
+    ### GET TARGET DATASETS
     {}
     select distinct ?sub ?obj ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism
     where
@@ -132,7 +144,7 @@ def get_target_datasets(singleton_matrix):
     }}
     """.format(PREFIX, union)
 
-    # print query
+    print query
     return query
 
 
@@ -147,14 +159,26 @@ def get_evidences(singleton, predicate=None):
         pred = predicate
 
     query = """
-    Select distinct ?obj {}
+    Select distinct ?obj {0}
     {{
-       GRAPH ?graph
-  	   {{
-            <{}> {} ?obj
-       }}
+        {{
+           GRAPH ?graph
+           {{
+                <{1}> {2} ?obj .
+           }}
+        }}
+        UNION
+        {{
+            GRAPH ?graph
+            {{
+                <{1}> ?pred2 ?obj_2 .
+                ?obj_2 {2} ?obj .
+                #graph ?g {{ ?obj_2 {2} ?obj }}.
+            }}
+        }}
     }}
     """.format(variable, singleton, pred)
+    print query
     return query
 
 
@@ -185,6 +209,7 @@ def get_resource_description(graph, resource, predicate=None):
             triples += "\n\t   <{}> <{}> ?obj .".format(resource, predicate)
 
     query = """
+    ### GET RESOURCE DESCRIPTION
     select distinct *
     {{
         graph <{}>
@@ -192,7 +217,7 @@ def get_resource_description(graph, resource, predicate=None):
         }}
     }}
     """.format(graph, triples)
-    # print query
+    print query
     return query
 
 
@@ -203,9 +228,14 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
     {
         graph ?g_source
         { <""" + source + """> <""" + src_aligns + """> ?srcPredValue }
+        OPTIONAL
+        {
+            graph ?g_target
+            { <""" + target + """> <""" + trg_aligns + """> ?trgPredVal }
+        }
 
-        graph ?g_target
-        { <""" + target + """> <""" + trg_aligns + """> ?trgPredValue }
+        BIND (IF(bound(?trgPredVal), ?trgPredVal , "") AS ?trgPredValue)
     }
     """
+    print query
     return query
