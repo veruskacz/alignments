@@ -19,6 +19,26 @@ function modeCreation(val){
  $.get('/getgraphs2',function(data)
  {
    $('#creation_col').html(data);
+
+   $('#creation_source_col a').on('click',function(){
+    //  alert("Test");
+      var graph_uri = $(this).attr('uri');
+      // alert(graph_uri);
+      $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
+      {
+          $('#src_predicates_col').html(data);
+      });
+   });
+
+   $('#creation_target_col a').on('click',function(){
+    //  alert("Test");
+      var graph_uri = $(this).attr('uri');
+      // alert(graph_uri);
+      $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
+      {
+          $('#trg_predicates_col').html(data);
+      });
+   });
  });
 }
 

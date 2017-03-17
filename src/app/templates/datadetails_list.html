@@ -3,10 +3,13 @@
 <div class="list-group" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
         {% for e in dataDetails|sort(attribute='pred') %}
             <li class="list-group-item" >
-                <span class="list-group-item-heading">{{ e.pred_stripped.value }}: </span>
+                <span class="list-group-item-heading">{{ e.pred_stripped.value }}</span>
+                {% if (e.obj) %}
+                :
                 <span class="list-group-item-heading" style="color:blue">
                   <strong>{{ e.obj.value }}</strong>
                 </span>
+                {% endif %}
             </li>
         {% endfor %}
 </div>

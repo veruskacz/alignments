@@ -160,15 +160,6 @@ def get_evidences(singleton, predicate=None):
 
 def get_resource_description(graph, resource, predicate=None):
 
-    # query = """
-    # select distinct *
-    # {
-    #     graph <""" + graph + """>
-    #     {
-    #         <""" + resource + """> ?pred ?obj
-    #     }
-    # }
-    # """
     triples = ""
 
     if predicate is None:
@@ -195,6 +186,19 @@ def get_resource_description(graph, resource, predicate=None):
     # print query
     return query
 
+def get_predicates(graph):
+
+    query = """
+    select distinct ?pred
+    {
+        graph <""" + graph + """>
+        {
+            ?s ?pred ?o
+        }
+    }
+    """
+    # print query
+    return query
 
 def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
