@@ -51,7 +51,7 @@
         </script> -->
 
         <button class="btn btn-default dropdown-toggle" type="button" id="modeDropdown"
-            data-toggle='dropdown'>Mode: Investigation<span class="caret"></span></button>
+            data-toggle='dropdown' mode='I'>Mode: Investigation<span class="caret"></span></button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="modeDropdown">
                 <li role="presentation" onclick="modeInvestigation(this.innerText);">
                     <a role="menuitem" tabindex="-1">Mode: Investigation</a>
@@ -62,20 +62,18 @@
             </ul>
         </span>
 
-        <!-- This is the span which will include the buttons related to investigation mode -->
+        <!-- This is the span that will include the buttons related to investigation mode -->
         <span id="investigation_buttons_col"></span>
 
-        <!-- This is the span which will include the buttons related to creation mode -->
+        <!-- This is the span including the buttons related to creation mode -->
         <span id="creation_buttons_col">
-            <button type="button" id="creationLinksetButton" class="btn btn-primary"
-                data-toggle="button" >Linkset</button>
-            <button type="button" id="creationLensButton" class="btn btn-primary"
-                data-toggle="button" >Lens</button>
-            <button type="button" id="creationViewButton" class="btn btn-primary"
-                data-toggle="button" >View</button>
+            <button type="button" id="creationLinksetButton" class="btn btn-primary" aria-pressed="false">Linkset</button>
+            <button type="button" id="creationLensButton" class="btn btn-primary" aria-pressed="false">Lens</button>
+            <button type="button" id="creationViewButton" class="btn btn-primary" aria-pressed="false">View</button>
         </span>
 
         <!--This is the refresh button -->
-         <a class="btn btn-default" id="startButton">Refresh graphs</a>
+         <a class="btn btn-default" id="refreshButton" onclick="refresh();">Refresh</a>
+
     </div>
 </div>

@@ -63,18 +63,18 @@
                     data-toggle='dropdown'>Method<span class="caret"></span></button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="methodDropdown">
                 <li role="presentation">
-                    <a href="#" role="menuitem" tabindex="-1" uri="http://risis.eu/method/exactStrSim"
-                        label='Exact Match'>Exact Match</a>
-                    <a href="#" role="menuitem" tabindex="-1" uri="http://risis.eu/method/approxStrSim"
-                        label='Aproximate Match'>Approximate Match</a>
-                    <a href="#" role="menuitem" tabindex="-1" uri="http://risis.eu/method/geoSim"
-                        label='Geo Match'>Geo Match</a>
+                    <a href="#" role="menuitem" tabindex="-1" label="exactStrSim">
+                        Exact Match</a>
+                    <a href="#" role="menuitem" tabindex="-1" label="approxStrSim">
+                        Approximate Match</a>
+                    <a href="#" role="menuitem" tabindex="-1" label="geoSim">
+                        Geo Match</a>
                 </li>
             </ul>
            </span>
         </div>
         <div class="col-md-9">
-           <div class="well well-sm" id="selected_meth" uri="">Select a Method</div>
+           <div class="well well-sm" id="selected_meth" label="">Select a Method</div>
         </div>
      </div>
   </div>
@@ -82,7 +82,7 @@
 
 <div class="row">
   <div class="col-md-2">
-        <button type="button" id="createLinksetButton" class="btn btn-primary" data-toggle="button"  >
+        <button type="button" id="createLinksetButton" class="btn btn-success" data-toggle="button"  >
         Create Linkset</button>
   </div>
   <div class="col-md-10" style="color:red" id="linkset_creation_message_col"> </div>

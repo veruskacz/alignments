@@ -1,0 +1,58 @@
+<div class="row">
+
+  <div class="col-md-4"  id="creation_operator_col">
+      <div class="row">
+        <div class="col-md-9">
+          <h3>Operation</h3></div>
+        </div>
+      <div class="row">
+        <div class="col-md-3">
+           <span class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="operatorDropdown"
+                    data-toggle='dropdown'>Operator<span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="operatorDropdown">
+                <li role="presentation">
+                    <a href="#" role="menuitem" tabindex="-1" label='union'>Union</a>
+                    <a href="#" role="menuitem" tabindex="-1" label='intersection'>Intersection</a>
+                    <a href="#" role="menuitem" tabindex="-1" label='transitive'>Transitive</a>
+                </li>
+            </ul>
+           </span>
+        </div>
+        <div class="col-md-6">
+           <div class="well well-sm" id="selected_operator" label="">Select a Operator</div>
+        </div>
+     </div>
+  </div>
+
+  <div class="col-md-4" >
+      <div class="row">
+        <div class="col-md-9"><h3>Graphs</h3></div>
+      </div>
+      <div class="row">
+        <div class="col-md-9">Select the graphs in the list:</div>
+      </div>
+      <div id="loading2"> Loading... </div>
+      <div class="row">
+        <div class="col-md-9" id="creation_lens_selection_col">
+
+        </div>
+      </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="row">
+      <div class="col-md-9">
+        <br/>
+        <br/>
+        <br/>
+        <button type="button" id="createLensButton" class="btn btn-success" data-toggle="button"  >
+        Create Lens</button>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-md-9" style="color:red" id="lens_creation_message_col"> </div>
+    </div>
+  </div>
+
+</div>

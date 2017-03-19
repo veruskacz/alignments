@@ -1,0 +1,14 @@
+<!-- <a href="#" class="list-group-item" >
+<span class="list-group-item-heading" > -->
+<div class="list-group" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+        {% for graph in graphs|sort(attribute='g_stripped') %}
+            <a href="#" class="list-group-item" uri='{{graph.g.value }}' label='{{ graph.g_stripped.value }}'
+            {% if (datasets)%}
+              datasets = '{{datasets}}'
+            {% endif %}
+            >
+                <span class="list-group-item-heading">{{ graph.g_stripped.value }}</span>
+            </a>
+        {% endfor %}
+</div>
+<!-- </span></a> -->

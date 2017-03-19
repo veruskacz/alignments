@@ -86,8 +86,8 @@ def get_graph_type(type=None):
         {}
     }}
     """.format(type_filter)
-    if DETAIL:
-        print query
+    # if DETAIL:
+    print query
     return query
 
 

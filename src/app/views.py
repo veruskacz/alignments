@@ -390,6 +390,32 @@ def updateEvidence():
     #                        singleton_uri = singleton_uri,
     #                        evidences = evidences)
 
+
+@app.route('/sparql', methods=['GET'])
+def sparqlDirect():
+    query = str(request.args.get('query', None))
+
+    results = []
+    header = []
+    response = sparql_xml_to_matrix(query)
+    if (response):
+        header = response[0]
+        results = response[1:]
+        # if (query_results):
+        #     size = (len(query_results)-1)/2
+        #     print "\n\n"
+        #     print size
+        #     if size > 0:
+        #         header = query_results[:size-1]
+        #         results = query_results[size:]
+        #         print "\n\n"
+        #         print header
+        #         print results
+
+    return render_template('viewsDetails_list.html',
+                            header = header,
+                            results = results)
+
 #######################################################################
 ## VIEW MODE
 #######################################################################
@@ -404,11 +430,13 @@ def getgraphspertype():
     """
     # GET QUERY
     type = request.args.get('type', 'dataset')
+    template = request.args.get('template', 'graph_list_dropdown.html')
     graphs_query = Qry.get_graph_type(type)
     # RUN QUERY AGAINST ENDPOINT
     graphs = sparql(graphs_query, strip=True)
+    print graphs
     # SEND BAK RESULTS
-    return render_template('graph_list_dropdown.html', graphs = graphs, name = "test", id = "123" )
+    return render_template(template, graphs = graphs)
 
 @app.route('/getpredicates')
 def predicates():
@@ -490,31 +518,6 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
     else :
         return result_dict['results']['bindings']
 
-
-@app.route('/sparql', methods=['GET'])
-def sparqlDirect():
-    query = str(request.args.get('query', None))
-
-    results = []
-    header = []
-    response = sparql_xml_to_matrix(query)
-    if (response):
-        header = response[0]
-        results = response[1:]
-        # if (query_results):
-        #     size = (len(query_results)-1)/2
-        #     print "\n\n"
-        #     print size
-        #     if size > 0:
-        #         header = query_results[:size-1]
-        #         results = query_results[size:]
-        #         print "\n\n"
-        #         print header
-        #         print results
-
-    return render_template('viewsDetails_list.html',
-                            header = header,
-                            results = results)
 
 
 def sparql_xml_to_matrix(query):
