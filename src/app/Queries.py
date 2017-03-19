@@ -56,18 +56,36 @@ def get_graph_linkset():
     return query
 
 
-def get_graph_type():
+def get_graph_type(type=None):
+
+    if type == "dataset":
+        type_filter = "FILTER NOT EXISTS { {?g   rdf:type	void:Linkset} "
+        type_filter += " UNION {?g   rdf:type	void:Lens} "
+        type_filter += " UNION {?g   rdf:type	void:View} } ."
+    elif type == "linkset&lens":
+        type_filter = " { ?g   rdf:type	void:Linkset } UNION"
+        type_filter += " { ?g   rdf:type	void:Lens } ."
+    elif type == "linkset":
+        type_filter = "?g   rdf:type	void:Linkset ."
+    elif type == "lens":
+        type_filter = "?g   rdf:type	void:Lens ."
+    elif type == "view":
+        type_filter = "?g   rdf:type	void:View ."
+    else:
+        type_filter = ""
+
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
     SELECT DISTINCT ?g
     WHERE
-    {
+    {{
         GRAPH ?g
-        {
+        {{
             ?s ?p ?o
-        }
-    }
-    """
+        }}
+        {}
+    }}
+    """.format(type_filter)
     if DETAIL:
         print query
     return query
@@ -83,7 +101,7 @@ def get_correspondences(graph_uri):
         GRAPH ?g { ?pred ?p ?o }
 
     } limit 80
-        """
+    """
     if DETAIL:
         print query
     return query

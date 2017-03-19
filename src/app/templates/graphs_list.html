@@ -43,14 +43,15 @@
 </span>
 
 
-<!-- <span class="dropdown">
-    <button class="btn btn-primary dropdown-toggle" type="button" id="designViewDropdown"
-            data-toggle='dropdown'>Design Views<span class="caret"></span></button>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="designViewDropdown">
-        {% for dv in designViews %}
-        <li role="presentation"><a href="#" uri='{{dv.g.value }}'
-            label='{{dv.g_label.value }}' role="menuitem"
-            tabindex="-1">{{ dv.g_label.value }}</a></li>
-        {% endfor %}
-    </ul>
-</span> -->
+<!-- This is the View  button-->
+<span id="views_list_col">
+      <button type="button" id="viewButton" class="btn btn-primary" data-toggle="button" aria-pressed="false" >
+              Views</button>
+      <!-- <ul class="dropdown-menu" role="menu" aria-labelledby="viewDropdown">
+          {% for view in views %}
+          <li role="presentation"><a href="#" uri='{{view.g.value }}'
+              label='{{view.g_label.value }}' role="menuitem"
+              tabindex="-1">{{ view.g_label.value }}</a></li>
+          {% endfor %}
+      </ul> -->
+</span>

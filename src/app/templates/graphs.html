@@ -62,20 +62,17 @@
             </ul>
         </span>
 
-        <!-- This is the span which will include the buttons related to specific mode -->
-        <span id="graphs_list_col"></span>
+        <!-- This is the span which will include the buttons related to investigation mode -->
+        <span id="investigation_buttons_col"></span>
 
-        <!-- This is the View  button-->
-        <span id="views_list_col">
-              <button type="button" id="viewButton" class="btn btn-primary" data-toggle="button" aria-pressed="false" >
-                      Views</button>
-              <!-- <ul class="dropdown-menu" role="menu" aria-labelledby="viewDropdown">
-                  {% for view in views %}
-                  <li role="presentation"><a href="#" uri='{{view.g.value }}'
-                      label='{{view.g_label.value }}' role="menuitem"
-                      tabindex="-1">{{ view.g_label.value }}</a></li>
-                  {% endfor %}
-              </ul> -->
+        <!-- This is the span which will include the buttons related to creation mode -->
+        <span id="creation_buttons_col">
+            <button type="button" id="creationLinksetButton" class="btn btn-primary"
+                data-toggle="button" >Linkset</button>
+            <button type="button" id="creationLensButton" class="btn btn-primary"
+                data-toggle="button" >Lens</button>
+            <button type="button" id="creationViewButton" class="btn btn-primary"
+                data-toggle="button" >View</button>
         </span>
 
         <!--This is the refresh button -->

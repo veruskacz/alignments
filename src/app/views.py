@@ -394,8 +394,8 @@ def updateEvidence():
 ## VIEW MODE
 #######################################################################
 
-@app.route('/getgraphs2')
-def graphs2():
+@app.route('/getgraphspertype')
+def getgraphspertype():
     """
     This function is called due to request /getgraphs2
     It queries the dataset for ...
@@ -403,11 +403,12 @@ def graphs2():
         are passed as parameters to the template linksetsCreation.html
     """
     # GET QUERY
-    graphs_query = Qry.get_graph_type()
+    type = request.args.get('type', 'dataset')
+    graphs_query = Qry.get_graph_type(type)
     # RUN QUERY AGAINST ENDPOINT
     graphs = sparql(graphs_query, strip=True)
     # SEND BAK RESULTS
-    return render_template('linksetsCreation.html',src_graphs = graphs, trg_graphs = graphs)
+    return render_template('graph_list_dropdown.html', graphs = graphs, name = "test", id = "123" )
 
 @app.route('/getpredicates')
 def predicates():
