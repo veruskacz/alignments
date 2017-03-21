@@ -41,6 +41,16 @@ function selectListItem(item)
   else { $(item).removeClass('list-group-item-warning'); }
 }
 
+function selectedElemsInGroupList(item_name)
+{
+  var elems = [];
+  var elem = document.getElementById(item_name);
+  if (elem) {
+    elems = elem.getElementsByClassName('list-group-item-warning');
+  }
+  return elems
+}
+
 
 // function fired when the Investigation Mode is selected
 // by clicking #modeDropdown
@@ -458,9 +468,10 @@ function modeCreation(val)
      // set actions after clicking the button createLensButton
      $('#createLensButton').on('click',function()
      {
-        var graphs = []
-        var elems = creation_lens_selection_col.getElementsByClassName('list-group-item-warning');
+        var elems = selectedElemsInGroupList('creation_lens_selection_col');
+        //creation_lens_selection_col.getElementsByClassName('list-group-item-warning');
         var i;
+        var graphs = []
         for (i = 0; i < elems.length; i++) {
           graphs.push($(elems[i]).attr('uri'));
         }
@@ -501,15 +512,77 @@ function modeCreation(val)
        // set actions after clicking a graph in the list
        $('#creation_view_lens_col a').on('click',function()
        {
-         selectListItem(this);
-         var datasets = $(this).attr('datasets');
+          var uri = $(this).attr('uri');
+          selectListItem(this);
 
-        var i;
-        for (i = 0; i < datasets.length; i++) {
-          alert(datasets[i]);
-        //  $("#creation_view_dataset_list").append(
-        //     "<a href='#' class='list-group-item' uri='1' label='1'><span class='list-group-item-heading'>"+datasets[i]+"</span></a>");
-        }
+          // var targetdatasets = []
+          // var elem = document.getElementById('creation_view_dataset_col');
+          // if (elem) {
+          //   var elems = elem.getElementsByClassName('list-group-item');
+          //   var i;
+          //   if (elems.length > 0) {
+          //     for (i = 0; i < elems.length; i++) {
+          //       targetdatasets.push($(elems[i]).attr('uri'));
+          //     }
+          //   }
+          // }
+
+          var selectedLenses = []
+          var elems = selectedElemsInGroupList('creation_view_lens_col');
+          var i;
+          if (elems.length > 0) {
+              for (i = 0; i < elems.length; i++) {
+                selectedLenses.push($(elems[i]).attr('uri'));
+              }
+          }
+
+          if (selectedLenses) {
+            $.get('/gettargetdatasets',data={'selectedLenses[]': selectedLenses},function(data)
+            {
+               $("#creation_view_dataset_col").html(data);
+
+               $('#creation_view_dataset_col a').on('click',function()
+               {
+                  var graph_uri = $(this).attr('uri');
+                  var graph_label = $(this).attr('label');
+
+                  $('#creation_view_predicates_msg_col').html('Select <b>' + graph_label + '</b> predicates:')
+                  // Exihit a waiting message for the user to know loading time
+                  // might be long.
+                  $('#creation_view_predicates_col').html('Loading...');
+                  // get the distinct predicates and example values of a graph
+                  // into a list group
+                  $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
+                  {
+                       // load the rendered template into the column #creation_view_predicates_col
+                      $('#creation_view_predicates_col').html(data);
+
+                      // set actions after clicking one of the predicates
+                      $('#creation_view_predicates_col li').on('click',function()
+                      {
+                        var pred_uri = $(this).attr('uri');
+                        var pred_label = $(this).attr('label');
+
+                        elem = document.getElementById(pred_uri);
+                        if (elem) {}
+                        else {
+                          var item = '<li class="list-group-item" id="' + pred_uri + '"><span class="list-group-item-heading">'+ graph_label + ': ' + pred_label + '</span></li>';
+
+                          $('#creation_view_selected_predicates_group').append(item);
+                        }
+
+                        $('#creation_view_selected_predicates_group li').on('ondblclick',function()
+                        {
+                            alert('here');
+                            var id = $(this).attr('id');
+                            var element = document.getElementById(id);
+                            element.parentNode.removeChild(element);
+                        });
+                      });
+                  });
+               });
+            });
+          }
        });
      });
 

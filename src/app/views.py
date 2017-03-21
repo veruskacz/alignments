@@ -51,6 +51,8 @@ PREFIXES =  """
     PREFIX alivocab: <http://risis.eu/alignment/predicate/>
     PREFIX tmpgraph: <http://risis.eu/alignment/temp-match/> """
 
+PRINT_RESULTS = True
+
 @app.route('/print', methods=['GET'])
 def prints():
     msg = request.args.get('msg', '')
@@ -79,6 +81,11 @@ def graphs():
     linksets = sparql(linkset_query, strip=True)
     lenses = sparql(lens_query, strip=True)
 
+    if PRINT_RESULTS:
+        print "\n\nLINKSETS:", linksets
+        print "LENSES:", lenses
+
+    # TEST
     LINKSET = "http://risis.eu/linkset/grid_orgref_C001_exactStrSim"
     LENS = "http://risis.eu/lens/union_grid_orgref_C001"
     result = list()
@@ -110,6 +117,9 @@ def correspondences():
     corresp_query = Qry.get_correspondences(graph_uri)
     correspondences = sparql(corresp_query, strip=True)
 
+    if PRINT_RESULTS:
+        print "\n\nCORRESPONDENCES:", correspondences
+
     return render_template('correspondences_list.html',
                             operator = operator,
                             graph_menu = graph_menu,
@@ -127,10 +137,9 @@ def details():
     It queries the dataset for both all the correspondences in a certain graph URI
     Expected Input: uri, label (for the graph)
     The results, ...,
-        are passed as parameters to the template correspondences_list.html
+        are passed as parameters to the template details_list.html
     """
 
-    # singleton_uri = request.args.get('uri', '')
     # RETRIEVE VARIABLES
     sub_uri = request.args.get('sub_uri', '')
     obj_uri = request.args.get('obj_uri', '')
@@ -141,10 +150,13 @@ def details():
     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjects, alignsObjects)
     details = sparql(query, strip=True)
+
+    if PRINT_RESULTS:
+        print "\n\nDETAILS:", details
+
     # RETURN THE RESULT
     return render_template('details_list.html',
                             details = details,
-                            # pred_uri = singleton_uri,
                             sub_uri = sub_uri,
                             obj_uri = obj_uri,
                             subjectTarget = subjectTarget,
@@ -157,11 +169,10 @@ def details():
 @app.route('/getLensDetail', methods=['GET'])
 def detailsLens():
     """
-    This function is called due to request /getdetails
-    It queries the dataset for both all the correspondences in a certain graph URI
-    Expected Input: uri, label (for the graph)
+    This function is called due to request /getLensDetail
+    It queries the dataset for all the correspondences in a certain graph URI
     The results, ...,
-        are passed as parameters to the template correspondences_list.html
+        are passed as parameters to the template lensDetails_list.html
     """
 
     singleton_uri = request.args.get('uri', '')
@@ -226,10 +237,6 @@ def detailsLens():
 
         values_matrix = sparql_xml_to_matrix(val_query)
 
-
-        # print "\n\n",align_list
-        # print values_matrix[1]
-
         if res == sub_uri:
             sub_datasets += [dataset]
         else: ## == obj_uri
@@ -242,12 +249,6 @@ def detailsLens():
             else:
                 pred_value = {'pred': get_URI_local_name(align_list[i]), 'value':values_matrix[1][i]}
             pred_values += [pred_value]
-            # datasets_dict[dataset] = (res, align_list, pred_values)
-
-
-    # print datasets_dict
-    # print "\n\n\n"
-    # print "HERE:", sub_datasets, obj_datasets
 
     rows = []
     for i in range(max(len(sub_datasets),len(sub_datasets))):
@@ -267,12 +268,9 @@ def detailsLens():
             col2 = ""
         rows += [{'col1': col1, 'col2': col2}]
 
-    # print rows
-
     return render_template('lensDetails_list.html',
-                           detailHeadings = details,
-                            # pred_uri = singleton_uri,
-                           rows = rows,
+                            detailHeadings = details,
+                            rows = rows,
                             sub_uri = sub_uri,
                             obj_uri = obj_uri,
                             sub_datasets = sub_datasets,
@@ -297,16 +295,11 @@ def dataDetails():
     resource_uri = request.args.get('resource_uri', '')
     dataset_uri = request.args.get('dataset_uri', '')
 
-    # query = PREFIXES + """
-    # select distinct *
-    # {
-    #     graph <""" + dataset_uri + """>
-    #     { <""" + resource_uri + """> ?pred ?obj }
-    # }
-    # """
     query = Qry.get_resource_description(dataset_uri, resource_uri, predicate=None)
-    print "\n\nQEURY:", query
+    # print "\n\nQUERY:", query
     dataDetails = sparql(query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nDATA DETAILS:", dataDetails
 
 
     return render_template('datadetails_list.html',
@@ -325,7 +318,8 @@ def evidence():
     singleton_uri = request.args.get('singleton_uri', '')
     query = Qry.get_evidences(singleton_uri, predicate=None)
     evidences = sparql(query, strip=True)
-
+    if PRINT_RESULTS:
+        print "\n\nEVIDENCES:", evidences
 
     query = PREFIXES + """
     Select distinct ?nGood ?nBad ?nStrength
@@ -359,7 +353,8 @@ def evidence():
     }
     """
     validation_counts = sparql(query, strip=True)
-
+    if PRINT_RESULTS:
+        print "\n\nVALIDATION COUNTS:", validation_counts
 
     return render_template('evidence_list.html',
                             singleton_uri = singleton_uri,
@@ -390,14 +385,12 @@ def updateEvidence():
       {<""" + singleton_uri + """> ?p ?o}
     }
     """
-    print query
 
     result = sparql_update(query)
-    print result
+    if PRINT_RESULTS:
+        print "\n\nUPDATE RESPOSNSE:", result
+
     return result
-    #render_template('evidence_list.html',
-    #                        singleton_uri = singleton_uri,
-    #                        evidences = evidences)
 
 
 @app.route('/sparql', methods=['GET'])
@@ -410,16 +403,6 @@ def sparqlDirect():
     if (response):
         header = response[0]
         results = response[1:]
-        # if (query_results):
-        #     size = (len(query_results)-1)/2
-        #     print "\n\n"
-        #     print size
-        #     if size > 0:
-        #         header = query_results[:size-1]
-        #         results = query_results[size:]
-        #         print "\n\n"
-        #         print header
-        #         print results
 
     return render_template('viewsDetails_list.html',
                             header = header,
@@ -430,12 +413,12 @@ def sparqlDirect():
 #######################################################################
 
 @app.route('/getgraphspertype')
-def getgraphspertype():
+def graphspertype():
     """
-    This function is called due to request /getgraphs2
-    It queries the dataset for ...
-    The results, ...,
-        are passed as parameters to the template linksetsCreation.html
+    This function is called due to request /getgraphspertype
+    It queries the dataset for of all the graphs of a certain type
+    The result listis passed as parameters to the informed template
+    (default graph_list_dropdown.html)
     """
     # GET QUERY
     type = request.args.get('type', 'dataset')
@@ -443,7 +426,8 @@ def getgraphspertype():
     graphs_query = Qry.get_graphs_per_type(type)
     # RUN QUERY AGAINST ENDPOINT
     graphs = sparql(graphs_query, strip=True)
-    print graphs
+    if PRINT_RESULTS:
+        print "\n\nGRAPHS:", graphs
     # SEND BAK RESULTS
     return render_template(template, graphs = graphs)
 
@@ -452,17 +436,18 @@ def getgraphspertype():
 def predicates():
     """
     This function is called due to request /getpredicates
-    It queries the dataset for ...
-    The results, ...,
-        are passed as parameters to the template linksetsCreation.html
+    It queries the dataset for all the distinct predicates in a graph,
+    togehter with a sample value
+    The result list is passed as parameters to the template datadetails_list.html
     """
     dataset_uri = request.args.get('dataset_uri', '')
     # GET QUERY
     query = Qry.get_predicates(dataset_uri)
-    print query
+
     # RUN QUERY AGAINST ENDPOINT
     dataDetails = sparql(query, strip=True)
-    # print dataDetails
+    if PRINT_RESULTS:
+        print "\n\nPREDICATES:", dataDetails
     # SEND BAK RESULTS
     return render_template('datadetails_list.html',
                             dataDetails = dataDetails)
@@ -472,8 +457,8 @@ def lens_targets_details(detail_dict, graph):
     # GET THE TYPE OF THE GRAPH
     graph_type_matrix = sparql_xml_to_matrix(
         Qry.get_graph_type(graph))
-    if graph_type_matrix:
 
+    if graph_type_matrix:
         # THIS IS THE BASE OF THE RECURSION
         if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
             # print "I am Neo"
@@ -483,7 +468,6 @@ def lens_targets_details(detail_dict, graph):
             # THIS CONNECTS THE GRAPH TO IT SUBJECT AND TARGET DATASETS
             if graph not in detail_dict:
                 detail_dict[graph] = metadata_matrix
-
             return
 
         if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
@@ -501,20 +485,52 @@ def lens_targets_details(detail_dict, graph):
                             lens_targets_details(detail_dict, target_matrix[i][0])
 
 
+@app.route('/gettargetdatasets')
+def targetdatasets():
+    """
+    This function is called due to request /gettargets
+    It queries all the (dataset) tagerts given a graph
+    The result list is passed as parameters to the template graphs_listgroup.html
+    """
+    graph_uri = request.args.get('graph_uri', '')
+
+    ## existing target datasets are reasembled as original strip_dict
+    ## and passed as parameter to avoid repeated results
+    # targetdatasets = request.args.getlist('targetdatasets[]')
+    # ldict = []
+    # for t in targetdatasets:
+    #     dict1 = {u'g': {u'type': u'uri', u'value': t}}
+    #     ldict.append(dict1)
+    # result_dict = {u'results': {u'bindings': ldict}}
+    # graphs = strip_dict(result_dict)
+
+    selectedLenses = request.args.getlist('selectedLenses[]')
+    # print '\n\nSELECTED LENSES', selectedLenses
+    graphs = []
+    for lens in selectedLenses:
+        lens_targets_unique(graphs, lens)
+
+    if PRINT_RESULTS:
+        print "\n\nTARGETS:", graphs
+
+    # SEND BAK RESULTS
+    return render_template('graphs_listgroup.html',
+                            graphs = graphs)
+
+
 def lens_targets_unique(unique_list, graph):
     # GET THE TYPE OF THE GRAPH
     graph_type_matrix = sparql_xml_to_matrix(
         Qry.get_graph_type(graph))
-    if graph_type_matrix:
 
+    if graph_type_matrix:
         # THIS IS THE BASE OF THE RECURSION
         if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
-            metadata_matrix = sparql_xml_to_matrix(Qry.get_linkset_metadata(graph))
-            if metadata_matrix[1][0] not in unique_list:
-                unique_list += [metadata_matrix[1][0]]
-            if metadata_matrix[1][1] not in unique_list:
-                unique_list += [metadata_matrix[1][1]]
-
+            query = Qry.get_targets(graph)
+            result = sparql(query, strip=True)
+            for r in result:
+                if not(r in unique_list):
+                    unique_list.append(r)
             return
 
         if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
@@ -522,7 +538,7 @@ def lens_targets_unique(unique_list, graph):
             # GET THE OPERATOR
             # alivocab:operator	 http://risis.eu/lens/operator/union
             lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
-            print "\nOPERATOR:", lens_operator_matrix
+            # print "\nOPERATOR:", lens_operator_matrix
             if lens_operator_matrix:
                 if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
                     # GET THE LIST OF TARGETS
@@ -561,41 +577,44 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
         return result.content
 
     if strip:
-        new_results = []
-        for r in result_dict['results']['bindings']:
-            new_result = {}
-            for k, v in r.items():
-                # print k, v
-                if v['type'] == 'uri' and not k+'_label' in r.keys():
-                    new_result[k+'_label'] = {}
-                    new_result[k+'_label']['type'] = 'literal'
-                    temp = v['value']
-                    temp = temp[temp.rfind('/')+1:]
-                    temp = temp[temp.rfind('#')+1:]
-                    new_result[k+'_label']['value'] = temp
-
-                elif not k+'_label' in r.keys():
-                    new_result[k+'_label'] = {}
-                    new_result[k+'_label']['type'] = 'literal'
-                    new_result[k+'_label']['value'] = v['value']
-
-                new_result[k+'_stripped'] = {}
-                new_result[k+'_stripped']['type'] = 'literal'
-                temp = v['value']
-                temp = temp[temp.rfind('/')+1:]
-                temp = temp[temp.rfind('#')+1:]
-                new_result[k+'_stripped']['value'] = temp
-
-                new_result[k] = v
-
-            new_results.append(new_result)
-
+        new_results = strip_dict(result_dict)
         # log.debug(new_results)
         return new_results
     else :
+        # print result_dict
         return result_dict['results']['bindings']
 
 
+def strip_dict(result_dict):
+    new_results = []
+    for r in result_dict['results']['bindings']:
+        new_result = {}
+        for k, v in r.items():
+            # print k, v
+            if v['type'] == 'uri' and not k+'_label' in r.keys():
+                new_result[k+'_label'] = {}
+                new_result[k+'_label']['type'] = 'literal'
+                temp = v['value']
+                temp = temp[temp.rfind('/')+1:]
+                temp = temp[temp.rfind('#')+1:]
+                new_result[k+'_label']['value'] = temp
+
+            elif not k+'_label' in r.keys():
+                new_result[k+'_label'] = {}
+                new_result[k+'_label']['type'] = 'literal'
+                new_result[k+'_label']['value'] = v['value']
+
+            new_result[k+'_stripped'] = {}
+            new_result[k+'_stripped']['type'] = 'literal'
+            temp = v['value']
+            temp = temp[temp.rfind('/')+1:]
+            temp = temp[temp.rfind('#')+1:]
+            new_result[k+'_stripped']['value'] = temp
+
+            new_result[k] = v
+
+        new_results.append(new_result)
+    return new_results
 
 def sparql_xml_to_matrix(query):
 
@@ -864,5 +883,3 @@ def get_URI_local_name(uri):
             index = uri.rindex(last_char)
             name = uri[index + 1:]
             return name
-
-

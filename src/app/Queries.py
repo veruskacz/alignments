@@ -92,6 +92,23 @@ def get_linkset_metadata(linkset):
         print query
     return query
 
+## Ve test
+def get_targets(graph_uri):
+    query = PREFIX + """
+    ### GET LINKSET METADATA
+    SELECT DISTINCT ?g
+    WHERE
+    {
+            { <""" + graph_uri + """> <http://rdfs.org/ns/void#subjectsTarget>                ?g }
+            UNION
+            { <""" + graph_uri + """> <http://rdfs.org/ns/void#objectsTarget>                 ?g }
+            UNION
+            { <""" + graph_uri + """> void:target                                             ?g }
+    }
+    """
+    if DETAIL:
+        print query
+    return query
 
 def get_lens_operator(lens):
     query = PREFIX + """
@@ -115,6 +132,7 @@ def get_lens_union_targets(lens):
     if DETAIL:
         print query
     return query
+
 
 def get_graphs_per_type(type=None):
 
@@ -146,8 +164,8 @@ def get_graphs_per_type(type=None):
         {}
     }}
     """.format(type_filter)
-    # if DETAIL:
-    print query
+    if DETAIL:
+        print query
     return query
 
 
