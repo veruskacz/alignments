@@ -51,7 +51,7 @@ PREFIXES =  """
     PREFIX alivocab: <http://risis.eu/alignment/predicate/>
     PREFIX tmpgraph: <http://risis.eu/alignment/temp-match/> """
 
-PRINT_RESULTS = True
+PRINT_RESULTS = False
 
 @app.route('/print', methods=['GET'])
 def prints():
@@ -418,18 +418,40 @@ def graphspertype():
     This function is called due to request /getgraphspertype
     It queries the dataset for of all the graphs of a certain type
     The result listis passed as parameters to the informed template
-    (default graph_list_dropdown.html)
+    (default list_dropdown.html)
     """
     # GET QUERY
     type = request.args.get('type', 'dataset')
-    template = request.args.get('template', 'graph_list_dropdown.html')
+    btn_name = request.args.get('btn_name', type)
+    template = request.args.get('template', 'list_dropdown.html')
     graphs_query = Qry.get_graphs_per_type(type)
     # RUN QUERY AGAINST ENDPOINT
     graphs = sparql(graphs_query, strip=True)
     if PRINT_RESULTS:
         print "\n\nGRAPHS:", graphs
     # SEND BAK RESULTS
-    return render_template(template, graphs = graphs)
+    return render_template(template, list = graphs, btn_name = btn_name)
+
+
+@app.route('/getentitytype')
+def entitytype():
+    """
+    This function is called due to request /getentitytype
+    It queries the dataset for of all the graphs of a certain type
+    The result listis passed as parameters to the informed template
+    (default list_dropdown.html)
+    """
+    # GET QUERY
+    print '\n\nGET ENTITY TYPE'
+    graph_uri = request.args.get('graph_uri', '')
+    template = request.args.get('template', 'list_dropdown.html')
+    query = Qry.get_entity_type(graph_uri)
+    # RUN QUERY AGAINST ENDPOINT
+    types = sparql(query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nENTITY TYPES:", types
+    # SEND BAK RESULTS
+    return render_template(template, list = types, btn_name = 'Entity Type')
 
 
 @app.route('/getpredicates')

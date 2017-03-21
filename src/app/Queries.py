@@ -25,6 +25,19 @@ def get_graph_type(graph):
         print query
     return query
 
+def get_entity_type(graph):
+    query = """
+    SELECT distinct ?uri
+    {{
+        GRAPH <{}> {{
+        ?s a ?uri
+        }}
+    }}
+    """.format(graph)
+    if DETAIL:
+        print query
+    return query
+
 
 def get_graph_lens():
     query = PREFIX + """
@@ -137,27 +150,27 @@ def get_lens_union_targets(lens):
 def get_graphs_per_type(type=None):
 
     if type == "dataset":
-        type_filter = "FILTER NOT EXISTS { {?g   rdf:type	void:Linkset} "
-        type_filter += " UNION {?g   rdf:type	bdb:Lens} "
-        type_filter += " UNION {?g   rdf:type	void:View} } ."
+        type_filter = "FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset} "
+        type_filter += " UNION {?uri   rdf:type	bdb:Lens} "
+        type_filter += " UNION {?uri   rdf:type	void:View} } ."
     elif type == "linkset&lens":
-        type_filter = " { ?g   rdf:type	void:Linkset } UNION"
-        type_filter += " { ?g   rdf:type	void:Lens } ."
+        type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
+        type_filter += " { ?uri   rdf:type	void:Lens } ."
     elif type == "linkset":
-        type_filter = "?g   rdf:type	void:Linkset ."
+        type_filter = "?uri   rdf:type	void:Linkset ."
     elif type == "lens":
-        type_filter = "?g   rdf:type	bdb:Lens ."
+        type_filter = "?uri   rdf:type	bdb:Lens ."
     elif type == "view":
-        type_filter = "?g   rdf:type	void:View ."
+        type_filter = "?uri   rdf:type	void:View ."
     else:
         type_filter = ""
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?g
+    SELECT DISTINCT ?uri
     WHERE
     {{
-        GRAPH ?g
+        GRAPH ?uri
         {{
             ?s ?p ?o
         }}

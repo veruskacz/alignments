@@ -287,8 +287,7 @@ function modeCreation(val)
      {
        $('#loading').hide();
        $('#creation_linkset_col').show();
-       // load the rendered template into the column #creation_col
-      //  $('#creation_linkset_col').html(data);
+       // load the rendered template into ...
        $('#button-src-col').html(data);
        $('#button-trg-col').html(data);
 
@@ -305,6 +304,27 @@ function modeCreation(val)
           var elem = document.getElementById('src_selected_graph');
           elem.setAttribute("uri", graph_uri);
           $('#src_selected_graph').html(graph_label);
+
+          $.get('/getentitytype',data={'graph_uri': graph_uri},function(data)
+          {
+              // load the rendered template into column #button-src-entity-type-col
+              $('#button-src-entity-type-col').html(data);
+
+               // set actions after clicking one of the predicates
+               // in the #src_predicates_col
+              $('#button-src-entity-type-col a').on('click',function()
+              {
+                  // get the graph uri and label from the clicked element
+                  var pred_uri = $(this).attr('uri');
+                  var pred_label = $(this).attr('label');
+
+                  // Attributes the uri of the selected predicate to the div
+                  // where the name is displayed
+                  var elem = document.getElementById('src_selected_entity-type');
+                  elem.setAttribute("uri", pred_uri);
+                  $('#src_selected_entity-type').html(pred_label);
+              });
+          });
 
           // Exihit a waiting message for the user to know loading time
           // might be long.
@@ -349,7 +369,27 @@ function modeCreation(val)
           elem.setAttribute("uri", graph_uri);
           $('#trg_selected_graph').html(graph_label);
 
-          // Exihit a waiting message for the user to know loading time
+          $.get('/getentitytype',data={'graph_uri': graph_uri},function(data)
+          {
+              // load the rendered template into column #button-src-entity-type-col
+              $('#button-trg-entity-type-col').html(data);
+
+               // set actions after clicking one of the predicates
+               // in the #src_predicates_col
+              $('#button-trg-entity-type-col a').on('click',function()
+              {
+                  // get the graph uri and label from the clicked element
+                  var pred_uri = $(this).attr('uri');
+                  var pred_label = $(this).attr('label');
+
+                  // Attributes the uri of the selected predicate to the div
+                  // where the name is displayed
+                  var elem = document.getElementById('trg_selected_entity-type');
+                  elem.setAttribute("uri", pred_uri);
+                  $('#trg_selected_entity-type').html(pred_label);
+              });
+          });
+            // Exihit a waiting message for the user to know loading time
           // might be long.
           $('#trg_predicates_col').html('Loading...');
           // get the distinct predicates and example values of a graph
@@ -397,18 +437,22 @@ function modeCreation(val)
 
           var srcDict = {};
           if (($('#src_selected_graph').attr('uri')) &&
-             ($('#src_selected_pred').attr('uri')))
+             ($('#src_selected_pred').attr('uri')) &&
+             ($('#src_selected_entity-type').attr('uri'))  )
           {
              srcDict = {'graph': $('#src_selected_graph').attr('uri'),
-                        'aligns': $('#src_selected_pred').attr('uri')};
+                        'aligns': $('#src_selected_pred').attr('uri'),
+                        'entity_datatye': $('#src_selected_entity-type').attr('uri')};
           }
 
           var trgDict = {};
           if (($('#trg_selected_graph').attr('uri')) &&
-             ($('#trg_selected_pred').attr('uri')))
+             ($('#trg_selected_pred').attr('uri'))&&
+             ($('#trg_selected_entity-type').attr('uri')) )
           {
              trgDict = {'graph': $('#trg_selected_graph').attr('uri'),
-                        'aligns': $('#trg_selected_pred').attr('uri')};
+                        'aligns': $('#trg_selected_pred').attr('uri'),
+                        'entity_datatye': $('#trg_selected_entity-type').attr('uri')};
           }
 
           if ((Object.keys(srcDict).length) &&
