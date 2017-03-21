@@ -10,10 +10,11 @@ function refresh()
 {
     var button = document.getElementById('modeDropdown');
     mode = $(button).attr('mode');
-    if (mode == 'I') {
-      modeInvestigation("Mode: Investigation");
-    }
-    else if (mode == 'C') {
+    window.location.reload(false);
+//    if (mode == 'I') {
+//      modeInvestigation("Mode: Investigation");
+//    }
+    if (mode == 'C') {
       modeCreation("Mode: Creation");
     }
 }

@@ -1,7 +1,5 @@
 # encoding=utf-8
-from flask import render_template, g, request, jsonify, make_response
-from SPARQLWrapper import SPARQLWrapper
-import logging
+from flask import render_template, request # , jsonify, make_response, g
 import requests
 import json
 from app import app
@@ -16,8 +14,10 @@ from kitchen.text.converters import to_bytes
 import urllib2
 import urllib
 import re
-import uuid
-import pprint
+# import uuid
+# import pprint
+# from SPARQLWrapper import SPARQLWrapper
+# import logging
 # local
 import Queries as Qry
 
@@ -78,6 +78,13 @@ def graphs():
     # RUN QUERIES AGAINST ENDPOINT
     linksets = sparql(linkset_query, strip=True)
     lenses = sparql(lens_query, strip=True)
+
+    LINKSET = "http://risis.eu/linkset/grid_orgref_C001_exactStrSim"
+    LENS = "http://risis.eu/lens/union_grid_orgref_C001"
+    result = list()
+    lens_targets(result, LENS)
+    print "\n\nResult:", result
+
     # SEND BAK RESULTS
     return render_template('graphs_list.html',linksets = linksets, lenses = lenses)
 
@@ -163,7 +170,7 @@ def detailsLens():
     alignsSubjects = request.args.get('alignsSubjects', '')
     alignsObjects = request.args.get('alignsObjects', '')
 
-    evi_query = Qry.get_evidences(singleton_uri, "tmpgraph:wasDerivedFrom")
+    evi_query = Qry.get_evidences(singleton_uri, "prov:wasDerivedFrom")
     evi_matrix = sparql_xml_to_matrix(evi_query)
     det_query = Qry.get_target_datasets(evi_matrix)
     # print det_query
@@ -431,12 +438,13 @@ def getgraphspertype():
     # GET QUERY
     type = request.args.get('type', 'dataset')
     template = request.args.get('template', 'graph_list_dropdown.html')
-    graphs_query = Qry.get_graph_type(type)
+    graphs_query = Qry.get_graphs_per_type(type)
     # RUN QUERY AGAINST ENDPOINT
     graphs = sparql(graphs_query, strip=True)
     print graphs
     # SEND BAK RESULTS
     return render_template(template, graphs = graphs)
+
 
 @app.route('/getpredicates')
 def predicates():
@@ -456,6 +464,45 @@ def predicates():
     # SEND BAK RESULTS
     return render_template('datadetails_list.html',
                             dataDetails = dataDetails)
+
+
+def lens_targets(result, graph):
+    # GET THE TYPE OF THE GRAPH
+    graph_type_matrix = sparql_xml_to_matrix(
+        Qry.get_graph_type(graph))
+    if graph_type_matrix:
+
+        # THIS IS THE BASE OF THE RECURSION
+        if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
+            # print "I am Neo"
+            metadata_matrix = sparql_xml_to_matrix(Qry.get_linkset_metadata(graph))
+            # print "\nSUBJECT TARGET:", metadata_matrix[1][0]
+            # print "OBJECT TARGET:",metadata_matrix[1][1]
+            # THIS CONNECTS THE GRAPH TO IT SUBJECT AND TARGET DATASETS
+            # dictionary[graph] = metadata_matrix[1][:2]
+            if metadata_matrix[1][0] not in result:
+                result += [metadata_matrix[1][0]]
+            if metadata_matrix[1][1] not in result:
+                result += [metadata_matrix[1][1]]
+
+            return
+
+        if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
+            # print "I am Keanu Reeves"
+            # GET THE OPERATOR
+            # alivocab:operator	 http://risis.eu/lens/operator/union
+            lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
+            print "\nOPERATOR:", lens_operator_matrix
+            if lens_operator_matrix:
+                if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
+                    # GET THE LIST OF TARGETS
+                    target_matrix = sparql_xml_to_matrix(Qry.get_lens_union_targets(graph))
+                    if target_matrix:
+                        for i in range(1, len(target_matrix)):
+                            lens_targets(result, target_matrix[i][0])
+
+
+
 
 
 # ######################################################################
@@ -787,3 +834,5 @@ def get_URI_local_name(uri):
             index = uri.rindex(last_char)
             name = uri[index + 1:]
             return name
+
+

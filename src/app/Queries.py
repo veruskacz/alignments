@@ -1,14 +1,29 @@
+
+
 PREFIX ="""
-    PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
-    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    PREFIX linkset: <http://risis.eu/linkset/>
-    PREFIX void: <http://rdfs.org/ns/void#>
-    PREFIX alivocab: <http://risis.eu/alignment/predicate/>
-    PREFIX tmpgraph: <http://risis.eu/alignment/temp-match/>
+    PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
+    PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX linkset:     <http://risis.eu/linkset/>
+    PREFIX void:        <http://rdfs.org/ns/void#>
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    PREFIX tmpgraph:    <http://risis.eu/alignment/temp-match/>
+    PREFIX prov:        <http://www.w3.org/ns/prov#>
 """
 
 INFO = False
-DETAIL = False
+DETAIL = True
+
+
+def get_graph_type(graph):
+    query = """
+    SELECT *
+    {{
+        <{}> a ?type .
+    }}
+    """.format(graph)
+    if DETAIL:
+        print query
+    return query
 
 
 def get_graph_lens():
@@ -56,11 +71,56 @@ def get_graph_linkset():
     return query
 
 
-def get_graph_type(type=None):
+def get_linkset_metadata(linkset):
+    query = PREFIX + """
+    ### GET LINKSET METADATA
+    SELECT DISTINCT ?subjectTarget ?objectTarget ?triples
+                    ?alignsSubjects ?alignsObjects ?alignsMechanism
+    WHERE
+    {{
+        <{}>
+            rdf:type	                                            void:Linkset ;
+            <http://rdfs.org/ns/void#subjectsTarget>                ?subjectTarget ;
+            <http://rdfs.org/ns/void#objectsTarget>                 ?objectTarget ;
+            <http://rdfs.org/ns/void#triples>                       ?triples ;
+            <http://risis.eu/alignment/predicate/alignsSubjects>    ?alignsSubjects ;
+            <http://risis.eu/alignment/predicate/alignsObjects>     ?alignsObjects ;
+            <http://risis.eu/alignment/predicate/alignsMechanism>   ?alignsMechanism .
+    }}
+    """.format(linkset)
+    if DETAIL:
+        print query
+    return query
+
+
+def get_lens_operator(lens):
+    query = PREFIX + """
+    SELECT *
+    {{
+        <{}> alivocab:operator ?operator .
+    }}
+    """.format(lens)
+    if DETAIL:
+        print query
+    return query
+
+
+def get_lens_union_targets(lens):
+    query = PREFIX + """
+    select *
+    {{
+        <{}> void:target ?target .
+    }}
+    """.format(lens)
+    if DETAIL:
+        print query
+    return query
+
+def get_graphs_per_type(type=None):
 
     if type == "dataset":
         type_filter = "FILTER NOT EXISTS { {?g   rdf:type	void:Linkset} "
-        type_filter += " UNION {?g   rdf:type	void:Lens} "
+        type_filter += " UNION {?g   rdf:type	bdb:Lens} "
         type_filter += " UNION {?g   rdf:type	void:View} } ."
     elif type == "linkset&lens":
         type_filter = " { ?g   rdf:type	void:Linkset } UNION"
@@ -68,7 +128,7 @@ def get_graph_type(type=None):
     elif type == "linkset":
         type_filter = "?g   rdf:type	void:Linkset ."
     elif type == "lens":
-        type_filter = "?g   rdf:type	void:Lens ."
+        type_filter = "?g   rdf:type	bdb:Lens ."
     elif type == "view":
         type_filter = "?g   rdf:type	void:View ."
     else:
@@ -110,7 +170,7 @@ def get_correspondences(graph_uri):
 def get_target_datasets(singleton_matrix):
 
     sample = """
-    ### LINKSET WHERE A CORRESPONDENCE MIGHT HAV HAPPENED
+    ### LINKSET WHERE A CORRESPONDENCE MIGHT HAVE HAPPENED
     GRAPH ?graph { ?sub <_#_> ?obj .
     }"""
 
@@ -132,6 +192,7 @@ def get_target_datasets(singleton_matrix):
 
     query = """
     ### GET TARGET DATASETS
+    ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
     {}
     SELECT DISTINCT ?sub ?obj ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism
     where
@@ -183,7 +244,7 @@ def get_evidences(singleton, predicate=None):
     else:
         pred = predicate
 
-    query = """
+    query = PREFIX + """
     ### GET EVIDENCES FOR SINGLETON
     SELECT DISTINCT ?obj {0}
     {{
@@ -239,6 +300,7 @@ def get_resource_description(graph, resource, predicate=None):
         print query
     return query
 
+
 def get_predicates(graph):
 
     query = """
@@ -256,20 +318,27 @@ def get_predicates(graph):
         print query
     return query
 
+
 def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
     query = """
     ### GET VALUES OF ALIGNED PREDICATES
-    SELECT DISTINCT *
+    SELECT DISTINCT ?srcPredValue ?trgPredVal
     {
-        graph ?g_source
-        { <""" + source + """> <""" + src_aligns + """> ?srcPredValue }
+        GRAPH ?g_source
+        {
+            <""" + source + """>
+                <""" + src_aligns + """>        ?srcPredValue
+        }
         OPTIONAL
         {
             graph ?g_target
-            { <""" + target + """> <""" + trg_aligns + """> ?trgPredVal }
+            {
+                <""" + target + """>
+                    <""" + trg_aligns + """>    ?trgPredVal
+            }
         }
-
+        FILTER((?g_source) != (?g_target))
         BIND (IF(bound(?trgPredVal), ?trgPredVal , "") AS ?trgPredValue)
     }
     """
