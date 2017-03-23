@@ -99,7 +99,6 @@ function modeInvestigation(val)
     $.get('/getgraphs',function(data)
     {
         // $('#investigation_correspondence_col').hide();
-        hideColDiv('divInvestigation');
         $('#investigation_buttons_col').html(data);
 
         // ON CLICK BUTTON FOR DISPLAYING THE LIST OF CORRESPONDENCES
@@ -118,8 +117,10 @@ function modeInvestigation(val)
             var alignsMechanism = $(this).attr('alignsMechanism');
             var operator = $(this).attr('operator');
 
-            $('#corresponsence_list_col').html('Loading...');
+            hideColDiv('divInvestigation');
             $('#investigation_correspondence_col').show();
+            $('#investigation_correspondence_col').html('Loading...');
+
 
             // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
             $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
@@ -129,11 +130,11 @@ function modeInvestigation(val)
                                               'alignsMechanism': alignsMechanism},function(data)
             {
                 // LOAD THE CORRESPONDENCES DIV WITH THE LIST OF CORRESPONDENCES
-                $('#corresponsence_list_col').html(data);
+                $('#investigation_correspondence_col').html(data);
 
                 // CLICK ON INDIVIDUAL CORRESPONDENCE TO READ DETAILS ABOUT WHY IT
                 // WAS CREATED AND VALIDATE OR REJECTS IT
-                $("#corresponsence_list_col a").on('click', function()
+                $("#investigation_correspondence_col a").on('click', function()
                 {
                     var uri = $(this).attr('uri');
                     var sub_uri = $(this).attr('sub_uri');
@@ -257,8 +258,9 @@ function modeInvestigation(val)
             resetButtons('investigation_buttons_col');
             selectButton(this);
 
-            $('#investigation_correspondence_col').hide();
-            $('#views-row').show();
+            hideColDiv('divInvestigation');
+            $('#investigation_view_col').show();
+
             $('#views-results').html('This is where the server response will appear.');
 
             $('#link14').on('click', function(e)
