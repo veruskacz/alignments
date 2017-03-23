@@ -1,9 +1,12 @@
 # encoding=utf-8
-from flask import render_template, request # , jsonify, make_response, g
-import requests
 import json
-from app import app
 import logging
+
+import requests
+from flask import render_template, request # , jsonify, make_response, g
+
+from src.app import app
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
@@ -20,7 +23,10 @@ import re
 # import logging
 # local
 import Queries as Qry
-
+import ast
+import src.Alignments.Linksets.SPA_Linkset as spa_linkset2
+from src.Alignments.Lenses.Lens_Union import union
+from src.Alignments.Query import boolean_endpoint_response as boolean_response
 
 ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
@@ -433,6 +439,27 @@ def graphspertype():
     return render_template(template, list = graphs, btn_name = btn_name)
 
 
+@app.route('/getgraphsperrq')
+def graphsperrq():
+    """
+    This function is called due to request /getgraphspertype
+    It queries the dataset for of all the graphs of a certain type
+    The result listis passed as parameters to the informed template
+    (default list_dropdown.html)
+    """
+    # GET QUERY
+    rq_uri = request.args.get('rq_uri', '')
+    btn_name = request.args.get('btn_name', 'dataset')
+    template = request.args.get('template', 'list_dropdown.html')
+    graphs_query = Qry.get_graphs_per_rq(rq_uri)
+    # RUN QUERY AGAINST ENDPOINT
+    graphs = sparql(graphs_query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nGRAPHS:", graphs
+    # SEND BAK RESULTS
+    return render_template(template, list = graphs, btn_name = btn_name)
+
+
 @app.route('/getentitytype')
 def entitytype():
     """
@@ -446,6 +473,28 @@ def entitytype():
     graph_uri = request.args.get('graph_uri', '')
     template = request.args.get('template', 'list_dropdown.html')
     query = Qry.get_entity_type(graph_uri)
+    # RUN QUERY AGAINST ENDPOINT
+    types = sparql(query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nENTITY TYPES:", types
+    # SEND BAK RESULTS
+    return render_template(template, list = types, btn_name = 'Entity Type')
+
+
+@app.route('/getentitytyperq')
+def entitytyperq():
+    """
+    This function is called due to request /getentitytype
+    It queries the dataset for of all the graphs of a certain type
+    The result listis passed as parameters to the informed template
+    (default list_dropdown.html)
+    """
+    # GET QUERY
+    print '\n\nGET ENTITY TYPE'
+    graph_uri = request.args.get('graph_uri', '')
+    rq_uri = request.args.get('rq_uri', '')
+    template = request.args.get('template', 'list_dropdown.html')
+    query = Qry.get_entity_type_rq(rq_uri,graph_uri)
     # RUN QUERY AGAINST ENDPOINT
     types = sparql(query, strip=True)
     if PRINT_RESULTS:
@@ -541,6 +590,7 @@ def targetdatasets():
 
 
 def lens_targets_unique(unique_list, graph):
+
     # GET THE TYPE OF THE GRAPH
     graph_type_matrix = sparql_xml_to_matrix(
         Qry.get_graph_type(graph))
@@ -570,8 +620,212 @@ def lens_targets_unique(unique_list, graph):
                             lens_targets_unique(unique_list, target_matrix[i][0])
 
 
+@app.route('/createLinkset')
+def spa_linkset():
+
+    rq_uri = request.args.get('rq_uri', '')
+    specs = {
+
+        'source': {
+            'graph': request.args.get('src_graph', ''),
+            'aligns': request.args.get('src_aligns', ''),
+            'entity_datatype': request.args.get('src_entity_datatye', '')
+        },
+
+        'target': {
+            'graph': request.args.get('trg_graph', ''),
+            'aligns': request.args.get('trg_aligns', ''),
+            'entity_datatype': request.args.get('trg_entity_datatye', '')
+        },
+
+        'mechanism': request.args.get('mechanism', ''),
+
+        'context_code': request.args.get('context_code', '')
+    }
+
+    # specs = {'source': {'aligns': u'http://risis.eu/grid/ontology/predicate/name',
+    #                     'graph': u'http://risis.eu/dataset/grid',
+    #                     'entity_datatype': u'http://risis.eu/grid/ontology/class/Institution'},
+    #          'target': {'aligns': u'http://risis.eu/orgref/ontology/predicate/Name',
+    #                     'graph': u'http://risis.eu/dataset/orgref',
+    #                     'entity_datatype': u'http://risis.eu/orgref/ontology/class/Organisation'},
+    #          'mechanism': u'exactStrSim',
+    #          'context_code': u'666'}
+
+    print "\n\n\nSPECS: ", specs
+    if specs['mechanism'] == 'exactStrSim':
+        linkset_result = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
+    elif specs['mechanism'] == 'identity':
+        linkset_result = spa_linkset2.specs_2_linkset_id(specs, DATABASE, HOST, display=False, activated=True)
+    elif specs['mechanism'] == 'approxStrSim':
+        linkset_result = None
+    elif specs['mechanism'] == 'geoSim':
+        linkset_result = None
+    else:
+        linkset_result = None
+
+    # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
+    if linkset_result:
+        if linkset_result['error_code'] == 0:
+            query = Qry.associate_linkset_lens_to_rq(rq_uri, linkset_result['linkset'])
+            print boolean_response(query, DATABASE, HOST)
+
+    # print "\n\n\n{}".format(linkset_result['message'])
+    return json.dumps(linkset_result)
 
 
+@app.route('/createLens')
+def spa_lens():
+    rq_uri = request.args.get('rq_uri');
+    graphs = request.args.getlist('graphs[]');
+    operator = request.args.get('operator', '');
+    context_code = request.args.get('context_code', '');
+    # lens
+    # datasets
+    # lens_operation
+    # context_code
+
+    specs = {'datasets': graphs,
+             'lens_operation': operator,
+             'context_code': context_code,
+             'lens': "http://risis.eu/lens/union_" + context_code};
+
+    print "\n\n\nSPECS: ", specs
+    lens_result = None
+
+    if operator == "union":
+        lens_result = union(specs, DATABASE, HOST, activated=True)
+
+    if lens_result:
+        if lens_result['error_code'] == 0:
+            query = Qry.associate_linkset_lens_to_rq(rq_uri, lens_result['lens'])
+            print boolean_response(query, DATABASE, HOST)
+
+
+    # linkset = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
+    # print "\n\n\n{}".format(linkset)
+    return lens  # render_template(template, tn_name = linkset)
+    # "Linkset <{}> was created".format(linkset)
+
+
+@app.route('/getgraphsentitytypes')
+def graphsEntityTypes():
+    """
+    This function is called due to request /getpredicates
+    It queries the dataset for all the distinct predicates in a graph,
+    togehter with a sample value
+    The result list is passed as parameters to the template datadetails_list.html
+    """
+    # GET QUERY
+    query = Qry.get_types_per_graph()
+
+    # RUN QUERY AGAINST ENDPOINT
+    data = sparql(query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nDATASET | TYPE | COUNT:", dataDetails
+    # SEND BAK RESULTS
+    return render_template('graph_type_list.html',
+                            data = data)
+
+
+@app.route('/insertrq', methods=['GET'])
+def insertrq():
+    """
+    This function is called due to request /updateevidence
+    It updates a singleton property resource with the validation info.
+    The results, ...,
+    """
+
+    question = request.args.get('question', '')
+    query = Qry.check_RQ_existance(question)
+    check = boolean_response(query, DATABASE, HOST)
+    # print "\n\nCHECK: ",check
+    msg = ""
+    if check == 'true':
+        msg = 'This research question already exists!.<br/> URI = {}'
+    else:
+        query = Qry.insert_RQ(question)
+        result = sparql_update(query)
+        if result == 'true':
+            msg = 'Your research question is created.<br/> URI = {}'
+
+    rq_query = Qry.find_rq(question)
+    rq = sparql_xml_to_matrix(rq_query)
+    print "RQ: ", rq
+
+    dict = {
+        'rq': rq[1][0],
+        'msg': msg.format(rq[1][0])
+    }
+
+    # if PRINT_RESULTS:
+    print "\n\nRESPONSE:", dict
+
+    return json.dumps(dict)
+
+
+@app.route('/updaterq', methods=['GET'])
+def updaterq():
+    """
+    This function is called due to request /updateevidence
+    It updates a singleton property resource with the validation info.
+    The results, ...,
+    """
+    list = request.args.getlist('list[]')
+    rq_uri = request.args.get('rq_uri', '')
+
+    mapping = dict()
+    for item in list:
+        py_obj = ast.literal_eval(item)
+
+        if py_obj['graph'] not in mapping:
+            mapping[py_obj['graph']] = [py_obj['type']]
+        else:
+            mapping[py_obj['graph']] += [py_obj['type']]
+
+    query = Qry.insert_ds_mapping(rq_uri, mapping)
+    result = boolean_response(query, DATABASE, HOST)
+    # result = 'false'
+    if (result == 'true'):
+        msg = "Your mapping was inserted: ({}). <br/>URI = {}".format(result, rq_uri)
+    else:
+        msg = "Your mapping could NOT be inserted: ({}) <br/>URI = {}".format(result, rq_uri)
+    # question = request.args.get('question', '')
+    # query = Qry.check_RQ_exsitance(question)
+    # check = boolean_response(query, DATABASE, HOST)
+    # # print "\n\nCHECK: ",check
+    #
+    # if check == 'true':
+    #     result = 'This research question already exists!'
+    # else:
+    #     query = Qry.insert_RQ(question)
+    #     result = sparql_update(query)
+    #     if result == 'true':
+    #         result = 'Research question created'
+    #
+    # if PRINT_RESULTS:
+    #     print "\n\nRESPONSE:", result
+
+    return msg #""#result
+
+
+@app.route('/getrquestions')
+def rquestions():
+    """
+    This function is called due to request /gettargets
+    It queries all the (dataset) tagerts given a graph
+    The result list is passed as parameters to the template graphs_listgroup.html
+    """
+    query = Qry.get_rqs();
+    result = sparql(query, strip=False)
+
+    if PRINT_RESULTS:
+        print "\n\nRQs:", result
+
+    # SEND BAK RESULTS
+    return render_template('list_dropdown.html',
+                            list = result,
+                            btn_name = 'R.Question')
 
 # ######################################################################
 ## ENDPOINT

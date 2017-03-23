@@ -1,7 +1,8 @@
 // The webpage starts in the Investigation Mode
 $( document ).ready(function()
 {
-  modeInvestigation("Mode: Investigation");
+//  modeInvestigation("Mode: Investigation");
+  modeCreation("Mode: Creation");
 });
 
 // Depending on the selected Mode (modeDropdown)
@@ -36,9 +37,14 @@ function selectButton(button)
 
 function selectListItem(item)
 {
+  var selected = ''
   if ($(item).attr('class') == 'list-group-item')  {
-      $(item).addClass('list-group-item-warning'); }
-  else { $(item).removeClass('list-group-item-warning'); }
+      $(item).addClass('list-group-item-warning');
+      selected = 'True';
+  }
+  else { $(item).removeClass('list-group-item-warning');
+      selected = 'False';}
+  return selected
 }
 
 function selectedElemsInGroupList(item_name)
@@ -268,6 +274,8 @@ function modeCreation(val)
    $('#creation_linkset_col').hide();
    $('#creation_lens_col').hide();
    $('#creation_view_col').hide();
+   $('#creation_idea_col').hide();
+
 
    // reset all buttons in the creation mode to primary
    resetButtons('creation_buttons_col');
@@ -281,198 +289,245 @@ function modeCreation(val)
 
      $('#creation_view_col').hide();
      $('#creation_lens_col').hide();
-     // get graphs and load into the graph-buttons
-     $('#loading').show();
-     $.get('/getgraphspertype',function(data)
+     $('#creation_idea_col').hide();
+
+     $.get('/getrquestions',function(data)
      {
-       $('#loading').hide();
        $('#creation_linkset_col').show();
-       // load the rendered template into ...
-       $('#button-src-col').html(data);
-       $('#button-trg-col').html(data);
+       $('#button_creation_linkset_col').html(data);
 
-       // set actions after clicking one of the GRAPHS
-       // particularly in the creation_source_col
-       $('#creation_source_col a').on('click',function()
+        // select a research question
+       $('#button_creation_linkset_col a').on('click',function()
        {
-          // get the graph uri and label from the clicked element
-          var graph_uri = $(this).attr('uri');
-          var graph_label = $(this).attr('label');
+         refresh_create_linkset();
+         var rq_uri = $(this).attr('uri');
+         var rq_label = $(this).attr('label');
+         $('#creation_linkset_selected_RQ').html(rq_label);
 
-          // Attribute the uri of the selected graph to the div
-          // where the name/label is displayed
-          var elem = document.getElementById('src_selected_graph');
-          elem.setAttribute("uri", graph_uri);
-          $('#src_selected_graph').html(graph_label);
+         // get graphs and load into the graph-buttons
+         $('#creation_linkset_row').show();
+         $('#loading').show();
+         $.get('/getgraphsperrq',data = {'rq_uri': rq_uri}, function(data)
+         {
+           $('#loading').hide();
+           // load the rendered template into ...
+           $('#button-src-col').html(data);
+           $('#button-trg-col').html(data);
 
-          $.get('/getentitytype',data={'graph_uri': graph_uri},function(data)
-          {
-              // load the rendered template into column #button-src-entity-type-col
-              $('#button-src-entity-type-col').html(data);
+           // set actions after clicking one of the GRAPHS
+           // particularly in the creation_source_col
+           $('#creation_source_col a').on('click',function()
+           {
+              refresh_create_linkset(mode='source');
+              // get the graph uri and label from the clicked element
+              var graph_uri = $(this).attr('uri');
+              var graph_label = $(this).attr('label');
 
-               // set actions after clicking one of the predicates
-               // in the #src_predicates_col
-              $('#button-src-entity-type-col a').on('click',function()
+              // Attribute the uri of the selected graph to the div
+              // where the name/label is displayed
+              var elem = document.getElementById('src_selected_graph');
+              elem.setAttribute("uri", graph_uri);
+              $('#src_selected_graph').html(graph_label);
+              $('#src_selected_entity-type').html('Select an Entity Type');
+
+              $.get('/getentitytyperq',data={'rq_uri': rq_uri, 'graph_uri': graph_uri},function(data)
               {
-                  // get the graph uri and label from the clicked element
-                  var pred_uri = $(this).attr('uri');
-                  var pred_label = $(this).attr('label');
+                  // load the rendered template into column #button-src-entity-type-col
+                  $('#button-src-entity-type-col').html(data);
 
-                  // Attributes the uri of the selected predicate to the div
-                  // where the name is displayed
-                  var elem = document.getElementById('src_selected_entity-type');
-                  elem.setAttribute("uri", pred_uri);
-                  $('#src_selected_entity-type').html(pred_label);
+                   // set actions after clicking one of the predicates
+                   // in the #src_predicates_col
+                  $('#button-src-entity-type-col a').on('click',function()
+                  {
+                      // get the graph uri and label from the clicked element
+                      var pred_uri = $(this).attr('uri');
+                      var pred_label = $(this).attr('label');
+
+                      // Attributes the uri of the selected predicate to the div
+                      // where the name is displayed
+                      var elem = document.getElementById('src_selected_entity-type');
+                      elem.setAttribute("uri", pred_uri);
+                      $('#src_selected_entity-type').html(pred_label);
+                  });
               });
-          });
 
-          // Exihit a waiting message for the user to know loading time
-          // might be long.
-          $('#src_predicates_col').html('Loading...');
-          // get the distinct predicates and example values of a graph
-          // into a list group
-          $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
-          {
-              $('#src_selected_pred').show();
-               // load the rendered template
-               // into the column #src_predicates_col
-              $('#src_predicates_col').html(data);
-
-               // set actions after clicking one of the predicates
-               // in the #src_predicates_col
-              $('#src_predicates_col li').on('click',function()
+              // Exit a waiting message for the user to know loading time
+              // might be long.
+              $('#src_predicates_col').html('Loading...');
+              // get the distinct predicates and example values of a graph
+              // into a list group
+              $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
               {
-                  // get the graph uri and label from the clicked element
-                  var pred_uri = $(this).attr('uri');
-                  var pred_label = $(this).attr('label');
+                  $('#src_selected_pred').show();
+                   // load the rendered template
+                   // into the column #src_predicates_col
+                  $('#src_predicates_col').html(data);
 
-                  // Attributes the uri of the selected predicate to the div
-                  // where the name is displayed
-                  var elem = document.getElementById('src_selected_pred');
-                  elem.setAttribute("uri", pred_uri);
-                  $('#src_selected_pred').html(pred_label);
+                   // set actions after clicking one of the predicates
+                   // in the #src_predicates_col
+                  $('#src_predicates_col li').on('click',function()
+                  {
+                      // get the graph uri and label from the clicked element
+                      var pred_uri = $(this).attr('uri');
+                      var pred_label = $(this).attr('label');
+
+                      // Attributes the uri of the selected predicate to the div
+                      // where the name is displayed
+                      var elem = document.getElementById('src_selected_pred');
+                      elem.setAttribute("uri", pred_uri);
+                      $('#src_selected_pred').html(pred_label);
+                  });
               });
-          });
-       });
+           });
 
-       // set actions after clicking one of the GRAPHS
-       // particularly in the creation_target_col
-       $('#creation_target_col a').on('click',function()
-       {
-          // get the graph uri and label from the clicked element
-          var graph_uri = $(this).attr('uri');
-          var graph_label = $(this).attr('label');
+           // set actions after clicking one of the GRAPHS
+           // particularly in the creation_target_col
+           $('#creation_target_col a').on('click',function()
+           {
+              refresh_create_linkset(mode='target');
+              // get the graph uri and label from the clicked element
+              var graph_uri = $(this).attr('uri');
+              var graph_label = $(this).attr('label');
 
-          // Attributes the uri of the selected graph to the div
-          // where the name is displayed
-          var elem = document.getElementById('trg_selected_graph');
-          elem.setAttribute("uri", graph_uri);
-          $('#trg_selected_graph').html(graph_label);
+              // Attributes the uri of the selected graph to the div
+              // where the name is displayed
+              var elem = document.getElementById('trg_selected_graph');
+              elem.setAttribute("uri", graph_uri);
+              $('#trg_selected_graph').html(graph_label);
+              $('#trg_selected_entity-type').html('Select an Entity Type');
 
-          $.get('/getentitytype',data={'graph_uri': graph_uri},function(data)
-          {
-              // load the rendered template into column #button-src-entity-type-col
-              $('#button-trg-entity-type-col').html(data);
-
-               // set actions after clicking one of the predicates
-               // in the #src_predicates_col
-              $('#button-trg-entity-type-col a').on('click',function()
+              $.get('/getentitytyperq',data={'rq_uri': rq_uri, 'graph_uri': graph_uri},function(data)
               {
-                  // get the graph uri and label from the clicked element
-                  var pred_uri = $(this).attr('uri');
-                  var pred_label = $(this).attr('label');
+                  // load the rendered template into column #button-src-entity-type-col
+                  $('#button-trg-entity-type-col').html(data);
 
-                  // Attributes the uri of the selected predicate to the div
-                  // where the name is displayed
-                  var elem = document.getElementById('trg_selected_entity-type');
-                  elem.setAttribute("uri", pred_uri);
-                  $('#trg_selected_entity-type').html(pred_label);
+                   // set actions after clicking one of the predicates
+                   // in the #src_predicates_col
+                  $('#button-trg-entity-type-col a').on('click',function()
+                  {
+                      // get the graph uri and label from the clicked element
+                      var pred_uri = $(this).attr('uri');
+                      var pred_label = $(this).attr('label');
+
+                      // Attributes the uri of the selected predicate to the div
+                      // where the name is displayed
+                      var elem = document.getElementById('trg_selected_entity-type');
+                      elem.setAttribute("uri", pred_uri);
+                      $('#trg_selected_entity-type').html(pred_label);
+                  });
               });
-          });
-            // Exihit a waiting message for the user to know loading time
-          // might be long.
-          $('#trg_predicates_col').html('Loading...');
-          // get the distinct predicates and example values of a graph
-          // into a list group
-          $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
-          {
-              $('#trg_selected_pred').show();
-               // load the rendered template
-               // into the column #trg_predicates_col
-              $('#trg_predicates_col').html(data);
+                // Exihit a waiting message for the user to know loading time
+              // might be long.
+              $('#trg_predicates_col').html('Loading...');
+              // get the distinct predicates and example values of a graph
+              // into a list group
+              $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
+              {
+                  $('#trg_selected_pred').show();
+                   // load the rendered template
+                   // into the column #trg_predicates_col
+                  $('#trg_predicates_col').html(data);
 
-               // set actions after clicking one of the predicates
-               // in the #src_predicates_col
-              $('#trg_predicates_col li').on('click',function(){
-                  // get the graph uri and label from the clicked element
-                  var pred_uri = $(this).attr('uri');
-                  var pred_label = $(this).attr('label');
+                   // set actions after clicking one of the predicates
+                   // in the #src_predicates_col
+                  $('#trg_predicates_col li').on('click',function(){
+                      // get the graph uri and label from the clicked element
+                      var pred_uri = $(this).attr('uri');
+                      var pred_label = $(this).attr('label');
 
-                  // Attributes the uri of the selected predicate to the div
-                  // where the name is displayed
-                  var elem = document.getElementById('trg_selected_pred');
-                  elem.setAttribute("uri", pred_uri);
-                  $('#trg_selected_pred').html(pred_label);
+                      // Attributes the uri of the selected predicate to the div
+                      // where the name is displayed
+                      var elem = document.getElementById('trg_selected_pred');
+                      elem.setAttribute("uri", pred_uri);
+                      $('#trg_selected_pred').html(pred_label);
+                  });
               });
-          });
+           });
+
+           // set actions after clicking one of the Method
+           // particularly in the #creation_method_col
+           $('#creation_method_col a').on('click',function()
+           {
+              var meth_label = $(this).attr('label');
+              if (meth_label == 'identity'){
+                var elem = document.getElementById('src_selected_pred');
+                elem.setAttribute("uri", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+                var elem = document.getElementById('trg_selected_pred');
+                elem.setAttribute("uri", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+              }
+
+              // Attribute the label of the selected method to the div
+              // where the name is displayed
+              var elem = document.getElementById('selected_meth');
+              elem.setAttribute("label", meth_label);
+              $('#selected_meth').html(meth_label);
+           });
+
+           // set actions after clicking the button createLinksetButton
+           $('#createLinksetButton').on('click',function()
+           {
+              $('#linkset_creation_message_col').html("");
+
+              var srcDict = {};
+              if (($('#src_selected_graph').attr('uri')) &&
+                 ($('#src_selected_pred').attr('uri')) &&
+                 ($('#src_selected_entity-type').attr('uri'))  )
+              {
+                 srcDict = {'graph': $('#src_selected_graph').attr('uri'),
+                            'aligns': $('#src_selected_pred').attr('uri'),
+                            'entity_datatye': $('#src_selected_entity-type').attr('uri')};
+              }
+
+              var trgDict = {};
+              if (($('#trg_selected_graph').attr('uri')) &&
+                 ($('#trg_selected_pred').attr('uri'))&&
+                 ($('#trg_selected_entity-type').attr('uri')) )
+              {
+                 trgDict = {'graph': $('#trg_selected_graph').attr('uri'),
+                            'aligns': $('#trg_selected_pred').attr('uri'),
+                            'entity_datatye': $('#trg_selected_entity-type').attr('uri')};
+              }
+
+              var elem = document.getElementById('selected_context_code');
+              if ((Object.keys(srcDict).length) &&
+                  (Object.keys(trgDict).length) &&
+                  ($('#selected_meth').attr('label')) &&
+                  (elem.value)
+                  )
+              {
+                  var specs = {
+                    'rq_uri': rq_uri,
+                    'src_graph': $('#src_selected_graph').attr('uri'),
+                    'src_aligns': $('#src_selected_pred').attr('uri'),
+                    'src_entity_datatye': $('#src_selected_entity-type').attr('uri'),
+
+                    'trg_graph': $('#trg_selected_graph').attr('uri'),
+                    'trg_aligns': $('#trg_selected_pred').attr('uri'),
+                    'trg_entity_datatye': $('#trg_selected_entity-type').attr('uri'),
+
+                    'mechanism': $('#selected_meth').attr('label'),
+                    'context_code': elem.value
+                  }
+
+                  var message = "EXECUTING YOUR LINKSET SPECS.\nPLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
+                  $('#linkset_creation_message_col').html(message);
+
+                  // call function that creates the linkset
+                  // HERE!!!!
+                  $.get('/createLinkset', specs, function(data)
+                  {
+                        var obj = JSON.parse(data);
+                        $('#linkset_creation_message_col').html(obj.message);
+                  });
+
+              }
+              else {
+                $('#linkset_creation_message_col').html("Some feature is not selected!");
+              }
+           });
+         });
        });
-
-       // set actions after clicking one of the Method
-       // particularly in the #creation_method_col
-       $('#creation_method_col a').on('click',function()
-       {
-          var meth_label = $(this).attr('label');
-
-          // Attribute the label of the selected method to the div
-          // where the name is displayed
-          var elem = document.getElementById('selected_meth');
-          elem.setAttribute("label", meth_label);
-          $('#selected_meth').html(meth_label);
-       });
-
-       // set actions after clicking the button createLinksetButton
-       $('#createLinksetButton').on('click',function()
-       {
-          $('#linkset_creation_message_col').html("");
-
-          var srcDict = {};
-          if (($('#src_selected_graph').attr('uri')) &&
-             ($('#src_selected_pred').attr('uri')) &&
-             ($('#src_selected_entity-type').attr('uri'))  )
-          {
-             srcDict = {'graph': $('#src_selected_graph').attr('uri'),
-                        'aligns': $('#src_selected_pred').attr('uri'),
-                        'entity_datatye': $('#src_selected_entity-type').attr('uri')};
-          }
-
-          var trgDict = {};
-          if (($('#trg_selected_graph').attr('uri')) &&
-             ($('#trg_selected_pred').attr('uri'))&&
-             ($('#trg_selected_entity-type').attr('uri')) )
-          {
-             trgDict = {'graph': $('#trg_selected_graph').attr('uri'),
-                        'aligns': $('#trg_selected_pred').attr('uri'),
-                        'entity_datatye': $('#trg_selected_entity-type').attr('uri')};
-          }
-
-          if ((Object.keys(srcDict).length) &&
-              (Object.keys(trgDict).length) &&
-              ($('#selected_meth').attr('label')))
-          {
-              var dict = {'source': srcDict,
-                          'target': trgDict,
-                          'mechanism': $('#selected_meth').attr('label')};
-
-              // call function that creates the linkset
-              // HERE!!!!
-
-              $('#linkset_creation_message_col').html("Linkset is created!");
-          }
-          else {
-            $('#linkset_creation_message_col').html("Some feature is not selected!");
-          }
-       });
-     });
+    });
    });
 
    // set actions after clicking the Lens Button
@@ -483,6 +538,7 @@ function modeCreation(val)
 
      $('#creation_linkset_col').hide();
      $('#creation_view_col').hide();
+     $('#creation_idea_col').hide();
      $('#creation_lens_col').show();
 
      // set actions after clicking one of the Operators
@@ -499,7 +555,7 @@ function modeCreation(val)
      });
 
      $('#loading2').show();
-     $.get('/getgraphspertype',data={'type': 'linkset&lens', 'template': 'graphs_listgroup.html'},function(data)
+     $.get('/getgraphspertype',data={'type': 'linkset&lens', 'template': 'list_group.html'},function(data)
      {
        $('#loading2').hide();
        $('#creation_lens_selection_col').html(data);
@@ -523,13 +579,21 @@ function modeCreation(val)
         if ((graphs.length > 0) &&
             ($('#selected_operator').attr('label')))
         {
-            var dict = {'graphs': graphs,
+            var specs = {'graphs': graphs,
                         'operator': $('#selected_operator').attr('label')};
 
             // call function that creates the lens
             // HERE!!!!
 
-            $('#lens_creation_message_col').html("Lens is created!");
+            var message = "EXECUTING YOUR LENS SPECS.\nPLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
+            $('#lens_creation_message_col').html(message);
+
+            // call function that creates the linkset
+            $.get('/createLens', specs, function(data)
+            {
+//                    alert("Test");
+                    $('#lens_creation_message_col').html(data);
+            });
         }
         else {
           $('#lens_creation_message_col').html("Some feature is not selected!");
@@ -545,10 +609,11 @@ function modeCreation(val)
 
      $('#creation_linkset_col').hide();
      $('#creation_lens_col').hide();
+     $('#creation_idea_col').hide();
      $('#creation_view_col').show();
 
      $('#loading4').show();
-     $.get('/getgraphspertype',data={'type': 'linkset&lens', 'template': 'graphs_listgroup.html'},function(data)
+     $.get('/getgraphspertype',data={'type': 'linkset&lens', 'template': 'list_group.html'},function(data)
      {
        $('#loading4').hide();
        $('#creation_view_lens_col').html(data);
@@ -617,6 +682,7 @@ function modeCreation(val)
 
                         $('#creation_view_selected_predicates_group li').on('ondblclick',function()
                         {
+                            // not working yet
                             alert('here');
                             var id = $(this).attr('id');
                             var element = document.getElementById(id);
@@ -632,4 +698,119 @@ function modeCreation(val)
 
    });
 
+      // set actions after clicking the View Button
+   $('#creationIdeaButton').on('click',function(e)
+   {
+     resetButtons('creation_buttons_col');
+     selectButton(this);
+
+     $('#creation_linkset_col').hide();
+     $('#creation_lens_col').hide();
+     $('#creation_view_col').hide();
+     $('#creation_idea_col').show();
+
+
+     $('#createIdeaButton').on('click',function()
+     {
+        var rq_input = document.getElementById('reserach_question');
+        $.get('/insertrq',data={'question': rq_input.value},function(data){
+            var obj = JSON.parse(data)
+            var rq_up_btn = document.getElementById('updateIdeaButton');
+            rq_up_btn.setAttribute("rq_uri", obj.rq);
+
+            $('#idea_creation_message_col').html(obj.msg);
+
+            $('#creation_idea_update_col').show();
+        });
+
+        $.get('/getgraphsentitytypes',function(data)
+        {
+            $('#creation_idea_graphtype_list').html(data);
+
+       // set actions after clicking a graph in the list
+            $('#creation_idea_graphtype_list li').on('click',function()
+            {
+               //var uri = $(this).attr('uri');
+               $('#creation_idea_selected_graphtype_list').append(this);
+
+               $('#creation_idea_selected_graphtype_list li').on('click',function()
+                {
+                    //var uri = $(this).attr('uri');
+                    $('#creation_idea_graphtype_list').append(this);
+
+                });
+            });
+        });
+
+       $('#updateIdeaButton').on('click',function()
+       {
+            var elem = document.getElementById('creation_idea_selected_graphtype_list');
+            var elems = elem.getElementsByClassName('list-group-item');
+
+            var i;
+            var list = []
+            var dict = {}
+            for (i = 0; i < elems.length; i++) {
+              dict = {'graph':$(elems[i]).attr('uri'),
+                      'type':$(elems[i]).attr('type_uri') }
+              list.push(JSON.stringify(dict));
+            }
+
+            $.get('/updaterq',data={'rq_uri': $(this).attr('rq_uri'), 'list[]': list},function(data)
+            {
+                $('#idea_update_message_col').html(data);
+            });
+
+        });
+
+
+
+     });
+
+   });
+}
+
+
+function refresh_create_linkset(mode='all')
+{
+    var elem = Object;
+    if (mode == 'all'){
+    elem = document.getElementById('src_selected_graph');
+    $('#src_selected_graph').html("Select a Graph");
+    elem.setAttribute('uri', '');
+
+    elem = document.getElementById('trg_selected_graph');
+    $('#trg_selected_graph').html("Select a Graph");
+    elem.setAttribute('uri', '');
+
+    elem = document.getElementById('selected_meth');
+    $('#selected_meth').html("Select a Method");
+    elem.setAttribute('label', '');
+    }
+
+    if (mode == 'all' || mode == 'source') {
+    elem = document.getElementById('src_selected_entity-type');
+    $('#src_selected_entity-type').html("Select an Entity Type");
+    elem.setAttribute('uri', '');
+//    alert($('#src_selected_entity-type').attr("uri"));
+
+    elem = document.getElementById('src_selected_pred');
+    $('#src_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+    elem.setAttribute('uri', '');
+//    alert($('#src_selected_pred').attr("uri"));
+
+    $('#src_predicates_col').html('');
+    }
+
+    if (mode == 'all' || mode == 'target') {
+    elem = document.getElementById('trg_selected_entity-type');
+    $('#trg_selected_entity-type').html("Select an Entity Type");
+    elem.setAttribute('uri', '');
+
+    elem = document.getElementById('src_selected_pred');
+    $('#trg_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+    elem.setAttribute('uri', '');
+
+    $('#trg_predicates_col').html('');
+    }
 }

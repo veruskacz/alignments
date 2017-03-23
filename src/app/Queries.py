@@ -13,6 +13,217 @@ PREFIX ="""
 INFO = False
 DETAIL = True
 
+def delete_rq():
+    query = """
+    DELETE {  ?subject ?pred ??obj . }
+    WHERE
+    {
+        ?subject    a           <http://risis.eu/class/ResearchQuestion> ;
+                    ?pred      ?obj .
+    }
+    """
+    if DETAIL:
+        print query
+    return query
+
+
+def associate_linkset_lens_to_rq(question_uri, linkset):
+
+    query = """
+    INSERT
+    {{
+        <{0}> alivocab:created <{1}>
+    }}
+    WHERE
+    {{
+        <{0}> ?pred ?obj .
+    }}
+    """.format(question_uri, linkset)
+    if DETAIL:
+        print query
+    return query
+
+
+def insert_ds_mapping2(question_uri, mapping):
+
+    where_clause = ""
+    insert_clause = ""
+    count_ds = 0
+    for dataset, datatypes in mapping.items():
+        # NEW MAPPING INSTANCE
+        count_ds += 1
+        where_clause = """
+    \tBIND(iri(replace('http://risis.eu/activity/idea_#','#',strafter(str(uuid()),'uuid:'))) as ?dataset_{})\n""".\
+            format(count_ds)
+
+        insert_clause += """
+        <{}> void:target ?dataset_{}.""".format(question_uri, count_ds)
+        for i_type in datatypes:
+            insert_clause += """
+        ?dataset_{}
+            alivocab:selectedSource 	<{}> ;
+            alivocab:selectedDatatype 	<{}> .\n""".format(count_ds, dataset, i_type)
+
+    insert_query = PREFIX + """
+    INSERT
+    {{
+        {}
+    }}
+    WHERE
+    {{
+        {}
+    }}
+    """.format(insert_clause, where_clause)
+
+    if DETAIL:
+        print insert_query
+    return insert_query
+
+
+def insert_ds_mapping(question_uri, mapping):
+    print "\nEnter the function"
+    where_clause = ""
+    insert_clause = ""
+    insert_query = ""
+    count_ds = 0
+    for dataset, datatypes in mapping.items():
+        # NEW MAPPING INSTANCE
+        outer_colon = ";\n" if (count_ds > 0) else ""
+        count_ds += 1
+        where_clause = """
+    \tBIND(iri(replace('http://risis.eu/activity/idea_#','#',strafter(str(uuid()),'uuid:'))) as ?dataset_{})\n""".\
+            format(count_ds)
+
+        insert_clause = """
+        <{}> void:target ?dataset_{}.""".format(question_uri, count_ds)
+        for i in range(len(datatypes)):
+            insert_clause += """
+        ?dataset_{}
+            alivocab:selectedSource 	<{}> ;
+            alivocab:selectedDatatype 	<{}> .\n""".format(count_ds, dataset, datatypes[i])
+
+            colon = ";\n" if (i > 0) else ""
+            insert_query += outer_colon + """
+            {}INSERT
+            {{
+                {}
+            }}
+            WHERE
+            {{
+                {}
+                FILTER NOT EXISTS
+                {{
+                     <{}> void:target [
+                        alivocab:selectedSource     <{}> ;
+                        alivocab:selectedDatatype   <{}>]
+                }}
+            }}
+            """.format(colon, insert_clause, where_clause, question_uri, dataset, datatypes[i])
+
+    final_query = PREFIX + insert_query
+
+
+    if DETAIL:
+        print "\n\n!!!!!!!!!", final_query, "!!!!!!!!!"
+    return final_query
+
+
+def get_types_per_graph():
+    query = """
+    select distinct ?Dataset ?EntityType (count(distinct ?x) as ?EntityCount)
+    {
+         select ?Dataset ?x ?EntityType
+         {
+            Graph ?Dataset
+            {
+               ?x a ?EntityType .
+               {select ?x { ?x a ?EntityType }}
+            }
+            FILTER ((str(?EntityType) != "http://www.w3.org/2000/01/rdf-schema#Class") )
+            FILTER ((str(?EntityType) != "http://www.w3.org/2002/07/owl#Class"))
+            FILTER ((str(?EntityType) != "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"))
+            FILTER ((str(?EntityType) != "http://risis.eu/risis/ontology/class/Neutral"))
+         }
+    } GROUP by ?Dataset ?EntityType ORDER BY ?Dataset
+    """
+
+    if DETAIL:
+        print query
+    return query
+
+
+def insert_RQ( question ):
+
+    query = """
+    ### CREATING A RESEARCH QUESTION RESOURCE
+    INSERT
+	{{
+      	?subject
+      	    a               <http://risis.eu/class/ResearchQuestion> ;
+        	rdfs:label      ""\"{}\""" .
+    }}
+    WHERE
+    {{
+        #replace('http://risis.eu/activity/#','#', strafter(str(uuid()),'uuid:'))
+        BIND( iri(replace('http://risis.eu/activity/idea_#','#', strafter(str(uuid()),'uuid:'))) as ?subject)
+    }}
+    """.format(question)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def check_RQ_existance (question):
+    query = """
+    ask
+	{{
+      	?subject a <http://risis.eu/class/ResearchQuestion> ;
+        	rdfs:label ""\"{}\""".
+    }}""".format(question)
+    if DETAIL:
+        print query
+    return query
+
+
+def get_graphs_per_rq(rq_uri):
+    query = PREFIX + """
+        SELECT DISTINCT ?uri
+    	{{
+          	<{}> a <http://risis.eu/class/ResearchQuestion> ;
+          	    void:target  ?target .
+          	?target  alivocab:selectedSource  ?uri
+
+        }}""".format(rq_uri)
+    if DETAIL:
+        print query
+    return query
+
+
+def get_rqs ():
+    query = """
+    SELECT DISTINCT ?uri ?uri_label
+	{
+      	?uri a <http://risis.eu/class/ResearchQuestion> ;
+      	    rdfs:label ?uri_label
+
+    }"""
+    if DETAIL:
+        print query
+    return query
+
+
+def find_rq (question):
+    query = """
+    SELECT ?rq
+	{{
+      	?rq a <http://risis.eu/class/ResearchQuestion> ;
+        	rdfs:label ""\"{}\""".
+    }}""".format(question)
+    if DETAIL:
+        print query
+    return query
+
 
 def get_graph_type(graph):
     query = """
@@ -25,6 +236,7 @@ def get_graph_type(graph):
         print query
     return query
 
+
 def get_entity_type(graph):
     query = """
     SELECT distinct ?uri
@@ -34,6 +246,20 @@ def get_entity_type(graph):
         }}
     }}
     """.format(graph)
+    if DETAIL:
+        print query
+    return query
+
+
+def get_entity_type_rq(rq_uri, graph_uri):
+    query = PREFIX + """
+        SELECT DISTINCT ?uri
+    	{{
+          	<{}> a <http://risis.eu/class/ResearchQuestion> ;
+          	    void:target  ?target .
+          	?target  alivocab:selectedSource  <{}> ;
+          	    alivocab:selectedDatatype  ?uri
+        }}""".format(rq_uri, graph_uri)
     if DETAIL:
         print query
     return query
@@ -122,6 +348,7 @@ def get_targets(graph_uri):
     if DETAIL:
         print query
     return query
+
 
 def get_lens_operator(lens):
     query = PREFIX + """

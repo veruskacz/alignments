@@ -1,5 +1,24 @@
+
 <div class="row">
-  <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_source_col">
+  <div class="col-md-12" id="creation_linkset_select_RQ_col">
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Research Question</h3></div>
+      </div>
+    <div class="row">
+      <div class="col-md-3" id="button_creation_linkset_col">
+          <!-- will be rendered via server -->
+      </div>
+      <div class="col-md-9">
+          <div class="well well-sm" id="creation_linkset_selected_RQ" uri="">Select a Research Question</div>
+      </div>
+   </div>
+  </div>
+</div>
+
+<div class="row" id = "creation_linkset_row" style='display:none'>
+  <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_source_col" >
+    <div id="loading"> Loading... </div>
     <div class="row">
       <div class="col-md-10">
         <h3>Source</h3></div>
@@ -89,12 +108,24 @@
                         Approximate Match</a>
                     <a href="#" role="menuitem" tabindex="-1" label="geoSim">
                         Geo Match</a>
+                    <a href="#" role="menuitem" tabindex="-1" label="identity">
+                        Identity</a>
                 </li>
             </ul>
            </span>
         </div>
         <div class="col-md-9">
            <div class="well well-sm" id="selected_meth" label="">Select a Method</div>
+        </div>
+     </div>
+      <div class="row">
+        <div class="col-md-10">
+          <h3>Context Code</h3></div>
+        </div>
+     <div class="row">
+        <div class="col-md-12">
+            Enter a context code:
+           <input type="text" id="selected_context_code" class="form-control" id="usr">
         </div>
      </div>
   </div>

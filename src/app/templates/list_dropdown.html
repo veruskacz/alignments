@@ -5,7 +5,7 @@
       {% for l in list %}
       <li role="presentation">
           <a href="#" role="menuitem" tabindex="-1" uri='{{l.uri.value }}'
-          label='{{l.uri_label.value|upper}}'>
+          label='{{l.uri_label.value}}'>
           {{ l.uri_label.value }}</a>
       </li>
       {% endfor %}
