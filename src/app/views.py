@@ -5,8 +5,6 @@ import logging
 import requests
 from flask import render_template, request # , jsonify, make_response, g
 
-from src.app import app
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
@@ -24,9 +22,6 @@ import re
 # local
 import Queries as Qry
 import ast
-import src.Alignments.Linksets.SPA_Linkset as spa_linkset2
-from src.Alignments.Lenses.Lens_Union import union
-from src.Alignments.Query import boolean_endpoint_response as boolean_response
 
 ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
@@ -34,6 +29,16 @@ DATABASE = "risis"
 HOST = "localhost:5820"
 
 REASONING_TYPE = 'SL'
+
+CREATION_ACTIVE = False
+
+if CREATION_ACTIVE:
+    import src.Alignments.Linksets.SPA_Linkset as spa_linkset2
+    from src.Alignments.Lenses.Lens_Union import union
+    from src.Alignments.Query import boolean_endpoint_response as boolean_response
+    from src.app import app
+else:
+    from app import app
 
 # log = app.logger
 # log.setLevel(logging.DEBUG)
@@ -438,9 +443,29 @@ def graphspertype():
     # SEND BAK RESULTS
     return render_template(template, list = graphs, btn_name = btn_name)
 
+@app.route('/getgraphsperrqtype')
+def graphsperrqtype():
+    """
+    This function is called due to request /getgraphsperrqtype
+    It queries the dataset for of all the graphs of a certain type
+    The result listis passed as parameters to the informed template
+    (default list_dropdown.html)
+    """
+    # GET QUERY
+    rq_uri = request.args.get('rq_uri', '')
+    type = request.args.get('type', 'dataset')
+    btn_name = request.args.get('btn_name', type)
+    template = request.args.get('template', 'list_dropdown.html')
+    graphs_query = Qry.get_graphs_per_rq_type(rq_uri,type)
+    # RUN QUERY AGAINST ENDPOINT
+    graphs = sparql(graphs_query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nGRAPHS:", graphs
+    # SEND BAK RESULTS
+    return render_template(template, list = graphs, btn_name = btn_name)
 
-@app.route('/getgraphsperrq')
-def graphsperrq():
+@app.route('/getsourcesperrq')
+def sourcesperrq():
     """
     This function is called due to request /getgraphspertype
     It queries the dataset for of all the graphs of a certain type
@@ -451,13 +476,13 @@ def graphsperrq():
     rq_uri = request.args.get('rq_uri', '')
     btn_name = request.args.get('btn_name', 'dataset')
     template = request.args.get('template', 'list_dropdown.html')
-    graphs_query = Qry.get_graphs_per_rq(rq_uri)
+    source_query = Qry.get_source_per_rq(rq_uri)
     # RUN QUERY AGAINST ENDPOINT
-    graphs = sparql(graphs_query, strip=True)
+    sources = sparql(source_query, strip=True)
     if PRINT_RESULTS:
-        print "\n\nGRAPHS:", graphs
+        print "\n\nGRAPHS:", sources
     # SEND BAK RESULTS
-    return render_template(template, list = graphs, btn_name = btn_name)
+    return render_template(template, list = sources, btn_name = btn_name)
 
 
 @app.route('/getentitytype')
@@ -559,7 +584,7 @@ def lens_targets_details(detail_dict, graph):
 @app.route('/gettargetdatasets')
 def targetdatasets():
     """
-    This function is called due to request /gettargets
+    This function is called due to request /gettargetdatasets
     It queries all the (dataset) tagerts given a graph
     The result list is passed as parameters to the template graphs_listgroup.html
     """
@@ -638,9 +663,9 @@ def spa_linkset():
             'entity_datatype': request.args.get('trg_entity_datatye', '')
         },
 
-        'mechanism': request.args.get('mechanism', ''),
+        'mechanism': request.args.get('mechanism', '')
 
-        'context_code': request.args.get('context_code', '')
+        # ,'context_code': request.args.get('context_code', '')
     }
 
     # specs = {'source': {'aligns': u'http://risis.eu/grid/ontology/predicate/name',
@@ -653,16 +678,21 @@ def spa_linkset():
     #          'context_code': u'666'}
 
     print "\n\n\nSPECS: ", specs
-    if specs['mechanism'] == 'exactStrSim':
-        linkset_result = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
-    elif specs['mechanism'] == 'identity':
-        linkset_result = spa_linkset2.specs_2_linkset_id(specs, DATABASE, HOST, display=False, activated=True)
-    elif specs['mechanism'] == 'approxStrSim':
-        linkset_result = None
-    elif specs['mechanism'] == 'geoSim':
-        linkset_result = None
+    if CREATION_ACTIVE:
+        if specs['mechanism'] == 'exactStrSim':
+            linkset_result = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
+        elif specs['mechanism'] == 'identity':
+            linkset_result = spa_linkset2.specs_2_linkset_id(specs, DATABASE, HOST, display=False, activated=True)
+        elif specs['mechanism'] == 'approxStrSim':
+            linkset_result = None
+        elif specs['mechanism'] == 'geoSim':
+            linkset_result = None
+        else:
+            linkset_result = None
     else:
-        linkset_result = None
+        linkset_result = {'message': 'Linkset creation is inactive!',
+                           'error_code': -1,
+                           'linkset': ''}
 
     # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
     if linkset_result:
@@ -679,42 +709,88 @@ def spa_lens():
     rq_uri = request.args.get('rq_uri');
     graphs = request.args.getlist('graphs[]');
     operator = request.args.get('operator', '');
-    context_code = request.args.get('context_code', '');
-    # lens
-    # datasets
-    # lens_operation
-    # context_code
+    # context_code = request.args.get('context_code', '');
+
+    # TODO: add proper function to create unique name
+    List_graph_names = map((lambda x: x[x.rfind('/')+1:]), graphs)
+    Concat_Names = reduce( (lambda x,y:x+y), List_graph_names)
+    lens_uri = "http://risis.eu/lens/union_" + Concat_Names + operator
 
     specs = {'datasets': graphs,
              'lens_operation': operator,
-             'context_code': context_code,
-             'lens': "http://risis.eu/lens/union_" + context_code};
+             'lens': lens_uri};
 
     print "\n\n\nSPECS: ", specs
-    lens_result = None
 
-    if operator == "union":
-        lens_result = union(specs, DATABASE, HOST, activated=True)
+    if CREATION_ACTIVE:
+        if operator == "union":
+            lens_result = union(specs, DATABASE, HOST, activated=True)
+        else:
+            lens_result = {'message': 'Operation no implemented!',
+                           'error_code': -1,
+                           'lens': ''}
+    else:
+        lens_result = {'message': 'Lens creation is inactive!',
+                       'error_code': -1,
+                       'lens': lens_uri}
 
     if lens_result:
         if lens_result['error_code'] == 0:
             query = Qry.associate_linkset_lens_to_rq(rq_uri, lens_result['lens'])
-            print boolean_response(query, DATABASE, HOST)
+            boolean_response(query, DATABASE, HOST)
 
+    return json.dumps(lens_result)
 
-    # linkset = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
-    # print "\n\n\n{}".format(linkset)
-    return lens  # render_template(template, tn_name = linkset)
-    # "Linkset <{}> was created".format(linkset)
+@app.route('/createView')
+def createView():
+    rq_uri = request.args.get('rq_uri');
+    view_lens = request.args.getlist('view_lens[]');
+    view_filter = request.args.getlist('view_filter[]');
 
+    print "\n\nVIEW:",view_lens
+    print view_filter
+
+    view_specs = {'lenses': view_lens,
+                  'operator': 'intersection' }
+
+    print view_specs
+
+    design_view = []
+    for json_item in view_filter:
+        f = ast.literal_eval(json_item)
+        exist = False
+        for d in design_view:
+            if d['graph'] == f['ds'] :
+                d['properties'].append(f['att'])
+                exist = True
+                break
+        if not exist:
+            dict = {'graph': f['ds'],
+                    'properties': [f['att']]}
+            design_view.append(dict)
+
+    print design_view
+
+    if CREATION_ACTIVE:
+        view_result = view(design_view, view_specs, DATABASE, HOST, limit=75)
+    else:
+        view_result = {'message': 'View creation is inactive!',
+                       'error_code': -1,
+                       'view': ''}
+
+    if view_result:
+        if view_result['error_code'] == 0:
+            query = Qry.associate_linkset_lens_to_rq(rq_uri, view_result['view'])
+            boolean_response(query, DATABASE, HOST)
+
+    return json.dumps(view_result)
 
 @app.route('/getgraphsentitytypes')
 def graphsEntityTypes():
     """
-    This function is called due to request /getpredicates
-    It queries the dataset for all the distinct predicates in a graph,
-    togehter with a sample value
-    The result list is passed as parameters to the template datadetails_list.html
+    This function is called due to request /getgraphsentitytypes
+    It queries ...
+    The result list is passed as parameters to the template graph_type_list.html
     """
     # GET QUERY
     query = Qry.get_types_per_graph()
@@ -731,14 +807,17 @@ def graphsEntityTypes():
 @app.route('/insertrq', methods=['GET'])
 def insertrq():
     """
-    This function is called due to request /updateevidence
-    It updates a singleton property resource with the validation info.
+    This function is called due to request /insertrq
+    It inserts ...
     The results, ...,
     """
 
     question = request.args.get('question', '')
     query = Qry.check_RQ_existance(question)
-    check = boolean_response(query, DATABASE, HOST)
+    if CREATION_ACTIVE:
+        check = boolean_response(query, DATABASE, HOST)
+    else:
+        check = 'false'
     # print "\n\nCHECK: ",check
     msg = ""
     if check == 'true':
@@ -767,8 +846,8 @@ def insertrq():
 @app.route('/updaterq', methods=['GET'])
 def updaterq():
     """
-    This function is called due to request /updateevidence
-    It updates a singleton property resource with the validation info.
+    This function is called due to request /updaterq
+    It updates ...
     The results, ...,
     """
     list = request.args.getlist('list[]')
@@ -784,7 +863,12 @@ def updaterq():
             mapping[py_obj['graph']] += [py_obj['type']]
 
     query = Qry.insert_ds_mapping(rq_uri, mapping)
-    result = boolean_response(query, DATABASE, HOST)
+    if CREATION_ACTIVE:
+        result = boolean_response(query, DATABASE, HOST)
+    else:
+        sparql_update(query)
+        result = 'true'
+
     # result = 'false'
     if (result == 'true'):
         msg = "Your mapping was inserted: ({}). <br/>URI = {}".format(result, rq_uri)
@@ -812,9 +896,9 @@ def updaterq():
 @app.route('/getrquestions')
 def rquestions():
     """
-    This function is called due to request /gettargets
-    It queries all the (dataset) tagerts given a graph
-    The result list is passed as parameters to the template graphs_listgroup.html
+    This function is called due to request /getrquestions
+    It queries ...
+    The result list is passed as parameters to the template list_dropdown.html
     """
     query = Qry.get_rqs();
     result = sparql(query, strip=False)
@@ -825,7 +909,7 @@ def rquestions():
     # SEND BAK RESULTS
     return render_template('list_dropdown.html',
                             list = result,
-                            btn_name = 'R.Question')
+                            btn_name = 'Research Question')
 
 # ######################################################################
 ## ENDPOINT
@@ -885,7 +969,10 @@ def strip_dict(result_dict):
             temp = v['value']
             temp = temp[temp.rfind('/')+1:]
             temp = temp[temp.rfind('#')+1:]
-            new_result[k+'_stripped']['value'] = temp
+            if k == 'uri':  ## specially for removing _ when var name is uri
+                new_result[k+'_stripped']['value'] = temp.replace('_',' ')
+            else:
+                new_result[k+'_stripped']['value'] = temp
 
             new_result[k] = v
 

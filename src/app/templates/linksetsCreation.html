@@ -1,18 +1,27 @@
-
+<div class="panel panel-info">
+<div class="panel-heading"><h3>Linkset</h3></div>
+<div class="panel-body">
 <div class="row">
   <div class="col-md-12" id="creation_linkset_select_RQ_col">
-    <div class="row">
+    <!-- <div class="row">
       <div class="col-md-12">
         <h3>Research Question</h3></div>
-      </div>
+      </div> -->
     <div class="row">
-      <div class="col-md-3" id="button_creation_linkset_col">
+      <div class="col-md-2" id="button_creation_linkset_col">
           <!-- will be rendered via server -->
       </div>
-      <div class="col-md-9">
+      <div class="col-md-8">
           <div class="well well-sm" id="creation_linkset_selected_RQ" uri="">Select a Research Question</div>
       </div>
+      <div class="col-md-2">
+          <button type="button" id="createLinksetButton" class="btn btn-success btn btn-primary disabled" data-toggle="button"  >
+            Create Linkset</button>
+      </div>
    </div>
+    <div class="row">
+      <h5><div class="col-md-11 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+    </div>
   </div>
 </div>
 
@@ -41,7 +50,7 @@
          <div class="well well-sm" id="src_selected_entity-type">Select an Entity Type</div>
       </div>
    </div>
-   <div class="row">
+   <div class="row" id = "src_selected_pred_row">
      <div class="col-md-12">
          <div class="well well-sm" id="src_selected_pred">Select a Property +
            <span style="color:blue"><strong> example value </strong>
@@ -49,7 +58,7 @@
          </div>
      </div>
    </div>
-   <div class="row">
+   <div class="row" id = "src_list_pred_row">
      <div class="col-md-12" id="src_predicates_col"> </div>
    </div>
   </div>
@@ -77,7 +86,7 @@
            <div class="well well-sm" id="trg_selected_entity-type">Select an Entity Type</div>
         </div>
      </div>
-   <div class="row">
+   <div class="row" id = "trg_selected_pred_row">
      <div class="col-md-12">
          <div class="well well-sm" id="trg_selected_pred">Select a Property +
            <span style="color:blue"><strong> example value </strong>
@@ -85,7 +94,7 @@
          </div>
      </div>
    </div>
-   <div class="row">
+   <div class="row" id = "trg_list_pred_row">
      <div class="col-md-12" id="trg_predicates_col"> </div>
    </div>
   </div>
@@ -118,7 +127,7 @@
            <div class="well well-sm" id="selected_meth" label="">Select a Method</div>
         </div>
      </div>
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-md-10">
           <h3>Context Code</h3></div>
         </div>
@@ -127,15 +136,8 @@
             Enter a context code:
            <input type="text" id="selected_context_code" class="form-control" id="usr">
         </div>
-     </div>
+     </div> -->
   </div>
 </div>
-
-<div class="row">
-  <div class="col-md-2">
-        <button type="button" id="createLinksetButton" class="btn btn-success" data-toggle="button"  >
-        Create Linkset</button>
-  </div>
-  <div class="col-md-10" style="color:red" id="linkset_creation_message_col"> </div>
-
+</div>
 </div>

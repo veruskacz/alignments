@@ -1,12 +1,41 @@
+<div class="panel panel-info">
+<div class="panel-heading"><h3>Lens</h3></div>
+<div class="panel-body">
 <div class="row">
+  <div class="col-md-12" id="creation_lens_select_RQ_col">
+    <!-- <div class="row">
+      <div class="col-md-12">
+        <h3>Research Question</h3></div>
+      </div> -->
+    <div class="row">
+      <div class="col-md-2" id="button_rq_creation_lens_col">
+          <!-- will be rendered via server -->
+      </div>
+      <div class="col-md-8">
+          <div class="well well-sm" id="creation_lens_selected_RQ" uri="">Select a Research Question</div>
+      </div>
+      <div class="col-md-2">
+        <button type="button" id="createLensButton" class="btn btn-success disabled" data-toggle="button"  >
+        Create Lens</button>
+      </div>
+   </div>
+    <div class="row">
+      <h5><div class="col-md-11 text-right" style="color:red" id="lens_creation_message_col"></div></h5>
+    </div>
+  </div>
+</div>
 
-  <div class="col-md-4"  id="creation_operator_col">
-      <div class="row">
-        <div class="col-md-9">
+<div class="row" id="creation_lens_row" style='display:none'>
+  <div class="col-md-12"  id="creation_operator_col">
+  <div class="panel panel-default">
+  <div class="panel-heading"><h4>Operator</h4></div>
+  <div class="panel-body">
+      <!-- <div class="row">
+        <div class="col-md-12">
           <h3>Operation</h3></div>
-        </div>
+        </div> -->
       <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-2">
            <span class="dropdown">
             <button class="btn btn-primary dropdown-toggle" type="button" id="operatorDropdown"
                     data-toggle='dropdown'>Operator<span class="caret"></span></button>
@@ -19,28 +48,64 @@
             </ul>
            </span>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
            <div class="well well-sm" id="selected_operator" label="">Select a Operator</div>
         </div>
-     </div>
-  </div>
-
-  <div class="col-md-4" >
-      <div class="row">
-        <div class="col-md-9"><h3>Graphs</h3></div>
-      </div>
-      <div class="row">
-        <div class="col-md-9">Select the graphs in the list:</div>
-      </div>
-      <div id="loading2"> Loading... </div>
-      <div class="row">
-        <div class="col-md-9" id="creation_lens_selection_col">
-
+        <div class="col-md-5">
+           <div class="well well-sm" id="selected_operator_desc" label="">Operator Description</div>
         </div>
       </div>
   </div>
+  </div>
 
-  <div class="col-md-2">
+  <div class="panel panel-default">
+  <div class="panel-heading"><h4>Graphs</h4></div>
+  <div class="panel-body">
+
+      <div class="row">
+        <div class="col-md-12" >
+            <!-- <div class="row">
+              <div class="col-md-12"><h3>Graphs</h3></div>
+            </div> -->
+            <div class="row">
+              <div class="col-md-4"><h4>Linksets</h4>
+                <div class="row">
+                  <div class="col-md-10">Select the graphs in the list:</div>
+                </div>
+                <!-- <div id="loading2"> Loading... </div> -->
+                <div class="row">
+                  <div class="col-md-10" id="creation_lens_linkset_selection_col"></div>
+                </div>
+              </div>
+              <div class="col-md-4"><h4>Lenses</h4>
+                <div class="row">
+                  <div class="col-md-10">Select the graphs in the list:</div>
+                </div>
+                <!-- <div id="loading2"> Loading... </div> -->
+                <div class="row">
+                  <div class="col-md-10" id="creation_lens_lens_selection_col"></div>
+                </div>
+              </div>
+              <div class="col-md-4"><h4>Other Related Lenses</h4>
+                <div class="row">
+                  <div class="col-md-10">Import the graphs in the list:</div>
+                </div>
+                <!-- <div id="loading2"> Loading... </div> -->
+                <div class="row">
+                  <div class="col-md-10" id="creation_lens_other_lens_selection_col"></div>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+  </div>
+  </div>
+
+  </div>
+
+
+
+  <!-- <div class="col-md-2">
     <div class="row">
       <div class="col-md-9">
         <br/>
@@ -50,9 +115,8 @@
         Create Lens</button>
       </div>
     </div>
-    <div class="row">
-        <div class="col-md-9" style="color:red" id="lens_creation_message_col"> </div>
-    </div>
-  </div>
+  </div> -->
 
+</div>
+</div>
 </div>

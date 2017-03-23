@@ -1,73 +1,138 @@
+<div class="panel panel-info">
+<div class="panel-heading"><h3>View</h3></div>
+<div class="panel-body">
+
 <div class="row">
 
-  <div class="col-md-4" >
-      <div class="row">
-        <div class="col-md-10"><h3>Lenses</h3></div>
+  <div class="col-md-12" id="creation_view_select_RQ_col">
+    <!-- <div class="row">
+      <div class="col-md-12">
+        <h3>Research Question</h3></div>
+    </div> -->
+    <div class="row">
+      <div class="col-md-2" id="button_rq_creation_view_col">
+          <!-- will be rendered via server -->
       </div>
-      <div class="row">
-        <div class="col-md-10">Select the lens or linkset in the list:<br/>
-            (more than one will be considered as intersection)
-        </div>
+      <div class="col-md-8">
+          <div class="well well-sm" id="creation_view_selected_RQ" uri="">Select a Research Question</div>
       </div>
-      <div id="loading4"> Loading... </div>
-      <div class="row">
-        <div class="col-md-10" id="creation_view_lens_col">
+      <div class="col-md-2">
+        <button type="button" id="createViewButton" class="btn btn-success disabled" data-toggle="button"  >
+        Create View</button>
+      </div>
+   </div>
+    <div class="row">
+      <h5><div class="col-md-12 text-right" style="color:red" id="view_creation_message_col"></div></h5>
+    </div>
+  </div>
+</div>
 
+<div class="row" id = "creation_view_row" style='display:none'>
+<div class="col-md-12" >
+  <div class="panel panel-default">
+  <div class="panel-heading"><h4>View-Lens <small> (more than one will be considered as intersection)</small></h4>
+  </div>
+  <div class="panel-body">
+  <div class="row">
+
+    <div class="col-md-6" >
+        <div class="row">
+          <div class="col-md-10"><h4>Linksets</h4></div>
         </div>
-      </div>
+        <div class="row">
+          <div class="col-md-10">Select from the list:
+          </div>
+        </div>
+        <!-- <div id="loading4"> Loading... </div> -->
+        <div class="row">
+          <div class="col-md-10" id="creation_view_linkset_col">
+
+          </div>
+        </div>
+    </div>
+
+    <div class="col-md-6" >
+        <div class="row">
+          <div class="col-md-10"><h4>Lenses</h4></div>
+        </div>
+        <div class="row">
+          <div class="col-md-10">Select from the list:
+          </div>
+        </div>
+        <div id="loading4"> Loading... </div>
+        <div class="row">
+          <div class="col-md-10" id="creation_view_lens_col">
+
+          </div>
+        </div>
+    </div>
+
+  </div>
+  </div>
   </div>
 
-  <div class="col-md-4" >
-      <div class="row">
-        <div class="col-md-10"><h3>Datasets</h3></div>
-      </div>
-      <div class="row">
-        <div class="col-md-10">Select datasets in the list:</div>
-      </div>
-      <div id="loading3" style='display:none'> Loading... </div>
-      <div class="row">
-        <div class="col-md-9" id="creation_view_dataset_col">
-          <!-- <div class="list-group" id="creation_view_dataset_list" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
-          </div> -->
+  <div class="panel panel-default">
+  <div class="panel-heading"><h4>View-Filter</h4></div>
+  <div class="panel-body">
+  <div class="row"> <!-- id = "creation_view_datasetdetails_row" style='display:none'> -->
+
+    <div class="col-md-4" >
+        <div class="row">
+          <div class="col-md-10"><h4>Datasets</h4></div>
         </div>
-      </div>
+        <div class="row">
+          <div class="col-md-10">Select from the list:</div>
+        </div>
+        <div id="loading3" style='display:none'> Loading... </div>
+        <div class="row">
+          <div class="col-md-9" id="creation_view_dataset_col">
+
+          </div>
+        </div>
+    </div>
+
+    <div class="col-md-4" >
+        <div class="row">
+          <div class="col-md-9"><h4>Attributes</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-9" id="creation_view_predicates_msg_col"></div>
+        </div>
+        <div class="row">
+          <div class="col-md-9" id="creation_view_predicates_col">
+
+          </div>
+        </div>
+    </div>
+
+    <div class="col-md-4" >
+        <div class="row">
+          <div class="col-md-9"><h4>Selected Attributes</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-9" id="creation_view_selected_predicates_msg_col"></div>
+        </div>
+        <div class="row">
+          <div class="col-md-9" id="test">
+            <div class="list-group" id="creation_view_selected_predicates_group"
+                    style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+  </div>
   </div>
 
 </div>
+</div>
 
-  <div class="col-md-4" >
-      <div class="row">
-        <div class="col-md-9"><h3>Attributes</h3>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-9" id="creation_view_predicates_msg_col"></div>
-      </div>
-      <div class="row">
-        <div class="col-md-9" id="creation_view_predicates_col">
+</div>
+</div>
 
-        </div>
-      </div>
-  </div>
-
-  <div class="col-md-4" >
-      <div class="row">
-        <div class="col-md-9"><h3>Selected Attributes</h3>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-9" id="creation_view_selected_predicates_msg_col"></div>
-      </div>
-      <div class="row">
-        <div class="col-md-9" id="test">
-          <div class="list-group" id="creation_view_selected_predicates_group"
-                  style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
-          </div>
-        </div>
-      </div>
-  </div>
-
-<div class="row">
+<!-- <div class="row">
   <div class="col-md-2">
     <div class="row">
       <div class="col-md-10">
@@ -82,4 +147,4 @@
         <div class="col-md-10" style="color:red" id="view_creation_message_col"> </div>
     </div>
   </div>
-</div>
+</div> -->

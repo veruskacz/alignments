@@ -44,44 +44,8 @@ def associate_linkset_lens_to_rq(question_uri, linkset):
     return query
 
 
-def insert_ds_mapping2(question_uri, mapping):
-
-    where_clause = ""
-    insert_clause = ""
-    count_ds = 0
-    for dataset, datatypes in mapping.items():
-        # NEW MAPPING INSTANCE
-        count_ds += 1
-        where_clause = """
-    \tBIND(iri(replace('http://risis.eu/activity/idea_#','#',strafter(str(uuid()),'uuid:'))) as ?dataset_{})\n""".\
-            format(count_ds)
-
-        insert_clause += """
-        <{}> void:target ?dataset_{}.""".format(question_uri, count_ds)
-        for i_type in datatypes:
-            insert_clause += """
-        ?dataset_{}
-            alivocab:selectedSource 	<{}> ;
-            alivocab:selectedDatatype 	<{}> .\n""".format(count_ds, dataset, i_type)
-
-    insert_query = PREFIX + """
-    INSERT
-    {{
-        {}
-    }}
-    WHERE
-    {{
-        {}
-    }}
-    """.format(insert_clause, where_clause)
-
-    if DETAIL:
-        print insert_query
-    return insert_query
-
-
 def insert_ds_mapping(question_uri, mapping):
-    print "\nEnter the function"
+    # print "\nEnter the function"
     where_clause = ""
     insert_clause = ""
     insert_query = ""
@@ -124,7 +88,7 @@ def insert_ds_mapping(question_uri, mapping):
 
 
     if DETAIL:
-        print "\n\n!!!!!!!!!", final_query, "!!!!!!!!!"
+        print final_query
     return final_query
 
 
@@ -186,13 +150,14 @@ def check_RQ_existance (question):
     return query
 
 
-def get_graphs_per_rq(rq_uri):
+def get_source_per_rq(rq_uri):
     query = PREFIX + """
-        SELECT DISTINCT ?uri
+        SELECT DISTINCT ?uri ?mode
     	{{
           	<{}> a <http://risis.eu/class/ResearchQuestion> ;
           	    void:target  ?target .
           	?target  alivocab:selectedSource  ?uri
+            BIND("no-mode" as ?mode)
 
         }}""".format(rq_uri)
     if DETAIL:
@@ -382,7 +347,7 @@ def get_graphs_per_type(type=None):
         type_filter += " UNION {?uri   rdf:type	void:View} } ."
     elif type == "linkset&lens":
         type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
-        type_filter += " { ?uri   rdf:type	void:Lens } ."
+        type_filter += " { ?uri   rdf:type	bdb:Lens } ."
     elif type == "linkset":
         type_filter = "?uri   rdf:type	void:Linkset ."
     elif type == "lens":
@@ -394,7 +359,7 @@ def get_graphs_per_type(type=None):
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?uri
+    SELECT DISTINCT ?uri ("null" as ?mode)
     WHERE
     {{
         GRAPH ?uri
@@ -408,6 +373,50 @@ def get_graphs_per_type(type=None):
         print query
     return query
 
+
+def get_graphs_per_rq_type(rq_uri, type=None):
+    if type == "dataset":
+        type_filter = "FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset} "
+        type_filter += " UNION {?uri   rdf:type	bdb:Lens} "
+        type_filter += " UNION {?uri   rdf:type	void:View} } ."
+    elif type == "linkset&lens":
+        type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
+        type_filter += " { ?uri   rdf:type	void:Lens } ."
+    elif type == "linkset":
+        type_filter = "?uri   rdf:type	void:Linkset ."
+    elif type == "lens":
+        type_filter = "?uri   rdf:type	bdb:Lens ."
+    elif type == "view":
+        type_filter = "?uri   rdf:type	void:View ."
+    else:
+        type_filter = ""
+
+    query = PREFIX + """
+    ### GET DISTINCT GRAPHS
+    SELECT DISTINCT ?uri ?mode
+    WHERE
+    {{
+      <{0}> a <http://risis.eu/class/ResearchQuestion> .
+      {{
+        <{0}>  void:target  [alivocab:selectedSource  ?uri].
+        BIND("no-mode" as ?mode)
+      }}
+      UNION
+      {{
+        <{0}>  alivocab:created  ?uri .
+        BIND("success" as ?mode)
+      }}
+      UNION
+      {{
+        <{0}>  alivocab:used  ?uri.
+        BIND("info" as ?mode)
+      }}
+      {1}
+    }}
+    """.format(rq_uri, type_filter)
+    if DETAIL:
+        print query
+    return query
 
 def get_correspondences(graph_uri):
 

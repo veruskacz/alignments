@@ -1,9 +1,14 @@
 <!-- <a href="#" class="list-group-item" >
 <span class="list-group-item-heading" > -->
-<div class="list-group" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+<div class="list-group" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
         {% for l in list|sort(attribute='uri_stripped') %}
             <a href="#" class="list-group-item" uri='{{l.uri.value }}' label='{{ l.uri_stripped.value }}'>
-                <span class="list-group-item-heading">{{ l.uri_stripped.value }}</span>
+                <span class="list-group-item-heading">
+                {% if (l.mode.value == 'info') or (l.mode.value == 'warning') or
+                      (l.mode.value == 'danger') or (l.mode.value == 'success')%}
+                  <small><span class='badge alert-{{l.mode.value}}'>-</span></small>
+                {% endif %}
+                {{l.uri_stripped.value}}</span>
             </a>
         {% endfor %}
 </div>
