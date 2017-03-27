@@ -2,7 +2,9 @@
 <span class="list-group-item-heading" > -->
 <div class="list-group" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
         {% for e in dataDetails|sort(attribute='pred_stripped') %}
-            <li class="list-group-item" uri='{{e.pred.value }}' label='{{ e.pred_stripped.value }}'>
+            <li class="list-group-item" uri='{{e.pred.value }}'
+                onclick='{{ function }}'
+                label='{{ e.pred_stripped.value }}'>
                 <span class="list-group-item-heading">{{ e.pred_stripped.value }}</span>
                 {% if (e.obj) %}
                 :

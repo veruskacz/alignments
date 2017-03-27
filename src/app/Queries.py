@@ -92,30 +92,6 @@ def insert_ds_mapping(question_uri, mapping):
     return final_query
 
 
-def get_types_per_graph():
-    query = """
-    select distinct ?Dataset ?EntityType (count(distinct ?x) as ?EntityCount)
-    {
-         select ?Dataset ?x ?EntityType
-         {
-            Graph ?Dataset
-            {
-               ?x a ?EntityType .
-               {select ?x { ?x a ?EntityType }}
-            }
-            FILTER ((str(?EntityType) != "http://www.w3.org/2000/01/rdf-schema#Class") )
-            FILTER ((str(?EntityType) != "http://www.w3.org/2002/07/owl#Class"))
-            FILTER ((str(?EntityType) != "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"))
-            FILTER ((str(?EntityType) != "http://risis.eu/risis/ontology/class/Neutral"))
-         }
-    } GROUP by ?Dataset ?EntityType ORDER BY ?Dataset
-    """
-
-    if DETAIL:
-        print query
-    return query
-
-
 def insert_RQ( question ):
 
     query = """
@@ -190,6 +166,30 @@ def find_rq (question):
     return query
 
 
+def get_types_per_graph():
+    query = """
+    select distinct ?Dataset ?EntityType (count(distinct ?x) as ?EntityCount)
+    {
+         select ?Dataset ?x ?EntityType
+         {
+            Graph ?Dataset
+            {
+               ?x a ?EntityType .
+               {select ?x { ?x a ?EntityType }}
+            }
+            FILTER ((str(?EntityType) != "http://www.w3.org/2000/01/rdf-schema#Class") )
+            FILTER ((str(?EntityType) != "http://www.w3.org/2002/07/owl#Class"))
+            FILTER ((str(?EntityType) != "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"))
+            FILTER ((str(?EntityType) != "http://risis.eu/risis/ontology/class/Neutral"))
+         }
+    } GROUP by ?Dataset ?EntityType ORDER BY ?Dataset
+    """
+
+    if DETAIL:
+        print query
+    return query
+
+
 def get_graph_type(graph):
     query = """
     SELECT *
@@ -202,18 +202,18 @@ def get_graph_type(graph):
     return query
 
 
-def get_entity_type(graph):
-    query = """
-    SELECT distinct ?uri
-    {{
-        GRAPH <{}> {{
-        ?s a ?uri
-        }}
-    }}
-    """.format(graph)
-    if DETAIL:
-        print query
-    return query
+# def get_entity_type(graph):
+#     query = """
+#     SELECT distinct ?uri
+#     {{
+#         GRAPH <{}> {{
+#         ?s a ?uri
+#         }}
+#     }}
+#     """.format(graph)
+#     if DETAIL:
+#         print query
+#     return query
 
 
 def get_entity_type_rq(rq_uri, graph_uri):
@@ -339,39 +339,39 @@ def get_lens_union_targets(lens):
     return query
 
 
-def get_graphs_per_type(type=None):
-
-    if type == "dataset":
-        type_filter = "FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset} "
-        type_filter += " UNION {?uri   rdf:type	bdb:Lens} "
-        type_filter += " UNION {?uri   rdf:type	void:View} } ."
-    elif type == "linkset&lens":
-        type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
-        type_filter += " { ?uri   rdf:type	bdb:Lens } ."
-    elif type == "linkset":
-        type_filter = "?uri   rdf:type	void:Linkset ."
-    elif type == "lens":
-        type_filter = "?uri   rdf:type	bdb:Lens ."
-    elif type == "view":
-        type_filter = "?uri   rdf:type	void:View ."
-    else:
-        type_filter = ""
-
-    query = PREFIX + """
-    ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?uri ("null" as ?mode)
-    WHERE
-    {{
-        GRAPH ?uri
-        {{
-            ?s ?p ?o
-        }}
-        {}
-    }}
-    """.format(type_filter)
-    if DETAIL:
-        print query
-    return query
+# def get_graphs_per_type(type=None):
+#
+#     if type == "dataset":
+#         type_filter = "FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset} "
+#         type_filter += " UNION {?uri   rdf:type	bdb:Lens} "
+#         type_filter += " UNION {?uri   rdf:type	void:View} } ."
+#     elif type == "linkset&lens":
+#         type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
+#         type_filter += " { ?uri   rdf:type	bdb:Lens } ."
+#     elif type == "linkset":
+#         type_filter = "?uri   rdf:type	void:Linkset ."
+#     elif type == "lens":
+#         type_filter = "?uri   rdf:type	bdb:Lens ."
+#     elif type == "view":
+#         type_filter = "?uri   rdf:type	void:View ."
+#     else:
+#         type_filter = ""
+#
+#     query = PREFIX + """
+#     ### GET DISTINCT GRAPHS
+#     SELECT DISTINCT ?uri ("null" as ?mode)
+#     WHERE
+#     {{
+#         GRAPH ?uri
+#         {{
+#             ?s ?p ?o
+#         }}
+#         {}
+#     }}
+#     """.format(type_filter)
+#     if DETAIL:
+#         print query
+#     return query
 
 
 def get_graphs_per_rq_type(rq_uri, type=None):
@@ -417,6 +417,54 @@ def get_graphs_per_rq_type(rq_uri, type=None):
     if DETAIL:
         print query
     return query
+
+
+def get_graphs_related_to_rq_type(rq_uri, type=None):
+    if type == "linkset&lens":
+        type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
+        type_filter += " { ?uri   rdf:type	void:Lens } ."
+    elif type == "linkset":
+        type_filter = ' ?uri  rdf:type	void:Linkset . '
+        # type_filter += ' ?uri  void:subjectsTarget ?uri1 .'
+        # type_filter += ' ?uri  void:objectsTarget ?uri2 .'
+    elif type == "lens":
+        type_filter = "?uri   rdf:type	bdb:Lens ."
+    elif type == "view":
+        type_filter = "?uri   rdf:type	void:View ."
+    else:
+        type_filter = ""
+
+    query = PREFIX + """
+    ### GET DISTINCT GRAPHS
+    SELECT DISTINCT ?uri ?mode
+    WHERE
+    {{
+      <{0}> a <http://risis.eu/class/ResearchQuestion> .
+
+      FILTER NOT EXISTS {{
+        {{
+          <{0}>  alivocab:created  ?uri .
+        }}
+        UNION
+        {{
+          <{0}>  alivocab:used  ?uri.
+        }}
+      }}
+
+      {{
+        <{0}>  void:target  [alivocab:selectedSource  ?uri1].
+        <{0}>  void:target  [alivocab:selectedSource  ?uri2].
+      }}
+
+      {1}
+
+      BIND("no-mode" as ?mode)
+    }}
+    """.format(rq_uri, type_filter)
+    if DETAIL:
+        print query
+    return query
+
 
 def get_correspondences(graph_uri):
 
@@ -609,6 +657,50 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
         BIND (IF(bound(?trgPredVal), ?trgPredVal , "") AS ?trgPredValue)
     }
     """
+    if DETAIL:
+        print query
+    return query
+
+
+def get_linkset_corresp_details(linkset, limit=1):
+
+    query = PREFIX + """
+    ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
+
+    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue
+        WHERE
+        {{
+
+    	  <{0}>
+          			 alivocab:alignsMechanism	 ?mechanism ;
+     				 void:subjectsTarget	 	?subTarget ;
+    				 bdb:subjectsDatatype	 	?s_datatype ;
+     				 alivocab:alignsSubjects	 ?s_property;
+     				 void:objectsTarget	 		?objTarget ;
+    				 bdb:objectsDatatype	 	?o_datatype ;
+     				 alivocab:alignsObjects	 	?o_property .
+
+
+            GRAPH  <{0}>
+            {{
+                ?sub_uri    ?aligns        ?obj_uri
+            }}.
+
+            GRAPH ?subTarget
+            {{
+                ?sub_uri 	?s_property        ?s_PredValue
+            }}
+            OPTIONAL
+            {{
+                graph ?objTarget
+                {{
+                    ?obj_uri  ?o_property   ?o_PredVal
+                }}
+            }}
+            BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredValue)
+        }}
+    LIMIT {1}
+    """.format(linkset, limit)
     if DETAIL:
         print query
     return query

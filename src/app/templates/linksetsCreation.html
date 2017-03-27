@@ -1,143 +1,260 @@
 <div class="panel panel-info">
-<div class="panel-heading"><h3>Linkset</h3></div>
+<div class="panel-heading">
+ <div class="row">
+  <div class="col-md-7"><h3>Linkset</h3></div>
+  <div class="col-md-5" id="creation_linkset_buttons_col">
+    <h4><button type="button" id="btn_inspect_linkset"
+            class="btn btn-primary btn btn-success disabled"
+            onclick='newSelectButton(this);
+            activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+            inspect_linkset_button(mode="inspect")'
+            >Inspect</button>
+    <button type="button" class="btn btn-primary disabled"
+            onclick='newSelectButton(this);
+            activateTargetDiv(targetId="creation_linkset_row",cl="row creation");
+            activateTargetDiv(targetId="create_linkset_heading",cl="panel-heading");
+            create_linkset_button()'
+            >Create</button>
+    <button type="button" class="btn btn-primary disabled"
+            onclick='newSelectButton(this);
+            activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+            activateTargetDiv(targetId="edit_linkset_heading",cl="panel-heading");
+            inspect_linkset_button(mode="edit")'
+            >Edit</button>
+    <button type="button" class="btn btn-primary disabled"
+            onclick='newSelectButton(this);
+            activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+            activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
+            inspect_linkset_button(mode="refine")'
+            >Refine</button>
+    <button type="button" class="btn btn-primary disabled"
+            onclick='newSelectButton(this);
+            activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+            inspect_linkset_button(mode="import")'
+            >Import</button></h4>
+  </div>
+ </div>
+</div>
 <div class="panel-body">
-<div class="row">
+ <div class="row">
   <div class="col-md-12" id="creation_linkset_select_RQ_col">
-    <!-- <div class="row">
-      <div class="col-md-12">
-        <h3>Research Question</h3></div>
-      </div> -->
     <div class="row">
-      <div class="col-md-2" id="button_creation_linkset_col">
+      <div class="col-md-2" id="button_creation_linkset_RQ_col">
           <!-- will be rendered via server -->
       </div>
-      <div class="col-md-8">
+      <div class="col-md-10">
           <div class="well well-sm" id="creation_linkset_selected_RQ" uri="">Select a Research Question</div>
       </div>
-      <div class="col-md-2">
-          <button type="button" id="createLinksetButton" class="btn btn-success btn btn-primary disabled" data-toggle="button"  >
-            Create Linkset</button>
-      </div>
    </div>
-    <div class="row">
-      <h5><div class="col-md-11 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+  </div>
+ </div>
+
+ <div class="row creation" id="inspect_linkset_row" style='display:none'>
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" id="inspect_heading_panel">
+      <h4>Inspect Linksets <small>(select to see the details)</small></h4></div>
+    <div class="panel-heading" id="import_heading_panel" style='display:none'>
+     <div class="row">
+      <div class="col-md-10"><h4>Inspect Related Linksets
+          <small>(select to see the details)</small></h4></div>
+      <div class="col-md-2">
+          <button type="button" id="btn_import_linkset"
+                class="btn btn-primary btn btn-success disabled"
+                onclick=''
+                >Import</button>
+          </div>
+     </div>
+    </div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="row">
+            <div class="col-md-12" id="inspect_linkset_linkset_selection_col"></div>
+            <!-- will be rendered via server -->
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="row">
+            <div class="col" id="inspect_linkset_linkset_details_col" style='width: 100%;'></div>
+            <!-- will be rendered via server -->
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
-</div>
+ </div>
 
-<div class="row" id = "creation_linkset_row" style='display:none'>
-  <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_source_col" >
-    <div id="loading"> Loading... </div>
-    <div class="row">
-      <div class="col-md-10">
-        <h3>Source</h3></div>
-      </div>
-    <div class="row">
-      <div class="col-md-3" id="button-src-col">
-          <!-- will be rendered via server -->
-      </div>
-      <div class="col-md-9">
-          <div class="well well-sm" id="src_selected_graph" uri="">Select a Graph</div>
-      </div>
-   </div>
-   <div class="row">
-      <div class="col-md-3" id="button-src-entity-type-col">
-        <!-- will be rendered via server -->
-        <button class="btn btn-primary dropdown-toggle" type="button"
-                data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
-      </div>
-      <div class="col-md-9">
-         <div class="well well-sm" id="src_selected_entity-type">Select an Entity Type</div>
-      </div>
-   </div>
-   <div class="row" id = "src_selected_pred_row">
-     <div class="col-md-12">
-         <div class="well well-sm" id="src_selected_pred">Select a Property +
-           <span style="color:blue"><strong> example value </strong>
-           </span>
-         </div>
-     </div>
-   </div>
-   <div class="row" id = "src_list_pred_row">
-     <div class="col-md-12" id="src_predicates_col"> </div>
-   </div>
-  </div>
-
-  <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_target_col">
-      <div class="row">
-        <div class="col-md-10">
-          <h3>Target</h3></div>
-        </div>
-      <div class="row">
-        <div class="col-md-3" id="button-trg-col">
-          <!-- will be rendered via server -->
-        </div>
-        <div class="col-md-9">
-           <div class="well well-sm" id="trg_selected_graph">Select a Graph</div>
-        </div>
-     </div>
-      <div class="row">
-        <div class="col-md-3" id="button-trg-entity-type-col">
-          <!-- will be rendered via server -->
-        <button class="btn btn-primary dropdown-toggle" type="button"
-                data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
-        </div>
-        <div class="col-md-9">
-           <div class="well well-sm" id="trg_selected_entity-type">Select an Entity Type</div>
-        </div>
-     </div>
-   <div class="row" id = "trg_selected_pred_row">
-     <div class="col-md-12">
-         <div class="well well-sm" id="trg_selected_pred">Select a Property +
-           <span style="color:blue"><strong> example value </strong>
-           </span>
-         </div>
-     </div>
-   </div>
-   <div class="row" id = "trg_list_pred_row">
-     <div class="col-md-12" id="trg_predicates_col"> </div>
-   </div>
-  </div>
-
-  <div class="col-md-4" id="creation_method_col">
-      <div class="row">
-        <div class="col-md-10">
-          <h3>Method</h3></div>
-        </div>
-      <div class="row">
-        <div class="col-md-3">
-           <span class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="methodDropdown"
-                    data-toggle='dropdown'>Method<span class="caret"></span></button>
-            <ul class="dropdown-menu" role="menu" aria-labelledby="methodDropdown">
-                <li role="presentation">
-                    <a href="#" role="menuitem" tabindex="-1" label="exactStrSim">
-                        Exact Match</a>
-                    <a href="#" role="menuitem" tabindex="-1" label="approxStrSim">
-                        Approximate Match</a>
-                    <a href="#" role="menuitem" tabindex="-1" label="geoSim">
-                        Geo Match</a>
-                    <a href="#" role="menuitem" tabindex="-1" label="identity">
-                        Identity</a>
-                </li>
-            </ul>
-           </span>
-        </div>
-        <div class="col-md-9">
-           <div class="well well-sm" id="selected_meth" label="">Select a Method</div>
-        </div>
-     </div>
-      <!-- <div class="row">
-        <div class="col-md-10">
-          <h3>Context Code</h3></div>
-        </div>
+ <div class="row creation" id="creation_linkset_row" style='display:none'>
+  <div class="col-md-12">
+   <div class="panel panel-default">
+   <div class="panel-heading" id="create_linkset_heading" >
      <div class="row">
-        <div class="col-md-12">
-            Enter a context code:
-           <input type="text" id="selected_context_code" class="form-control" id="usr">
+       <div class="col-md-4"><h4>Create Linkset</h4></div>
+       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+       <div class="col-md-2">
+           <button type="button" id="createLinksetButton"
+                   class="btn btn-success btn btn-primary disabled"
+                   onclick="createLinksetClick()">Create Linkset</button>
+       </div>
+     </div>
+   </div>
+   <div class="panel-heading" id="edit_linkset_heading" style='display:none'>
+     <div class="row">
+       <div class="col-md-4"><h4>Edit Linkset</h4></div>
+       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+       <div class="col-md-2">
+           <button type="button" id="editLinksetButton"
+                   class="btn btn-success btn btn-primary disabled"
+                   onclick="editLinksetClick()">Edit Linkset</button>
+       </div>
+     </div>
+   </div>
+   <div class="panel-heading" id="refine_linkset_heading" style='display:none'>
+     <div class="row">
+       <div class="col-md-4"><h4>Refine Linkset</h4></div>
+       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+       <div class="col-md-2">
+           <button type="button" id="refineLinksetButton"
+                   class="btn btn-success btn btn-primary disabled"
+                   onclick="refineLinksetClick()">Refine Linkset</button>
+       </div>
+     </div>
+   </div>
+   <div class="panel-body">
+    <div class="row">
+      <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_source_col" >
+        <!-- <div id="loading"> Loading... </div> -->
+        <div class="row">
+          <div class="col-md-10">
+            <h3>Source</h3></div>
+          </div>
+        <div class="row" id="src_datasets_row">
+          <div class="col-md-3 graph-list" id="button-src-col" mode="source"
+                targetTxt="src_selected_graph"
+                targetBtn="button-src-entity-type-col"
+                targetList="src_predicates_col">
+                <div id="hidden_src_div" style='display:none' uri="" label="" ></div>
+              <!-- will be rendered via server -->
+          </div>
+          <div class="col-md-9">
+              <div class="well well-sm" id="src_selected_graph" uri="">Select a Graph</div>
+          </div>
+       </div>
+       <div class="row" id="src_entitytype_row">
+          <div class="col-md-3 entity-list" id="button-src-entity-type-col"
+                targetTxt="src_selected_entity-type">
+            <!-- will be rendered via server -->
+            <button class="btn btn-primary dropdown-toggle" type="button"
+                    data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
+          </div>
+          <div class="col-md-9">
+             <div class="well well-sm" id="src_selected_entity-type" uri="">Select an Entity Type</div>
+          </div>
+       </div>
+       <div class="row" id = "src_selected_pred_row">
+         <div class="col-md-12">
+             <div class="well well-sm" id="src_selected_pred" uri="">Select a Property +
+               <span style="color:blue"><strong> example value </strong>
+               </span>
+             </div>
+         </div>
+       </div>
+       <div class="row" id = "src_list_pred_row">
+         <div class="col-md-12 pred-list" id="src_predicates_col"
+              targetTxt="src_selected_pred"> </div>
+       </div>
+      </div>
+
+      <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_target_col">
+          <div class="row">
+            <div class="col-md-10">
+              <h3>Target</h3></div>
+            </div>
+          <div class="row" id="trg_datasets_row">
+            <div class="col-md-3 graph-list" id="button-trg-col" mode="target"
+                  targetTxt="trg_selected_graph"
+                  targetBtn="button-trg-entity-type-col"
+                  targetList="trg_predicates_col">
+                <div id="hidden_trg_div" style='display:none' uri="" label="" ></div>
+              <!-- will be rendered via server -->
+            </div>
+            <div class="col-md-9">
+               <div class="well well-sm" id="trg_selected_graph">Select a Graph</div>
+            </div>
+         </div>
+          <div class="row" id="trg_entitytype_row">
+            <div class="col-md-3 entity-list" id="button-trg-entity-type-col"
+                  targetTxt="trg_selected_entity-type">
+              <!-- will be rendered via server -->
+                  <button class="btn btn-primary dropdown-toggle" type="button"
+                    data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
+            </div>
+            <div class="col-md-9">
+               <div class="well well-sm" id="trg_selected_entity-type" uri="">Select an Entity Type</div>
+            </div>
+         </div>
+         <div class="row" id = "trg_selected_pred_row">
+           <div class="col-md-12">
+               <div class="well well-sm" id="trg_selected_pred" uri="">Select a Property +
+                 <span style="color:blue"><strong> example value </strong></span>
+               </div>
+           </div>
+         </div>
+         <div class="row" id = "trg_list_pred_row">
+           <div class="col-md-12 pred-list" id="trg_predicates_col"
+                targetTxt="trg_selected_pred">
+              <!-- will be rendered via server --></div>
+         </div>
+      </div>
+
+      <div class="col-md-4" id="creation_method_col">
+          <div class="row">
+            <div class="col-md-10">
+              <h3>Method</h3></div>
+            </div>
+          <div class="row">
+            <div class="col-md-3">
+               <span class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="methodDropdown"
+                        data-toggle='dropdown'>Method<span class="caret"></span></button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="methodDropdown">
+                    <li role="presentation">
+                        <a href="#" role="menuitem" tabindex="-1"
+                            label="Exact Match" uri="exactStrSim"
+                            onclick="methodClick(this);">Exact Match</a>
+                        <a href="#" role="menuitem" tabindex="-1"
+                            label="Approximate Match" uri="approxStrSim"
+                            onclick="methodClick(this);">Approximate Match</a>
+                        <a href="#" role="menuitem" tabindex="-1"
+                            label="Geo Match" uri="geoSim"
+                            onclick="methodClick(this);">Geo Match</a>
+                        <a href="#" role="menuitem" tabindex="-1"
+                            label="Identifier Match" uri="identity"
+                            onclick="methodClick(this);">Identifier Match</a>
+                        <a href="#" role="menuitem" tabindex="-1"
+                            label="Embeded Alignment Extraction" uri="embededAlignment"
+                            onclick="methodClick(this);">Embeded Alignment Extraction</a>
+                    </li>
+                </ul>
+               </span>
+            </div>
+            <div class="col-md-9">
+               <div class="well well-sm" id="selected_meth" label="">Select a Method</div>
+            </div>
+         </div>
+         <div class="row">
+            <div class="col-md-12">
+               <div class="well well-sm" id="selected_method_desc" label="">Method Description</div>
+            </div>
         </div>
-     </div> -->
+      </div>
+    </div>
+   </div>
   </div>
-</div>
+  </div>
+ </div>
+
 </div>
 </div>

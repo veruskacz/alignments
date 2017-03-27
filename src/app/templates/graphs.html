@@ -68,11 +68,16 @@
 
         <!-- This is the span including the buttons related to creation mode -->
         <span id="creation_buttons_col">
-            <button type="button" id="creationIdeaButton" class="btn btn-primary" aria-pressed="false">Idea</button>
-            <button type="button" id="creationLinksetButton" class="btn btn-primary" aria-pressed="false">Linkset</button>
-            <button type="button" id="creationLinksetRefineButton" class="btn btn-primary" aria-pressed="false">Linkset Refinement</button>
-            <button type="button" id="creationLensButton" class="btn btn-primary" aria-pressed="false">Lens</button>
-            <button type="button" id="creationViewButton" class="btn btn-primary" aria-pressed="false">View</button>
+            <button type="button" class="btn btn-primary" id="creationIdeaButton"
+                    onclick='newSelectButton(this);idea_button(targetId="creation_idea_col");'>Idea</button>
+            <button type="button" class="btn btn-primary" id="creationLinksetButton"
+                    onclick='newSelectButton(this);linkset_button(targetId="creation_linkset_col");'>Linkset</button>
+            <!-- <button type="button" class="btn btn-primary" id="creationLinksetRefineButton"
+                    onclick='newSelectButton(this);refine_linkset_button(targetId="creation_linkset_refine_col");'>Linkset Refinement</button> -->
+            <button type="button" class="btn btn-primary" id="creationLensButton"
+                    onclick='newSelectButton(this);lens_button(targetId="creation_lens_col");'>Lens</button>
+            <button type="button" class="btn btn-primary" id="creationViewButton"
+                    onclick='newSelectButton(this);view_button(targetId="creation_view_col");'>View</button>
         </span>
 
         <!--This is the refresh button -->

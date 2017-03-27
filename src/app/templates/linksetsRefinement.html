@@ -1,0 +1,127 @@
+<div class="panel panel-info">
+<div class="panel-heading"><h3>Linkset Refinement</h3></div>
+<div class="panel-body">
+ <div class="row">
+  <div class="col-md-12" id="refinement_linkset_select_RQ_col">
+    <div class="row">
+      <div class="col-md-2" id="button_rq_refinement_linkset_col">
+          <!-- will be rendered via server -->
+      </div>
+      <div class="col-md-8">
+          <div class="well well-sm" id="refinement_linkset_selected_RQ" uri="">Select a Research Question</div>
+      </div>
+      <div class="col-md-2">
+          <button type="button" id="refineLinksetButton" class="btn btn-success btn btn-primary disabled" data-toggle="button"  >
+            Refine Linkset</button>
+      </div>
+   </div>
+    <div class="row">
+      <h5><div class="col-md-11 text-right" style="color:red" id="linkset_refinement_message_col"></div></h5>
+    </div>
+  </div>
+ </div>
+
+ <div class="row" id = "refinement_linkset_row2" style='display:none'>
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading"><h4>Linkset <small>(select to see the details)</small></h4></div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="row">
+            <div class="col-md-12" id="refine_linkset_linkset_selection_col2"></div>
+            <!-- will be rendered via server -->
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="row">
+            <div class="col" id="refine_linkset_linkset_details_col2" style='width: 100%;'></div>
+            <!-- will be rendered via server -->
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+ </div>
+
+ <div class="row" id = "refinement_alignment_row" style='display:none'>
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading"><h4>Refinement <small>(select aditional properties to be aligned.)</small></h4></div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-4">
+          <div class="row">
+            <div class="col-md-10">
+              <h3>Source</h3></div>
+          </div>
+         <div class="row" id = "src_ref_selected_pred_row">
+           <div class="col-md-12">
+               <div class="well well-sm" id="src_ref_selected_pred">Select a Property +
+                 <span style="color:blue"><strong> example value </strong>
+                 </span>
+               </div>
+           </div>
+         </div>
+         <div class="row" id = "src_ref_list_pred_row">
+           <div class="col-md-12" id="src_ref_predicates_col"> </div>
+         </div>
+        </div>
+        <div class="col-md-4">
+          <div class="row">
+            <div class="col-md-10">
+              <h3>Target</h3></div>
+          </div>
+         <div class="row" id = "trg_ref_selected_pred_row">
+           <div class="col-md-12">
+               <div class="well well-sm" id="trg_ref_selected_pred">Select a Property +
+                 <span style="color:blue"><strong> example value </strong>
+                 </span>
+               </div>
+           </div>
+         </div>
+         <div class="row" id = "trg_ref_list_pred_row">
+           <div class="col-md-12" id="trg_ref_predicates_col"> </div>
+         </div>
+        </div>
+
+        <div class="col-md-4" id="creation_ref_method_col">
+            <div class="row">
+              <div class="col-md-10">
+                <h3>Method</h3></div>
+              </div>
+            <div class="row">
+              <div class="col-md-3">
+                 <span class="dropdown">
+                  <button class="btn btn-primary dropdown-toggle" type="button" id="ref_methodDropdown"
+                          data-toggle='dropdown'>Method<span class="caret"></span></button>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="ref_methodDropdown">
+                      <li role="presentation">
+                          <a href="#" role="menuitem" tabindex="-1" label="exactStrSim">
+                              Exact Match</a>
+                          <a href="#" role="menuitem" tabindex="-1" label="approxStrSim">
+                              Approximate Match</a>
+                          <a href="#" role="menuitem" tabindex="-1" label="geoSim">
+                              Geo Match</a>
+                          <a href="#" role="menuitem" tabindex="-1" label="identity">
+                              Identity</a>
+                      </li>
+                  </ul>
+                 </span>
+              </div>
+              <div class="col-md-9">
+                 <div class="well well-sm" id="ref_selected_meth" label="">Select a Method</div>
+              </div>
+           </div>
+        </div>
+
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+</div>

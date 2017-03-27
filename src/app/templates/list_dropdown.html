@@ -4,8 +4,8 @@
   <ul class="dropdown-menu" role="menu" >
       {% for l in list %}
       <li role="presentation">
-          <a href="#" role="menuitem" tabindex="-1" uri='{{l.uri.value }}'
-          label='{{l.uri_label.value}}'>
+          <a href="#" role="menuitem" tabindex="-1" onclick="{{function}}"
+          uri='{{l.uri.value }}' label='{{l.uri_label.value}}'>
           {{ l.uri_label.value }}</a>
       </li>
       {% endfor %}
