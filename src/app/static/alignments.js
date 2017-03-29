@@ -54,12 +54,23 @@ function selectButton(button)
   $(button).addClass('btn-success');
 }
 
-function enableButtons(container)
+function enableButtons(container, enable=true)
 {
     var elems = container.getElementsByClassName('btn');
     var i;
-    for (i = 0; i < elems.length; i++) {
-      $(elems[i]).removeClass('disabled');
+    if (enable)
+    {
+      // alert(enable);
+      for (i = 0; i < elems.length; i++) {
+        $(elems[i]).removeClass('disabled');
+      }
+    }
+    else
+    {
+      // alert(enable);
+      for (i = 0; i < elems.length; i++) {
+        $(elems[i]).addClass('disabled');
+      }
     }
 }
 
@@ -72,6 +83,11 @@ function newresetButtons(container)
     }
 }
 
+function resetButton(button)
+{
+  $(button).removeClass('btn-success');
+}
+
 //use this to replace selectButton
 function newSelectButton(button)
 {
@@ -80,6 +96,18 @@ function newSelectButton(button)
     newresetButtons(container);
     $(button).addClass('btn-success');
   }
+}
+
+function selectMultiButton(item)
+{
+  if ($(item).attr('class') == 'btn btn-primary')  {
+      $(item).addClass('btn-success');
+      selected = true;
+  }
+  else { $(item).removeClass('btn-success');
+      selected = false;
+  }
+  return selected
 }
 
 // use this to replace hideColDiv

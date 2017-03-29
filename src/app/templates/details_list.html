@@ -18,13 +18,13 @@
         {% for d in details %}
           <TR>
               <TD>
-               <li class="list-group-item" id="srcDataset" uri='{{ sub_uri }}'>
+               <li class="list-group-item" id="srcDatasetLI" uri='{{ sub_uri }}'>
                {{alignsSubjects}} =
                  <span class="list-group-item-heading" style="color:blue">
                      <strong>{{ d.srcPredValue.value }}</strong>
                  </span></li>
               </TD>
-             <TD><li class="list-group-item" id="trgDataset" uri='{{ obj_uri }}'>
+             <TD><li class="list-group-item" id="trgDatasetLI" uri='{{ obj_uri }}'>
                  {{alignsObjects}} =
                  <span class="list-group-item-heading" style="color:blue">
                      <strong>{{ d.srcPredValue.value }}</strong></span>

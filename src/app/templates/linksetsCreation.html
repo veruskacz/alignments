@@ -1,36 +1,38 @@
 <div class="panel panel-info">
 <div class="panel-heading">
  <div class="row">
-  <div class="col-md-7"><h3>Linkset</h3></div>
-  <div class="col-md-5" id="creation_linkset_buttons_col">
+  <div class="col-md-8"><h3>Linkset</h3></div>
+  <div class="col-md-4" id="creation_linkset_buttons_col">
     <h4><button type="button" id="btn_inspect_linkset"
             class="btn btn-primary btn btn-success disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
-            inspect_linkset_button(mode="inspect")'
+            inspect_linkset_activate(mode="inspect")'
             >Inspect</button>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="creation_linkset_row",cl="row creation");
             activateTargetDiv(targetId="create_linkset_heading",cl="panel-heading");
-            create_linkset_button()'
+            activateTargetDiv(targetId="item_identity");
+            create_linkset_activate()'
             >Create</button>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
             activateTargetDiv(targetId="edit_linkset_heading",cl="panel-heading");
-            inspect_linkset_button(mode="edit")'
+            activateTargetDiv(targetId="item_identity");
+            inspect_linkset_activate(mode="edit")'
             >Edit</button>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
             activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
-            inspect_linkset_button(mode="refine")'
+            inspect_linkset_activate(mode="refine")'
             >Refine</button>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
-            inspect_linkset_button(mode="import")'
+            inspect_linkset_activate(mode="import")'
             >Import</button></h4>
   </div>
  </div>
@@ -91,8 +93,8 @@
    <div class="panel panel-default">
    <div class="panel-heading" id="create_linkset_heading" >
      <div class="row">
-       <div class="col-md-4"><h4>Create Linkset</h4></div>
-       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+       <div class="col-md-2"><h4>Create Linkset</h4></div>
+       <h5><div class="col-md-8 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
        <div class="col-md-2">
            <button type="button" id="createLinksetButton"
                    class="btn btn-success btn btn-primary disabled"
@@ -103,10 +105,10 @@
    <div class="panel-heading" id="edit_linkset_heading" style='display:none'>
      <div class="row">
        <div class="col-md-4"><h4>Edit Linkset</h4></div>
-       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_edit_message_col"></div></h5>
        <div class="col-md-2">
            <button type="button" id="editLinksetButton"
-                   class="btn btn-success btn btn-primary disabled"
+                   class="btn btn-success btn btn-primary"
                    onclick="editLinksetClick()">Edit Linkset</button>
        </div>
      </div>
@@ -114,10 +116,11 @@
    <div class="panel-heading" id="refine_linkset_heading" style='display:none'>
      <div class="row">
        <div class="col-md-4"><h4>Refine Linkset</h4></div>
-       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_refine_message_col"></div></h5>
        <div class="col-md-2">
            <button type="button" id="refineLinksetButton"
-                   class="btn btn-success btn btn-primary disabled"
+                   onclick = 'refineLinksetClick();'
+                   class="btn btn-success btn btn-primary"
                    onclick="refineLinksetClick()">Refine Linkset</button>
        </div>
      </div>
@@ -131,25 +134,25 @@
             <h3>Source</h3></div>
           </div>
         <div class="row" id="src_datasets_row">
-          <div class="col-md-3 graph-list" id="button-src-col" mode="source"
+          <div class="col-md-4 graph-list" id="button-src-col" mode="source"
                 targetTxt="src_selected_graph"
                 targetBtn="button-src-entity-type-col"
                 targetList="src_predicates_col">
                 <div id="hidden_src_div" style='display:none' uri="" label="" ></div>
               <!-- will be rendered via server -->
           </div>
-          <div class="col-md-9">
+          <div class="col-md-8">
               <div class="well well-sm" id="src_selected_graph" uri="">Select a Graph</div>
           </div>
        </div>
        <div class="row" id="src_entitytype_row">
-          <div class="col-md-3 entity-list" id="button-src-entity-type-col"
+          <div class="col-md-4 entity-list" id="button-src-entity-type-col"
                 targetTxt="src_selected_entity-type">
             <!-- will be rendered via server -->
             <button class="btn btn-primary dropdown-toggle" type="button"
                     data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
           </div>
-          <div class="col-md-9">
+          <div class="col-md-8">
              <div class="well well-sm" id="src_selected_entity-type" uri="">Select an Entity Type</div>
           </div>
        </div>
@@ -173,25 +176,25 @@
               <h3>Target</h3></div>
             </div>
           <div class="row" id="trg_datasets_row">
-            <div class="col-md-3 graph-list" id="button-trg-col" mode="target"
+            <div class="col-md-4 graph-list" id="button-trg-col" mode="target"
                   targetTxt="trg_selected_graph"
                   targetBtn="button-trg-entity-type-col"
                   targetList="trg_predicates_col">
                 <div id="hidden_trg_div" style='display:none' uri="" label="" ></div>
               <!-- will be rendered via server -->
             </div>
-            <div class="col-md-9">
+            <div class="col-md-8">
                <div class="well well-sm" id="trg_selected_graph">Select a Graph</div>
             </div>
          </div>
           <div class="row" id="trg_entitytype_row">
-            <div class="col-md-3 entity-list" id="button-trg-entity-type-col"
+            <div class="col-md-4 entity-list" id="button-trg-entity-type-col"
                   targetTxt="trg_selected_entity-type">
               <!-- will be rendered via server -->
                   <button class="btn btn-primary dropdown-toggle" type="button"
                     data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
             </div>
-            <div class="col-md-9">
+            <div class="col-md-8">
                <div class="well well-sm" id="trg_selected_entity-type" uri="">Select an Entity Type</div>
             </div>
          </div>
@@ -221,19 +224,19 @@
                         data-toggle='dropdown'>Method<span class="caret"></span></button>
                 <ul class="dropdown-menu" role="menu" aria-labelledby="methodDropdown">
                     <li role="presentation">
-                        <a href="#" role="menuitem" tabindex="-1"
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
                             label="Exact Match" uri="exactStrSim"
                             onclick="methodClick(this);">Exact Match</a>
-                        <a href="#" role="menuitem" tabindex="-1"
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
                             label="Approximate Match" uri="approxStrSim"
                             onclick="methodClick(this);">Approximate Match</a>
-                        <a href="#" role="menuitem" tabindex="-1"
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
                             label="Geo Match" uri="geoSim"
                             onclick="methodClick(this);">Geo Match</a>
-                        <a href="#" role="menuitem" tabindex="-1"
-                            label="Identifier Match" uri="identity"
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Identifier Match" id = "item_identity" uri="identity"
                             onclick="methodClick(this);">Identifier Match</a>
-                        <a href="#" role="menuitem" tabindex="-1"
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
                             label="Embeded Alignment Extraction" uri="embededAlignment"
                             onclick="methodClick(this);">Embeded Alignment Extraction</a>
                     </li>
@@ -253,6 +256,20 @@
     </div>
    </div>
   </div>
+  </div>
+ </div>
+
+ <div class="row creation" id="creation_linkset_correspondence_row"style='display:none'>
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" id="linkset_investigation_heading_panel">
+      <h4>Investigate Linkset Conrrespondences</h4></div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-20" id="creation_linkset_correspondence_col" style='display:none'></div>
+      </div>
+    </div>
+   </div>
   </div>
  </div>
 

@@ -59,6 +59,7 @@ PREFIXES =  """
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX linkset: <http://risis.eu/linkset/>
     PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
     PREFIX alivocab: <http://risis.eu/alignment/predicate/>
     PREFIX tmpgraph: <http://risis.eu/alignment/temp-match/> """
 
@@ -193,8 +194,8 @@ def linksetdetails():
 
     d = details[0]
 
-    # if PRINT_RESULTS:
-    print "\n\nDETAILS:", details
+    if PRINT_RESULTS:
+        print "\n\nDETAILS:", details
 
     # RETURN THE RESULT
     if (template == 'none'):
@@ -394,7 +395,7 @@ def evidence():
          Select (count(?derivedFrom) AS ?nStrength)
          {
           GRAPH ?graph
-      	   { <""" + singleton_uri + """> tmpgraph:wasDerivedFrom ?derivedFrom
+      	   { <""" + singleton_uri + """> prov:wasDerivedFrom ?derivedFrom
            }
          }
         }
@@ -756,6 +757,52 @@ def spa_linkset():
     # print "\n\n\n{}".format(linkset_result['message'])
     return json.dumps(linkset_result)
 
+@app.route('/refineLinkset')
+def refineLinkset():
+
+    rq_uri = request.args.get('rq_uri', '')
+    linkset_uri = request.args.get('linkset_uri', '')
+    specs = {
+
+        'source': {
+            'graph': request.args.get('src_graph', ''),
+            'aligns': request.args.get('src_aligns', ''),
+            'entity_datatype': request.args.get('src_entity_datatye', '')
+        },
+
+        'target': {
+            'graph': request.args.get('trg_graph', ''),
+            'aligns': request.args.get('trg_aligns', ''),
+            'entity_datatype': request.args.get('trg_entity_datatye', '')
+        },
+
+        'mechanism': request.args.get('mechanism', '')
+    }
+
+    if CREATION_ACTIVE:
+        if specs['mechanism'] == 'exactStrSim':
+            linkset_result = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
+        elif specs['mechanism'] == 'identity':
+            linkset_result = spa_linkset2.specs_2_linkset_id(specs, DATABASE, HOST, display=False, activated=True)
+        elif specs['mechanism'] == 'approxStrSim':
+            linkset_result = None
+        elif specs['mechanism'] == 'geoSim':
+            linkset_result = None
+        else:
+            linkset_result = None
+    else:
+        linkset_result = {'message': 'Linkset refinement is inactive!',
+                           'error_code': -1,
+                           'linkset': ''}
+
+    # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
+    if linkset_result:
+        if linkset_result['error_code'] == 0:
+            query = Qry.associate_linkset_lens_to_rq(rq_uri, linkset_result['linkset'])
+            print boolean_response(query, DATABASE, HOST)
+
+    # print "\n\n\n{}".format(linkset_result['message'])
+    return json.dumps(linkset_result)
 
 @app.route('/createLens')
 def spa_lens():
@@ -844,6 +891,7 @@ def graphsEntityTypes():
     The result list is passed as parameters to the template graph_type_list.html
     """
     # GET QUERY
+    function = request.args.get('function', '');
     query = Qry.get_types_per_graph()
 
     # RUN QUERY AGAINST ENDPOINT
@@ -852,6 +900,7 @@ def graphsEntityTypes():
         print "\n\nDATASET | TYPE | COUNT:", dataDetails
     # SEND BAK RESULTS
     return render_template('graph_type_list.html',
+                            function = function,
                             data = data)
 
 
@@ -913,6 +962,7 @@ def updaterq():
         else:
             mapping[py_obj['graph']] += [py_obj['type']]
 
+    print "\n\nMAP:", mapping
     query = Qry.insert_ds_mapping(rq_uri, mapping)
     if CREATION_ACTIVE:
         result = boolean_response(query, DATABASE, HOST)

@@ -3,8 +3,8 @@
           data-toggle='dropdown'> {{btn_name}} <span class="caret"></span></button>
   <ul class="dropdown-menu" role="menu" >
       {% for l in list %}
-      <li role="presentation">
-          <a href="#" role="menuitem" tabindex="-1" onclick="{{function}}"
+      <li role="presentation"> 
+          <a href="javascript:void();" role="menuitem" tabindex="-1" onclick="{{function}}"
           uri='{{l.uri.value }}' label='{{l.uri_label.value}}'>
           {{ l.uri_label.value }}</a>
       </li>

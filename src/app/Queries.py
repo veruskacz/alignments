@@ -422,15 +422,15 @@ def get_graphs_per_rq_type(rq_uri, type=None):
 def get_graphs_related_to_rq_type(rq_uri, type=None):
     if type == "linkset&lens":
         type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
-        type_filter += " { ?uri   rdf:type	void:Lens } ."
+        type_filter += " { ?uri   rdf:type	 void:Lens } ."
     elif type == "linkset":
         type_filter = ' ?uri  rdf:type	void:Linkset . '
         # type_filter += ' ?uri  void:subjectsTarget ?uri1 .'
         # type_filter += ' ?uri  void:objectsTarget ?uri2 .'
     elif type == "lens":
-        type_filter = "?uri   rdf:type	bdb:Lens ."
+        type_filter = "?uri   rdf:type	 bdb:Lens ."
     elif type == "view":
-        type_filter = "?uri   rdf:type	void:View ."
+        type_filter = "?uri   rdf:type	 void:View ."
     else:
         type_filter = ""
 
@@ -667,7 +667,7 @@ def get_linkset_corresp_details(linkset, limit=1):
     query = PREFIX + """
     ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
 
-    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue
+    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples
         WHERE
         {{
 
@@ -678,7 +678,8 @@ def get_linkset_corresp_details(linkset, limit=1):
      				 alivocab:alignsSubjects	 ?s_property;
      				 void:objectsTarget	 		?objTarget ;
     				 bdb:objectsDatatype	 	?o_datatype ;
-     				 alivocab:alignsObjects	 	?o_property .
+     				 alivocab:alignsObjects	 	?o_property ;
+                     void:triples                ?triples .
 
 
             GRAPH  <{0}>
