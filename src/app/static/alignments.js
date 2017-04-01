@@ -156,11 +156,12 @@ function selectListItemUnique(item, grouplist_name)
 
 function selectListItem(item)
 {
-  if ($(item).attr('class') == 'list-group-item')  {
+  if ($(item).attr('class') == 'list-group-item') {
       $(item).addClass('list-group-item-warning');
       selected = true;
   }
-  else { $(item).removeClass('list-group-item-warning');
+  else {
+      $(item).removeClass('list-group-item-warning');
       selected = false;
   }
   return selected

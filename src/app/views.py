@@ -53,7 +53,7 @@ UPDATE_HEADERS = {
                     'Content-Type': 'application/sparql-update',
                     'SD-Connection-String': 'reasoning={}'.format(REASONING_TYPE)
                  }
-
+# <http://www.w3.org/ns/prov#>
 PREFIXES =  """
     PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -98,12 +98,12 @@ def graphs():
         print "LENSES:", lenses
 
     # TEST
-    LINKSET = "http://risis.eu/linkset/grid_orgref_C001_exactStrSim"
-    LENS = "http://risis.eu/lens/union_grid_orgref_C001"
-    result = list()
-    result2 = dict()
+    # LINKSET = "http://risis.eu/linkset/grid_orgref_C001_exactStrSim"
+    # LENS = "http://risis.eu/lens/union_grid_orgref_C001"
+    # result = list()
+    # result2 = dict()
     # lens_targets_unique(result, LENS)
-    lens_targets_details(result2, LENS)
+    # lens_targets_details(result2, LENS)
     # print "\n\nResult2:", result2
 
     # SEND BAK RESULTS
@@ -199,7 +199,6 @@ def linksetdetails():
 
     # RETURN THE RESULT
     if (template == 'none'):
-        print d
         return json.dumps(d)
     else:
         return render_template(template,
@@ -213,9 +212,44 @@ def linksetdetails():
                             mechanism = d['mechanism_stripped']['value']
                             )
 
+@app.route('/getlensdetails', methods=['GET'])
+def lendetails():
+    """
+    This function is called due to request /getlensdetails
+    It queries the dataset for ...
+    The results, ...,
+        are passed as parameters to the template lensDetails_list.html
+    """
 
-### CHANGE THE NAME TO -DETAILS-
-@app.route('/getLensDetail', methods=['GET'])
+    # RETRIEVE VARIABLES
+    # lens = request.args.get('lens', '')
+    # template = request.args.get('template', 'lensDetails_list.html')
+    # query = Qry.get_lens_corresp_details(linkset, limit=10)
+    # details = sparql(query, strip=True)
+    #
+    # d = details[0]
+    #
+    # if PRINT_RESULTS:
+    #     print "\n\nDETAILS:", details
+    #
+    # # RETURN THE RESULT
+    # if (template == 'none'):
+    #     return json.dumps(d)
+    # else:
+    #     return render_template(template,
+    #                         details = details,
+    #                         s_datatype = d['s_datatype_stripped']['value'],
+    #                         subTarget = d['subTarget_stripped']['value'],
+    #                         o_datatype = d['o_datatype_stripped']['value'],
+    #                         objTarget = d['objTarget_stripped']['value'],
+    #                         s_property = d['s_property_stripped']['value'],
+    #                         o_property= d['o_property_stripped']['value'],
+    #                         operator = d['operator_stripped']['value']
+    #                         )
+    return ''
+
+### TODO: REPLACE
+@app.route('/getLensDetail1', methods=['GET'])
 def detailsLens():
     """
     This function is called due to request /getLensDetail
@@ -317,7 +351,7 @@ def detailsLens():
             col2 = ""
         rows += [{'col1': col1, 'col2': col2}]
 
-    return render_template('lensDetails_list.html',
+    return render_template('lensDetails_list1.html',
                             detailHeadings = details,
                             rows = rows,
                             sub_uri = sub_uri,
@@ -603,36 +637,36 @@ def predicates():
                             function = function)
 
 
-def lens_targets_details(detail_dict, graph):
-    # GET THE TYPE OF THE GRAPH
-    graph_type_matrix = sparql_xml_to_matrix(
-        Qry.get_graph_type(graph))
-
-    if graph_type_matrix:
-        # THIS IS THE BASE OF THE RECURSION
-        if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
-            # print "I am Neo"
-            metadata_matrix = sparql_xml_to_matrix(Qry.get_linkset_metadata(graph))
-            # print "\nSUBJECT TARGET:", metadata_matrix[1][0]
-            # print "OBJECT TARGET:",metadata_matrix[1][1]
-            # THIS CONNECTS THE GRAPH TO IT SUBJECT AND TARGET DATASETS
-            if graph not in detail_dict:
-                detail_dict[graph] = metadata_matrix
-            return
-
-        if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
-            # print "I am Keanu Reeves"
-            # GET THE OPERATOR
-            # alivocab:operator	 http://risis.eu/lens/operator/union
-            lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
-            # print "\nOPERATOR:", lens_operator_matrix
-            if lens_operator_matrix:
-                if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
-                    # GET THE LIST OF TARGETS
-                    target_matrix = sparql_xml_to_matrix(Qry.get_lens_union_targets(graph))
-                    if target_matrix:
-                        for i in range(1, len(target_matrix)):
-                            lens_targets_details(detail_dict, target_matrix[i][0])
+# def lens_targets_details(detail_dict, graph):
+#     # GET THE TYPE OF THE GRAPH
+#     graph_type_matrix = sparql_xml_to_matrix(
+#         Qry.get_graph_type(graph))
+#
+#     if graph_type_matrix:
+#         # THIS IS THE BASE OF THE RECURSION
+#         if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
+#             # print "I am Neo"
+#             metadata_matrix = sparql_xml_to_matrix(Qry.get_linkset_metadata(graph))
+#             # print "\nSUBJECT TARGET:", metadata_matrix[1][0]
+#             # print "OBJECT TARGET:",metadata_matrix[1][1]
+#             # THIS CONNECTS THE GRAPH TO IT SUBJECT AND TARGET DATASETS
+#             if graph not in detail_dict:
+#                 detail_dict[graph] = metadata_matrix
+#             return
+#
+#         if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
+#             # print "I am Keanu Reeves"
+#             # GET THE OPERATOR
+#             # alivocab:operator	 http://risis.eu/lens/operator/union
+#             lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
+#             # print "\nOPERATOR:", lens_operator_matrix
+#             if lens_operator_matrix:
+#                 if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
+#                     # GET THE LIST OF TARGETS
+#                     target_matrix = sparql_xml_to_matrix(Qry.get_lens_union_targets(graph))
+#                     if target_matrix:
+#                         for i in range(1, len(target_matrix)):
+#                             lens_targets_details(detail_dict, target_matrix[i][0])
 
 
 # @app.route('/gettargetdatasets')
@@ -667,36 +701,36 @@ def lens_targets_details(detail_dict, graph):
 #     return render_template('graphs_listgroup.html',
 #                             graphs = graphs)
 
-
-def lens_targets_unique(unique_list, graph):
-
-    # GET THE TYPE OF THE GRAPH
-    graph_type_matrix = sparql_xml_to_matrix(
-        Qry.get_graph_type(graph))
-
-    if graph_type_matrix:
-        # THIS IS THE BASE OF THE RECURSION
-        if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
-            query = Qry.get_targets(graph)
-            result = sparql(query, strip=True)
-            for r in result:
-                if not(r in unique_list):
-                    unique_list.append(r)
-            return
-
-        if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
-            # print "I am Keanu Reeves"
-            # GET THE OPERATOR
-            # alivocab:operator	 http://risis.eu/lens/operator/union
-            lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
-            # print "\nOPERATOR:", lens_operator_matrix
-            if lens_operator_matrix:
-                if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
-                    # GET THE LIST OF TARGETS
-                    target_matrix = sparql_xml_to_matrix(Qry.get_lens_union_targets(graph))
-                    if target_matrix:
-                        for i in range(1, len(target_matrix)):
-                            lens_targets_unique(unique_list, target_matrix[i][0])
+#
+# def lens_targets_unique(unique_list, graph):
+#
+#     # GET THE TYPE OF THE GRAPH
+#     graph_type_matrix = sparql_xml_to_matrix(
+#         Qry.get_graph_type(graph))
+#
+#     if graph_type_matrix:
+#         # THIS IS THE BASE OF THE RECURSION
+#         if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
+#             query = Qry.get_targets(graph)
+#             result = sparql(query, strip=True)
+#             for r in result:
+#                 if not(r in unique_list):
+#                     unique_list.append(r)
+#             return
+#
+#         if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
+#             # print "I am Keanu Reeves"
+#             # GET THE OPERATOR
+#             # alivocab:operator	 http://risis.eu/lens/operator/union
+#             lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
+#             # print "\nOPERATOR:", lens_operator_matrix
+#             if lens_operator_matrix:
+#                 if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
+#                     # GET THE LIST OF TARGETS
+#                     target_matrix = sparql_xml_to_matrix(Qry.get_lens_union_targets(graph))
+#                     if target_matrix:
+#                         for i in range(1, len(target_matrix)):
+#                             lens_targets_unique(unique_list, target_matrix[i][0])
 
 
 @app.route('/createLinkset')

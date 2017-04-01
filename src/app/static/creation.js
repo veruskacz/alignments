@@ -1,6 +1,7 @@
 // function fired when the Creation Mode is selected
 // by clicking #modeDropdown
 
+
 function modeCreation(val)
 {
    // change the name and mode of the button modeDropdown
@@ -29,7 +30,6 @@ function idea_button(targetId)
 {
   activateTargetDiv(targetId);
 
-
 }
 
 function linkset_button(targetId)
@@ -39,7 +39,7 @@ function linkset_button(targetId)
    // get research questions
    $.get('/getrquestions',
           data = {'template': 'list_dropdown.html',
-                  'function': 'rqClick(this,"creation")'},
+                  'function': 'rqClick(this,"linkset")'},
           function(data)
    {
      //load the results rendered as a button into a div-col
@@ -51,114 +51,74 @@ function lens_button(targetId)
 {
    activateTargetDiv(targetId);
 
-   $.get('/getrquestions',function(data)
+   $.get('/getrquestions',
+          data = {'template': 'list_dropdown.html',
+                  'function': 'rqClick(this,"lens")'},
+          function(data)
    {
-     $('#creation_lens_col').show();
+     //load the results rendered as a button into a div-col
      $('#button_rq_creation_lens_col').html(data);
-
-      // select a research question
-     $('#button_rq_creation_lens_col a').on('click',function()
-     {
-      //  refresh_create_lens();
-       enableButton('createLensButton');
-       refresh_create_lens();
-       var rq_uri = $(this).attr('uri');
-       var rq_label = $(this).attr('label');
-       $('#creation_lens_selected_RQ').html(rq_label);
-
-       $('#creation_lens_row').show();
-
-       // set actions after clicking one of the Operators
-       // particularly in the #creation_operator_col
-       $('#creation_operator_col a').on('click',function()
-       {
-          var operator_label = $(this).attr('label');
-
-          // Attributes the label of the selected operator to the div
-          // where the name is displayed
-          var elem = document.getElementById('selected_operator');
-          elem.setAttribute("label", operator_label);
-          $('#selected_operator').html(operator_label);
-
-          var description = '';
-          if (operator_label == 'union')
-          {
-              description = 'The operator UNION requires the selection of linksets or lenses that need to be unified. It means that correspondences that happen more once will be unified and allow for tracking provenace (e.g. how many times it was asserted). ';
-          }
-          else if (operator_label == 'intersection')
-          {
-              description = 'The operator INTERSECTION ...';
-          }
-          else if (operator_label == 'transitive')
-          {
-              description = 'The operator TRANSITIVE ';
-          }
-          $('#selected_operator_desc').html(description);
-       });
-
-       $('#loading2').show();
-       $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
-                              'type': 'linkset',
-                              'template': 'list_group.html'},function(data)
-       {
-         $('#loading2').hide();
-         $('#creation_lens_linkset_selection_col').html(data);
-
-         // set actions after clicking a graph in the list
-         $('#creation_lens_linkset_selection_col a').on('click',function()
-          { selectListItem(this); });
-       });
-
-       $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
-                              'type': 'lens',
-                              'template': 'list_group.html'},function(data)
-       {
-         $('#loading2').hide();
-         $('#creation_lens_lens_selection_col').html(data);
-
-         // set actions after clicking a graph in the list
-         $('#creation_lens_lens_selection_col a').on('click',function()
-          { selectListItem(this); });
-       });
-
-       // set actions after clicking the button createLensButton
-       $('#createLensButton').on('click',function()
-       {
-          var elems = selectedElemsInGroupList('creation_lens_linkset_selection_col');
-          var i;
-          var graphs = []
-          for (i = 0; i < elems.length; i++) {
-            graphs.push($(elems[i]).attr('uri'));
-          }
-          elems = selectedElemsInGroupList('creation_lens_lens_selection_col');
-          var i;
-          for (i = 0; i < elems.length; i++) {
-            graphs.push($(elems[i]).attr('uri'));
-          }
-
-          if ((graphs.length > 0) &&
-              ($('#selected_operator').attr('label')))
-          {
-              var specs = {'rq_uri': rq_uri,
-                          'graphs[]': graphs,
-                          'operator': $('#selected_operator').attr('label')};
-
-              var message = "EXECUTING YOUR LENS SPECS.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
-              $('#lens_creation_message_col').html(message);
-
-              // call function that creates the linkset
-              $.get('/createLens', specs, function(data)
-              {
-                  var obj = JSON.parse(data);
-                  $('#lens_creation_message_col').html(obj.message);
-              });
-          }
-          else {
-            $('#lens_creation_message_col').html("Some feature is not selected!");
-          }
-       });
-     });
    });
+
+  //  $.get('/getrquestions',function(data)
+  //  {
+  //    $('#creation_lens_col').show();
+  //    $('#button_rq_creation_lens_col').html(data);
+   //
+  //     // select a research question
+  //    $('#button_rq_creation_lens_col a').on('click',function()
+  //    {
+  //     //  refresh_create_lens();
+  //     //  enableButton('createLensButton');
+  //
+  //      refresh_create_lens();
+  //      var rq_uri = $(this).attr('uri');
+  //      var rq_label = $(this).attr('label');
+  //      $('#creation_lens_selected_RQ').html(rq_label);
+   //
+  //      $('#creation_lens_row').show();
+   //  //
+   //
+
+   //
+  //      // set actions after clicking the button createLensButton
+  //      $('#createLensButton').on('click',function()
+  //      {
+  //         var elems = selectedElemsInGroupList('creation_lens_linkset_selection_col');
+  //         var i;
+  //         var graphs = []
+  //         for (i = 0; i < elems.length; i++) {
+  //           graphs.push($(elems[i]).attr('uri'));
+  //         }
+  //         elems = selectedElemsInGroupList('creation_lens_lens_selection_col');
+  //         var i;
+  //         for (i = 0; i < elems.length; i++) {
+  //           graphs.push($(elems[i]).attr('uri'));
+  //         }
+   //
+  //         if ((graphs.length > 0) &&
+  //             ($('#selected_operator').attr('label')))
+  //         {
+  //             var specs = {'rq_uri': rq_uri,
+  //                         'graphs[]': graphs,
+  //                         'operator': $('#selected_operator').attr('label')};
+   //
+  //             var message = "EXECUTING YOUR LENS SPECS.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
+  //             $('#lens_creation_message_col').html(message);
+   //
+  //             // call function that creates the linkset
+  //             $.get('/createLens', specs, function(data)
+  //             {
+  //                 var obj = JSON.parse(data);
+  //                 $('#lens_creation_message_col').html(obj.message);
+  //             });
+  //         }
+  //         else {
+  //           $('#lens_creation_message_col').html("Some feature is not selected!");
+  //         }
+  //      });
+  //    });
+  //  });
 }
 
 function view_button(targetId)
@@ -488,7 +448,7 @@ function inspect_linkset_activate(mode)
             // load the panel for editing/refining linkset
             if (mode == 'refine' || mode == 'edit' || 'inspect')
             {
-              enableButtons(document.getElementById('creation_linkset_buttons_col'), enable=false);
+              // enableButtons(document.getElementById('creation_linkset_buttons_col'), enable=false);
               $.get('/getlinksetdetails',data={'linkset': linkset_uri,
                                                'template': 'none'},function(data)
               {
@@ -535,7 +495,7 @@ function inspect_linkset_activate(mode)
                    $('#creation_linkset_correspondence_row').show();
                    showLinksetDetails(linkset_uri, obj);
                 }
-                enableButtons(document.getElementById('creation_linkset_buttons_col'), enable=true);
+                // enableButtons(document.getElementById('creation_linkset_buttons_col'), enable=true);
               });
 
             }
@@ -717,8 +677,150 @@ function refineLinksetClick()
     $('#linkset_refine_message_col').html("Some feature is not selected!");
   }
 }
+
 ///////////////////////////////////////////////////////////////////////////////
-// Functions called when list-itens within buttons or groups list
+// Functions called at onclick of the buttons in lensCreation.html
+///////////////////////////////////////////////////////////////////////////////
+
+function inspect_lens_activate(mode)
+{
+  var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+
+  // if (mode == 'import') {
+  //   $('#inspect_heading_panel').hide()
+  //   $('#import_heading_panel').show()
+  // }
+  // else {
+  //   $('#import_heading_panel').hide()
+  //   $('#inspect_heading_panel').show()
+  // }
+
+  if (rq_uri)
+  {
+
+    $.get('/getgraphsperrqtype',
+                  data={'rq_uri': rq_uri,
+                        'mode': mode,
+                        'type': 'lens',
+                        'template': 'list_group.html'},
+                  function(data)
+    {
+      // $('#loading2').hide();
+      $('#inspect_lens_lens_selection_col').html(data);
+
+      // set actions after clicking a graph in the list
+      $('#inspect_lens_lens_selection_col a').on('click',function()
+       {
+          if (selectListItemUnique(this, 'inspect_lens_lens_selection_col'))
+          {
+            var lens_uri = $(this).attr('uri');
+
+            // load the panel describing the linkest
+            // $.get('/???',data={'lens': lens_uri},function(data)
+            // { $('#inspect_lens_lens_details_col').html(data);
+            // });
+          }
+        });
+    });
+  }
+}
+
+function create_lens_activate()
+{
+   var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+
+   $('#loading2').show();
+   $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
+                          'type': 'linkset',
+                          'template': 'list_group.html'},function(data)
+   {
+     $('#loading2').hide();
+     $('#creation_lens_linkset_selection_col').html(data);
+
+     // set actions after clicking a graph in the list
+     $('#creation_lens_linkset_selection_col a').on('click',function()
+      { selectListItem(this); });
+   });
+
+   $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
+                          'type': 'lens',
+                          'template': 'list_group.html'},function(data)
+   {
+     $('#loading2').hide();
+     $('#creation_lens_lens_selection_col').html(data);
+
+     // set actions after clicking a graph in the list
+     $('#creation_lens_lens_selection_col a').on('click',function()
+      { selectListItem(this); });
+   });
+}
+
+function operatorClick(th)
+{
+  var operator_label = $(th).attr('label');
+
+  // Attributes the label of the selected operator to the div
+  // where the name is displayed
+  var elem = document.getElementById('selected_operator');
+  elem.setAttribute("label", operator_label);
+  $('#selected_operator').html(operator_label);
+
+  var description = '';
+  if (operator_label == 'union')
+  {
+      description = 'The operator UNION requires the selection of linksets or lenses that need to be unified. It means that correspondences that happen more once will be unified and allow for tracking provenace (e.g. how many times it was asserted). ';
+  }
+  else if (operator_label == 'intersection')
+  {
+      description = 'The operator INTERSECTION ...';
+  }
+  else if (operator_label == 'transitive')
+  {
+      description = 'The operator TRANSITIVE ';
+  }
+  $('#selected_operator_desc').html(description);
+}
+
+function createLensClick()
+{
+    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+
+    var elems = selectedElemsInGroupList('creation_lens_linkset_selection_col');
+    var i;
+    var graphs = []
+    for (i = 0; i < elems.length; i++) {
+      graphs.push($(elems[i]).attr('uri'));
+    }
+    elems = selectedElemsInGroupList('creation_lens_lens_selection_col');
+    var i;
+    for (i = 0; i < elems.length; i++) {
+      graphs.push($(elems[i]).attr('uri'));
+    }
+
+    if ((graphs.length > 0) &&
+        ($('#selected_operator').attr('label')))
+    {
+        var specs = {'rq_uri': rq_uri,
+                    'graphs[]': graphs,
+                    'operator': $('#selected_operator').attr('label')};
+
+        var message = "EXECUTING YOUR LENS SPECS.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
+        $('#lens_creation_message_col').html(message);
+
+        // call function that creates the linkset
+        $.get('/createLens', specs, function(data)
+        {
+            var obj = JSON.parse(data);
+            $('#lens_creation_message_col').html(obj.message);
+        });
+    }
+    else {
+      $('#lens_creation_message_col').html("Some feature is not selected!");
+    }
+ }
+
+///////////////////////////////////////////////////////////////////////////////
+// Functions called when list-itens within buttons or groups list are clicked
 ///////////////////////////////////////////////////////////////////////////////
 
 // Function fired onclick of a research question from list
@@ -729,33 +831,44 @@ function rqClick(th, mode)
   var rq_uri = $(th).attr('uri');
   var rq_label = $(th).attr('label');
 
-  if (mode == 'creation')
-  {
-    // show the selected rq_label
-    setAttr('creation_linkset_selected_RQ','uri',rq_uri);
-    $('#creation_linkset_selected_RQ').html(rq_label);
+  // var node = findAncestor(th, 'row rq');
+  // var target = $(node).attr('target');
 
-    //enable the creation button
-    refresh_create_linkset();
-    enableButtons(document.getElementById('creation_linkset_buttons_col'));
-    enableButton('createLinksetButton');
+  switch (mode) {
+      case 'linkset':
+          var target = 'creation_linkset_selected_RQ'
 
-    // get the datasets for the selected rq
-    // show the creation_linkset_row with a loading message
-    var btn = document.getElementById('btn_inspect_linkset');
-    btn.onclick();
+          refresh_create_linkset();
+          enableButtons(document.getElementById('creation_linkset_buttons_col'));
+          // enableButton('createLinksetButton');
+
+          // get the datasets for the selected rq
+          // show the creation_linkset_row with a loading message
+          var btn = document.getElementById('btn_inspect_linkset');
+          break;
+      case 'lens':
+          var target = 'creation_lens_selected_RQ';
+
+          //refresh_create_linkset();
+          enableButtons(document.getElementById('creation_lens_buttons_col'));
+
+          // get the datasets for the selected rq
+          // show the creation_linkset_row with a loading message
+          var btn = document.getElementById('btn_inspect_lens');
+          break;
+      case 'idea':
+          var target = 'creation_idea_selected_RQ';
+          var btn = document.getElementById('btn_create_idea');
+          update_idea_enable();
+          break;
   }
-  else if (mode == 'idea') {
-    setAttr('creation_idea_selected_RQ','uri',rq_uri);
-    $('#creation_idea_selected_RQ').html(rq_label);
 
-    // set the button that will update the RQ with the mapping
-    // var rq_up_btn = document.getElementById('updateIdeaButton');
-    // rq_up_btn.setAttribute("uri", rq_uri);
+  //set target div with selected RQ
+  setAttr(target,'uri',rq_uri);
+  $('#'+target).html(rq_label);
 
-    // loads and shows the update panel
-    update_idea_enable();
-  }
+  //inital button selected
+  btn.onclick();
 }
 
 // Function fired onclick of a dataset from list. It fires the requests

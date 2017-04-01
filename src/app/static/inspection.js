@@ -74,7 +74,7 @@ function modeInvestigation(val)
                     // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
                     if (operator) // THEN IT IS A LENS
                     {
-                        $.get('/getLensDetail',data=data,function(data)
+                        $.get('/getLensDetail1',data=data,function(data)
                         {
                             // DETAIL liST COLUMN
                             $('#details_list_col').html(data);
@@ -246,7 +246,7 @@ function showLinksetDetails(linkset, detailsDict)
               // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
               if (operator) // THEN IT IS A LENS
               {
-                  $.get('/getLensDetail',data=data,function(data)
+                  $.get('/getLensDetail1',data=data,function(data)
                   {
                       // DETAIL liST COLUMN
                       $('#details_list_col').html(data);

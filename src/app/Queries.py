@@ -421,46 +421,61 @@ def get_graphs_per_rq_type(rq_uri, type=None):
 
 def get_graphs_related_to_rq_type(rq_uri, type=None):
     if type == "linkset&lens":
-        type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
-        type_filter += " { ?uri   rdf:type	 void:Lens } ."
+        type_filter = """
+        # THAT ARE OF TYPE LINKSET OR LENS
+        { ?uri  rdf:type	void:Linkset }
+        UNION
+        { ?uri   rdf:type	 void:Lens } """
     elif type == "linkset":
-        type_filter = ' ?uri  rdf:type	void:Linkset . '
-        # type_filter += ' ?uri  void:subjectsTarget ?uri1 .'
-        # type_filter += ' ?uri  void:objectsTarget ?uri2 .'
+        type_filter = """
+        # THAT ARE OF TYPE LINKSET
+        ?uri  rdf:type	void:Linkset """
     elif type == "lens":
-        type_filter = "?uri   rdf:type	 bdb:Lens ."
+        type_filter = """
+        # THAT ARE OF TYPE LENS '
+        ?uri   rdf:type	 bdb:Lens .
+        """
     elif type == "view":
         type_filter = "?uri   rdf:type	 void:View ."
     else:
         type_filter = ""
+
+    type_condition = """
+    # WHICH ARE NOT A LINKESET WHOSE TARGET DATASETS (SOURCE OR OBJECT)
+    # OR ARE NOT A LENS THAT TARGETS A LINKSET (THROUGH ZERO OR MORE LENSES) WHOSE TARGET DATASETS (SOURCE OR OBJECT)
+    FILTER NOT EXISTS
+    {{  ?uri  void:target*/(void:subjectsTarget|void:objectsTarget) ?dataset
+
+       # ARE NOT WITHIN THE SELECTED DATASETS FOR A CERTAIN RESEARCH QUESTION
+       FILTER NOT EXISTS {{ <{0}>  void:target/alivocab:selectedSource ?dataset }}
+   	}} """.format(rq_uri)
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
     SELECT DISTINCT ?uri ?mode
     WHERE
     {{
-      <{0}> a <http://risis.eu/class/ResearchQuestion> .
 
+      # GRAPH-TYPE FILTER
+      {0}
+
+      # GRAPH-TYPE CONDITION
+      {1}
+
+      # AND WHICH ARE NOT ASSOCIATED TO THE RESEARCH QUESTION
       FILTER NOT EXISTS {{
         {{
-          <{0}>  alivocab:created  ?uri .
+          <{2}>  alivocab:created  ?uri .
         }}
         UNION
         {{
-          <{0}>  alivocab:used  ?uri.
+          <{2}>  alivocab:used  ?uri.
         }}
       }}
 
-      {{
-        <{0}>  void:target  [alivocab:selectedSource  ?uri1].
-        <{0}>  void:target  [alivocab:selectedSource  ?uri2].
-      }}
-
-      {1}
-
       BIND("no-mode" as ?mode)
     }}
-    """.format(rq_uri, type_filter)
+    """.format(type_filter, type_condition, rq_uri)
     if DETAIL:
         print query
     return query
@@ -704,4 +719,49 @@ def get_linkset_corresp_details(linkset, limit=1):
     """.format(linkset, limit)
     if DETAIL:
         print query
+    return query
+
+def get_lens_corresp_details(linkset, limit=1):
+
+    query = PREFIX
+    # + """
+    # ### LENS DETAILS AND VALUES OF ALIGNED PREDICATES
+    #
+    # SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples
+    #     WHERE
+    #     {{
+    #
+    # 	  <{0}>
+    #       			 alivocab:alignsMechanism	 ?mechanism ;
+    #  				 void:subjectsTarget	 	?subTarget ;
+    # 				 bdb:subjectsDatatype	 	?s_datatype ;
+    #  				 alivocab:alignsSubjects	 ?s_property;
+    #  				 void:objectsTarget	 		?objTarget ;
+    # 				 bdb:objectsDatatype	 	?o_datatype ;
+    #  				 alivocab:alignsObjects	 	?o_property ;
+    #                  void:triples                ?triples .
+    #
+    #
+    #         GRAPH  <{0}>
+    #         {{
+    #             ?sub_uri    ?aligns        ?obj_uri
+    #         }}.
+    #
+    #         GRAPH ?subTarget
+    #         {{
+    #             ?sub_uri 	?s_property        ?s_PredValue
+    #         }}
+    #         OPTIONAL
+    #         {{
+    #             graph ?objTarget
+    #             {{
+    #                 ?obj_uri  ?o_property   ?o_PredVal
+    #             }}
+    #         }}
+    #         BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredValue)
+    #     }}
+    # LIMIT {1}
+    # """.format(linkset, limit)
+    # if DETAIL:
+    #     print query
     return query
