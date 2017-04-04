@@ -1,81 +1,65 @@
-import src.Alignments.Settings as St
+import logging
+
+import Linkset as Ls
+import src.Alignments.ErrorCodes as Ec
+import src.Alignments.GenericMetadata as Gn
 import src.Alignments.NameSpace as Ns
 import src.Alignments.Query as Qry
-from Linkset import writelinkset, write_to_path, update_specification
-import logging
-import Linkset as Ls
-import src.Alignments.GenericMetadata as Gn
+import src.Alignments.Settings as St
+import src.Alignments.UserActivities.UserRQ as Urq
+import src.Alignments.Utility as Ut
+from Linkset import writelinkset
+from src.Alignments.Utility import write_to_path, update_specification
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
-
-def linkset_info(specs, same_as_count):
-    info = "{}{}{}{}{}{}". \
-        format("======================================================="
-               "=======================================================\n",
-               "Results for creating the linkset between {} and {}.\n".format(
-                   specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-                   specs[St.context_code], specs[St.mechanism]),
-
-               "\t   Linksets GRAPH            : linkset:{}_{}_C{}_{}\n".format(
-                   specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-                   specs[St.context_code], specs[St.mechanism]),
-
-               "\t   Metadata GRAPH            : lsMetadata:{}_{}_C{}_{}\n".format(
-                   specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-                   specs[St.context_code], specs[St.mechanism]),
-
-               "\t   Singleton Metadata GRAPH  : GRAPH singMetadata:{}_{}_C{}_{}\n".format(
-                   specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-                   specs[St.context_code], specs[St.mechanism]),
-
-               "\t   LINKTYPE                  : alivocab:{}{}\n".format(specs[St.mechanism], same_as_count))
-    return info
+"""
+SINGLE PREDICATE ALIGNMENT
+    - THE NAME OF A LINKSET SHOULD BE FORMATTED AS [SRC DATASET]_[TARGET DATASET]_[SRC ALIGNS]_[MECHANISM]
+    - spa_linksets ONY HANDLES THE EXACT STRING SIMILARITY MECHANISM
+    - BECAUSE IDENTITY IS ABOUT MATCHING EXACT SUBJECT WITH THE SAME URI IDENTIFIER, THIS FUNCTION IS ALSO USED BY
+      PLUGGING DIFFERENT INSERT QUERIES
+    - THE "sameAsCount" VARIABLE HELPS CREATING TASK SPECIFIC PREDICATE BY APPENDING AN INTEGER TO THE PARENT PREDICATE.
+      WHEN EVER THE "sameAsCount" VARIABLE IS NULL, AN ERROR-CODE 1 IS RETURNED
+"""
 
 
-def spa_linksets(specs, database_name, host, display=False, activated=False):
+def spa_linksets(specs, display=False, activated=False):
+
+    if activated is False:
+        print "THE FUNCTION IS NOT ACTIVATED." \
+              "\n======================================================" \
+              "========================================================"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
 
     source = specs[St.source]
     target = specs[St.target]
-    # The name of the linkset
-    linkset_name = "{}_{}_C{}_{}".format(
-        source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism])
-    linkset = "{}{}".format(Ns.linkset, linkset_name)
+
+    """
+    # CHECK WHETHER A METADATA DESCRIBING THIS LINKSET EXIST
+    """
+    # THE NAME OF A LINKSET SHOULD BE FORMATTED AS FOLLOW:
+    #   [SRC DATASET]_[TARGET DATASET]_[SRC ALIGNS]_[MECHANISM]
+    if St.linkset not in specs:
+        # GENERATE THE NAME OF THE LINKSET
+        Ls.set_linkset_name(specs)
 
     # This function is designed for EXACT NAME SIMILARITY RUN AS SPARQL QUERIES
+    # if True:
     try:
-
-        if activated is False:
-            print "THE FUNCTION IS NOT ACTIVATED." \
-                  "\n======================================================" \
-                  "========================================================"
-            return {"message": "THE FUNCTION IS NOT ACTIVATED.", 'error_code': 1, 'linkset': None}
 
         if activated is True:
 
-            if specs[St.sameAsCount] is None:
-                print "PROBLEM"
-                return {"message": "PROBLEM", 'error_code': 1, 'linkset': None}
+            # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
+            check = Ls.run_checks(specs)
+            if check[St.result] != "GOOD TO GO":
+                return check
 
-            # Check whether this linkset was already generated. If yes, delete it or change the context code
-            ask_query = "ASK {{ <{}> ?p ?o . }}".format(linkset)
-            ask = Qry.boolean_endpoint_response(ask_query, database_name, host)
-            if ask == "true":
-                # logger.warning("\n{} ALREADY EXISTS. \nTO PROCEED ANYWAY, PLEASE DELETE "
-                #                "THE LINKSET FIRST OR CHANGE THE CONTEXT CODE\n".format(linkset))
-
-                server_message = ("LINKSET <{}> ALREADY EXISTS. \nTO PROCEED ANYWAY, PLEASE DELETE "
-                           "THE LINKSET FIRST OR CHANGE THE CONTEXT CODE\n".format(linkset))
-                message = ("LINKSET \"{}\" ALREADY EXISTS.<br/>TO PROCEED ANYWAY, PLEASE DELETE "
-                           "THE LINKSET FIRST OR CHANGE THE CONTEXT CODE".format(linkset))
-                print server_message
-
-                return {"message": message, 'error_code': 1, 'linkset': linkset}
-
-            print linkset_info(specs, specs[St.sameAsCount])
+            # THE LINKSET DOES NOT EXIT, LETS CREATE IT NOW
+            print Ls.linkset_info(specs, specs[St.sameAsCount])
 
             # Generating insert quarries
             insertqueries = specs[St.linkset_insert_queries]
@@ -85,32 +69,35 @@ def spa_linksets(specs, database_name, host, display=False, activated=False):
             # print insertqueries[0], '\n', insertqueries[1], '\n', insertqueries[2], '\n', insertqueries[3]
 
             # print time.time()
-            #########################################################################
-            """ 1. SAFETY GRAPHS DROPS                                            """
             ########################################################################
-            Qry.boolean_endpoint_response(insertqueries[0], database_name, host)
+            """ 1. SAFETY GRAPHS DROPS                                           """
+            ########################################################################
+            Qry.boolean_endpoint_response(insertqueries[0])
 
             ########################################################################
             """ 2. TEMPORARY GRAPHS                                              """
             ########################################################################
-            Qry.boolean_endpoint_response(insertqueries[1], database_name, host)
+            Qry.boolean_endpoint_response(insertqueries[1])
 
             ########################################################################
             """ 3. LINKSET & METADATA                                            """
             ########################################################################
-            Qry.boolean_endpoint_response(insertqueries[2], database_name, host)
+            Qry.boolean_endpoint_response(insertqueries[2])
 
             ########################################################################
             """ 4. DROPPING TEMPORARY GRAPHS                                     """
             ########################################################################
-            Qry.boolean_endpoint_response(insertqueries[3], database_name, host)
+            Qry.boolean_endpoint_response(insertqueries[3])
 
             ########################################################################
             """ 5. GENERATING LINKSET METADATA                                   """
             ########################################################################
-            metadata = Gn.linkset_metadata(specs, database_name, host)
+            metadata = Gn.linkset_metadata(specs)
+
+            # NO POINT TO CREATE ANY FILE WHEN NO TRIPLE WAS INSERTED
             if int(specs[St.triples]) > 0:
-                Qry.boolean_endpoint_response(metadata, database_name, host)
+
+                Qry.boolean_endpoint_response(metadata)
 
                 ########################################################################
                 """ 6. WRITING TO FILE                                               """
@@ -121,30 +108,35 @@ def spa_linksets(specs, database_name, host, display=False, activated=False):
                 print "\t>>> WRITING TO FILE"
                 # linkset_path = "D:\datasets\Linksets\ExactName"
                 linkset_path = write_to_path
-                writelinkset(src, trg, linkset_name, linkset_path, metadata, database_name, host)
-                server_message = "Linksets created as: {}".format(linkset)
-                message = "The linkset was created!<br/>URI = {}".format(linkset)
+                writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata)
+                server_message = "Linksets created as: {}".format(specs[St.linkset])
+                message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
                 print "\t", server_message
                 print "\t*** JOB DONE! ***"
-                return { "message": message, 'error_code': 0, 'linkset': linkset}
+
+                if display is True:
+                    # Generating insert quarries
+                    insertqueries = spa_linkset_ess_query(specs)
+                    # LINKSET insert Query
+                    specs[St.insert_query] = "{}\n{}\n{}".format(insertqueries[1], insertqueries[2], insertqueries[3])
+                    # print insertqueries[0], '\n', insertqueries[1], '\n', insertqueries[2], '\n', insertqueries[3]
+                    metadata = Gn.linkset_metadata(specs)
+                    print metadata
+
+                return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
             else:
-                print metadata
-
-        elif display is True:
-
-            # Generating insert quarries
-            insertqueries = spa_linkset_ess_query(specs)
-            # LINKSET insert Query
-            specs[St.insert_query] = "{}\n{}\n{}".format(insertqueries[1], insertqueries[2], insertqueries[3])
-            # print insertqueries[0], '\n', insertqueries[1], '\n', insertqueries[2], '\n', insertqueries[3]
-            metadata = Gn.linkset_metadata(specs, database_name, host)
-            print metadata
-            return None
+                return {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
 
     except Exception as err:
         # logger.warning(err)
-        print err
+        print "ERROR IN SPA_LINKSET", err
+        return {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+
+
+########################################################################################
+# SINGLE PREDICATE ALIGNMENT
+########################################################################################
 
 
 def spa_linkset_ess_query(specs):
@@ -174,10 +166,8 @@ def spa_linkset_ess_query(specs):
     # drop_ls = "DROP SILENT GRAPH linkset:{}_{}_ExactName".format(src_dataset_name, trg_dataset_name)
     # drop_metadata = "DROP SILENT GRAPH lsMetadata:{}_{}_ExactName_metadata".format(src_dataset_name, trg_dataset_name)
 
-    drop_ls = "DROP SILENT GRAPH linkset:{}_{}_C{}_{}".format(
-        source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism])
-    drop_metadata = "DROP SILENT GRAPH singleton:{}_{}_C{}_{}".format(
-        source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism])
+    drop_ls = "DROP SILENT GRAPH linkset:{}".format(specs[St.linkset_name])
+    drop_metadata = "DROP SILENT GRAPH singleton:{}".format(specs[St.linkset_name])
 
     '''
         LOADING SOURCE TO TEMPORARY GRAPH tmpgraph:load00
@@ -259,15 +249,13 @@ def spa_linkset_ess_query(specs):
                    "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
         format("\tINSERT",
                "\t{",
-               "\t  GRAPH linkset:{}_{}_C{}_{}".
-               format(source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism]),
+               "\t  GRAPH linkset:{}".format(specs[St.linkset_name]),
                "\t  {",
                "\t    ### Correspondence triple with singleton",
                "\t    ?source ?singPre ?target.",
                "\t  }",
 
-               "\t  GRAPH singleton:{}_{}_C{}_{}".format(
-                   source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism]),
+               "\t  GRAPH singleton:{}".format(specs[St.linkset_name]),
                "\t  {",
                "\t    ### Singleton metadata",
                "\t    ?singPre rdf:singletonPropertyOf     alivocab:exactStrSim{} ;".format(specs[St.sameAsCount]),
@@ -334,7 +322,59 @@ def spa_linkset_ess_query(specs):
 
     queries = [query01, query02, query03, query04]
 
+    # print query01, query02, query03, query04
+
     return queries
+
+
+def specs_2_linkset(specs, display=False, activated=False):
+
+    # if activated is True:
+    heading = "\nEXECUTING LINKSET SPECS" \
+              "\n======================================================" \
+              "========================================================"
+
+    inserted_mapping = None
+    inserted_linkset = None
+
+    # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+
+    if specs[St.sameAsCount]:
+
+        # UPDATE THE SPECS OF SOURCE AND TARGETS
+        update_specification(specs[St.source])
+        update_specification(specs[St.target])
+
+        # GENERATE THE NAME OF THE LINKSET
+        Ls.set_linkset_name(specs)
+
+        # SET THE INSERT QUERY
+        specs[St.linkset_insert_queries] = spa_linkset_ess_query(specs)
+
+        # GENERATE THE LINKSET
+        inserted_linkset = spa_linksets(specs, display, activated)
+
+        # REGISTER THE ALIGNMENT
+        if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
+            Urq.register_alignment_mapping(specs, created=False)
+        else:
+            Urq.register_alignment_mapping(specs, created=True)
+
+        # SPA_LINKSET returns
+        # {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+        return inserted_linkset
+
+    else:
+        print "HERE!!!!!!!!!!!!!"
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
+
+
+########################################################################################
+# SINGLE PREDICATE ALIGNMENT IDENTITY
+# ALIGNING SUBJECTS FROM DIFFERENT GRAPHS THAT HAVE THE SAME RESOURCE URI IDENTIFIER
+########################################################################################
 
 
 def spa_linkset_identity_query(specs):
@@ -361,10 +401,8 @@ def spa_linkset_identity_query(specs):
     drop_tmp00 = "DROP SILENT GRAPH tmpgraph:load00"
     drop_tmp01 = "DROP SILENT GRAPH tmpgraph:load01"
 
-    drop_ls = "DROP SILENT GRAPH linkset:{}_{}_C{}_{}".format(
-        source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism])
-    drop_metadata = "DROP SILENT GRAPH singleton:{}_{}_C{}_{}".format(
-        source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism])
+    drop_ls = "DROP SILENT GRAPH linkset:{}".format(specs[St.linkset_name])
+    drop_metadata = "DROP SILENT GRAPH singleton:{}".format(specs[St.linkset_name])
 
     ''' LOADING SOURCE TO TEMPORARY GRAPH tmpgraph:load00 '''
     load_temp00 = """
@@ -411,17 +449,17 @@ def spa_linkset_identity_query(specs):
     load_linkset = """
         INSERT
         {{
-            GRAPH linkset:{0}_{1}_C{2}_{3}
+            GRAPH linkset:{0}
             {{
                 ### Correspondence triple with singleton
                 ?source ?singPre ?target .
             }}
 
-            GRAPH singleton:{0}_{1}_C{2}_{3}
+            GRAPH singleton:{0}
             {{
                 ### ### Singleton metadata
                 ?singPre
-                    rdf:singletonPropertyOf     alivocab:exactStrSim{4} ;
+                    rdf:singletonPropertyOf     alivocab:exactStrSim{1} ;
                     alivocab:hasEvidence        ?label .
             }}
         }}
@@ -435,11 +473,11 @@ def spa_linkset_identity_query(specs):
                     tmpvocab:evidence  ?label .
 
                 ### Create A SINGLETON URI"
-                BIND( replace("{5}{3}{6}_#", "#", STRAFTER(str(UUID()),"uuid:")) as ?pre )
+                BIND( replace("{2}{3}{4}_#", "#", STRAFTER(str(UUID()),"uuid:")) as ?pre )
                 BIND( iri(?pre) as ?singPre )
             }}
-        }}""".format(source[St.graph_name], target[St.graph_name], specs[St.context_code], specs[St.mechanism], "",
-                     Ns.alivocab, specs[St.sameAsCount])
+        }}""".format(specs[St.linkset_name], specs[St.sameAsCount],
+                     Ns.alivocab, specs[St.mechanism],  specs[St.sameAsCount])
 
     '''
         PUTTING IT ALL TOGETHER
@@ -487,38 +525,45 @@ def spa_linkset_identity_query(specs):
     return queries
 
 
-def specs_2_linkset(specs, database_name, host, display=False, activated=False):
+def specs_2_linkset_id(specs, display=False, activated=False):
 
-    # if activated is False:
-    #     logger.warning("THE FUNCTION IS NOT ACTIVATED."
-    #                    "\n======================================================"
-    #                    "========================================================")
+    print "\nEXECUTING LINKSET SPECS" \
+          "\n======================================================" \
+          "========================================================"
 
-    # if activated is True:
-    print "\nEXECUTING LINKSET SPECS"
+    # ACCESS THE TASK SPECIFIC PREDICATE COUNT
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
 
-    update_specification(specs[St.source])
-    update_specification(specs[St.target])
-    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism], database_name, host)
-    specs[St.linkset_insert_queries] = spa_linkset_ess_query(specs)
-    return spa_linksets(specs, database_name, host, display, activated)
+    # UPDATE THE QUERY THAT IS GOING TO BE EXECUTED
+    if specs[St.sameAsCount]:
 
+        # UPDATE THE SPECS OF SOURCE AND TARGETS
+        update_specification(specs[St.source])
+        update_specification(specs[St.target])
 
-def specs_2_linkset_id(specs, database_name, host, display=False, activated=False):
+        # GENERATE THE NAME OF THE LINKSET
+        # GENERATE THE NAME OF THE LINKSET
+        Ls.set_linkset_name(specs)
 
-    # if activated is False:
-    #     logger.warning("THE FUNCTION IS NOT ACTIVATED."
-    #                    "\n======================================================"
-    #                    "========================================================")
+        # SET THE INSERT QUERY
+        specs[St.linkset_insert_queries] = spa_linkset_identity_query(specs)
 
-    # if activated is True:
-    print "\nEXECUTING LINKSET SPECS"
+        # GENERATE THE LINKSET
+        inserted_linkset = spa_linksets(specs, display, activated)
 
-    update_specification(specs[St.source])
-    update_specification(specs[St.target])
-    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism], database_name, host)
-    specs[St.linkset_insert_queries] = spa_linkset_identity_query(specs)
-    return spa_linksets(specs, database_name, host, display, activated)
+        # REGISTER THE ALIGNMENT
+        if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
+            Urq.register_alignment_mapping(specs, created=False)
+        else:
+            Urq.register_alignment_mapping(specs, created=True)
+
+        # SPA_LINKSET returns
+        # {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+        return inserted_linkset
+
+    else:
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
 
 
 ########################################################################################
@@ -526,7 +571,7 @@ def specs_2_linkset_id(specs, database_name, host, display=False, activated=Fals
 ########################################################################################
 
 
-def pred_match(dataset_list, database_name, host):
+def pred_match(dataset_list):
 
     def helper1(index, predicate, obj):
         sparql_query = "?{} <{}> ?{} .".format(index, predicate, obj)
@@ -545,13 +590,13 @@ def pred_match(dataset_list, database_name, host):
     if type(dataset_list) is list:
         # For each dataset, gather its predicates
         for dataset in dataset_list:
-            predicates = Qry.get_properties(dataset, database_name, host)
+            predicates = Qry.get_properties(dataset)
             # Load it into the dictionary
             if predicates is not None:
                 # going through the predicates
                 for i in range(1, len(predicates)):
                     if predicates[i][0] != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
-                        local_name = Ls.get_URI_local_name(predicates[i][0])
+                        local_name = Ut.get_uri_local_name(predicates[i][0])
 
                         # Insert a new key
                         if local_name not in dataset_dict:
@@ -577,7 +622,7 @@ def pred_match(dataset_list, database_name, host):
             for key, value in data.items():
                 dataset = value[0]
                 prd = value[1]
-                dataset_name = Ls.get_URI_local_name(dataset)
+                dataset_name = Ut.get_uri_local_name(dataset)
 
                 if dataset not in group:
                     line = helper1(dataset_name, prd, pred)
@@ -601,16 +646,7 @@ def pred_match(dataset_list, database_name, host):
     #             query += result[0]
 
     query = "{}\n{{{}\n}}".format(query, sub_query)
-    response = Qry.sparql_xml_to_matrix(query, database_name, host)
+    response = Qry.sparql_xml_to_matrix(query)
     print query
     if response is None:
         print "No match"
-
-# "http://risis.eu/dataset/orgref"
-# "http://risis.eu/dataset/grid"
-# dt_base = "risis"
-# hst = "localhost:5820"
-# print pred_match(["http://risis.eu/dataset/orgref", "http://risis.eu/dataset/grid",
-#                   "http://risis.eu/dataset/eter", "http://risis.eu/dataset/leidenRanking",
-#                   "http://risis.eu/dataset/gridStats"],
-#                  dt_base, hst)

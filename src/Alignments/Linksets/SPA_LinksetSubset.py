@@ -1,9 +1,13 @@
-import src.Alignments.Settings as St
+import logging
+
+import Linkset as Ls
+import src.Alignments.ErrorCodes as Ec
+import src.Alignments.GenericMetadata as Gn
 import src.Alignments.NameSpace as Ns
 import src.Alignments.Query as Qry
-import src.Alignments.GenericMetadata as Gn
-from Linkset import write_to_file, update_specification
-import logging
+import src.Alignments.Settings as St
+import src.Alignments.UserActivities.UserRQ as Urq
+from src.Alignments.Utility import write_to_file, update_specification
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -11,63 +15,63 @@ handler = logging.StreamHandler()
 logger.addHandler(handler)
 
 
-def spa_linkset_subset(specs, database_name, host, activated=False):
+def spa_linkset_subset(specs, activated=False):
 
     if activated is True:
 
-        specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism], database_name, host)
-        # print data[_sameAsCount]
+        check = Ls.run_checks(specs)
+        if check[St.result] != "GOOD TO GO":
+            return check
 
-        # Check whether this linkset was already generated. If yes, delete it or change the context code
-        ask_query = "\nPREFIX linkset: <http://risis.eu/linkset/> \nASK {{ <{}> ?p ?o . }}".format(specs[St.linkset])
-        ask = Qry.boolean_endpoint_response(ask_query, database_name, host)
-        ask = True if ask == "true" else False
-        if ask is True:
-            # logger.warning("\n{} ALREADY EXISTS. \nTO PROCEED ANYWAY, PLEASE DELETE "
-            #                "THE LINKSET FIRST OR CHANGE THE CONTEXT CODE\n".format(data[St.linkset]))
-            print "{} ALREADY EXISTS. \nTO PROCEED ANYWAY, PLEASE DELETE " \
-                  "THE LINKSET FIRST OR CHANGE THE CONTEXT CODE\n".format(specs[St.linkset])
-            return specs[St.linkset]
+        # THE LINKSET DOES NOT EXIT, LETS CREATE IT NOW
+        print Ls.linkset_info(specs, specs[St.sameAsCount])
 
         ##########################################################
         """ 1. GENERATE SUBSET LINKSET INSERT QUERY            """
         ##########################################################
         insert_query = spa_subset_insert(specs)
+        # print insert_query
 
         #############################################################
         """ 2. EXECUTING INSERT SUBSET LINKSET QUERY AT ENDPOINT  """
         #############################################################
-        Qry.endpoint(insert_query, database_name, host)
+        Qry.endpoint(insert_query)
 
         #############################################################
         """ 3. LINKSET SIZE (NUMBER OF TRIPLES)                   """
         #############################################################
         # LINKSET SIZE (NUMBER OF TRIPLES)
-        specs[St.triples] = Qry.get_namedgraph_size(specs[St.linkset], database_name, host)
+        specs[St.triples] = Qry.get_namedgraph_size(specs[St.linkset])
         print "\t>>> {} TRIPLES INSERTED".format(specs[St.triples])
 
+        # NO MATCH FOUND
         if specs[St.triples] == "0":
+
             # logger.warning("WE DID NOT INSERT A METADATA AS NO TRIPLE WAS INSERTED.")
             print "WE DID NOT INSERT A METADATA AS NO TRIPLE WAS INSERTED."
             specs[St.insert_query] = insert_query
             # metadata = spa_subset_metadata(source, target, data, size)
 
             explain_q = "ask {{ GRAPH <{}> {{ ?s <{}> ?o }} }}".format(specs[St.linkset], specs[St.source][St.link_old])
-            response = Qry.boolean_endpoint_response(explain_q, database_name, host)
+            response = Qry.boolean_endpoint_response(explain_q)
             explain = True if response == "true" else False
             # print explain
             if explain is False:
                 # logger.warning("{} DOES NOT EXIST IS {}.".format(data[St.link_old], source[St.graph]))
                 print "{} DOES NOT EXIST IS {}.".format(specs[St.source][St.link_old], specs[St.source][St.graph])
-            return
 
+                message = "{} DOES NOT EXIST IS {}.".format(specs[St.source][St.link_old], specs[St.source][St.graph])
+
+                return {St.message: message, St.error_code: 1, St.result: None}
+
+        # SOME MATCHES WHERE FOUND
         construct_query = "\n{}\n{}\n{}\n".format(
             "PREFIX predicate: <{}>".format(Ns.alivocab),
             "construct { ?x ?y ?z }",
             "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.linkset]),
         )
         # print construct_query
-        construct_response = Qry.endpointconstruct(construct_query, database_name, host)
+        construct_response = Qry.endpointconstruct(construct_query)
         if construct_response is not None:
             construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.linkset]), 1)
 
@@ -82,7 +86,7 @@ def spa_linkset_subset(specs, database_name, host, activated=False):
             "where     {{ graph <{}{}> {{ ?x ?y ?z }} }}".format(Ns.singletons, specs[St.linkset_name]),
         )
         # GET THE SINGLETON METADATA USING THE CONSTRUCT QUERY
-        singleton_construct = Qry.endpointconstruct(singleton_metadata_query, database_name, host)
+        singleton_construct = Qry.endpointconstruct(singleton_metadata_query)
         if singleton_construct is not None:
             singleton_construct = singleton_construct.replace(
                 '{', "singMetadata:{}\n{{".format(specs[St.linkset_name]), 1)
@@ -98,15 +102,18 @@ def spa_linkset_subset(specs, database_name, host, activated=False):
         """ 5. EXECUTING INSERT LINKSET METADATA QUERY AT ENDPOINT  """
         ###############################################################
         # EXECUTING METADATA QUERY AT ENDPOINT
-        Qry.endpoint(metadata, database_name, host)
+        Qry.endpoint(metadata)
 
         print "\t>>> WRITING TO FILE"
         write_to_file(graph_name=specs[St.linkset_name], metadata=metadata.replace("INSERT DATA", ""),
                       correspondences=construct_response, singletons=singleton_construct)
+
         print "\tLinkset created as [SUBSET]: ", specs[St.linkset]
         print "\t*** JOB DONE! ***"
 
-        return specs[St.linkset]
+        message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
+
+        return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
 
 def spa_subset_insert(specs):
@@ -149,7 +156,7 @@ def spa_subset_insert(specs):
     return insert_query
 
 
-def specification_2_linkset_subset(specs, database_name, host, activated=False):
+def specification_2_linkset_subset(specs, activated=False):
 
     if activated is False:
         logger.warning("THE FUNCTION IS NOT ACTIVATED.")
@@ -160,36 +167,58 @@ def specification_2_linkset_subset(specs, database_name, host, activated=False):
               "\n======================================================" \
               "========================================================"
 
-        source = specs[St.source]
-        target = specs[St.target]
-        update_specification(source)
-        update_specification(target)
+        # ACCESS THE TASK SPECIFIC PREDICATE COUNT
+        specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
 
-        linkset_label = "subset_{}_{}_C{}_{}".format(
-            specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-            specs[St.context_code], specs[St.mechanism])
+        # UPDATE THE QUERY THAT IS GOING TO BE EXECUTED
+        if specs[St.sameAsCount]:
 
-        specs[St.link_name] = "same"
-        specs[St.linkset_name] = linkset_label
-        specs[St.link] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
-        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
-        specs[St.linkset] = "{}{}".format(Ns.linkset, linkset_label)
-        specs[St.assertion_method] = "{}{}".format(Ns.method, linkset_label)
-        specs[St.justification] = "{}{}".format(Ns.justification, linkset_label)
+            source = specs[St.source]
+            target = specs[St.target]
 
-        specs[St.link_comment] = "The predicate <{}> is used in replacement of the linktype <{}> used in the " \
-                                 "original <{}> dataset.".format(
-            specs[St.link], specs[St.source][St.link_old], specs[St.source][St.graph])
+            # UPDATE THE SPECS OF SOURCE AND TARGETS
+            update_specification(source)
+            update_specification(target)
 
-        specs[St.justification_comment] = "In OrgRef's a set of entities are linked to GRID. The linking method used " \
-                                          "by OrgRef is unknown. Here we assume that it is a curated work and " \
-                                          "extracted it as a linkset.",
+            # GENERATE THE NAME OF THE LINKSET
+            Ls.set_subset_name(specs)
 
-        specs[St.linkset_comment] = "The current linkset is a subset of the <{0}> dataset that links <{0}> to <{1}>. " \
-                                    "The methodology used by <{0}> to generate this builtin linkset in unknown.".format(
-            specs[St.source][St.graph], specs[St.target][St.graph])
+            # SETTING SOME GENERIC METADATA INFO
+            specs[St.link_name] = "same"
+            specs[St.linkset_name] = specs[St.linkset_name]
+            specs[St.link] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
+            specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
+            specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+            specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.linkset_name])
+            specs[St.justification] = "{}{}".format(Ns.justification, specs[St.linkset_name])
 
-        source[St.entity_ns] = str(source[St.entity_datatype]).replace(source[St.entity_name], '')
-        target[St.entity_ns] = str(target[St.entity_datatype]).replace(target[St.entity_name], '')
+            # COMMENT ON THE LINK PREDICATE
+            specs[St.link_comment] = "The predicate <{}> is used in replacement of the linktype <{}> used in the " \
+                                     "original <{}> dataset.".format(
+                specs[St.link], specs[St.source][St.link_old], specs[St.source][St.graph])
+            # COMMENT ON THE JUSTIFICATION FOR THIS LINKSET
+            specs[St.justification_comment] = "In OrgRef's a set of entities are linked to GRID. The linking method " \
+                                              "used by OrgRef is unknown. Here we assume that it is a curated work " \
+                                              "and extracted it as a linkset.",
+            # COMMENT ON THE LINKSET ITSELF
+            specs[St.linkset_comment] = "The current linkset is a subset of the <{0}> dataset that links <{0}> to " \
+                                        "<{1}>. The methodology used by <{0}> to generate this builtin linkset in " \
+                                        "unknown.".format(specs[St.source][St.graph], specs[St.target][St.graph])
 
-        return spa_linkset_subset(specs, database_name, host, activated)
+            source[St.entity_ns] = str(source[St.entity_datatype]).replace(source[St.entity_name], '')
+            target[St.entity_ns] = str(target[St.entity_datatype]).replace(target[St.entity_name], '')
+
+            # GENERATE THE LINKSET
+            inserted_linkset = spa_linkset_subset(specs, activated)
+
+            # REGISTER THE ALIGNMENT
+            if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
+                Urq.register_alignment_mapping(specs, created=False)
+            else:
+                Urq.register_alignment_mapping(specs, created=True)
+
+            return inserted_linkset
+
+        else:
+            print Ec.ERROR_CODE_1
+            return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}

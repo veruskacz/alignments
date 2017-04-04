@@ -1,4 +1,4 @@
-from app import app
+from src.app import app
 import webbrowser
 
 if __name__ == "__main__":

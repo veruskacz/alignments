@@ -1,3 +1,4 @@
+
 rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 rdfs = "http://www.w3.org/2000/01/rdf-schema#"
 xsd = 'http://www.w3.org/2001/XMLSchema#'
@@ -11,8 +12,10 @@ orgref = "http://risis.eu/orgref/resource/"
 grid = "http://www.grid.ac/institutes/"
 
 lens = 'http://risis.eu/lens/'
+riclass = 'http://risis.eu/class/'
 schema = 'http://risis.eu/ontology/'
 dataset = "http://risis.eu/dataset/"
+idea = "http://risis.eu/activity/"
 linkset = "http://risis.eu/linkset/"
 method = "http://risis.eu/method/"
 alivocab = "http://risis.eu/alignment/predicate/"
@@ -27,3 +30,7 @@ lensOpi = "http://risis.eu/lens/operator/intersection"
 lensOpt = "http://risis.eu/lens/operator/transitive"
 lensOpd = "http://risis.eu/lens/operator/difference"
 rsrId = "{}resourceIdentifier".format(alivocab)
+
+reserchQ = "http://risis.eu/dataset/researchQ"
+
+view = "http://risis.eu/view/"

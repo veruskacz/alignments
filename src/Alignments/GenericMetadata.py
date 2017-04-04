@@ -3,16 +3,15 @@ import Settings as St
 import Query as Qry
 
 
-def linkset_metadata(specs, database, host, display=False):
+def linkset_metadata(specs, display=False):
     source = specs[St.source]
     target = specs[St.target]
-    specs['name'] = "{}_{}_C{}_{}". \
-        format(source[St.graph_name], target[St.graph_name], specs[St.context_code], specs['mechanism'])
-    specs[St.linkset] = "{}{}".format(Ns.linkset, specs['name'])
-    specs[St.singleton] = "{}{}".format(Ns.singletons, specs['name'])
+
+    # specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+    specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.linkset_name])
     specs[St.link] = "{}{}{}".format(Ns.alivocab, "exactStrSim", specs[St.sameAsCount])
-    specs[St.assertion_method] = "{}{}".format(Ns.method, specs['name'])
-    specs[St.justification] = "{}{}".format(Ns.justification, specs['name'])
+    specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.linkset_name])
+    specs[St.justification] = "{}{}".format(Ns.justification, specs[St.linkset_name])
     specs[St.link_comment] = "The predicate <{}> used in this linkset is a property that reflects an entity " \
                              "linking approach based on the <{}{}> mechanism.". \
         format(specs[St.link], Ns.mechanism, specs[St.mechanism])
@@ -42,11 +41,11 @@ def linkset_metadata(specs, database, host, display=False):
                                     " using the mechanism: {}". \
             format(source[St.graph], target[St.graph], specs[St.mechanism])
 
-    specs[St.triples] = Qry.get_namedgraph_size(specs[St.linkset], database, host, isdistinct=False)
+    specs[St.triples] = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
     print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
 
     query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}". \
@@ -61,6 +60,7 @@ def linkset_metadata(specs, database, host, display=False):
                "INSERT DATA",
                "{",
                "    <{}>".format(specs[St.linkset]),
+               "        rdfs:label                  \"{}\" ; ".format(specs[St.linkset_name]),
                "        a                           void:Linkset ;",
                "        void:triples                {} ;".format(specs[St.triples]),
                "        alivocab:sameAsCount        {} ;".format(specs[St.sameAsCount]),
@@ -102,7 +102,7 @@ def spa_subset_metadata(specs):
     target = specs[St.target]
     metadata = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}" \
-               "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+               "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}\n{}\n{}". \
         format("\t###### METADATA",
@@ -116,6 +116,7 @@ def spa_subset_metadata(specs):
                "\t     ### METADATA ABOUT THE SUBSET LINKSET",
                "\t     <{}>".format(specs[St.linkset]),
                "\t       a                         void:Linkset ;",
+               "\t       rdfs:label                \"{}\" ; ".format(specs[St.linkset_name]),
                "\t       alivocab:alignsMechanism  <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),
                "\t       alivocab:sameAsCount      {} ;".format(specs[St.sameAsCount]),
                "\t       void:subset               <{}> ;".format(source[St.graph]),
@@ -181,6 +182,7 @@ def union_meta(specs):
         ### RESOURCE
         <{0}>
             a                                   bdb:Lens ;
+            rdfs:label                          "{11}" ;
             alivocab:operator                   lensOp:union ;{6}
             void:triples                        {7} ;
             alivocab:expectedCorrespondences    {8} ;
@@ -198,7 +200,7 @@ def union_meta(specs):
     return metadata
 
 
-def diff_meta(specs, database, host):
+def diff_meta(specs):
     """
     :param specs: is of type dictionary.
     For this, it needs the following keys:
@@ -213,7 +215,7 @@ def diff_meta(specs, database, host):
     :return:
     """
 
-    specs[St.triples] = Qry.get_namedgraph_size(specs[St.lens], database, host, isdistinct=False)
+    specs[St.triples] = Qry.get_namedgraph_size(specs[St.lens], isdistinct=False)
 
     metadata = """
     ##################################################################
@@ -231,6 +233,7 @@ def diff_meta(specs, database, host):
         ### RESOURCE
         <{0}>
             a                                   bdb:Lens ;
+            rdfs:label                          "{10}" ;
             alivocab:operator                   lensOp:difference ;
             void:triples                        {6} ;
             void:subjectsTarget                 <{7}> ;
@@ -248,10 +251,10 @@ def diff_meta(specs, database, host):
     return metadata
 
 
-def linkset_refined_metadata(specs, database, host, display=False):
+def linkset_refined_metadata(specs, display=False):
+
     source = specs[St.source]
     target = specs[St.target]
-
 
     specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.refined_name])
     specs[St.link] = "{}{}{}".format(Ns.alivocab, "exactStrSim", specs[St.sameAsCount])
@@ -286,15 +289,16 @@ def linkset_refined_metadata(specs, database, host, display=False):
                                     " using the mechanism: {}". \
             format(source[St.graph], target[St.graph], specs[St.mechanism])
 
-    specs[St.triples] = Qry.get_namedgraph_size(specs[St.refined], database, host, isdistinct=False)
+    specs[St.triples] = Qry.get_namedgraph_size(specs[St.refined], isdistinct=False)
+    triples = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
+    print "\t>>> {} CORRESPONDENCES IN THE SOURCE".format(triples)
     print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
+    print "\t>>> {} CORRESPONDENCES LEFT".format(str(int(triples) - int(specs[St.triples])))
 
     derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
 
-
-
     query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}". \
@@ -310,6 +314,7 @@ def linkset_refined_metadata(specs, database, host, display=False):
                "{",
                "    <{}>".format(specs[St.refined]),
                "        a                           void:Linkset ;\n{}".format(derived_from),
+               "        rdfs:label                  \"{}\" ; ".format(specs[St.refined_name]),
                "        void:triples                {} ;".format(specs[St.triples]),
                "        alivocab:sameAsCount        {} ;".format(specs[St.sameAsCount]),
                "        alivocab:alignsMechanism    <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),

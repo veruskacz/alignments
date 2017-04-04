@@ -1,4 +1,4 @@
-
+import src.Alignments.NameSpace as Ns
 
 PREFIX ="""
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
@@ -128,14 +128,17 @@ def check_RQ_existance (question):
 
 def get_source_per_rq(rq_uri):
     query = PREFIX + """
-        SELECT DISTINCT ?uri ?mode
-    	{{
-          	<{}> a <http://risis.eu/class/ResearchQuestion> ;
-          	    void:target  ?target .
-          	?target  alivocab:selectedSource  ?uri
+    ### GET SOURCE PER RESEARCH QUESTION
+    SELECT DISTINCT ?uri ?mode
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>
+                a                    <http://risis.eu/class/ResearchQuestion> ;
+                alivocab:selected    ?uri .
             BIND("no-mode" as ?mode)
-
-        }}""".format(rq_uri)
+        }}
+    }}""".format(rq_uri)
     if DETAIL:
         print query
     return query
@@ -144,16 +147,18 @@ def get_source_per_rq(rq_uri):
 def get_rqs ():
     query = """
     SELECT DISTINCT ?uri ?uri_label
-	{
-      	?uri a <http://risis.eu/class/ResearchQuestion> ;
-      	    rdfs:label ?uri_label
-
-    }"""
+	{{
+	    GRAPH ?uri
+	    {{
+      	    ?uri a <http://risis.eu/class/ResearchQuestion> ;
+      	        rdfs:label ?uri_label .
+      	}}
+    }}"""
     if DETAIL:
         print query
     return query
 
-
+# TODO: remove
 def find_rq (question):
     query = """
     SELECT ?rq
@@ -166,24 +171,36 @@ def find_rq (question):
     return query
 
 
-def get_types_per_graph():
-    query = """
+def get_types_per_graph(rq_uri, mode):
+    # print rq_uri, mode
+    filter = """
+        GRAPH <{0}>
+          {{  <{0}> alivocab:selected ?Dataset
+          }}
+        """.format(rq_uri)
+    if (mode == 'toAdd'):
+        filter = 'FILTER NOT EXISTS {' + filter + '}'
+
+    # print filter
+
+    query = PREFIX + """
     select distinct ?Dataset ?EntityType (count(distinct ?x) as ?EntityCount)
-    {
-         select ?Dataset ?x ?EntityType
-         {
-            Graph ?Dataset
-            {
-               ?x a ?EntityType .
-               {select ?x { ?x a ?EntityType }}
-            }
-            FILTER ((str(?EntityType) != "http://www.w3.org/2000/01/rdf-schema#Class") )
-            FILTER ((str(?EntityType) != "http://www.w3.org/2002/07/owl#Class"))
-            FILTER ((str(?EntityType) != "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"))
-            FILTER ((str(?EntityType) != "http://risis.eu/risis/ontology/class/Neutral"))
-         }
-    } GROUP by ?Dataset ?EntityType ORDER BY ?Dataset
-    """
+    {{
+        {0}
+
+        Graph ?Dataset
+        {{
+           ?x a ?EntityType .
+
+           FILTER NOT EXISTS {{ ?Dataset a <http://risis.eu/class/ResearchQuestion> }}
+        }}
+        FILTER ((str(?EntityType) != "http://www.w3.org/2000/01/rdf-schema#Class") )
+        FILTER ((str(?EntityType) != "http://www.w3.org/2002/07/owl#Class"))
+        FILTER ((str(?EntityType) != "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"))
+        FILTER ((str(?EntityType) != "http://risis.eu/risis/ontology/class/Neutral"))
+
+    }} GROUP by ?Dataset ?EntityType ORDER BY ?Dataset
+    """.format(filter)
 
     if DETAIL:
         print query
@@ -218,13 +235,18 @@ def get_graph_type(graph):
 
 def get_entity_type_rq(rq_uri, graph_uri):
     query = PREFIX + """
-        SELECT DISTINCT ?uri
-    	{{
-          	<{}> a <http://risis.eu/class/ResearchQuestion> ;
-          	    void:target  ?target .
-          	?target  alivocab:selectedSource  <{}> ;
-          	    alivocab:selectedDatatype  ?uri
-        }}""".format(rq_uri, graph_uri)
+    ### GET ENTITYTYPE PER DATASET IN THE SCOPE OF THE RESEARCH QUESTION
+    SELECT DISTINCT ?uri
+    {{
+    	GRAPH <{0}>
+	    {{
+          	<{0}> a <http://risis.eu/class/ResearchQuestion> ;
+          	     alivocab:selected  <{1}> .
+
+          	<{1}>
+          	    alivocab:hasDatatype  ?uri .
+        }}
+    }}""".format(rq_uri, graph_uri)
     if DETAIL:
         print query
     return query
@@ -376,12 +398,15 @@ def get_lens_union_targets(lens):
 
 def get_graphs_per_rq_type(rq_uri, type=None):
     if type == "dataset":
-        type_filter = "FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset} "
-        type_filter += " UNION {?uri   rdf:type	bdb:Lens} "
-        type_filter += " UNION {?uri   rdf:type	void:View} } ."
+        type_filter = """
+        FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
+        UNION {?uri   rdf:type	bdb:Lens}
+        UNION {?uri   rdf:type	void:View}
+        } ."""
     elif type == "linkset&lens":
-        type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
-        type_filter += " { ?uri   rdf:type	void:Lens } ."
+        type_filter = """
+        { ?uri   rdf:type	void:Linkset } UNION
+        { ?uri   rdf:type	void:Lens } . """
     elif type == "linkset":
         type_filter = "?uri   rdf:type	void:Linkset ."
     elif type == "lens":
@@ -396,22 +421,34 @@ def get_graphs_per_rq_type(rq_uri, type=None):
     SELECT DISTINCT ?uri ?mode
     WHERE
     {{
-      <{0}> a <http://risis.eu/class/ResearchQuestion> .
-      {{
-        <{0}>  void:target  [alivocab:selectedSource  ?uri].
-        BIND("no-mode" as ?mode)
-      }}
-      UNION
-      {{
-        <{0}>  alivocab:created  ?uri .
-        BIND("success" as ?mode)
-      }}
-      UNION
-      {{
-        <{0}>  alivocab:used  ?uri.
-        BIND("info" as ?mode)
-      }}
-      {1}
+        GRAPH <{0}>
+        {{
+            ### SELECTING THE DATASETS
+            <{0}> a <http://risis.eu/class/ResearchQuestion> .
+            {{
+                <{0}>  alivocab:selected    ?uri .
+                BIND("no-mode" as ?mode)
+            }}
+
+            UNION
+
+            ### SELECTING CREATED LENS OR LINKSETS
+            {{
+                <{0}>  alivocab:created*/alivocab:created  ?uri .
+                BIND("success" as ?mode)
+            }}
+
+            UNION
+
+            ### SELECTING USED LENS OR LINKSETS
+            {{
+                <{0}>  alivocab:created*/prov:used  ?uri.
+                BIND("info" as ?mode)
+            }}
+        }}
+
+        ### FILTER THE TYPE OF GRAPH
+        {1}
     }}
     """.format(rq_uri, type_filter)
     if DETAIL:
@@ -441,13 +478,19 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
         type_filter = ""
 
     type_condition = """
-    # WHICH ARE NOT A LINKESET WHOSE TARGET DATASETS (SOURCE OR OBJECT)
+    # WHICH ARE NOT A LINKSET WHOSE TARGET DATASETS (SOURCE OR OBJECT)
     # OR ARE NOT A LENS THAT TARGETS A LINKSET (THROUGH ZERO OR MORE LENSES) WHOSE TARGET DATASETS (SOURCE OR OBJECT)
     FILTER NOT EXISTS
     {{  ?uri  void:target*/(void:subjectsTarget|void:objectsTarget) ?dataset
 
-       # ARE NOT WITHIN THE SELECTED DATASETS FOR A CERTAIN RESEARCH QUESTION
-       FILTER NOT EXISTS {{ <{0}>  void:target/alivocab:selectedSource ?dataset }}
+        # ARE NOT WITHIN THE SELECTED DATASETS FOR A CERTAIN RESEARCH QUESTION
+        FILTER NOT EXISTS
+        {{
+            GRAPH <{0}>
+            {{
+                <{0}>  alivocab:selected ?dataset  .
+            }}
+        }}
    	}} """.format(rq_uri)
 
     query = PREFIX + """
@@ -456,22 +499,26 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     WHERE
     {{
 
-      # GRAPH-TYPE FILTER
-      {0}
+        # GRAPH-TYPE FILTER
+        {0}
 
-      # GRAPH-TYPE CONDITION
-      {1}
+        # GRAPH-TYPE CONDITION
+        {1}
 
-      # AND WHICH ARE NOT ASSOCIATED TO THE RESEARCH QUESTION
-      FILTER NOT EXISTS {{
+        # AND WHICH ARE NOT ASSOCIATED TO THE RESEARCH QUESTION
+        FILTER NOT EXISTS
         {{
-          <{2}>  alivocab:created  ?uri .
+            GRAPH <{2}>
+            {{
+                {{
+                  <{2}>  alivocab:created*/alivocab:created   ?uri .
+                }}
+                UNION
+                {{
+                  <{2}>  alivocab:created*/prov:used  ?uri.
+                }}
+            }}
         }}
-        UNION
-        {{
-          <{2}>  alivocab:used  ?uri.
-        }}
-      }}
 
       BIND("no-mode" as ?mode)
     }}
@@ -682,7 +729,7 @@ def get_linkset_corresp_details(linkset, limit=1):
     query = PREFIX + """
     ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
 
-    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples
+    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
         WHERE
         {{
 
@@ -714,6 +761,7 @@ def get_linkset_corresp_details(linkset, limit=1):
                 }}
             }}
             BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredValue)
+            BIND ("" AS ?operator)
         }}
     LIMIT {1}
     """.format(linkset, limit)
@@ -721,47 +769,42 @@ def get_linkset_corresp_details(linkset, limit=1):
         print query
     return query
 
-def get_lens_corresp_details(linkset, limit=1):
 
-    query = PREFIX
-    # + """
-    # ### LENS DETAILS AND VALUES OF ALIGNED PREDICATES
-    #
-    # SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples
-    #     WHERE
-    #     {{
-    #
-    # 	  <{0}>
-    #       			 alivocab:alignsMechanism	 ?mechanism ;
-    #  				 void:subjectsTarget	 	?subTarget ;
-    # 				 bdb:subjectsDatatype	 	?s_datatype ;
-    #  				 alivocab:alignsSubjects	 ?s_property;
-    #  				 void:objectsTarget	 		?objTarget ;
-    # 				 bdb:objectsDatatype	 	?o_datatype ;
-    #  				 alivocab:alignsObjects	 	?o_property ;
-    #                  void:triples                ?triples .
-    #
-    #
-    #         GRAPH  <{0}>
-    #         {{
-    #             ?sub_uri    ?aligns        ?obj_uri
-    #         }}.
-    #
-    #         GRAPH ?subTarget
-    #         {{
-    #             ?sub_uri 	?s_property        ?s_PredValue
-    #         }}
-    #         OPTIONAL
-    #         {{
-    #             graph ?objTarget
-    #             {{
-    #                 ?obj_uri  ?o_property   ?o_PredVal
-    #             }}
-    #         }}
-    #         BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredValue)
-    #     }}
-    # LIMIT {1}
-    # """.format(linkset, limit)
-    # if DETAIL:
-    #     print query
+# TODO: ADD EXAMPLE VALUES
+# TODO: MAKE GENERIC FOR BOH LENS AND LINKSET
+def get_lens_corresp_details(lens, limit=1):
+
+    query = PREFIX + """
+    ### LENS DETAILS AND VALUES OF ALIGNED PREDICATES
+
+    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
+        WHERE
+        {{
+
+    	  <{0}>
+          			 void:target* ?x .
+          ?x
+
+                                 void:subjectsTarget            ?subTarget ;
+                                 bdb:subjectsDatatype           ?s_datatype ;
+                                 alivocab:alignsSubjects        ?s_property;
+                                 void:objectsTarget             ?objTarget ;
+                                 bdb:objectsDatatype            ?o_datatype ;
+                                 alivocab:alignsObjects         ?o_property .
+
+    	  <{0}>
+                     			 void:triples                   ?triples .
+
+
+            OPTIONAL {{  <{0}>
+                                 alivocab:alignsMechanism        ?mec ;}}
+            OPTIONAL {{  <{0}>
+                                 alivocab:operator   ?op  ;}}
+
+            BIND (IF(bound(?mec), ?mec , "") AS ?mechanism)
+            BIND (IF(bound(?op), ?op , "") AS ?operator)        }}
+    LIMIT {1}
+    """.format(lens, limit)
+    if DETAIL:
+        print query
     return query

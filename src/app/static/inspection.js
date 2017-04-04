@@ -80,24 +80,24 @@ function modeInvestigation(val)
                             $('#details_list_col').html(data);
 
                             // SOURCE CLICK
-                            $("#srcDataset").on('click', function()
+                            $("#srcDatasetLI").on('click', function()
                             {
                               var dataset = $(this).attr('dataset');
                               //$('#linktarget5').html('Hello');
 
                               $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
                               {
-                                $('#srcDetails').html(data);
+                                $('#srcDetails1').html(data);
                               });
                             });
 
                              // TARGET CLICK
-                            $("#trgDataset").on('click', function()
+                            $("#trgDatasetLI").on('click', function()
                             {
                               var dataset = $(this).attr('dataset');
                               $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
                               {
-                                $('#trgDetails').html(data);
+                                $('#trgDetails1').html(data);
                               });
                             });
 
@@ -201,11 +201,11 @@ function modeInvestigation(val)
 }
 
 
-function showLinksetDetails(linkset, detailsDict)
+function showDetails(graph_uri, detailsDict)
 {
   // inspect_linkset_linkset_details_col
-      var graph_uri = linkset;
-      var graph_label = linkset;
+      var graph_uri = graph_uri;
+      var graph_label = graph_uri;
       var subjectTarget = detailsDict.subTarget_stripped.value;
       var objectTarget = detailsDict.objTarget_stripped.value;
       var subjectTarget_uri = detailsDict.subTarget.value;
@@ -213,12 +213,19 @@ function showLinksetDetails(linkset, detailsDict)
       var graph_triples = detailsDict.triples.value;
       var alignsSubjects = detailsDict.s_property.value;
       var alignsObjects = detailsDict.o_property.value;
-      var alignsMechanism = detailsDict.mechanism.value;;
-      var operator = '';
+      var alignsMechanism = detailsDict.mechanism.value;
+      var operator = detailsDict.operator.value;;
 
       hideColDiv('divInvestigation');
-      $('#creation_linkset_correspondence_col').show();
-      $('#creation_linkset_correspondence_col').html('Loading...');
+
+      if (operator) // THEN IT IS A LENS
+      { div = 'creation_lens_correspondence_col'
+      }
+      else
+      { div = 'creation_linkset_correspondence_col'
+      }
+      $('#'+div).show();
+      $('#'+div).html('Loading...');
 
       // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
       $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
@@ -227,11 +234,11 @@ function showLinksetDetails(linkset, detailsDict)
                                         'alignsMechanism': alignsMechanism},function(data)
       {
           // LOAD THE CORRESPONDENCES DIV WITH THE LIST OF CORRESPONDENCES
-          $('#creation_linkset_correspondence_col').html(data);
+          $('#'+div).html(data);
 
           // CLICK ON INDIVIDUAL CORRESPONDENCE TO READ DETAILS ABOUT WHY IT
           // WAS CREATED AND VALIDATE OR REJECTS IT
-          $("#creation_linkset_correspondence_col a").on('click', function()
+          $('#'+div+" a").on('click', function()
           {
               var uri = $(this).attr('uri');
               var sub_uri = $(this).attr('sub_uri');
@@ -252,24 +259,24 @@ function showLinksetDetails(linkset, detailsDict)
                       $('#details_list_col').html(data);
 
                       // SOURCE CLICK
-                      $("#srcDataset").on('click', function()
+                      $("#srcDatasetLI").on('click', function()
                       {
                         var dataset = $(this).attr('dataset');
                         //$('#linktarget5').html('Hello');
 
                         $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
                         {
-                          $('#srcDetails').html(data);
+                          $('#srcDetails1').html(data);
                         });
                       });
 
                        // TARGET CLICK
-                      $("#trgDataset").on('click', function()
+                      $("#trgDatasetLI").on('click', function()
                       {
                         var dataset = $(this).attr('dataset');
                         $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
                         {
-                          $('#trgDetails').html(data);
+                          $('#trgDetails1').html(data);
                         });
                       });
 

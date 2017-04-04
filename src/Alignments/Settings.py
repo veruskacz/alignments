@@ -45,6 +45,8 @@ link_name = 'link_name'
 link_comment = 'link_comment'
 link_subpropertyof = 'link_subpropertyof'
 link_old = 'link_old'
+link_old_name = "link_old_name"
+link_old_ns = "link_old_ns"
 
 # URI of the aligned predicate
 aligns = 'aligns'
@@ -121,5 +123,12 @@ objectsTarget = "objectsTarget"
 refined = "refined"
 refined_name = "refined_name"
 derivedfrom = "derived from"
+
+
+error_code = "error_code"
+result = "result"
+message = "message"
+
+researchQ_URI = "researchQ_URI"
 
 

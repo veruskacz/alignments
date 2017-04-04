@@ -12,9 +12,9 @@
             >Inspect</button>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
+            create_lens_activate();
             activateTargetDiv(targetId="creation_lens_row",cl="row creation");
-            activateTargetDiv(targetId="create_lens_heading",cl="panel-heading");
-            create_lens_activate()'
+            activateTargetDiv(targetId="create_lens_heading",cl="panel-heading")'
             >Create</button>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
@@ -53,12 +53,13 @@
       <h4>Inspect Lenses <small>(select to see the details)</small></h4></div>
     <div class="panel-heading" id="import_lenses_heading_panel" style='display:none'>
      <div class="row">
-      <div class="col-md-10"><h4>Inspect Related Lenses
+      <div class="col-md-4"><h4>Import Related Lenses
           <small>(select to see the details)</small></h4></div>
+      <h5><div class="col-md-6 text-right" style="color:red" id="lens_import_message_col"></div></h5>
       <div class="col-md-2">
           <button type="button" id="btn_import_lens"
-                class="btn btn-primary btn btn-success disabled"
-                onclick=''
+                class="btn btn-primary btn btn-success"
+                onclick='importLensClick()'
                 >Import</button>
           </div>
      </div>
@@ -119,6 +120,8 @@
                         onclick = 'operatorClick(this)'>Intersection</a>
                         <a href="#" role="menuitem" tabindex="-1" label='transitive'
                         onclick = 'operatorClick(this)'>Transitive</a>
+                        <a href="#" role="menuitem" tabindex="-1" label='difference'
+                        onclick = 'operatorClick(this)'>Difference</a>
                     </li>
                 </ul>
                </span>
@@ -166,47 +169,19 @@
   </div>
  </div>
 
-
-  <!-- <div class="panel panel-default">
-  <div class="panel-heading"><h4>Graphs</h4></div>
-  <div class="panel-body">
-
-            <div class="row">
-              <div class="col-md-4"><h4>Linksets</h4>
-                <div class="row">
-                  <div class="col-md-10">Select the graphs in the list:</div>
-                </div>
-                <div class="row">
-                  <div class="col-md-10" id="creation_lens_linkset_selection_col"></div>
-                </div>
-              </div>
-              <div class="col-md-4"><h4>Lenses</h4>
-                <div class="row">
-                  <div class="col-md-10">Select the graphs in the list:</div>
-                </div>
-                <div class="row">
-                  <div class="col-md-10" id="creation_lens_lens_selection_col"></div>
-                </div>
-              </div>
-            </div>
-  </div>
-  </div>
-
-  </div> -->
-
-
-
-  <!-- <div class="col-md-2">
-    <div class="row">
-      <div class="col-md-9">
-        <br/>
-        <br/>
-        <br/>
-        <button type="button" id="createLensButton" class="btn btn-success" data-toggle="button"  >
-        Create Lens</button>
+ <div class="row creation" id="creation_lens_correspondence_row" style='display:none'>
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" id="linkset_investigation_heading_panel">
+      <h4>Investigate Lens Conrrespondences</h4></div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-20" id="creation_lens_correspondence_col" style='display:none'></div>
       </div>
     </div>
-  </div> -->
+   </div>
+  </div>
+ </div>
 
 </div>
 </div>

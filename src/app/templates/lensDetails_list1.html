@@ -1,6 +1,6 @@
 <!--<div id="linktarget5" class='well'>This is where your message will be copied to.</div>-->
 <div class="panel panel-primary">
-    <div class="panel-heading" id="detailsHeading"><h4><strong>Details</strong></h4>
+    <div class="panel-heading" id="detailsHeading1"><h4><strong>Details</strong></h4>
         <div class="list-group" style='scroll: both; overflow: auto; height: 8em;'>
             {% for dh in detailHeadings %}
             <a href="#" class="list-group-item" >
@@ -34,7 +34,7 @@
           <TR style= 'width: 50em;'>
               <TD style='width: 10em;'>
               {% if (r.col1) %}
-               <li class="list-group-item" id="srcDataset" uri='{{ sub_uri }}' dataset = '{{ r.col1.dataset }}'
+               <li class="list-group-item" id="srcDatasetLI" uri='{{ sub_uri }}' dataset = '{{ r.col1.dataset }}'
                    style='scroll: both; overflow: auto; height: 7em;'>
                  <span class="list-group-item-heading">
                    <span class="badge alert-default">{{ r.col1.dataset_stripped|upper }}</span><br/>
@@ -49,7 +49,7 @@
               </TD>
              <TD style='width: 10em;'>
               {% if (r.col2) %}
-                 <li class="list-group-item" id="trgDataset" uri='{{ obj_uri }}' dataset = '{{ r.col2.dataset }}'
+                 <li class="list-group-item" id="trgDatasetLI" uri='{{ obj_uri }}' dataset = '{{ r.col2.dataset }}'
                  style='scroll: both; overflow: auto; height: 7em;'>
                  <span class="list-group-item-heading">
                    <span class="badge alert-default">{{ r.col2.dataset_stripped|upper }}</span><br/>
@@ -64,9 +64,9 @@
              </TD>
           <TR>
         {% endfor %}
-             <TD id="srcDetails">
+             <TD id="srcDetails1">
               </TD>
-             <TD id="trgDetails">
+             <TD id="trgDetails1">
               </TD>
         </TABLE>
     </div>

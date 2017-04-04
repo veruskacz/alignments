@@ -1,3 +1,5 @@
+
+# encoding=utf-8
 from kitchen.text.converters import to_bytes
 # to_unicode
 import urllib
@@ -7,10 +9,17 @@ import collections
 import xmltodict
 import logging
 import NameSpace as Ns
+import Settings as St
+import ErrorCodes as Ec
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
+
+DATABASE = "risis"
+HOST = "localhost:5820"
+
+ERROR = "No connection could be made because the target machine actively refused it"
 
 
 def linkset_evidence(linkset, display=False):
@@ -76,7 +85,7 @@ def transitive_evidence(graph, database_name, host, activated=False):
     query = q_lens_transitive_metadata(graph)
     # print query
 
-    get_metadata = sparql_xml_to_matrix(query, database=database_name, host=host)
+    get_metadata = sparql_xml_to_matrix(query)
 
     if get_metadata is None:
         message = """
@@ -256,7 +265,7 @@ def transitive_evidence(graph, database_name, host, activated=False):
 #################################################################
 
 
-def endpoint(query, database_name, host):
+def endpoint(query):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
@@ -275,7 +284,7 @@ def endpoint(query, database_name, host):
     # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
     #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
 
-    url = b"http://{}/annex/{}/sparql/query?".format(host, database_name)
+    url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
     # print url
     params = urllib.urlencode(
         {b'query': q, b'format': b'application/sparql-results+json',
@@ -291,44 +300,55 @@ def endpoint(query, database_name, host):
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
-
     request = urllib2.Request(url, data=params, headers=headers)
 
     try:
         response = urllib2.urlopen(request)
         result = response.read()
         # print result
-        return result
+        return {St.message: "OK", St.result: result}
+
+    except urllib2.HTTPError, err:
+        print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, err.read())
+        return {St.message: err.read(), St.result: None}
 
     except Exception as err:
         if str(err).__contains__("No connection") is True:
-            logger.warning(err)
-            return "No connection"
+            # logger.warning(err)
+            # print ERROR
+            return {St.message: ERROR, St.result: None}
 
         logger.warning(err)
-        print "\nTHERE IS AN ERROR IN THIS QUERY"
-        print query
-        return None
+        message = "\nOR MAYBE THERE IS AN ERROR IN THIS QUERY"
+        print message + "\n" + query
+        return {St.message: err, St.result: None}
 
 
-def boolean_endpoint_response(query, database_name, host, display=False):
+def boolean_endpoint_response(query, display=False):
 
+    # if query.lower().__contains__('ask') is False:
+    #     print "THE QUERY IS NOT OF TYPE [ASK]"
+    #     return None
+
+    # print query
     drop_start = time.time()
-    response = endpoint(query, database_name, host)
+    response = endpoint(query)
     drop_end = time.time()
     result = None
-    if response is not None:
-        drops_doc = xmltodict.parse(response)
+    if response[St.result] is not None:
+        drops_doc = xmltodict.parse(response[St.result])
         result = drops_doc['sparql']['boolean']
         if display is True:
             print ">>> Query executed : {:<14}".format(result)
             print ">>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
             print ">>> Query details  : {}\n".format(query)
             print ""
+    else:
+        print query
     return result
 
 
-def endpointconstruct(query, database_name, host):
+def endpointconstruct(query):
 
     q = to_bytes(query)
     # print q
@@ -336,7 +356,7 @@ def endpointconstruct(query, database_name, host):
     # b"Accept": b"text/json"
     # 'output': 'application/sparql-results+json'
     # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
-    url = b"http://{}/annex/{}/sparql/query?".format(host, database_name)
+    url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
     headers = {b"Content-Type": b"application/x-www-form-urlencoded", b'Accept': b'application/trig'}
 
     """
@@ -360,17 +380,21 @@ def endpointconstruct(query, database_name, host):
         print err
 
 
-def sparql_xml_to_matrix(query, database, host):
+def sparql_xml_to_matrix(query):
 
+    # print "sparql_xml_to_matrix query:", query
+    # print "TYPE:", type(query)
     name_index = dict()
 
-    if type(query) is not str:
-        logger.warning("THE QUERY NEEDS TO NE OF TYPE STRING.")
-        return
+    if type(query) is not str and type(query) is not unicode:
+        message = "THE QUERY NEEDS TO BE OF TYPE STRING. {} WAS GIVEN".format(type(query))
+        print message
+        return {St.message: message, St.result: None}
 
     if (query is None) or (query == ""):
-        logger.info("Empty query")
-        return None
+        message = "Empty query"
+        print message
+        return {St.message: message, St.result: None}
 
     # start_time = time.time()
     matrix = None
@@ -378,20 +402,21 @@ def sparql_xml_to_matrix(query, database, host):
     # print query
 
     if query.lower().__contains__("optional") is True:
-        return None
+        message = "MATRIX DOES NOT YET DEAL WITH OPTIONAL"
+        return {St.message: message, St.result: None}
 
-    response = endpoint(query, database, host)
+    response = endpoint(query)
     logger.info("1. RESPONSE OBTAINED")
     # print response
 
     # DISPLAYING THE RESULT
 
-    if response is not None:
+    if response[St.message] == "OK":
 
         logger.info("2. RESPONSE IS NOT ''NONE''")
 
         try:
-            xml_doc = xmltodict.parse(response)
+            xml_doc = xmltodict.parse(response[St.result])
             # print "3. FROM XML TO DOC IN {}".format(str(time.time() - start_time))
 
             # VARIABLES
@@ -414,7 +439,8 @@ def sparql_xml_to_matrix(query, database, host):
                 # print results
                 # print type(results)
             else:
-                "NO RESULT FOR THE QUERY:"
+                message = "NO RESULT FOR THE QUERY:"
+                return {St.message: message, St.result: None}
                 # print query
 
             # SINGLE RESULT
@@ -545,19 +571,20 @@ def sparql_xml_to_matrix(query, database, host):
                                     # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
             # print "DONE"
             # print "out with: {}".format(matrix)
-            return matrix
+            return {St.message: "OK", St.result: matrix}
 
         except Exception as err:
-            logger.warning("\nUNACCEPTED ERROR IN THE RESPONSE.")
-            logger.warning(err)
-            return None
+            message = "\nUNACCEPTED ERROR IN THE RESPONSE."
+            print message
+            return {St.message: err, St.result: None}
 
     else:
-        logger.warning("NO RESPONSE")
-        return None
+        # logger.warning("NO RESPONSE")
+        # print response[St.message]
+        return {St.message: "NO RESPONSE", St.result: response}
 
 
-def display_result(query, database_name, host, info=None, spacing=50, limit=100, is_activated=False):
+def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
 
     limit = limit
     if info is not None:
@@ -574,7 +601,7 @@ def display_result(query, database_name, host, info=None, spacing=50, limit=100,
         logger.info(display_result)
         my_format = "{{:.<{}}}".format(spacing)
         my_format2 = "{{:<{}}}".format(spacing)
-        res_matrix = sparql_xml_to_matrix(query, database_name, host)
+        res_matrix = sparql_xml_to_matrix(query)
 
         if res_matrix is None:
             logger.warning("\nTHE MATRIX IS EMPTY\n")
@@ -631,7 +658,11 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
         my_format = "{{:.<{}}}".format(spacing)
         my_format2 = "{{:<{}}}".format(spacing)
 
-        if matrix is None:
+        if matrix[St.message] == "NO RESPONSE":
+            print Ec.ERROR_CODE_1
+            return None
+
+        if matrix[St.result] is None:
             logger.warning("\nTHE MATRIX IS EMPTY\n")
             return None
 
@@ -639,31 +670,31 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
         ####################################################################################
         TABLE OF {} Row(S) AND {} Columns LIMIT={}
         ####################################################################################
-         """.format(len(matrix) - 1, len(matrix[0]), limit)
+         """.format(len(matrix[St.result]) - 1, len(matrix[St.result][0]), limit)
 
         print message
 
         count = 0
-        for r in range(len(matrix)):
+        for r in range(len(matrix[St.result])):
 
             count += 1
 
             row = ""
 
             if r == 0:
-                for c in range(len(matrix[0])):
-                    formatted = my_format2.format(to_bytes(matrix[r][c]))
+                for c in range(len(matrix[St.result][0])):
+                    formatted = my_format2.format(to_bytes(matrix[St.result][r][c]))
                     row = row + formatted + " "
 
             if r == 1:
-                for c in range(len(matrix[0])):
+                for c in range(len(matrix[St.result][0])):
                     formatted = my_format2.format(line)
                     row = row + formatted + " "
                 row += "\n"
 
             if r >= 1:
-                for c in range(len(matrix[0])):
-                    formatted = my_format.format(to_bytes(matrix[r][c]))
+                for c in range(len(matrix[St.result][0])):
+                    formatted = my_format.format(to_bytes(matrix[St.result][r][c]))
                     row = row + formatted + " "
 
             print row
@@ -676,7 +707,7 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
 # GET QUERY AND EXECUTION
 #######################################################################################
 
-def get_properties(graph, database_name, host):
+def get_properties(graph):
     query = """
     SELECT DISTINCT ?pred
     {{
@@ -686,10 +717,10 @@ def get_properties(graph, database_name, host):
       }}
     }}""".format(graph)
     # print query
-    return sparql_xml_to_matrix(query, database_name, host)
+    return sparql_xml_to_matrix(query)
 
 
-def contains_duplicates(graph, database_name, host):
+def contains_duplicates(graph):
 
     query = """
     ask
@@ -700,12 +731,12 @@ def contains_duplicates(graph, database_name, host):
             ?c ?p2 ?a .
           }}
     }}""".format(graph)
-    response = boolean_endpoint_response(query, database_name, host)
+    response = boolean_endpoint_response(query)
     response = True if response == "true" else False
     return response
 
 
-def remove_duplicates(graph, database_name, host):
+def remove_duplicates(graph):
 
     query = """
 
@@ -756,21 +787,21 @@ def remove_duplicates(graph, database_name, host):
           FILTER (str(?s) > str(?o) )
     }}""".format(graph)
     # print query
-    response = boolean_endpoint_response(query, database_name, host)
+    response = boolean_endpoint_response(query)
     response = True if response == "true" else False
     return response
 
 
-def graph_exists(graph, database_name, host):
+def graph_exists(graph):
 
     query = "\nASK {{ GRAPH <{}> {{ ?s ?p ?o . }} }}".format(graph)
     # print query
-    ask = boolean_endpoint_response(query, database_name, host)
+    ask = boolean_endpoint_response(query)
     ask = True if ask == "true" else False
     return ask
 
 
-def get_type_mechanism(graph, database, host):
+def get_type_mechanism(graph):
 
     query = """
     PREFIX alivocab:    <{}>
@@ -781,50 +812,64 @@ def get_type_mechanism(graph, database, host):
          alivocab:alignsMechanism   ?mechanism ;
     }}""".format(Ns.alivocab, graph)
     # print query
-    return sparql_xml_to_matrix(query, database, host)
+    return sparql_xml_to_matrix(query)
 
 
-def get_same_as_count(curr_mechanism, database, host):
+def get_same_as_count(curr_mechanism):
+
     c_code = None
-    try:
+
+    if True:
         if str(curr_mechanism).__contains__("http://"):
             curr_mechanism = "<{}>".format(curr_mechanism)
         else:
             curr_mechanism = "mechanism:{}".format(curr_mechanism)
 
         context_code_query = """
-        PREFIX void:        <{}>
-        PREFIX alivocab:    <{}>
-        PREFIX mechanism:   <{}>
-        SELECT ?sameAsCount
-        {{
-          ?subject
-            #a                          void:Linkset ;
-             alivocab:alignsMechanism   {} ;
-             alivocab:sameAsCount       ?sameAsCount .
-        }}
-        ORDER BY DESC(?sameAsCount)
-        LIMIT 1""".format(Ns.void, Ns.alivocab, Ns.mechanism, curr_mechanism)
+    PREFIX void:        <{}>
+    PREFIX alivocab:    <{}>
+    PREFIX mechanism:   <{}>
+    SELECT ?sameAsCount
+    {{
+      ?subject
+        #a                          void:Linkset ;
+         alivocab:alignsMechanism   {} ;
+         alivocab:sameAsCount       ?sameAsCount .
+    }}
+    ORDER BY DESC(?sameAsCount)
+    LIMIT 1""".format(Ns.void, Ns.alivocab, Ns.mechanism, curr_mechanism)
         # print context_code_query
-        matrix = sparql_xml_to_matrix(context_code_query, database, host)
-        if matrix is not None:
-            code = int(list(matrix[1][0].items())[1][1]) + 1
-            c_code = code
-            # print "Next is: {}".format(c_code)
-        else:
-            connection = endpoint(context_code_query, database, host)
-            if connection == "No connection":
-                c_code = None
+
+        # print "GETTING sameAsCount"
+        matrix = sparql_xml_to_matrix(context_code_query)
+        # print "RESULT:", matrix
+
+        if matrix:
+            if matrix[St.message] != "NO RESPONSE":
+                if matrix[St.result]:
+                    c_code = int(list(matrix[St.result][1][0].items())[1][1]) + 1
+                    # c_code = code
+                    # print "Next is: {}".format(c_code)
+                else:
+                    # print "CHECKING THE CONNECTION"
+                    c_code = None if matrix[St.message] == ERROR else 1
+                    # print c_code
             else:
-                c_code = 1
-            # print c_code
-        return c_code
-    except Exception as err:
-        logger.warning(err)
+                # print Ec.ERROR_CODE_1
+                return c_code
+        else:
+            print "NULL"
+            return c_code
+
         return c_code
 
+    # except Exception as err:
+    #     print "PROBLEM ACCESSING THE SAME-AS-COUNT"
+    #     print "ERROR: ", err.message
+    #     return c_code
 
-def get_graph_type(graph, database_name, host):
+
+def get_graph_type(graph):
 
     query = """
     ### GET TYPE
@@ -837,10 +882,10 @@ def get_graph_type(graph, database_name, host):
     # print query
     # return query
 
-    return sparql_xml_to_matrix(query, database_name, host)
+    return sparql_xml_to_matrix(query)
 
 
-def get_lens_operator(graph, database_name, host):
+def get_lens_operator(graph):
     query = """
     PREFIX alivocab: <{}>
     ### GATHERING TRANSITIVE LENS METADATA
@@ -852,16 +897,16 @@ def get_lens_operator(graph, database_name, host):
     }}""".format(Ns.alivocab, graph)
     # print query
 
-    result = sparql_xml_to_matrix(query, database_name, host)
+    result = sparql_xml_to_matrix(query)
     # print result
 
-    if result is not None:
-        return result[1][0]
+    if result[St.result] is not None:
+        return result[St.result][1][0]
 
     return None
 
 
-def get_graph_targets(graph, database_name, host):
+def get_graph_targets(graph):
 
     query = """
     PREFIX void: <{}>
@@ -873,10 +918,10 @@ def get_graph_targets(graph, database_name, host):
     }}""".format(Ns.void, graph)
     # print query
     # return query
-    return sparql_xml_to_matrix(query, database_name, host)
+    return sparql_xml_to_matrix(query)
 
 
-def get_graph_source_target(graph, database_name, host):
+def get_graph_source_target(graph):
 
     query = """
     PREFIX void: <{}>
@@ -888,10 +933,10 @@ def get_graph_source_target(graph, database_name, host):
     }}""".format(Ns.void, graph)
     # print query
     # return query
-    return sparql_xml_to_matrix(query, database_name, host)
+    return sparql_xml_to_matrix(query)
 
 
-def get_linkset_datatypes(linkset, database_name, host):
+def get_linkset_datatypes(linkset):
 
     query = """
     #################################################################
@@ -916,10 +961,10 @@ def get_linkset_datatypes(linkset, database_name, host):
     #################################################################
     """.format(Ns.void, Ns.bdb, Ns.alivocab, linkset)
     # print query
-    return sparql_xml_to_matrix(query, database_name, host)
+    return sparql_xml_to_matrix(query)
 
 
-def get_lens_union_datasets(graph, database_name, host):
+def get_lens_union_datasets(graph):
 
     #
     query = """
@@ -933,19 +978,22 @@ def get_lens_union_datasets(graph, database_name, host):
     }}""".format(Ns.void, graph)
     # print query
 
-    result = sparql_xml_to_matrix(query, database_name, host)
+    response = sparql_xml_to_matrix(query)
     # print result
 
-    if result is not None:
-        datasets = [None]*(len(result)-1)
-        for i in range(1, len(result)):
-            datasets[i-1] = result[i][0]
+    if response is None:
+        return None
+
+    if response[St.result] is not None:
+        datasets = [None]*(len(response[St.result])-1)
+        for i in range(1, len(response[St.result])):
+            datasets[i-1] = response[St.result][i][0]
         return datasets
 
     return None
 
 
-def get_singleton(linkset, database, host):
+def get_singleton(linkset):
 
     singleton_graph_query = """
     PREFIX void: <{}>
@@ -958,7 +1006,7 @@ def get_singleton(linkset, database, host):
     """.format(Ns.void, Ns.alivocab, linkset)
     # print singleton_graph_query
 
-    singletons = sparql_xml_to_matrix(singleton_graph_query, database, host)
+    singletons = sparql_xml_to_matrix(singleton_graph_query)
 
     if len(singletons) > 1:
         return singletons[1][0]
@@ -966,10 +1014,10 @@ def get_singleton(linkset, database, host):
     return None
 
 
-def get_triples(linkset, database, host):
+def get_triples(linkset):
 
     query = """
-    ### GET TRIPLES
+    ### GET THE TOTAL NUMBER OF CORRESPONDENCE TRIPLES INSERTED
     PREFIX void: <{}>
     SELECT DISTINCT ?triples
     {{
@@ -979,19 +1027,19 @@ def get_triples(linkset, database, host):
     """.format(Ns.void, linkset)
     # print query
 
-    triples = sparql_xml_to_matrix(query, database, host)
-    # print triples
+    triples = sparql_xml_to_matrix(query)
+    # print "TRIPLE COUNT:", triples
 
-    if triples is None:
+    if triples[St.result] is None:
         return
 
-    if len(triples) > 1:
-        return triples[1][0].items()[1][1]
+    if len(triples[St.result]) > 1:
+        return triples[St.result][1][0].items()[1][1]
 
     return None
 
 
-def get_triples_count(graph, database, host):
+def get_triples_count(graph):
 
     query = """
     ### COUNT THE NUMBER OF TRIPLES
@@ -1005,7 +1053,7 @@ def get_triples_count(graph, database, host):
     """.format(graph)
     # print query
 
-    triples = sparql_xml_to_matrix(query, database, host)
+    triples = sparql_xml_to_matrix(query)
     # print triples
 
     if triples is None:
@@ -1017,7 +1065,7 @@ def get_triples_count(graph, database, host):
     return None
 
 
-def get_union_triples(lens, database, host):
+def get_union_triples(lens):
 
     query = """
     ### COUNT THE NUMBER OF TRIPLES IN THIS UNION
@@ -1032,19 +1080,19 @@ def get_union_triples(lens, database, host):
     """.format(lens)
     # print query
 
-    triples = sparql_xml_to_matrix(query, database, host)
+    triples = sparql_xml_to_matrix(query)
     # print triples
 
-    if triples is None:
+    if triples[St.result] is None:
         return
 
-    if len(triples) > 1:
-        return triples[1][0].items()[1][1]
+    if len(triples[St.result]) > 1:
+        return triples[St.result][1][0].items()[1][1]
 
     return None
 
 
-def get_linkset_info(database_name, host):
+def get_linkset_info():
 
     query = """
     ########################################
@@ -1065,13 +1113,13 @@ def get_linkset_info(database_name, host):
     }"""
     print query
     query_start = time.time()
-    response = endpoint(query, database_name, host)
+    response = endpoint(query)
     query_end = time.time()
     # print response
 
-    if response is not None:
+    if response[St.result] is not None:
 
-        xml_doc = xmltodict.parse(response)
+        xml_doc = xmltodict.parse(response[St.result])
         variables = xml_doc['sparql']['head']['variable']
         results = xml_doc['sparql']['results']
 
@@ -1102,7 +1150,7 @@ def get_linkset_info(database_name, host):
         format(str((query_end - query_start)))
 
 
-def get_namedgraph_size(linkset_uri, database, host, isdistinct=False):
+def get_namedgraph_size(linkset_uri, isdistinct=False):
 
     distinct = ""
 
@@ -1125,11 +1173,11 @@ def get_namedgraph_size(linkset_uri, database, host, isdistinct=False):
 
     # print check_query
 
-    result = endpoint(check_query, database, host)
+    result = endpoint(check_query)
 
     # print result
 
-    if result is not None:
+    if result[St.result] is not None:
         # """
         # EXAMPLE OF THE RESULT
         # <?xml version='1.0' encoding='UTF-8'?>
@@ -1146,13 +1194,13 @@ def get_namedgraph_size(linkset_uri, database, host, isdistinct=False):
         #     </results>
         # </sparql>
         # """
-        dropload_doc = xmltodict.parse(result)
+        dropload_doc = xmltodict.parse(result[St.result])
         return dropload_doc['sparql']['results']['result']['binding']['literal']['#text']
     else:
         return None
 
 
-def insert_size(linkset_uri, database, host, isdistinct=False):
+def insert_size(linkset_uri, isdistinct=False):
 
     query = """
     PREFIX void: <{1}>
@@ -1173,7 +1221,7 @@ def insert_size(linkset_uri, database, host, isdistinct=False):
           }}
       }}
     """.format(linkset_uri, Ns.void)
-    inserted = boolean_endpoint_response(query, database, host)
+    inserted = boolean_endpoint_response(query)
     # print query
 
     distinct = ""
@@ -1197,11 +1245,11 @@ def insert_size(linkset_uri, database, host, isdistinct=False):
 
     # print check_query
 
-    result = endpoint(check_query, database, host)
+    result = endpoint(check_query)
 
     # print result
 
-    if result is not None:
+    if result[St.result] is not None:
         # """
         # EXAMPLE OF THE RESULT
         # <?xml version='1.0' encoding='UTF-8'?>
@@ -1218,14 +1266,15 @@ def insert_size(linkset_uri, database, host, isdistinct=False):
         #     </results>
         # </sparql>
         # """
-        dropload_doc = xmltodict.parse(result)
-        return inserted, dropload_doc['sparql']['results']['result']['binding']['literal']['#text'], \
-               "correspondences inserted"
+        dropload_doc = xmltodict.parse(result[St.result])
+        return [inserted,
+                dropload_doc['sparql']['results']['result']['binding']['literal']['#text'],
+                "correspondences inserted"]
     else:
         return None
 
 
-def entity_types(database_name, host, re_filter=None):
+def entity_types(re_filter=None):
 
     regex = ""
     if re_filter is not None:
@@ -1245,7 +1294,7 @@ def entity_types(database_name, host, re_filter=None):
 
     # print query
     query_start = time.time()
-    response = endpoint(query, database_name, host)
+    response = endpoint(query)
     # print response
     query_end = time.time()
     print "\nNAMED GRAPHS - ENTITY-TYPES & INSTANCES COUNT in {} seconds\n". \
@@ -1254,9 +1303,9 @@ def entity_types(database_name, host, re_filter=None):
     # toPrint = ""
 
     # DISPLAYING THE RESULT
-    if response is not None:
+    if response[St.result] is not None:
 
-        xml_doc = xmltodict.parse(response)
+        xml_doc = xmltodict.parse(response[St.result])
         # PRINT VARIABLES
         print "\t{:50}{:70}{:30}".format(
             xml_doc['sparql']['head']['variable'][0]['@name'],
@@ -1270,7 +1319,7 @@ def entity_types(database_name, host, re_filter=None):
                 format(value['binding'][0]['uri'], value['binding'][1]['uri'], value['binding'][2]['literal']['#text'])
 
 
-def namedgraphs(database_name, host, re_filter=None, isdistinct=False, display=False):
+def namedgraphs(re_filter=None, isdistinct=False, display=False):
 
     distinct = ""
 
@@ -1304,7 +1353,7 @@ def namedgraphs(database_name, host, re_filter=None, isdistinct=False, display=F
         print query
     print header
     query_start = time.time()
-    response = endpoint(query, database_name, host)
+    response = endpoint(query)
     # print response
     query_end = time.time()
 
@@ -1331,8 +1380,7 @@ def namedgraphs(database_name, host, re_filter=None, isdistinct=False, display=F
         format(graph_count, str((query_end - query_start)))
 
 
-def countlinksettriples(src_dataset_name, trg_dataset_name, context_code, linkset_name, database_name, host,
-                        see_who_uses_it):
+def countlinksettriples(src_dataset_name, trg_dataset_name, context_code, linkset_name, see_who_uses_it):
 
     print see_who_uses_it
     check_query = "\n{}\n{}\n{}\n\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n". \
@@ -1360,7 +1408,7 @@ def countlinksettriples(src_dataset_name, trg_dataset_name, context_code, linkse
                                                                              trg_dataset_name),
         "====================================================================================\n")
 
-    construct = endpointconstruct(check_query, database_name, host)
+    construct = endpointconstruct(check_query)
     # print construct
 
     return construct
@@ -1371,7 +1419,7 @@ def countlinksettriples(src_dataset_name, trg_dataset_name, context_code, linkse
 #######################################################################################
 
 
-def drop_graph(graph, database_name, host, display=False, activated=True):
+def drop_graph(graph, display=False, activated=True):
 
     queries = """
     #################################################################
@@ -1445,16 +1493,16 @@ def drop_graph(graph, database_name, host, display=False, activated=True):
         print "{}{}{}".format(
             "======================================================="
             "=======================================================\n",
-            "DROPPING THE GRAPH <{}>... PLEASE WAIT FOR FEEDBACK.".format(graph),
+            "DROPPING THE GRAPH <{}>... \nPLEASE WAIT FOR FEEDBACK.".format(graph),
             "\n======================================================="
             "======================================================="
         )
         drop_start = time.time()
-        drops_response = endpoint(queries, database_name, host)
+        drops_response = endpoint(queries)
         drop_end = time.time()
 
-        if drops_response is not None:
-            drops_doc = xmltodict.parse(drops_response)
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
             if display is True:
@@ -1462,7 +1510,7 @@ def drop_graph(graph, database_name, host, display=False, activated=True):
         print ""
 
 
-def drop_linkset(database_name, host, display=False, activated=True):
+def drop_linkset(display=False, activated=True):
 
     queries = """
     #################################################################
@@ -1546,11 +1594,11 @@ def drop_linkset(database_name, host, display=False, activated=True):
             "======================================================="
         )
         drop_start = time.time()
-        drops_response = endpoint(queries, database_name, host)
+        drops_response = endpoint(queries)
         drop_end = time.time()
 
-        if drops_response is not None:
-            drops_doc = xmltodict.parse(drops_response)
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
             if display is True:
@@ -1558,7 +1606,7 @@ def drop_linkset(database_name, host, display=False, activated=True):
         print ""
 
 
-def drop_subset(database_name, host, display=False, activated=True):
+def drop_subset(display=False, activated=True):
 
     queries = """
     #################################################################
@@ -1649,11 +1697,11 @@ def drop_subset(database_name, host, display=False, activated=True):
             "\n======================================================="
             "=======================================================")
         drop_start = time.time()
-        drops_response = endpoint(queries, database_name, host)
+        drops_response = endpoint(queries)
         drop_end = time.time()
 
-        if drops_response is not None:
-            drops_doc = xmltodict.parse(drops_response)
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
             if display is True:
@@ -1661,7 +1709,7 @@ def drop_subset(database_name, host, display=False, activated=True):
         print ""
 
 
-def drop_lens(database_name, host, display=False, activated=False):
+def drop_lens(display=False, activated=False):
 
     queries = """
     PREFIX void:    <{}>
@@ -1736,11 +1784,11 @@ def drop_lens(database_name, host, display=False, activated=False):
             "\n======================================================="
             "=======================================================")
         drop_start = time.time()
-        drops_response = endpoint(queries, database_name, host)
+        drops_response = endpoint(queries)
         drop_end = time.time()
 
-        if drops_response is not None:
-            drops_doc = xmltodict.parse(drops_response)
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
             if display is True:
@@ -1748,7 +1796,7 @@ def drop_lens(database_name, host, display=False, activated=False):
         print ""
 
 
-def drop_all(database_name, host):
+def drop_all():
     print "{}{}{}".format(
         "\n====================================================================================\n",
         "List of graphs dropped\n",
@@ -1771,10 +1819,10 @@ def drop_all(database_name, host):
         "\n=====================================================================\n",
         "DROPPING ALL...\nPLEASE WAIT FOR FEEDBACK.\n",
         "=====================================================================")
-    print endpoint(drops, database_name, host)
+    print endpoint(drops)
 
 
-def drop_union(database_name, host, display=False, activated=False):
+def drop_union(display=False, activated=False):
 
     queries = """
     PREFIX void:        <{}>
@@ -1823,11 +1871,11 @@ def drop_union(database_name, host, display=False, activated=False):
             "\n======================================================="
             "=======================================================",)
         drop_start = time.time()
-        drops_response = endpoint(queries, database_name, host)
+        drops_response = endpoint(queries)
         drop_end = time.time()
 
-        if drops_response is not None:
-            drops_doc = xmltodict.parse(drops_response)
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
             if display is True:
@@ -1839,12 +1887,15 @@ def drop_union(database_name, host, display=False, activated=False):
 # QUERY
 #######################################################################################
 
-def get_constructed_graph(graph, database_name, host):
-    construct_query = "\n{}\n{}\n".format(
+def get_constructed_graph(graph):
+
+    construct_query = "\n{}\n{}\n{}\n".format(
+        "PREFIX alivocab: <{}>".format(Ns.alivocab),
         "construct { ?x ?y ?z }",
         "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(graph),
     )
-    return endpointconstruct(construct_query, database_name, host)
+
+    return endpointconstruct(construct_query)
 
 
 def get_singleton_graph(linkset):
@@ -1862,7 +1913,7 @@ def get_singleton_graph(linkset):
     return singleton_graph_query
 
 
-def get_intersection(graph, nbr_linkset, database_name, host):
+def get_intersection(graph, nbr_linkset):
     query = """
     SELECT ?sCorr ?oCorr
     {{
@@ -1876,82 +1927,8 @@ def get_intersection(graph, nbr_linkset, database_name, host):
     HAVING (count (?p) = {})
     ORDER BY ?sCorr
     """.format(graph, nbr_linkset)
-    matrix = sparql_xml_to_matrix(query, database_name, host)
+    matrix = sparql_xml_to_matrix(query)
     return matrix
-
-
-def q_union(lens, source, label):
-
-    query = """
-    PREFIX prov: <http://www.w3.org/ns/prov#>
-    ###### CREATING THE INTERSECTION CORRESPONDENCES
-    ###### WITH A TEMPORARY PREDICATE
-    INSERT
-    {{
-      GRAPH tmpgraph:load01
-      {{
-        ?sCorr 		tmpvocab:predicate		?oCorr  .
-      }}
-    }}
-    WHERE
-    {{
-      graph <{0}>
-      {{
-        ?sCorr		?singCorr 				?oCorr  .
-        FILTER NOT EXISTS {{ ?x ?sCorr ?z }}
-        #?singCorr	?singCorrPr 			?singCorrobj .
-      }}
-    }} ;
-
-    ###### UPDATE tmpgraph:load01 WITH UNIQUE PREDICATES
-    INSERT
-    {{
-      GRAPH tmpgraph:load02
-      {{
-        ?sCorr ?singPre ?oCorr .
-      }}
-    }}
-    WHERE
-    {{
-      GRAPH tmpgraph:load01
-      {{
-        ?sCorr ?y ?oCorr .
-
-        ### Create A SINGLETON URI"
-        BIND( replace("http://risis.eu/{2}_#", "#", STRAFTER(str(UUID()),"uuid:")) as ?pre )
-        BIND(iri(?pre) as ?singPre)
-      }}
-    }} ;
-
-    INSERT
-    {{
-        GRAPH <{1}>
-        {{
-            ?sCorr			?singPre 					?oCorr .
-            ?singPre		prov:wasDerivedFrom 	    ?singCorr .
-            ?singCorr		?singCorrPr 				?singCorrobj .
-        }}
-    }}
-    WHERE
-    {{
-        GRAPH tmpgraph:load02
-        {{
-            ?sCorr			?singPre 					?oCorr .
-        }}
-
-        graph <{0}>
-        {{
-            ?sCorr				?singCorr 				?oCorr  .
-            OPTIONAL {{ ?singCorr			?singCorrPr 			?singCorrobj .  }}
-            FILTER NOT EXISTS {{ ?x ?sCorr ?z }}
-        }}
-    }} ;
-
-    DROP SILENT GRAPH tmpgraph:load00 ;
-    DROP SILENT GRAPH tmpgraph:load01 ;
-    DROP SILENT GRAPH tmpgraph:load02
-    """.format(source, lens, label)
-    return query
 
 
 def q_lens_transitive_metadata(graph):
@@ -1993,7 +1970,7 @@ def q_linkset_metadata(graph):
     return query
 
 
-def linkset_singleton_graph(linkset, database_name, host):
+def linkset_singleton_graph(linkset):
     query = """
         ###### LINKSET SINGLETON GRAPH
         PREFIX link: <{}>
@@ -2006,7 +1983,7 @@ def linkset_singleton_graph(linkset, database_name, host):
         }}
         """.format(Ns.alivocab, Ns.void, linkset)
     # print query
-    return sparql_xml_to_matrix(query, database_name, host)
+    return sparql_xml_to_matrix(query)
 
 
 def count_entity_type(re_filter=None, display=False, isdistinct=True):
@@ -2118,7 +2095,7 @@ def properties(named_graph_uri, display=False):
     return query
 
 
-def q_copy_graph(insert_linkset, insert_singleton_graph, where_linkset, database_name, host):
+def q_copy_graph(insert_linkset, insert_singleton_graph, where_linkset):
 
     # LINKSET METADATA
     insert_linkset_query = """
@@ -2139,8 +2116,8 @@ def q_copy_graph(insert_linkset, insert_singleton_graph, where_linkset, database
     }}""".format(insert_linkset, where_linkset)
 
     # SINGLETON METADATA
-    singleton_graph = linkset_singleton_graph(where_linkset, database_name, host)
-    if (singleton_graph is None) or (len(singleton_graph) == 0):
+    singleton_graph = linkset_singleton_graph(where_linkset)
+    if (singleton_graph[St.result] is None) or (len(singleton_graph[St.result]) == 0):
         return insert_linkset_query
 
     else:
@@ -2160,13 +2137,13 @@ def q_copy_graph(insert_linkset, insert_singleton_graph, where_linkset, database
         {{
             ?subject ?predicate	?object .
         }}
-    }}""".format(insert_singleton_graph, singleton_graph[1][0])
+    }}""".format(insert_singleton_graph, singleton_graph[St.result][1][0])
 
         result = "{} ; \n{}".format(insert_linkset_query, insert_singleton_query)
         return result
 
 
-def fromdatabasea_insertindatabaseb(predicate, datagraph, linkset_graph, from_database, host):
+def fromdatabasea_insertindatabaseb(predicate, datagraph, linkset_graph):
 
     query = """
     CONSTRUCT
@@ -2184,7 +2161,7 @@ def fromdatabasea_insertindatabaseb(predicate, datagraph, linkset_graph, from_da
 
     print query
 
-    data = endpointconstruct(query, from_database, host)
+    data = endpointconstruct(query)
 
     insert = """
     INSERT DATA
@@ -2310,8 +2287,7 @@ def q_admin_level_enrich(level, graph_to_align_with, enriched_graph, d_type):
     return query
 
 
-def enrich_with_admin_level(graph_to_align_with, enriched_graph, d_type, database_name, host,
-                            level=2, display=False, activated=False):
+def enrich_with_admin_level(graph_to_align_with, enriched_graph, d_type, level=2, display=False, activated=False):
 
     if str(graph_to_align_with).__contains__('<') or (str(graph_to_align_with) is None):
         logger.warning("ORIGIN: {}".format(graph_to_align_with))
@@ -2331,10 +2307,10 @@ def enrich_with_admin_level(graph_to_align_with, enriched_graph, d_type, databas
         print query
 
     if activated is True:
-        boolean_endpoint_response(query, database_name, host)
+        boolean_endpoint_response(query)
 
 
-def countries_geodata(database_name, host, level=2, display=False, activated=False):
+def countries_geodata(level=2, display=False, activated=False):
 
     """
     :return:
@@ -2572,11 +2548,10 @@ def countries_geodata(database_name, host, level=2, display=False, activated=Fal
         print query
 
     if activated is True:
-        endpoint(query, database_name, host)
+        endpoint(query)
 
 
 # enrich_with_admin_level(graph_to_align_with="http://risis.eu/dataset/EterGADMEnriched",
 #                         enriched_graph="http://risis.eu/dataset/eter_orgCountPerAdminLevelInGrid",
 #                         d_type="http://risis.eu/eter/ontology/class/University",
 #                         database_name="risis", host="localhost:5820", level=2, display=True, activated=False)
-

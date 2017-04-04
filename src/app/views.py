@@ -12,16 +12,13 @@ logger.addHandler(handler)
 import xmltodict
 import collections
 from kitchen.text.converters import to_bytes
+
+import ast
+import re
 import urllib2
 import urllib
-import re
-# import uuid
-# import pprint
-# from SPARQLWrapper import SPARQLWrapper
-# import logging
-# local
 import Queries as Qry
-import ast
+
 
 ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
@@ -30,13 +27,20 @@ HOST = "localhost:5820"
 
 REASONING_TYPE = 'SL'
 
-CREATION_ACTIVE = False
+CREATION_ACTIVE = True
 
 if CREATION_ACTIVE:
     import src.Alignments.Linksets.SPA_Linkset as spa_linkset2
+    import src.Alignments.Linksets.SPA_LinksetSubset as spa_subset
     from src.Alignments.Lenses.Lens_Union import union
     from src.Alignments.Query import boolean_endpoint_response as boolean_response
     from src.app import app
+
+    import src.Alignments.Settings as St
+    import src.Alignments.UserActivities.UserRQ as Urq
+    import src.Alignments.Linksets.SPA_LinksetRefine as refine
+    from src.Alignments.UserActivities.View import view
+    from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
 else:
     from app import app
 
@@ -212,6 +216,7 @@ def linksetdetails():
                             mechanism = d['mechanism_stripped']['value']
                             )
 
+
 @app.route('/getlensdetails', methods=['GET'])
 def lendetails():
     """
@@ -222,31 +227,32 @@ def lendetails():
     """
 
     # RETRIEVE VARIABLES
-    # lens = request.args.get('lens', '')
-    # template = request.args.get('template', 'lensDetails_list.html')
-    # query = Qry.get_lens_corresp_details(linkset, limit=10)
-    # details = sparql(query, strip=True)
-    #
-    # d = details[0]
-    #
-    # if PRINT_RESULTS:
-    #     print "\n\nDETAILS:", details
-    #
-    # # RETURN THE RESULT
-    # if (template == 'none'):
-    #     return json.dumps(d)
-    # else:
-    #     return render_template(template,
-    #                         details = details,
-    #                         s_datatype = d['s_datatype_stripped']['value'],
-    #                         subTarget = d['subTarget_stripped']['value'],
-    #                         o_datatype = d['o_datatype_stripped']['value'],
-    #                         objTarget = d['objTarget_stripped']['value'],
-    #                         s_property = d['s_property_stripped']['value'],
-    #                         o_property= d['o_property_stripped']['value'],
-    #                         operator = d['operator_stripped']['value']
-    #                         )
+    lens = request.args.get('lens', '')
+    template = request.args.get('template', 'lensDetails_list.html')
+    query = Qry.get_lens_corresp_details(lens, limit=10)
+    details = sparql(query, strip=True)
+
+    d = details[0]
+
+    if PRINT_RESULTS:
+        print "\n\nDETAILS:", details
+
+    # RETURN THE RESULT
+    if (template == 'none'):
+        return json.dumps(d)
+    else:
+        return render_template(template,
+                            details = details,
+                            s_datatype = d['s_datatype_stripped']['value'],
+                            subTarget = d['subTarget_stripped']['value'],
+                            o_datatype = d['o_datatype_stripped']['value'],
+                            objTarget = d['objTarget_stripped']['value'],
+                            s_property = d['s_property_stripped']['value'],
+                            o_property= d['o_property_stripped']['value'],
+                            operator = d['operator_stripped']['value']
+                            )
     return ''
+
 
 ### TODO: REPLACE
 @app.route('/getLensDetail1', methods=['GET'])
@@ -485,7 +491,13 @@ def sparqlDirect():
     response = sparql_xml_to_matrix(query)
     if (response):
         header = response[0]
-        results = response[1:]
+        results_x = response[1:]
+        results = []
+        f = lambda x: x.decode('utf-8') if str(x) else x
+        for r in results_x:
+          results += [map(f, r)]
+
+    print '\n\n', results
 
     return render_template('viewsDetails_list.html',
                             header = header,
@@ -550,7 +562,7 @@ def datasetsperrq():
     (default list_dropdown.html)
     """
     # GET QUERY
-    print "TEST"
+    # print "TEST"
     rq_uri = request.args.get('rq_uri', '')
     btn_name = request.args.get('btn_name', 'dataset')
     template = request.args.get('template', 'list_dropdown.html')
@@ -738,9 +750,11 @@ def spa_linkset():
 
     rq_uri = request.args.get('rq_uri', '')
     specs = {
+        'researchQ_URI': rq_uri,
 
         'source': {
             'graph': request.args.get('src_graph', ''),
+            St.link_old: request.args.get('src_aligns', ''),
             'aligns': request.args.get('src_aligns', ''),
             'entity_datatype': request.args.get('src_entity_datatye', '')
         },
@@ -752,41 +766,36 @@ def spa_linkset():
         },
 
         'mechanism': request.args.get('mechanism', '')
-
-        # ,'context_code': request.args.get('context_code', '')
     }
 
-    # specs = {'source': {'aligns': u'http://risis.eu/grid/ontology/predicate/name',
-    #                     'graph': u'http://risis.eu/dataset/grid',
-    #                     'entity_datatype': u'http://risis.eu/grid/ontology/class/Institution'},
-    #          'target': {'aligns': u'http://risis.eu/orgref/ontology/predicate/Name',
-    #                     'graph': u'http://risis.eu/dataset/orgref',
-    #                     'entity_datatype': u'http://risis.eu/orgref/ontology/class/Organisation'},
-    #          'mechanism': u'exactStrSim',
-    #          'context_code': u'666'}
 
     # print "\n\n\nSPECS: ", specs
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
-            linkset_result = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
+            linkset_result = spa_linkset2.specs_2_linkset(specs, display=False, activated=True)
+
+        elif specs['mechanism'] == 'embededAlignment':
+            del specs['target']['aligns']
+            linkset_result = spa_subset.specification_2_linkset_subset(specs, activated=True)
+
         elif specs['mechanism'] == 'identity':
-            linkset_result = spa_linkset2.specs_2_linkset_id(specs, DATABASE, HOST, display=False, activated=True)
+            linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
+
         elif specs['mechanism'] == 'approxStrSim':
-            linkset_result = None
+            linkset_result = prefixed_inverted_index(specs, 0.8)
+
         elif specs['mechanism'] == 'geoSim':
             linkset_result = None
+
         else:
             linkset_result = None
     else:
         linkset_result = {'message': 'Linkset creation is inactive!',
                            'error_code': -1,
-                           'linkset': ''}
+                           St.result: None}
 
     # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
-    if linkset_result:
-        if linkset_result['error_code'] == 0:
-            query = Qry.associate_linkset_lens_to_rq(rq_uri, linkset_result['linkset'])
-            print boolean_response(query, DATABASE, HOST)
+
 
     # print "\n\n\n{}".format(linkset_result['message'])
     return json.dumps(linkset_result)
@@ -798,7 +807,11 @@ def refineLinkset():
     linkset_uri = request.args.get('linkset_uri', '')
     specs = {
 
-        'source': {
+        St.researchQ_URI: rq_uri,
+
+        St.linkset: linkset_uri,
+
+            'source': {
             'graph': request.args.get('src_graph', ''),
             'aligns': request.args.get('src_aligns', ''),
             'entity_datatype': request.args.get('src_entity_datatye', '')
@@ -815,9 +828,11 @@ def refineLinkset():
 
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
-            linkset_result = spa_linkset2.specs_2_linkset(specs, DATABASE, HOST, display=False, activated=True)
+            linkset_result = refine.refine_exact(specs)
+
         elif specs['mechanism'] == 'identity':
-            linkset_result = spa_linkset2.specs_2_linkset_id(specs, DATABASE, HOST, display=False, activated=True)
+            linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
+
         elif specs['mechanism'] == 'approxStrSim':
             linkset_result = None
         elif specs['mechanism'] == 'geoSim':
@@ -831,65 +846,92 @@ def refineLinkset():
 
     # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
     if linkset_result:
-        if linkset_result['error_code'] == 0:
-            query = Qry.associate_linkset_lens_to_rq(rq_uri, linkset_result['linkset'])
-            print boolean_response(query, DATABASE, HOST)
+        refined = linkset_result[St.refined]
+        if refined:
+            if refined[St.error_code] == 0:
+                return json.dumps(refined)
 
     # print "\n\n\n{}".format(linkset_result['message'])
     return json.dumps(linkset_result)
 
+
+@app.route('/importLinkset')
+def importLinkset():
+    rq_uri = request.args.get('rq_uri')
+    graphs = request.args.getlist('graphs[]')
+
+    # print "RESEARCH QUESTION:", rq_uri
+    # print "LINKSET", graphs
+
+    if CREATION_ACTIVE:
+        response = Urq.import_linkset(rq_uri, graphs)
+    else:
+        response =  'Linkset import is inactive!'
+    return response
+
+
 @app.route('/createLens')
 def spa_lens():
-    rq_uri = request.args.get('rq_uri');
-    graphs = request.args.getlist('graphs[]');
-    operator = request.args.get('operator', '');
-    # context_code = request.args.get('context_code', '');
+    rq_uri = request.args.get('rq_uri')
+    graphs = request.args.getlist('graphs[]')
+    operator = request.args.get('operator', '')
 
-    # TODO: add proper function to create unique name
-    List_graph_names = map((lambda x: x[x.rfind('/')+1:]), graphs)
-    Concat_Names = reduce( (lambda x,y:x+y), List_graph_names)
-    lens_uri = "http://risis.eu/lens/union_" + Concat_Names + operator
+    specs = {
+        St.researchQ_URI: rq_uri,
+        'datasets': graphs,
+        'lens_operation': operator
+    };
 
-    specs = {'datasets': graphs,
-             'lens_operation': operator,
-             'lens': lens_uri};
-
-    # print "\n\n\nSPECS: ", specs
+    print "\n\n\nSPECS: ", specs
 
     if CREATION_ACTIVE:
         if operator == "union":
-            lens_result = union(specs, DATABASE, HOST, activated=True)
+            lens_result = union(specs, activated=True)
         else:
             lens_result = {'message': 'Operation no implemented!',
                            'error_code': -1,
-                           'lens': ''}
+                           St.result: None}
     else:
         lens_result = {'message': 'Lens creation is inactive!',
                        'error_code': -1,
-                       'lens': lens_uri}
-
-    if lens_result:
-        if lens_result['error_code'] == 0:
-            query = Qry.associate_linkset_lens_to_rq(rq_uri, lens_result['lens'])
-            boolean_response(query, DATABASE, HOST)
+                       St.result: None}
 
     return json.dumps(lens_result)
+
+
+@app.route('/importLens')
+def importLens():
+    rq_uri = request.args.get('rq_uri')
+    graphs = request.args.getlist('graphs[]')
+
+    print "RESEARCH QUESTION:", rq_uri
+    print "LINKSET", graphs
+
+    if CREATION_ACTIVE:
+        response = Urq.import_lens(rq_uri, graphs)
+
+    else:
+        response =  'Lens import is inactive!'
+
+    return response
 
 
 @app.route('/createView')
 def createView():
     rq_uri = request.args.get('rq_uri');
     view_lens = request.args.getlist('view_lens[]');
-    view_filter = request.args.getlist('view_filter[]');
+    view_filter_js = request.args.getlist('view_filter[]');
 
-    view_specs = {'datasets': view_lens,
-                  'lens_operation': 'http://risis.eu/lens/operator/intersection' }
+    view_specs = {
+        St.researchQ_URI: rq_uri,
+        'datasets': view_lens,
+        'lens_operation': 'http://risis.eu/lens/operator/intersection'}
 
-    design_view = []
-    for json_item in view_filter:
+    view_filter = []
+    for json_item in view_filter_js:
         f = ast.literal_eval(json_item)
         exist = False
-        for d in design_view:
+        for d in view_filter:
             if d['graph'] == f['ds'] :
                 d['properties'].append(f['att'])
                 exist = True
@@ -897,24 +939,24 @@ def createView():
         if not exist:
             dict = {'graph': f['ds'],
                     'properties': [f['att']]}
-            design_view.append(dict)
+            view_filter.append(dict)
 
     # print "\n\nVIEW SPECS:", view_specs
-    # print "\n\nVIEW DESIGN:", design_view
+    # print "\n\nVIEW DESIGN:", view_filter
+
+    # metadata: {"select": view_select, "where": view_where}
+    # view_query = {"select": view_select, "where": view_where}
+    # final result: {"metadata": view_metadata, "query": view_query, "table": table}
 
     if CREATION_ACTIVE:
-        view_result = view(design_view, view_specs, DATABASE, HOST, limit=75)
+        result = view(view_specs, view_filter, limit=10)
+        # print result
     else:
-        view_result = {'message': 'View creation is inactive!',
-                       'error_code': -1,
-                       'view': ''}
+        metadata = {'message': 'View creation is not active!'}
+        result = {"metadata": metadata, "query": '', "table": []}
 
-    if view_result:
-        if view_result['error_code'] == 0:
-            query = Qry.associate_linkset_lens_to_rq(rq_uri, view_result['view'])
-            boolean_response(query, DATABASE, HOST)
 
-    return json.dumps(view_result)
+    return json.dumps(result)
 
 
 @app.route('/getgraphsentitytypes')
@@ -925,8 +967,15 @@ def graphsEntityTypes():
     The result list is passed as parameters to the template graph_type_list.html
     """
     # GET QUERY
-    function = request.args.get('function', '');
-    query = Qry.get_types_per_graph()
+    function = request.args.get('function', '')
+    rq_uri = request.args.get('rq_uri', '')
+    mode = request.args.get('mode', 'toAdd')
+    query = Qry.get_types_per_graph(rq_uri, mode)
+
+    if (mode == 'added'):
+        style = 'background-color:lightblue'
+    else:
+        style = ''
 
     # RUN QUERY AGAINST ENDPOINT
     data = sparql(query, strip=True)
@@ -935,6 +984,7 @@ def graphsEntityTypes():
     # SEND BAK RESULTS
     return render_template('graph_type_list.html',
                             function = function,
+                            style = style,
                             data = data)
 
 
@@ -947,34 +997,16 @@ def insertrq():
     """
 
     question = request.args.get('question', '')
-    query = Qry.check_RQ_existance(question)
+
     if CREATION_ACTIVE:
-        check = boolean_response(query, DATABASE, HOST)
+        response = Urq.register_research_question(question)
     else:
-        check = 'false'
-    # print "\n\nCHECK: ",check
-    msg = ""
-    if check == 'true':
-        msg = 'This research question already exists!.<br/> URI = {}'
-    else:
-        query = Qry.insert_RQ(question)
-        result = sparql_update(query)
-        if result == 'true':
-            msg = 'Your research question is created.<br/> URI = {}'
-
-    rq_query = Qry.find_rq(question)
-    rq = sparql_xml_to_matrix(rq_query)
-    # print "RQ: ", rq
-
-    dict = {
-        'rq': rq[1][0],
-        'msg': msg.format(rq[1][0])
-    }
+        response = {'message': 'RQ creation is not active!', 'result': None}
 
     # if PRINT_RESULTS:
     # print "\n\nRESPONSE:", dict
 
-    return json.dumps(dict)
+    return json.dumps(response)
 
 
 @app.route('/updaterq', methods=['GET'])
@@ -996,36 +1028,15 @@ def updaterq():
         else:
             mapping[py_obj['graph']] += [py_obj['type']]
 
-    print "\n\nMAP:", mapping
-    query = Qry.insert_ds_mapping(rq_uri, mapping)
+    # print "\n\nMAP:", mapping
+
     if CREATION_ACTIVE:
-        result = boolean_response(query, DATABASE, HOST)
+        response = Urq.register_dataset_mapping(rq_uri, mapping)
     else:
-        sparql_update(query)
-        result = 'true'
+        response = {'message': 'RQ dataset mapping is not active!', 'result': None}
 
-    # result = 'false'
-    if (result == 'true'):
-        msg = "Your mapping was inserted: ({}). <br/>URI = {}".format(result, rq_uri)
-    else:
-        msg = "Your mapping could NOT be inserted: ({}) <br/>URI = {}".format(result, rq_uri)
-    # question = request.args.get('question', '')
-    # query = Qry.check_RQ_exsitance(question)
-    # check = boolean_response(query, DATABASE, HOST)
-    # # print "\n\nCHECK: ",check
-    #
-    # if check == 'true':
-    #     result = 'This research question already exists!'
-    # else:
-    #     query = Qry.insert_RQ(question)
-    #     result = sparql_update(query)
-    #     if result == 'true':
-    #         result = 'Research question created'
-    #
-    # if PRINT_RESULTS:
-    #     print "\n\nRESPONSE:", result
 
-    return msg #""#result
+    return response['message']
 
 
 @app.route('/getrquestions')

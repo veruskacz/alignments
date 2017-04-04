@@ -29,7 +29,8 @@ function modeCreation(val)
 function idea_button(targetId)
 {
   activateTargetDiv(targetId);
-
+  var btn = document.getElementById('btn_inspect_idea');
+  btn.onclick();
 }
 
 function linkset_button(targetId)
@@ -143,8 +144,7 @@ function view_button(targetId)
      $('#creation_view_row').show();
 
      //  $('#loading4').show();
-     $.get('/getsourcesperrq',data={'rq_uri': rq_uri,
-                            'type': 'dataset',
+     $.get('/getdatasetsperrq',data={'rq_uri': rq_uri,
                             'template': 'list_group.html'},function(data)
      {
       //  $('#loading4').hide();
@@ -159,7 +159,7 @@ function view_button(targetId)
 
           // $('#creation_view_datasetdetails_row').show();
           $('#creation_view_predicates_msg_col').html('Select <b>' + graph_label + '</b> predicates:')
-          // Exihit a waiting message for the user to know loading time
+          // Exhibit a waiting message for the user to know loading time
           // might be long.
           $('#creation_view_predicates_col').html('Loading...');
           // get the distinct predicates and example values of a graph
@@ -175,7 +175,6 @@ function view_button(targetId)
                 var pred_uri = $(this).attr('uri');
                 var pred_label = $(this).attr('label');
 
-
                 elem = document.getElementById(pred_uri);
                 if (elem) {}
                 else {
@@ -189,8 +188,6 @@ function view_button(targetId)
 
                 $('#creation_view_selected_predicates_group li').on('ondblclick',function()
                 {
-                    // not working yet
-                    alert('here');
                     var id = $(this).attr('id');
                     var element = document.getElementById(id);
                     element.parentNode.removeChild(element);
@@ -269,7 +266,9 @@ function view_button(targetId)
              $.get('/createView', specs, function(data)
              {
                  var obj = JSON.parse(data);
-                 $('#view_creation_message_col').html(obj.message);
+                 //{"metadata": metadata, "query": '', "table": []}
+                 $('#queryView').val(obj.query);
+                 $('#view_creation_message_col').html(obj.metadata.message);
              });
          }
          else {
@@ -298,10 +297,16 @@ function create_idea_button(th)
      var rq_selected = document.getElementById('creation_idea_selected_RQ');
      rq_selected.setAttribute("uri", "");
      $('#creation_idea_selected_RQ').html("");
+     setAttr('creation_idea_selected_RQ','style','background-color:none');
+     $('#creation_idea_registered_graphtype_list').html("");
+     $('#creation_idea_graphtype_list').html("");
+     $('#creation_idea_selected_graphtype_list').html("");
+     $('#idea_creation_message_col').html("");
   }
   else {
     $('#idea_create_row').hide();
   }
+//  refresh_create_idea();
 }
 
 function inspect_idea_button(th)
@@ -327,21 +332,36 @@ function inspect_idea_button(th)
      var rq_input = document.getElementById('research_question');
      rq_input.setAttribute("uri", "");
      rq_input.value = "";
-
+     $('#creation_idea_registered_graphtype_list').html("");
+     $('#creation_idea_graphtype_list').html("");
+     $('#creation_idea_selected_graphtype_list').html("");
   }
   else {
     $('#inspect_idea_row').hide();
   }
 }
 
-function update_idea_enable()
+function update_idea_enable(rq_uri)
 {
-    $('#creation_idea_selected_graphtype_list').html("");
-    $('#creation_idea_update_col').show();
-    $.get('/getgraphsentitytypes', data = { 'function': 'datasetMappingClick(this);'},
-          function(data)
+   $('#creation_idea_selected_graphtype_list').html("");
+   $('#creation_idea_registered_graphtype_list').html("");
+   $('#creation_idea_update_col').show();
+
+    $.get('/getgraphsentitytypes', data = {
+                                    'rq_uri': rq_uri,
+                                    'function': 'datasetMappingClick(this);'},
+                                   function(data)
     {
        $('#creation_idea_graphtype_list').html(data);
+    });
+
+    $.get('/getgraphsentitytypes', data = {
+                                    'rq_uri': rq_uri,
+                                    'mode': 'added',
+                                    'function': ''},
+                                   function(data)
+    {
+       $('#creation_idea_registered_graphtype_list').html(data);
     });
 }
 
@@ -371,10 +391,10 @@ function updateIdeaClick()
    {
       rq_uri = $('#creation_idea_selected_RQ').attr('uri');
    }
-
+//    alert(rq_uri);
    if ((rq_uri) && (list.length > 0))
    {
-      $.get('/updaterq',data={'rq_uri': $(this).attr('rq_uri'), 'list[]': list},function(data)
+      $.get('/updaterq',data={'rq_uri': rq_uri, 'list[]': list},function(data)
      {
 
          $('#idea_update_message_col').html(data);
@@ -392,9 +412,10 @@ function createIdeaClick()
        var obj = JSON.parse(data)
       //  var rq_up_btn = document.getElementById('updateIdeaButton');
       //  rq_up_btn.setAttribute("uri", obj.rq);
-      rq_input.setAttribute("uri", obj.rq);
+      rq_input.setAttribute("uri", obj.result);
+//      alert(obj.result);
 
-       $('#idea_creation_message_col').html(obj.msg);
+       $('#idea_creation_message_col').html(obj.message);
 
        update_idea_enable();
    });
@@ -493,7 +514,7 @@ function inspect_linkset_activate(mode)
                 else if (mode == 'inspect')
                 {
                    $('#creation_linkset_correspondence_row').show();
-                   showLinksetDetails(linkset_uri, obj);
+                   showDetails(linkset_uri, obj);
                 }
                 // enableButtons(document.getElementById('creation_linkset_buttons_col'), enable=true);
               });
@@ -678,6 +699,39 @@ function refineLinksetClick()
   }
 }
 
+
+function importLinksetClick()
+{
+   var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+
+    var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
+    var i;
+    var graphs = []
+    for (i = 0; i < elems.length; i++) {
+      graphs.push($(elems[i]).attr('uri'));
+    }
+
+    if (graphs.length > 0)
+    {
+        var data = {'rq_uri': rq_uri,
+                    'graphs[]': graphs};
+
+        var message = "EXECUTING IMPORT.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
+        $('#linkset_import_message_col').html(message);
+
+        // call function that creates the linkset
+        $.get('/importLinkset', data, function(data)
+        {
+//            alert(data);
+            $('#linkset_import_message_col').html(data);
+        });
+    }
+    else {
+      $('#linkset_import_message_col').html("Some feature is not selected!");
+    }
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in lensCreation.html
 ///////////////////////////////////////////////////////////////////////////////
@@ -719,6 +773,15 @@ function inspect_lens_activate(mode)
             // $.get('/???',data={'lens': lens_uri},function(data)
             // { $('#inspect_lens_lens_details_col').html(data);
             // });
+
+            // load the panel for editing/refining linkset
+              $.get('/getlensdetails',data={'lens': lens_uri,
+                                            'template': 'none'},function(data)
+              {
+                var obj = JSON.parse(data);
+                $('#creation_lens_correspondence_row').show();
+                showDetails(lens_uri, obj);
+              });
           }
         });
     });
@@ -778,6 +841,10 @@ function operatorClick(th)
   {
       description = 'The operator TRANSITIVE ';
   }
+  else if (operator_label == 'difference')
+  {
+      description = 'The operator DIFFERENCE evaluates alignments as its arguments, then calculates correspondences that exists in the left-hand side but not in the right-hand side.';
+  }
   $('#selected_operator_desc').html(description);
 }
 
@@ -819,6 +886,61 @@ function createLensClick()
     }
  }
 
+function importLensClick()
+{
+    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+
+    var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+    var i;
+    var graphs = []
+    for (i = 0; i < elems.length; i++) {
+      graphs.push($(elems[i]).attr('uri'));
+    }
+//    alert(graphs);
+    if (graphs.length > 0)
+    {
+        var data = {'rq_uri': rq_uri,
+                    'graphs[]': graphs};
+
+//        alert(data);
+
+        var message = "EXECUTING IMPORT.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
+        $('#lens_import_message_col').html(message);
+
+        // call function that creates the linkset
+        $.get('/importLens', data, function(data)
+        {
+            alert(data);
+            $('#lens_import_message_col').html(data);
+        });
+    }
+    else {
+      $('#lens_import_message_col').html("Some feature is not selected!");
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Functions called at onclick of the buttons in viewsCreation.html
+///////////////////////////////////////////////////////////////////////////////
+
+function create_views_activate()
+{
+}
+
+function inspect_views_activate(mode="inspect")
+{
+}
+
+function runViewClick()
+{
+  var query = $('#queryView').val();
+  $.get('/sparql',data={'query': query}, function(data)
+  {
+    $('#views-results').html(data);
+  });
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called when list-itens within buttons or groups list are clicked
 ///////////////////////////////////////////////////////////////////////////////
@@ -845,6 +967,7 @@ function rqClick(th, mode)
           // get the datasets for the selected rq
           // show the creation_linkset_row with a loading message
           var btn = document.getElementById('btn_inspect_linkset');
+
           break;
       case 'lens':
           var target = 'creation_lens_selected_RQ';
@@ -858,17 +981,19 @@ function rqClick(th, mode)
           break;
       case 'idea':
           var target = 'creation_idea_selected_RQ';
-          var btn = document.getElementById('btn_create_idea');
-          update_idea_enable();
+          var btn = null;
+          update_idea_enable(rq_uri);
           break;
   }
 
   //set target div with selected RQ
   setAttr(target,'uri',rq_uri);
+  setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
 
-  //inital button selected
-  btn.onclick();
+  if (btn)       //inital button selected
+  {  btn.onclick();
+  }
 }
 
 // Function fired onclick of a dataset from list. It fires the requests
@@ -1096,7 +1221,11 @@ function refresh_create_lens(mode='all')
 
 }
 
-
+refresh_create_idea()
+{
+    $('#creation_idea_registered_graphtype_list').html("");
+    $('#creation_idea_graphtype_list').html("");
+}
 
 
 // const Item = ({ url, title }) => '<p class="list-group-item-text">${title}</p>';
