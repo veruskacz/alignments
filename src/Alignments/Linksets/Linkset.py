@@ -40,20 +40,66 @@ write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
 #################################################################
 
 
-def set_linkset_name(specs):
-    specs[St.linkset_name] = "{}_{}_{}_{}".format(
-        specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-        specs[St.mechanism], specs[St.source][St.aligns_name])
+def set_linkset_name(specs, inverse=False):
 
-    specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+    if inverse is False:
+
+        h_name = specs[St.mechanism] + \
+                 specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
+                 specs[St.target][St.graph_name] + specs[St.target][St.aligns_name]
+
+        hashed = hash(h_name)
+
+        append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
+
+        specs[St.linkset_name] = "{}_{}_{}_{}_{}".format(
+            specs[St.source][St.graph_name], specs[St.target][St.graph_name],
+            specs[St.mechanism], specs[St.source][St.aligns_name], append)
+
+        specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+
+        return specs[St.linkset]
+
+    else:
+
+        h_name = specs[St.mechanism] + \
+                 specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
+                 specs[St.source][St.graph_name] + specs[St.source][St.aligns_name]
 
 
-def set_subset_name(specs):
-    specs[St.linkset_name] = "subset_{}_{}_{}_{}".format(
-        specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-        specs[St.mechanism], specs[St.source][St.link_old_name])
+        hashed = hash(h_name)
 
-    specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+        append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
+
+        linkset_name = "{}_{}_{}_{}_{}".format(
+            specs[St.target][St.graph_name], specs[St.source][St.graph_name],
+            specs[St.mechanism], specs[St.target][St.aligns_name], append)
+
+        linkset = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+
+        return linkset
+
+
+def set_subset_name(specs, inverse=False):
+
+    if inverse is False:
+
+        h_name = specs[St.mechanism] + \
+                 specs[St.source][St.graph_name] + specs[St.source][St.link_old_name] + \
+                 specs[St.target][St.graph_name]
+
+        hashed = hash(h_name)
+
+        append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
+
+        specs[St.linkset_name] = "subset_{}_{}_{}_{}_{}".format(
+            specs[St.source][St.graph_name], specs[St.target][St.graph_name],
+            specs[St.mechanism], specs[St.source][St.link_old_name], hashed)
+
+        specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+
+        return specs[St.linkset]
+
 
 
 def set_refined_name(specs):
@@ -63,8 +109,9 @@ def set_refined_name(specs):
 
 
 def run_checks(specs):
+
     heading = "\n======================================================" \
-              "========================================================" \
+              "========================================================"\
               "\nRUNNING LINKSET SPECS CHECK" \
               "\n======================================================" \
               "========================================================"
@@ -101,9 +148,7 @@ def run_checks(specs):
 
             # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY JTO SUBSET BECAUSE WE ASSUME
             # A LINKSET BY SUBSET DOES NEEDS NOT THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
-            counter_check = "{}{}_{}_{}_{}".format(
-                Ns.linkset, specs[St.target][St.graph_name],
-                specs[St.source][St.graph_name], specs[St.mechanism], specs[St.target][St.aligns_name])
+            counter_check = set_linkset_name(specs, inverse=True)
 
             # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
             ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
@@ -123,14 +168,14 @@ def run_checks(specs):
         if St.refined in specs:
 
             # GET LINKSET DERIVED FROM
-            subjectsTarget = linkset_wasderivedfrom(linkset)
+            subjects_target = linkset_wasderivedfrom(linkset)
             # CHECK THE RESULT OF THE DIFFERENCE AND OUT PUT BOTH THE REFINED AND THE DIFFERENCE
-            if subjectsTarget is not None:
+            if subjects_target is not None:
 
                 diff_lens_specs = {
                     St.researchQ_URI: specs[St.researchQ_URI],
                     # THE OBJECT IS THE LINKSET THE REFINED LINKSET WAS DERIVED FROM
-                    St.subjectsTarget: subjectsTarget,
+                    St.subjectsTarget: subjects_target,
                     # THE TARGET IS THE REFINED LINKSET
                     St.objectsTarget: linkset
                 }
@@ -190,6 +235,7 @@ def refined_info(specs, same_as_count):
 
 
 def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_triples):
+
     # print "CALL A CONSTRUCT ON: {}".format(linkset_graph_name)
 
     linkset_query = "\n{}\n{}\n{}\n{}\n\n{}\n{}\n\n".format(
@@ -223,7 +269,7 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
 
     singleton_metadata_construct = Qry.endpointconstruct(singleton_metadata_query)
     if singleton_metadata_construct is not None:
-        singleton_metadata_construct = singleton_metadata_construct. \
+        singleton_metadata_construct = singleton_metadata_construct.\
             replace('{', "singMetadata:{}\n{{".format(linkset_graph_name), 1)
 
     """
@@ -292,4 +338,5 @@ def linkset_wasderivedfrom(refined_linkset_uri):
         if dictionary_result[St.result]:
             return dictionary_result[St.result][1][0]
     return None
+
 

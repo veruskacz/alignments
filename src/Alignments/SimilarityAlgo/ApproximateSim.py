@@ -300,6 +300,7 @@ def edit_distance(token_x, token_y):
 
 
 def prefixed_inverted_index(specs, theta):
+
     start = time()
     print "\nStarted at {}".format(ctime(start))
     count = 0
@@ -309,6 +310,17 @@ def prefixed_inverted_index(specs, theta):
     Ut.update_specification(source)
     Ut.update_specification(target)
     Ls.set_linkset_name(specs)
+
+    specs[St.graph] = specs[St.linkset]
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+    specs[St.insert_query] = "The generated triple file was uploaded to the server."
+    specs[St.threshold] = theta
+
+    # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
+    check = Ls.run_checks(specs)
+    if check[St.result] != "GOOD TO GO":
+        return check
+
     """
     BACKGROUND
 
@@ -403,7 +415,7 @@ def prefixed_inverted_index(specs, theta):
         # GENERATE SINGLETONS METADATA
         singleton = "\n\t### Instance [{8}]\n\t{1}_{2}_{3}\n\t\t" \
                     "alivocab:hasStrength \t\t{5} ;" \
-                    "\n\t\talivocab:hasEvidence  \t\t\"[{6}] was compared to [{7}]\" .\n". \
+                    "\n\t\talivocab:hasEvidence  \t\t\"[{6}] was compared to [{7}]\" .\n".\
             format(description[St.src_resource], description[St.link], description[St.row],
                    description[St.inv_index], description[St.trg_resource], description[St.sim],
                    description[St.src_value], description[St.trg_value], count)
@@ -437,7 +449,7 @@ def prefixed_inverted_index(specs, theta):
             # GET THE TOKENS
             tokens = value.split(" ")
             # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
-            included = len(tokens) - (int(theta * len(tokens)) - 1)
+            included = len(tokens) - (int(theta*len(tokens)) - 1)
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
             for i in range(len(tokens)):
                 tokens[i] = [tokens[i], tf[tokens[i]]]
@@ -477,7 +489,7 @@ def prefixed_inverted_index(specs, theta):
     Ut.update_specification(specs)
 
     t_load = time()
-    print "1. DATASETS LOADED.\n\t\t>>> IN {}".format(t_load - start)
+    print "1. DATASETS LOADED.\n\t\t>>> IN {}".format(t_load -start)
 
     print "2. VALIDATING THE TABLES"
     if (src_dataset is not None) and (trg_dataset is None):
@@ -491,13 +503,13 @@ def prefixed_inverted_index(specs, theta):
         Qry.display_matrix(src_dataset, is_activated=False)
         Qry.display_matrix(trg_dataset, is_activated=False)
 
-    print "\t\tTHE SOURCES DATASET CONTAINS {} INSTANCES.".format(len(src_dataset) - 1)
+    print "\t\tTHE SOURCES DATASET CONTAINS {} INSTANCES.".format(len(src_dataset)-1)
     print "\t\tTHE TARGET DATASET CONTAINS {} INSTANCES.".format(len(trg_dataset) - 1)
 
     print "3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
     src_tf = get_tf(src_dataset)
     trg_tf = get_tf(trg_dataset)
-    print "\t\tTHE SOURCES DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf) - 1)
+    print "\t\tTHE SOURCES DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf)-1)
     print "\t\tTHE TARGET DATASET CONTAINS {} POTENTIAL.".format(len(trg_dataset) - 1)
     t_tf = time()
     print "\t\t>>> In {}.\n\t\t>>> Elapse time: {}".format(t_tf - t_load, t_load - start)
@@ -518,7 +530,7 @@ def prefixed_inverted_index(specs, theta):
 
         # TOKENS IN THE CURRENT PREDICATE VALUE
         curr_index = set()
-        tokens = get_tokens_to_include(str(src_dataset[row][1]), theta, src_tf)
+        tokens = get_tokens_to_include( str(src_dataset[row][1]), theta, src_tf)
         # print tokens
 
         # GET THE INDEX WHERE A TOKEN IN THE CURRENT INSTANCE CAN BE FOUND
@@ -556,13 +568,10 @@ def prefixed_inverted_index(specs, theta):
 
     t_sim = time()
     print "\t\t>>> in {} MINUTE(S).\n\t\t>>> Elapse time: {} MINUTE(S)".format(
-        (t_sim - t_inv_ind) / 60, (t_sim - start) / 60)
+        (t_sim - t_inv_ind)/60, (t_sim - start)/60)
     print "\t\t>>> {}. match found".format(count)
 
-    specs[St.graph] = specs[St.linkset]
-    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
-    specs[St.insert_query] = "The generated triple file was uploaded to the server."
-    specs[St.threshold] = theta
+
     metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
     writers[St.meta_writer].write(to_unicode(metadata))
 
@@ -588,10 +597,9 @@ def prefixed_inverted_index(specs, theta):
 
     print "\n>>> STARTED ON {}".format(ctime(start))
     print ">>> FINISHED ON {}".format(ctime(t_sim))
-    print ">>> MATCH WAS DONE IN {}\n".format((t_sim - start) / 60)
+    print ">>> MATCH WAS DONE IN {}\n".format((t_sim - start)/60)
 
-    print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THEW TRIPLE STORE\n\t\t{}", writers[
-        St.batch_output_path]
+    print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THEW TRIPLE STORE\n\t\t{}", writers[St.batch_output_path]
     os.system(writers[St.batch_output_path])
     print Qry.insert_size(specs[St.linkset], isdistinct=False)
 

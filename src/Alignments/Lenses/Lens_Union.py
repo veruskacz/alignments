@@ -221,6 +221,7 @@ def union_insert_q(lens, source, label):
     query = """
     PREFIX prov:<{0}>
     PREFIX tmpgraph:<{1}>
+    PREFIX tmpvocab:<{5}>
     ###### CREATING THE INTERSECTION CORRESPONDENCES
     ###### WITH A TEMPORARY PREDICATE
     INSERT
@@ -287,6 +288,6 @@ def union_insert_q(lens, source, label):
     DROP SILENT GRAPH tmpgraph:load00 ;
     DROP SILENT GRAPH tmpgraph:load01 ;
     DROP SILENT GRAPH tmpgraph:load02
-    """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens  )
+    """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens, Ns.tmpvocab  )
     return query
 
