@@ -27,6 +27,11 @@ HOST = "localhost:5820"
 
 REASONING_TYPE = 'SL'
 
+# import sys
+# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src')
+# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/Alignments')
+# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/app')
+
 CREATION_ACTIVE = True
 
 if CREATION_ACTIVE:
@@ -39,7 +44,8 @@ if CREATION_ACTIVE:
     import src.Alignments.Settings as St
     import src.Alignments.UserActivities.UserRQ as Urq
     import src.Alignments.Linksets.SPA_LinksetRefine as refine
-    from src.Alignments.UserActivities.View import view
+    import src.Alignments.UserActivities.View as mod_view
+    # from src.Alignments.UserActivities.View import view, retrieve_view, views
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
 else:
     from app import app
@@ -69,12 +75,12 @@ PREFIXES =  """
 
 PRINT_RESULTS = False
 
-@app.route('/print', methods=['GET'])
-def prints():
-    msg = request.args.get('msg', '')
-    print "\n\n\n"
-    print msg
-    return msg
+# @app.route('/print', methods=['GET'])
+# def prints():
+#     msg = request.args.get('msg', '')
+#     print "\n\n\n"
+#     print msg
+#     return msg
 
 
 @app.route("/")
@@ -217,6 +223,33 @@ def linksetdetails():
                             )
 
 
+@app.route('/getlensspecs', methods=['GET'])
+def lenspecs():
+    lens = request.args.get('lens', '')
+    query = Qry.get_lens_specs(lens)
+
+    details = sparql(query, strip=True)
+
+    # if PRINT_RESULTS:
+    print "\n\nDETAILS:", details
+
+    if details:
+        result = """This lens produces <strong>{}</strong> triples by applying the operator <strong>{}</strong> to the 
+        """.format(details[0]['triples']['value'], details[0]['operator_stripped']['value'])
+        for i in range(len(details)):
+            if i < len(details)-2:
+                result += ", "
+            elif i == (len(details)-1):
+                result += " and "
+            result += "<strong>{}</strong>".format(details[0]['g_stripped']['value'])
+    else:
+        result = 'NO RESULTS!'
+
+    print result
+
+    return result #json.dumps(details)
+
+
 @app.route('/getlensdetails', methods=['GET'])
 def lendetails():
     """
@@ -230,9 +263,13 @@ def lendetails():
     lens = request.args.get('lens', '')
     template = request.args.get('template', 'lensDetails_list.html')
     query = Qry.get_lens_corresp_details(lens, limit=10)
+
     details = sparql(query, strip=True)
 
-    d = details[0]
+    if details:
+        d = details[0]
+    else:
+        return 'NO RESULTS!'
 
     if PRINT_RESULTS:
         print "\n\nDETAILS:", details
@@ -251,7 +288,6 @@ def lendetails():
                             o_property= d['o_property_stripped']['value'],
                             operator = d['operator_stripped']['value']
                             )
-    return ''
 
 
 ### TODO: REPLACE
@@ -949,7 +985,7 @@ def createView():
     # final result: {"metadata": view_metadata, "query": view_query, "table": table}
 
     if CREATION_ACTIVE:
-        result = view(view_specs, view_filter, limit=10)
+        result = mod_view.view(view_specs, view_filter, limit=10)
         # print result
     else:
         metadata = {'message': 'View creation is not active!'}
@@ -957,6 +993,38 @@ def createView():
 
 
     return json.dumps(result)
+
+
+@app.route('/getviewdetails')
+def viewdetails():
+    rq_uri = request.args.get('rq_uri');
+    view_uri = request.args.get('view_uri');
+
+    view = mod_view.retrieve_view(rq_uri, view_uri)
+    details = '<h4>View Lens</h4>'
+    details += '- '
+    for g in view['view_lens']:
+        details += get_URI_local_name(g)+'<br/>'
+    datasets_bag = map(lambda x: x[0], view['view_filter_matrix'][1:])
+    datasets = list(set(datasets_bag))
+    details += '<h4>View Filter </h4>'
+    for d in set(datasets):
+        details += '<strong>' + get_URI_local_name(d) + '</strong><br/>'
+        details += '- '
+        for f in view['view_filter_matrix'][1:]:
+            if f[0] == d:
+                details += get_URI_local_name(f[1]) + ', '
+        details += '<br/>'
+
+    for i in range(1,len(view['view_filter_matrix'])):
+        filter = view['view_filter_matrix'][i]
+
+        print get_URI_local_name(filter[0]), get_URI_local_name(filter[1])
+        view['view_filter_matrix'][i] += [get_URI_local_name(filter[0]), get_URI_local_name(filter[1])]
+
+    view['details'] = details
+
+    return json.dumps(view)
 
 
 @app.route('/getgraphsentitytypes')
@@ -980,8 +1048,13 @@ def graphsEntityTypes():
     # RUN QUERY AGAINST ENDPOINT
     data = sparql(query, strip=True)
     if PRINT_RESULTS:
-        print "\n\nDATASET | TYPE | COUNT:", dataDetails
+        print "\n\nDATASET | TYPE | COUNT:", data
     # SEND BAK RESULTS
+
+    if data and 'EntityCount' in data[0]:
+        if data[0]['EntityCount']['value'] == '0':
+            return ''
+
     return render_template('graph_type_list.html',
                             function = function,
                             style = style,

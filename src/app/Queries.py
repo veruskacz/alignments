@@ -1,3 +1,8 @@
+# import sys
+# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src')
+# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/Alignments')
+# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/app')
+
 import src.Alignments.NameSpace as Ns
 
 PREFIX ="""
@@ -219,20 +224,6 @@ def get_graph_type(graph):
     return query
 
 
-# def get_entity_type(graph):
-#     query = """
-#     SELECT distinct ?uri
-#     {{
-#         GRAPH <{}> {{
-#         ?s a ?uri
-#         }}
-#     }}
-#     """.format(graph)
-#     if DETAIL:
-#         print query
-#     return query
-
-
 def get_entity_type_rq(rq_uri, graph_uri):
     query = PREFIX + """
     ### GET ENTITYTYPE PER DATASET IN THE SCOPE OF THE RESEARCH QUESTION
@@ -252,22 +243,42 @@ def get_entity_type_rq(rq_uri, graph_uri):
     return query
 
 
-def get_graph_lens():
+def get_graph_lens(lens=''):
+    filter = "FILTER (?g = <{}>)".format(lens) if lens else ''
     query = PREFIX + """
     ### GET THE LENSES
     SELECT DISTINCT ?g ?triples ?operator
     WHERE
-    {
+    {{
         ?g
             rdf:type	        bdb:Lens ;
             alivocab:operator   ?operator ;
             void:triples        ?triples .
-    }
-    """
+        {}
+    }}
+    """.format(filter)
     if DETAIL:
         print query
     return query
 
+def get_lens_specs(lens):
+    filter = "FILTER (?g = <{}>)".format(lens) if lens else ''
+    query = PREFIX + """
+    ### GET THE LENSES
+    SELECT DISTINCT ?g ?triples ?operator ?graph
+    WHERE
+    {{
+        ?g
+            rdf:type	        bdb:Lens ;
+            alivocab:operator   ?operator ;
+            void:triples        ?triples ;
+            (void:target|void:subjectsTarget|void:objectsTarget)			?graph .
+        {}
+    }}
+    """.format(filter)
+    if DETAIL:
+        print query
+    return query
 
 def get_graph_linkset():
     query = PREFIX + """
@@ -318,6 +329,7 @@ def get_linkset_metadata(linkset):
         print query
     return query
 
+
 ## Ve test
 def get_targets(graph_uri):
     query = PREFIX + """
@@ -361,42 +373,9 @@ def get_lens_union_targets(lens):
     return query
 
 
-# def get_graphs_per_type(type=None):
-#
-#     if type == "dataset":
-#         type_filter = "FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset} "
-#         type_filter += " UNION {?uri   rdf:type	bdb:Lens} "
-#         type_filter += " UNION {?uri   rdf:type	void:View} } ."
-#     elif type == "linkset&lens":
-#         type_filter = " { ?uri   rdf:type	void:Linkset } UNION"
-#         type_filter += " { ?uri   rdf:type	bdb:Lens } ."
-#     elif type == "linkset":
-#         type_filter = "?uri   rdf:type	void:Linkset ."
-#     elif type == "lens":
-#         type_filter = "?uri   rdf:type	bdb:Lens ."
-#     elif type == "view":
-#         type_filter = "?uri   rdf:type	void:View ."
-#     else:
-#         type_filter = ""
-#
-#     query = PREFIX + """
-#     ### GET DISTINCT GRAPHS
-#     SELECT DISTINCT ?uri ("null" as ?mode)
-#     WHERE
-#     {{
-#         GRAPH ?uri
-#         {{
-#             ?s ?p ?o
-#         }}
-#         {}
-#     }}
-#     """.format(type_filter)
-#     if DETAIL:
-#         print query
-#     return query
-
-
 def get_graphs_per_rq_type(rq_uri, type=None):
+    type_filter = ""
+    type_filter_view = ""
     if type == "dataset":
         type_filter = """
         FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
@@ -412,9 +391,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
     elif type == "lens":
         type_filter = "?uri   rdf:type	bdb:Lens ."
     elif type == "view":
-        type_filter = "?uri   rdf:type	void:View ."
-    else:
-        type_filter = ""
+        type_filter_view = "?uri   rdf:type	<http://risis.eu/class/View> ."
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
@@ -434,7 +411,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
 
             ### SELECTING CREATED LENS OR LINKSETS
             {{
-                <{0}>  alivocab:created*/alivocab:created  ?uri .
+                <{0}>  alivocab:created+  ?uri .
                 BIND("success" as ?mode)
             }}
 
@@ -445,12 +422,13 @@ def get_graphs_per_rq_type(rq_uri, type=None):
                 <{0}>  alivocab:created*/prov:used  ?uri.
                 BIND("info" as ?mode)
             }}
+            {2}
         }}
 
         ### FILTER THE TYPE OF GRAPH
         {1}
     }}
-    """.format(rq_uri, type_filter)
+    """.format(rq_uri, type_filter, type_filter_view)
     if DETAIL:
         print query
     return query
@@ -770,9 +748,49 @@ def get_linkset_corresp_details(linkset, limit=1):
     return query
 
 
-# TODO: ADD EXAMPLE VALUES
-# TODO: MAKE GENERIC FOR BOH LENS AND LINKSET
+# PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
+#     PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#     PREFIX linkset:     <http://risis.eu/linkset/>
+#     PREFIX void:        <http://rdfs.org/ns/void#>
+#     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+#     PREFIX tmpgraph:    <http://risis.eu/alignment/temp-match/>
+#     PREFIX prov:        <http://www.w3.org/ns/prov#>
+#
+#     ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
+#
+#     SELECT DISTINCT ?x ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
+#         WHERE
+#         {
+#
+#     	  <http://risis.eu/lens/union_Eter_LeidenRanking_P9136931839455661743>
+#           			 void:triples                ?triples ;
+#                      alivocab:operator   		?operator ;
+#                      void:target+ 				?linkset .
+#
+#           ??linkset  void:subjectsTarget	 	?subTarget ;
+#     				 bdb:subjectsDatatype	 	?s_datatype ;
+#      				 alivocab:alignsSubjects	 ?s_property;
+#      				 void:objectsTarget	 		?objTarget ;
+#     				 bdb:objectsDatatype	 	?o_datatype ;
+#      				 alivocab:alignsObjects	 	?o_property ;
+#                      alivocab:alignsMechanism    ?mechanism
+#
+#
+# 			OPTIONAL {{  <http://risis.eu/lens/union_Eter_LeidenRanking_P9136931839455661743>
+#                                  alivocab:alignsMechanism        ?mec ;}}
+#             OPTIONAL {{  <http://risis.eu/lens/union_Eter_LeidenRanking_P9136931839455661743>
+#                                  alivocab:operator   ?op  ;}}
+#
+#
+#         }
+#     LIMIT 10
+#
+#
+
+
+
 def get_lens_corresp_details(lens, limit=1):
+
 
     query = PREFIX + """
     ### LENS DETAILS AND VALUES OF ALIGNED PREDICATES
@@ -782,7 +800,7 @@ def get_lens_corresp_details(lens, limit=1):
         {{
 
     	  <{0}>
-          			 void:target* ?x .
+          			 void:target+ ?x .
           ?x
 
                                  void:subjectsTarget            ?subTarget ;
