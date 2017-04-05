@@ -270,7 +270,8 @@ def view(view_specs, view_filter, limit=10):
     return {"metadata": view_metadata, "query": view_query, "table": table}
 
 
-def retrieve_view(question_uri):
+def retrieve_view(question_uri, view_uri):
+
     view_lens_query = """
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
     ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
@@ -278,14 +279,14 @@ def retrieve_view(question_uri):
     {{
         GRAPH <{}>
         {{
-            ?idea	alivocab:created ?view .
-            ?view
+            #?idea	alivocab:created ?view .
+            <{}>
                 a 						<http://risis.eu/class/View> ;
                 alivocab:hasViewLens/alivocab:selected ?linkset_lens
 
         }}
     }}
-    """.format(question_uri)
+    """.format(question_uri, view_uri)
 
     # RUN THE QUERY
     view_lens_matrix = sparql_xml_to_matrix(view_lens_query)
@@ -307,8 +308,8 @@ def retrieve_view(question_uri):
     {{
         GRAPH <{}>
         {{
-            ?idea	alivocab:created ?view .
-            ?view
+            #?idea	alivocab:created ?view .
+            <{}>
                 a 						<http://risis.eu/class/View> ;
                 alivocab:hasFilter 		?filters .
 
@@ -317,12 +318,13 @@ def retrieve_view(question_uri):
                 alivocab:selected	?selected .
         }}
     }} ORDER BY ?target
-    """.format(question_uri)
+    """.format(question_uri, view_uri)
     # RUN QUERY
     view_filter_matrix = sparql_xml_to_matrix(view_filter_query)
     # print "view_filter_query:", view_filter_query
     if view_filter_matrix:
         if view_filter_matrix[St.result]:
+
             print "view_filter_matrix:", view_filter_matrix[St.result]
 
             return {"view_lens": view_lens, "view_filter_matrix": view_filter_matrix[St.result]}
