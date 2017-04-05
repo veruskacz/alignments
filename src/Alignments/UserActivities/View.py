@@ -1,13 +1,14 @@
 # encoding=utf-8
 
+import xmltodict
 from cStringIO import StringIO
 import src.Alignments.Utility as Ut
 import src.Alignments.Settings as St
 import src.Alignments.NameSpace as Ns
 from src.Alignments.Lenses.Lens_Intersection import intersection
-from src.Alignments.Query import sparql_xml_to_matrix, display_matrix, boolean_endpoint_response
+from src.Alignments.Query import endpoint, sparql_xml_to_matrix, display_matrix, boolean_endpoint_response
 
-PREFIX ="""
+PREFIX = """
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
     PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX linkset:     <http://risis.eu/linkset/>
@@ -19,7 +20,6 @@ PREFIX ="""
 
 
 def view_data(view_specs, view_filter):
-
     # view_specs = {
     #     St.researchQ_URI: question_uri,
     #     St.datasets: view_lens,
@@ -146,7 +146,7 @@ def view(view_specs, view_filter, limit=10):
     print "The insertion metadata was successfully inserted." if is_metadata_inserted == "true" \
         else "The metadata could not be inserted."
 
-    print view_metadata[St.insert_query]
+    # print view_metadata[St.insert_query]
 
     # GENERATE THE INTERSECTION
     inter = intersection(view_specs)
@@ -263,18 +263,17 @@ def view(view_specs, view_filter, limit=10):
     query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
     print query
     table = sparql_xml_to_matrix(query)
-    # display_matrix(table, spacing=80, limit=limit, is_activated=True)
+    display_matrix(table, spacing=80, limit=limit, is_activated=True)
 
     view_query = {"select": view_select, "where": view_where}
-    # {St.message:message, St.insert_query: final, St.result: uri}
-    return {"metadata": view_metadata, "query": query, "table": table}
+
+    return {"metadata": view_metadata, "query": view_query, "table": table}
 
 
 def retrieve_view(question_uri):
-
     view_lens_query = """
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
-    ### GETTING THE VIEW_LENS ELEMETS (LINKSET OR/AND LENSE)
+    ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
     select ?linkset_lens
     {{
         GRAPH <{}>
@@ -324,9 +323,452 @@ def retrieve_view(question_uri):
     # print "view_filter_query:", view_filter_query
     if view_filter_matrix:
         if view_filter_matrix[St.result]:
-
             print "view_filter_matrix:", view_filter_matrix[St.result]
 
             return {"view_lens": view_lens, "view_filter_matrix": view_filter_matrix[St.result]}
 
     return {"view_lens": view_lens, "view_filter_matrix": None}
+
+
+def activity_overview(question_uri, get_text=True):
+    idea = ""
+    ds_mapping = ""
+    alignments_data = ""
+    lenses = ""
+    views_data = ""
+
+    """
+    1. RESEARCH QUESTION LABEL
+    """
+    idea_result = research_label(question_uri)
+    idea += "\tQuestion URI: {}\n\tLabel: {}\n".format(question_uri, idea_result)
+
+    """
+    2. RESEARCH QUESTION DATASETS
+    """
+    datasets = datasets_selected(question_uri)
+    if datasets:
+        for dataset in datasets:
+            ds_mapping += "\t{} | {} | {} instances found\n".format(dataset[0], dataset[1], dataset[2])
+
+    """
+    3. RESEARCH QUESTION LINKSETS
+    """
+    alignments = alignments_mappings(question_uri)
+    if alignments:
+        for i in range(len(alignments)):
+            # THE ALIGNMENT
+            alignments_data += "\t{:2} - {}\n".format(i + 1, alignments[i])
+            # HE DESCRIPTION OF THE ALIGNMENT
+            ali_description = alignments_mappings_description(question_uri, alignments[i])
+            for info in ali_description:
+                pro = Ut.get_uri_local_name(info[0])
+                if pro == "created" or pro == "used":
+                    size = get_namedgraph_size(info[1], isdistinct=False)
+                    alignments_data += "\t\t>>> {:13}:\t{} | {} correspondences found\n".format(pro, info[1], size)
+                elif pro != "type":
+                    alignments_data += "\t\t{:17}:\t{}\n".format(pro, info[1])
+
+    """
+    4. RESEARCH QUESTION LENSES
+    """
+
+    used_lenses = created_used_lens(question_uri)
+    if used_lenses:
+        for lens in used_lenses:
+            pro = Ut.get_uri_local_name(lens[0])
+            lenses += "\t\t{:17}:\t{} | {} correspondences\n".format(pro, lens[1], lens[2])
+
+    """
+    RESEARCH QUESTION VIEWS
+    """
+    views_uri = views(question_uri)
+    views_requested = 0
+    # EXTRACTING ALL THE VIEWS FOR THIS RESEARCH QUESTION
+    if views_uri:
+        views_requested = len(views_uri) - 1
+        for i in range(1, len(views_uri)):
+            view_uri = views_uri[i][0]
+            views_data += "\n\tView_Lens {}: {}".format(i, view_uri)
+            view_composition = linksets_and_lenses(question_uri, view_uri)
+            view_filters = filters(question_uri, view_uri)
+
+            # DESCRIBING THE COMPOSITION OF EACH VIEW LENSES
+            for element in view_composition:
+                views_data += "\n\t\tComposition: {}".format(element)
+            views_data += "\n"
+
+            # EXTRACTING THE FILTERS
+            for n in range(1, len(view_filters)):
+                filter_uri = view_filters[n][0]
+                views_data += "\n\t\tFilter {}: {}".format(n, view_filters[n][0])
+                filter_dt = filter_data(question_uri, filter_uri)
+
+                # FILTER'S DATASETS
+                views_data += "\n\t\t\tDataset: {}".format(filter_dt[1][0])
+
+                for m in range(1, len(filter_dt)):
+                    views_data += "\n\t\t\tProperty: {}".format(filter_dt[m][1])
+
+                views_data += "\n"
+
+    if get_text:
+        activity_buffer = StringIO()
+        activity_buffer.write("\n>>> IDEA\n{}".format(idea))
+        activity_buffer.write("\n>>> DATASET MAPPINGS\n{}".format(ds_mapping))
+        activity_buffer.write("\n>>> ALIGNMENT & LINKSETS\n{}".format(alignments_data))
+        activity_buffer.write("\n>>> LENSES\n{}".format(lenses))
+        activity_buffer.write("\n>>> VIEW REQUESTED [{}].\n{}".format(views_requested, views_data)
+                              if str(1) == 1 else "\n>>> VIEWS REQUESTED [{}].\n{}".format(views_requested, views_data))
+        print activity_buffer.getvalue()
+        return activity_buffer.getvalue()
+    else:
+        result = {"idea": idea, "dataset_mappings": ds_mapping, "alignment_mappings": alignments_data,
+                  "lenses": lenses, "view_dic": views_data}
+        return result
+
+
+def datasets_selected(question_uri):
+    ds_mapping_query = """
+    ### EXTRACTING DATASETS MAPPING
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    SELECT *
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>
+                alivocab:selected           ?datasets .
+
+            ?datasets
+                a                           <http://risis.eu/class/Dataset> ;
+                alivocab:hasDatatype        ?datatype .
+        }}
+
+        {{
+          SELECT ?datasets (count(distinct ?s) as ?count)
+          {{
+            GRAPH ?datasets {{ ?s a ?datatype .}}
+          }} GROUP BY ?datasets
+        }}
+    }}""".format(question_uri)
+    # print ds_mapping_query
+
+    # RUN THE QUERY
+    ds_matrix = sparql_xml_to_matrix(ds_mapping_query)
+
+    # REDUCE
+    if ds_matrix:
+        if ds_matrix[St.result]:
+            datasets = ds_matrix[St.result][1:]
+            # datasets = reduce(lambda x, y: x + y, ds_matrix[St.result][1:])
+            return datasets
+    return None
+
+
+def alignments_mappings(question_uri):
+    query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    PREFIX void:        <http://rdfs.org/ns/void#>
+    PREFIX prov:        <http://www.w3.org/ns/prov#>
+    ### EXTRACT ALIGNMENT MAPPINGS
+    select *
+    {{
+        GRAPH <{0}>
+        {{
+             <{0}>
+                alivocab:created	?alignmentMapping .
+
+            ?alignmentMapping
+                a                   <http://risis.eu/class/AlignmentMapping> ;
+        }}
+    }}
+    """.format(question_uri)
+    # print query
+
+    # RUN THE QUERY
+    alg_matrix = sparql_xml_to_matrix(query)
+    # print alg_matrix
+
+    if alg_matrix:
+        # display_matrix(alg_matrix, is_activated=True)
+        if alg_matrix[St.result]:
+            # alignments = alg_matrix[St.result]
+            alignments = reduce(lambda x, y: x + y, alg_matrix[St.result][1:])
+            return alignments
+    return None
+
+
+def alignments_mappings_description(question_uri, alignment_uri):
+    query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    PREFIX void:        <http://rdfs.org/ns/void#>
+    PREFIX prov:        <http://www.w3.org/ns/prov#>
+    ### EXTRACT ALIGNMENT MAPPINGS
+    select *
+    {{
+        GRAPH <{0}>
+        {{
+             <{0}>
+                alivocab:created	<{1}> .
+
+            <{1}>
+                ?pred               ?obj .
+        }}
+    }}
+    """.format(question_uri, alignment_uri)
+    # print query
+
+    # RUN THE QUERY
+    alg_matrix = sparql_xml_to_matrix(query)
+    # print alg_matrix
+
+    if alg_matrix:
+        # display_matrix(alg_matrix, is_activated=True)
+        if alg_matrix[St.result]:
+            # alignments = alg_matrix[St.result]
+            # alignments = reduce(lambda x , y: x + y, alg_matrix[St.result][1:])
+            return alg_matrix[St.result][1:]
+    return None
+
+
+def created_used_lens(question_uri):
+    query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
+    ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
+    select ?created  ?lens ?count
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>
+                ?created			?lens.
+
+            ?lens
+                a                   bdb:Lens .
+        }}
+
+        {{
+          SELECT ?lens (count(distinct ?subj) as ?count)
+          {{
+            GRAPH ?lens
+            {{
+                ?subj ?sing ?pre .
+                ?sing ?sP   ?sO
+            }}
+          }} GROUP BY ?lens
+        }}
+    }}
+    """.format(question_uri)
+    # print query
+
+    # RUN THE QUERY
+    lenses_matrix = sparql_xml_to_matrix(query)
+
+    if lenses_matrix:
+        # display_matrix(alg_matrix, is_activated=True)
+        if lenses_matrix[St.result]:
+            # alignments = alg_matrix[St.result]
+            # alignments = reduce(lambda x , y: x + y, alg_matrix[St.result][1:])
+            return lenses_matrix[St.result][1:]
+    return None
+
+
+#################################################################################################
+#################################################################################################
+
+
+def research_label(question_uri):
+    # RESEARCH QUESTION
+    rq_query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    ### GETTING THE RESEARCH QUESTION LABEL
+    select *
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>
+                a 			<http://risis.eu/class/ResearchQuestion> ;
+                rdfs:label	?researchQuestion .
+
+        }}
+    }}
+    """.format(question_uri)
+    question_matrix = sparql_xml_to_matrix(rq_query)
+    if question_matrix and question_matrix[St.result]:
+        return question_matrix[St.result][1][0]
+    return None
+
+
+def views(question_uri):
+    query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
+    select ?view
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>
+                a 			            <http://risis.eu/class/ResearchQuestion> ;
+                rdfs:label	            ?researchQuestion ;
+                alivocab:created		?view .
+            ?view
+                alivocab:hasViewLens    ?viewLens .
+        }}
+    }}
+    """.format(question_uri)
+    # print query
+    # RUN QUERY
+    views_matrix = sparql_xml_to_matrix(query)
+    # print "view_filter_query:", view_filter_query
+    if views_matrix and views_matrix[St.result]:
+        # print "view_filter_matrix:", view_filter_matrix[St.result]
+        display_matrix(views_matrix, is_activated=False)
+        return views_matrix[St.result]
+    else:
+        return None
+
+
+def linksets_and_lenses(question_uri, view_uri):
+    view_lens_query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
+    select ?linkset_lens
+    {{
+        GRAPH <{}>
+        {{
+            <{}>
+                a 						<http://risis.eu/class/View> ;
+                alivocab:hasViewLens/alivocab:selected ?linkset_lens
+        }}
+    }} ORDER BY ?linkset_lens
+    """.format(question_uri, view_uri)
+
+    # RUN THE QUERY
+    view_lens_matrix = sparql_xml_to_matrix(view_lens_query)
+
+    # REDUCE
+    if view_lens_matrix:
+        if view_lens_matrix[St.result]:
+            view_lens = reduce(lambda x, y: x + y, view_lens_matrix[St.result][1:])
+            return view_lens
+    return None
+
+
+def filters(question_uri, view_uri):
+    query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
+    select ?filters
+    {{
+        GRAPH <{}>
+        {{
+            <{}>
+                alivocab:hasFilter 		?filters .
+
+        }}
+    }}
+    """.format(question_uri, view_uri)
+    # print query
+
+    # RUN QUERY
+    filters_matrix = sparql_xml_to_matrix(query)
+    # print "view_filter_query:", view_filter_query
+    if filters_matrix and filters_matrix[St.result]:
+        # print "view_filter_matrix:", view_filter_matrix[St.result]
+        display_matrix(filters_matrix, is_activated=False)
+        return filters_matrix[St.result]
+    else:
+        return None
+
+
+def filter_data(question_uri, filter_uri):
+    view_filter_query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    PREFIX void:        <http://rdfs.org/ns/void#>
+    ### GETTING THE VIEW_FILTERS
+    select ?target ?selected
+    {{
+        GRAPH <{0}>
+        {{
+             <{1}>
+                void:target			?target ;
+                alivocab:selected	?selected .
+        }}
+    }} ORDER BY ?target ?selected
+    """.format(question_uri, filter_uri)
+    # print view_filter_query
+    # RUN QUERY
+    view_filter_matrix = sparql_xml_to_matrix(view_filter_query)
+    # print "view_filter_query:", view_filter_query
+    if view_filter_matrix and view_filter_matrix[St.result]:
+        # print "view_filter_matrix:", view_filter_matrix[St.result]
+        # display_matrix(view_filter_matrix, is_activated=True)
+        return view_filter_matrix[St.result]
+    else:
+        return None
+
+
+def reserch_first_hops(question_uri):
+    query = """
+    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+    ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
+    select ?researchQuestion ?view ?viewLens ?filters
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>
+                a 			            <http://risis.eu/class/ResearchQuestion> ;
+                rdfs:label	            ?researchQuestion ;
+                alivocab:created		?view .
+
+            ?view
+                alivocab:hasViewLens    ?viewLens ;
+                alivocab:hasFilter 		?filters .
+
+        }}
+    }}
+    """.format(question_uri)
+    # print query
+    # RUN QUERY
+    first_hop_info_matrix = sparql_xml_to_matrix(query)
+    # print "view_filter_query:", view_filter_query
+    if first_hop_info_matrix and first_hop_info_matrix[St.result]:
+        # print "view_filter_matrix:", view_filter_matrix[St.result]
+        display_matrix(first_hop_info_matrix, is_activated=False)
+        return first_hop_info_matrix[St.result]
+    else:
+        return None
+
+
+def get_namedgraph_size(linkset_uri, isdistinct=False):
+    distinct = ""
+
+    if isdistinct is True:
+        distinct = "DISTINCT "
+
+    check_query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}".format(
+        # "PREFIX linkset: <http://risis.eu/linkset/>",
+        # "PREFIX lsMetadata: <http://risis.eu/linkset/metadata/>",
+        # "PREFIX predicate: <http://risis.eu/linkset/predicate/>",
+        # "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+        "    ##### GETTING THE LINKSET SIZE",
+        "    select(count({}?source) as ?triples)".format(distinct),
+        "    WHERE ",
+        "    {",
+        "       GRAPH <{}>".format(linkset_uri),
+        "       { ?source ?predicate ?target }",
+        "    }"
+    )
+
+    # print check_query
+
+    result = endpoint(check_query)
+
+    # print result
+
+    if result[St.result] is not None:
+        dropload_doc = xmltodict.parse(result[St.result])
+        return dropload_doc['sparql']['results']['result']['binding']['literal']['#text']
+    else:
+        return None
+
