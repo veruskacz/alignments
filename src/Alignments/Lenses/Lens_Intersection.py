@@ -143,7 +143,7 @@ def intersection(specs):
     SELECT distinct ?subTarget ?objTarget
     {{
         <{}>
-            void:target*/(void:subjectsTarget|void:objectsTarget)* ?x ;
+            #void:target*/(void:subjectsTarget|void:objectsTarget)* ?x ;
             void:target*/(void:subjectsTarget|void:objectsTarget)* ?x .
 
         ?x
@@ -156,7 +156,7 @@ def intersection(specs):
     }}""".format(graph)
         response = sparql_xml_to_matrix(query)
 
-        # print "QUERY:", query
+        print "QUERY:", query
         # print "\nGRAPH:", graph
         # print "RESPONSE:", response
         # exit(0)
@@ -165,7 +165,7 @@ def intersection(specs):
             targets = response[St.result]
 
             # print "LENGTH:", len(targets)
-            if len(targets) > 2:
+            if targets is not None and len(targets) > 2:
                 union = ""
 
                 for i in range(1, len(targets)):
@@ -186,7 +186,7 @@ def intersection(specs):
                 # print "UNION:", union
                 inter += union
 
-            elif len(targets) == 2:
+            elif targets and len(targets) == 2:
                 src = Ut.get_uri_local_name(targets[1][0])
                 trg = Ut.get_uri_local_name(targets[1][1])
                 inter += """
@@ -203,129 +203,3 @@ def intersection(specs):
     # exit(0)
     return inter
 
-
-def view(design_view, view_specs, limit=10):
-    str_limit = 70
-    ns = dict()
-    design = ""
-    variables = ""
-    variables_list = dict()
-    namespace = dict()
-    namespace_str = ""
-    count = 1
-
-    inter = intersection(view_specs)
-    if inter is None:
-        print "WE CANNOT PROCEED AS THERE IS A PROBLEM WITH THE PROVIDED DATASETS."
-
-    # For each design view, we have the dataset of interest
-    #  and the list of properties to display
-    for d_view in design_view:
-
-        # Bout the dataset
-        ds_ns_name = Ut.get_uri_ns_local_name(d_view[St.graph])
-        # 3 characters string to differential the properties of a dataset
-        attache = ds_ns_name[1][:3]
-
-        # GRAPH
-        # Adding the dataset name to the namespace dictionary [local name: namespace]
-        if ds_ns_name is not None:
-            if ds_ns_name[1] not in ns:
-                ns[ds_ns_name[1]] = ds_ns_name[0]
-
-        # Generate the dataset design view
-        design += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{\n\t\t?{}".format(
-            ds_ns_name[1], d_view[St.graph], ds_ns_name[1])
-
-        # Adding the resource as a variable to the variable list
-        variables += (" ?{}".format(ds_ns_name[1]))
-
-        # VARIABLES
-        properties = d_view[St.properties]
-        if type(properties) is not list:
-            print "THIS <PROPERTIES> NEED TO BE of TYPE A LIST"
-            return None
-
-        # Going though the properties of interest
-        for i in range(len(properties)):
-
-            if type(properties[i]) is str:
-                curr_ns = Ut.get_uri_ns_local_name(properties[i])
-                # shortening prefix length
-                short_name = ds_ns_name[1][:6]
-
-                # Setting up the prefix and predicate
-                if type(curr_ns) is list:
-                    predicate = "{}voc:{}".format(short_name, curr_ns[1])
-                    prefix = "{}voc".format(short_name)
-
-                    # ADDING NAMESPACE
-                    if prefix not in namespace:
-                        namespace[prefix] = curr_ns[0]
-                        namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
-
-                    # Adding predicates
-                    if i == len(properties)-1:
-                        design += "\n\t\t\t{:55} ?{}_{} .".format(predicate, attache, curr_ns[1])
-                    else:
-                        design += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
-
-                    # ADDING THE VARIABLE LIST and making it
-                    # unique to a dataset with the variable attache
-                    value = (" ?{}_{}".format(attache, curr_ns[1]))
-                    if len(variables + value) > str_limit:
-                        variables_list[count] = variables
-                        variables = value
-                        count += 1
-                    else:
-                        variables += value
-
-                # IN THIS CASE, ONLY THE SUBJECT IS PROVIDED
-                else:
-                    design += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
-
-            # HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
-            elif type(properties[i]) is list:
-                if len(properties[i]) == 2:
-                    curr_ns = Ut.get_uri_ns_local_name(properties[i][1])
-
-                    if type(curr_ns) is list:
-                        predicate = "{}voc:{}".format(short_name, curr_ns[1])
-                        prefix = "{}voc".format(short_name)
-
-                        # ADDING NAMESPACE
-                        if prefix not in namespace:
-                            namespace[prefix] = curr_ns[0]
-                            namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
-
-                        # REMOVE PREVIOUS PUNCTUATION
-                        design = design[:len(design)-2]
-                        design += " .\n\t\t?{}\n\t\t\t{:55} ?{}_{} .".format(
-                            properties[i][0], predicate, attache, curr_ns[1])
-
-                        # ADDING THE VARIABLE LIST
-                        value = (" ?{}_{}".format(attache, curr_ns[1]))
-                        if len(variables + value) > str_limit:
-                            variables_list[count] = variables
-                            variables = value
-                            count += 1
-
-                        else:
-                            variables += value
-
-        design += "\n\t}"
-
-    my_list = ""
-    for key, variable in variables_list.items():
-        my_list += "\n" + variable
-
-    if limit == 0:
-        lmt = ""
-    else:
-        lmt = "LIMIT {}".format(limit)
-
-    query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + variables, inter, design, lmt)
-    print query
-    table = sparql_xml_to_matrix(query)
-    # display_matrix(table, spacing=80, limit=limit, is_activated=True)
-    return design, variables

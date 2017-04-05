@@ -117,7 +117,7 @@ def view_data(view_specs, view_filter):
     return {St.message: message, St.insert_query: query, St.result: uri}
 
 
-def view(view_specs, view_filter, limit=10):
+def view(view_specs, view_filter, save=False, limit=10):
     """
     :param view_specs:
     :param view_filter: AN ARRAY OF DICTIONARY. THE DICTIONARY
@@ -141,12 +141,12 @@ def view(view_specs, view_filter, limit=10):
     # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
     # {St.message:message, St.insert_query: final, St.result: uri}
     view_metadata = view_data(view_specs, view_filter)
-    is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
-    print is_metadata_inserted
-    print "The insertion metadata was successfully inserted." if is_metadata_inserted == "true" \
-        else "The metadata could not be inserted."
-
-    # print view_metadata[St.insert_query]
+    if save:
+        is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
+        print is_metadata_inserted
+        print "The insertion metadata was successfully inserted." if is_metadata_inserted == "true" \
+         else "The metadata could not be inserted."
+        # print view_metadata[St.insert_query]
 
     # GENERATE THE INTERSECTION
     inter = intersection(view_specs)
@@ -265,9 +265,16 @@ def view(view_specs, view_filter, limit=10):
     table = sparql_xml_to_matrix(query)
     display_matrix(table, spacing=80, limit=limit, is_activated=True)
 
-    view_query = {"select": view_select, "where": view_where}
+    # view_query = {"select": view_select, "where": view_where}
 
-    return {"metadata": view_metadata, "query": view_query, "table": table}
+    view_query = """
+    {}
+    SELECT {}
+    {{
+        {}
+    }}""".format(PREFIX, view_select, view_where)
+
+    return {"metadata": view_metadata, "query": query, "table": table}
 
 
 def retrieve_view(question_uri, view_uri):
