@@ -265,15 +265,6 @@ def view(view_specs, view_filter, save=False, limit=10):
     table = sparql_xml_to_matrix(query)
     display_matrix(table, spacing=80, limit=limit, is_activated=True)
 
-    # view_query = {"select": view_select, "where": view_where}
-
-    view_query = """
-    {}
-    SELECT {}
-    {{
-        {}
-    }}""".format(PREFIX, view_select, view_where)
-
     return {"metadata": view_metadata, "query": query, "table": table}
 
 
