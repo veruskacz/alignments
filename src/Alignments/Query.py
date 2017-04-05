@@ -382,8 +382,6 @@ def endpointconstruct(query):
 
 def sparql_xml_to_matrix(query):
 
-    # print "sparql_xml_to_matrix query:", query
-    # print "TYPE:", type(query)
     name_index = dict()
 
     if type(query) is not str and type(query) is not unicode:
@@ -407,7 +405,7 @@ def sparql_xml_to_matrix(query):
 
     response = endpoint(query)
     logger.info("1. RESPONSE OBTAINED")
-    # print response
+    # print response[St.result]
 
     # DISPLAYING THE RESULT
 
@@ -564,7 +562,11 @@ def sparql_xml_to_matrix(query):
                                 item = data.items()[1][1]
 
                                 if type(item) is collections.OrderedDict:
-                                    matrix[row][index] = to_bytes(item.items()[1][1])
+                                    item_value = item.items()[1][1]
+                                    if type(item_value) is collections.OrderedDict:
+                                        print "hey!!!!"
+                                    else:
+                                        matrix[row][index] = to_bytes(item_value)
                                     # print "r{} c{} v{}".format(row, c, data.items()[1][1])
                                 else:
                                     matrix[row][index] = to_bytes(item)
