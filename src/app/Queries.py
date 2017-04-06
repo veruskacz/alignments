@@ -152,13 +152,14 @@ def get_source_per_rq(rq_uri):
 def get_rqs ():
     query = """
     SELECT DISTINCT ?uri ?uri_label
-	{{
-	    GRAPH ?uri
-	    {{
-      	    ?uri a <http://risis.eu/class/ResearchQuestion> ;
-      	        rdfs:label ?uri_label .
-      	}}
-    }}"""
+    {
+        GRAPH ?uri
+        {
+            ?uri
+                a           <http://risis.eu/class/ResearchQuestion> ;
+                rdfs:label  ?uri_label .
+        }
+    }"""
     if DETAIL:
         print query
     return query

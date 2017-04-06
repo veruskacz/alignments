@@ -129,6 +129,7 @@ def research_question(question):
 # REGISTER A DATASET MAPPING
 #####################################################################################
 
+
 def register_dataset_mapping(question_uri, mapping):
 
     print "\nREGISTERING A [DATASET-MAPPING]" \
@@ -362,6 +363,7 @@ def import_linkset(question_uri, linkset_list):
 # REGISTER A LENS
 #####################################################################################
 
+
 def register_lens(specs, is_created=True):
 
     if is_created is True:
@@ -460,7 +462,7 @@ def linkset_evolution(research_question_uri, refined_linkset_uri):
         elements2 = re.findall('(<.*?>)', metadata, re.S)
         if len(elements1) == len(elements2) == 3:
             for i in range(3):
-                append = "|" if i < 2 else ""
+                append = " | " if i < 2 else ""
                 document += "{}={}{}".format(elements1[i], elements2[i], append)
             document = "[{}]".format(document)
 

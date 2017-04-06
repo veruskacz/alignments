@@ -28,9 +28,11 @@ function modeCreation(val)
 ///////////////////////////////////////////////////////////////////////////////
 function idea_button(targetId)
 {
+
   activateTargetDiv(targetId);
   var btn = document.getElementById('btn_inspect_idea');
   btn.onclick();
+  //alert('Ending Research question');
 }
 
 function linkset_button(targetId)
@@ -149,17 +151,21 @@ function create_idea_button(th)
   if (selectMultiButton(th)) {
     $('#idea_create_row').show();
     $('#inspect_idea_row').hide();
+    $('#overview_idea_row').hide();
+    $('#creation_idea_update_col').hide();
     var btn = document.getElementById('btn_inspect_idea');
     resetButton(btn);
+    btn = document.getElementById('btn_overview_idea');
+    resetButton(btn);
 
-     var rq_selected = document.getElementById('creation_idea_selected_RQ');
-     rq_selected.setAttribute("uri", "");
-     $('#creation_idea_selected_RQ').html("");
-     setAttr('creation_idea_selected_RQ','style','background-color:none');
-     $('#creation_idea_registered_graphtype_list').html("");
-     $('#creation_idea_graphtype_list').html("");
-     $('#creation_idea_selected_graphtype_list').html("");
-     $('#idea_creation_message_col').html("");
+//     var rq_selected = document.getElementById('creation_idea_selected_RQ');
+//     rq_selected.setAttribute("uri", "");
+//     $('#creation_idea_selected_RQ').html("");
+//     setAttr('creation_idea_selected_RQ','style','background-color:none');
+//     $('#creation_idea_registered_graphtype_list').html("");
+//     $('#creation_idea_graphtype_list').html("");
+//     $('#creation_idea_selected_graphtype_list').html("");
+//     $('#idea_creation_message_col').html("");
   }
   else {
     $('#idea_create_row').hide();
@@ -173,7 +179,10 @@ function inspect_idea_button(th)
   {
     $('#inspect_idea_row').show();
     $('#idea_create_row').hide();
+    $('#overview_idea_row').hide();
     var btn = document.getElementById('btn_create_idea');
+    resetButton(btn);
+    btn = document.getElementById('btn_overview_idea');
     resetButton(btn);
 
      // get research questions
@@ -186,17 +195,45 @@ function inspect_idea_button(th)
        $('#button_idea_RQ_col').html(data);
      });
 
+    if ($('#creation_idea_selected_RQ').attr('uri'))
+    {
+        $('#creation_idea_update_col').show();
+    }
 
      var rq_input = document.getElementById('research_question');
      rq_input.setAttribute("uri", "");
      rq_input.value = "";
-     $('#creation_idea_registered_graphtype_list').html("");
-     $('#creation_idea_graphtype_list').html("");
-     $('#creation_idea_selected_graphtype_list').html("");
+//     $('#creation_idea_registered_graphtype_list').html("");
+//     $('#creation_idea_graphtype_list').html("");
+//     $('#creation_idea_selected_graphtype_list').html("");
   }
   else {
-    $('#inspect_idea_row').hide();
+    $('#creation_idea_update_col').hide();
   }
+}
+
+function overview_idea_button(th)
+{
+  if (selectMultiButton(th)) {
+    $('#idea_create_row').hide();
+    $('#creation_idea_update_col').hide();
+    $('#inspect_idea_row').show();
+
+    if ($('#creation_idea_selected_RQ').attr('uri'))
+    {
+        $('#overview_idea_row').show();
+    }
+
+
+    var btn = document.getElementById('btn_inspect_idea');
+    resetButton(btn);
+    btn = document.getElementById('btn_create_idea');
+    resetButton(btn);
+  }
+  else {
+    $('#overview_idea_row').hide();
+  }
+//  refresh_create_idea();
 }
 
 function update_idea_enable(rq_uri)
@@ -220,6 +257,20 @@ function update_idea_enable(rq_uri)
                                    function(data)
     {
        $('#creation_idea_registered_graphtype_list').html(data);
+    });
+}
+
+function overview_idea_enable(rq_uri)
+{
+    $.get('/getoverviewrq', data = {'rq_uri': rq_uri}, function(data)
+    {
+       var obj = JSON.parse(data)
+       $('#overview_idea_selected_RQ').val(obj.idea);
+       $('#overview_idea_dataset_mapping').val(obj.dataset_mappings);
+       $('#overview_idea_alignment_mapping').val(obj.alignment_mappings);
+       $('#overview_idea_lenses').val(obj.lenses);
+       $('#overview_idea_views').val(obj.view_dic);
+
     });
 }
 
@@ -264,13 +315,24 @@ function updateIdeaClick()
 
 function createIdeaClick()
 {
+    // resetting html elements in other divs
+    var rq_selected = document.getElementById('creation_idea_selected_RQ');
+    rq_selected.setAttribute("uri", "");
+    $('#creation_idea_selected_RQ').html("");
+    setAttr('creation_idea_selected_RQ','style','background-color:none');
+    $('#creation_idea_registered_graphtype_list').html("");
+    $('#creation_idea_graphtype_list').html("");
+    $('#creation_idea_selected_graphtype_list').html("");
+    $('#idea_creation_message_col').html("");
+    // ... overview
+
    var rq_input = document.getElementById('research_question');
    $.get('/insertrq',data={'question': rq_input.value},function(data)
    {
        var obj = JSON.parse(data)
       //  var rq_up_btn = document.getElementById('updateIdeaButton');
       //  rq_up_btn.setAttribute("uri", obj.rq);
-      rq_input.setAttribute("uri", obj.result);
+       rq_input.setAttribute("uri", obj.result);
 //      alert(obj.result);
 
        $('#idea_creation_message_col').html(obj.message);
@@ -829,7 +891,7 @@ function create_views_activate()
                         for (i = 0; i < elems.length; i++) {
                             if ( ($(elems[i]).attr('pred_uri') == pred_uri)
                                      && ($(elems[i]).attr('graph_uri') == graph_uri) )
-                            { alert('true');
+                            { //('true');
                               check = true;
                               break;
                             }
@@ -912,12 +974,14 @@ function inspect_views_activate(mode="inspect")
        {
           if (selectListItemUnique(this, 'inspect_views_selection_col'))
           {
+            $('#view_creation_message_col').html("");
+            $('#creation_view_selected_predicates_group').html("");
             var view_uri = $(this).attr('uri');
 
             //show the creation-panels containing the linksets/lenses
             //and the datasets and properties to be selected
             create_views_activate();
-            $('#creation_view_row').show();
+            // $('#creation_view_row').show();
 
             // load the panel for correspondences details
               $.get('/getviewdetails',data={'rq_uri': rq_uri,
@@ -967,14 +1031,18 @@ function inspect_views_activate(mode="inspect")
                 }
 
               });
+          var btn = document.getElementById('createViewButton');
+          resetButton(btn);
+          $('#creation_view_results_row').hide();
           }
         });
     });
   }
 }
 
-function createViewClick()
+function createViewClick(mode)
 {
+    $('#view_creation_message_col').html("");
     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
     var elems = selectedElemsInGroupList('creation_view_linkset_col');
     var i;
@@ -1001,7 +1069,8 @@ function createViewClick()
 
     if ((view_lens.length > 0) && (view_filter.length > 0))
     {
-     var specs = {'rq_uri': rq_uri,
+     var specs = {'mode': mode,
+                  'rq_uri': rq_uri,
                   'view_lens[]': view_lens,
                   'view_filter[]': view_filter};
 
@@ -1011,6 +1080,8 @@ function createViewClick()
          //{"metadata": metadata, "query": '', "table": []}
          $('#queryView').val(obj.query);
          $('#view_creation_message_col').html(obj.metadata.message);
+         $('#creation_view_results_row').show();
+         runViewClick();
      });
     }
     else {
@@ -1020,11 +1091,43 @@ function createViewClick()
 
 function runViewClick()
 {
+  //$('#view_creation_message_col').html("");
   var query = $('#queryView').val();
   $.get('/sparql',data={'query': query}, function(data)
   {
     $('#views-results').html(data);
   });
+}
+
+function showQuery(th)
+{
+    if (selectMultiButton(th)) {
+        $('#view_query_row').show();
+    }
+    else {
+        $('#view_query_row').hide();
+    }
+}
+
+function detailsViewClick(th)
+{
+    if (selectMultiButton(th)) {
+        $('#creation_view_row').show();
+    }
+    else {
+        $('#creation_view_row').hide();
+    }
+}
+
+function resultViewClick(th)
+{
+     if (selectMultiButton(th)) {
+        $('#creation_view_results_row').show();
+        createViewClick(mode="check");
+    }
+    else {
+        $('#creation_view_results_row').hide();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1069,11 +1172,12 @@ function rqClick(th, mode)
           var target = 'creation_idea_selected_RQ';
           var btn = null;
           update_idea_enable(rq_uri);
+          overview_idea_enable(rq_uri);
           break;
       case 'view':
           var target = 'creation_view_selected_RQ';
           enableButtons(document.getElementById('creation_views_buttons_col'));
-
+          refresh_create_view();
           var btn = document.getElementById('btn_inspect_view');
           break;
   }
@@ -1313,12 +1417,27 @@ function refresh_create_lens(mode='all')
 
 }
 
-refresh_create_idea()
+function refresh_create_idea()
 {
     $('#creation_idea_registered_graphtype_list').html("");
     $('#creation_idea_graphtype_list').html("");
 }
 
+function refresh_create_view()
+{
+//    alert('here');
+    var btn = document.getElementById('detailsViewButton');
+    resetButton(btn);
+    btn = document.getElementById('createViewButton');
+    resetButton(btn);
+    $('#view_creation_message_col').html("");
+    $('#inspect_views_details_col').html("");
+    $('#creation_view_linkset_col').html("");
+    $('#creation_view_lens_col').html("");
+    $('#creation_view_selected_predicates_group').html("");
+    $('#views-results').html("");
+    $('#queryView').val("");
+}
 
 // const Item = ({ url, title }) => '<p class="list-group-item-text">${title}</p>';
 // // Then you could easily render it, even mapped from an array, like so:

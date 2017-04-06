@@ -1,8 +1,8 @@
 <div class="panel panel-info">
 <div class="panel-heading">
    <div class="row">
-    <div class="col-md-10"><h3>Research Question</h3></div>
-    <div class="col-md-2" id="creation_linkset_buttons_col">
+    <div class="col-md-9"><h3>Research Question</h3></div>
+    <div class="col-md-3" id="creation_linkset_buttons_col">
       <h4>
       <button type="button" id="btn_inspect_idea"
               class="btn btn-primary"
@@ -12,6 +12,10 @@
               class="btn btn-primary"
               onclick='create_idea_button(this);'
               >Create</button>
+      <button type="button" id="btn_overview_idea"
+              class="btn btn-primary"
+              onclick='overview_idea_button(this);'
+              >Overview</button>
       </h4>
       <!-- <button type="button" id="btn_update_idea"
               class="btn btn-primary"
@@ -76,6 +80,98 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
       </div>
     </div>
    </div>
+  </div>
+ </div>
+
+ <div class="row creation" id="overview_idea_row" style='display:none'>
+  <div class="col-md-12" >
+     <div class="row creation">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <h4>Overview Research Question</h4></div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+                <textarea readonly id='overview_idea_selected_RQ' class='sparql' style='width: 100%; background-color:lightblue; font-size: 12pt;' rows='3'>
+                  </textarea>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+
+     <div class="row creation">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <h4>Overview Dataset Mapping</h4></div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+                <textarea readonly id='overview_idea_dataset_mapping' class='sparql' style='width: 100%; background-color:lightblue; font-size: 12pt;' rows='6'>
+                  </textarea>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+     <div class="row creation">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <h4>Overview Alignment Mapping and Linksets</h4></div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+                <textarea readonly id='overview_idea_alignment_mapping' class='sparql' style='width: 100%; background-color:lightblue; font-size: 12pt;' rows='14'>
+                  </textarea>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+     <div class="row creation">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <h4>Overview Lenses</h4></div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+                <textarea readonly id='overview_idea_lenses' class='sparql' style='width: 100%; background-color:lightblue; font-size: 12pt;' rows='5'>
+                  </textarea>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+
+     <div class="row creation">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <h4>Overview Views</h4></div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+                <textarea readonly id='overview_idea_views' class='sparql' style='width: 100%; background-color:lightblue; font-size: 12pt;' rows='20'>
+                  </textarea>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
   </div>
  </div>
 

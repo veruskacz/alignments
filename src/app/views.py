@@ -836,6 +836,7 @@ def spa_linkset():
     # print "\n\n\n{}".format(linkset_result['message'])
     return json.dumps(linkset_result)
 
+
 @app.route('/refineLinkset')
 def refineLinkset():
 
@@ -955,6 +956,7 @@ def importLens():
 @app.route('/createView')
 def createView():
     rq_uri = request.args.get('rq_uri');
+    mode = request.args.get('mode', 'save');
     view_lens = request.args.getlist('view_lens[]');
     view_filter_js = request.args.getlist('view_filter[]');
 
@@ -985,7 +987,8 @@ def createView():
     # final result: {"metadata": view_metadata, "query": view_query, "table": table}
 
     if CREATION_ACTIVE:
-        result = mod_view.view(view_specs, view_filter, limit=10)
+        save = (mode == 'save')
+        result = mod_view.view(view_specs, view_filter, save=save, limit=10)
         # print result
     else:
         metadata = {'message': 'View creation is not active!'}
@@ -1004,7 +1007,7 @@ def viewdetails():
     details = '<h4>View Lens</h4>'
     details += '- '
     for g in view['view_lens']:
-        details += get_URI_local_name(g)+'<br/>'
+        details += '- ' + get_URI_local_name(g)+'<br/>'
     datasets_bag = map(lambda x: x[0], view['view_filter_matrix'][1:])
     datasets = list(set(datasets_bag))
     details += '<h4>View Filter </h4>'
@@ -1018,8 +1021,7 @@ def viewdetails():
 
     for i in range(1,len(view['view_filter_matrix'])):
         filter = view['view_filter_matrix'][i]
-
-        print get_URI_local_name(filter[0]), get_URI_local_name(filter[1])
+        # print get_URI_local_name(filter[0]), get_URI_local_name(filter[1])
         view['view_filter_matrix'][i] += [get_URI_local_name(filter[0]), get_URI_local_name(filter[1])]
 
     view['details'] = details
@@ -1121,6 +1123,7 @@ def rquestions():
     """
     query = Qry.get_rqs();
     result = sparql(query, strip=False)
+    # print result
 
     template = request.args.get('template', 'list_dropdown.html')
     function = request.args.get('function', '')
@@ -1133,6 +1136,24 @@ def rquestions():
                             list = result,
                             btn_name = 'Research Question',
                             function = function)
+
+
+@app.route('/getoverviewrq')
+def overviewrq():
+    """
+    This function is called due to request /getrquestions
+    It queries ...
+    The result list is passed as parameters to the template list_dropdown.html
+    """
+    rq_uri = request.args.get('rq_uri', '')
+    result = mod_view.activity_overview(rq_uri, get_text=False)
+
+    # if PRINT_RESULTS:
+    print "\n\nOverview:", result['idea']
+
+    # SEND BAK RESULTS
+    return json.dumps(result)
+
 
 # ######################################################################
 ## ENDPOINT

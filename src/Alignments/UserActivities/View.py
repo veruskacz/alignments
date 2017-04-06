@@ -142,10 +142,13 @@ def view(view_specs, view_filter, save=False, limit=10):
     # {St.message:message, St.insert_query: final, St.result: uri}
     view_metadata = view_data(view_specs, view_filter)
     if save:
+        print "We are in save mode!"
         is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
         print is_metadata_inserted
-        print "The insertion metadata was successfully inserted." if is_metadata_inserted == "true" \
+        message = "The insertion metadata was successfully inserted." if is_metadata_inserted == "true" \
          else "The metadata could not be inserted."
+        print message
+        view_metadata[St.message] = message
         # print view_metadata[St.insert_query]
 
     # GENERATE THE INTERSECTION
@@ -263,7 +266,7 @@ def view(view_specs, view_filter, save=False, limit=10):
     query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
     print query
     table = sparql_xml_to_matrix(query)
-    display_matrix(table, spacing=80, limit=limit, is_activated=True)
+    display_matrix(table, spacing=80, limit=limit, is_activated=False)
 
     return {"metadata": view_metadata, "query": query, "table": table}
 
@@ -294,7 +297,7 @@ def retrieve_view(question_uri, view_uri):
     if view_lens_matrix:
         if view_lens_matrix[St.result]:
             view_lens = reduce(lambda x, y: x + y, view_lens_matrix[St.result][1:])
-    print "view_lens:", view_lens
+    # print "view_lens:", view_lens
     # print "view_lens_query:", view_lens_query
     # print "view_lens_matrix:", view_lens_matrix
 
@@ -323,7 +326,7 @@ def retrieve_view(question_uri, view_uri):
     if view_filter_matrix:
         if view_filter_matrix[St.result]:
 
-            print "view_filter_matrix:", view_filter_matrix[St.result]
+            # print "view_filter_matrix:", view_filter_matrix[St.result]
 
             return {"view_lens": view_lens, "view_filter_matrix": view_filter_matrix[St.result]}
 
@@ -365,9 +368,10 @@ def activity_overview(question_uri, get_text=True):
                 pro = Ut.get_uri_local_name(info[0])
                 if pro == "created" or pro == "used":
                     size = get_namedgraph_size(info[1], isdistinct=False)
-                    alignments_data += "\t\t>>> {:13}:\t{} | {} correspondences found\n".format(pro, info[1], size)
+                    alignments_data += "\t\t>>> {:13}: \t{} | {} correspondences found\n".format(pro, info[1], size)
                 elif pro != "type":
                     alignments_data += "\t\t{:17}:\t{}\n".format(pro, info[1])
+            alignments_data += "\n"
 
     """
     4. RESEARCH QUESTION LENSES
