@@ -16,9 +16,10 @@
         </div>
         <div class="panel-body" style='scroll: both; overflow: auto; height: 57em;'>
 
-          <div class="list-group" style='scroll: both; overflow: auto;'>
+          <div class="list-group" target="" style='scroll: both; overflow: auto;'>
             {% for c in correspondences|sort(attribute='sub') %}
-                        <a href="javascript:void();" class="list-group-item" uri='{{c.pred.value }}'
+                        <a href="javascript:void();" class="list-group-item" uri='{{c.pred.value}}'
+                              id = 'LIG{{c.pred.value}}'
                               sub_uri='{{c.sub.value }}'
                               obj_uri='{{c.obj.value }}'>
                             <span class="list-group-item-heading">{{ c.sub.value }}<br/>

@@ -244,6 +244,20 @@ function showDetails(graph_uri, detailsDict)
               var sub_uri = $(this).attr('sub_uri');
               var obj_uri = $(this).attr('obj_uri');
 
+              //HANDLING THE SELECTION/DE-SELECTION OF CLICKED CORRESPONDENCES
+              var parent = findAncestor(this, "list-group");
+              var selected = $(parent).attr('target');
+              if (selected)
+              {
+                var elem = document.getElementById(selected);
+                // de-selected previously selected item
+                selectListItem(elem);
+              }
+              // select previously selected item
+              selectListItem(this);
+              // saving the currently selected correspondence
+              parent.setAttribute("target",$(this).attr('id'));
+
               var data = {'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
                                 'subjectTarget': subjectTarget,
                                 'objectTarget': objectTarget,

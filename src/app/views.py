@@ -27,10 +27,6 @@ HOST = "localhost:5820"
 
 REASONING_TYPE = 'SL'
 
-# import sys
-# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src')
-# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/Alignments')
-# sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/app')
 
 CREATION_ACTIVE = True
 
@@ -38,14 +34,12 @@ if CREATION_ACTIVE:
     import src.Alignments.Linksets.SPA_Linkset as spa_linkset2
     import src.Alignments.Linksets.SPA_LinksetSubset as spa_subset
     from src.Alignments.Lenses.Lens_Union import union
-    from src.Alignments.Query import boolean_endpoint_response as boolean_response
     from src.app import app
 
     import src.Alignments.Settings as St
     import src.Alignments.UserActivities.UserRQ as Urq
     import src.Alignments.Linksets.SPA_LinksetRefine as refine
     import src.Alignments.UserActivities.View as mod_view
-    # from src.Alignments.UserActivities.View import view, retrieve_view, views
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
 else:
     from app import app
@@ -241,7 +235,7 @@ def lenspecs():
                 result += ", "
             elif i == (len(details)-1):
                 result += " and "
-            result += "<strong>{}</strong>".format(details[0]['g_stripped']['value'])
+            result += "<strong>{}</strong>".format(details[i]['graph_stripped']['value'])
     else:
         result = 'NO RESULTS!'
 
@@ -543,25 +537,6 @@ def sparqlDirect():
 ## VIEW MODE
 #######################################################################
 
-# @app.route('/getgraphspertype')
-# def graphspertype():
-#     """
-#     This function is called due to request /getgraphspertype
-#     It queries the dataset for of all the graphs of a certain type
-#     The result listis passed as parameters to the informed template
-#     (default list_dropdown.html)
-#     """
-#     # GET QUERY
-#     type = request.args.get('type', 'dataset')
-#     btn_name = request.args.get('btn_name', type)
-#     template = request.args.get('template', 'list_dropdown.html')
-#     graphs_query = Qry.get_graphs_per_type(type)
-#     # RUN QUERY AGAINST ENDPOINT
-#     graphs = sparql(graphs_query, strip=True)
-#     if PRINT_RESULTS:
-#         print "\n\nGRAPHS:", graphs
-#     # SEND BAK RESULTS
-#     return render_template(template, list = graphs, btn_name = btn_name)
 
 @app.route('/getgraphsperrqtype')
 def graphsperrqtype():
@@ -616,26 +591,6 @@ def datasetsperrq():
                             function = function)
 
 
-# @app.route('/getentitytype')
-# def entitytype():
-#     """
-#     This function is called due to request /getentitytype
-#     It queries the dataset for of all the graphs of a certain type
-#     The result listis passed as parameters to the informed template
-#     (default list_dropdown.html)
-#     """
-#     # GET QUERY
-#     print '\n\nGET ENTITY TYPE'
-#     graph_uri = request.args.get('graph_uri', '')
-#     template = request.args.get('template', 'list_dropdown.html')
-#     query = Qry.get_entity_type(graph_uri)
-#     # RUN QUERY AGAINST ENDPOINT
-#     types = sparql(query, strip=True)
-#     if PRINT_RESULTS:
-#         print "\n\nENTITY TYPES:", types
-#     # SEND BAK RESULTS
-#     return render_template(template, list = types, btn_name = 'Entity Type')
-
 
 @app.route('/getentitytyperq')
 def entitytyperq():
@@ -684,101 +639,6 @@ def predicates():
                             dataDetails = dataDetails,
                             function = function)
 
-
-# def lens_targets_details(detail_dict, graph):
-#     # GET THE TYPE OF THE GRAPH
-#     graph_type_matrix = sparql_xml_to_matrix(
-#         Qry.get_graph_type(graph))
-#
-#     if graph_type_matrix:
-#         # THIS IS THE BASE OF THE RECURSION
-#         if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
-#             # print "I am Neo"
-#             metadata_matrix = sparql_xml_to_matrix(Qry.get_linkset_metadata(graph))
-#             # print "\nSUBJECT TARGET:", metadata_matrix[1][0]
-#             # print "OBJECT TARGET:",metadata_matrix[1][1]
-#             # THIS CONNECTS THE GRAPH TO IT SUBJECT AND TARGET DATASETS
-#             if graph not in detail_dict:
-#                 detail_dict[graph] = metadata_matrix
-#             return
-#
-#         if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
-#             # print "I am Keanu Reeves"
-#             # GET THE OPERATOR
-#             # alivocab:operator	 http://risis.eu/lens/operator/union
-#             lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
-#             # print "\nOPERATOR:", lens_operator_matrix
-#             if lens_operator_matrix:
-#                 if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
-#                     # GET THE LIST OF TARGETS
-#                     target_matrix = sparql_xml_to_matrix(Qry.get_lens_union_targets(graph))
-#                     if target_matrix:
-#                         for i in range(1, len(target_matrix)):
-#                             lens_targets_details(detail_dict, target_matrix[i][0])
-
-
-# @app.route('/gettargetdatasets')
-# def targetdatasets():
-#     """
-#     This function is called due to request /gettargetdatasets
-#     It queries all the (dataset) tagerts given a graph
-#     The result list is passed as parameters to the template graphs_listgroup.html
-#     """
-#     graph_uri = request.args.get('graph_uri', '')
-#
-#     ## existing target datasets are reasembled as original strip_dict
-#     ## and passed as parameter to avoid repeated results
-#     # targetdatasets = request.args.getlist('targetdatasets[]')
-#     # ldict = []
-#     # for t in targetdatasets:
-#     #     dict1 = {u'g': {u'type': u'uri', u'value': t}}
-#     #     ldict.append(dict1)
-#     # result_dict = {u'results': {u'bindings': ldict}}
-#     # graphs = strip_dict(result_dict)
-#
-#     selectedLenses = request.args.getlist('selectedLenses[]')
-#     # print '\n\nSELECTED LENSES', selectedLenses
-#     graphs = []
-#     for lens in selectedLenses:
-#         lens_targets_unique(graphs, lens)
-#
-#     if PRINT_RESULTS:
-#         print "\n\nTARGETS:", graphs
-#
-#     # SEND BAK RESULTS
-#     return render_template('graphs_listgroup.html',
-#                             graphs = graphs)
-
-#
-# def lens_targets_unique(unique_list, graph):
-#
-#     # GET THE TYPE OF THE GRAPH
-#     graph_type_matrix = sparql_xml_to_matrix(
-#         Qry.get_graph_type(graph))
-#
-#     if graph_type_matrix:
-#         # THIS IS THE BASE OF THE RECURSION
-#         if graph_type_matrix[1][0] == "http://rdfs.org/ns/void#Linkset":
-#             query = Qry.get_targets(graph)
-#             result = sparql(query, strip=True)
-#             for r in result:
-#                 if not(r in unique_list):
-#                     unique_list.append(r)
-#             return
-#
-#         if graph_type_matrix[1][0] == "http://vocabularies.bridgedb.org/ops#Lens":
-#             # print "I am Keanu Reeves"
-#             # GET THE OPERATOR
-#             # alivocab:operator	 http://risis.eu/lens/operator/union
-#             lens_operator_matrix = sparql_xml_to_matrix(Qry.get_lens_operator(graph))
-#             # print "\nOPERATOR:", lens_operator_matrix
-#             if lens_operator_matrix:
-#                 if lens_operator_matrix[1][0] == "http://risis.eu/lens/operator/union":
-#                     # GET THE LIST OF TARGETS
-#                     target_matrix = sparql_xml_to_matrix(Qry.get_lens_union_targets(graph))
-#                     if target_matrix:
-#                         for i in range(1, len(target_matrix)):
-#                             lens_targets_unique(unique_list, target_matrix[i][0])
 
 
 @app.route('/createLinkset')
@@ -1005,7 +865,6 @@ def viewdetails():
 
     view = mod_view.retrieve_view(rq_uri, view_uri)
     details = '<h4>View Lens</h4>'
-    details += '- '
     for g in view['view_lens']:
         details += '- ' + get_URI_local_name(g)+'<br/>'
     datasets_bag = map(lambda x: x[0], view['view_filter_matrix'][1:])
@@ -1062,7 +921,7 @@ def graphsEntityTypes():
                             style = style,
                             data = data)
 
-
+# TODO: REMOVE
 @app.route('/insertrq', methods=['GET'])
 def insertrq():
     """
@@ -1083,7 +942,7 @@ def insertrq():
 
     return json.dumps(response)
 
-
+# TODO: REMOVE
 @app.route('/updaterq', methods=['GET'])
 def updaterq():
     """
