@@ -34,7 +34,7 @@
           <TR style= 'width: 50em;'>
               <TD style='width: 10em;'>
               {% if (r.col1) %}
-               <li class="list-group-item" id="srcDatasetLI" uri='{{ sub_uri }}' dataset = '{{ r.col1.dataset }}'
+               <li class="list-group-item" id="srcDatasetLS" uri='{{ sub_uri }}' dataset = '{{ r.col1.dataset }}'
                    style='scroll: both; overflow: auto; height: 7em;'>
                  <span class="list-group-item-heading">
                    <span class="badge alert-default">{{ r.col1.dataset_stripped|upper }}</span><br/>
@@ -49,7 +49,7 @@
               </TD>
              <TD style='width: 10em;'>
               {% if (r.col2) %}
-                 <li class="list-group-item" id="trgDatasetLI" uri='{{ obj_uri }}' dataset = '{{ r.col2.dataset }}'
+                 <li class="list-group-item" id="trgDatasetLS" uri='{{ obj_uri }}' dataset = '{{ r.col2.dataset }}'
                  style='scroll: both; overflow: auto; height: 7em;'>
                  <span class="list-group-item-heading">
                    <span class="badge alert-default">{{ r.col2.dataset_stripped|upper }}</span><br/>
@@ -64,9 +64,9 @@
              </TD>
           <TR>
         {% endfor %}
-             <TD id="srcDetails1">
+             <TD id="srcDetailsLS">
               </TD>
-             <TD id="trgDetails1">
+             <TD id="trgDetailsLS">
               </TD>
         </TABLE>
     </div>

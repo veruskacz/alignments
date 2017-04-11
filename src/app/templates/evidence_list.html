@@ -20,19 +20,44 @@
             </a>
         {% endfor %}
         </div>
-
-      <!-- Validation box -->
-      <div class="panel panel-default">
-              <div class="panel-heading"><h4><strong>Validation</strong></h4></div>
-      <div class="panel-body">
-          <TABLE>
-          <TR>
-             <TD><textarea id="validation_textbox" name="name" rows="5" cols="80"> </textarea></TD>
-             <TD style='width: 2em;'> </TD>
-             <TD><a id="ValidationYes_btn" class='btn btn-success' style='width: 8em;'>Accept</a><br/><br/>
-                  <a id="ValidationNo_btn" class='btn btn-danger' style='width: 8em;'>Reject</a></TD>
-          </TABLE>
-      </div>
-
     </div>
 </div>
+
+<!-- Validation box -->
+<div class="panel panel-default">
+  <div class="panel-heading">
+     <div class="row">
+         <div class="col-md-4"><h4><strong>Validation</strong></h4></div>
+          <!--<small>(When rejecting, select in 'Details' the pair of properties that justify the rejection)</small></h4></div>-->
+      <h5><div class="col-md-5 text-right" style="color:red" id="evidence_message_col"> </div></h5>
+      <div class="col-md-3">
+          <button type="button" id="ValidationSave_btn"
+                class="btn btn-primary"
+                onclick="validationSaveOnClick();"
+                >Save Validation</button>
+      </div>
+     </div>
+  </div>
+
+  <div class="panel-body">
+     <div class="row">
+         <div class="col-md-12">
+            <div class="radio">
+                <label><input id="ValidationYes_btn" type="radio" name="optradio">I <strong>agree</strong> with the alignment in <strong>general</strong> and with this correspondence in <strong>particular</strong>.</label>
+            </div>
+            <div class="radio">
+                <label><input id="ValidationNo_btn" type="radio" name="optradio">I <strong>agree</strong> with the alignment in <strong>general</strong> but <strong>disagree</strong> with this correspondence in <strong>particular</strong>. I have selected in "Details" the pair of properties that justifies my disagreement.</label>
+            </div>
+            <div class="radio disabled">
+                <label><input id="ValidationRefine_btn" type="radio" name="optradio">I <strong>disagree</strong> with the alignment in <strong>general</strong> and I want to proceed with a refinement. I have selected in "Details" the pair of properties that justifies my disagreement.</label>
+            </div>
+         </div>
+     </div>
+     <div class="row">
+         <div class="col-md-12">
+          <textarea id="validation_textbox" name="name" rows="5" style="width: 100%;"> </textarea>
+         </div>
+     </div>
+  </div>
+</div>
+

@@ -111,19 +111,9 @@ function modeInvestigation(val)
                             // DETAIL liST COLUMN
                             $('#details_list_col').html(data);
 
-                            // var data2 = {'subjectTarget': subjectTarget,
-                            //             'alignsSubjects': subjectTarget,
-                            //             'objectTarget': subjectTarget,
-                            //             'alignsObjects': subjectTarget}
-                            // $('#detailsHeading').html(data2);
-
                             // SOURCE CLICK
                             $("#srcDatasetLI").on('click', function()
                             {
-                              // var message = data2['subjectTarget']; //$('#messageInput2').val();
-                            	// $('#linktarget5').html(message);
-                              // $('#trgDataset').hide();
-                              // $('#srcDataset').show();
                               $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
                               {
                                 $('#srcDetails').html(data);
@@ -204,147 +194,214 @@ function modeInvestigation(val)
 function showDetails(graph_uri, detailsDict)
 {
   // inspect_linkset_linkset_details_col
-      var graph_uri = graph_uri;
-      var graph_label = graph_uri;
-      var subjectTarget = detailsDict.subTarget_stripped.value;
-      var objectTarget = detailsDict.objTarget_stripped.value;
-      var subjectTarget_uri = detailsDict.subTarget.value;
-      var objectTarget_uri = detailsDict.objTarget.value;
-      var graph_triples = detailsDict.triples.value;
-      var alignsSubjects = detailsDict.s_property.value;
-      var alignsObjects = detailsDict.o_property.value;
-      var alignsMechanism = detailsDict.mechanism.value;
-      var operator = detailsDict.operator.value;;
+  var graph_uri = graph_uri;
+  var graph_label = graph_uri;
+  var subjectTarget = detailsDict.subTarget_stripped.value;
+  var objectTarget = detailsDict.objTarget_stripped.value;
+  var subjectTarget_uri = detailsDict.subTarget.value;
+  var objectTarget_uri = detailsDict.objTarget.value;
+  var graph_triples = detailsDict.triples.value;
+  var alignsSubjects = detailsDict.s_property.value;
+  var alignsObjects = detailsDict.o_property.value;
+  var alignsMechanism = detailsDict.mechanism.value;
+  var operator = detailsDict.operator.value;;
 
-      hideColDiv('divInvestigation');
+  hideColDiv('divInvestigation');
 
-      if (operator) // THEN IT IS A LENS
-      { div = 'creation_lens_correspondence_col'
-      }
-      else
-      { div = 'creation_linkset_correspondence_col'
-      }
-      $('#'+div).show();
-      $('#'+div).html('Loading...');
+  if (operator) // THEN IT IS A LENS
+  { div = 'creation_lens_correspondence_col'
+  }
+  else
+  { div = 'creation_linkset_correspondence_col'
+  }
+  $('#'+div).show();
+  $('#'+div).html('Loading...');
 
-      // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
-      $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
-                                        'graph_triples': graph_triples,
-                                        'operator': operator,
-                                        'alignsMechanism': alignsMechanism},function(data)
+  // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
+  $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
+                                    'graph_triples': graph_triples,
+                                    'operator': operator,
+                                    'alignsMechanism': alignsMechanism},function(data)
+  {
+      // LOAD THE CORRESPONDENCES DIV WITH THE LIST OF CORRESPONDENCES
+      $('#'+div).html(data);
+
+      // CLICK ON INDIVIDUAL CORRESPONDENCE TO READ DETAILS ABOUT WHY IT
+      // WAS CREATED AND VALIDATE OR REJECTS IT
+      $('#'+div+" a").on('click', function()
       {
-          // LOAD THE CORRESPONDENCES DIV WITH THE LIST OF CORRESPONDENCES
-          $('#'+div).html(data);
+          var item_id = $(this).attr('id');
+          var uri = $(this).attr('uri');
+          var sub_uri = $(this).attr('sub_uri');
+          var obj_uri = $(this).attr('obj_uri');
 
-          // CLICK ON INDIVIDUAL CORRESPONDENCE TO READ DETAILS ABOUT WHY IT
-          // WAS CREATED AND VALIDATE OR REJECTS IT
-          $('#'+div+" a").on('click', function()
+          //HANDLING THE SELECTION/DE-SELECTION OF CLICKED CORRESPONDENCES
+          var parent = findAncestor(this, "list-group");
+          var selected = $(parent).attr('target');
+          if (selected)
           {
-              var uri = $(this).attr('uri');
-              var sub_uri = $(this).attr('sub_uri');
-              var obj_uri = $(this).attr('obj_uri');
+            var elem = document.getElementById(selected);
+            // de-selected previously selected item
+            selectListItem(elem);
+          }
+          // select previously selected item
+          selectListItem(this);
+          // saving the currently selected correspondence
+          parent.setAttribute("target",$(this).attr('id'));
 
-              //HANDLING THE SELECTION/DE-SELECTION OF CLICKED CORRESPONDENCES
-              var parent = findAncestor(this, "list-group");
-              var selected = $(parent).attr('target');
-              if (selected)
+          var data = {'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
+                            'subjectTarget': subjectTarget,
+                            'objectTarget': objectTarget,
+                            'alignsSubjects': alignsSubjects,
+                            'alignsObjects': alignsObjects}
+
+          // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
+          if (operator) // THEN IT IS A LENS
+          {
+              $.get('/getLensDetail1',data=data,function(data)
               {
-                var elem = document.getElementById(selected);
-                // de-selected previously selected item
-                selectListItem(elem);
-              }
-              // select previously selected item
-              selectListItem(this);
-              // saving the currently selected correspondence
-              parent.setAttribute("target",$(this).attr('id'));
+                  // DETAIL liST COLUMN
+                  $('#details_list_col').html(data);
 
-              var data = {'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
-                                'subjectTarget': subjectTarget,
-                                'objectTarget': objectTarget,
-                                'alignsSubjects': alignsSubjects,
-                                'alignsObjects': alignsObjects}
-
-              // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
-              if (operator) // THEN IT IS A LENS
-              {
-                  $.get('/getLensDetail1',data=data,function(data)
+                  // SOURCE CLICK
+                  $("#srcDatasetLI").on('click', function()
                   {
-                      // DETAIL liST COLUMN
-                      $('#details_list_col').html(data);
+                    var dataset = $(this).attr('dataset');
+                    //$('#linktarget5').html('Hello');
 
-                      // SOURCE CLICK
-                      $("#srcDatasetLI").on('click', function()
-                      {
-                        var dataset = $(this).attr('dataset');
-                        //$('#linktarget5').html('Hello');
-
-                        $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
-                        {
-                          $('#srcDetails1').html(data);
-                        });
-                      });
-
-                       // TARGET CLICK
-                      $("#trgDatasetLI").on('click', function()
-                      {
-                        var dataset = $(this).attr('dataset');
-                        $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
-                        {
-                          $('#trgDetails1').html(data);
-                        });
-                      });
-
+                    $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
+                    {
+                      $('#srcDetails1').html(data);
+                    });
                   });
-              }
-              else
-              {
-                  // GEt CORRESPONDENCE DETAILS
-                  $.get('/getdetails',data=data,function(data)
+
+                   // TARGET CLICK
+                  $("#trgDatasetLI").on('click', function()
                   {
-                      // DETAIL liST COLUMN
-                      $('#details_list_col').html(data);
-
-                      // SOURCE CLICK
-                      $("#srcDatasetLI").on('click', function()
-                      {
-                        $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
-                        {
-                          $('#srcDetails').html(data);
-                        });
-                      });
-
-                       // TARGET CLICK
-                      $("#trgDatasetLI").on('click', function()
-                      {
-                        $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
-                        {
-                          $('#trgDetails').html(data);
-                        });
-                      });
+                    var dataset = $(this).attr('dataset');
+                    $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
+                    {
+                      $('#trgDetails1').html(data);
+                    });
                   });
-              }
-
-              $.get('/getevidence',data={'singleton_uri': uri},function(data)
-              {
-                $('#evidence_list_col').html(data);
-
-                $('#ValidationYes_btn').on('click', function(e)
-                {
-                   var validation_text = $('#validation_textbox').val();
-                   var predicate = 'http://example.com/predicate/good';
-                   $.get('/updateevidence',data={'singleton_uri': uri, 'predicate': predicate, 'validation_text': validation_text},function(data){});
-                 });
-
-                $('#ValidationNo_btn').on('click', function(e)
-                {
-                     var validation_text = $('#validation_textbox').val();
-                   var predicate = 'http://example.com/predicate/bad';
-                   $.get('/updateevidence',data={'singleton_uri': uri, 'predicate': predicate, 'validation_text': validation_text},function(data){});
-                 });
 
               });
+          }
+          else
+          {
+              // GEt CORRESPONDENCE DETAILS
+              $.get('/getdetails',data=data,function(data)
+              {
+                  // DETAIL liST COLUMN
+                  $('#details_list_col').html(data);
 
+                  // SOURCE CLICK
+                  $("#srcDatasetLI").on('click', function()
+                  {
+                    $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
+                    {
+                      $('#srcDetails').html(data);
+                      $("#srcDetails li").on('click', function()
+                      {  selectListItemUniqueWithTarget(this);
+                      });
+                    });
+                  });
+
+                   // TARGET CLICK
+                  $("#trgDatasetLI").on('click', function()
+                  {
+                    $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
+                    {
+                      $('#trgDetails').html(data);
+                      $("#trgDetails li").on('click', function()
+                      {  selectListItemUniqueWithTarget(this);
+                      });
+                    });
+                  });
+              });
+          }
+
+          $.get('/getevidence',data={'singleton_uri': uri},function(data)
+          {
+              $('#evidence_list_col').html(data);
           });
 
       });
+
+  });
+}
+
+
+function validationSaveOnClick()
+{
+  // retrieve the uri of the selected singleton
+  var lg = document.getElementById('corresp_list_group');
+  var graph_uri = $(lg).attr("uri");
+  var target = $(lg).attr("target");
+  var elem = document.getElementById(target);
+  var uri = $(elem).attr("uri");
+
+  // if the validation option selected is reject&refine
+  if(document.getElementById('ValidationRefine_btn').checked) {
+       // retrieve the selected properties, if any
+
+       // get the selected predicate within the source div
+       var selected_elems = selectedElemsInDiv('srcDetails');
+       if (selected_elems.length > 0)
+       { var pred_source = selected_elems[0];} //assuming only one is selected
+
+       // get the selected predicate within the target div
+       var selected_elems = selectedElemsInDiv('trgDetails');
+       if (selected_elems.length > 0)
+       { var pred_target = selected_elems[0];} //assuming only one is selected
+
+       // if both properties are selected
+       if (pred_source && pred_target)
+       {
+           // load the Edit Panel, "as-if" the button refine wasc clicked
+           //  but without realoding, i.e. the selected linkset is maintained
+           $('#creation_linkset_correspondence_row').hide();
+           btn = document.getElementById('btn_refine_linkset');
+           newSelectButton(btn);
+           $('#creation_linkset_row').show();
+           activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
+           loadEditPanel(graph_uri, mode='reject-refine');
+
+           // load the properties selected for refinement
+           setAttr('trg_selected_pred','uri',$(pred_target).attr('uri'));
+           $('#trg_selected_pred').html($(pred_target).attr('label'));
+           setAttr('src_selected_pred','uri',$(pred_source).attr('uri'));
+           $('#src_selected_pred').html($(pred_source).attr('label'));
+       }
+       else
+       {
+           $('#evidence_message_col').html("Select a pair of properties in the above panel <strong>Details</strong>");
+       }
+  }
+  else
+  {
+     var validation_text = $('#validation_textbox').val();
+
+     // if the validation option selected is agreement
+     if(document.getElementById('ValidationYes_btn').checked)
+     {   var predicate = 'http://example.com/predicate/good';
+     } else
+     // if the validation option selected is disagreement
+     if(document.getElementById('ValidationNo_btn').checked)
+     {    var predicate = 'http://example.com/predicate/bad';
+     }
+
+     // register the agreement comment as evidence
+     $.get('/updateevidence',data={'singleton_uri': uri,
+                                   'predicate': predicate,
+                                   'validation_text': validation_text},
+                             function(data){
+        // reload the evidences
+        $.get('/getevidence',data={'singleton_uri': uri},function(data)
+          {
+              $('#evidence_list_col').html(data);
+          });
+     });
+
+  }
 }

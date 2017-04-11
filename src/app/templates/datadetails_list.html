@@ -1,8 +1,6 @@
-<!-- <a href="#" class="list-group-item" >
-<span class="list-group-item-heading" > -->
-<div class="list-group" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+<div class="list-group" target="" style='scroll: both; overflow: auto; height: 14em; width: 100%;'>
         {% for e in dataDetails|sort(attribute='pred_stripped') %}
-            <li class="list-group-item" uri='{{e.pred.value }}'
+            <li class="list-group-item" id='DT{{e.pred.value }}' uri='{{e.pred.value }}'
                 onclick='{{ function }}'
                 label='{{ e.pred_stripped.value }}'>
                 <span class="list-group-item-heading">{{ e.pred_stripped.value }}</span>
@@ -15,4 +13,3 @@
             </li>
         {% endfor %}
 </div>
-<!-- </span></a> -->

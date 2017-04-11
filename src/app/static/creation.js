@@ -386,59 +386,20 @@ function inspect_linkset_activate(mode)
             { $('#inspect_linkset_linkset_details_col').html(data);
             });
 
-            // load the panel for editing/refining linkset
-            if (mode == 'refine' || mode == 'edit' || 'inspect')
+            if (mode == 'refine' || mode == 'edit')
             {
-              // enableButtons(document.getElementById('creation_linkset_buttons_col'), enable=false);
-              $.get('/getlinksetdetails',data={'linkset': linkset_uri,
+               $('#creation_linkset_row').show();
+               loadEditPanel(linkset_uri, mode);
+            }
+            else if (mode == 'inspect')
+            {
+               $('#creation_linkset_correspondence_row').show();
+               $.get('/getlinksetdetails',data={'linkset': linkset_uri,
                                                'template': 'none'},function(data)
-              {
+               {
                 var obj = JSON.parse(data);
-
-                if (mode == 'refine' || mode == 'edit')
-                {
-                  $('#creation_linkset_row').show();
-
-                  setAttr('hidden_src_div','uri',obj.subTarget.value);
-                  setAttr('hidden_src_div','label',obj.subTarget_stripped.value);
-                  datasetClick(document.getElementById('hidden_src_div'));
-
-                  setAttr('hidden_trg_div','uri',obj.objTarget.value);
-                  setAttr('hidden_trg_div','label',obj.objTarget_stripped.value);
-                  datasetClick(document.getElementById('hidden_trg_div'));
-
-                  setAttr('src_selected_entity-type','uri',obj.s_datatype.value);
-                  setAttr('src_selected_entity-type','style','background-color:lightblue');
-                  $('#src_selected_entity-type').html(obj.s_datatype_stripped.value);
-
-                  setAttr('trg_selected_entity-type','uri',obj.o_datatype.value);
-                  setAttr('trg_selected_entity-type','style','background-color:lightblue');
-                  $('#trg_selected_entity-type').html(obj.o_datatype_stripped.value);
-
-                  if (mode == 'refine')
-                  {
-                    $('#button-src-entity-type-col').hide();
-                    $('#button-trg-entity-type-col').hide();
-                    $('#button-src-col').hide();
-                    $('#button-trg-col').hide();
-                  }
-                  else if (mode == 'edit')
-                  {
-                    $('#button-src-entity-type-col').show();
-                    $('#button-trg-entity-type-col').show();
-                    $('#button-src-col').hide();
-                    $('#button-trg-col').hide();
-                  }
-
-                }
-                else if (mode == 'inspect')
-                {
-                   $('#creation_linkset_correspondence_row').show();
-                   showDetails(linkset_uri, obj);
-                }
-                // enableButtons(document.getElementById('creation_linkset_buttons_col'), enable=true);
-              });
-
+                showDetails(linkset_uri, obj);
+               });
             }
 
           }
@@ -449,6 +410,69 @@ function inspect_linkset_activate(mode)
      });
   }
 }
+
+
+
+function loadEditPanel(linkset_uri, mode)
+{
+   $.get('/getlinksetdetails',data={'linkset': linkset_uri,
+                                   'template': 'none'},function(data)
+   {
+    var obj = JSON.parse(data);
+
+    setAttr('hidden_src_div','uri',obj.subTarget.value);
+    setAttr('hidden_src_div','label',obj.subTarget_stripped.value);
+
+    setAttr('hidden_trg_div','uri',obj.objTarget.value);
+    setAttr('hidden_trg_div','label',obj.objTarget_stripped.value);
+
+    if (mode == 'refine' || mode == 'edit')
+    {
+        datasetClick(document.getElementById('hidden_src_div'));
+        datasetClick(document.getElementById('hidden_trg_div'));
+    }
+    else
+    {
+        setAttr('src_selected_graph','uri',obj.subTarget.value);
+        setAttr('src_selected_graph','style','background-color:lightblue');
+        $('#src_selected_graph').html(obj.subTarget_stripped.value);
+        setAttr('trg_selected_graph','uri',obj.objTarget.value);
+        setAttr('trg_selected_graph','style','background-color:lightblue');
+        $('#trg_selected_graph').html(obj.objTarget_stripped.value);
+    }
+
+    setAttr('src_selected_entity-type','uri',obj.s_datatype.value);
+    setAttr('src_selected_entity-type','style','background-color:lightblue');
+    $('#src_selected_entity-type').html(obj.s_datatype_stripped.value);
+
+    setAttr('trg_selected_entity-type','uri',obj.o_datatype.value);
+    setAttr('trg_selected_entity-type','style','background-color:lightblue');
+    $('#trg_selected_entity-type').html(obj.o_datatype_stripped.value);
+
+    if (mode == 'reject-refine')
+    {
+        setAttr('src_selected_pred','style','background-color:lightblue');
+        setAttr('trg_selected_pred','style','background-color:lightblue');
+    }
+
+    if (mode == 'refine' || mode == 'reject-refine')
+    {
+    $('#button-src-entity-type-col').hide();
+    $('#button-trg-entity-type-col').hide();
+    $('#button-src-col').hide();
+    $('#button-trg-col').hide();
+    }
+    else if (mode == 'edit')
+    {
+    $('#button-src-entity-type-col').show();
+    $('#button-trg-entity-type-col').show();
+    $('#button-src-col').hide();
+    $('#button-trg-col').hide();
+    }
+   });
+
+}
+
 
 // Button that activates the linkset creation div.
 // It fires the request /getdatasetsperrq and  the resulting list_dropdown are
@@ -660,14 +684,9 @@ function inspect_lens_activate(mode)
 {
   var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
 
-  // if (mode == 'import') {
-  //   $('#inspect_heading_panel').hide()
-  //   $('#import_heading_panel').show()
-  // }
-  // else {
-  //   $('#import_heading_panel').hide()
-  //   $('#inspect_heading_panel').show()
-  // }
+  $('#creation_lens_correspondence_row').hide();
+  $('#creation_lens_correspondence_col').html('');
+  $('#details_list_col').html('');
 
   if (rq_uri)
   {
@@ -1367,6 +1386,9 @@ function refresh_create_linkset(mode='all')
 
 
       $('#inspect_linkset_linkset_details_col').html("");
+      $('#creation_linkset_correspondence_row').hide();
+      $('#creation_linkset_correspondence_col').html('');
+      $('#details_list_col').html('');
     }
 
     if (mode == 'all' || mode == 'source')

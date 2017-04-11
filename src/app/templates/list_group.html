@@ -2,7 +2,9 @@
 <span class="list-group-item-heading" > -->
 <div class="list-group" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
         {% for l in list|sort(attribute='uri_stripped') %}
-            <a href="javascript:void();" class="list-group-item" uri='{{l.uri.value }}' label='{{ l.uri_stripped.value }}'>
+            <a href="javascript:void();" class="list-group-item"
+                id='LGI{{l.uri.value }}'
+                uri='{{l.uri.value }}' label='{{ l.uri_stripped.value }}'>
                 <span class="list-group-item-heading">
                 {% if (l.mode.value == 'info') or (l.mode.value == 'warning') or
                       (l.mode.value == 'danger') or (l.mode.value == 'success')%}

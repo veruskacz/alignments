@@ -177,6 +177,38 @@ function selectedElemsInGroupList(item_name)
   return elems
 }
 
+function selectedElemsInDiv(item_name)
+{
+    var elems = [];
+    var elem = document.getElementById(item_name);
+    // get the list-group within that div
+    var list_group = elem.getElementsByClassName('list-group');
+    if (list_group.length > 0)
+    {
+      elem = list_group[0]; //assuming only one
+      // get all the selected elements within the list group
+      elems = elem.getElementsByClassName('list-group-item-warning');
+    }
+    return elems
+}
+
+function selectListItemUniqueWithTarget(item)
+{
+  var parent = findAncestor(item, "list-group");
+  var selected = $(parent).attr('target');
+  if (selected)
+  {
+    var elem = document.getElementById(selected);
+    // de-selected previously selected item
+    selectListItem(elem);
+  }
+  // select previously selected item
+  selectListItem(item);
+  // saving the currently selected correspondence
+  parent.setAttribute("target",$(item).attr('id'));
+  return true
+}
+
 function findAncestor (el, cls) {
     while ((el = el.parentElement) && !el.classList.contains(cls));
     return el;

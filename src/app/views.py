@@ -140,7 +140,8 @@ def correspondences():
                             operator = operator,
                             graph_menu = graph_menu,
                             correspondences = correspondences,
-                            graph_label = graph_label,
+                            graph_uri = graph_uri,
+                            graph_label = get_URI_local_name(graph_label),
                             graph_triples = graph_triples,
                             alignsMechanism = alignsMechanism)
 
@@ -196,7 +197,10 @@ def linksetdetails():
     query = Qry.get_linkset_corresp_details(linkset, limit=10)
     details = sparql(query, strip=True)
 
-    d = details[0]
+    if details:
+        d = details[0]
+    else:
+        return 'NO RESULTS!'
 
     if PRINT_RESULTS:
         print "\n\nDETAILS:", details
@@ -408,7 +412,7 @@ def dataDetails():
     It queries the dataset for both all the correspondences in a certain graph URI
     Expected Input: uri, label (for the graph)
     The results, ...,
-        are passed as parameters to the template correspondences_list.html
+        are passed as parameters to the template datadetails_list.html
     """
 
     resource_uri = request.args.get('resource_uri', '')

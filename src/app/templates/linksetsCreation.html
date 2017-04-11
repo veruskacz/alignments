@@ -23,7 +23,7 @@
             activateTargetDiv(targetId="item_identity");
             inspect_linkset_activate(mode="edit")'
             >Edit</button>
-    <button type="button" class="btn btn-primary disabled"
+    <button type="button" id="btn_refine_linkset" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
             activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
@@ -37,6 +37,7 @@
   </div>
  </div>
 </div>
+
 <div class="panel-body">
  <div class="row">
   <div class="col-md-12" id="creation_linkset_select_RQ_col">
@@ -260,14 +261,14 @@
   </div>
  </div>
 
- <div class="row creation" id="creation_linkset_correspondence_row"style='display:none'>
+ <div class="row creation" id="creation_linkset_correspondence_row" style='display:none'>
   <div class="col-md-12" >
     <div class="panel panel-default">
     <div class="panel-heading" id="linkset_investigation_heading_panel">
       <h4>Investigate Linkset Conrrespondences</h4></div>
     <div class="panel-body">
       <div class="row">
-        <div class="col-md-20" id="creation_linkset_correspondence_col" style='display:none'></div>
+        <div class="col-md-12" id="creation_linkset_correspondence_col" style='display:none'></div>
       </div>
     </div>
    </div>
