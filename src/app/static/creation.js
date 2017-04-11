@@ -33,6 +33,13 @@ function idea_button(targetId)
   var btn = document.getElementById('btn_inspect_idea');
   btn.onclick();
   //alert('Ending Research question');
+
+  if ($('#creation_idea_selected_RQ').attr('uri'))
+   {
+        elem = document.getElementById('creation_idea_selected_RQ');
+        rqClick(elem, mode='idea');
+   }
+
 }
 
 function linkset_button(targetId)
@@ -48,6 +55,12 @@ function linkset_button(targetId)
      //load the results rendered as a button into a div-col
      $('#button_creation_linkset_RQ_col').html(data);
    });
+
+   if ($('#creation_linkset_selected_RQ').attr('uri'))
+   {
+        elem = document.getElementById('creation_linkset_selected_RQ');
+        rqClick(elem, mode='linkset');
+   }
 }
 
 function lens_button(targetId)
@@ -62,6 +75,12 @@ function lens_button(targetId)
      //load the results rendered as a button into a div-col
      $('#button_rq_creation_lens_col').html(data);
    });
+
+   if ($('#creation_lens_selected_RQ').attr('uri'))
+   {
+        elem = document.getElementById('creation_lens_selected_RQ');
+        rqClick(elem, mode='lens');
+   }
 
   //  $.get('/getrquestions',function(data)
   //  {
@@ -137,6 +156,12 @@ function view_button(targetId)
        $('#creation_view_col').show();
        $('#button_rq_creation_view_col').html(data);
    });
+
+   if ($('#creation_view_selected_RQ').attr('uri'))
+   {
+        elem = document.getElementById('creation_view_selected_RQ');
+        rqClick(elem, mode='view');
+   }
 
 }
 
@@ -686,7 +711,7 @@ function inspect_lens_activate(mode)
 
   $('#creation_lens_correspondence_row').hide();
   $('#creation_lens_correspondence_col').html('');
-  $('#details_list_col').html('');
+  $('#inspect_lens_lens_details_col').html('');
 
   if (rq_uri)
   {
@@ -1166,11 +1191,9 @@ function rqClick(th, mode)
 
   switch (mode) {
       case 'linkset':
-          var target = 'creation_linkset_selected_RQ'
+          //var target = 'creation_linkset_selected_RQ'
 
-          refresh_create_linkset();
           enableButtons(document.getElementById('creation_linkset_buttons_col'));
-          // enableButton('createLinksetButton');
 
           // get the datasets for the selected rq
           // show the creation_linkset_row with a loading message
@@ -1178,9 +1201,8 @@ function rqClick(th, mode)
 
           break;
       case 'lens':
-          var target = 'creation_lens_selected_RQ';
+          //var target = 'creation_lens_selected_RQ';
 
-          //refresh_create_linkset();
           enableButtons(document.getElementById('creation_lens_buttons_col'));
 
           // get the datasets for the selected rq
@@ -1188,13 +1210,13 @@ function rqClick(th, mode)
           var btn = document.getElementById('btn_inspect_lens');
           break;
       case 'idea':
-          var target = 'creation_idea_selected_RQ';
+          //var target = 'creation_idea_selected_RQ';
           var btn = null;
           update_idea_enable(rq_uri);
           overview_idea_enable(rq_uri);
           break;
       case 'view':
-          var target = 'creation_view_selected_RQ';
+          //var target = 'creation_view_selected_RQ';
           enableButtons(document.getElementById('creation_views_buttons_col'));
           refresh_create_view();
           var btn = document.getElementById('btn_inspect_view');
@@ -1202,7 +1224,27 @@ function rqClick(th, mode)
   }
 
   //set target div with selected RQ
+  var target = 'creation_linkset_selected_RQ';
   setAttr(target,'uri',rq_uri);
+  setAttr(target,'label',rq_label);
+  setAttr(target,'style','background-color:lightblue');
+  $('#'+target).html(rq_label);
+
+  target = 'creation_lens_selected_RQ';
+  setAttr(target,'uri',rq_uri);
+  setAttr(target,'label',rq_label);
+  setAttr(target,'style','background-color:lightblue');
+  $('#'+target).html(rq_label);
+
+  var target = 'creation_view_selected_RQ';
+  setAttr(target,'uri',rq_uri);
+  setAttr(target,'label',rq_label);
+  setAttr(target,'style','background-color:lightblue');
+  $('#'+target).html(rq_label);
+
+  var target = 'creation_idea_selected_RQ';
+  setAttr(target,'uri',rq_uri);
+  setAttr(target,'label',rq_label);
   setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
 
@@ -1388,7 +1430,9 @@ function refresh_create_linkset(mode='all')
       $('#inspect_linkset_linkset_details_col').html("");
       $('#creation_linkset_correspondence_row').hide();
       $('#creation_linkset_correspondence_col').html('');
-      $('#details_list_col').html('');
+//      $('#creation_lens_correspondence_row').hide();
+//      $('#creation_lens_correspondence_col').html('');
+      //$('#details_list_col').html('');
     }
 
     if (mode == 'all' || mode == 'source')
@@ -1436,7 +1480,11 @@ function refresh_create_lens(mode='all')
     $('#lens_creation_message_col').html("");
     $('#selected_operator').html("Select a Operator");
     $('#selected_operator_desc').html("Operator Description");
-
+//    $('#creation_linkset_correspondence_row').hide();
+//    $('#creation_linkset_correspondence_col').html('');
+    $('#creation_lens_correspondence_row').hide();
+    $('#creation_lens_correspondence_col').html('');
+    $('#inspect_lens_lens_details_col').html('');
 }
 
 function refresh_create_idea()

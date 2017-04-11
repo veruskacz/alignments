@@ -1,10 +1,8 @@
-<!--<div id="linktarget5" class='well'>This is where your message will be copied to.</div>-->
 <div class="panel panel-primary">
-    <div class="panel-heading" id="detailsHeading1"><h4><strong>Details</strong></h4>
+    <div class="panel-heading" id="detailsHeadingLS"><h4><strong>Details</strong></h4>
         <div class="list-group" style='scroll: both; overflow: auto; height: 8em;'>
             {% for dh in detailHeadings %}
             <a href="#" class="list-group-item" >
-              <!--<span class="badge alert-info">-->
                In graph:<span class="list-group-item-heading" style="color:blue"><strong>{{dh.graph_stripped.value}}</strong></span>
                 , the dataset.property
               <span class="list-group-item-heading" style="color:blue">
@@ -16,7 +14,6 @@
                 </span>
               using method:<span class="list-group-item-heading" style="color:blue"><strong>{{dh.alignsMechanism_stripped.value}}</strong>
                 </span>
-              <!--</span> <br/>-->
             </a>
             {% endfor %}
         </div>

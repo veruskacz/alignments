@@ -77,7 +77,7 @@ function modeInvestigation(val)
                         $.get('/getLensDetail1',data=data,function(data)
                         {
                             // DETAIL liST COLUMN
-                            $('#details_list_col').html(data);
+                            $('#lens_details_list_col').html(data);
 
                             // SOURCE CLICK
                             $("#srcDatasetLI").on('click', function()
@@ -209,16 +209,19 @@ function showDetails(graph_uri, detailsDict)
   hideColDiv('divInvestigation');
 
   if (operator) // THEN IT IS A LENS
-  { div = 'creation_lens_correspondence_col'
+  { div = 'creation_lens_correspondence_col';
+    graph_menu = 'lens';
   }
   else
-  { div = 'creation_linkset_correspondence_col'
+  { div = 'creation_linkset_correspondence_col';
+    graph_menu = 'linkset';
   }
   $('#'+div).show();
   $('#'+div).html('Loading...');
 
   // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
   $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
+                                    'graph_menu': graph_menu,
                                     'graph_triples': graph_triples,
                                     'operator': operator,
                                     'alignsMechanism': alignsMechanism},function(data)
@@ -236,18 +239,7 @@ function showDetails(graph_uri, detailsDict)
           var obj_uri = $(this).attr('obj_uri');
 
           //HANDLING THE SELECTION/DE-SELECTION OF CLICKED CORRESPONDENCES
-          var parent = findAncestor(this, "list-group");
-          var selected = $(parent).attr('target');
-          if (selected)
-          {
-            var elem = document.getElementById(selected);
-            // de-selected previously selected item
-            selectListItem(elem);
-          }
-          // select previously selected item
-          selectListItem(this);
-          // saving the currently selected correspondence
-          parent.setAttribute("target",$(this).attr('id'));
+          selectListItemUniqueWithTarget(this);
 
           var data = {'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
                             'subjectTarget': subjectTarget,
@@ -258,30 +250,33 @@ function showDetails(graph_uri, detailsDict)
           // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
           if (operator) // THEN IT IS A LENS
           {
+              $('#inspect_linkset_linkset_details_col').html('');
+              $('#inspect_linkset_linkset_details_col').hide();
+              var evidence_div = '#lens_evidence_list_col';
               $.get('/getLensDetail1',data=data,function(data)
               {
                   // DETAIL liST COLUMN
-                  $('#details_list_col').html(data);
+                  $('#lens_details_list_col').html(data);
 
                   // SOURCE CLICK
-                  $("#srcDatasetLI").on('click', function()
+                  $("#srcDatasetLS").on('click', function()
                   {
                     var dataset = $(this).attr('dataset');
                     //$('#linktarget5').html('Hello');
 
                     $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
                     {
-                      $('#srcDetails1').html(data);
+                      $('#srcDetailsLS').html(data);
                     });
                   });
 
                    // TARGET CLICK
-                  $("#trgDatasetLI").on('click', function()
+                  $("#trgDatasetLS").on('click', function()
                   {
                     var dataset = $(this).attr('dataset');
                     $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
                     {
-                      $('#trgDetails1').html(data);
+                      $('#trgDetailsLS').html(data);
                     });
                   });
 
@@ -289,6 +284,7 @@ function showDetails(graph_uri, detailsDict)
           }
           else
           {
+              var evidence_div = '#evidence_list_col';
               // GEt CORRESPONDENCE DETAILS
               $.get('/getdetails',data=data,function(data)
               {
@@ -323,7 +319,7 @@ function showDetails(graph_uri, detailsDict)
 
           $.get('/getevidence',data={'singleton_uri': uri},function(data)
           {
-              $('#evidence_list_col').html(data);
+              $(evidence_div).html(data);
           });
 
       });
@@ -331,77 +327,115 @@ function showDetails(graph_uri, detailsDict)
   });
 }
 
+function validationRadioOnClick()
+{
+    var value1 = 'x';
+    var value2 = 'y';
+    var pred1 = 'px';
+    var pred2 = 'py';
+    var dataset1 = 'dsx';
+    var dataset2 = 'dsy';
+    var text = ' based on the values '
+                + value1 + ' and ' + value2 + ' respectively of the properties '
+                + pred1 + ' from ' + dataset1 + ' and '
+                + pred2 + ' from ' + dataset2;
+
+    if(document.getElementById('ValidationRefine_btn').checked) {
+        text = 'I disagree with this particular alignment ' + text;
+    } else if(document.getElementById('ValidationYes_btn').checked) {
+        text = 'I agree with this particular alignment ' + text;
+    } else if(document.getElementById('ValidationNo_btn').checked) {
+        pred1 = 'px0'; //SourceAligns
+        pred2 = 'py0'; //TargetAligns
+        text = 'I agree with the general alignment of the properties '
+                + pred1 + ' from ' + dataset1 + ' and '
+                + pred2 + ' from ' + dataset2
+                + ' but I diseagree with this particular aligment ' + text;
+    }
+    else { text = '';
+    }
+
+    $('#validation_textbox').val(text);
+}
+
 
 function validationSaveOnClick()
 {
-  // retrieve the uri of the selected singleton
-  var lg = document.getElementById('corresp_list_group');
-  var graph_uri = $(lg).attr("uri");
-  var target = $(lg).attr("target");
-  var elem = document.getElementById(target);
-  var uri = $(elem).attr("uri");
-
-  // if the validation option selected is reject&refine
-  if(document.getElementById('ValidationRefine_btn').checked) {
-       // retrieve the selected properties, if any
-
-       // get the selected predicate within the source div
-       var selected_elems = selectedElemsInDiv('srcDetails');
-       if (selected_elems.length > 0)
-       { var pred_source = selected_elems[0];} //assuming only one is selected
-
-       // get the selected predicate within the target div
-       var selected_elems = selectedElemsInDiv('trgDetails');
-       if (selected_elems.length > 0)
-       { var pred_target = selected_elems[0];} //assuming only one is selected
-
-       // if both properties are selected
-       if (pred_source && pred_target)
-       {
-           // load the Edit Panel, "as-if" the button refine wasc clicked
-           //  but without realoding, i.e. the selected linkset is maintained
-           $('#creation_linkset_correspondence_row').hide();
-           btn = document.getElementById('btn_refine_linkset');
-           newSelectButton(btn);
-           $('#creation_linkset_row').show();
-           activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
-           loadEditPanel(graph_uri, mode='reject-refine');
-
-           // load the properties selected for refinement
-           setAttr('trg_selected_pred','uri',$(pred_target).attr('uri'));
-           $('#trg_selected_pred').html($(pred_target).attr('label'));
-           setAttr('src_selected_pred','uri',$(pred_source).attr('uri'));
-           $('#src_selected_pred').html($(pred_source).attr('label'));
-       }
-       else
-       {
-           $('#evidence_message_col').html("Select a pair of properties in the above panel <strong>Details</strong>");
-       }
-  }
-  else
+  if ( !(document.getElementById('ValidationRefine_btn').checked) &&
+        !(document.getElementById('ValidationYes_btn').checked) &&
+        !(document.getElementById('ValidationNo_btn').checked) )
+  {  $('#evidence_message_col').html("Select one of the three options bellow.");
+  } else
   {
-     var validation_text = $('#validation_textbox').val();
+      // retrieve the uri of the selected singleton
+      var lg = document.getElementById('corresp_list_group');
+      var graph_uri = $(lg).attr("uri");
+      var target = $(lg).attr("target");
+      var elem = document.getElementById(target);
+      var uri = $(elem).attr("uri");
 
-     // if the validation option selected is agreement
-     if(document.getElementById('ValidationYes_btn').checked)
-     {   var predicate = 'http://example.com/predicate/good';
-     } else
-     // if the validation option selected is disagreement
-     if(document.getElementById('ValidationNo_btn').checked)
-     {    var predicate = 'http://example.com/predicate/bad';
-     }
+      // if the validation option selected is reject&refine
+      if(document.getElementById('ValidationRefine_btn').checked) {
+           // retrieve the selected properties, if any
 
-     // register the agreement comment as evidence
-     $.get('/updateevidence',data={'singleton_uri': uri,
-                                   'predicate': predicate,
-                                   'validation_text': validation_text},
-                             function(data){
-        // reload the evidences
-        $.get('/getevidence',data={'singleton_uri': uri},function(data)
-          {
-              $('#evidence_list_col').html(data);
-          });
-     });
+           // get the selected predicate within the source div
+           var selected_elems = selectedElemsInDiv('srcDetails');
+           if (selected_elems.length > 0)
+           { var pred_source = selected_elems[0];} //assuming only one is selected
 
+           // get the selected predicate within the target div
+           var selected_elems = selectedElemsInDiv('trgDetails');
+           if (selected_elems.length > 0)
+           { var pred_target = selected_elems[0];} //assuming only one is selected
+
+           // if both properties are selected
+           if (pred_source && pred_target)
+           {
+               // load the Edit Panel, "as-if" the button refine wasc clicked
+               //  but without realoding, i.e. the selected linkset is maintained
+               $('#creation_linkset_correspondence_row').hide();
+               btn = document.getElementById('btn_refine_linkset');
+               newSelectButton(btn);
+               $('#creation_linkset_row').show();
+               activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
+               loadEditPanel(graph_uri, mode='reject-refine');
+
+               // load the properties selected for refinement
+               setAttr('trg_selected_pred','uri',$(pred_target).attr('uri'));
+               $('#trg_selected_pred').html($(pred_target).attr('label'));
+               setAttr('src_selected_pred','uri',$(pred_source).attr('uri'));
+               $('#src_selected_pred').html($(pred_source).attr('label'));
+           }
+           else
+           {
+               $('#evidence_message_col').html("Select a pair of properties in the above panel <strong>Details</strong>");
+           }
+      }
+      else
+      {
+         var validation_text = $('#validation_textbox').val();
+
+         // if the validation option selected is agreement
+         if(document.getElementById('ValidationYes_btn').checked)
+         {   var predicate = 'http://example.com/predicate/good';
+         } else
+         // if the validation option selected is disagreement
+         if(document.getElementById('ValidationNo_btn').checked)
+         {    var predicate = 'http://example.com/predicate/bad';
+         }
+
+         // register the agreement comment as evidence
+         $.get('/updateevidence',data={'singleton_uri': uri,
+                                       'predicate': predicate,
+                                       'validation_text': validation_text},
+                                 function(data){
+            // reload the evidences
+            $.get('/getevidence',data={'singleton_uri': uri},function(data)
+              {
+                  $('#evidence_list_col').html(data);
+              });
+         });
+
+      }
   }
 }

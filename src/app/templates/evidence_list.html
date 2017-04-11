@@ -43,13 +43,16 @@
      <div class="row">
          <div class="col-md-12">
             <div class="radio">
-                <label><input id="ValidationYes_btn" type="radio" name="optradio">I <strong>agree</strong> with the alignment in <strong>general</strong> and with this correspondence in <strong>particular</strong>.</label>
+                <label><input id="ValidationYes_btn" type="radio" name="optradio"
+                              onclick="validationRadioOnClick();">I <strong>agree</strong> with the alignment in <strong>general</strong> and with this correspondence in <strong>particular</strong>.</label>
             </div>
             <div class="radio">
-                <label><input id="ValidationNo_btn" type="radio" name="optradio">I <strong>agree</strong> with the alignment in <strong>general</strong> but <strong>disagree</strong> with this correspondence in <strong>particular</strong>. I have selected in "Details" the pair of properties that justifies my disagreement.</label>
+                <label><input id="ValidationNo_btn" type="radio" name="optradio"
+                              onclick="validationRadioOnClick()";>I <strong>agree</strong> with the alignment in <strong>general</strong> but <strong>disagree</strong> with this correspondence in <strong>particular</strong>. I have selected in "Details" the pair of properties that justifies my disagreement.</label>
             </div>
             <div class="radio disabled">
-                <label><input id="ValidationRefine_btn" type="radio" name="optradio">I <strong>disagree</strong> with the alignment in <strong>general</strong> and I want to proceed with a refinement. I have selected in "Details" the pair of properties that justifies my disagreement.</label>
+                <label><input id="ValidationRefine_btn" type="radio" name="optradio"
+                              onclick="validationRadioOnClick();">I <strong>disagree</strong> with the alignment in <strong>general</strong> and I want to proceed with a refinement. I have selected in "Details" the pair of properties that justifies my disagreement.</label>
             </div>
          </div>
      </div>

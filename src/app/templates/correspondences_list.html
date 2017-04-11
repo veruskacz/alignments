@@ -38,10 +38,21 @@
 
     </div>
 
+    {% if graph_menu == 'linkset'%}
     <div class="col-md-8" id="details_list_col">
     </div>
 
     <div class="col-md-8" id="evidence_list_col">
     </div>
+    {%endif%}
+
+    {% if graph_menu == 'lens'%}
+    <div class="col-md-8" id="lens_details_list_col">
+    </div>
+
+    <div class="col-md-8" id="lens_evidence_list_col">
+    </div>
+    {%endif%}
+
 
 </div>
