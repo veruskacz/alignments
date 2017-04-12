@@ -436,6 +436,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
 
 
 def get_graphs_related_to_rq_type(rq_uri, type=None):
+
     if type == "linkset&lens":
         type_filter = """
         # THAT ARE OF TYPE LINKSET OR LENS
