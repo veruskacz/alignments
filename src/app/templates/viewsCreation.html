@@ -19,7 +19,7 @@
             activateTargetDiv(targetId="inspect_views_row",cl="row creation");
             activateTargetDiv(targetId="edit_views_heading",cl="panel-heading");
             inspect_views_activate(mode="edit")'
-            >Edit</button>
+            >Edit</button></h4>
     <!--<button type="button" class="btn btn-primary disabled"-->
             <!--onclick='newSelectButton(this);-->
             <!--activateTargetDiv(targetId="inspect_views_row",cl="row creation");-->
@@ -130,8 +130,8 @@
           <h5><div class="col-md-6 text-right" style="color:red" id="views_import_message_col"></div></h5>
           <div class="col-md-2">
             <button type="button" id="createViewButton" class="btn btn-success"
-                    data-toggle="button" onclick = 'createViewClick()' >
-            Create View</button>
+                    data-toggle="button" onclick = 'createViewClick(mode="check")' >
+            Check View</button>
           </div>
       </div>
   </div>
@@ -190,32 +190,44 @@
 <div class="row creation" id = "creation_view_results_row" style='display:none'>
  <div class="col-md-12">
   <div class="panel panel-info">
-    <div class="panel-heading"><h3>View</h3></div>
+    <div class="panel-heading">
+        <div class="row">
+          <div class="col-md-8"><h3>View</h3></div>
+          <div class="col-md-4">
+            <h4><button type="button"
+                    class="btn btn-primary"
+                    onclick='showQuery(this);'
+                    >Show Query</button>
+            <button type="button" class="btn btn-primary"
+                    onclick='runViewClick();'
+                    >Run Query</button>
+            <button type="button" class="btn btn-primary"
+                    onclick = 'createViewClick(mode="save")'
+                    >Save View</button></h4>
+            <!--<button type="button" class="btn btn-primary disabled"-->
+                    <!--onclick='newSelectButton(this);-->
+                    <!--activateTargetDiv(targetId="inspect_views_row",cl="row creation");-->
+                    <!--activateTargetDiv(targetId="import_views_heading_panel",cl="panel-heading");-->
+                    <!--inspect_views_activate(mode="import")'-->
+                    <!--&gt;Import</button></h4>-->
+          </div>
+         </div>
+    </div>
     <div class="panel-body">
       <div class="row" id="views-row">
       <div class="col-md-12">
-          <div class="row">
+          <div class="row" id="view_query_row" style='display:none'>
           <div class="col-md-12">
-          <p>This is the query to be fired.</p>
+          <!--<p>This is the query to be fired.</p>-->
           <textarea id='queryView' class='sparql' style='width: 100%' rows='20'>
-      SELECT *
-      {
-        GRAPH <http://risis.eu/dataset/leidenRanking>
-          {   ?resource <http://risis.eu/leidenRanking/ontology/predicate/University> ?University .
-              ?resource <http://risis.eu/leidenRanking/ontology/predicate/Country> ?Country .
-              ?resource <http://risis.eu/leidenRanking/ontology/predicate/Field> ?Field .
-          }
-      }
-      LIMIT 10
           </textarea>
-          <div><a id="link14" class='btn btn-primary' onclick = 'runViewClick()'>Run</a></div>
+          <!--<div><a id="link14" class='btn btn-primary' onclick = 'runViewClick()'>Run</a></div>-->
         </div>
         </div>
         <div class="row" id="views-results-row">
         <div class="col-md-12">
-          <h3>Output</h3>
-          <div id="views-results" style='height: 30em; width:100%, scroll: both; overflow: auto;'>
-                  This is where the server response will appear.</div>
+          <!--<h3>Output</h3>-->
+          <div id="views-results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
         </div>
         </div>
 

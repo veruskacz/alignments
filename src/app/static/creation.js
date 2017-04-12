@@ -892,6 +892,9 @@ function create_views_activate()
 {
      var rq_uri = $('#creation_view_selected_RQ').attr('uri');
 //    alert(rq_uri);
+    $('#creation_view_predicates_col').html('');
+    $('#creation_view_selected_predicates_group').html('');
+
 
      $.get('/getdatasetsperrq',data={'rq_uri': rq_uri,
                             'template': 'list_group.html'},function(data)
@@ -1025,7 +1028,7 @@ function inspect_views_activate(mode="inspect")
             //show the creation-panels containing the linksets/lenses
             //and the datasets and properties to be selected
             create_views_activate();
-            // $('#creation_view_row').show();
+            $('#creation_view_row').show();
 
             // load the panel for correspondences details
               $.get('/getviewdetails',data={'rq_uri': rq_uri,
