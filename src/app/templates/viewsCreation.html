@@ -48,9 +48,6 @@
           <div class="well well-sm" id="creation_view_selected_RQ" uri="" label="">Select a Research Question</div>
       </div>
    </div>
-    <div class="row">
-      <h5><div class="col-md-12 text-right" style="color:red" id="view_creation_message_col"></div></h5>
-    </div>
   </div>
 </div>
 
@@ -127,7 +124,7 @@
   <div class="panel-heading">
       <div class="row">
           <div class="col-md-4"><h4>View-Filter</h4></div>
-          <h5><div class="col-md-6 text-right" style="color:red" id="views_import_message_col"></div></h5>
+          <h5><div class="col-md-6 text-right" style="color:red" id="view_creation_message_col"></div></h5>
           <div class="col-md-2">
             <button type="button" id="createViewButton" class="btn btn-success"
                     data-toggle="button" onclick = 'createViewClick(mode="check")' >
@@ -189,10 +186,10 @@
 
 <div class="row creation" id = "creation_view_results_row" style='display:none'>
  <div class="col-md-12">
-  <div class="panel panel-info">
+  <div class="panel panel-default">
     <div class="panel-heading">
         <div class="row">
-          <div class="col-md-8"><h3>View</h3></div>
+          <div class="col-md-8"><h4>View-Result</h4></div>
           <div class="col-md-4">
             <h4><button type="button"
                     class="btn btn-primary"
@@ -204,12 +201,6 @@
             <button type="button" class="btn btn-primary"
                     onclick = 'createViewClick(mode="save")'
                     >Save View</button></h4>
-            <!--<button type="button" class="btn btn-primary disabled"-->
-                    <!--onclick='newSelectButton(this);-->
-                    <!--activateTargetDiv(targetId="inspect_views_row",cl="row creation");-->
-                    <!--activateTargetDiv(targetId="import_views_heading_panel",cl="panel-heading");-->
-                    <!--inspect_views_activate(mode="import")'-->
-                    <!--&gt;Import</button></h4>-->
           </div>
          </div>
     </div>
