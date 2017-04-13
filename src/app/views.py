@@ -42,7 +42,7 @@ if CREATION_ACTIVE:
     import src.Alignments.UserActivities.View as mod_view
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
 else:
-    from app import app
+    from src.app import app
 
 # log = app.logger
 # log.setLevel(logging.DEBUG)
@@ -101,17 +101,29 @@ def graphs():
         print "\n\nLINKSETS:", linksets
         print "LENSES:", lenses
 
-    # TEST
-    # LINKSET = "http://risis.eu/linkset/grid_orgref_C001_exactStrSim"
-    # LENS = "http://risis.eu/lens/union_grid_orgref_C001"
-    # result = list()
-    # result2 = dict()
-    # lens_targets_unique(result, LENS)
-    # lens_targets_details(result2, LENS)
-    # print "\n\nResult2:", result2
-
     # SEND BAK RESULTS
     return render_template('graphs_list.html',linksets = linksets, lenses = lenses)
+
+
+@app.route('/getdatasets')
+def datasets():
+    """
+    This function is called due to request /getdatasets
+    It queries the datasets 
+    The result is passed as parameter to the render the template 
+    """
+    # GET QUERY ABOUT DATASETS
+    template = request.args.get('template', 'list_group.html')
+    function = request.args.get('function', '')
+    query = Qry.get_datasets()
+    # RUN QUERIES AGAINST ENDPOINT
+    datasets = sparql(query, strip=True)
+
+    if PRINT_RESULTS:
+        print "DATASETS:", datasets
+
+    # SEND BAK RESULTS
+    return render_template(template, list = datasets, btn_name = 'datasets', function = function)
 
 
 @app.route('/getcorrespondences', methods=['GET'])

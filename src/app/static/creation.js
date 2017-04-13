@@ -172,7 +172,6 @@ function view_button(targetId)
 
 function create_idea_button(th)
 {
-  // ÷selectMultiButton(th);
   if (selectMultiButton(th)) {
     $('#idea_create_row').show();
     $('#inspect_idea_row').hide();
@@ -183,19 +182,10 @@ function create_idea_button(th)
     btn = document.getElementById('btn_overview_idea');
     resetButton(btn);
 
-//     var rq_selected = document.getElementById('creation_idea_selected_RQ');
-//     rq_selected.setAttribute("uri", "");
-//     $('#creation_idea_selected_RQ').html("");
-//     setAttr('creation_idea_selected_RQ','style','background-color:none');
-//     $('#creation_idea_registered_graphtype_list').html("");
-//     $('#creation_idea_graphtype_list').html("");
-//     $('#creation_idea_selected_graphtype_list').html("");
-//     $('#idea_creation_message_col').html("");
   }
   else {
     $('#idea_create_row').hide();
   }
-//  refresh_create_idea();
 }
 
 function inspect_idea_button(th)
@@ -228,9 +218,6 @@ function inspect_idea_button(th)
      var rq_input = document.getElementById('research_question');
      rq_input.setAttribute("uri", "");
      rq_input.value = "";
-//     $('#creation_idea_registered_graphtype_list').html("");
-//     $('#creation_idea_graphtype_list').html("");
-//     $('#creation_idea_selected_graphtype_list').html("");
   }
   else {
     $('#creation_idea_update_col').hide();
@@ -564,7 +551,9 @@ function createLinksetClick()
 
     if ((Object.keys(srcDict).length) &&
         (Object.keys(trgDict).length) &&
-        ($('#selected_meth').attr('uri'))
+        ($('#selected_meth').attr('uri')) &&
+        ($('#selected_meth').attr('uri') != 'intermediateAlignment' ||
+            $('#selected_int_dataset').attr('uri'))
         )
     {
         var specs = {
@@ -577,7 +566,9 @@ function createLinksetClick()
           'trg_aligns': $('#trg_selected_pred').attr('uri'),
           'trg_entity_datatye': $('#trg_selected_entity-type').attr('uri'),
 
-          'mechanism': $('#selected_meth').attr('uri')
+          'mechanism': $('#selected_meth').attr('uri'),
+
+          'intermediate': $('#selected_int_dataset').attr('uri')
         }
 
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
@@ -860,13 +851,10 @@ function importLensClick()
     for (i = 0; i < elems.length; i++) {
       graphs.push($(elems[i]).attr('uri'));
     }
-//    alert(graphs);
     if (graphs.length > 0)
     {
         var data = {'rq_uri': rq_uri,
                     'graphs[]': graphs};
-
-//        alert(data);
 
         var message = "EXECUTING IMPORT.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
         $('#lens_import_message_col').html(message);
@@ -874,7 +862,6 @@ function importLensClick()
         // call function that creates the linkset
         $.get('/importLens', data, function(data)
         {
-//            alert(data);
             $('#lens_import_message_col').html(data);
         });
     }
@@ -894,6 +881,7 @@ function create_views_activate()
 //    alert(rq_uri);
     $('#creation_view_predicates_col').html('');
     $('#creation_view_selected_predicates_group').html('');
+    $('#view_creation_message_col').html('');
 
 
      $.get('/getdatasetsperrq',data={'rq_uri': rq_uri,
@@ -1282,26 +1270,33 @@ function datasetClick(th)
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue');
 
-    $.get('/getentitytyperq',
-              data={'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
-                    'function': 'entityTypeClick(this);',
-                    'graph_uri': graph_uri},
-              function(data)
-    { // load the rendered template into the target column
-      var button = $(list).attr('targetBtn');
-      $('#'+button).html(data);
-    });
+    var button = $(list).attr('targetBtn');
+    if (button)
+    {
+        $.get('/getentitytyperq',
+                  data={'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
+                        'function': 'entityTypeClick(this);',
+                        'graph_uri': graph_uri},
+                  function(data)
+        { // load the rendered template into the target column
 
+          $('#'+button).html(data);
+        });
+    }
     // Exit a waiting message for the user to know loading time might be long.
+
     var listCol = $(list).attr('targetList');
-    $('#'+listCol).html('Loading...');
-    // get the distinct predicates and example values of a graph into a list group
-    $.get('/getpredicates', data={'dataset_uri': graph_uri,
-                                  'function': 'predicatesClick(this)'},
-                            function(data)
-    {  // load the rendered template into the column target list col
-       $('#'+listCol).html(data);
-    });
+    if (listCol)
+    {
+        $('#'+listCol).html('Loading...');
+        // get the distinct predicates and example values of a graph into a list group
+        $.get('/getpredicates', data={'dataset_uri': graph_uri,
+                                      'function': 'predicatesClick(this)'},
+                                function(data)
+        {  // load the rendered template into the column target list col
+           $('#'+listCol).html(data);
+        });
+    }
 }
 
 // Function fired onclick of a entity type from list it reads from
@@ -1348,6 +1343,7 @@ function methodClick(th)
     var description = '';
     var method = $(th).attr('uri');
     var meth_label = $(th).attr('label');
+    $('#int_dataset_row').hide();
     if (method == 'identity')
     {
       //refresh_create_linkset(mode='pred');
@@ -1386,6 +1382,19 @@ function methodClick(th)
         else if (method == 'geoSim')
         {
           description = 'The method GEO SIMILARITY is used to align the source and the target by detecting whether the values of the selected properties of source and target appear within the same geographical boundary.';
+        }
+        else if (method == 'intermediateAlignment')
+        {
+          description = 'The method MATCH VIA INTERMEDIATE DATASET is used to align the source and the target by using properties that present different descriptions of a same entity, such as country name and country code. This is possible by providing an intermediate dataset that binds the two alternative descriptions to the very same identifier.';
+          $('#int_dataset_row').show();
+          $.get('/getdatasets',
+                  data={'template': 'list_dropdown.html',
+                        'function': 'datasetClick(this);'},
+                  function(data)
+          {
+                $('#button_int_dataset').html(data);
+          });
+
         }
     }
 
@@ -1433,9 +1442,13 @@ function refresh_create_linkset(mode='all')
       $('#inspect_linkset_linkset_details_col').html("");
       $('#creation_linkset_correspondence_row').hide();
       $('#creation_linkset_correspondence_col').html('');
-//      $('#creation_lens_correspondence_row').hide();
-//      $('#creation_lens_correspondence_col').html('');
-      //$('#details_list_col').html('');
+
+      $('#int_dataset_row').hide();
+      elem = document.getElementById('selected_int_dataset');
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+      $('#selected_int_dataset').html("Select a Dataset");
+
     }
 
     if (mode == 'all' || mode == 'source')

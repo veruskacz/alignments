@@ -189,15 +189,12 @@
   <div class="panel panel-default">
     <div class="panel-heading">
         <div class="row">
-          <div class="col-md-8"><h4>View-Result</h4></div>
-          <div class="col-md-4">
+          <div class="col-md-9"><h4>View-Result</h4></div>
+          <div class="col-md-3">
             <h4><button type="button"
                     class="btn btn-primary"
                     onclick='showQuery(this);'
                     >Show Query</button>
-            <button type="button" class="btn btn-primary"
-                    onclick='runViewClick();'
-                    >Run Query</button>
             <button type="button" class="btn btn-primary"
                     onclick = 'createViewClick(mode="save")'
                     >Save View</button></h4>
@@ -207,20 +204,47 @@
     <div class="panel-body">
       <div class="row" id="views-row">
       <div class="col-md-12">
-          <div class="row" id="view_query_row" style='display:none'>
-          <div class="col-md-12">
-          <!--<p>This is the query to be fired.</p>-->
-          <textarea id='queryView' class='sparql' style='width: 100%' rows='20'>
-          </textarea>
-          <!--<div><a id="link14" class='btn btn-primary' onclick = 'runViewClick()'>Run</a></div>-->
-        </div>
-        </div>
-        <div class="row" id="views-results-row">
-        <div class="col-md-12">
-          <!--<h3>Output</h3>-->
-          <div id="views-results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
-        </div>
-        </div>
+          <div class="panel panel-default" id="view_query_row" style='display:none'>
+              <div class="panel-heading">
+                <div class="row">
+                    <div class="col-md-10"><h4>SPARQL Query</h4></div>
+                    <div class="col-md-2">
+                        <h5><button type="button" class="btn btn-primary"
+                            onclick='runViewClick();'
+                        >Run Query</button></h5>
+                    </div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="row" >
+                  <div class="col-md-12">
+                  <textarea id='queryView' class='sparql' style='width: 100%' rows='20'>
+                  </textarea>
+                  </div>
+                </div>
+              </div>
+          </div>
+
+          <div class="panel panel-default">
+              <div class="panel-heading">
+                <div class="row">
+                    <div class="col-md-10"><h4>Result Table</h4></div>
+                    <div class="col-md-2">
+                        <h5><button type="button" class="btn btn-primary"
+                            onclick='downloadTableClick();'
+                        >Download Table</button></h5>
+                    </div>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="row" id="views-results-row">
+                <div class="col-md-12">
+                  <h4></h4>
+                  <div id="views-results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
+                </div>
+                </div>
+              </div>
+          </div>
 
       </div>
       </div>

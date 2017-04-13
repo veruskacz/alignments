@@ -241,6 +241,9 @@
                         <a href="javascript:void();" role="menuitem" tabindex="-1"
                             label="Embeded Alignment Extraction" uri="embededAlignment"
                             onclick="methodClick(this);">Embeded Alignment Extraction</a>
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Match via Intermediate Dataset" uri="intermediateAlignment"
+                            onclick="methodClick(this);">Match via Intermediate Dataset</a>
                     </li>
                 </ul>
                </span>
@@ -254,6 +257,17 @@
                <div class="well well-sm" id="selected_method_desc" label="">Method Description</div>
             </div>
         </div>
+        <div class="row" id="int_dataset_row" style='display:none'>
+            <div class="col-md-4 graph-list" id="button_int_dataset"
+                  targetTxt="selected_int_dataset" targetBtn="" targetList="">
+              <!-- will be rendered via server -->
+                  <button class="btn btn-primary dropdown-toggle" type="button"
+                    data-toggle='dropdown'>loading...<span class="caret"></span></button>
+            </div>
+            <div class="col-md-8">
+               <div class="well well-sm" id="selected_int_dataset" uri="">Select a Dataset</div>
+            </div>
+         </div>
       </div>
     </div>
    </div>

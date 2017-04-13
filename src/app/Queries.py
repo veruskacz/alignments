@@ -382,6 +382,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
         FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
         UNION {?uri   rdf:type	bdb:Lens}
         UNION {?uri   rdf:type	void:View}
+        UNION {?uri   rdf:type	<http://risis.eu/class/ResearchQuestion>}
         } ."""
     elif type == "linkset&lens":
         type_filter = """
@@ -435,6 +436,29 @@ def get_graphs_per_rq_type(rq_uri, type=None):
     return query
 
 
+def get_datasets():
+    query = PREFIX + """
+    ### GET DISTINCT DATASETS
+    SELECT DISTINCT ?uri ?mode
+    WHERE
+    {
+  		?uri   rdf:type	 _:type
+        GRAPH ?uri {_:s  ?p  _:o}
+
+        ### FILTER THE TYPE OF GRAPH
+        FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
+        UNION {?uri   rdf:type	bdb:Lens}
+        UNION {?uri   rdf:type	void:View}
+        UNION {?uri   rdf:type	<http://risis.eu/class/ResearchQuestion>}
+        } 
+        
+      BIND("no-mode" as ?mode)
+    }
+    """
+    if DETAIL:
+        print query
+    return query
+
 def get_graphs_related_to_rq_type(rq_uri, type=None):
 
     if type == "linkset&lens":
@@ -442,7 +466,8 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
         # THAT ARE OF TYPE LINKSET OR LENS
         { ?uri  rdf:type	void:Linkset }
         UNION
-        { ?uri   rdf:type	 void:Lens } """
+        { ?uri   rdf:type	 void:Lens }
+         """
     elif type == "linkset":
         type_filter = """
         # THAT ARE OF TYPE LINKSET
