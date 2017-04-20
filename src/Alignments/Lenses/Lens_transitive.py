@@ -1,8 +1,8 @@
-import re
+
+import src.Alignments.Query as Qry
 import src.Alignments.Settings as St
 import src.Alignments.NameSpace as Ns
-import src.Alignments.Query as Qry
-from src.Alignments.Utility import intersect, write_to_file
+from src.Alignments.Utility import intersect, write_to_file, get_uri_local_name
 import logging
 
 
@@ -34,7 +34,7 @@ def lens_transitive(data, activated=False):
         Qry.boolean_endpoint_response(insert_query)
 
     # GET THE SIZE OF THE LENS JUST CREATED ABOVE
-    size = Qry.get_namedgraph_size(data['lens_uri'], isdistinct=False)
+    size = Qry.get_namedgraph_size(data[St.lens], isdistinct=False)
 
     # GENERATE THE METADATA ABOUT THE LENS JUST CREATED
     metadata = transitive_metadata(data, size, insert_query, same_as_count)
@@ -45,10 +45,10 @@ def lens_transitive(data, activated=False):
         Qry.boolean_endpoint_response(metadata)
 
     # RUN A CORRESPONDENCE CONSTRUCT QUERY FOR BACKING UP THE DATA TO DISC
-    construct_correspondence = Qry.endpointconstruct(Qry.construct_namedgraph(data['lens_uri']))
+    construct_correspondence = Qry.endpointconstruct(Qry.construct_namedgraph(data[St.lens]))
 
     if construct_correspondence is not None:
-        construct_correspondence = construct_correspondence.replace('{', "<{}>\n{{".format(data['lens_uri']), 1)
+        construct_correspondence = construct_correspondence.replace('{', "<{}>\n{{".format(data[St.lens]), 1)
 
     # RUN A SINGLETON METADATA CONSTRUCT QUERY FOR BACKING UP THE DATA TO DISC
     construct_singletons = Qry.endpointconstruct(Qry.construct_namedgraph(data['singleton_graph']))
@@ -79,7 +79,7 @@ def lens_transitive_query(data):
     # print "TRANSITIVITY"
     insert_query = ""
     is_transitive_by = ""
-    pattern = re.compile('[^a-zA-Z]')
+    # pattern = re.compile('[^a-zA-Z]')
 
     # CHECK WHETHER THE GRAPH ALREADY EXIST
     ask_lens = Qry.graph_exists(data[St.lens])
@@ -93,10 +93,11 @@ def lens_transitive_query(data):
     ask_src = Qry.graph_exists(data[St.src_dataset])
     ask_trg = Qry.graph_exists(data[St.trg_dataset])
     if (ask_src is False) or (ask_trg is False):
-        print "source: {} [{}]".format(data[St.src_dataset], ask_src)
-        print "target: {} [{}]".format(data[St.trg_dataset], ask_trg)
-        logger.warning("\nWE CAN NOT POSSIBLY RUN A TRANSITIVITY OPERATION OVER NON EXITING GRAPH".
-                       format(data[St.lens]))
+        message = "SOURCE: {} [exist={}]\nTARGET: {} [exist={}]\n{}".format(
+            data[St.src_dataset], ask_src, data[St.trg_dataset], ask_trg,
+            "WE CAN NOT POSSIBLY RUN A TRANSITIVITY OPERATION OVER NON EXITING GRAPH")
+        print message
+        # logger.warning("\nWE CAN NOT POSSIBLY RUN A TRANSITIVITY OPERATION OVER NON EXITING GRAPH")
         return
 
     # #####################################################################
@@ -173,12 +174,15 @@ def lens_transitive_query(data):
             #     linktype = "<{}>".format(linktype)
 
             _subject = list(set(result1[0]).difference(result2[0]))
+
             if len(_subject) > 0:
-                _subject = pattern.sub("", str(_subject[0]))
+                # _subject = pattern.sub("", str(_subject[0]))
+                _subject = get_uri_local_name(_subject[0])
 
                 _object = list(set(result2[0]).difference(result1[0]))
                 if len(_object) > 0:
-                    _object = pattern.sub("", str(_object[0]))
+                    # _object = pattern.sub("", str(_object[0]))
+                    _object = get_uri_local_name(_object[0])
 
                     print "\nTRANSITIVITY ANALYSES"
                     print "\t{:15}: {}".format("SUBJECT", _subject)
@@ -228,14 +232,17 @@ def lens_transitive_query(data):
                             "\tGRAPH tmpgraph:{}".format(s_predicate),
                             "\t{",
                             "\t\t?{:50} ?{:20} ?{} .".
-                            format(pattern.sub("", result1[0][0]), s_predicate, pattern.sub("", result1[0][1])),
+                            # format(pattern.sub("", result1[0][0]), s_predicate, pattern.sub("", result1[0][1])),
+                            format(get_uri_local_name(result1[0][0]), s_predicate, get_uri_local_name(result1[0][1])),
+
                             "\t\t?{:50} ?{:20} ?{} .".format(s_predicate, "sing_predicate1", "object1"),
                             "\t}",
                             # WHERE OBJECT CORRESPONDENCES AND METADATA
                             "\tGRAPH tmpgraph:{}".format(o_predicate),
                             "\t{",
                             "\t\t?{:50} ?{:20} ?{} .".
-                            format(pattern.sub("", result2[0][0]), o_predicate, pattern.sub("", result2[0][1])),
+                            # format(pattern.sub("", result2[0][0]), o_predicate, pattern.sub("", result2[0][1])),
+                            format(get_uri_local_name(result2[0][0]), o_predicate, get_uri_local_name(result2[0][1])),
                             "\t\t?{:50} ?{:20} ?{} .".format(o_predicate, "sing_predicate2", "object2"),
                             "\t}",
                             "} ;",
@@ -246,7 +253,7 @@ def lens_transitive_query(data):
                             "INSERT",
                             "{",
                             # INSERT DEFINITE CORRESPONDENCES
-                            "\tGRAPH <{}>".format(data['lens_uri']),
+                            "\tGRAPH <{}>".format(data[St.lens]),
                             "\t{",
                             "\t\t?{:50} ?{:20} ?{} .".format(_subject, linktype, _object),
                             "\t}",
@@ -311,7 +318,7 @@ def lens_transitive_query(data):
 
 def reconstruct(linkset, gr_type, predicate):
 
-    pattern = re.compile('[^a-zA-Z]')
+    # pattern = re.compile('[^a-zA-Z]')
     graph_format = "\t{:40} {}"
     sub_obj = None
     source = ""
@@ -328,8 +335,8 @@ def reconstruct(linkset, gr_type, predicate):
     # {
     # 	?subject            sing_predicate          ?object .
     # }
-    if singleton_matrix is not None:
-        singleton_graph = singleton_matrix[1][0]
+    if singleton_matrix is not None and singleton_matrix[St.result] is not None:
+        singleton_graph = singleton_matrix[St.result][1][0]
         if singleton_graph is not None:
             singleton = "\n{}\n{}\n{}\n{}\n" \
                 .format("\tGRAPH <{}>".format(singleton_graph),
@@ -343,15 +350,17 @@ def reconstruct(linkset, gr_type, predicate):
     # ABOUT LINKSET UNION
     if str(gr_type).upper() == "LINKSET":
 
-        print "\nRECONSTRUCTING CASE: Linksets"
+        print "\nRECONSTRUCTING CASE: Linkset"
 
         datatype_matrix = Qry.get_linkset_datatypes(linkset)
         # print datatype_matrix
 
-        if datatype_matrix is not None:
-            sub_obj = datatype_matrix[1][4:6]
-            source = pattern.sub("", str(datatype_matrix[1][4]))
-            target = pattern.sub("", str(datatype_matrix[1][5]))
+        if datatype_matrix is not None and datatype_matrix[St.result]:
+            sub_obj = datatype_matrix[St.result][1][4:6]
+            # source = pattern.sub("", str(datatype_matrix [St.result][1][4]))
+            source = get_uri_local_name(str(datatype_matrix[St.result][1][4]))
+            # target = pattern.sub("", str(datatype_matrix [St.result][1][5]))
+            target = get_uri_local_name(str(datatype_matrix[St.result][1][5]))
 
             # CORRESPONDENCE EXAMPLE
             # GRAPH <http://risis.eu/lens/transitive_C000_ExactName>
@@ -366,7 +375,7 @@ def reconstruct(linkset, gr_type, predicate):
 
     # DETERMINING WHETHER A LENS IS STEMMED FROM THE SAME subjectsTarget & objectsTarget
     elif str(gr_type).upper() == "LENS":
-        print "\nRECONSTRUCTING CASE: Lenses"
+        print "\nRECONSTRUCTING CASE: Lens"
 
         query = """
         PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
@@ -393,10 +402,10 @@ def reconstruct(linkset, gr_type, predicate):
             return None
 
         elif (datatype_matrix is not None) and (len(datatype_matrix) > 1):
-            element = datatype_matrix[1][1:]
+            element = datatype_matrix[St.result][1][1:]
             # print element
             for i in range(1, len(datatype_matrix)):
-                check = datatype_matrix[i][1:]
+                check = datatype_matrix[St.result][i][1:]
                 evaluation = element == check
                 # print check
                 # print "result: ", evaluation
@@ -411,8 +420,10 @@ def reconstruct(linkset, gr_type, predicate):
                 # singleton_matrix = sparql_xml_to_matrix(singleton_graph_query, database_name, host)
 
                 sub_obj = element
-                source = pattern.sub("", str(element[0]))
-                target = pattern.sub("", str(element[1]))
+                # source = pattern.sub("", str(element[0]))
+                source = get_uri_local_name(str(element[0]))
+                # target = pattern.sub("", str(element[1]))
+                target = get_uri_local_name(str(element[1]))
 
                 correspondence = "{}\n{}\n{}\n{}" \
                     .format("\tGRAPH <{}>".format(linkset),
@@ -481,7 +492,7 @@ def transitive_metadata(data, size, insert_query, same_as_count):
                "\n{}\n{}\n{}\n{}". \
         format("##################################################################",
                "### METADATA ",
-               "### in the linkset: {}".format(data['lens_uri']),
+               "### in the linkset: {}".format(data[St.lens]),
                "##################################################################",
 
                "PREFIX rdfs:        <{}>".format(Ns.rdfs),
@@ -492,8 +503,8 @@ def transitive_metadata(data, size, insert_query, same_as_count):
 
                "INSERT DATA",
                "{",
-               "    <{}>".format(data['lens_uri']),
-               "        a                           bdb:Lenses ;",
+               "    <{}>".format(data[St.lens]),
+               "        a                           bdb:Lens ;",
                "        alivocab:operator           lensOp:transitivity ;",
                "        void:triples                {} ;".format(size),
                "        alivocab:alignsMechanism    <{}{}> ;".format(Ns.mechanism, data[St.mechanism]),

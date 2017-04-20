@@ -11,6 +11,7 @@ prov = "http://www.w3.org/ns/prov#"
 orgref = "http://risis.eu/orgref/resource/"
 grid = "http://www.grid.ac/institutes/"
 
+risis = 'http://risis.eu/'
 lens = 'http://risis.eu/lens/'
 riclass = 'http://risis.eu/class/'
 schema = 'http://risis.eu/ontology/'
@@ -32,5 +33,4 @@ lensOpd = "http://risis.eu/lens/operator/difference"
 rsrId = "{}resourceIdentifier".format(alivocab)
 
 reserchQ = "http://risis.eu/dataset/researchQ"
-
 view = "http://risis.eu/view/"

@@ -18,7 +18,7 @@
             {% endfor %}
         </div>
     </div>
-    <div class="panel-body" style='height: 25.5em;'>
+    <div class="panel-body" style='scroll: both; overflow: auto; height: 25.5em;'>
         <TABLE style='width: 52em;'>
           <TR>
              <TH style='width: 26em;'>
@@ -32,7 +32,7 @@
               <TD style='width: 10em;'>
               {% if (r.col1) %}
                <li class="list-group-item" id="srcDatasetLS" uri='{{ sub_uri }}' dataset = '{{ r.col1.dataset }}'
-                   style='scroll: both; overflow: auto; height: 7em;'>
+                   style='scroll: both; overflow: auto; height: 7em; background-color:lightgray'>
                  <span class="list-group-item-heading">
                    <span class="badge alert-default">{{ r.col1.dataset_stripped|upper }}</span><br/>
                      {% for elem in r.col1.predicates %}
@@ -47,7 +47,7 @@
              <TD style='width: 10em;'>
               {% if (r.col2) %}
                  <li class="list-group-item" id="trgDatasetLS" uri='{{ obj_uri }}' dataset = '{{ r.col2.dataset }}'
-                 style='scroll: both; overflow: auto; height: 7em;'>
+                 style='scroll: both; overflow: auto; height: 7em; background-color:lightgray'>
                  <span class="list-group-item-heading">
                    <span class="badge alert-default">{{ r.col2.dataset_stripped|upper }}</span><br/>
                      {% for elem in r.col2.predicates %}

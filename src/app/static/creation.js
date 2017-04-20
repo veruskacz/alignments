@@ -393,9 +393,11 @@ function inspect_linkset_activate(mode)
           {
             var linkset_uri = $(this).attr('uri');
 
-            // load the panel describing the linkest
+            // load the panel describing the linkset sample
             $.get('/getlinksetdetails',data={'linkset': linkset_uri},function(data)
-            { $('#inspect_linkset_linkset_details_col').html(data);
+            {
+                $('#inspect_linkset_linkset_details_col').show();
+                $('#inspect_linkset_linkset_details_col').html(data);
             });
 
             if (mode == 'refine' || mode == 'edit')
@@ -552,7 +554,7 @@ function createLinksetClick()
     if ((Object.keys(srcDict).length) &&
         (Object.keys(trgDict).length) &&
         ($('#selected_meth').attr('uri')) &&
-        ($('#selected_meth').attr('uri') != 'intermediateAlignment' ||
+        ($('#selected_meth').attr('uri') != 'intermediate' ||
             $('#selected_int_dataset').attr('uri'))
         )
     {
@@ -568,7 +570,7 @@ function createLinksetClick()
 
           'mechanism': $('#selected_meth').attr('uri'),
 
-          'intermediate': $('#selected_int_dataset').attr('uri')
+          'intermediate_graph': $('#selected_int_dataset').attr('uri')
         }
 
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
@@ -621,10 +623,11 @@ function refineLinksetClick()
     linkset = $(elems[0]).attr('uri');
   }
 
-
-  if ((Object.keys(srcDict).length) &&
-      (Object.keys(trgDict).length) &&
-      ($('#selected_meth').attr('uri')) &&
+ if ((Object.keys(srcDict).length) &&
+        (Object.keys(trgDict).length) &&
+        ($('#selected_meth').attr('uri')) &&
+        ($('#selected_meth').attr('uri') != 'intermediate' ||
+            $('#selected_int_dataset').attr('uri'))&&
       (linkset))
   {
       var specs = {
@@ -639,7 +642,10 @@ function refineLinksetClick()
         'trg_aligns': $('#trg_selected_pred').attr('uri'),
         'trg_entity_datatye': $('#trg_selected_entity-type').attr('uri'),
 
-        'mechanism': $('#selected_meth').attr('uri')
+        'mechanism': $('#selected_meth').attr('uri'),
+
+        'intermediate_graph': $('#selected_int_dataset').attr('uri')
+
       }
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
@@ -1383,7 +1389,7 @@ function methodClick(th)
         {
           description = 'The method GEO SIMILARITY is used to align the source and the target by detecting whether the values of the selected properties of source and target appear within the same geographical boundary.';
         }
-        else if (method == 'intermediateAlignment')
+        else if (method == 'intermediate')
         {
           description = 'The method MATCH VIA INTERMEDIATE DATASET is used to align the source and the target by using properties that present different descriptions of a same entity, such as country name and country code. This is possible by providing an intermediate dataset that binds the two alternative descriptions to the very same identifier.';
           $('#int_dataset_row').show();
@@ -1449,6 +1455,7 @@ function refresh_create_linkset(mode='all')
       elem.setAttribute('style', 'background-color:none');
       $('#selected_int_dataset').html("Select a Dataset");
 
+      $('#linkset_refine_message_col').html('');
     }
 
     if (mode == 'all' || mode == 'source')

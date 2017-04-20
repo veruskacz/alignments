@@ -41,6 +41,7 @@ if CREATION_ACTIVE:
     import src.Alignments.Linksets.SPA_LinksetRefine as refine
     import src.Alignments.UserActivities.View as mod_view
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
+    from src.Alignments.UserActivities.User_Validation import updateEvidence
 else:
     from src.app import app
 
@@ -153,9 +154,9 @@ def correspondences():
                             graph_menu = graph_menu,
                             correspondences = correspondences,
                             graph_uri = graph_uri,
-                            graph_label = get_URI_local_name(graph_label),
+                            graph_label = get_URI_local_name(graph_label).replace("_"," "),
                             graph_triples = graph_triples,
-                            alignsMechanism = alignsMechanism)
+                            alignsMechanism = get_URI_local_name(alignsMechanism))
 
 
 @app.route('/getdetails', methods=['GET'])
@@ -179,8 +180,8 @@ def details():
     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjects, alignsObjects)
     details = sparql(query, strip=True)
 
-    if PRINT_RESULTS:
-        print "\n\nDETAILS:", details
+    # if PRINT_RESULTS:
+    print "\n\nDETAILS:", details
 
     # RETURN THE RESULT
     return render_template('details_list.html',
@@ -206,11 +207,36 @@ def linksetdetails():
     # RETRIEVE VARIABLES
     linkset = request.args.get('linkset', '')
     template = request.args.get('template', 'linksetDetails_list.html')
-    query = Qry.get_linkset_corresp_details(linkset, limit=10)
+    query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
     details = sparql(query, strip=True)
+
+    s_property_list = ''
+    o_property_list = ''
+    mechanism_list = ''
+    D = None
 
     if details:
         d = details[0]
+        list1 = d['s_property']['value'].split("|")
+        list2 = d['o_property']['value'].split("|")
+        list3 = d['mechanism']['value'].split("|")
+
+        for i in range(len(list1)):
+            s_property_list += get_URI_local_name(list1[i]) + ' | ' \
+                if i < len(list1) - 1 else get_URI_local_name(list1[i])
+
+            o_property_list += get_URI_local_name(list2[i]) + ' | ' \
+                if i < len(list1) - 1 else get_URI_local_name(list2[i])
+
+            mechanism_list += get_URI_local_name(list3[i]) + ' | ' \
+                if i < len(list1) - 1 else get_URI_local_name(list3[i])
+
+
+    query = Qry.get_linkset_corresp_details(linkset, limit=10)
+    metadata = sparql(query, strip=True)
+
+    if metadata:
+        md = metadata[0]
     else:
         return 'NO RESULTS!'
 
@@ -219,18 +245,21 @@ def linksetdetails():
 
     # RETURN THE RESULT
     if (template == 'none'):
-        return json.dumps(d)
+        return json.dumps(md)
     else:
         return render_template(template,
-                            details = details,
-                            s_datatype = d['s_datatype_stripped']['value'],
-                            subTarget = d['subTarget_stripped']['value'],
-                            o_datatype = d['o_datatype_stripped']['value'],
-                            objTarget = d['objTarget_stripped']['value'],
-                            s_property = d['s_property_stripped']['value'],
-                            o_property= d['o_property_stripped']['value'],
-                            mechanism = d['mechanism_stripped']['value']
-                            )
+            details = details,
+            s_datatype = md['s_datatype_stripped']['value'],
+            subTarget = md['subTarget_stripped']['value'],
+            o_datatype = md['o_datatype_stripped']['value'],
+            objTarget = md['objTarget_stripped']['value'],
+            s_property = md['s_property_stripped']['value'],
+            o_property= md['o_property_stripped']['value'],
+            mechanism = md['mechanism_stripped']['value'],
+            s_property_list= s_property_list,
+            o_property_list= o_property_list,
+            mechanism_list= mechanism_list
+        )
 
 
 @app.route('/getlensspecs', methods=['GET'])
@@ -498,7 +527,7 @@ def evidence():
 
 
 @app.route('/updateevidence', methods=['GET'])
-def updateEvidence():
+def updEvidence():
     """
     This function is called due to request /updateevidence
     It updates a singleton property resource with the validation info.
@@ -506,22 +535,11 @@ def updateEvidence():
     """
 
     singleton_uri = request.args.get('singleton_uri', '')
-    predicate = request.args.get('predicate', '')
+    type = request.args.get('type', '')
     validation_text = request.args.get('validation_text', '')
+    research_uri = request.args.get('research_uri', '')
 
-    query = PREFIXES + """
-    INSERT
-    {	GRAPH ?g
-    	{<""" + singleton_uri + """> <""" + predicate + """> \"\"\"""" + validation_text + """\"\"\"}
-    }
-    WHERE
-    {
-      GRAPH ?g
-      {<""" + singleton_uri + """> ?p ?o}
-    }
-    """
-
-    result = sparql_update(query)
+    result = updateEvidence(singleton_uri, validation_text, research_uri, accepted=(type=='accept'))
     if PRINT_RESULTS:
         print "\n\nUPDATE RESPOSNSE:", result
 
@@ -716,15 +734,17 @@ def spa_linkset():
 @app.route('/refineLinkset')
 def refineLinkset():
 
-    rq_uri = request.args.get('rq_uri', '')
-    linkset_uri = request.args.get('linkset_uri', '')
     specs = {
 
-        St.researchQ_URI: rq_uri,
+        St.researchQ_URI: request.args.get('rq_uri', ''),
 
-        St.linkset: linkset_uri,
+        'mechanism': request.args.get('mechanism', ''),
 
-            'source': {
+        St.linkset: request.args.get('linkset_uri', ''),
+
+        St.intermediate_graph: request.args.get('intermediate_graph', ''),
+
+        'source': {
             'graph': request.args.get('src_graph', ''),
             'aligns': request.args.get('src_aligns', ''),
             'entity_datatype': request.args.get('src_entity_datatye', '')
@@ -735,21 +755,25 @@ def refineLinkset():
             'aligns': request.args.get('trg_aligns', ''),
             'entity_datatype': request.args.get('trg_entity_datatye', '')
         },
-
-        'mechanism': request.args.get('mechanism', '')
     }
 
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
-            linkset_result = refine.refine_exact(specs)
+            linkset_result = refine.refine(specs, exact=True)
 
         elif specs['mechanism'] == 'identity':
             linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
 
         elif specs['mechanism'] == 'approxStrSim':
             linkset_result = None
+
         elif specs['mechanism'] == 'geoSim':
             linkset_result = None
+
+        elif specs[St.mechanism] == "intermediate":
+            linkset_result = refine.refine(specs, exact_intermediate=True)
+            #linkset_result = result['refined']
+
         else:
             linkset_result = None
     else:

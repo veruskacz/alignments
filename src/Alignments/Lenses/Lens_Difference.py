@@ -14,6 +14,7 @@ def difference(specs):
 
     # GENERATE THE LINKSET OF THE DIFFERENCE
     diff_insert_query = """
+        PREFIX prov: <{}>
         ### Difference between
         ### <{}> and
         ### <{}>
@@ -21,7 +22,9 @@ def difference(specs):
         {{
             GRAPH <{}>
             {{
-                ?subject ?newSingletons ?object .
+                ?subject        ?newSingletons          ?object .
+                ?newSingletons	prov:wasDerivedFrom 	?predicate1 .
+                ?predicate1	    ?pre 			        ?obj .
             }}
         }}
         WHERE
@@ -32,6 +35,10 @@ def difference(specs):
                     ?subject ?predicate1 ?object .
                     bind( iri(replace("{}{}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
                 }}
+                GRAPH ?g
+                {{
+                    ?predicate1 ?pre ?obj .
+                }}
             }}
             MINUS
             {{
@@ -41,7 +48,7 @@ def difference(specs):
                 }}
             }}
         }}
-        """.format(specs[St.subjectsTarget], specs[St.objectsTarget], specs[St.lens],
+        """.format(Ns.prov, specs[St.subjectsTarget], specs[St.objectsTarget], specs[St.lens],
                    specs[St.subjectsTarget], Ns.alivocab, "diff", specs[St.objectsTarget])
     # print diff_insert_query
     # print specs[St.lens_name]

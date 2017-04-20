@@ -9,8 +9,45 @@ from src.Alignments.UserActivities.UserRQ import register_alignment_mapping
 from src.Alignments.Utility import write_to_file, update_specification
 
 
-def refine_exact(specs):
+def refine(specs, exact=False, exact_intermediate=False):
+    check_none = 0
+    check_not_none = 0
+    insert_query = ""
+    insert_code = 0
 
+    if exact is False:
+        check_none += 1
+    else:
+        check_not_none += 1
+        insert_query = insert_exact_query
+        insert_code = 1
+
+    if exact_intermediate is False:
+        check_none += 1
+    else:
+        check_not_none += 1
+        insert_query = refine_intermediate_query
+        insert_code = 2
+
+    refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
+    diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
+    result = {'refined': refined, 'difference': diff}
+
+    if check_none > 1 or check_not_none > 1:
+        print "AT MOST, ONE OF THE ARGUMENTS (exact, exact_intermediate) SHOULD BE SET."
+
+    if insert_code == 1:
+        print "REFINING WITH EXACT"
+        result = refining(specs, insert_query)
+
+    elif insert_code == 2:
+        print "REFINING WITH INTERMEDIATE"
+        result = refining(specs, insert_query)
+
+    return result
+
+
+def refining(specs, insert_query):
     refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
     diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
 
@@ -31,7 +68,6 @@ def refine_exact(specs):
 
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
     check = Ls.run_checks(specs)
-
 
     if check[St.message] == "NOT GOOD TO GO":
         # refined = check[St.refined]
@@ -54,7 +90,7 @@ def refine_exact(specs):
     # RETRIEVING THE METADATA ABOUT THE GRAPH TO REFINE
     metadata_q = Qry.q_linkset_metadata(specs[St.linkset])
     matrix = Qry.sparql_xml_to_matrix(metadata_q)
-    print matrix
+    # print matrix
 
     if matrix:
         if matrix[St.message] == "NO RESPONSE":
@@ -73,6 +109,58 @@ def refine_exact(specs):
     specs[St.singletonGraph] = matrix[St.result][1][0]
     # print matrix[St.result][1][0]
 
+    # RUN INSERT QUERY
+    specs[St.insert_query] = insert_query(specs)
+    # print specs[St.insert_query]
+    is_run = Qry.boolean_endpoint_response(specs[St.insert_query])
+    print ">>> RUN SUCCESSFULLY:", is_run
+
+    # NO INSERTION HAPPENED
+    if is_run:
+        # GENERATE THE
+        #   (1) LINKSET METADATA
+        #   (2) LINKSET OF CORRESPONDENCES
+        #   (3) SINGLETON METADATA
+        # AND WRITE THEM ALL TO FILE
+        pro_message = refine_metadata(specs)
+
+        # SET THE RESULT ASSUMING IT WENT WRONG
+        refined = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+        diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+
+        server_message = "Linksets created as: {}".format(specs[St.refined])
+        message = "The linkset was created!<br/>URI = {}. <br/>{}".format(specs[St.linkset], pro_message)
+        print "\t", server_message
+        if int(specs[St.triples]) > 0:
+
+            # UPDATE THE REFINED VARIABLE AS THE INSERTION WAS SUCCESSFUL
+            refined = {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+
+            # REGISTER THE ALIGNMENT
+            if refined[St.message].__contains__("ALREADY EXISTS"):
+                register_alignment_mapping(specs, created=False)
+            else:
+                register_alignment_mapping(specs, created=True)
+
+            # COMPUTE THE DIFFERENCE AND DOCUMENT IT
+            diff_lens_specs = {
+                St.researchQ_URI: specs[St.researchQ_URI],
+                St.subjectsTarget: specs[St.linkset],
+                St.objectsTarget: specs[St.refined]
+            }
+            diff = Df.difference(diff_lens_specs)
+            message_2 = "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
+            print message_2
+
+        print "\tLinkset created as: ", specs[St.linkset]
+        print "\t*** JOB DONE! ***"
+        return {'refined': refined, 'difference': diff}
+
+    else:
+        print "NO MATCH COULD BE FOUND."
+
+
+def insert_exact_query(specs):
     # GENERATE THE INSERT QUERY
     insert_query = """
     PREFIX prov:        <{}>
@@ -131,59 +219,161 @@ def refine_exact(specs):
                specs[St.source][St.graph], specs[St.source][St.aligns],
                specs[St.target][St.graph], specs[St.target][St.aligns])
     # print insert_query
+    return insert_query
 
-    # RUN INSERT QUERY
-    specs[St.insert_query] = insert_query
-    is_run = Qry.boolean_endpoint_response(insert_query)
-    print ">>> RUN SUCCESSFULLY:", is_run
 
-    # GENERATE THE
-    #   (1) LINKSET METADATA
-    #   (2) LINKSET OF CORRESPONDENCES
-    #   (3) SINGLETON METADATA
-    # AND WRITE THEM ALL TO FILE
-    refine_metadata(specs)
+def refine_intermediate_query(specs):
 
-    # SET THE RESULT ASSUMING IT WENT WRONG
-    refined = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
-    diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+    src_name = specs[St.source][St.graph_name]
+    src_uri = specs[St.source][St.graph]
+    src_aligns = specs[St.source][St.aligns]
 
-    server_message = "Linksets created as: {}".format(specs[St.refined])
-    message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
-    print "\t", server_message
-    if int(specs[St.triples]) > 0:
+    trg_name = specs[St.target][St.graph_name]
+    trg_uri = specs[St.target][St.graph]
+    trg_aligns = specs[St.target][St.aligns]
 
-        # UPDATE THE REFINED VARIABLE AS THE INSERTION WAS SUCCESSFUL
-        refined = {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+    insert = """
+    PREFIX alivocab:    <{16}>
+    PREFIX prov:        <{17}>
 
-        # REGISTER THE ALIGNMENT
-        if refined[St.message].__contains__("ALREADY EXISTS"):
-            register_alignment_mapping(specs, created=False)
-        else:
-            register_alignment_mapping(specs, created=True)
+    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load02> ;
+    DROP SILENT GRAPH <{10}> ;
 
-        # COMPUTE THE DIFFERENCE AND DOCUMENT IT
-        diff_lens_specs = {
-            St.researchQ_URI: specs[St.researchQ_URI],
-            St.subjectsTarget: specs[St.linkset],
-            St.objectsTarget: specs[St.refined]
-        }
-        diff = Df.difference(diff_lens_specs)
-        print "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
+    ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
+    INSERT
+    {{
+        GRAPH <{0}load01>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1} <{2}> ?src_value .
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3} <{4}> ?trg_value .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{5}>
+        {{
+            ?{1} ?pred  ?{3} .
+        }}
+        ### SOURCE DATASET
+        graph <{6}>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1} <{2}> ?value_1 .
+            bind (lcase(str(?value_1)) as ?src_value)
+        }}
+        ### TARGET DATASET
+        graph <{7}>
+        {{
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3} <{4}> ?value_2 .
+            bind (lcase(str(?value_2)) as ?trg_value)
+        }}
+    }} ;
 
-    print "\tLinkset created as: ", specs[St.linkset]
-    print "\t*** JOB DONE! ***"
-    return {'refined': refined, 'difference': diff}
+    ### 2. FINDING CANDIDATE MATCH
+    INSERT
+    {{
+        ### MATCH FOUND
+        GRAPH <{0}load02>
+        {{
+            ?{1} <{8}relatesTo> ?{3} .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{5}>
+        {{
+            ?{1} ?pred  ?{3} .
+        }}
+        ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+        GRAPH <{0}load01>
+        {{
+            ?{1} <{2}> ?src_value .
+            ?{3} <{4}> ?trg_value .
+        }}
+        ### INTERMEDIATE DATASET
+       graph <{9}>
+       {{
+            ?intermediate_uri
+                ?intPred_1 ?value_3 ;
+                ?intPred_2 ?value_4 .
+            bind (lcase(?value_3) as ?src_value)
+            bind (lcase(?value_4) as ?trg_value)
+       }}
+    }} ;
 
-    # print metadata
+    ### 3. CREATING THE CORRESPONDENCES
+    INSERT
+    {{
+        GRAPH <{10}>
+        {{
+            ?{1} ?newSingletons  ?{3} .
+        }}
+        ### SINGLETONS' METADATA
+        GRAPH <{14}{15}>
+        {{
+            ?newSingletons
+                rdf:singletonPropertyOf     alivocab:{12}{13} ;
+                prov:wasDerivedFrom         ?pred ;
+                alivocab:hasEvidence        ?evidence .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        # graph <{5}>
+        # {{
+        #     ?{1} ?pred  ?{3} .
+        #     bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+        # }}
 
+        ### MATCH FOUND
+        GRAPH <{0}load02>
+        {{
+            ?{1} <{8}relatesTo> ?{3} .
+             bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+        }}
+        {{
+            SELECT ?grid ?orgref  ?evidence
+            {{
+                ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+                GRAPH <{0}load01>
+                {{
+                    ?{1} <{2}> ?src_value .
+                    ?{3} <{4}> ?trg_value .
+                    BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
+                }}
+            }}
+        }}
+    }} ;
+
+    DROP GRAPH <{0}load01> ;
+    DROP GRAPH <{0}load02>
+    """.format(
+        # 0          1         2           3         4
+        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
+        # 5                6        7        8            9
+        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
+        # 10               11           12                  13
+        specs[St.refined], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
+        # 14           15                      16           17
+        Ns.singletons, specs[St.refined_name], Ns.alivocab, Ns.prov
+    )
+
+    # print insert
+    return insert
 
 
 def refine_metadata(specs):
-
     # GENERATE GENERIC METADATA
     metadata = Gn.linkset_refined_metadata(specs)
-    is_inserted = Qry.boolean_endpoint_response(metadata)
+    # print metadata
+    is_inserted = Qry.boolean_endpoint_response(metadata["query"])
     print ">>> THE METADATA IS SUCCESSFULLY INSERTED:", is_inserted
 
     if int(specs[St.triples]) > 0:
@@ -221,8 +411,7 @@ def refine_metadata(specs):
 
         # WRITE TO FILE
         print "\t>>> WRITING TO FILE"
-        write_to_file(graph_name=specs[St.refined_name], metadata=metadata.replace("INSERT DATA", ""),
+        write_to_file(graph_name=specs[St.refined_name], metadata=metadata["query"].replace("INSERT DATA", ""),
                       correspondences=construct_response, singletons=singleton_construct)
 
-
-
+        return metadata["message"]

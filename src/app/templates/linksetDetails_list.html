@@ -1,22 +1,31 @@
 
 <div class="panel panel-primary">
     <div class="panel-heading" id="detailsHeading">
-      Entities of <strong>TYPE</strong> <span class="badge alert-info"><strong>{{ s_datatype|upper }}</strong></strong></span>
-      in <strong>DATASET</strong> <span class="badge alert-info"><strong>{{ subTarget|upper }}</strong></span> align with
-      entities of <strong>TYPE</strong> <span class="badge alert-info"><strong>{{ o_datatype|upper }}</strong></span>
-      in <strong>DATASET</strong> <span class="badge alert-info"><strong>{{ objTarget|upper }}</strong></span>
-      unsing <strong>MECHANISM</strong> <span class="badge alert-info"><strong>{{ mechanism|upper }}</strong></span>.
+
+        <span class="badge alert-info"><strong>{{ subTarget|upper }}</strong></span>
+        <span class="badge alert-info"><strong>{{ s_datatype|upper }}</strong></span>
+        <span class="badge alert-info"><strong>{{ s_property_list|upper }}</strong></span>
+
+        aligns with
+
+        <span class="badge alert-info"><strong>{{ objTarget|upper }}</strong></span>
+        <span class="badge alert-info"><strong>{{ o_datatype|upper }}</strong></span>
+        <span class="badge alert-info"><strong>{{ o_property_list|upper }}</strong></span>
+
+        unsing
+
+        <span class="badge alert-info"><strong>{{ mechanism_list|upper }}</strong></span>.
     </div>
     <div class="panel-body" style='height: 12em;'>
         <TABLE style='width: 100%;'>
           <TR>
              <TH style='width: 50%;'>
                  <span class="list-group-item-heading">
-                     <span class="badge alert-default"><strong>{{ subTarget|upper }}:</strong></span> <strong>{{s_property|upper}}</strong> </span>
+                     <span class="badge alert-default"><strong>{{ subTarget|upper }}:</strong></span> <strong>{{s_property_list|upper}}</strong> </span>
               </TH>
              <TH style='width: 50%;'>
                  <span class="list-group-item-heading">
-                     <span class="badge alert-default"><strong>{{ objTarget|upper }}:</strong></span> <strong>{{o_property|upper}}</strong></span>
+                     <span class="badge alert-default"><strong>{{ objTarget|upper }}:</strong></span> <strong>{{o_property_list|upper}}</strong></span>
              </TH>
         </TABLE>
 

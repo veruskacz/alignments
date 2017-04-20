@@ -350,7 +350,7 @@ function validationRadioOnClick()
         text = 'I agree with the general alignment of the properties '
                 + pred1 + ' from ' + dataset1 + ' and '
                 + pred2 + ' from ' + dataset2
-                + ' but I diseagree with this particular aligment ' + text;
+                + ' but I disagree with this particular alignment ' + text;
     }
     else { text = '';
     }
@@ -417,16 +417,21 @@ function validationSaveOnClick()
 
          // if the validation option selected is agreement
          if(document.getElementById('ValidationYes_btn').checked)
-         {   var predicate = 'http://example.com/predicate/good';
+         {   var type = 'accept';
          } else
          // if the validation option selected is disagreement
          if(document.getElementById('ValidationNo_btn').checked)
-         {    var predicate = 'http://example.com/predicate/bad';
+         {    var type = 'reject';
          }
+
+         var research_uri = $('#creation_linkset_selected_RQ').attr(uri);
+         if (!research_uri)
+         {   var research_uri = $('#creation_lens_selected_RQ').attr(uri); }
 
          // register the agreement comment as evidence
          $.get('/updateevidence',data={'singleton_uri': uri,
-                                       'predicate': predicate,
+                                       'type': type,
+                                       'research_uri': research_uri,
                                        'validation_text': validation_text},
                                  function(data){
             // reload the evidences

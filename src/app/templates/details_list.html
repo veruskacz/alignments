@@ -5,7 +5,7 @@
       {{ subjectTarget }} <span class="badge alert-info">{{ alignsSubjects }}</span> aligns with
       {{ objectTarget }} <span class="badge alert-info">{{ alignsObjects }}</span>
     </div>
-    <div class="panel-body" style='height: 20em;'>
+    <div class="panel-body" style='scroll: both; overflow: auto; height: 20em;'>
         <TABLE style='width: 100%;'>
           <TR>
              <TH>
@@ -30,7 +30,7 @@
                  style="background-color:lightgray">
                  {{alignsObjects}} =
                  <span class="list-group-item-heading" style="color:blue">
-                     <strong>{{ d.srcPredValue.value }}</strong></span>
+                     <strong>{{ d.trgPredValue.value }}</strong></span>
                  </li>
              </TD>
           <TR>

@@ -110,10 +110,10 @@ def transitive_evidence(graph, database_name, host, activated=False):
     lens_sing_graph = get_metadata[1][0]
     print "\tLens singleton graph: {}".format(lens_sing_graph)
 
-    lens_source_type = sparql_xml_to_matrix(graph_type(lens_source), database=database_name, host=host)[1][0]
+    lens_source_type = sparql_xml_to_matrix(graph_type(lens_source))[1][0]
     print "\tLens source type: {}".format(lens_source_type)
 
-    lens_target_type = sparql_xml_to_matrix(graph_type(lens_target), database=database_name, host=host)[1][0]
+    lens_target_type = sparql_xml_to_matrix(graph_type(lens_target))[1][0]
     print "\tLens target type: {}".format(lens_target_type)
 
     # #######################################################################
@@ -130,12 +130,12 @@ def transitive_evidence(graph, database_name, host, activated=False):
             # #######################################################################
             print "\nABOUT THE Lens' COMPONENT 1"
 
-            src_linkset_meta = sparql_xml_to_matrix(q_linkset_metadata(graph_uri), database=database_name, host=host)
+            src_linkset_meta = sparql_xml_to_matrix(q_linkset_metadata(graph_uri))
             # print "\tSource linkset metadata:", src_ls_meta
 
             datasets = [src_linkset_meta[1][3], src_linkset_meta[1][4]]
             aligns = src_linkset_meta[1][1]
-            intersection = list(set(datasets).difference(is_transitive_by))
+            intersection = list(set(datasets).difference(unicode(is_transitive_by)))
 
             graph_uri = get_metadata[1][1]
             print "\tOrigin: {}".format(graph_uri)
@@ -156,17 +156,17 @@ def transitive_evidence(graph, database_name, host, activated=False):
             # #######################################################################
             print "\nABOUT THE Lens' COMPONENT 2"
             print "\tOrigin: {}".format(graph_uri)
-            operator = get_lens_operator(lens_target, database_name, host)
+            operator = get_lens_operator(lens_target)
             print "\toperator: {}".format(operator)
 
             if operator == operator_union:
-                datasets = get_lens_union_datasets(graph_uri, database_name, host)
+                datasets = get_lens_union_datasets(graph_uri)
                 print "\tDatasets: {}".format(datasets)
                 iterate = -1
                 dataset_aligns = [None] * len(datasets)
                 for dataset in list(datasets):
                     iterate += 1
-                    meta = get_linkset_datatypes(dataset, database_name, host)
+                    meta = get_linkset_datatypes(dataset)
                     if meta is not None:
                         target_dataset = meta[1][4]
                         # print "\n\t\tDataset: {}".format(target_dataset)
@@ -563,13 +563,13 @@ def sparql_xml_to_matrix(query):
 
                                 if type(item) is collections.OrderedDict:
                                     item_value = item.items()[1][1]
-                                    if type(item_value) is collections.OrderedDict:
-                                        print "hey!!!!"
-                                    else:
-                                        matrix[row][index] = to_bytes(item_value)
+                                    matrix[row][index] = to_bytes(item_value)
+                                    # print to_bytes(item_value)
+                                    # print item.items()
                                     # print "r{} c{} v{}".format(row, c, data.items()[1][1])
                                 else:
                                     matrix[row][index] = to_bytes(item)
+                                    # print to_bytes(item)
                                     # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
             # print "DONE"
             # print "out with: {}".format(matrix)
@@ -708,6 +708,7 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
 #######################################################################################
 # GET QUERY AND EXECUTION
 #######################################################################################
+
 
 def get_properties(graph):
     query = """
@@ -849,7 +850,7 @@ def get_same_as_count(curr_mechanism):
         if matrix:
             if matrix[St.message] != "NO RESPONSE":
                 if matrix[St.result]:
-                    c_code = int(list(matrix[St.result][1][0].items())[1][1]) + 1
+                    c_code = int(list(dict(matrix[St.result][1][0]).items())[1][1]) + 1
                     # c_code = code
                     # print "Next is: {}".format(c_code)
                 else:
@@ -1036,7 +1037,7 @@ def get_triples(linkset):
         return
 
     if len(triples[St.result]) > 1:
-        return triples[St.result][1][0].items()[1][1]
+        return dict(triples[St.result][1][0]).items()[1][1]
 
     return None
 
@@ -1062,7 +1063,7 @@ def get_triples_count(graph):
         return
 
     if len(triples) > 1:
-        return triples[1][0].items()[1][1]
+        return dict(triples[1][0]).items()[1][1]
 
     return None
 
@@ -1089,7 +1090,7 @@ def get_union_triples(lens):
         return
 
     if len(triples[St.result]) > 1:
-        return triples[St.result][1][0].items()[1][1]
+        return dict(triples[St.result][1][0]).items()[1][1]
 
     return None
 
@@ -1888,6 +1889,7 @@ def drop_union(display=False, activated=False):
 #######################################################################################
 # QUERY
 #######################################################################################
+
 
 def get_constructed_graph(graph):
 

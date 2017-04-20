@@ -262,6 +262,7 @@ def get_graph_lens(lens=''):
         print query
     return query
 
+
 def get_lens_specs(lens):
     filter = "FILTER (?g = <{}>)".format(lens) if lens else ''
     query = PREFIX + """
@@ -458,6 +459,7 @@ def get_datasets():
     if DETAIL:
         print query
     return query
+
 
 def get_graphs_related_to_rq_type(rq_uri, type=None):
 
@@ -705,7 +707,7 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
     query = """
     ### GET VALUES OF ALIGNED PREDICATES
-    SELECT DISTINCT ?srcPredValue ?trgPredVal
+    SELECT DISTINCT ?srcPredValue ?trgPredValue
     {
         GRAPH ?g_source
         {
@@ -729,8 +731,128 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
     return query
 
 
+def get_linkset_corresp_sample_details(linkset, limit=1):
+
+    query = PREFIX + """
+    ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
+
+    SELECT DISTINCT
+    ?subTarget ?objTarget ?s_datatype ?o_datatype ?operator
+    (GROUP_CONCAT(?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
+    (GROUP_CONCAT(?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
+    (GROUP_CONCAT(?s_prop; SEPARATOR="|") as ?s_property)
+    (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
+    (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
+    (GROUP_CONCAT(?trip; SEPARATOR="|") as ?triples)
+
+    WHERE
+    {{
+
+        ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
+        <{0}>
+            prov:wasDerivedFrom*        ?linkset .
+
+        ### RETRIEVING LINKSET METADATA
+        ?linkset
+            alivocab:alignsMechanism    ?mec ;
+            void:subjectsTarget         ?subTarget ;
+            bdb:subjectsDatatype        ?s_datatype ;
+            alivocab:alignsSubjects     ?s_prop;
+            void:objectsTarget          ?objTarget ;
+            bdb:objectsDatatype         ?o_datatype ;
+            alivocab:alignsObjects      ?o_prop ;
+            void:triples                ?trip .
+
+        ### RETRIEVING CORRESPONDENCES
+        GRAPH  <{0}>
+        {{
+            ?sub_uri    ?aligns        ?obj_uri
+        }}.
+
+        ### RETRIEVING SUBJECT DATASET INFO
+        GRAPH ?subTarget
+        {{
+            ?sub_uri    ?s_prop     ?s_PredV
+        }}
+
+        ### RETRIEVING OBJECT DATASET INFO WHEN EXISTS
+        ### SOME ALIGNMENTS LIKE EMBEDDED SUBSET DO NOT USE OBJECT DATASET
+        OPTIONAL
+        {{
+            graph ?objTarget
+            {{
+                ?obj_uri  ?o_prop   ?o_PredVal
+            }}
+        }}
+        BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
+        BIND ("" AS ?operator)
+    }}
+    group by ?subTarget ?objTarget  ?sub_uri ?obj_uri  ?s_datatype ?o_datatype ?operator
+    LIMIT {1}""".format(linkset, limit)
+    if DETAIL:
+        print query
+    return query
+
+
+# TODO: REMOVE IF THE ABOVE IS WORKING
 def get_linkset_corresp_details(linkset, limit=1):
 
+    query = PREFIX + """
+    ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
+
+    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property
+    ?objTarget ?o_datatype ?o_property  ?triples ?operator
+        WHERE
+        {{
+
+            ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
+            <{0}>
+                prov:wasDerivedFrom*        ?linkset .
+
+            ### RETRIEVING LINKSET METADATA
+            ?linkset
+                alivocab:alignsMechanism    ?mechanism ;
+                void:subjectsTarget         ?subTarget ;
+                bdb:subjectsDatatype        ?s_datatype ;
+                alivocab:alignsSubjects     ?s_property;
+                void:objectsTarget          ?objTarget ;
+                bdb:objectsDatatype         ?o_datatype ;
+                alivocab:alignsObjects      ?o_property ;
+                void:triples                ?triples .
+
+            # ### RETRIEVING CORRESPONDENCES
+            # GRAPH  <{0}>
+            # {{
+            #     ?sub_uri    ?aligns        ?obj_uri
+            # }}.
+            #
+            # ### RETRIEVING SUBJECT DATASET INFO
+            # GRAPH ?subTarget
+            # {{
+            #     ?sub_uri    ?s_property     ?s_PredValue
+            # }}
+            #
+            # ### RETRIEVING OBJECT DATASET INFO WHEN EXISTS
+            # ### SOME ALIGNMENTS LIKE EMBEDDED SUBSET DO NOT USE OBJECT DATASET
+            # OPTIONAL
+            # {{
+            #     graph ?objTarget
+            #     {{
+            #         ?obj_uri  ?o_property   ?o_PredVal
+            #     }}
+            # }}
+            # BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredValue)
+            BIND ("" AS ?operator)
+        }}
+    # LIMIT {1}
+    """.format(linkset, limit)
+    if DETAIL:
+        print query
+    return query
+
+
+# TODO: REMOVE IF THE ABOVE IS WORKING
+def get_linkset_corresp_detailss(linkset, limit=1):
     query = PREFIX + """
     ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
 
@@ -738,15 +860,15 @@ def get_linkset_corresp_details(linkset, limit=1):
         WHERE
         {{
 
-    	  <{0}>
-          			 alivocab:alignsMechanism	 ?mechanism ;
-     				 void:subjectsTarget	 	?subTarget ;
-    				 bdb:subjectsDatatype	 	?s_datatype ;
-     				 alivocab:alignsSubjects	 ?s_property;
-     				 void:objectsTarget	 		?objTarget ;
-    				 bdb:objectsDatatype	 	?o_datatype ;
-     				 alivocab:alignsObjects	 	?o_property ;
-                     void:triples                ?triples .
+            <{0}>
+                alivocab:alignsMechanism    ?mechanism ;
+                void:subjectsTarget         ?subTarget ;
+                bdb:subjectsDatatype	 	?s_datatype ;
+                alivocab:alignsSubjects     ?s_property;
+                void:objectsTarget	 		?objTarget ;
+                bdb:objectsDatatype         ?o_datatype ;
+                alivocab:alignsObjects	 	?o_property ;
+                void:triples                ?triples .
 
 
             GRAPH  <{0}>
@@ -756,7 +878,7 @@ def get_linkset_corresp_details(linkset, limit=1):
 
             GRAPH ?subTarget
             {{
-                ?sub_uri 	?s_property        ?s_PredValue
+                ?sub_uri 	?s_property     ?s_PredValue
             }}
             OPTIONAL
             {{
@@ -815,41 +937,57 @@ def get_linkset_corresp_details(linkset, limit=1):
 #
 
 
-
 def get_lens_corresp_details(lens, limit=1):
-
 
     query = PREFIX + """
     ### LENS DETAILS AND VALUES OF ALIGNED PREDICATES
 
-    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
-        WHERE
+    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property
+    ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
+    WHERE
+    {{
+
+        <{0}>
+             void:target+|void:subjectsTarget|void:objectsTarget ?x .
+        ?x
+
+            void:subjectsTarget            ?subTarget ;
+            bdb:subjectsDatatype           ?s_datatype ;
+            alivocab:alignsSubjects        ?s_property ;
+            void:objectsTarget             ?objTarget ;
+            bdb:objectsDatatype            ?o_datatype ;
+            alivocab:alignsObjects         ?o_property .
+
+        #<{0}>
+        #    void:triples                   ?triples .
+
         {{
-
-    	  <{0}>
-          			 void:target+ ?x .
-          ?x
-
-                                 void:subjectsTarget            ?subTarget ;
-                                 bdb:subjectsDatatype           ?s_datatype ;
-                                 alivocab:alignsSubjects        ?s_property;
-                                 void:objectsTarget             ?objTarget ;
-                                 bdb:objectsDatatype            ?o_datatype ;
-                                 alivocab:alignsObjects         ?o_property .
-
-    	  <{0}>
-                     			 void:triples                   ?triples .
+            select (count (?sub) as ?triples )
+            where
+            {{
+                GRAPH <{0}>
+                {{
+                  ?sub ?sing ?obj .
+                  ?sing ?pred ?sObj .
+                }}
+            }}
+        }}
 
 
-            OPTIONAL {{  <{0}>
-                                 alivocab:alignsMechanism        ?mec ;}}
-            OPTIONAL {{  <{0}>
-                                 alivocab:operator   ?op  ;}}
+        OPTIONAL
+        {{  <{0}>
+            alivocab:alignsMechanism        ?mec .
+        }}
 
-            BIND (IF(bound(?mec), ?mec , "") AS ?mechanism)
-            BIND (IF(bound(?op), ?op , "") AS ?operator)        }}
-    LIMIT {1}
-    """.format(lens, limit)
+        OPTIONAL
+        {{  <{0}>
+            alivocab:operator   ?op  .
+        }}
+
+        BIND (IF(bound(?mec), ?mec , "") AS ?mechanism)
+        BIND (IF(bound(?op), ?op , "") AS ?operator)
+    }}
+    LIMIT {1}""".format(lens, limit)
     if DETAIL:
         print query
     return query
