@@ -250,9 +250,12 @@ function showDetails(graph_uri, detailsDict)
           // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
           if (operator) // THEN IT IS A LENS
           {
+              var evidence_div = '#lens_evidence_list_col';
+
               $('#inspect_linkset_linkset_details_col').html('');
               $('#inspect_linkset_linkset_details_col').hide();
-              var evidence_div = '#lens_evidence_list_col';
+
+              $('#lens_details_list_col').html('Loading...');
               $.get('/getLensDetail1',data=data,function(data)
               {
                   // DETAIL liST COLUMN
@@ -262,8 +265,8 @@ function showDetails(graph_uri, detailsDict)
                   $("#srcDatasetLS").on('click', function()
                   {
                     var dataset = $(this).attr('dataset');
-                    //$('#linktarget5').html('Hello');
 
+                    $('#srcDetailsLS').html('Loading...');
                     $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
                     {
                       $('#srcDetailsLS').html(data);
@@ -274,6 +277,7 @@ function showDetails(graph_uri, detailsDict)
                   $("#trgDatasetLS").on('click', function()
                   {
                     var dataset = $(this).attr('dataset');
+                    $('#trgDetailsLS').html('Loading...');
                     $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
                     {
                       $('#trgDetailsLS').html(data);
@@ -286,6 +290,7 @@ function showDetails(graph_uri, detailsDict)
           {
               var evidence_div = '#evidence_list_col';
               // GEt CORRESPONDENCE DETAILS
+              $('#details_list_col').html('Loading...');
               $.get('/getdetails',data=data,function(data)
               {
                   // DETAIL liST COLUMN
@@ -294,6 +299,7 @@ function showDetails(graph_uri, detailsDict)
                   // SOURCE CLICK
                   $("#srcDatasetLI").on('click', function()
                   {
+                    $('#srcDetails').html('Loading...');
                     $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
                     {
                       $('#srcDetails').html(data);
@@ -306,6 +312,7 @@ function showDetails(graph_uri, detailsDict)
                    // TARGET CLICK
                   $("#trgDatasetLI").on('click', function()
                   {
+                    $('#trgDetails').html('Loading...');
                     $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
                     {
                       $('#trgDetails').html(data);
@@ -317,6 +324,7 @@ function showDetails(graph_uri, detailsDict)
               });
           }
 
+          $(evidence_div).html('Loading...');
           $.get('/getevidence',data={'singleton_uri': uri},function(data)
           {
               $(evidence_div).html(data);
@@ -435,6 +443,7 @@ function validationSaveOnClick()
                                        'validation_text': validation_text},
                                  function(data){
             // reload the evidences
+            $('#evidence_list_col').html('Reloading...');
             $.get('/getevidence',data={'singleton_uri': uri},function(data)
               {
                   $('#evidence_list_col').html(data);

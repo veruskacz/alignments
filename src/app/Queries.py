@@ -630,21 +630,32 @@ def get_evidences(singleton, predicate=None):
 
     query = PREFIX + """
     ### GET EVIDENCES FOR SINGLETON
-    SELECT DISTINCT ?obj {0}
+    SELECT DISTINCT {0} ?obj 
     {{
+        GRAPH ?originalgraph
+        {{
+            <{1}>   <http://www.w3.org/ns/prov#wasDerivedFrom>*   ?x
+        }}
         {{
            GRAPH ?graph
            {{
-                <{1}> {2} ?obj .
+                ?x {2} ?obj .
+                MINUS 
+                {{
+                    ?x <http://risis.eu/alignment/predicate/hasValidation> ?obj
+                }}
            }}
         }}
         UNION
         {{
             GRAPH ?graph
             {{
-                <{1}> ?pred2 ?obj_2 .
-                ?obj_2 {2} ?obj .
-                #graph ?g {{ ?obj_2 {2} ?obj }}.
+                ?x <http://risis.eu/alignment/predicate/hasValidation> ?obj_2 .
+                ?obj_2 rdf:type 	?type ;
+                	   rdfs:comment ?comment .
+              	BIND (concat((strafter(str(?type),"/prov#")),(strafter(str(?type),"predicate/"))) as ?strType)
+                BIND (concat( ?strType, ': ', ?comment) as ?obj)
+                BIND (<http://risis.eu/alignment/predicate/hasValidation> as ?pred)
             }}
         }}
     }}
@@ -820,28 +831,6 @@ def get_linkset_corresp_details(linkset, limit=1):
                 alivocab:alignsObjects      ?o_property ;
                 void:triples                ?triples .
 
-            # ### RETRIEVING CORRESPONDENCES
-            # GRAPH  <{0}>
-            # {{
-            #     ?sub_uri    ?aligns        ?obj_uri
-            # }}.
-            #
-            # ### RETRIEVING SUBJECT DATASET INFO
-            # GRAPH ?subTarget
-            # {{
-            #     ?sub_uri    ?s_property     ?s_PredValue
-            # }}
-            #
-            # ### RETRIEVING OBJECT DATASET INFO WHEN EXISTS
-            # ### SOME ALIGNMENTS LIKE EMBEDDED SUBSET DO NOT USE OBJECT DATASET
-            # OPTIONAL
-            # {{
-            #     graph ?objTarget
-            #     {{
-            #         ?obj_uri  ?o_property   ?o_PredVal
-            #     }}
-            # }}
-            # BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredValue)
             BIND ("" AS ?operator)
         }}
     # LIMIT {1}
@@ -895,46 +884,6 @@ def get_linkset_corresp_detailss(linkset, limit=1):
     if DETAIL:
         print query
     return query
-
-
-# PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
-#     PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-#     PREFIX linkset:     <http://risis.eu/linkset/>
-#     PREFIX void:        <http://rdfs.org/ns/void#>
-#     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
-#     PREFIX tmpgraph:    <http://risis.eu/alignment/temp-match/>
-#     PREFIX prov:        <http://www.w3.org/ns/prov#>
-#
-#     ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
-#
-#     SELECT DISTINCT ?x ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
-#         WHERE
-#         {
-#
-#     	  <http://risis.eu/lens/union_Eter_LeidenRanking_P9136931839455661743>
-#           			 void:triples                ?triples ;
-#                      alivocab:operator   		?operator ;
-#                      void:target+ 				?linkset .
-#
-#           ??linkset  void:subjectsTarget	 	?subTarget ;
-#     				 bdb:subjectsDatatype	 	?s_datatype ;
-#      				 alivocab:alignsSubjects	 ?s_property;
-#      				 void:objectsTarget	 		?objTarget ;
-#     				 bdb:objectsDatatype	 	?o_datatype ;
-#      				 alivocab:alignsObjects	 	?o_property ;
-#                      alivocab:alignsMechanism    ?mechanism
-#
-#
-# 			OPTIONAL {{  <http://risis.eu/lens/union_Eter_LeidenRanking_P9136931839455661743>
-#                                  alivocab:alignsMechanism        ?mec ;}}
-#             OPTIONAL {{  <http://risis.eu/lens/union_Eter_LeidenRanking_P9136931839455661743>
-#                                  alivocab:operator   ?op  ;}}
-#
-#
-#         }
-#     LIMIT 10
-#
-#
 
 
 def get_lens_corresp_details(lens, limit=1):

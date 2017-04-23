@@ -28,11 +28,9 @@ function modeCreation(val)
 ///////////////////////////////////////////////////////////////////////////////
 function idea_button(targetId)
 {
-
   activateTargetDiv(targetId);
   var btn = document.getElementById('btn_inspect_idea');
   btn.onclick();
-  //alert('Ending Research question');
 
   if ($('#creation_idea_selected_RQ').attr('uri'))
    {
@@ -46,6 +44,7 @@ function linkset_button(targetId)
 {
    activateTargetDiv(targetId);
 
+   $('#button_creation_linkset_RQ_col').html('Loading...');
    // get research questions
    $.get('/getrquestions',
           data = {'template': 'list_dropdown.html',
@@ -67,6 +66,7 @@ function lens_button(targetId)
 {
    activateTargetDiv(targetId);
 
+   $('#button_rq_creation_lens_col').html('Loading...');
    $.get('/getrquestions',
           data = {'template': 'list_dropdown.html',
                   'function': 'rqClick(this,"lens")'},
@@ -147,13 +147,13 @@ function view_button(targetId)
 {
  activateTargetDiv(targetId);
 
+ $('#creation_view_col').show();
+ $('#button_rq_creation_view_col').html('Loading...');
  $.get('/getrquestions',
            data = {'template': 'list_dropdown.html',
                   'function': 'rqClick(this,"view")'},
           function(data)
    {
-
-       $('#creation_view_col').show();
        $('#button_rq_creation_view_col').html(data);
    });
 
@@ -181,7 +181,6 @@ function create_idea_button(th)
     resetButton(btn);
     btn = document.getElementById('btn_overview_idea');
     resetButton(btn);
-
   }
   else {
     $('#idea_create_row').hide();
@@ -200,6 +199,7 @@ function inspect_idea_button(th)
     btn = document.getElementById('btn_overview_idea');
     resetButton(btn);
 
+     $('#button_idea_RQ_col').html('Loading...');
      // get research questions
      $.get('/getrquestions',
             data = {'template': 'list_dropdown.html',
@@ -236,7 +236,6 @@ function overview_idea_button(th)
         $('#overview_idea_row').show();
     }
 
-
     var btn = document.getElementById('btn_inspect_idea');
     resetButton(btn);
     btn = document.getElementById('btn_create_idea');
@@ -254,6 +253,7 @@ function update_idea_enable(rq_uri)
    $('#creation_idea_registered_graphtype_list').html("");
    $('#creation_idea_update_col').show();
 
+    $('#creation_idea_graphtype_list').html('Loading...');
     $.get('/getgraphsentitytypes', data = {
                                     'rq_uri': rq_uri,
                                     'function': 'datasetMappingClick(this);'},
@@ -262,6 +262,7 @@ function update_idea_enable(rq_uri)
        $('#creation_idea_graphtype_list').html(data);
     });
 
+    $('#creation_idea_registered_graphtype_list').html('Loading...');
     $.get('/getgraphsentitytypes', data = {
                                     'rq_uri': rq_uri,
                                     'mode': 'added',
@@ -274,6 +275,11 @@ function update_idea_enable(rq_uri)
 
 function overview_idea_enable(rq_uri)
 {
+    $('#overview_idea_selected_RQ').val('Loading...');
+    $('#overview_idea_dataset_mapping').val('Loading...');
+    $('#overview_idea_alignment_mapping').val('Loading...');
+    $('#overview_idea_lenses').val('Loading...');
+    $('#overview_idea_views').val('Loading...');
     $.get('/getoverviewrq', data = {'rq_uri': rq_uri}, function(data)
     {
        var obj = JSON.parse(data)
@@ -312,7 +318,6 @@ function updateIdeaClick()
    {
       rq_uri = $('#creation_idea_selected_RQ').attr('uri');
    }
-//    alert(rq_uri);
    if ((rq_uri) && (list.length > 0))
    {
       $.get('/updaterq',data={'rq_uri': rq_uri, 'list[]': list},function(data)
@@ -342,10 +347,7 @@ function createIdeaClick()
    $.get('/insertrq',data={'question': rq_input.value},function(data)
    {
        var obj = JSON.parse(data)
-      //  var rq_up_btn = document.getElementById('updateIdeaButton');
-      //  rq_up_btn.setAttribute("uri", obj.rq);
        rq_input.setAttribute("uri", obj.result);
-//      alert(obj.result);
 
        $('#idea_creation_message_col').html(obj.message);
 
@@ -377,13 +379,15 @@ function inspect_linkset_activate(mode)
   {
      $('#creation_linkset_row').hide();
      refresh_create_linkset();
+
+     $('#inspect_linkset_linkset_selection_col').html('Loading...');
      $.get('/getgraphsperrqtype',
                   data={'rq_uri': rq_uri,
                         'mode': mode,
                         'type': 'linkset',
                         'template': 'list_group.html'},
                   function(data)
-     { // $('#loading2').hide();
+     {
        $('#inspect_linkset_linkset_selection_col').html(data);
 
        // set actions after clicking a graph in the list
@@ -394,9 +398,10 @@ function inspect_linkset_activate(mode)
             var linkset_uri = $(this).attr('uri');
 
             // load the panel describing the linkset sample
+            $('#inspect_linkset_linkset_details_col').show();
+            $('#inspect_linkset_linkset_details_col').html('Loading...');
             $.get('/getlinksetdetails',data={'linkset': linkset_uri},function(data)
             {
-                $('#inspect_linkset_linkset_details_col').show();
                 $('#inspect_linkset_linkset_details_col').html(data);
             });
 
@@ -407,7 +412,9 @@ function inspect_linkset_activate(mode)
             }
             else if (mode == 'inspect')
             {
+               $('#creation_linkset_filter_row').show();
                $('#creation_linkset_correspondence_row').show();
+               //already has Loading...
                $.get('/getlinksetdetails',data={'linkset': linkset_uri,
                                                'template': 'none'},function(data)
                {
@@ -425,10 +432,16 @@ function inspect_linkset_activate(mode)
   }
 }
 
-
+$('#linkset_filter_property').change(function () {
+//    var selectedText = $(this).find("option:selected").text();
+    $("#linkset_filter_value1").val('');
+    $("#linkset_filter_value2").val('');
+    //$(".test").text(selectedText);
+});
 
 function loadEditPanel(linkset_uri, mode)
 {
+   //TODO Loading...
    $.get('/getlinksetdetails',data={'linkset': linkset_uri,
                                    'template': 'none'},function(data)
    {
@@ -495,14 +508,16 @@ function loadEditPanel(linkset_uri, mode)
 function create_linkset_activate()
 {
    refresh_create_linkset();
-   $('#loading').show();
+   //$('#loading').show();
+   $('#button-src-col').html('Loading...');
+   $('#button-trg-col').html('Loading...');
    $.get('/getdatasetsperrq',
           data = {'template': 'list_dropdown.html',
                   'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
                   'function': 'datasetClick(this);'},
           function(data)
    {  // hide the loading message
-      $('#loading').hide();
+      //$('#loading').hide();
       $('#src_datasets_row').show();
       $('#src_entitytype_row').show();
       $('#trg_datasets_row').show();
@@ -688,7 +703,6 @@ function importLinksetClick()
         // call function that creates the linkset
         $.get('/importLinkset', data, function(data)
         {
-//            alert(data);
             $('#linkset_import_message_col').html(data);
         });
     }
@@ -713,6 +727,7 @@ function inspect_lens_activate(mode)
   if (rq_uri)
   {
 
+    $('#inspect_lens_lens_selection_col').html('Loading...');
     $.get('/getgraphsperrqtype',
                   data={'rq_uri': rq_uri,
                         'mode': mode,
@@ -720,7 +735,6 @@ function inspect_lens_activate(mode)
                         'template': 'list_group.html'},
                   function(data)
     {
-      // $('#loading2').hide();
       $('#inspect_lens_lens_selection_col').html(data);
 
       // set actions after clicking a graph in the list
@@ -731,16 +745,18 @@ function inspect_lens_activate(mode)
             var lens_uri = $(this).attr('uri');
 
             // load the panel describing the lens
+             $('#inspect_lens_lens_details_col').html('Loading...');
              $.get('getlensspecs',data={'lens': lens_uri},function(data)
              { $('#inspect_lens_lens_details_col').html(data);
              });
 
             // load the panel for correspondences details
+              $('#creation_lens_correspondence_row').show();
+              //already has Loading...
               $.get('/getlensdetails',data={'lens': lens_uri,
                                             'template': 'none'},function(data)
               {
                 var obj = JSON.parse(data);
-                $('#creation_lens_correspondence_row').show();
                 showDetails(lens_uri, obj);
               });
           }
@@ -753,12 +769,13 @@ function create_lens_activate()
 {
    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
 
-   $('#loading2').show();
+   //$('#loading2').show();
+   $('#creation_lens_linkset_selection_col').html('Loading...');
    $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
                           'type': 'linkset',
                           'template': 'list_group.html'},function(data)
    {
-     $('#loading2').hide();
+     //$('#loading2').hide();
      $('#creation_lens_linkset_selection_col').html(data);
 
      // set actions after clicking a graph in the list
@@ -766,11 +783,11 @@ function create_lens_activate()
       { selectListItem(this); });
    });
 
+   $('#creation_lens_lens_selection_col').html('Loading...');
    $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
                           'type': 'lens',
                           'template': 'list_group.html'},function(data)
    {
-     $('#loading2').hide();
      $('#creation_lens_lens_selection_col').html(data);
 
      // set actions after clicking a graph in the list
@@ -884,16 +901,14 @@ function importLensClick()
 function create_views_activate()
 {
      var rq_uri = $('#creation_view_selected_RQ').attr('uri');
-//    alert(rq_uri);
     $('#creation_view_predicates_col').html('');
     $('#creation_view_selected_predicates_group').html('');
     $('#view_creation_message_col').html('');
 
-
+     $('#creation_view_dataset_col').html('Loading...');
      $.get('/getdatasetsperrq',data={'rq_uri': rq_uri,
                             'template': 'list_group.html'},function(data)
      {
-      //  $('#loading4').hide();
        $('#creation_view_dataset_col').html(data);
 
        // set actions after clicking a graph in the list
@@ -901,18 +916,15 @@ function create_views_activate()
        {
           var graph_uri = $(this).attr('uri');
           var graph_label = $(this).attr('label');
-          //selectListItem(this);
 
           // $('#creation_view_datasetdetails_row').show();
           // $('#creation_view_predicates_msg_col').html('Select <b>' + graph_label + '</b> predicates:')
 
           if (selectListItemUnique(this, 'creation_view_dataset_col'))
           {
-              // Exhibit a waiting message for the user to know loading time
-              // might be long.
+              // Exhibit a waiting message for the user to know loading time might be long.
               $('#creation_view_predicates_col').html('Loading...');
-              // get the distinct predicates and example values of a graph
-              // into a list group
+              // get the distinct predicates and example values of a graph into a list group
               $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
               {
                    // load the rendered template into the column #creation_view_predicates_col
@@ -960,12 +972,11 @@ function create_views_activate()
        });
      });
 
-    //  $('#loading4').show();
+     $('#creation_view_linkset_col').html('Loading...');
      $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
                             'type': 'linkset',
                             'template': 'list_group.html'},function(data)
      {
-      //  $('#loading4').hide();
        $('#creation_view_linkset_col').html(data);
 
        // set actions after clicking a graph in the list
@@ -976,12 +987,11 @@ function create_views_activate()
        });
       });
 
-     $('#loading4').show();
+     $('#creation_view_lens_col').html('Loading...');
      $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
                             'type': 'lens',
                             'template': 'list_group.html'},function(data)
      {
-       $('#loading4').hide();
        $('#creation_view_lens_col').html(data);
 
        // set actions after clicking a graph in the list
@@ -1000,7 +1010,8 @@ function inspect_views_activate(mode="inspect")
 
   if (rq_uri)
   {
-
+    $('#inspect_views_details_col').html('');
+    $('#inspect_views_selection_col').html('Loading...');
     $.get('/getgraphsperrqtype',
                   data={'rq_uri': rq_uri,
                         'type': 'view',
@@ -1025,6 +1036,7 @@ function inspect_views_activate(mode="inspect")
             $('#creation_view_row').show();
 
             // load the panel for correspondences details
+              $('#inspect_views_details_col').html('Loading...');
               $.get('/getviewdetails',data={'rq_uri': rq_uri,
                                             'view_uri': view_uri},function(data)
               {
@@ -1279,6 +1291,7 @@ function datasetClick(th)
     var button = $(list).attr('targetBtn');
     if (button)
     {
+        $('#'+button).html('Loading...');
         $.get('/getentitytyperq',
                   data={'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
                         'function': 'entityTypeClick(this);',
@@ -1393,6 +1406,7 @@ function methodClick(th)
         {
           description = 'The method MATCH VIA INTERMEDIATE DATASET is used to align the source and the target by using properties that present different descriptions of a same entity, such as country name and country code. This is possible by providing an intermediate dataset that binds the two alternative descriptions to the very same identifier.';
           $('#int_dataset_row').show();
+          $('#button_int_dataset').html('Loading...');
           $.get('/getdatasets',
                   data={'template': 'list_dropdown.html',
                         'function': 'datasetClick(this);'},
@@ -1446,6 +1460,7 @@ function refresh_create_linkset(mode='all')
 
 
       $('#inspect_linkset_linkset_details_col').html("");
+      $('#creation_linkset_filter_row').hide();
       $('#creation_linkset_correspondence_row').hide();
       $('#creation_linkset_correspondence_col').html('');
 

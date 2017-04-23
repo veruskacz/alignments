@@ -262,7 +262,7 @@
                   targetTxt="selected_int_dataset" targetBtn="" targetList="">
               <!-- will be rendered via server -->
                   <button class="btn btn-primary dropdown-toggle" type="button"
-                    data-toggle='dropdown'>loading...<span class="caret"></span></button>
+                    data-toggle='dropdown'>dataset<span class="caret"></span></button>
             </div>
             <div class="col-md-8">
                <div class="well well-sm" id="selected_int_dataset" uri="">Select a Dataset</div>
@@ -272,6 +272,52 @@
     </div>
    </div>
   </div>
+  </div>
+ </div>
+
+ <div class="row creation" id="creation_linkset_filter_row" style='display:none'>
+  <div class="col-md-12">
+    <div class="panel panel-default">
+    <div class="panel-heading" id="linkset_filter_heading_panel">
+      <h4>Filter Linkset Conrrespondences</h4></div>
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-2">
+            <div class="form-group">
+                <!--<label for="sel1">Select list:</label>-->
+                <select class="form-control" id="linkset_filter_property">
+                <option>--Select a Property--</option>
+                <option>Threshold</option>
+                <option>Accept</option>
+                <option>Reject</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <table>
+                <TR>
+                    <TD>
+                        <input type="text" class="form-control" style='width:5em' id="linkset_filter_value1">
+                    </TD>
+                    <TD width="20"></TD>
+                    <TD>
+                        <input type="text" class="form-control" style='width:5em' id="linkset_filter_value2">
+                    </TD>
+                <TR>
+                    <TD>
+                        <div class="checkbox-inline"><label><input type="checkbox" value="">></label></div>
+                        <div class="checkbox-inline"><label><input type="checkbox" value="">=</label></div>
+                    </TD>
+                    <TD></TD>
+                    <TD>
+                        <div class="checkbox-inline"><label><input type="checkbox" value=""><</label></div>
+                        <div class="checkbox-inline"><label><input type="checkbox" value="">=</label></div>
+                    </TD>
+            </table>
+        </div>
+      </div>
+    </div>
+   </div>
   </div>
  </div>
 

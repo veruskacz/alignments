@@ -272,17 +272,29 @@ def lenspecs():
     # if PRINT_RESULTS:
     print "\n\nDETAILS:", details
 
+    badge = "<span class='badge alert-primary'><strong>{}</strong></span>";
     if details:
-        result = """This lens produces <strong>{}</strong> triples by applying the operator <strong>{}</strong> to the 
-        """.format(details[0]['triples']['value'], details[0]['operator_stripped']['value'])
+        result = """
+        <div class="panel panel-primary">
+            <div class="panel-heading" id="inspect_lens_lens_details_col">
+        """
+        result += "This lens applies the " + badge.format(details[0]['operator_stripped']['value']) + " operator to "
         for i in range(len(details)):
             if i < len(details)-2:
                 result += ", "
             elif i == (len(details)-1):
                 result += " and "
-            result += "<strong>{}</strong>".format(details[i]['graph_stripped']['value'])
+            result += badge.format(details[i]['graph_stripped']['value'])
+        result += " producing " + badge.format(details[0]['triples']['value']) + " triples."
+        result += """
+            </div>
+            <div class="panel-body" style='display:none'></div>
+        </div>
+        """
     else:
         result = 'NO RESULTS!'
+
+
 
     print result
 
@@ -348,7 +360,9 @@ def detailsLens():
     alignsObjects = request.args.get('alignsObjects', '')
 
     evi_query = Qry.get_evidences(singleton_uri, "prov:wasDerivedFrom")
+    print "QUERY:", evi_query
     evi_matrix = sparql_xml_to_matrix(evi_query)
+    print "MATRIX:", evi_matrix
     det_query = Qry.get_target_datasets(evi_matrix)
     # print det_query
     # print "\n\n\n\n\n"
@@ -904,12 +918,25 @@ def viewdetails():
     view_uri = request.args.get('view_uri');
 
     view = mod_view.retrieve_view(rq_uri, view_uri)
-    details = '<h4>View Lens</h4>'
+    badge = "<span class='badge alert-primary'><strong>{}</strong></span>";
+    details = """
+    <div class="panel panel-primary">
+        <div class="panel-heading" id="inspect_lens_lens_details_col">
+    """
+    details += "<div class='row'><div class='col-md-6'>"
+
+    details += '<h4>View Lens</h4>'
+    details += "</div><div class ='col-md-6'>"
+    details += '<h4>View Filter </h4>'
+    details += "</div></div> </div>"
+
+    details += """<div class="panel-body">"""
+    details += "<div class='row'><div class='col-md-6'>"
     for g in view['view_lens']:
-        details += '- ' + get_URI_local_name(g)+'<br/>'
+        details += '- ' + get_URI_local_name(g).replace('_', ' ') +'<br/>'
     datasets_bag = map(lambda x: x[0], view['view_filter_matrix'][1:])
     datasets = list(set(datasets_bag))
-    details += '<h4>View Filter </h4>'
+    details += "</div><div class ='col-md-6'>"
     for d in set(datasets):
         details += '<strong>' + get_URI_local_name(d) + '</strong><br/>'
         details += '- '
@@ -917,6 +944,7 @@ def viewdetails():
             if f[0] == d:
                 details += get_URI_local_name(f[1]) + ', '
         details += '<br/>'
+    details += "</div></div></div></div>"
 
     for i in range(1,len(view['view_filter_matrix'])):
         filter = view['view_filter_matrix'][i]
@@ -1144,11 +1172,11 @@ def sparql_xml_to_matrix(query):
 
     if query.lower().__contains__("optional") is True:
         message = "MATRIX DOES NOT YET DEAL WITH OPTIONAL"
+        print message
         return None
 
     response = endpoint(query)
     logger.info("1. RESPONSE OBTAINED")
-    # print response
 
     # DISPLAYING THE RESULT
 
