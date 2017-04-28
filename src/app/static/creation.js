@@ -252,6 +252,7 @@ function update_idea_enable(rq_uri)
    $('#creation_idea_selected_graphtype_list').html("");
    $('#creation_idea_registered_graphtype_list').html("");
    $('#creation_idea_update_col').show();
+   $('#idea_update_message_col').html("");
 
     $('#creation_idea_graphtype_list').html('Loading...');
     $.get('/getgraphsentitytypes', data = {
@@ -312,17 +313,17 @@ function updateIdeaClick()
      list.push(JSON.stringify(dict));
    }
 
-   var rq_uri = $('#research_question').attr('uri');
-
-   if (rq_uri == "")
+   var rq_elem = document.getElementById('research_question');
+   if ($(rq_elem).attr('uri') == '')
    {
-      rq_uri = $('#creation_idea_selected_RQ').attr('uri');
+      rq_elem = document.getElementById('creation_idea_selected_RQ');
    }
-   if ((rq_uri) && (list.length > 0))
-   {
-      $.get('/updaterq',data={'rq_uri': rq_uri, 'list[]': list},function(data)
-     {
 
+   if (($(rq_elem).attr('uri')!='') && (list.length > 0))
+   {
+     $.get('/updaterq',data={'rq_uri': $(rq_elem).attr('uri'), 'list[]': list},function(data)
+     {
+         rqClick(rq_elem, mode='idea');
          $('#idea_update_message_col').html(data);
      });
    } else {
@@ -341,6 +342,7 @@ function createIdeaClick()
     $('#creation_idea_graphtype_list').html("");
     $('#creation_idea_selected_graphtype_list').html("");
     $('#idea_creation_message_col').html("");
+    $('#idea_update_message_col').html("");
     // ... overview
 
    var rq_input = document.getElementById('research_question');
@@ -348,6 +350,7 @@ function createIdeaClick()
    {
        var obj = JSON.parse(data)
        rq_input.setAttribute("uri", obj.result);
+       rq_input.setAttribute("label", rq_input.value);
 
        $('#idea_creation_message_col').html(obj.message);
 
@@ -1245,13 +1248,13 @@ function rqClick(th, mode)
   setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
 
-  var target = 'creation_view_selected_RQ';
+  target = 'creation_view_selected_RQ';
   setAttr(target,'uri',rq_uri);
   setAttr(target,'label',rq_label);
   setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
 
-  var target = 'creation_idea_selected_RQ';
+  target = 'creation_idea_selected_RQ';
   setAttr(target,'uri',rq_uri);
   setAttr(target,'label',rq_label);
   setAttr(target,'style','background-color:lightblue');
@@ -1288,9 +1291,18 @@ function datasetClick(th)
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue');
 
+
+
     var button = $(list).attr('targetBtn');
     if (button)
     {
+        // clean previously selected entity type
+        targetTxt = $('#'+button).attr('targetTxt');
+        setAttr(targetTxt,'uri','');
+        $('#'+targetTxt).html('Select an Entity Type');
+        setAttr(targetTxt,'style','background-color:none');
+
+        // get new entity types
         $('#'+button).html('Loading...');
         $.get('/getentitytyperq',
                   data={'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
@@ -1298,7 +1310,6 @@ function datasetClick(th)
                         'graph_uri': graph_uri},
                   function(data)
         { // load the rendered template into the target column
-
           $('#'+button).html(data);
         });
     }
@@ -1307,8 +1318,14 @@ function datasetClick(th)
     var listCol = $(list).attr('targetList');
     if (listCol)
     {
-        $('#'+listCol).html('Loading...');
+        // clean previously selected entity type
+        targetTxt = $('#'+listCol).attr('targetTxt');
+        setAttr(targetTxt,'uri','');
+        $('#'+targetTxt).html('Select an Entity Type');
+        setAttr(targetTxt,'style','background-color:none');
+
         // get the distinct predicates and example values of a graph into a list group
+        $('#'+listCol).html('Loading...');
         $.get('/getpredicates', data={'dataset_uri': graph_uri,
                                       'function': 'predicatesClick(this)'},
                                 function(data)

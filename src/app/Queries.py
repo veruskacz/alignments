@@ -6,6 +6,7 @@
 import src.Alignments.NameSpace as Ns
 
 PREFIX ="""
+    ################################################################
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
     PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX linkset:     <http://risis.eu/linkset/>
@@ -18,117 +19,117 @@ PREFIX ="""
 INFO = False
 DETAIL = True
 
-def delete_rq():
-    query = """
-    DELETE {  ?subject ?pred ??obj . }
-    WHERE
-    {
-        ?subject    a           <http://risis.eu/class/ResearchQuestion> ;
-                    ?pred      ?obj .
-    }
-    """
-    if DETAIL:
-        print query
-    return query
+# def delete_rq():
+#     query = """
+#     DELETE {  ?subject ?pred ??obj . }
+#     WHERE
+#     {
+#         ?subject    a           <http://risis.eu/class/ResearchQuestion> ;
+#                     ?pred      ?obj .
+#     }
+#     """
+#     if DETAIL:
+#         print query
+#     return query
 
 
-def associate_linkset_lens_to_rq(question_uri, linkset):
-
-    query = """
-    INSERT
-    {{
-        <{0}> alivocab:created <{1}>
-    }}
-    WHERE
-    {{
-        <{0}> ?pred ?obj .
-    }}
-    """.format(question_uri, linkset)
-    if DETAIL:
-        print query
-    return query
-
-
-def insert_ds_mapping(question_uri, mapping):
-    # print "\nEnter the function"
-    where_clause = ""
-    insert_clause = ""
-    insert_query = ""
-    count_ds = 0
-    for dataset, datatypes in mapping.items():
-        # NEW MAPPING INSTANCE
-        outer_colon = ";\n" if (count_ds > 0) else ""
-        count_ds += 1
-        where_clause = """
-    \tBIND(iri(replace('http://risis.eu/activity/idea_#','#',strafter(str(uuid()),'uuid:'))) as ?dataset_{})\n""".\
-            format(count_ds)
-
-        insert_clause = """
-        <{}> void:target ?dataset_{}.""".format(question_uri, count_ds)
-        for i in range(len(datatypes)):
-            insert_clause += """
-        ?dataset_{}
-            alivocab:selectedSource 	<{}> ;
-            alivocab:selectedDatatype 	<{}> .\n""".format(count_ds, dataset, datatypes[i])
-
-            colon = ";\n" if (i > 0) else ""
-            insert_query += outer_colon + """
-            {}INSERT
-            {{
-                {}
-            }}
-            WHERE
-            {{
-                {}
-                FILTER NOT EXISTS
-                {{
-                     <{}> void:target [
-                        alivocab:selectedSource     <{}> ;
-                        alivocab:selectedDatatype   <{}>]
-                }}
-            }}
-            """.format(colon, insert_clause, where_clause, question_uri, dataset, datatypes[i])
-
-    final_query = PREFIX + insert_query
+# def associate_linkset_lens_to_rq(question_uri, linkset):
+#
+#     query = """
+#     INSERT
+#     {{
+#         <{0}> alivocab:created <{1}>
+#     }}
+#     WHERE
+#     {{
+#         <{0}> ?pred ?obj .
+#     }}
+#     """.format(question_uri, linkset)
+#     if DETAIL:
+#         print query
+#     return query
 
 
-    if DETAIL:
-        print final_query
-    return final_query
+# def insert_ds_mapping(question_uri, mapping):
+#     # print "\nEnter the function"
+#     where_clause = ""
+#     insert_clause = ""
+#     insert_query = ""
+#     count_ds = 0
+#     for dataset, datatypes in mapping.items():
+#         # NEW MAPPING INSTANCE
+#         outer_colon = ";\n" if (count_ds > 0) else ""
+#         count_ds += 1
+#         where_clause = """
+#     \tBIND(iri(replace('http://risis.eu/activity/idea_#','#',strafter(str(uuid()),'uuid:'))) as ?dataset_{})\n""".\
+#             format(count_ds)
+#
+#         insert_clause = """
+#         <{}> void:target ?dataset_{}.""".format(question_uri, count_ds)
+#         for i in range(len(datatypes)):
+#             insert_clause += """
+#         ?dataset_{}
+#             alivocab:selectedSource 	<{}> ;
+#             alivocab:selectedDatatype 	<{}> .\n""".format(count_ds, dataset, datatypes[i])
+#
+#             colon = ";\n" if (i > 0) else ""
+#             insert_query += outer_colon + """
+#             {}INSERT
+#             {{
+#                 {}
+#             }}
+#             WHERE
+#             {{
+#                 {}
+#                 FILTER NOT EXISTS
+#                 {{
+#                      <{}> void:target [
+#                         alivocab:selectedSource     <{}> ;
+#                         alivocab:selectedDatatype   <{}>]
+#                 }}
+#             }}
+#             """.format(colon, insert_clause, where_clause, question_uri, dataset, datatypes[i])
+#
+#     final_query = PREFIX + insert_query
+#
+#
+#     if DETAIL:
+#         print final_query
+#     return final_query
 
 
-def insert_RQ( question ):
+# def insert_RQ( question ):
+#
+#     query = """
+#     ### CREATING A RESEARCH QUESTION RESOURCE
+#     INSERT
+# 	{{
+#       	?subject
+#       	    a               <http://risis.eu/class/ResearchQuestion> ;
+#         	rdfs:label      ""\"{}\""" .
+#     }}
+#     WHERE
+#     {{
+#         #replace('http://risis.eu/activity/#','#', strafter(str(uuid()),'uuid:'))
+#         BIND( iri(replace('http://risis.eu/activity/idea_#','#', strafter(str(uuid()),'uuid:'))) as ?subject)
+#     }}
+#     """.format(question)
+#
+#     if DETAIL:
+#         print query
+#     return query
 
-    query = """
-    ### CREATING A RESEARCH QUESTION RESOURCE
-    INSERT
-	{{
-      	?subject
-      	    a               <http://risis.eu/class/ResearchQuestion> ;
-        	rdfs:label      ""\"{}\""" .
-    }}
-    WHERE
-    {{
-        #replace('http://risis.eu/activity/#','#', strafter(str(uuid()),'uuid:'))
-        BIND( iri(replace('http://risis.eu/activity/idea_#','#', strafter(str(uuid()),'uuid:'))) as ?subject)
-    }}
-    """.format(question)
 
-    if DETAIL:
-        print query
-    return query
-
-
-def check_RQ_existance (question):
-    query = """
-    ask
-	{{
-      	?subject a <http://risis.eu/class/ResearchQuestion> ;
-        	rdfs:label ""\"{}\""".
-    }}""".format(question)
-    if DETAIL:
-        print query
-    return query
+# def check_RQ_existance (question):
+#     query = """
+#     ask
+# 	{{
+#       	?subject a <http://risis.eu/class/ResearchQuestion> ;
+#         	rdfs:label ""\"{}\""".
+#     }}""".format(question)
+#     if DETAIL:
+#         print query
+#     return query
 
 
 def get_source_per_rq(rq_uri):
@@ -164,22 +165,22 @@ def get_rqs ():
         print query
     return query
 
-# TODO: remove
-def find_rq (question):
-    query = """
-    SELECT ?rq
-	{{
-      	?rq a <http://risis.eu/class/ResearchQuestion> ;
-        	rdfs:label ""\"{}\""".
-    }}""".format(question)
-    if DETAIL:
-        print query
-    return query
+# def find_rq (question):
+#     query = """
+#     SELECT ?rq
+# 	{{
+#       	?rq a <http://risis.eu/class/ResearchQuestion> ;
+#         	rdfs:label ""\"{}\""".
+#     }}""".format(question)
+#     if DETAIL:
+#         print query
+#     return query
 
 
 def get_types_per_graph(rq_uri, mode):
     # print rq_uri, mode
     filter = """
+        ## CHECK FOR DATASETS/GRAPHS SELECTED IN A RESERACH QUESTION
         GRAPH <{0}>
           {{  <{0}> alivocab:selected ?Dataset
           }}
@@ -190,16 +191,19 @@ def get_types_per_graph(rq_uri, mode):
     # print filter
 
     query = PREFIX + """
+    ## SELECT THE DATASETS/GRAPHS, ENTITY TYPE AND NUMBER OR ENTITYS OF THAT TYPE
     select distinct ?Dataset ?EntityType (count(distinct ?x) as ?EntityCount)
     {{
         {0}
 
+        ### THE DATASETS/GRAPHS MUST NOT BE A RESERARCH QUESTION
         Graph ?Dataset
         {{
            ?x a ?EntityType .
 
            FILTER NOT EXISTS {{ ?Dataset a <http://risis.eu/class/ResearchQuestion> }}
         }}
+        ### AND THE ENTITY-TYPES DESCRIBED MUST NOT BE ONE OF THE STANDARD VOCABULARIES
         FILTER ((str(?EntityType) != "http://www.w3.org/2000/01/rdf-schema#Class") )
         FILTER ((str(?EntityType) != "http://www.w3.org/2002/07/owl#Class"))
         FILTER ((str(?EntityType) != "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"))
@@ -213,16 +217,16 @@ def get_types_per_graph(rq_uri, mode):
     return query
 
 
-def get_graph_type(graph):
-    query = """
-    SELECT *
-    {{
-        <{}> a ?type .
-    }}
-    """.format(graph)
-    if DETAIL:
-        print query
-    return query
+# def get_graph_type(graph):
+#     query = """
+#     SELECT *
+#     {{
+#         <{}> a ?type .
+#     }}
+#     """.format(graph)
+#     if DETAIL:
+#         print query
+#     return query
 
 
 def get_entity_type_rq(rq_uri, graph_uri):
@@ -282,6 +286,7 @@ def get_lens_specs(lens):
         print query
     return query
 
+
 def get_graph_linkset():
     query = PREFIX + """
     ### GET LINKSET GRAPHS
@@ -310,69 +315,69 @@ def get_graph_linkset():
     return query
 
 
-def get_linkset_metadata(linkset):
-    query = PREFIX + """
-    ### GET LINKSET METADATA
-    SELECT DISTINCT ?subjectTarget ?objectTarget ?triples
-                    ?alignsSubjects ?alignsObjects ?alignsMechanism
-    WHERE
-    {{
-        <{}>
-            rdf:type	                                            void:Linkset ;
-            <http://rdfs.org/ns/void#subjectsTarget>                ?subjectTarget ;
-            <http://rdfs.org/ns/void#objectsTarget>                 ?objectTarget ;
-            <http://rdfs.org/ns/void#triples>                       ?triples ;
-            <http://risis.eu/alignment/predicate/alignsSubjects>    ?alignsSubjects ;
-            <http://risis.eu/alignment/predicate/alignsObjects>     ?alignsObjects ;
-            <http://risis.eu/alignment/predicate/alignsMechanism>   ?alignsMechanism .
-    }}
-    """.format(linkset)
-    if DETAIL:
-        print query
-    return query
+# def get_linkset_metadata(linkset):
+#     query = PREFIX + """
+#     ### GET LINKSET METADATA
+#     SELECT DISTINCT ?subjectTarget ?objectTarget ?triples
+#                     ?alignsSubjects ?alignsObjects ?alignsMechanism
+#     WHERE
+#     {{
+#         <{}>
+#             rdf:type	                                            void:Linkset ;
+#             <http://rdfs.org/ns/void#subjectsTarget>                ?subjectTarget ;
+#             <http://rdfs.org/ns/void#objectsTarget>                 ?objectTarget ;
+#             <http://rdfs.org/ns/void#triples>                       ?triples ;
+#             <http://risis.eu/alignment/predicate/alignsSubjects>    ?alignsSubjects ;
+#             <http://risis.eu/alignment/predicate/alignsObjects>     ?alignsObjects ;
+#             <http://risis.eu/alignment/predicate/alignsMechanism>   ?alignsMechanism .
+#     }}
+#     """.format(linkset)
+#     if DETAIL:
+#         print query
+#     return query
 
 
 ## Ve test
-def get_targets(graph_uri):
-    query = PREFIX + """
-    ### GET LINKSET METADATA
-    SELECT DISTINCT ?g
-    WHERE
-    {
-            { <""" + graph_uri + """> <http://rdfs.org/ns/void#subjectsTarget>                ?g }
-            UNION
-            { <""" + graph_uri + """> <http://rdfs.org/ns/void#objectsTarget>                 ?g }
-            UNION
-            { <""" + graph_uri + """> void:target                                             ?g }
-    }
-    """
-    if DETAIL:
-        print query
-    return query
+# def get_targets(graph_uri):
+#     query = PREFIX + """
+#     ### GET LINKSET METADATA
+#     SELECT DISTINCT ?g
+#     WHERE
+#     {
+#             { <""" + graph_uri + """> <http://rdfs.org/ns/void#subjectsTarget>                ?g }
+#             UNION
+#             { <""" + graph_uri + """> <http://rdfs.org/ns/void#objectsTarget>                 ?g }
+#             UNION
+#             { <""" + graph_uri + """> void:target                                             ?g }
+#     }
+#     """
+#     if DETAIL:
+#         print query
+#     return query
 
 
-def get_lens_operator(lens):
-    query = PREFIX + """
-    SELECT *
-    {{
-        <{}> alivocab:operator ?operator .
-    }}
-    """.format(lens)
-    if DETAIL:
-        print query
-    return query
+# def get_lens_operator(lens):
+#     query = PREFIX + """
+#     SELECT *
+#     {{
+#         <{}> alivocab:operator ?operator .
+#     }}
+#     """.format(lens)
+#     if DETAIL:
+#         print query
+#     return query
 
 
-def get_lens_union_targets(lens):
-    query = PREFIX + """
-    select *
-    {{
-        <{}> void:target ?target .
-    }}
-    """.format(lens)
-    if DETAIL:
-        print query
-    return query
+# def get_lens_union_targets(lens):
+#     query = PREFIX + """
+#     select *
+#     {{
+#         <{}> void:target ?target .
+#     }}
+#     """.format(lens)
+#     if DETAIL:
+#         print query
+#     return query
 
 
 def get_graphs_per_rq_type(rq_uri, type=None):
@@ -618,7 +623,7 @@ def get_target_datasets(singleton_matrix):
     return query
 
 
-def get_evidences(singleton, predicate=None):
+def get_evidences(graph_name, singleton, predicate=None):
 
     variable = ""
     pred = ""
@@ -632,12 +637,12 @@ def get_evidences(singleton, predicate=None):
     ### GET EVIDENCES FOR SINGLETON
     SELECT DISTINCT {0} ?obj 
     {{
-        GRAPH ?originalgraph
+        GRAPH ?graph
         {{
             <{1}>   <http://www.w3.org/ns/prov#wasDerivedFrom>*   ?x
         }}
         {{
-           GRAPH ?graph
+           GRAPH <{3}>
            {{
                 ?x {2} ?obj .
                 MINUS 
@@ -648,7 +653,7 @@ def get_evidences(singleton, predicate=None):
         }}
         UNION
         {{
-            GRAPH ?graph
+            GRAPH <{3}>
             {{
                 ?x <http://risis.eu/alignment/predicate/hasValidation> ?obj_2 .
                 ?obj_2 rdf:type 	?type ;
@@ -659,7 +664,46 @@ def get_evidences(singleton, predicate=None):
             }}
         }}
     }}
-    """.format(variable, singleton, pred)
+    """.format(variable, singleton, pred, graph_name)
+    if DETAIL:
+        print query
+    return query
+
+
+def get_evidences_counters(singleton_uri):
+    query = PREFIX + """
+    Select distinct ?nGood ?nBad ?nStrength
+    {
+    	{
+         Select (count(distinct ?accepted) AS ?nGood)
+         {
+          GRAPH ?graph
+      	   { <""" + singleton_uri + """> alivocab:hasValidation ?accepted .
+      	    ?accepted rdf:type prov:Accept
+           }
+         }
+        }
+
+    	{
+         Select (count(distinct ?rejected) AS ?nBad)
+         {
+          GRAPH ?graph
+      	   { <""" + singleton_uri + """> alivocab:hasValidation ?rejected .
+      	    ?rejected rdf:type alivocab:Reject
+           }
+         }
+        }
+
+        {
+         Select (count(?derivedFrom) AS ?nStrength)
+         {
+          GRAPH ?graph
+      	   { <""" + singleton_uri + """> prov:wasDerivedFrom ?derivedFrom
+           }
+         }
+        }
+    }
+    """
     if DETAIL:
         print query
     return query
@@ -805,7 +849,6 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     return query
 
 
-# TODO: REMOVE IF THE ABOVE IS WORKING
 def get_linkset_corresp_details(linkset, limit=1):
 
     query = PREFIX + """
@@ -834,52 +877,6 @@ def get_linkset_corresp_details(linkset, limit=1):
             BIND ("" AS ?operator)
         }}
     # LIMIT {1}
-    """.format(linkset, limit)
-    if DETAIL:
-        print query
-    return query
-
-
-# TODO: REMOVE IF THE ABOVE IS WORKING
-def get_linkset_corresp_detailss(linkset, limit=1):
-    query = PREFIX + """
-    ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
-
-    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property  ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
-        WHERE
-        {{
-
-            <{0}>
-                alivocab:alignsMechanism    ?mechanism ;
-                void:subjectsTarget         ?subTarget ;
-                bdb:subjectsDatatype	 	?s_datatype ;
-                alivocab:alignsSubjects     ?s_property;
-                void:objectsTarget	 		?objTarget ;
-                bdb:objectsDatatype         ?o_datatype ;
-                alivocab:alignsObjects	 	?o_property ;
-                void:triples                ?triples .
-
-
-            GRAPH  <{0}>
-            {{
-                ?sub_uri    ?aligns        ?obj_uri
-            }}.
-
-            GRAPH ?subTarget
-            {{
-                ?sub_uri 	?s_property     ?s_PredValue
-            }}
-            OPTIONAL
-            {{
-                graph ?objTarget
-                {{
-                    ?obj_uri  ?o_property   ?o_PredVal
-                }}
-            }}
-            BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredValue)
-            BIND ("" AS ?operator)
-        }}
-    LIMIT {1}
     """.format(linkset, limit)
     if DETAIL:
         print query

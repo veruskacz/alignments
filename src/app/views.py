@@ -180,8 +180,8 @@ def details():
     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjects, alignsObjects)
     details = sparql(query, strip=True)
 
-    # if PRINT_RESULTS:
-    print "\n\nDETAILS:", details
+    if PRINT_RESULTS:
+        print "\n\nDETAILS:", details
 
     # RETURN THE RESULT
     return render_template('details_list.html',
@@ -302,7 +302,7 @@ def lenspecs():
 
 
 @app.route('/getlensdetails', methods=['GET'])
-def lendetails():
+def lensdetails():
     """
     This function is called due to request /getlensdetails
     It queries the dataset for ...
@@ -352,6 +352,7 @@ def detailsLens():
     """
 
     singleton_uri = request.args.get('uri', '')
+    graph_uri = request.args.get('graph_uri', '')
     sub_uri = request.args.get('sub_uri', '')
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
@@ -359,7 +360,7 @@ def detailsLens():
     alignsSubjects = request.args.get('alignsSubjects', '')
     alignsObjects = request.args.get('alignsObjects', '')
 
-    evi_query = Qry.get_evidences(singleton_uri, "prov:wasDerivedFrom")
+    evi_query = Qry.get_evidences(graph_uri, singleton_uri, "prov:wasDerivedFrom")
     print "QUERY:", evi_query
     evi_matrix = sparql_xml_to_matrix(evi_query)
     print "MATRIX:", evi_matrix
@@ -494,43 +495,16 @@ def evidence():
     """
 
     singleton_uri = request.args.get('singleton_uri', '')
-    query = Qry.get_evidences(singleton_uri, predicate=None)
+    graph_uri = request.args.get('graph_uri', '').replace('linkset','singletons')
+
+    query = Qry.get_evidences(graph_uri, singleton_uri, predicate=None)
     evidences = sparql(query, strip=True)
     if PRINT_RESULTS:
         print "\n\nEVIDENCES:", evidences
 
-    query = PREFIXES + """
-    Select distinct ?nGood ?nBad ?nStrength
-    {
-    	{
-         Select (count(?accepted) AS ?nGood)
-         {
-          GRAPH ?graph
-      	   { <""" + singleton_uri + """> <http://example.com/predicate/good> ?accepted
-           }
-         }
-        }
-
-    	{
-         Select (count(?rejected) AS ?nBad)
-         {
-          GRAPH ?graph
-      	   { <""" + singleton_uri + """> <http://example.com/predicate/bad> ?rejected
-           }
-         }
-        }
-
-        {
-         Select (count(?derivedFrom) AS ?nStrength)
-         {
-          GRAPH ?graph
-      	   { <""" + singleton_uri + """> prov:wasDerivedFrom ?derivedFrom
-           }
-         }
-        }
-    }
-    """
+    query = Qry.get_evidences_counters(singleton_uri)
     validation_counts = sparql(query, strip=True)
+
     if PRINT_RESULTS:
         print "\n\nVALIDATION COUNTS:", validation_counts
 
@@ -1076,7 +1050,7 @@ def overviewrq():
     result = mod_view.activity_overview(rq_uri, get_text=False)
 
     # if PRINT_RESULTS:
-    print "\n\nOverview:", result['idea']
+    # print "\n\nOverview:", result['idea']
 
     # SEND BAK RESULTS
     return json.dumps(result)

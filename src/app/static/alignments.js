@@ -138,9 +138,6 @@ function setAttr(elemId,attr,value) {
 
 function selectListItemUnique(item, grouplist_name)
 {
-  // var selected = selectListItem(item);
-  // if (selected)
-  // {
     // check if there are selected elements in the group list
     var elems = selectedElemsInGroupList(grouplist_name);
     var i;

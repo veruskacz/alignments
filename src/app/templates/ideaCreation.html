@@ -17,10 +17,6 @@
               onclick='overview_idea_button(this);'
               >Overview</button>
       </h4>
-      <!-- <button type="button" id="btn_update_idea"
-              class="btn btn-primary"
-              onclick='update_idea_button(this);'
-              >Update</button> -->
     </div>
    </div>
 </div>
@@ -31,7 +27,8 @@
     <div class="panel panel-default">
     <div class="panel-heading">
      <div class="row">
-      <div class="col-md-10"><h4>Create Research Question</h4></div>
+      <div class="col-md-4"><h4>Create Research Question</h4></div>
+      <h5><div class="col-md-6 text-right" style="color:red" id="idea_creation_message_col"></div></h5>
       <div class="col-md-2">
           <button type="button" id="createIdeaButton" class="btn btn-success"
               data-toggle="button" onclick = "createIdeaClick();">
@@ -44,14 +41,11 @@
         <div class="col-md-12">
           <div class="form-group">
             <label for="research_question">Type here your reserach question:</label>
-            <textarea class="form-control" id="research_question" style="height:5em" uri="">
+            <textarea class="form-control" id="research_question" style="height:5em" uri="" label="">
 Can we predict the LeidenRanking scores from characteristics of the university?</textarea>
           </div>
         </div>
      </div>
-    <div class="row">
-      <h5><div class="col-md-11 text-right" style="color:red" id="idea_creation_message_col"></div></h5>
-    </div>
   </div>
   </div>
   </div>
@@ -173,7 +167,8 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
     <div class="panel panel-default">
     <div class="panel-heading" id="inspect_heading_panel">
      <div class="row">
-      <div class="col-md-10"><h4>Dataset Mapping</h4></div>
+      <div class="col-md-6"><h4>Dataset Mapping</h4></div>
+      <h5><div class="col-md-4 text-right" style="color:red" id="idea_update_message_col"></div></h5>
       <div class="col-md-2">
           <button type="button" id="updateIdeaButton" class="btn btn-success"
                     onclick = "updateIdeaClick()"
@@ -208,17 +203,8 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
                </div>
               </div>
           </div>
-          <!--<div class="col-md-2"><br/><br/>-->
-            <!--<button type="button" id="updateIdeaButton" class="btn btn-success"-->
-                    <!--onclick = "updateIdeaClick()"-->
-                    <!--uri = "" data-toggle="button">Insert Mapping</button>-->
-          <!--</div>-->
       </div>
-
-      <div class="row">
-        <h5><div class="col-md-12 text-right" style="color:red" id="idea_update_message_col"></div></h5>
-      </div>
-   </div>
+    </div>
   </div>
 </div>
 </div>

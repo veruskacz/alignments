@@ -144,7 +144,7 @@ function modeInvestigation(val)
 
                       $('#ValidationNo_btn').on('click', function(e)
                       {
-                           var validation_text = $('#validation_textbox').val();
+                         var validation_text = $('#validation_textbox').val();
                          var predicate = 'http://example.com/predicate/bad';
                          $.get('/updateevidence',data={'singleton_uri': uri, 'predicate': predicate, 'validation_text': validation_text},function(data){});
                        });
@@ -241,7 +241,8 @@ function showDetails(graph_uri, detailsDict)
           //HANDLING THE SELECTION/DE-SELECTION OF CLICKED CORRESPONDENCES
           selectListItemUniqueWithTarget(this);
 
-          var data = {'uri': uri, 'sub_uri': sub_uri, 'obj_uri': obj_uri,
+          var data = {'uri': uri, 'graph_uri': graph_uri,
+                            'sub_uri': sub_uri, 'obj_uri': obj_uri,
                             'subjectTarget': subjectTarget,
                             'objectTarget': objectTarget,
                             'alignsSubjects': alignsSubjects,
@@ -322,10 +323,11 @@ function showDetails(graph_uri, detailsDict)
                     });
                   });
               });
+              // graph_uri = 'http://risis.eu/linkset/';
           }
 
           $(evidence_div).html('Loading...');
-          $.get('/getevidence',data={'singleton_uri': uri},function(data)
+          $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
           {
               $(evidence_div).html(data);
           });
