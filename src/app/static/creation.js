@@ -686,7 +686,7 @@ function refineLinksetClick()
 
 function importLinksetClick()
 {
-   var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
 
     var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
     var i;
@@ -714,6 +714,68 @@ function importLinksetClick()
     }
 }
 
+function addFilterLinksetClick()
+{
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    var linkset = '';
+    var property = '';
+    var value_1 = {};
+    var value_2 = {};
+    var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
+    if (elems.length > 0) // it should have only one selected
+    {
+        linkset = $(elems[0]).attr('uri');
+        property = $('#linkset_filter_property').find("option:selected").text();
+        var operator = '';
+        if ($('#linkset_filter_value1').val())
+        {
+            if ($('#value1_greater').is(':checked'))
+            {
+                operator += $('#value1_greater').val();
+            }
+            if ($('#value1_equal').is(':checked'))
+            {
+                operator += $('#value1_equal').val();
+            }
+            if (operator)
+            {
+                value_1 = {'value': $('#linkset_filter_value1').val(),
+                           'operator': operator }
+            }
+        }
+        operator = '';
+        if ($('#linkset_filter_value2').val())
+        {
+            if ($('#value2_smaller').is(':checked'))
+            {
+                operator += $('#value2_smaller').val();
+            }
+            if ($('#value2_equal').is(':checked'))
+            {
+                operator += $('#value2_equal').val();
+            }
+            if (operator)
+            {
+                value_2 = {'value': $('#linkset_filter_value2').val(),
+                           'operator': operator }
+            }
+        }
+    }
+    if ((rq_uri != '') && (linkset != '') && (property!='--Select a Property--') &&
+        ((value_1 != {}) || (value_2 != {})) )
+    {
+        $.get('/setlinkesetfilter',
+                  data={'rq_uri': rq_uri,
+                        'linkset_uri': linkset,
+                        'property': property,
+                        'value_1': JSON.stringify(value_1),
+                        'value_2': JSON.stringify(value_2)},
+                  function(data)
+        {
+//             alert('done');
+        });
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in lensCreation.html

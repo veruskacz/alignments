@@ -279,7 +279,18 @@
   <div class="col-md-12">
     <div class="panel panel-default">
     <div class="panel-heading" id="linkset_filter_heading_panel">
-      <h4>Filter Linkset Conrrespondences</h4></div>
+     <div class="row">
+      <div class="col-md-5"><h4>Filter Linkset Conrrespondences
+          <small>(select to see the details)</small></h4></div>
+      <h5><div class="col-md-5 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>
+      <div class="col-md-2">
+          <button type="button" id="btn_add_filter_linkset"
+                class="btn btn-primary btn btn-success"
+                onclick='addFilterLinksetClick()'
+                >Add filter</button>
+          </div>
+     </div>
+    </div>
     <div class="panel-body">
       <div class="row">
         <div class="col-md-2">
@@ -305,13 +316,13 @@
                     </TD>
                 <TR>
                     <TD>
-                        <div class="checkbox-inline"><label><input type="checkbox" value="">></label></div>
-                        <div class="checkbox-inline"><label><input type="checkbox" value="">=</label></div>
+                        <div class="checkbox-inline"><label><input type="checkbox" id="value1_greater" value=">">></label></div>
+                        <div class="checkbox-inline"><label><input type="checkbox" id="value1_equal" value="=">=</label></div>
                     </TD>
                     <TD></TD>
                     <TD>
-                        <div class="checkbox-inline"><label><input type="checkbox" value=""><</label></div>
-                        <div class="checkbox-inline"><label><input type="checkbox" value="">=</label></div>
+                        <div class="checkbox-inline"><label><input type="checkbox" id="value2_smaller" value="<"><</label></div>
+                        <div class="checkbox-inline"><label><input type="checkbox" id="value2_equal" value="=">=</label></div>
                     </TD>
             </table>
         </div>

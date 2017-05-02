@@ -159,6 +159,25 @@ def correspondences():
                             alignsMechanism = get_URI_local_name(alignsMechanism))
 
 
+@app.route('/setlinkesetfilter', methods=['GET'])
+def setlinkesetfilter():
+    rq_uri = request.args.get('rq_uri', '')
+    linkset_uri = request.args.get('linkset_uri', '')
+    property = request.args.get('property', '')
+    json_item = request.args.get('value_1', '')
+    value_1 = ast.literal_eval(json_item)
+    json_item = request.args.get('value_2', '')
+    value_2 = ast.literal_eval(json_item)
+
+    print ">>>>>>>", rq_uri, linkset_uri, property, value_1, value_2
+
+    return ''
+
+
+@app.route('/getlinkesetfilter', methods=['GET'])
+def getlinkesetfilter():
+    return ''
+
 @app.route('/getdetails', methods=['GET'])
 def details():
     """
