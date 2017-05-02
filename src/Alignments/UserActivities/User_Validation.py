@@ -111,7 +111,7 @@ def register_correspondence_filter(research_uri, linkset_uri, method, greater_eq
                 a   <{3}Filter> ;
                 <{1}appliesTo>  <{4}> ;
                 <{5}comment>    \"\"\"{6}\"\"\" ;
-                <{1}method>  <{7}> .
+                <{1}method>  \"\"\"{7}\"\"\" .
         }}
     }}
 
