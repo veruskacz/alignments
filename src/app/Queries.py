@@ -4,6 +4,7 @@
 # sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/app')
 
 import src.Alignments.NameSpace as Ns
+from src.Alignments.UserActivities.User_Validation import get_linkset_filter
 
 PREFIX ="""
     ################################################################
@@ -540,17 +541,23 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     return query
 
 
-def get_correspondences(graph_uri):
+def get_correspondences(graph_uri, limit=80):
+
+    # GET FILTER
+    filter = ""
+    result = get_linkset_filter("http://risis.eu/activity/idea_715b92", graph_uri)
+    if result["result"]:
+        filter = result["result"][1][0]
 
     query = """
     ### GET CORRESPONDENCES
     SELECT DISTINCT ?sub ?pred ?obj
-    {
-        GRAPH <""" + graph_uri + """> { ?sub ?pred ?obj }
-        GRAPH ?g { ?pred ?p ?o }
-
-    } limit 80
-    """
+    {{
+        GRAPH <{1}> {{ ?sub ?pred ?obj }}
+        GRAPH ?g {{ ?pred ?p ?o }}
+        {2}
+    }} limit {0}
+    """.format(limit, graph_uri, filter)
     if DETAIL:
         print query
     return query

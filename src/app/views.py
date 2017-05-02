@@ -41,7 +41,7 @@ if CREATION_ACTIVE:
     import src.Alignments.Linksets.SPA_LinksetRefine as refine
     import src.Alignments.UserActivities.View as mod_view
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
-    from src.Alignments.UserActivities.User_Validation import updateEvidence
+    from src.Alignments.UserActivities.User_Validation import update_evidence
 else:
     from src.app import app
 

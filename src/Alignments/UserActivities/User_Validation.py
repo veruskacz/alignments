@@ -1,7 +1,7 @@
 import src.Alignments.NameSpace as Ns
-from src.Alignments.Query import boolean_endpoint_response
+from src.Alignments.Query import boolean_endpoint_response, sparql_xml_to_matrix
 
-def updateEvidence(singleton_uri, message, research_uri, accepted=True):
+def update_evidence(singleton_uri, message, research_uri, accepted=True):
     """
     This function is called due to request /updateevidence
     It updates a singleton property resource with the validation info.
@@ -55,3 +55,84 @@ def updateEvidence(singleton_uri, message, research_uri, accepted=True):
     print "\n\nUPDATE RESPONSE:", response
 
     return response
+
+
+def register_correspondence_filter(research_uri, linkset_uri, method, greater_eq=None, smaller_eq=None):
+
+    c_filter = ""
+    query = ""
+
+    if method == "threshold":
+        if greater_eq is not None:
+            c_filter = """\n\t\t\t\tFILTER (STRDT(str(?o), xsd:integer) {}  {}) """.format(
+                greater_eq["operator"], greater_eq["value"])
+
+        if smaller_eq is not None:
+            c_filter += """\n\t\t\t\tFILTER (STRDT(str(?o), xsd:integer) {}  {})""".format(
+                smaller_eq["operator"], smaller_eq["value"])
+
+    if c_filter != "":
+        hash_code = hash(research_uri + linkset_uri + c_filter)
+        hash_code = str(hash_code).replace("-", "N") if str(hash_code).__contains__("-") else "P{}".format(hash_code)
+        filter_uri = "{}c_filter_{}".format(Ns.risis, hash_code)
+
+        query = """
+    INSERT
+    {{
+        ### THE RESEARCH QUESTION CREATED A FILTER
+        GRAPH <{0}>
+        {{
+            <{0}>
+                <{1}created> <{2}> .
+
+            <{2}>
+                a   <{3}Filter> ;
+                <{1}appliesTo>  <{4}> ;
+                <{5}comment>    \"\"\"{6}\"\"\" .
+        }}
+    }}
+
+    WHERE
+    {{
+        GRAPH <{0}>
+        {{
+            FILTER NOT EXISTS
+            {{
+                <{0}>
+                    <{1}created> <{2}> .
+            }}
+        }}
+    }}
+    """.format(
+            # 0           1            2           3           4            5        6
+            research_uri, Ns.alivocab, filter_uri, Ns.riclass, linkset_uri, Ns.rdfs, c_filter)
+
+    print query
+
+    # REGISTER IT
+    response = boolean_endpoint_response(query)
+
+    print response
+    # return query
+
+
+def get_linkset_filter(research_uri, linkset_uri):
+
+    query = """
+    SELECT ?comment
+    {{
+        GRAPH <{0}>
+        {{
+            ?filter
+                a <{1}Filter> ;
+                <{2}appliesTo>  <{3}> ;
+                rdfs:comment ?comment .
+        }}
+    }}
+    """.format(research_uri, Ns.riclass, Ns.alivocab, linkset_uri)
+
+    print query
+
+    result = sparql_xml_to_matrix(query)
+
+    return result
