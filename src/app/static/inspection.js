@@ -191,10 +191,8 @@ function modeInvestigation(val)
 }
 
 
-function showDetails(graph_uri, detailsDict)
+function showDetails(rq_uri, graph_uri, detailsDict)
 {
-  // inspect_linkset_linkset_details_col
-  var graph_uri = graph_uri;
   var graph_label = graph_uri;
   var subjectTarget = detailsDict.subTarget_stripped.value;
   var objectTarget = detailsDict.objTarget_stripped.value;
@@ -220,7 +218,9 @@ function showDetails(graph_uri, detailsDict)
   $('#'+div).html('Loading...');
 
   // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
-  $.get('/getcorrespondences',data={'uri': graph_uri, 'label': graph_label,
+  $.get('/getcorrespondences',data={'rq_uri': rq_uri,
+                                    'graph_uri': graph_uri,
+                                    'label': graph_label,
                                     'graph_menu': graph_menu,
                                     'graph_triples': graph_triples,
                                     'operator': operator,

@@ -41,7 +41,7 @@ if CREATION_ACTIVE:
     import src.Alignments.Linksets.SPA_LinksetRefine as refine
     import src.Alignments.UserActivities.View as mod_view
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
-    from src.Alignments.UserActivities.User_Validation import update_evidence
+    import src.Alignments.UserActivities.User_Validation as UVld
 else:
     from src.app import app
 
@@ -137,13 +137,14 @@ def correspondences():
         are passed as parameters to the template correspondences_list.html
     """
     graph_menu = request.args.get('graph_menu', '')
-    graph_uri = request.args.get('uri', '')
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
     graph_label = request.args.get('label','')
     graph_triples = request.args.get('graph_triples','')
     alignsMechanism = request.args.get('alignsMechanism', '')
     operator = request.args.get('operator', '')
 
-    corresp_query = Qry.get_correspondences(graph_uri)
+    corresp_query = Qry.get_correspondences(rq_uri, graph_uri)
     correspondences = sparql(corresp_query, strip=True)
 
     if PRINT_RESULTS:
@@ -169,8 +170,14 @@ def setlinkesetfilter():
     json_item = request.args.get('value_2', '')
     value_2 = ast.literal_eval(json_item)
 
-    print ">>>>>>>", rq_uri, linkset_uri, property, value_1, value_2
+    print ">>>>>>>", rq_uri, linkset_uri, property.lower(), value_1, value_2
+    if property:
+        result = UVld.register_correspondence_filter(
+                        rq_uri, linkset_uri, property.lower(),
+                        value_1 if value_1 != {} else None,
+                        value_2 if value_2 != {} else None)
 
+    print result
     return ''
 
 
@@ -546,7 +553,7 @@ def updEvidence():
     validation_text = request.args.get('validation_text', '')
     research_uri = request.args.get('research_uri', '')
 
-    result = updateEvidence(singleton_uri, validation_text, research_uri, accepted=(type=='accept'))
+    result = UVld.update_evidence(singleton_uri, validation_text, research_uri, accepted=(type=='accept'))
     if PRINT_RESULTS:
         print "\n\nUPDATE RESPOSNSE:", result
 

@@ -541,23 +541,36 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     return query
 
 
-def get_correspondences(graph_uri, limit=80):
+def get_correspondences(rq_uri, graph_uri, limit=80):
 
     # GET FILTER
-    filter = ""
-    result = get_linkset_filter("http://risis.eu/activity/idea_715b92", graph_uri)
+    filter1 = ""
+    filter2 = ""
+    result = get_linkset_filter(rq_uri, graph_uri)
     if result["result"]:
-        filter = result["result"][1][0]
+        method = result["result"][1][1]
+        if method == "threshold":
+            filter1 = result["result"][1][0]
+        else:
+            filter2 = result["result"][1][0]
 
     query = """
     ### GET CORRESPONDENCES
-    SELECT DISTINCT ?sub ?pred ?obj
+    SELECT DISTINCT ?sub ?pred ?obj (count(distinct ?accept) as ?nAccept) (count(distinct ?reject) as ?nReject)
     {{
         GRAPH <{1}> {{ ?sub ?pred ?obj }}
-        GRAPH ?g {{ ?pred ?p ?o }}
+        GRAPH ?g {{ ?pred ?p ?o .
+            OPTIONAL {{ ?pred <http://risis.eu/alignment/predicate/hasValidation> ?accept.
+                        ?accept rdf:type <http://www.w3.org/ns/prov#Accept>}}
+        	OPTIONAL {{?pred <http://risis.eu/alignment/predicate/hasValidation> ?reject.
+                        ?reject rdf:type <http://risis.eu/alignment/predicate/Reject>}}
         {2}
-    }} limit {0}
-    """.format(limit, graph_uri, filter)
+        }}
+    }} 
+    GROUP BY ?sub ?pred ?obj
+    {3}
+    limit {0}
+    """.format(limit, graph_uri, filter1, filter2)
     if DETAIL:
         print query
     return query
@@ -796,7 +809,7 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 def get_linkset_corresp_sample_details(linkset, limit=1):
 
     query = PREFIX + """
-    ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
+    ### LINKSET DETAILS WITH SAMPLE OF ALIGNED PREDICATES
 
     SELECT DISTINCT
     ?subTarget ?objTarget ?s_datatype ?o_datatype ?operator
@@ -859,7 +872,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
 def get_linkset_corresp_details(linkset, limit=1):
 
     query = PREFIX + """
-    ### LINKSET DETAILS AND VALUES OF ALIGNED PREDICATES
+    ### LINKSET DETAILS
 
     SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property
     ?objTarget ?o_datatype ?o_property  ?triples ?operator
