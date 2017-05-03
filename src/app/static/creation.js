@@ -426,6 +426,11 @@ function inspect_linkset_activate(mode)
                 }
             });
 
+            $.get('/getfilters',data={'rq_uri': rq_uri, 'graph_uri': linkset_uri},function(data)
+            {
+                $('#linkset_filter_list').html(data);
+            });
+
           }
           else { $('#inspect_linkset_linkset_details_col').html(""); }
           e.preventDefault();

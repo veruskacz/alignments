@@ -989,6 +989,35 @@ def graphsEntityTypes():
                             style = style,
                             data = data)
 
+
+@app.route('/getfilters')
+def getfilters():
+    """
+    This function is called due to request /getfilters
+    It queries ...
+    The result list is passed as parameters to the template list_group_description.html
+    """
+    # GET QUERY
+    function = request.args.get('function', '')
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    mode = request.args.get('mode', '')
+    query = Qry.get_filter(rq_uri, graph_uri)
+
+    if (mode == 'added'):
+        style = 'background-color:lightblue'
+    else:
+        style = ''
+
+    # RUN QUERY AGAINST ENDPOINT
+    data = sparql(query, strip=True)
+    print data
+
+    return render_template('list_group_description.html',
+                            function = function,
+                            style = style,
+                            list = data)
+
 # TODO: REMOVE
 @app.route('/insertrq', methods=['GET'])
 def insertrq():

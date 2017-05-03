@@ -957,3 +957,26 @@ def get_lens_corresp_details(lens, limit=1):
     if DETAIL:
         print query
     return query
+
+
+def get_filter(research_uri, graph_uri):
+
+    query = """
+    SELECT (?filter as ?id) (?filter as ?uri) ?description
+    {{
+        GRAPH <{0}>
+        {{
+            ?filter
+                a <{1}Filter> ;
+                <{2}appliesTo>  <{3}> ;
+                rdfs:comment ?comment ;
+                <{2}method>  ?method .
+        }}
+        BIND (CONCAT(UCASE(?method), " | ", ?comment) AS ?description)
+    }}
+    """.format(research_uri, Ns.riclass, Ns.alivocab, graph_uri)
+
+    if DETAIL:
+        print query
+
+    return query
