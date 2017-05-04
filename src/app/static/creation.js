@@ -408,8 +408,10 @@ function inspect_linkset_activate(mode)
                 $('#inspect_linkset_linkset_details_col').html(data);
             });
 
+            get_filter(rq_uri, linkset_uri);
+
             $.get('/getlinksetdetails',data={'linkset': linkset_uri,
-                                               'template': 'none'},function(data)
+                                             'template': 'none'},function(data)
             {
                 var obj = JSON.parse(data);
 
@@ -422,13 +424,8 @@ function inspect_linkset_activate(mode)
                 {
                    $('#creation_linkset_filter_row').show();
                    $('#creation_linkset_correspondence_row').show();
-                   showDetails(rq_uri, linkset_uri, obj);
+                   showDetails(rq_uri, linkset_uri, obj, filter_uri='none');
                 }
-            });
-
-            $.get('/getfilters',data={'rq_uri': rq_uri, 'graph_uri': linkset_uri},function(data)
-            {
-                $('#linkset_filter_list').html(data);
             });
 
           }
@@ -706,6 +703,7 @@ function importLinksetClick()
     }
 }
 
+
 $('#linkset_filter_property').change(function() {
     $("#linkset_filter_value1").val('');
     $("#linkset_filter_value2").val('');
@@ -724,6 +722,7 @@ $('#linkset_filter_property').change(function() {
         document.getElementById("value2_smaller").checked = true;
     }
 });
+
 
 function addFilterLinksetClick()
 {
@@ -783,9 +782,53 @@ function addFilterLinksetClick()
                         'value_2': JSON.stringify(value_2)},
                   function(data)
         {
-//             alert('done');
+            get_filter(rq_uri, linkset);
         });
     }
+}
+
+
+function applyFilterLinksetClick()
+{
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    var linkset_uri = ''
+    var elems = selectedElemsInDiv("inspect_linkset_linkset_selection_col");
+       if (elems.length > 0)
+       {    linkset_uri = $(elems[0]).attr('uri');
+       }
+
+    $.get('/getlinksetdetails',data={'linkset': linkset_uri,
+                                       'template': 'none'},function(data)
+    {
+       var obj = JSON.parse(data);
+
+       $('#creation_linkset_filter_row').show();
+       $('#creation_linkset_correspondence_row').show();
+       filter_uri = ''
+       elems = selectedElemsInDiv("linkset_filter_col");
+       if (elems.length > 0)
+       {    filter_uri = $(elems[0]).attr('uri');
+       }
+       showDetails(rq_uri, linkset_uri, obj, filter_uri);
+    });
+}
+
+function get_filter(rq_uri, linkset)
+{
+    $.get('/getfilters',data={'rq_uri': rq_uri, 'graph_uri': linkset},function(data)
+    {
+        $('#linkset_filter_list').html(data);
+
+        var item = '<li class="list-group-item list-group-item-warning" uri="none" id="no_filter_linkset" '
+                            + '"><span class="list-group-item-heading"> None </span></li>';
+        $('#linkset_filter_list').prepend(item);
+
+        $('#linkset_filter_list li').on('click',function()
+        {   selectListItemUnique(this, 'linkset_filter_list')
+            //selectListItem(this);
+        });
+
+    });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1363,8 +1406,6 @@ function datasetClick(th)
     setAttr(targetTxt,'uri',graph_uri);
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue');
-
-
 
     var button = $(list).attr('targetBtn');
     if (button)

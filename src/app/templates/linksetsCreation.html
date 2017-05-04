@@ -280,8 +280,7 @@
     <div class="panel panel-default">
     <div class="panel-heading" id="linkset_filter_heading_panel">
      <div class="row">
-      <div class="col-md-5"><h4>Filter Linkset Conrrespondences
-          <small>(select to see the details)</small></h4></div>
+      <div class="col-md-5"><h4>Filter Linkset Conrrespondences</h4></div>
       <h5><div class="col-md-4 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>
       <div class="col-md-3">
           <button type="button" id="btn_add_filter_linkset"
@@ -330,9 +329,10 @@
                     </TD>
             </table>
         </div>
-        <div class="col-md-6">
-            <div class="list-group" id="linkset_filter_list" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
-            <!-- To be loaded by the server -->
+        <div class="col-md-6" id="linkset_filter_col">
+            <div class="list-group" id="linkset_filter_list" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
+                <li class="list-group-item list-group-item-warning" uri="none" id="no_filter_linkset"><span class="list-group-item-heading"> None </span></li>'
+                <!-- To be loaded by the server -->
             </div>
         </div>
       </div>

@@ -139,12 +139,13 @@ def correspondences():
     graph_menu = request.args.get('graph_menu', '')
     rq_uri = request.args.get('rq_uri', '')
     graph_uri = request.args.get('graph_uri', '')
+    filter_uri = request.args.get('filter_uri', '')
     graph_label = request.args.get('label','')
     graph_triples = request.args.get('graph_triples','')
     alignsMechanism = request.args.get('alignsMechanism', '')
     operator = request.args.get('operator', '')
 
-    corresp_query = Qry.get_correspondences(rq_uri, graph_uri)
+    corresp_query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri)
     correspondences = sparql(corresp_query, strip=True)
 
     if PRINT_RESULTS:
@@ -1010,7 +1011,7 @@ def getfilters():
         style = ''
 
     # RUN QUERY AGAINST ENDPOINT
-    data = sparql(query, strip=True)
+    data = sparql(query, strip=False)
     print data
 
     return render_template('list_group_description.html',

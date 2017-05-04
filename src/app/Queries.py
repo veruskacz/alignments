@@ -541,22 +541,28 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     return query
 
 
-def get_correspondences(rq_uri, graph_uri, limit=80):
+def get_correspondences(rq_uri, graph_uri, filter_uri='', limit=80):
 
     # GET FILTER
     filter1 = ""
     filter2 = ""
-    result = get_linkset_filter(rq_uri, graph_uri)
+    result = get_linkset_filter(rq_uri, graph_uri, filter_uri)
+    print result
     if result["result"]:
         method = result["result"][1][1]
         if method == "threshold":
             filter1 = result["result"][1][0]
+            # somehow this HAVING is needed to avoid return with empty sub pred obj
+            filter2 = 'HAVING (?npred > 0)'
         else:
             filter2 = result["result"][1][0]
 
     query = """
     ### GET CORRESPONDENCES
-    SELECT DISTINCT ?sub ?pred ?obj (count(distinct ?accept) as ?nAccept) (count(distinct ?reject) as ?nReject)
+    SELECT DISTINCT ?sub ?pred ?obj 
+        (count(distinct ?accept) as ?nAccept) 
+        (count(distinct ?reject) as ?nReject)
+        (count(distinct ?pred) as ?strength)
     {{
         GRAPH <{1}> {{ ?sub ?pred ?obj }}
         GRAPH ?g {{ ?pred ?p ?o .
@@ -564,8 +570,8 @@ def get_correspondences(rq_uri, graph_uri, limit=80):
                         ?accept rdf:type <http://www.w3.org/ns/prov#Accept>}}
         	OPTIONAL {{?pred <http://risis.eu/alignment/predicate/hasValidation> ?reject.
                         ?reject rdf:type <http://risis.eu/alignment/predicate/Reject>}}
-        {2}
         }}
+        {2}
     }} 
     GROUP BY ?sub ?pred ?obj
     {3}
