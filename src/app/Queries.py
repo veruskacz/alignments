@@ -553,7 +553,7 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', limit=80):
         if method == "threshold":
             filter1 = result["result"][1][0]
             # somehow this HAVING is needed to avoid return with empty sub pred obj
-            filter2 = 'HAVING (?npred > 0)'
+            filter2 = 'HAVING (?strength > 0)'
         else:
             filter2 = result["result"][1][0]
 
