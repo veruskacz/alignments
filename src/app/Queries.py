@@ -574,8 +574,13 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
     filter_term_match = ''
     if filter_term != '':
         filter_term_match = """
+        
+        ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
+        <{0}>
+                prov:wasDerivedFrom*        ?graph_uri .
+                
         ### GET METADATA IN THE DEFAULT GRAPH
-        <{0}>  void:subjectsTarget 			?subjectsTarget ;
+        ?graph_uri  void:subjectsTarget 			?subjectsTarget ;
                void:objectsTarget  			?objectsTarget ;
                alivocab:alignsSubjects      ?alignsSubjects ;
                alivocab:alignsObjects    ?alignsObjects .
