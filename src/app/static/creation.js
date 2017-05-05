@@ -1438,7 +1438,7 @@ function datasetClick(th)
         // clean previously selected entity type
         targetTxt = $('#'+listCol).attr('targetTxt');
         setAttr(targetTxt,'uri','');
-        $('#'+targetTxt).html('Select an Entity Type');
+        $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
         setAttr(targetTxt,'style','background-color:none');
 
         // get the distinct predicates and example values of a graph into a list group

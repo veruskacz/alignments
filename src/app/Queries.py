@@ -576,28 +576,27 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
         filter_term_match = """
         ### GET METADATA IN THE DEFAULT GRAPH
         <{0}>  void:subjectsTarget 			?subjectsTarget ;
-               void:objectsTarget  			?objectsTarget .
+               void:objectsTarget  			?objectsTarget ;
+               alivocab:alignsSubjects      ?alignsSubjects ;
+               alivocab:alignsObjects    ?alignsObjects .
         
         {{
         ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
-        <{0}>   alivocab:alignsSubjects   ?aligns .
         GRAPH ?subjectsTarget
             {{
-                ?sub    ?aligns     ?value .
-                #(?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
+                ?sub    ?alignsSubjects     ?Svalue .
+                (?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
             }}
         }}
         UNION
         {{
         ## MATCH USING ALIGNED PROPERTY IN THE OBJECT-DATASET
-        <{0}>   alivocab:alignsObjects    ?aligns .
         GRAPH ?objectsTarget
             {{
-                ?obj    ?aligns     ?value .
-                #(?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
+                ?obj    ?alignsObjects     ?Ovalue .
+                (?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
             }}
         }}
-        #(?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
         """.format(graph_uri, filter_term)
 
     query = PREFIX + """
