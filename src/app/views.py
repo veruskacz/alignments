@@ -140,12 +140,13 @@ def correspondences():
     rq_uri = request.args.get('rq_uri', '')
     graph_uri = request.args.get('graph_uri', '')
     filter_uri = request.args.get('filter_uri', '')
+    filter_term = request.args.get('filter_term', '')
     graph_label = request.args.get('label','')
     graph_triples = request.args.get('graph_triples','')
     alignsMechanism = request.args.get('alignsMechanism', '')
     operator = request.args.get('operator', '')
 
-    corresp_query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri)
+    corresp_query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
     correspondences = sparql(corresp_query, strip=True)
 
     if PRINT_RESULTS:

@@ -74,19 +74,19 @@ def register_correspondence_filter(research_uri, linkset_uri, method, greater_eq
     elif method == "accept":
         condition = ""
         if greater_eq is not None:
-            condition = """ ?nAccept {} {}""".format(greater_eq["operator"], greater_eq["value"])
+            condition = """ count(distinct ?accept) {} {}""".format(greater_eq["operator"], greater_eq["value"])
         if smaller_eq is not None:
             condition += " && " if condition != "" else ""
-            condition += """ ?nAccept {} {}""".format(smaller_eq["operator"], smaller_eq["value"])
+            condition += """ count(distinct ?accept) {} {}""".format(smaller_eq["operator"], smaller_eq["value"])
         c_filter += "HAVING ({})".format(condition) if condition != "" else ""
 
     elif method == "reject":
         condition = ""
         if greater_eq is not None:
-            condition = """ ?nReject {} {}""".format(greater_eq["operator"], greater_eq["value"])
+            condition = """ count(distinct ?reject) {} {}""".format(greater_eq["operator"], greater_eq["value"])
         if smaller_eq is not None:
             condition += " && " if condition != "" else ""
-            condition += """ ?nReject {} {}""".format(smaller_eq["operator"], smaller_eq["value"])
+            condition += """ count(distinct ?reject) {} {}""".format(smaller_eq["operator"], smaller_eq["value"])
         c_filter += "HAVING ({})".format(condition) if condition != "" else ""
 
     if c_filter != "":

@@ -804,12 +804,15 @@ function applyFilterLinksetClick()
 
        $('#creation_linkset_filter_row').show();
        $('#creation_linkset_correspondence_row').show();
-       filter_uri = ''
+       var filter_uri = '';
        elems = selectedElemsInDiv("linkset_filter_col");
        if (elems.length > 0)
        {    filter_uri = $(elems[0]).attr('uri');
        }
-       showDetails(rq_uri, linkset_uri, obj, filter_uri);
+       var filter_term =  $('#linkset_filter_text').val();
+       if (filter_term == "-- Type a term for search & filter --")
+            { filter_term = ''; }
+       showDetails(rq_uri, linkset_uri, obj, filter_uri, filter_term);
     });
 }
 

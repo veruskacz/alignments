@@ -541,42 +541,86 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     return query
 
 
-def get_correspondences(rq_uri, graph_uri, filter_uri='', limit=80):
+def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=80):
 
-    # GET FILTER
-    filter1 = ""
-    filter2 = ""
+    # ADD FILTER CONDITIONS
+    filter_condition = ""
+    filter_count = ""
+    filter_count_aux = ""
     result = get_linkset_filter(rq_uri, graph_uri, filter_uri)
     print result
     if result["result"]:
         method = result["result"][1][1]
         if method == "threshold":
-            filter1 = result["result"][1][0]
+            filter_condition = result["result"][1][0]
             # somehow this HAVING is needed to avoid return with empty sub pred obj
-            filter2 = 'HAVING (?strength > 0)'
+            #filter_condition += "BIND(count(distinct ?pred) as ?strength)"
+            #filter_count = 'HAVING (?strength > 0)'
         else:
-            filter2 = result["result"][1][0]
+            filter_count = " GROUP BY ?sub ?pred ?obj "
+            filter_count += result["result"][1][0]
+            if method == "accept":
+                filter_count_aux = """
+                OPTIONAL {{ ?pred <http://risis.eu/alignment/predicate/hasValidation> ?accept.
+                            ?accept rdf:type <http://www.w3.org/ns/prov#Accept> .
+                         }}"""
+            elif method == "reject":
+                filter_count_aux = """
+            	OPTIONAL {{?pred <http://risis.eu/alignment/predicate/hasValidation> ?reject.
+                            ?reject rdf:type <http://risis.eu/alignment/predicate/Reject> .
+                         }}"""
 
-    query = """
+    # ADD FILTER TERM MATCH
+    filter_term_match = ''
+    if filter_term != '':
+        filter_term_match = """
+        ### GET METADATA IN THE DEFAULT GRAPH
+        <{0}>  void:subjectsTarget 			?subjectsTarget ;
+               void:objectsTarget  			?objectsTarget .
+        
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
+        <{0}>   alivocab:alignsSubjects   ?aligns .
+        GRAPH ?subjectsTarget
+            {{
+                ?sub    ?aligns     ?value .
+                #(?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
+            }}
+        }}
+        UNION
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE OBJECT-DATASET
+        <{0}>   alivocab:alignsObjects    ?aligns .
+        GRAPH ?objectsTarget
+            {{
+                ?obj    ?aligns     ?value .
+                #(?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
+            }}
+        }}
+        #(?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
+        """.format(graph_uri, filter_term)
+
+    query = PREFIX + """
     ### GET CORRESPONDENCES
     SELECT DISTINCT ?sub ?pred ?obj 
-        (count(distinct ?accept) as ?nAccept) 
-        (count(distinct ?reject) as ?nReject)
-        (count(distinct ?pred) as ?strength)
     {{
         GRAPH <{1}> {{ ?sub ?pred ?obj }}
         GRAPH ?g {{ ?pred ?p ?o .
-            OPTIONAL {{ ?pred <http://risis.eu/alignment/predicate/hasValidation> ?accept.
-                        ?accept rdf:type <http://www.w3.org/ns/prov#Accept>}}
-        	OPTIONAL {{?pred <http://risis.eu/alignment/predicate/hasValidation> ?reject.
-                        ?reject rdf:type <http://risis.eu/alignment/predicate/Reject>}}
+            # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+            {4}
         }}
+                
+        # FILTER BY CONDITION
         {2}
+        
+        # FILTER BY TERM MATCH
+        {5}
+        
     }} 
-    GROUP BY ?sub ?pred ?obj
+    # FILTER BY COUNT
     {3}
     limit {0}
-    """.format(limit, graph_uri, filter1, filter2)
+    """.format(limit, graph_uri, filter_condition, filter_count, filter_count_aux, filter_term_match)
     if DETAIL:
         print query
     return query

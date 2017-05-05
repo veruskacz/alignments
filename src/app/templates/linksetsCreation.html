@@ -296,38 +296,47 @@
     </div>
     <div class="panel-body">
       <div class="row">
-        <div class="col-md-2">
-            <div class="form-group">
-                <!--<label for="sel1">Select list:</label>-->
-                <select class="form-control" id="linkset_filter_property">
-                <option>--Select a Property--</option>
-                <option>Threshold</option>
-                <option>Accept</option>
-                <option>Reject</option>
-                </select>
+        <div class="col-md-6">
+          <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <!--<label for="sel1">Select list:</label>-->
+                    <select class="form-control" id="linkset_filter_property">
+                    <option>--Select a Property--</option>
+                    <option>Threshold</option>
+                    <option>Accept</option>
+                    <option>Reject</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <table>
-                <TR>
-                    <TD>
-                        <input type="text" class="form-control" style='width:5em' id="linkset_filter_value1">
-                    </TD>
-                    <TD width="20"></TD>
-                    <TD>
-                        <input type="text" class="form-control" style='width:5em' id="linkset_filter_value2">
-                    </TD>
-                <TR>
-                    <TD>
-                        <div class="checkbox-inline"><label><input type="checkbox" id="value1_greater" value=">">></label></div>
-                        <div class="checkbox-inline"><label><input type="checkbox" id="value1_equal" value="=">=</label></div>
-                    </TD>
-                    <TD></TD>
-                    <TD>
-                        <div class="checkbox-inline"><label><input type="checkbox" id="value2_smaller" value="<"><</label></div>
-                        <div class="checkbox-inline"><label><input type="checkbox" id="value2_equal" value="=">=</label></div>
-                    </TD>
-            </table>
+            <div class="col-md-4">
+                <table>
+                    <TR>
+                        <TD>
+                            <input type="text" class="form-control" style='width:5em' id="linkset_filter_value1">
+                        </TD>
+                        <TD width="20"></TD>
+                        <TD>
+                            <input type="text" class="form-control" style='width:5em' id="linkset_filter_value2">
+                        </TD>
+                    <TR>
+                        <TD>
+                            <div class="checkbox-inline"><label><input type="checkbox" id="value1_greater" value=">">></label></div>
+                            <div class="checkbox-inline"><label><input type="checkbox" id="value1_equal" value="=">=</label></div>
+                        </TD>
+                        <TD></TD>
+                        <TD>
+                            <div class="checkbox-inline"><label><input type="checkbox" id="value2_smaller" value="<"><</label></div>
+                            <div class="checkbox-inline"><label><input type="checkbox" id="value2_equal" value="=">=</label></div>
+                        </TD>
+                </table>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control" id="linkset_filter_text" value="-- Type a term for search & filter --">
+            </div>
+          </div>
         </div>
         <div class="col-md-6" id="linkset_filter_col">
             <div class="list-group" id="linkset_filter_list" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>

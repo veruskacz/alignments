@@ -191,7 +191,7 @@ function modeInvestigation(val)
 }
 
 
-function showDetails(rq_uri, graph_uri, detailsDict, filter='')
+function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term='')
 {
   var graph_label = graph_uri;
   var subjectTarget = detailsDict.subTarget_stripped.value;
@@ -220,7 +220,8 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter='')
   // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
   $.get('/getcorrespondences',data={'rq_uri': rq_uri,
                                     'graph_uri': graph_uri,
-                                    'filter_uri': filter,
+                                    'filter_uri': filter_uri,
+                                    'filter_term': filter_term,
                                     'label': graph_label,
                                     'graph_menu': graph_menu,
                                     'graph_triples': graph_triples,
