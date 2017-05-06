@@ -2,12 +2,12 @@
   <div class="panel-heading">
      <div class="row">
       <div class="col-md-9"><h3>Views</h3></div>
-      <div class="col-md-3" id="creation_views_buttons_col">
+      <div class="col-md-3 text-right" id="creation_views_buttons_col">
         <h4><button type="button" id="btn_inspect_view"
                 class="btn btn-primary btn btn-success disabled"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="inspect_views_row",cl="row creation");
-                inspect_views_activate(mode="inspect")
+                inspect_views_activate(mode="inspect");
                 $("#collapse_view_lens").collapse("hide");
                 $("#collapse_view_filter").collapse("hide");'
                 >Inspect</button>
@@ -16,7 +16,7 @@
                 create_views_activate();
                 $("#inspect_views_row").hide();
                 $("#collapse_view_lens").collapse("show");
-                $("#collapse_view_filter").collapse("show");'
+                $("#collapse_view_filter").collapse("show");
                 activateTargetDiv(targetId="creation_view_row",cl="row creation");'
                 >Create</button>
         <button type="button" class="btn btn-primary disabled"
@@ -77,6 +77,90 @@
         </div>
         </div>
         </div>
+      </div>
+     </div>
+
+     <div class="row creation" id="creation_view_filter_row" style='display:none'>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+        <div class="panel-heading" id="view_filter_heading_panel">
+         <div class="row">
+          <div class="col-md-5">
+              <h4 class="panel-title">
+                  <a id="link_collapse_view_corresp_filter"
+                     data-toggle="collapse" href="#collapse_view_corresp_filter">
+                  <span class="badge alert-info"><strong>+</strong></span></a>
+                  Filter Linkset Conrrespondences
+              </h4>
+          </div>
+          <h5><div class="col-md-4 text-right" style="color:red" id="view_add_filter_message_col"></div></h5>
+          <div class="col-md-3 text-right">
+              <button type="button" id="btn_add_filter_view"
+                    class="btn btn-primary"
+                    onclick='addFilterViewClick()'
+                    >Add filter</button>
+              <button type="button" id="btn_apply_filter_view"
+                    class="btn btn-primary"
+                    onclick='applyFilterViewClick()'
+                    >Apply Filter(s)</button>
+              </div>
+         </div>
+        </div>
+        <div id="collapse_view_corresp_filter" class="panel-collapse collapse" target="link_collapse_view_corresp_filter">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <!--<label for="sel1">Select list:</label>-->
+                        <select class="form-control" id="view_filter_property">
+                        <option>--Select a Property--</option>
+                        <option>Threshold</option>
+                        <option>Accept</option>
+                        <option>Reject</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <table>
+                        <TR>
+                            <TD>
+                                <input type="text" class="form-control" style='width:5em' id="lview_filter_value1">
+                            </TD>
+                            <TD width="20"></TD>
+                            <TD>
+                                <input type="text" class="form-control" style='width:5em' id="view_filter_value2">
+                            </TD>
+                        <TR>
+                            <TD>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="view_value1_greater" value=">">></label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="view_value1_equal" value="=">=</label></div>
+                            </TD>
+                            <TD></TD>
+                            <TD>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="view_value2_smaller" value="<"><</label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="view_value2_equal" value="=">=</label></div>
+                            </TD>
+                    </table>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="view_filter_text" value="-- Type a term for search & filter --">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6" id="view_filter_col">
+                <div class="list-group" id="view_filter_list" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
+                    <li class="list-group-item list-group-item-warning" uri="none" id="no_filter_view"><span class="list-group-item-heading"> None </span></li>'
+                    <!-- To be loaded by the server -->
+                </div>
+            </div>
+          </div>
+        </div>
+        </div>
+       </div>
       </div>
      </div>
 
@@ -145,7 +229,7 @@
                 </h4>
               </div>
               <h5><div class="col-md-6 text-right" style="color:red" id="view_creation_message_col"></div></h5>
-              <div class="col-md-2">
+              <div class="col-md-2 text-right">
                 <button type="button" id="createViewButton" class="btn btn-success"
                         data-toggle="button" onclick = 'createViewClick(mode="check")' >
                 Check View</button>
@@ -221,7 +305,7 @@
                       View-Result
                   </h4>
               </div>
-              <div class="col-md-2">
+              <div class="col-md-2 text-right">
                 <!--<h4><button type="button"-->
                         <!--class="btn btn-primary"-->
                         <!--onclick='showQuery(this);'-->
@@ -247,7 +331,7 @@
                               SPARQL Query
                           </h4>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 text-right">
                             <h5><button type="button" class="btn btn-primary"
                                 onclick='runViewClick();'
                             >Run Query</button></h5>
@@ -277,7 +361,7 @@
                               Result Table
                           </h4>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 text-right">
                             <h5><button type="button" class="btn btn-primary"
                                 onclick='downloadTableClick();'
                             >Download Table</button></h5>

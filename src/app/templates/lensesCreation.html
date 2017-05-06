@@ -2,7 +2,7 @@
 <div class="panel-heading">
  <div class="row">
   <div class="col-md-8"><h3>Lenses</h3></div>
-  <div class="col-md-4" id="creation_lens_buttons_col">
+  <div class="col-md-4 text-right" id="creation_lens_buttons_col">
     <h4><button type="button" id="btn_inspect_lens"
             class="btn btn-primary btn btn-success disabled"
             onclick='newSelectButton(this);
@@ -49,38 +49,53 @@
  <div class="row creation" id="inspect_lenses_row" style='display:none'>
   <div class="col-md-12">
     <div class="panel panel-default">
-    <div class="panel-heading" id="inspect_lenses_heading_panel">
-      <h4>Inspect Lenses <small>(select to see the details)</small></h4></div>
-    <div class="panel-heading" id="import_lenses_heading_panel" style='display:none'>
-     <div class="row">
-      <div class="col-md-4"><h4>Import Related Lenses
-          <small>(select to see the details)</small></h4></div>
-      <h5><div class="col-md-6 text-right" style="color:red" id="lens_import_message_col"></div></h5>
-      <div class="col-md-2">
-          <button type="button" id="btn_import_lens"
-                class="btn btn-primary btn btn-success"
-                onclick='importLensClick()'
-                >Import</button>
+        <div class="panel-heading" id="inspect_lenses_heading_panel">
+          <h4 class="panel-title">
+                <a id="link_collapse_lens_inspect"
+                 data-toggle="collapse" href="#collapse_lens_inspect">
+                <span class="badge alert-info"><strong>-</strong></span></a>
+            Inspect Lenses <small>(select to see the details)</small>
+          </h4>
+        </div>
+        <div class="panel-heading" id="import_lenses_heading_panel" style='display:none'>
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_lens_inspect_import"
+                     data-toggle="collapse" href="#collapse_lens_inspect_import">
+                  <span class="badge alert-info"><strong>+</strong></span></a>
+                  Import Related Lenses <small>(select to see the details)</small>
+              </h4>
           </div>
-     </div>
-    </div>
-    <div class="panel-body">
-      <div class="row">
-        <div class="col-md-4">
+          <h5><div class="col-md-6 text-right" style="color:red" id="lens_import_message_col"></div></h5>
+          <div class="col-md-2 text-right">
+              <button type="button" id="btn_import_lens"
+                    class="btn btn-primary btn btn-success"
+                    onclick='importLensClick()'
+                    >Import</button>
+          </div>
+         </div>
+        </div>
+        <div id="collapse_lens_inspect" class="panel-collapse collapse in"
+             target="link_collapse_lens_inspect" target2="link_collapse_lens_inspect_import">
+        <div class="panel-body">
           <div class="row">
-            <div class="col-md-12" id="inspect_lens_lens_selection_col">
-            <!-- will be rendered via server -->
+            <div class="col-md-4">
+              <div class="row">
+                <div class="col-md-12" id="inspect_lens_lens_selection_col">
+                <!-- will be rendered via server -->
+                </div>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col" id="inspect_lens_lens_details_col" style='width: 100%;'></div>
+                <!-- will be rendered via server -->
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-md-8">
-          <div class="row">
-            <div class="col" id="inspect_lens_lens_details_col" style='width: 100%;'></div>
-            <!-- will be rendered via server -->
-          </div>
         </div>
-      </div>
-    </div>
     </div>
   </div>
  </div>
@@ -90,17 +105,23 @@
    <div class="panel panel-default">
    <div class="panel-heading" id="create_lens_heading" >
      <div class="row">
-       <div class="col-md-4"><h4>Create Lens<br/>
-       <small>(Select operator and two or more linksets/lenses)</small></h4></div>
+       <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_lens_create"
+                 data-toggle="collapse" href="#collapse_lens_create">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Create Lens<br/><small>(Select operator and two or more linksets/lenses)</small>
+          </h4>
+       </div>
        <h5><div class="col-md-6 text-right" style="color:red" id="lens_creation_message_col"></div></h5>
-       <div class="col-md-2">
+       <div class="col-md-2 text-right">
            <button type="button" id="createLensButton"
                    class="btn btn-success btn btn-primary"
                    onclick="createLensClick()">Create Lens</button>
        </div>
      </div>
    </div>
-
+   <div id="collapse_lens_create" class="panel-collapse collapse in" target="link_collapse_lens_create">
    <div class="panel-body">
     <div class="row">
       <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_operation_col">
@@ -166,6 +187,7 @@
 
     </div>
    </div>
+   </div>
   </div>
   </div>
  </div>
@@ -175,9 +197,16 @@
     <div class="panel panel-default">
     <div class="panel-heading" id="lens_filter_heading_panel">
      <div class="row">
-      <div class="col-md-5"><h4>Filter Lens Conrrespondences</h4></div>
+      <div class="col-md-5">
+          <h4 class="panel-title">
+              <a id="link_collapse_lens_filter"
+                 data-toggle="collapse" href="#collapse_lens_filter">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Filter Lens Conrrespondences
+          </h4>
+      </div>
       <h5><div class="col-md-4 text-right" style="color:red" id="lens_add_filter_message_col"></div></h5>
-      <div class="col-md-3">
+      <div class="col-md-3 text-right">
           <button type="button" id="btn_add_filter_lens"
                 class="btn btn-primary"
                 onclick='addFilterLensClick()'
@@ -189,6 +218,7 @@
           </div>
      </div>
     </div>
+    <div id="collapse_lens_filter" class="panel-collapse collapse in" target="link_collapse_lens_filter">
     <div class="panel-body">
       <div class="row">
         <div class="col-md-6">
@@ -241,6 +271,7 @@
         </div>
       </div>
     </div>
+    </div>
    </div>
   </div>
  </div>
@@ -249,11 +280,19 @@
   <div class="col-md-12" >
     <div class="panel panel-default">
     <div class="panel-heading" id="lens_investigation_heading_panel">
-      <h4>Investigate Lens Correspondences</h4></div>
+          <h4 class="panel-title">
+              <a id="link_collapse_lens_corresp_investigation"
+                 data-toggle="collapse" href="#collapse_lens_corresp_investigation">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Investigate Lens Correspondences
+          </h4>
+    </div>
+    <div id="collapse_lens_corresp_investigation" class="panel-collapse collapse in" target="link_collapse_lens_corresp_investigation">
     <div class="panel-body">
       <div class="row">
         <div class="col-md-12" id="creation_lens_correspondence_col" style='display:none'></div>
       </div>
+    </div>
     </div>
    </div>
   </div>

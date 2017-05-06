@@ -1062,6 +1062,7 @@ function create_views_activate()
     $('#creation_view_predicates_col').html('');
     $('#creation_view_selected_predicates_group').html('');
     $('#view_creation_message_col').html('');
+    $('#creation_view_results_row').hide();
 
      $('#creation_view_dataset_col').html('Loading...');
      $.get('/getdatasetsperrq',data={'rq_uri': rq_uri,
@@ -1188,6 +1189,8 @@ function inspect_views_activate(mode="inspect")
             //and the datasets and properties to be selected
             create_views_activate();
             $('#creation_view_row').show();
+            $('#creation_view_filter_row').show();
+
 
             // load the panel for correspondences details
               $('#inspect_views_details_col').html('Loading...');
@@ -1786,10 +1789,24 @@ function refresh_create_view()
 
 $(".collapse").on('hidden.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));
-    $(target).html(' <span class="badge alert-info"><strong>+</strong></span> ');
+    if (target)
+    {$(target).html(' <span class="badge alert-info"><strong>+</strong></span> ');}
+    target = document.getElementById($(this).attr('target2'));
+    if (target)
+    {$(target).html(' <span class="badge alert-info"><strong>+</strong></span> ');}
+    target = document.getElementById($(this).attr('target3'));
+    if (target)
+    {$(target).html(' <span class="badge alert-info"><strong>+</strong></span> ');}
 });
 
 $(".collapse").on('shown.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));
-    $(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');
+    if (target)
+    {$(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');}
+    target = document.getElementById($(this).attr('target2'));
+    if (target)
+    {$(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');}
+    target = document.getElementById($(this).attr('target3'));
+    if (target)
+    {$(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');}
 });

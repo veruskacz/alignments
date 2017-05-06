@@ -2,7 +2,7 @@
 <div class="panel-heading">
  <div class="row">
   <div class="col-md-8"><h3>Linkset</h3></div>
-  <div class="col-md-4" id="creation_linkset_buttons_col">
+  <div class="col-md-4 text-right" id="creation_linkset_buttons_col">
     <h4><button type="button" id="btn_inspect_linkset"
             class="btn btn-primary btn btn-success disabled"
             onclick='newSelectButton(this);
@@ -56,13 +56,25 @@
   <div class="col-md-12" >
     <div class="panel panel-default">
     <div class="panel-heading" id="inspect_heading_panel">
-      <h4>Inspect Linksets <small>(select to see the details)</small></h4></div>
+      <h4 class="panel-title">
+        <a id="link_collapse_linkset_inspect"
+             data-toggle="collapse" href="#collapse_linkset_inspect">
+            <span class="badge alert-info"><strong>-</strong></span></a>
+        Inspect Linksets <small>(select to see the details)</small>
+      </h4>
+    </div>
     <div class="panel-heading" id="import_heading_panel" style='display:none'>
      <div class="row">
-      <div class="col-md-4"><h4>Import Related Linksets
-          <small>(select to see the details)</small></h4></div>
+      <div class="col-md-4">
+          <h4 class="panel-title">
+            <a id="link_collapse_linkset_import"
+                 data-toggle="collapse" href="#collapse_linkset_inspect">
+                <span class="badge alert-info"><strong>-</strong></span></a>
+            Import Related Linksets <small>(select to see the details)</small>
+          </h4>
+      </div>
       <h5><div class="col-md-6 text-right" style="color:red" id="linkset_import_message_col"></div></h5>
-      <div class="col-md-2">
+      <div class="col-md-2 text-right">
           <button type="button" id="btn_import_linkset"
                 class="btn btn-primary btn btn-success"
                 onclick='importLinksetClick()'
@@ -70,6 +82,9 @@
           </div>
      </div>
     </div>
+   <div id="collapse_linkset_inspect" class="panel-collapse collapse in"
+         target="link_collapse_linkset_inspect"
+         target2="link_collapse_linkset_inspect">
     <div class="panel-body">
       <div class="row">
         <div class="col-md-4">
@@ -86,7 +101,8 @@
         </div>
       </div>
     </div>
-    </div>
+   </div>
+  </div>
   </div>
  </div>
 
@@ -95,9 +111,16 @@
    <div class="panel panel-default">
        <div class="panel-heading" id="create_linkset_heading" >
          <div class="row">
-           <div class="col-md-2"><h4>Create Linkset</h4></div>
-           <h5><div class="col-md-8 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
            <div class="col-md-2">
+              <h4 class="panel-title">
+                <a id="link_collapse_linkset_create"
+                     data-toggle="collapse" href="#collapse_linkset_create">
+                    <span class="badge alert-info"><strong>-</strong></span></a>
+                Create Linkset
+              </h4>
+           </div>
+           <h5><div class="col-md-8 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>
+           <div class="col-md-2 text-right">
                <button type="button" id="createLinksetButton"
                        class="btn btn-success btn btn-primary"
                        onclick="createLinksetClick()">Create Linkset</button>
@@ -106,9 +129,16 @@
        </div>
        <div class="panel-heading" id="edit_linkset_heading" style='display:none'>
          <div class="row">
-           <div class="col-md-4"><h4>Edit Linkset</h4></div>
+           <div class="col-md-4">
+              <h4 class="panel-title">
+                <a id="link_collapse_linkset_edit"
+                     data-toggle="collapse" href="#collapse_linkset_create">
+                    <span class="badge alert-info"><strong>-</strong></span></a>
+                Edit Linkset
+              </h4>
+           </div>
            <h5><div class="col-md-6 text-right" style="color:red" id="linkset_edit_message_col"></div></h5>
-           <div class="col-md-2">
+           <div class="col-md-2 text-right">
                <button type="button" id="editLinksetButton"
                        class="btn btn-success btn btn-primary"
                        onclick="editLinksetClick()">Edit Linkset</button>
@@ -117,9 +147,16 @@
        </div>
        <div class="panel-heading" id="refine_linkset_heading" style='display:none'>
          <div class="row">
-           <div class="col-md-4"><h4>Refine Linkset</h4></div>
+           <div class="col-md-4"><h4></h4>
+              <h4 class="panel-title">
+                <a id="link_collapse_linkset_refine"
+                     data-toggle="collapse" href="#collapse_linkset_create">
+                    <span class="badge alert-info"><strong>-</strong></span></a>
+                Refine Linkset
+              </h4>
+           </div>
            <h5><div class="col-md-6 text-right" style="color:red" id="linkset_refine_message_col"></div></h5>
-           <div class="col-md-2">
+           <div class="col-md-2 text-right">
                <button type="button" id="refineLinksetButton"
                        onclick = 'refineLinksetClick();'
                        class="btn btn-success btn btn-primary"
@@ -127,7 +164,10 @@
            </div>
          </div>
        </div>
-
+   <div id="collapse_linkset_create" class="panel-collapse collapse in"
+         target="link_collapse_linkset_create"
+         target2="link_collapse_linkset_edit"
+         target3="link_collapse_linkset_refine">
    <div class="panel-body">
     <div class="row">
 
@@ -394,6 +434,7 @@
       </div>
     </div>
    </div> <!-- Panel Body -->
+   </div>  <!-- Panel Collapse -->
   </div> <!-- Panel -->
   </div> <!-- Col -->
  </div> <!-- Row -->
@@ -403,9 +444,16 @@
     <div class="panel panel-default">
     <div class="panel-heading" id="linkset_filter_heading_panel">
      <div class="row">
-      <div class="col-md-5"><h4>Filter Linkset Conrrespondences</h4></div>
+      <div class="col-md-5">
+          <h4 class="panel-title">
+              <a id="link_collapse_linkset_filter"
+                 data-toggle="collapse" href="#collapse_linkset_filter">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Filter Linkset Conrrespondences
+          </h4>
+      </div>
       <h5><div class="col-md-4 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>
-      <div class="col-md-3">
+      <div class="col-md-3 text-right">
           <button type="button" id="btn_add_filter_linkset"
                 class="btn btn-primary"
                 onclick='addFilterLinksetClick()'
@@ -417,6 +465,7 @@
           </div>
      </div>
     </div>
+    <div id="collapse_linkset_filter" class="panel-collapse collapse in" target="link_collapse_linkset_filter">
     <div class="panel-body">
       <div class="row">
         <div class="col-md-6">
@@ -469,6 +518,7 @@
         </div>
       </div>
     </div>
+    </div>
    </div>
   </div>
  </div>
@@ -477,11 +527,19 @@
   <div class="col-md-12" >
     <div class="panel panel-default">
     <div class="panel-heading" id="linkset_investigation_heading_panel">
-      <h4>Investigate Linkset Conrrespondences</h4></div>
+          <h4 class="panel-title">
+              <a id="link_collapse_linkset_corresp_investigation"
+                 data-toggle="collapse" href="#collapse_linkset_corresp_investigation">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Investigate Linkset Correspondences
+          </h4>
+    </div>
+    <div id="collapse_linkset_corresp_investigation" class="panel-collapse collapse in" target="link_collapse_linkset_corresp_investigation">
     <div class="panel-body">
       <div class="row">
         <div class="col-md-12" id="creation_linkset_correspondence_col" style='display:none'></div>
       </div>
+    </div>
     </div>
    </div>
   </div>

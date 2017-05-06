@@ -456,13 +456,15 @@ function validationSaveOnClick()
                                        'type': type,
                                        'research_uri': research_uri,
                                        'validation_text': validation_text},
-                                 function(data){
+                                 function(data)
+         {
             // reload the evidences
             $('#evidence_list_col').html('Reloading...');
-            $.get('/getevidence',data={'singleton_uri': uri},function(data)
-              {
+
+            $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
+            {
                   $('#evidence_list_col').html(data);
-              });
+            });
          });
 
       }

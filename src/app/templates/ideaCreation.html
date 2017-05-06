@@ -2,7 +2,7 @@
 <div class="panel-heading">
    <div class="row">
     <div class="col-md-9"><h3>Research Question</h3></div>
-    <div class="col-md-3" id="creation_linkset_buttons_col">
+    <div class="col-md-3 text-right" id="creation_linkset_buttons_col">
       <h4>
       <button type="button" id="btn_inspect_idea"
               class="btn btn-primary"
@@ -27,15 +27,23 @@
     <div class="panel panel-default">
     <div class="panel-heading">
      <div class="row">
-      <div class="col-md-4"><h4>Create Research Question</h4></div>
+      <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_idea_create"
+                 data-toggle="collapse" href="#collapse_idea_create">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Create Research Question
+          </h4>
+      </div>
       <h5><div class="col-md-6 text-right" style="color:red" id="idea_creation_message_col"></div></h5>
-      <div class="col-md-2">
+      <div class="col-md-2 text-right">
           <button type="button" id="createIdeaButton" class="btn btn-success"
               data-toggle="button" onclick = "createIdeaClick();">
           Create RQ</button>
           </div>
      </div>
     </div>
+    <div id="collapse_idea_create" class="panel-collapse collapse in" target="link_collapse_idea_create">
     <div class="panel-body">
       <div class="row">
         <div class="col-md-12">
@@ -45,8 +53,9 @@
 Can we predict the LeidenRanking scores from characteristics of the university?</textarea>
           </div>
         </div>
-     </div>
-  </div>
+      </div>
+    </div>
+    </div>
   </div>
   </div>
   </div>
@@ -55,7 +64,14 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
   <div class="col-md-12" >
     <div class="panel panel-default">
     <div class="panel-heading" >
-      <h4>Inspect Research Question</h4></div>
+      <h4 class="panel-title">
+          <a id="link_collapse_idea_inspect"
+             data-toggle="collapse" href="#collapse_idea_inspect">
+          <span class="badge alert-info"><strong>-</strong></span></a>
+          Inspect Research Question
+      </h4>
+    </div>
+    <div id="collapse_idea_inspect" class="panel-collapse collapse in" target="link_collapse_idea_inspect">
     <div class="panel-body">
       <div class="row rq" target = 'creation_idea_selected_RQ'>
         <div class="col-md-2" id="button_idea_RQ_col">
@@ -65,6 +81,7 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
             <div class="well well-sm" id="creation_idea_selected_RQ" uri="" label="">Select a Research Question</div>
         </div>
       </div>
+    </div>
     </div>
    </div>
   </div>
@@ -76,7 +93,14 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
       <div class="col-md-12" >
         <div class="panel panel-default">
         <div class="panel-heading" >
-          <h4>Overview Research Question</h4></div>
+          <h4 class="panel-title">
+              <a id="link_collapse_idea_overview"
+                 data-toggle="collapse" href="#collapse_idea_overview">
+              <span class="badge alert-info"><strong>+</strong></span></a>
+              Overview Research Question
+          </h4>
+        </div>
+        <div id="collapse_idea_overview" class="panel-collapse collapse" target="link_collapse_idea_overview">
         <div class="panel-body">
           <div class="row">
             <div class="col-md-12">
@@ -85,6 +109,7 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
             </div>
           </div>
         </div>
+        </div>
        </div>
       </div>
      </div>
@@ -94,7 +119,14 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
       <div class="col-md-12" >
         <div class="panel panel-default">
         <div class="panel-heading" >
-          <h4>Overview Dataset Mapping</h4></div>
+          <h4 class="panel-title">
+              <a id="link_collapse_idea_overview_dataset_mapping"
+                 data-toggle="collapse" href="#collapse_idea_overview_dataset_mapping">
+              <span class="badge alert-info"><strong>+</strong></span></a>
+              Overview Dataset Mapping
+          </h4>
+        </div>
+        <div id="collapse_idea_overview_dataset_mapping" class="panel-collapse collapse" target="link_collapse_idea_overview_dataset_mapping">
         <div class="panel-body">
           <div class="row">
             <div class="col-md-12">
@@ -103,6 +135,7 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
             </div>
           </div>
         </div>
+        </div>
        </div>
       </div>
      </div>
@@ -111,7 +144,14 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
       <div class="col-md-12" >
         <div class="panel panel-default">
         <div class="panel-heading" >
-          <h4>Overview Alignment Mapping and Linksets</h4></div>
+          <h4 class="panel-title">
+              <a id="link_collapse_idea_alignment_mapping"
+                 data-toggle="collapse" href="#collapse_idea_alignment_mapping">
+              <span class="badge alert-info"><strong>+</strong></span></a>
+              Overview Alignment Mapping and Linksets
+          </h4>
+        </div>
+        <div id="collapse_idea_alignment_mapping" class="panel-collapse collapse" target="link_collapse_idea_alignment_mapping">
         <div class="panel-body">
           <div class="row">
             <div class="col-md-12">
@@ -120,6 +160,7 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
             </div>
           </div>
         </div>
+        </div>
        </div>
       </div>
      </div>
@@ -128,7 +169,14 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
       <div class="col-md-12" >
         <div class="panel panel-default">
         <div class="panel-heading" >
-          <h4>Overview Lenses</h4></div>
+          <h4 class="panel-title">
+              <a id="link_collapse_idea_lenses"
+                 data-toggle="collapse" href="#collapse_idea_lenses">
+              <span class="badge alert-info"><strong>+</strong></span></a>
+              Overview Lenses
+          </h4>
+        </div>
+        <div id="collapse_idea_lenses" class="panel-collapse collapse" target="link_collapse_idea_lenses">
         <div class="panel-body">
           <div class="row">
             <div class="col-md-12">
@@ -136,6 +184,7 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
                   </textarea>
             </div>
           </div>
+        </div>
         </div>
        </div>
       </div>
@@ -146,7 +195,14 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
       <div class="col-md-12" >
         <div class="panel panel-default">
         <div class="panel-heading" >
-          <h4>Overview Views</h4></div>
+          <h4 class="panel-title">
+              <a id="link_collapse_idea_views"
+                 data-toggle="collapse" href="#collapse_idea_views">
+              <span class="badge alert-info"><strong>+</strong></span></a>
+              Overview Views
+          </h4>
+        </div>
+        <div id="collapse_idea_views" class="panel-collapse collapse" target="link_collapse_idea_views">
         <div class="panel-body">
           <div class="row">
             <div class="col-md-12">
@@ -154,6 +210,7 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
                   </textarea>
             </div>
           </div>
+        </div>
         </div>
        </div>
       </div>
@@ -167,15 +224,23 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
     <div class="panel panel-default">
     <div class="panel-heading" id="inspect_heading_panel">
      <div class="row">
-      <div class="col-md-6"><h4>Dataset Mapping</h4></div>
+      <div class="col-md-6">
+          <h4 class="panel-title">
+              <a id="link_collapse_idea_dataset_mapping"
+                 data-toggle="collapse" href="#collapse_idea_dataset_mapping">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Dataset Mapping
+          </h4>
+      </div>
       <h5><div class="col-md-4 text-right" style="color:red" id="idea_update_message_col"></div></h5>
-      <div class="col-md-2">
+      <div class="col-md-2 text-right">
           <button type="button" id="updateIdeaButton" class="btn btn-success"
                     onclick = "updateIdeaClick()"
                     uri = "" data-toggle="button">Insert Mapping</button>
       </div>
      </div>
     </div>
+    <div id="collapse_idea_dataset_mapping" class="panel-collapse collapse in" target="link_collapse_idea_dataset_mapping">
     <div class="panel-body">
       <div class="row">
           <div class="col-md-5">
@@ -204,6 +269,7 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
               </div>
           </div>
       </div>
+    </div>
     </div>
   </div>
 </div>
