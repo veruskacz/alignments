@@ -393,7 +393,7 @@ def register_lens(specs, is_created=True):
         {{
             FILTER NOT EXISTS
             {{
-                <{0}>    <{3}>       <{2}> .
+                <{0}>    {3}       <{2}> .
             }}
         }}
     }}
