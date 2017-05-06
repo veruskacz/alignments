@@ -366,16 +366,20 @@ def import_linkset(question_uri, linkset_list):
 
 def register_lens(specs, is_created=True):
 
+    inverse = ""
+
     if is_created is True:
         created = "alivocab:created"
+        inverse = "prov:used"
         print "\nREGISTERING [{}] AS CREATED".format(specs[St.lens])
 
     else:
         created = "prov:used\t\t"
+        inverse = "alivocab:created"
         print "\nREGISTERING [{}] AS IMPORTED".format(specs[St.lens])
 
     query = PREFIX + """
-    INSERT DATA
+    INSERT
     {{
         GRAPH <{0}>
         {{
@@ -383,7 +387,17 @@ def register_lens(specs, is_created=True):
             <{2}>   a          bdb:Lens .
         }}
     }}
-    """.format(specs[St.researchQ_URI], created, specs[St.lens])
+    WHERE
+    {{
+        GRAPH <{0}>
+        {{
+            FILTER NOT EXISTS
+            {{
+                <{0}>    <{3}>       <{2}> .
+            }}
+        }}
+    }}
+    """.format(specs[St.researchQ_URI], created, specs[St.lens], inverse)
     # print query
     registered = Qry.boolean_endpoint_response(query)
     print ">>> IS lens REGISTERED?:", registered
