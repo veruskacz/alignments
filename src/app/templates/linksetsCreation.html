@@ -139,6 +139,7 @@
           <div class="col-md-4 graph-list" id="button-src-col" mode="source"
                 targetTxt="src_selected_graph"
                 targetBtn="button-src-entity-type-col"
+                targetAddBtn="button_src_add_entity_type_pred_col"
                 targetList="src_predicates_col">
                 <div id="hidden_src_div" style='display:none' uri="" label="" ></div>
               <!-- will be rendered via server -->
@@ -158,6 +159,32 @@
              <div class="well well-sm" id="src_selected_entity-type" uri="">Select an Entity Type</div>
           </div>
        </div>
+
+       <div class="row" id="src_add_entity_type_pred_row">
+          <div class="col-md-4 selection-list" id="button_src_add_entity_type_pred_col" mode="source"
+                targetTxt="src_selected_add_entity_type_pred"
+                targetBtn="button_src_add_entity_type_value_col">
+              <!-- will be rendered via server -->
+              <button class="btn btn-primary dropdown-toggle" type="button"
+                    data-toggle='dropdown'>Other Types<span class="caret"></span></button>
+          </div>
+          <div class="col-md-8">
+              <div class="well well-sm" id="src_selected_add_entity_type_pred" uri="">Select a Type-Property</div>
+          </div>
+       </div>
+
+       <div class="row" id="src_add_entity_type_value_row">
+          <div class="col-md-4 selection-list" id="button_src_add_entity_type_value_col" mode="source"
+                targetTxt="src_selected_add_entity_type_value">
+              <!-- will be rendered via server -->
+              <button class="btn btn-primary dropdown-toggle" type="button"
+                    data-toggle='dropdown'>Type Values<span class="caret"></span></button>
+          </div>
+          <div class="col-md-8">
+              <div class="well well-sm" id="src_selected_add_entity_type_value" uri="">Select a Type-Value</div>
+          </div>
+       </div>
+
        <div class="row" id = "src_selected_pred_row">
          <div class="col-md-12">
              <div class="well well-sm" id="src_selected_pred" uri="">Select a Property +

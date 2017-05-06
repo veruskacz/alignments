@@ -692,6 +692,59 @@ def predicates():
 
 
 
+@app.route('/getpredicateslist')
+def predicatesList():
+    """
+    This function is called due to request /getpredicates
+    It queries the dataset for all the distinct predicates in a graph,
+    togehter with a sample value
+    The result list is passed as parameters to the template list_dropdown.html
+    """
+    graph_uri = request.args.get('graph_uri', '')
+    function = request.args.get('function', '')
+    template = request.args.get('template', 'list_dropdown.html')
+    # GET QUERY
+    query = Qry.get_predicates_list(graph_uri, exclude_rdf_type=True)
+
+    # RUN QUERY AGAINST ENDPOINT
+    list = sparql(query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nPREDICATES:", list
+
+    # SEND BAK RESULTS
+    return render_template(template,
+                           list = list,
+                           btn_name='Other Types',
+                           function = function)
+
+
+@app.route('/getdatasetpredicatevalues')
+def datasetpredicatevalues():
+    """
+    This function is called due to request /getpredicates
+    It queries the dataset for all the distinct predicates in a graph,
+    togehter with a sample value
+    The result list is passed as parameters to the template list_dropdown.html
+    """
+    graph_uri = request.args.get('graph_uri', '')
+    predicate_uri = request.args.get('predicate_uri', '')
+    function = request.args.get('function', '')
+    template = request.args.get('template', 'list_dropdown.html')
+    # GET QUERY
+    query = Qry.get_dataset_predicate_values(graph_uri, predicate_uri)
+
+    # RUN QUERY AGAINST ENDPOINT
+    list = sparql(query, strip=True)
+    if PRINT_RESULTS:
+        print "\n\nPREDICATE Values:", predicate_uri, list
+
+    # SEND BAK RESULTS
+    return render_template(template,
+                           list = list,
+                           btn_name='Type Values',
+                           function = function)
+
+
 @app.route('/createLinkset')
 def spa_linkset():
 

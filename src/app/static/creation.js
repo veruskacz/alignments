@@ -1395,7 +1395,7 @@ function rqClick(th, mode)
 function datasetClick(th)
 {
     list = findAncestor(th,'graph-list');
-    alert(list);
+    //alert(list);
 
     //refresh the source components of this task
     // refresh_create_linkset(mode=$(list).attr('mode'));
@@ -1407,7 +1407,7 @@ function datasetClick(th)
     // Attribute the uri of the selected graph to the div
     // where the name/label is displayed
     var targetTxt = $(list).attr('targetTxt');
-    alert(targetTxt);
+    //alert(targetTxt);
     setAttr(targetTxt,'uri',graph_uri);
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue');
@@ -1425,14 +1425,35 @@ function datasetClick(th)
         $('#'+button).html('Loading...');
         $.get('/getentitytyperq',
                   data={'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
-                        'function': 'entityTypeClick(this);',
+                        'function': 'selectionClick(this, "entity-list");',
                         'graph_uri': graph_uri},
                   function(data)
         { // load the rendered template into the target column
           $('#'+button).html(data);
         });
     }
-    // Exit a waiting message for the user to know loading time might be long.
+
+
+    // Load additional entity types into the div informed as targetBtn
+    var button2 = $(list).attr('targetAddBtn');
+    if (button2)
+    {
+        // clean previously selected entity type
+        targetTxt = $('#'+button2).attr('targetTxt');
+        setAttr(targetTxt,'uri','');
+        $('#'+targetTxt).html('Select a Type-Property');
+        setAttr(targetTxt,'style','background-color:none');
+
+        // get additional entity types
+        $('#'+button2).html('Loading...');
+        $.get('/getpredicateslist',
+                  data={'graph_uri': graph_uri,
+                        'function': 'selectionClick(this, "selection-list");'},
+                  function(data)
+        { // load the rendered template into the target column
+          $('#'+button2).html(data);
+        });
+    }
 
     var listCol = $(list).attr('targetList');
     if (listCol)
@@ -1446,7 +1467,7 @@ function datasetClick(th)
         // get the distinct predicates and example values of a graph into a list group
         $('#'+listCol).html('Loading...');
         $.get('/getpredicates', data={'dataset_uri': graph_uri,
-                                      'function': 'predicatesClick(this)'},
+                                      'function': 'selectionClick(this, "pred-list");'},
                                 function(data)
         {  // load the rendered template into the column target list col
            $('#'+listCol).html(data);
@@ -1454,43 +1475,44 @@ function datasetClick(th)
     }
 }
 
-// Function fired onclick of a entity type from list it reads from
-// the ancestor element of class 'entity-list' the element in which to
-// copy the chosen item through the tag 'targetTxt'
-function entityTypeClick(th)
+// Function fired onclick of a option from a list
+// it reads from the ancestor-element of a certain class
+// the element in which to copy the chosen item through the tag 'targetTxt'
+function selectionClick(th, ancestorType)
 {
-    list = findAncestor(th,'entity-list');
-
-    // get the graph uri and label from the clicked element
-    var pred_uri = $(th).attr('uri');
-    var pred_label = $(th).attr('label');
+    list = findAncestor(th, ancestorType);
 
     // Attributes the uri of the selected predicate to the div
     // where the name is displayed
     var targetTxt = $(list).attr('targetTxt');
-    setAttr(targetTxt,'uri',pred_uri);
-    $('#'+targetTxt).html(pred_label);
+    setAttr(targetTxt,'uri', $(th).attr('uri') );
+    $('#'+targetTxt).html( $(th).attr('label') );
     setAttr(targetTxt,'style','background-color:lightblue');
+
+    //If there is a button to be loaded...
+    //TODO: make it generic
+    var button = $(list).attr('targetBtn');
+    if (button)
+    {
+        // clean previously selected entity type
+        targetTxt = $('#'+button).attr('targetTxt');
+        setAttr(targetTxt,'uri','');
+        $('#'+targetTxt).html('Select an Entity Type');
+        setAttr(targetTxt,'style','background-color:none');
+
+        // get new entity types
+        $('#'+button).html('Loading...');
+        $.get('/getdatasetpredicatevalues',
+                  data={'graph_uri': $('#src_selected_graph').attr('uri'),
+                        'predicate_uri': $(th).attr('uri') ,
+                        'function': 'selectionClick(this, "selection-list");'},
+                  function(data)
+        { // load the rendered template into the target column
+          $('#'+button).html(data);
+        });
+    }
 }
 
-// Function fired onclick of a predicates from list it reads from
-// the ancestor element of class 'pred-list' the element in which to
-// copy the chosen item through the tag 'targetTxt'
-function predicatesClick(th)
-{
-    list = findAncestor(th,'pred-list');
-
-    // get the graph uri and label from the clicked element
-    var pred_uri = $(th).attr('uri');
-    var pred_label = $(th).attr('label');
-
-    // Attributes the uri of the selected predicate to the div
-    // where the name is displayed
-    var targetTxt = $(list).attr('targetTxt');
-    setAttr(targetTxt,'uri',pred_uri);
-    $('#'+targetTxt).html(pred_label);
-    setAttr(targetTxt,'style','background-color:lightblue');
-}
 
 // Function fired onclick of a methods from list
 function methodClick(th)
@@ -1615,6 +1637,16 @@ function refresh_create_linkset(mode='all')
 
       elem = document.getElementById('src_selected_entity-type');
       $('#src_selected_entity-type').html("Select an Entity Type");
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('src_selected_add_entity_type_pred');
+      $('#src_selected_entity-type').html("Select a Type-Property");
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('src_selected_add_entity_type_value');
+      $('#src_selected_entity-type').html("Select a Type-Value");
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');
 

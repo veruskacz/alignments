@@ -816,7 +816,7 @@ def get_resource_description(graph, resource, predicate=None):
 def get_predicates(graph):
 
     query = """
-    ### GET PREDICATES WITHIN A CERTAIN GRAPH
+    ### GET PREDICATES WITHIN A CERTAIN GRAPH WITH EXAMPLE VALUE
     SELECT ?pred (MAX(?o) AS ?obj)
     {
         GRAPH <""" + graph + """>
@@ -830,6 +830,43 @@ def get_predicates(graph):
         print query
     return query
 
+
+def get_predicates_list(graph, exclude_rdf_type=False):
+
+    filter = ''
+    if exclude_rdf_type:
+        filter = " FILTER (?uri != rdf:type) "
+
+    query = """
+    ### GET DISTINCT PREDICATES WITHIN A CERTAIN GRAPH
+    SELECT distinct ?uri 
+    {{
+        GRAPH <{}>
+        {{
+            ?s ?uri ?o
+        }}
+        {}
+    }} 
+    """.format(graph, filter)
+    if DETAIL:
+        print query
+    return query
+
+def get_dataset_predicate_values(graph, predicate):
+
+    query = """
+    ### GET DISTINCT VALUES OF FOR A PREDICATE WITHIN A CERTAIN GRAPH
+    SELECT distinct (?value as ?uri) #named uri just for reusing the html template 
+    {{
+        GRAPH <{}>
+        {{
+            ?s <{}> ?value
+        }}
+    }} 
+    """.format(graph, predicate)
+    if DETAIL:
+        print query
+    return query
 
 def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
