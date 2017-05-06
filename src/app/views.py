@@ -1177,9 +1177,9 @@ def adminDel():
     if typeDel == 'idea':
         adm.drop_all_research_questions(display=True, activated=True)
     elif typeDel == 'linkset':
-        adm.drop_linkset(display=True, activated=True)
+        adm.drop_linksets(display=True, activated=True)
     elif typeDel == 'lens':
-        adm.drop_lens(display=True, activated=True)
+        adm.drop_lenses(display=True, activated=True)
     # elif typeDel == 'view':
     #     result = ''
 
