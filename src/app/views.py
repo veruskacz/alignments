@@ -42,6 +42,7 @@ if CREATION_ACTIVE:
     import src.Alignments.UserActivities.View as mod_view
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
     import src.Alignments.UserActivities.User_Validation as UVld
+    import src.Alignments.Manage.AdminGraphs as adm
 else:
     from src.app import app
 
@@ -1111,6 +1112,28 @@ def overviewrq():
 
     # SEND BAK RESULTS
     return json.dumps(result)
+
+
+@app.route('/adminDel')
+def adminDel():
+    """
+    This function is called due to request /getrquestions
+    It queries ...
+    The result list is passed as parameters to the template list_dropdown.html
+    """
+    typeDel = request.args.get('typeDel', '')
+
+    if typeDel == 'idea':
+        adm.drop_all_research_questions(display=True, activated=True)
+    elif typeDel == 'linkset':
+        adm.drop_linkset(display=True, activated=True)
+    elif typeDel == 'lens':
+        adm.drop_lens(display=True, activated=True)
+    # elif typeDel == 'view':
+    #     result = ''
+
+    # SEND BAK RESULTS
+    return 'done'
 
 
 # ######################################################################

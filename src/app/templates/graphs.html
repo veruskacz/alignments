@@ -51,7 +51,7 @@
         </script> -->
 
         <button class="btn btn-default dropdown-toggle" type="button" id="modeDropdown"
-            data-toggle='dropdown' mode='I'>Mode: Investigation<span class="caret"></span>
+            data-toggle='dropdown' mode='C'>Mode: Investigation<span class="caret"></span>
         </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="modeDropdown">
                 <li role="presentation" onclick="modeInvestigation(this.innerText);">
@@ -59,6 +59,9 @@
                 </li>
                 <li role="presentation" onclick="modeCreation(this.innerText);">
                     <a role="menuitem" tabindex="-1">Mode: Creation</a>
+                </li>
+                <li role="presentation" onclick="modeAdmin(this.innerText);">
+                    <a role="menuitem" tabindex="-1">Mode: Admin</a>
                 </li>
             </ul>
         </span>
@@ -72,12 +75,21 @@
                     onclick='newSelectButton(this);idea_button(targetId="creation_idea_col");'>Research Question</button>
             <button type="button" class="btn btn-primary" id="creationLinksetButton"
                     onclick='newSelectButton(this);linkset_button(targetId="creation_linkset_col");'>Linkset</button>
-            <!-- <button type="button" class="btn btn-primary" id="creationLinksetRefineButton"
-                    onclick='newSelectButton(this);refine_linkset_button(targetId="creation_linkset_refine_col");'>Linkset Refinement</button> -->
             <button type="button" class="btn btn-primary" id="creationLensButton"
                     onclick='newSelectButton(this);lens_button(targetId="creation_lens_col");'>Lens</button>
             <button type="button" class="btn btn-primary" id="creationViewButton"
                     onclick='newSelectButton(this);view_button(targetId="creation_view_col");'>View</button>
+        </span>
+
+        <span id="admin_buttons_col">
+            <button type="button" class="btn btn-primary" id="deleteIdeasButton"
+                    onclick='del_ideas_button();'>Del Research Questions</button>
+            <button type="button" class="btn btn-primary" id="deleteLinksetsButton"
+                    onclick='del_linksets_button();'>Del Linksets</button>
+            <button type="button" class="btn btn-primary" id="deleteLensesButton"
+                    onclick='del_lenses_button();'>Del Lenses</button>
+            <button type="button" class="btn btn-primary" id="deleteViewsButton"
+                    onclick='del_views_button();'>Del Views</button>
         </span>
 
         <!--This is the refresh button -->

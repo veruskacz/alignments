@@ -11,6 +11,8 @@ function modeInvestigation(val)
    // hide's and show's
     $('#divCreation').hide();
     $('#creation_buttons_col').hide();
+    $('#admin_buttons_col').hide();
+
     // $('#investigation_correspondence_col').hide();
     // $('#views-row').hide();
     hideColDiv('divInvestigation');
@@ -406,17 +408,26 @@ function validationSaveOnClick()
                // load the Edit Panel, "as-if" the button refine wasc clicked
                //  but without realoding, i.e. the selected linkset is maintained
                $('#creation_linkset_correspondence_row').hide();
+               $('#creation_linkset_filter_row').hide();
                btn = document.getElementById('btn_refine_linkset');
                newSelectButton(btn);
                $('#creation_linkset_row').show();
                activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
-               loadEditPanel(graph_uri, mode='reject-refine');
 
-               // load the properties selected for refinement
-               setAttr('trg_selected_pred','uri',$(pred_target).attr('uri'));
-               $('#trg_selected_pred').html($(pred_target).attr('label'));
-               setAttr('src_selected_pred','uri',$(pred_source).attr('uri'));
-               $('#src_selected_pred').html($(pred_source).attr('label'));
+               $.get('/getlinksetdetails',data={'linkset': graph_uri,
+                                             'template': 'none'},function(data)
+               {
+                    var obj = JSON.parse(data);
+                    loadEditPanel(obj, mode='reject-refine');
+
+                   // load the properties selected for refinement
+                   setAttr('trg_selected_pred','uri',$(pred_target).attr('uri'));
+                   $('#trg_selected_pred').html($(pred_target).attr('label'));
+                   setAttr('src_selected_pred','uri',$(pred_source).attr('uri'));
+                   $('#src_selected_pred').html($(pred_source).attr('label'));
+
+               });
+
            }
            else
            {

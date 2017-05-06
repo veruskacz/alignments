@@ -19,7 +19,10 @@ function refresh()
        modeInvestigation("Mode: Investigation");
     }
     if (mode == 'C') {
-      modeCreation("Mode: Creation");
+       modeCreation("Mode: Creation");
+    }
+    if (mode == 'A') {
+       modeCreation("Mode: Admin");
     }
 }
 
@@ -209,4 +212,59 @@ function selectListItemUniqueWithTarget(item)
 function findAncestor (el, cls) {
     while ((el = el.parentElement) && !el.classList.contains(cls));
     return el;
+}
+
+// ------------------------------------------------------------------- //
+// Admin mode
+
+function modeAdmin(val)
+{
+   // change the name and mode of the button modeDropdown
+   var y = document.getElementById('modeDropdown');
+   $(y).html(val + '<span class="caret"></span>');
+   y.setAttribute("mode", 'A');
+
+   // hide investigation div
+   $('#divInvestigation').hide();
+   $('#investigation_buttons_col').hide();
+   $('#divCreation').hide();
+   $('#creation_buttons_col').hide();
+
+   // "empty" and show divCreation
+   //hideColDiv('divCreation');
+   //$('#divCreation').show();
+
+   // reset all buttons in the admin mode to primary and show
+//   resetButtons('admin_buttons_col');
+   $('#admin_buttons_col').show();
+}
+
+function del_ideas_button()
+{
+    alert("in");
+   $.get('/adminDel',
+          data = {'typeDel': 'idea'},
+          function(data)
+   {
+    alert("during");
+   });
+    alert("out");
+}
+
+function del_linksets_button()
+{
+   $.get('/adminDel',
+          data = {'typeDel': 'linkset'},
+          function(data)
+   {
+   });
+}
+
+function del_lenses_button()
+{
+   $.get('/adminDel',
+          data = {'typeDel': 'lens'},
+          function(data)
+   {
+   });
 }

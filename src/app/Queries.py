@@ -383,7 +383,7 @@ def get_graph_linkset():
 
 def get_graphs_per_rq_type(rq_uri, type=None):
     type_filter = ""
-    type_filter_view = ""
+    # type_filter_view = ""
     if type == "dataset":
         type_filter = """
         FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
@@ -400,7 +400,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
     elif type == "lens":
         type_filter = "?uri   rdf:type	bdb:Lens ."
     elif type == "view":
-        type_filter_view = "?uri   rdf:type	<http://risis.eu/class/View> ."
+        type_filter = "?uri   rdf:type	<http://risis.eu/class/View> ."
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
@@ -431,13 +431,12 @@ def get_graphs_per_rq_type(rq_uri, type=None):
                 <{0}>  alivocab:created*/prov:used  ?uri.
                 BIND("info" as ?mode)
             }}
-            {2}
         }}
 
         ### FILTER THE TYPE OF GRAPH
         {1}
     }}
-    """.format(rq_uri, type_filter, type_filter_view)
+    """.format(rq_uri, type_filter)
     if DETAIL:
         print query
     return query

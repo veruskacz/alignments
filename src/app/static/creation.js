@@ -12,6 +12,7 @@ function modeCreation(val)
    // hide investigation div
    $('#divInvestigation').hide();
    $('#investigation_buttons_col').hide();
+   $('#admin_buttons_col').hide();
 
    // "empty" and show divCreation
    hideColDiv('divCreation');
@@ -20,7 +21,6 @@ function modeCreation(val)
    // reset all buttons in the creation mode to primary and show
    resetButtons('creation_buttons_col');
    $('#creation_buttons_col').show();
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -415,7 +415,7 @@ function inspect_linkset_activate(mode)
             {
                 var obj = JSON.parse(data);
 
-                if (mode == 'refine' || mode == 'edit')
+                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine')
                 {
                    $('#creation_linkset_row').show();
                    loadEditPanel(obj, mode);
@@ -1395,6 +1395,7 @@ function rqClick(th, mode)
 function datasetClick(th)
 {
     list = findAncestor(th,'graph-list');
+    alert(list);
 
     //refresh the source components of this task
     // refresh_create_linkset(mode=$(list).attr('mode'));
@@ -1406,6 +1407,7 @@ function datasetClick(th)
     // Attribute the uri of the selected graph to the div
     // where the name/label is displayed
     var targetTxt = $(list).attr('targetTxt');
+    alert(targetTxt);
     setAttr(targetTxt,'uri',graph_uri);
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue');
