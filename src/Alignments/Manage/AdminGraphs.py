@@ -9,7 +9,7 @@ from src.Alignments.Query import endpoint
 #######################################################################################
 
 
-def drop_graph(graph, display=False, activated=True):
+def drop_linkset(graph, display=False, activated=True):
 
     queries = """
     #################################################################
@@ -100,7 +100,7 @@ def drop_graph(graph, display=False, activated=True):
         print ""
 
 
-def drop_linkset(display=False, activated=True):
+def drop_linksets(display=False, activated=True):
 
     queries = """
     #################################################################
@@ -196,7 +196,7 @@ def drop_linkset(display=False, activated=True):
         print ""
 
 
-def drop_subset(display=False, activated=True):
+def drop_subsets(display=False, activated=True):
 
     queries = """
     #################################################################
@@ -299,7 +299,7 @@ def drop_subset(display=False, activated=True):
         print ""
 
 
-def drop_lens(display=False, activated=False):
+def drop_lenses(display=False, activated=False):
 
     queries = """
     PREFIX void:    <{}>
@@ -412,7 +412,7 @@ def drop_all():
     print endpoint(drops)
 
 
-def drop_union(display=False, activated=False):
+def drop_unions(display=False, activated=False):
 
     queries = """
     PREFIX void:        <{}>
@@ -473,6 +473,11 @@ def drop_union(display=False, activated=False):
         print ""
 
 
+#######################################################################################
+# ABOUT RESEARCH QUESTIONS
+#######################################################################################
+
+
 def drop_all_research_questions(display=False, activated=False):
 
     query = """
@@ -488,11 +493,51 @@ def drop_all_research_questions(display=False, activated=False):
 
     if activated is True:
         print "{}{}{}".format(
-        "======================================================="
-        "=======================================================\n",
-        "DROPPING ALL RESEARCH QUESTIONS...\nPLEASE WAIT FOR FEEDBACK.",
-        "\n======================================================="
-        "=======================================================")
+            "======================================================="
+            "=======================================================\n",
+            "DROPPING ALL RESEARCH QUESTIONS...\nPLEASE WAIT FOR FEEDBACK.",
+            "\n======================================================="
+            "=======================================================")
+        drop_start = time.time()
+        drops_response = endpoint(query)
+        drop_end = time.time()
+
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
+            print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
+            print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
+            if display is True:
+                print ">>> Query details  : {}\n".format(query)
+            print ""
+
+
+def drop_research_question_lenses(research_uri, display=False, activated=False):
+
+    query = """
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
+            ?research_question ?p ?lens.
+            ?lens a bdb:Lens.
+        }}
+    }}
+    WHERE
+    {{
+        graph <{0}>
+        {{
+            ?research_question ?p ?lens.
+        }}
+        ?lens a bdb:Lens.
+    }}""".format(research_uri, Ns.riclass)
+
+    if activated is True:
+        print "{}{}{}".format(
+            "======================================================="
+            "=======================================================\n",
+            "DROPPING ALL LENSES REGISTERED UNDER [{}]..\nPLEASE WAIT FOR FEEDBACK.".format(research_uri),
+            "\n======================================================="
+            "=======================================================")
         drop_start = time.time()
         drops_response = endpoint(query)
         drop_end = time.time()
@@ -530,11 +575,56 @@ def delete_aligned_linkset(research_uri, alignment_uri, display=False, activated
 
     if activated is True:
         print "{}{}{}".format(
-        "======================================================="
-        "=======================================================\n",
-        "DROPPING THE SELECTED ALIGNMENT:\n[{}]\nPLEASE WAIT FOR FEEDBACK...".format(alignment_uri),
-        "\n======================================================="
-        "=======================================================")
+            "======================================================="
+            "=======================================================\n",
+            "DROPPING THE SELECTED ALIGNMENT:\n[{}]\nPLEASE WAIT FOR FEEDBACK...".format(alignment_uri),
+            "\n======================================================="
+            "=======================================================")
+        drop_start = time.time()
+        drops_response = endpoint(query)
+        drop_end = time.time()
+
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
+            print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
+            print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
+            if display is True:
+                print ">>> Query details  : {}\n".format(query)
+        print ""
+
+
+def delete_aligned_linksets(research_uri, display=False, activated=False):
+    query = """
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
+            ?alignment <{2}used>    ?linkset.
+            ?alignment <{3}created> ?linkset.
+        }}
+    }}
+    WHERE
+    {{
+        graph <{0}>
+        {{
+          ?alignment
+            a  <{1}AlignmentMapping> ;
+            (<{2}used>|<{3}created>) ?linkset.
+        }}
+    }}
+    """.format(research_uri, Ns.riclass, Ns.prov, Ns.alivocab)
+
+    if display is True:
+        print query
+
+    if activated is True:
+        print "{}{}{}".format(
+            "======================================================="
+            "=======================================================\n",
+            "DROPPING ALL CREATED OR USED LINKSET REGISTERED FOR :\n[{}]\nPLEASE WAIT FOR FEEDBACK...".format(
+                research_uri),
+            "\n======================================================="
+            "=======================================================")
         drop_start = time.time()
         drops_response = endpoint(query)
         drop_end = time.time()
