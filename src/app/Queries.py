@@ -383,7 +383,7 @@ def get_graph_linkset():
 
 def get_graphs_per_rq_type(rq_uri, type=None):
     type_filter = ""
-    # type_filter_view = ""
+    type_filter_view = ""
     if type == "dataset":
         type_filter = """
         FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
@@ -400,7 +400,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
     elif type == "lens":
         type_filter = "?uri   rdf:type	bdb:Lens ."
     elif type == "view":
-        type_filter = "?uri   rdf:type	<http://risis.eu/class/View> ."
+        type_filter_view = "?uri   rdf:type	<http://risis.eu/class/View> ."
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
@@ -431,12 +431,13 @@ def get_graphs_per_rq_type(rq_uri, type=None):
                 <{0}>  alivocab:created*/prov:used  ?uri.
                 BIND("info" as ?mode)
             }}
+            {2}
         }}
 
         ### FILTER THE TYPE OF GRAPH
         {1}
     }}
-    """.format(rq_uri, type_filter)
+    """.format(rq_uri, type_filter, type_filter_view)
     if DETAIL:
         print query
     return query
@@ -563,6 +564,7 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
                 OPTIONAL {{ ?pred <http://risis.eu/alignment/predicate/hasValidation> ?accept.
                             ?accept rdf:type <http://www.w3.org/ns/prov#Accept> .
                          }}"""
+            # TODO: CHANGE RISIS PREDICATE TO RISIS CLASS FOR REJECT
             elif method == "reject":
                 filter_count_aux = """
             	OPTIONAL {{?pred <http://risis.eu/alignment/predicate/hasValidation> ?reject.

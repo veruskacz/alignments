@@ -12,6 +12,8 @@
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             create_views_activate();
+            $("#collapse_view_lens").collapse("show");
+            $("#collapse_view_filter").collapse("show");
             activateTargetDiv(targetId="creation_view_row",cl="row creation");'
             >Create</button>
     <button type="button" class="btn btn-primary disabled"
@@ -72,14 +74,14 @@
 
   <div class="panel panel-default">
       <div class="panel-heading">
-          <h4>View-Lens <small> (more than one will be considered as intersection)</small></h4>
-          <!--<h4 class="panel-title">-->
-              <!--<a data-toggle="collapse" href="#collapse_view_lens">-->
-                  <!--View-Lens <small> (more than one will be considered as intersection)</small>-->
-              <!--</a>-->
-          <!--</h4>-->
+          <!--<h4>View-Lens <small> (more than one will be considered as intersection)</small></h4>-->
+          <h4 class="panel-title">
+              <a data-toggle="collapse" href="#collapse_view_lens">
+                  View-Lens <small> (more than one will be considered as intersection)</small>
+              </a>
+          </h4>
       </div>
-      <!--<div id="collapse_view_lens" class="panel-collapse collapse">-->
+      <div id="collapse_view_lens" class="panel-collapse collapse">
       <div class="panel-body">
           <div class="row">
 
@@ -117,13 +119,19 @@
 
           </div>
       </div>
-      <!--</div>-->
+      </div>
   </div>
 
   <div class="panel panel-default">
    <div class="panel-heading">
       <div class="row">
-          <div class="col-md-4"><h4>View-Filter</h4></div>
+          <div class="col-md-4">
+            <h4 class="panel-title">
+              <a data-toggle="collapse" href="#collapse_view_filter">
+                  View-Lens <small> (more than one will be considered as intersection)</small>
+              </a>
+             </h4>
+          </div>
           <h5><div class="col-md-6 text-right" style="color:red" id="view_creation_message_col"></div></h5>
           <div class="col-md-2">
             <button type="button" id="createViewButton" class="btn btn-success"
@@ -131,54 +139,57 @@
             Check View</button>
           </div>
       </div>
+
   </div>
-  <div class="panel-body">
-  <div class="row"> <!-- id = "creation_view_datasetdetails_row" style='display:none'> -->
+  <div id="collapse_view_filter" class="panel-collapse collapse">
+      <div class="panel-body">
+      <div class="row">
 
-    <div class="col-md-4" >
-        <div class="row">
-          <div class="col-md-12"><h4>Datasets</h4></div>
-        </div>
-        <div class="row">
-          <div class="col-md-12">Select from the list:</div>
-        </div>
-        <div id="loading3" style='display:none'> Loading... </div>
-        <div class="row">
-          <div class="col-md-12" id="creation_view_dataset_col">
-
-          </div>
-        </div>
-    </div>
-
-    <div class="col-md-4" >
-        <div class="row">
-          <div class="col-md-12"><h4>Attributes</h4>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12" id="creation_view_predicates_msg_col"></div>
-        </div>
-        <div class="row">
-          <div class="col-md-12" id="creation_view_predicates_col">
-
-          </div>
-        </div>
-    </div>
-
-    <div class="col-md-4" >
-        <div class="row">
-          <div class="col-md-12"><h4>Selected Attributes</h4>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-12">
-            <div class="list-group" id="creation_view_selected_predicates_group"
-                    style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+        <div class="col-md-4" >
+            <div class="row">
+              <div class="col-md-12"><h4>Datasets</h4></div>
             </div>
-          </div>
+            <div class="row">
+              <div class="col-md-12">Select from the list:</div>
+            </div>
+            <div id="loading3" style='display:none'> Loading... </div>
+            <div class="row">
+              <div class="col-md-12" id="creation_view_dataset_col">
+
+              </div>
+            </div>
         </div>
-    </div>
-  </div>
+
+        <div class="col-md-4" >
+            <div class="row">
+              <div class="col-md-12"><h4>Attributes</h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12" id="creation_view_predicates_msg_col"></div>
+            </div>
+            <div class="row">
+              <div class="col-md-12" id="creation_view_predicates_col">
+
+              </div>
+            </div>
+        </div>
+
+        <div class="col-md-4" >
+            <div class="row">
+              <div class="col-md-12"><h4>Selected Attributes</h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="list-group" id="creation_view_selected_predicates_group"
+                        style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+      </div>
   </div>
   </div>
  </div>
@@ -189,12 +200,12 @@
   <div class="panel panel-default">
     <div class="panel-heading">
         <div class="row">
-          <div class="col-md-9"><h4>View-Result</h4></div>
-          <div class="col-md-3">
-            <h4><button type="button"
-                    class="btn btn-primary"
-                    onclick='showQuery(this);'
-                    >Show Query</button>
+          <div class="col-md-10"><h4>View-Result</h4></div>
+          <div class="col-md-2">
+            <!--<h4><button type="button"-->
+                    <!--class="btn btn-primary"-->
+                    <!--onclick='showQuery(this);'-->
+                    <!--&gt;Show Query</button>-->
             <button type="button" class="btn btn-primary"
                     onclick = 'createViewClick(mode="save")'
                     >Save View</button></h4>
@@ -204,10 +215,14 @@
     <div class="panel-body">
       <div class="row" id="views-row">
       <div class="col-md-12">
-          <div class="panel panel-default" id="view_query_row" style='display:none'>
+          <div class="panel panel-default" id="view_query_row">
               <div class="panel-heading">
                 <div class="row">
-                    <div class="col-md-10"><h4>SPARQL Query</h4></div>
+                    <div class="col-md-10">
+                        <h4 class="panel-title">
+                          <a data-toggle="collapse" href="#collapse_view_query">SPARQL Query</a>
+                         </h4>
+                    </div>
                     <div class="col-md-2">
                         <h5><button type="button" class="btn btn-primary"
                             onclick='runViewClick();'
@@ -215,6 +230,7 @@
                     </div>
                 </div>
               </div>
+              <div id="collapse_view_query" class="panel-collapse collapse">
               <div class="panel-body">
                 <div class="row" >
                   <div class="col-md-12">
@@ -223,12 +239,18 @@
                   </div>
                 </div>
               </div>
+              </div>
           </div>
 
           <div class="panel panel-default">
               <div class="panel-heading">
                 <div class="row">
-                    <div class="col-md-10"><h4>Result Table</h4></div>
+                    <div class="col-md-10">
+                        <h4 class="panel-title">
+                          <a data-toggle="collapse" href="#collapse_view_result">Result Table</a>
+                         </h4>
+
+                    </div>
                     <div class="col-md-2">
                         <h5><button type="button" class="btn btn-primary"
                             onclick='downloadTableClick();'
@@ -236,6 +258,7 @@
                     </div>
                 </div>
               </div>
+              <div id="collapse_view_result" class="panel-collapse collapse in">
               <div class="panel-body">
                 <div class="row" id="views-results-row">
                 <div class="col-md-12">
@@ -243,6 +266,7 @@
                   <div id="views-results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
                 </div>
                 </div>
+              </div>
               </div>
           </div>
 

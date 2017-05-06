@@ -173,14 +173,14 @@ def setlinkesetfilter():
     json_item = request.args.get('value_2', '')
     value_2 = ast.literal_eval(json_item)
 
-    print ">>>>>>>", rq_uri, linkset_uri, property.lower(), value_1, value_2
+    # print ">>>>>>>", rq_uri, linkset_uri, property.lower(), value_1, value_2
     if property:
         result = UVld.register_correspondence_filter(
                         rq_uri, linkset_uri, property.lower(),
                         value_1 if value_1 != {} else None,
                         value_2 if value_2 != {} else None)
 
-    print result
+    # print result
     return ''
 
 
@@ -298,8 +298,8 @@ def lenspecs():
 
     details = sparql(query, strip=True)
 
-    # if PRINT_RESULTS:
-    print "\n\nDETAILS:", details
+    if PRINT_RESULTS:
+        print "\n\nDETAILS:", details
 
     badge = "<span class='badge alert-primary'><strong>{}</strong></span>";
     if details:
@@ -323,9 +323,7 @@ def lenspecs():
     else:
         result = 'NO RESULTS!'
 
-
-
-    print result
+    # print result
 
     return result #json.dumps(details)
 
@@ -390,9 +388,9 @@ def detailsLens():
     alignsObjects = request.args.get('alignsObjects', '')
 
     evi_query = Qry.get_evidences(graph_uri, singleton_uri, "prov:wasDerivedFrom")
-    print "QUERY:", evi_query
+    # print "QUERY:", evi_query
     evi_matrix = sparql_xml_to_matrix(evi_query)
-    print "MATRIX:", evi_matrix
+    # print "MATRIX:", evi_matrix
     det_query = Qry.get_target_datasets(evi_matrix)
     # print det_query
     # print "\n\n\n\n\n"
@@ -578,7 +576,7 @@ def sparqlDirect():
         for r in results_x:
           results += [map(f, r)]
 
-    print '\n\n', results
+    # print '\n\n', results
 
     return render_template('viewsDetails_list.html',
                             header = header,
@@ -889,7 +887,7 @@ def spa_lens():
         'lens_operation': operator
     };
 
-    print "\n\n\nSPECS: ", specs
+    # print "\n\n\nSPECS: ", specs
 
     if CREATION_ACTIVE:
         if operator == "union":
@@ -911,8 +909,8 @@ def importLens():
     rq_uri = request.args.get('rq_uri')
     graphs = request.args.getlist('graphs[]')
 
-    print "RESEARCH QUESTION:", rq_uri
-    print "LINKSET", graphs
+    # print "RESEARCH QUESTION:", rq_uri
+    # print "LINKSET", graphs
 
     if CREATION_ACTIVE:
         response = Urq.import_lens(rq_uri, graphs)
@@ -1067,7 +1065,7 @@ def getfilters():
 
     # RUN QUERY AGAINST ENDPOINT
     data = sparql(query, strip=False)
-    print data
+    # print data
 
     return render_template('list_group_description.html',
                             function = function,

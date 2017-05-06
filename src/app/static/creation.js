@@ -529,17 +529,27 @@ function createLinksetClick()
 
     var srcDict = {};
     if (($('#src_selected_graph').attr('uri')) &&
-       ($('#src_selected_pred').attr('uri') ||
-       ($('#selected_meth').attr('uri') == 'identity')) &&
+       (  $('#src_selected_pred').attr('uri') ||
+         ($('#selected_meth').attr('uri') == 'identity')) &&
        ($('#src_selected_entity-type').attr('uri'))  )
     {
        var aligns = $('#src_selected_pred').attr('uri');
        if ($('#selected_meth').attr('uri') == 'identity')
           { aligns = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"; }
 
+       var additional_entity_type_pred = '';
+       var additional_entity_type_value = '';
+       if ($('#src_selected_add_entity_type_pred').attr('uri') &&
+           $('#src_selected_add_entity_type_value').attr('uri') )
+          { additional_entity_type_pred = $('#src_selected_add_entity_type_pred').attr('uri');
+            additional_entity_type_value = $('#src_selected_add_entity_type_value').attr('uri');
+          }
+
        srcDict = {'graph': $('#src_selected_graph').attr('uri'),
                   'aligns': aligns,
-                  'entity_datatye': $('#src_selected_entity-type').attr('uri')};
+                  'entity_datatye': $('#src_selected_entity-type').attr('uri'),
+                  'additional_entity_type_pred': additional_entity_type_pred,
+                  'additional_entity_type_value': additional_entity_type_value };
     }
 
     var trgDict = {};
@@ -553,9 +563,19 @@ function createLinksetClick()
        if ($('#selected_meth').attr('uri') == 'identity')
           { aligns = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"; }
 
+       var additional_entity_type_pred = '';
+       var additional_entity_type_value = '';
+       if ($('#trg_selected_add_entity_type_pred').attr('uri') &&
+           $('#trg_selected_add_entity_type_value').attr('uri') )
+          { additional_entity_type_pred = $('#trg_selected_add_entity_type_pred').attr('uri');
+            additional_entity_type_value = $('#trg_selected_add_entity_type_value').attr('uri');
+          }
+
        trgDict = {'graph': $('#trg_selected_graph').attr('uri'),
                   'aligns': aligns,
-                  'entity_datatye': $('#trg_selected_entity-type').attr('uri')};
+                  'entity_datatye': $('#trg_selected_entity-type').attr('uri'),
+                  'additional_entity_type_pred': additional_entity_type_pred,
+                  'additional_entity_type_value': additional_entity_type_value};
     }
 
     if ((Object.keys(srcDict).length) &&
@@ -872,6 +892,9 @@ function inspect_lens_activate(mode)
              { $('#inspect_lens_lens_details_col').html(data);
              });
 
+            // load the panel for filter
+              $('#creation_lens_filter_row').show();
+
             // load the panel for correspondences details
               $('#creation_lens_correspondence_row').show();
               //already has Loading...
@@ -891,13 +914,11 @@ function create_lens_activate()
 {
    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
 
-   //$('#loading2').show();
    $('#creation_lens_linkset_selection_col').html('Loading...');
    $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
                           'type': 'linkset',
                           'template': 'list_group.html'},function(data)
    {
-     //$('#loading2').hide();
      $('#creation_lens_linkset_selection_col').html(data);
 
      // set actions after clicking a graph in the list
@@ -1022,7 +1043,7 @@ function importLensClick()
 
 function create_views_activate()
 {
-     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
+    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
     $('#creation_view_predicates_col').html('');
     $('#creation_view_selected_predicates_group').html('');
     $('#view_creation_message_col').html('');
@@ -1038,9 +1059,6 @@ function create_views_activate()
        {
           var graph_uri = $(this).attr('uri');
           var graph_label = $(this).attr('label');
-
-          // $('#creation_view_datasetdetails_row').show();
-          // $('#creation_view_predicates_msg_col').html('Select <b>' + graph_label + '</b> predicates:')
 
           if (selectListItemUnique(this, 'creation_view_dataset_col'))
           {
@@ -1641,17 +1659,17 @@ function refresh_create_linkset(mode='all')
       $('#button-src-col').html('<div id="hidden_src_div" style="display:none" uri="" label="" ></div>');
 
       elem = document.getElementById('src_selected_entity-type');
-      $('#src_selected_entity-type').html("Select an Entity Type");
+      $(elem).html("Select an Entity Type");
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');
 
       elem = document.getElementById('src_selected_add_entity_type_pred');
-      $('#src_selected_entity-type').html("Select a Type-Property");
+      $(elem).html("Select a Type-Property");
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');
 
       elem = document.getElementById('src_selected_add_entity_type_value');
-      $('#src_selected_entity-type').html("Select a Type-Value");
+      $(elem).html("Select a Type-Value");
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');
 
@@ -1663,7 +1681,17 @@ function refresh_create_linkset(mode='all')
       $('#button-trg-col').html('<div id="hidden_trg_div" style="display:none" uri="" label="" ></div>');
 
       elem = document.getElementById('trg_selected_entity-type');
-      $('#trg_selected_entity-type').html("Select an Entity Type");
+      $(elem).html("Select an Entity Type");
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('trg_selected_add_entity_type_pred');
+      $(elem).html("Select a Type-Property");
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('trg_selected_add_entity_type_value');
+      $(elem).html("Select a Type-Value");
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');
 
@@ -1685,6 +1713,7 @@ function refresh_create_linkset(mode='all')
 
 }
 
+
 function refresh_create_lens(mode='all')
 {
     var elem = Object;
@@ -1698,11 +1727,13 @@ function refresh_create_lens(mode='all')
     $('#inspect_lens_lens_details_col').html('');
 }
 
+
 function refresh_create_idea()
 {
     $('#creation_idea_registered_graphtype_list').html("");
     $('#creation_idea_graphtype_list').html("");
 }
+
 
 function refresh_create_view()
 {
