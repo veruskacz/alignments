@@ -1501,9 +1501,14 @@ function selectionClick(th, ancestorType)
         setAttr(targetTxt,'style','background-color:none');
 
         // get new entity types
+        var mode = $('#'+button).attr('mode');
+        if (mode == 'source')
+        { graph_uri = $('#src_selected_graph').attr('uri') }
+        else
+        { graph_uri = $('#trg_selected_graph').attr('uri') }
         $('#'+button).html('Loading...');
         $.get('/getdatasetpredicatevalues',
-                  data={'graph_uri': $('#src_selected_graph').attr('uri'),
+                  data={'graph_uri': graph_uri,
                         'predicate_uri': $(th).attr('uri') ,
                         'function': 'selectionClick(this, "selection-list");'},
                   function(data)
