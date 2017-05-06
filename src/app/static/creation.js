@@ -914,6 +914,9 @@ function create_lens_activate()
 {
    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
 
+    //   $('#lens_creation_message_col').html('');
+    refresh_create_lens();
+
    $('#creation_lens_linkset_selection_col').html('Loading...');
    $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
                           'type': 'linkset',
@@ -1000,6 +1003,18 @@ function createLensClick()
         {
             var obj = JSON.parse(data);
             $('#lens_creation_message_col').html(obj.message);
+
+            $('#creation_lens_lens_selection_col').html('Loading...');
+               $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
+                                      'type': 'lens',
+                                      'template': 'list_group.html'},function(data)
+               {
+                 $('#creation_lens_lens_selection_col').html(data);
+
+                 // set actions after clicking a graph in the list
+                 $('#creation_lens_lens_selection_col a').on('click',function()
+                  { selectListItem(this); });
+               });
         });
     }
     else {
@@ -1158,7 +1173,6 @@ function inspect_views_activate(mode="inspect")
                         'template': 'list_group.html'},
                   function(data)
     {
-      // $('#loading2').hide();
       $('#inspect_views_selection_col').html(data);
 
       // set actions after clicking a graph in the list
@@ -1224,12 +1238,18 @@ function inspect_views_activate(mode="inspect")
                 }
 
               });
-          var btn = document.getElementById('createViewButton');
-          resetButton(btn);
-          $('#creation_view_results_row').hide();
+//           var btn = document.getElementById('createViewButton');
+//           resetButton(btn);
+//           create_views_activate();
+           $('#creation_view_results_row').hide();
+
+           $("#collapse_view_lens").collapse("hide");
+           $("#collapse_view_filter").collapse("hide");
+
           }
         });
     });
+
   }
 }
 
@@ -1761,3 +1781,15 @@ function refresh_create_view()
 // $('test_row').html({ url: '/foo', title: 'Foo item' }.map(Item).join(''));
 // alert("2");
 // }
+
+
+
+$(".collapse").on('hidden.bs.collapse', function(){
+    var target = document.getElementById($(this).attr('target'));
+    $(target).html(' <span class="badge alert-info"><strong>+</strong></span> ');
+});
+
+$(".collapse").on('shown.bs.collapse', function(){
+    var target = document.getElementById($(this).attr('target'));
+    $(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');
+});
