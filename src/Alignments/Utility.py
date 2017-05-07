@@ -66,13 +66,15 @@ def update_specification(specs):
     # print specs
 
     if St.link_old in specs:
-        specs[St.link_old_name] = get_uri_local_name(specs[St.link_old])
-        specs[St.link_old_ns] = get_uri_ns_local_name(specs[St.link_old])[0]
+        if specs[St.link_old]:
+            specs[St.link_old_name] = get_uri_local_name(specs[St.link_old])
+            specs[St.link_old_ns] = get_uri_ns_local_name(specs[St.link_old])[0]
 
     if St.graph in specs:
-        specs[St.graph_name] = get_uri_local_name(specs[St.graph])
-        specs[St.graph_ns] = get_uri_ns_local_name(specs[St.graph])[0]
-        # print specs[St.graph_name]
+        if specs[St.graph]:
+            specs[St.graph_name] = get_uri_local_name(specs[St.graph])
+            specs[St.graph_ns] = get_uri_ns_local_name(specs[St.graph])[0]
+            # print specs[St.graph_name]
 
     if St.entity_datatype in specs:
         specs[St.entity_name] = get_uri_local_name(specs[St.entity_datatype])
@@ -80,9 +82,10 @@ def update_specification(specs):
         # print specs[St.entity_name]
 
     if St.aligns in specs:
-        specs[St.aligns_name] = get_uri_local_name(specs[St.aligns])
-        specs[St.aligns_ns] = str(specs[St.aligns]).replace(specs[St.aligns_name], '')
-        # print specs[St.aligns_name]
+        if specs[St.aligns]:
+            specs[St.aligns_name] = get_uri_local_name(specs[St.aligns])
+            specs[St.aligns_ns] = str(specs[St.aligns]).replace(specs[St.aligns_name], '')
+            # print specs[St.aligns_name]
 
     if St.lens in specs:
         specs[St.lens_name] = get_uri_local_name(specs[St.lens])

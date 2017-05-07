@@ -80,6 +80,45 @@ def set_linkset_name(specs, inverse=False):
         return linkset
 
 
+
+def set_linkset_identity_name(specs, inverse=False):
+
+    if inverse is False:
+
+        h_name = specs[St.mechanism] + \
+                 specs[St.source][St.graph_name] + specs[St.target][St.graph_name]
+
+        hashed = hash(h_name)
+
+        append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
+
+        specs[St.linkset_name] = "{}_{}_{}_{}".format(
+            specs[St.source][St.graph_name], specs[St.target][St.graph_name],
+            specs[St.mechanism], append)
+
+        specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+
+        return specs[St.linkset]
+
+    else:
+
+        h_name = specs[St.mechanism] + \
+                 specs[St.target][St.graph_name] + specs[St.source][St.graph_name]
+
+        hashed = hash(h_name)
+
+        append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
+
+        specs[St.linkset_name] = "{}_{}_{}_{}".format(
+            specs[St.target][St.graph_name], specs[St.source][St.graph_name],
+            specs[St.mechanism], append)
+
+        specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+
+        return specs[St.linkset]
+
+
+
 def set_subset_name(specs, inverse=False):
 
     if inverse is False:
@@ -143,26 +182,11 @@ def run_checks(specs):
     # CHECK WHETHER THE LINKSET WAS ALREADY CREATED AND ITS ALTERNATIVE NAME REPRESENTATION
     """
 
-    if str(linkset).__contains__("subset") is False:
-        if St.refined not in specs:
-
-            # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY JTO SUBSET BECAUSE WE ASSUME
-            # A LINKSET BY SUBSET DOES NEEDS NOT THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
-            counter_check = set_linkset_name(specs, inverse=True)
-
-            # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
-            ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
-
-            if ask_2 == "true":
-                message = Ec.ERROR_CODE_3.replace('#', linkset).replace("@", counter_check)
-                print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS UNDER THE NAME {}".format(counter_check)
-                print message
-                return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
-
     # CHECK WHETHER THE CURRENT LINKSET NAME EXIST
     ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
-
     if ask_1 == "true":
+
+        # print "ASK_1"
         message = Ec.ERROR_CODE_2.replace('#', linkset)
 
         if St.refined in specs:
@@ -199,6 +223,27 @@ def run_checks(specs):
         print message
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
 
+    # CHECK WHETHER THE alternative LINKSET NAME EXIST
+    elif  ask_1 == "false" and str(linkset).__contains__("subset") is False:
+
+        # print "ASK 2"
+        if St.refined not in specs:
+
+            # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY JTO SUBSET BECAUSE WE ASSUME
+            # A LINKSET BY SUBSET DOES NEEDS NOT THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
+            counter_check = set_linkset_name(specs, inverse=True)
+
+            # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
+            ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
+
+            if ask_2 == "true":
+                message = Ec.ERROR_CODE_3.replace('#', linkset).replace("@", counter_check)
+                print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS UNDER THE NAME {}".format(counter_check)
+                print message
+                return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
+
+
+    set_linkset_name(specs, inverse=False)
     print "\n>>> GOOD TO GO !!!"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 

@@ -126,12 +126,12 @@ def spa_linksets(specs, display=False, activated=False):
                 return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
             else:
-                return {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+                return {St.message: Ec.ERROR_CODE_4.replace('\n', "<br/>"), St.error_code: 4, St.result: None}
 
     except Exception as err:
         # logger.warning(err)
         print "ERROR IN SPA_LINKSET", err
-        return {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+        return {St.message: Ec.ERROR_CODE_4.replace('\n', "<br/>"), St.error_code: 4, St.result: None}
 
 
 ########################################################################################
@@ -521,6 +521,8 @@ def spa_linkset_identity_query(specs):
     )
 
     queries = [query01, query02, query03, query04]
+    # print query01
+    print query02
 
     return queries
 
@@ -537,16 +539,20 @@ def specs_2_linkset_id(specs, display=False, activated=False):
     # UPDATE THE QUERY THAT IS GOING TO BE EXECUTED
     if specs[St.sameAsCount]:
 
+        specs[St.source][St.aligns] = "{}type".format(Ns.rdf)
+        specs[St.target][St.aligns] = "{}type".format(Ns.rdf)
+
         # UPDATE THE SPECS OF SOURCE AND TARGETS
         update_specification(specs[St.source])
         update_specification(specs[St.target])
 
         # GENERATE THE NAME OF THE LINKSET
         # GENERATE THE NAME OF THE LINKSET
-        Ls.set_linkset_name(specs)
+        Ls.set_linkset_identity_name(specs)
 
         # SET THE INSERT QUERY
         specs[St.linkset_insert_queries] = spa_linkset_identity_query(specs)
+        # print specs[St.linkset_insert_queries]
 
         # GENERATE THE LINKSET
         inserted_linkset = spa_linksets(specs, display, activated)
