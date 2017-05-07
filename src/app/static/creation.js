@@ -1659,6 +1659,7 @@ function refresh_create_linkset(mode='all')
 {
     var elem = Object;
     $('#linkset_creation_message_col').html("");
+    $('#linkset_import_message_col').html("");
     if (mode == 'all')
     {
       $('#button-src-entity-type-col').show();
