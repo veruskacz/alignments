@@ -73,13 +73,17 @@
             Import Related Linksets <small>(select to see the details)</small>
           </h4>
       </div>
-      <h5><div class="col-md-6 text-right" style="color:red" id="linkset_import_message_col"></div></h5>
-      <div class="col-md-2 text-right">
-          <button type="button" id="btn_import_linkset"
-                class="btn btn-primary btn btn-success"
-                onclick='importLinksetClick()'
-                >Import</button>
-          </div>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_import_message_col"></div></h5>-->
+      <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="linkset_import_message_col"></div></td>
+                   <td align="right"><button type="button" id="btn_import_linkset"
+                        class="btn btn-primary btn btn-success"
+                        onclick='importLinksetClick()'
+                        >Import</button></td>
+           </table>
+      </div>
      </div>
     </div>
    <div id="collapse_linkset_inspect" class="panel-collapse collapse in"
@@ -121,10 +125,13 @@
            </div>
            <!--<h5><div class="col-md-8 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>-->
            <div class="col-md-10 text-right">
-               <a class='success' id="linkset_creation_message_col"></a>
-               <button type="button" id="createLinksetButton"
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="linkset_creation_message_col"></div></td>
+                       <td align="right"><button type="button" id="createLinksetButton"
                        class="btn btn-success btn btn-primary"
-                       onclick="createLinksetClick()">Create Linkset</button>
+                       onclick="createLinksetClick()">Create Linkset</button></td>
+               </table>
            </div>
          </div>
        </div>
@@ -138,11 +145,15 @@
                 Edit Linkset
               </h4>
            </div>
-           <h5><div class="col-md-6 text-right" style="color:red" id="linkset_edit_message_col"></div></h5>
-           <div class="col-md-2 text-right">
-               <button type="button" id="editLinksetButton"
-                       class="btn btn-success btn btn-primary"
-                       onclick="editLinksetClick()">Edit Linkset</button>
+           <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_edit_message_col"></div></h5>-->
+           <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="linkset_edit_message_col"></div></td>
+                       <td align="right"><button type="button" id="editLinksetButton"
+                           class="btn btn-success btn btn-primary"
+                           onclick="editLinksetClick()">Edit Linkset</button></td>
+               </table>
            </div>
          </div>
        </div>
@@ -156,12 +167,16 @@
                 Refine Linkset
               </h4>
            </div>
-           <h5><div class="col-md-6 text-right" style="color:red" id="linkset_refine_message_col"></div></h5>
-           <div class="col-md-2 text-right">
-               <button type="button" id="refineLinksetButton"
-                       onclick = 'refineLinksetClick();'
-                       class="btn btn-success btn btn-primary"
-                       onclick="refineLinksetClick()">Refine Linkset</button>
+           <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_refine_message_col"></div></h5>-->
+           <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="linkset_refine_message_col"></div></td>
+                       <td align="right"><button type="button" id="refineLinksetButton"
+                           class="btn btn-success btn btn-primary"
+                           onclick = 'refineLinksetClick();'
+                           >Refine Linkset</button></td>
+               </table>
            </div>
          </div>
        </div>
@@ -459,16 +474,20 @@
               Filter Linkset Conrrespondences
           </h4>
       </div>
-      <h5><div class="col-md-4 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>
-      <div class="col-md-3 text-right">
-          <button type="button" id="btn_add_filter_linkset"
-                class="btn btn-primary"
-                onclick='addFilterLinksetClick()'
-                >Add filter</button>
-          <button type="button" id="btn_apply_filter_linkset"
-                class="btn btn-primary"
-                onclick='applyFilterLinksetClick()'
-                >Apply Filter(s)</button>
+      <!--<h5><div class="col-md-4 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>-->
+      <div class="col-md-7 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="linkset_add_filter_message_col"></div></td>
+                   <td align="right"><button type="button" id="btn_add_filter_linkset"
+                            class="btn btn-primary"
+                            onclick='addFilterLinksetClick()'
+                            >Add filter</button>
+                      <button type="button" id="btn_apply_filter_linkset"
+                            class="btn btn-primary"
+                            onclick='applyFilterLinksetClick()'
+                            >Apply Filter(s)</button></td>
+           </table>
           </div>
      </div>
     </div>

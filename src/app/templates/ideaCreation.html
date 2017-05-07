@@ -14,7 +14,8 @@
               >Create</button>
       <button type="button" id="btn_overview_idea"
               class="btn btn-primary"
-              onclick='overview_idea_button(this);'
+              onclick='selectMultiButton(this);
+              overview_idea_button(this);'
               >Overview</button>
       </h4>
     </div>
@@ -35,11 +36,15 @@
               Create Research Question
           </h4>
       </div>
-      <h5><div class="col-md-6 text-right" style="color:red" id="idea_creation_message_col"></div></h5>
-      <div class="col-md-2 text-right">
-          <button type="button" id="createIdeaButton" class="btn btn-success"
-              data-toggle="button" onclick = "createIdeaClick();">
-          Create RQ</button>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="idea_creation_message_col"></div></h5>-->
+      <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="idea_creation_message_col"></div></td>
+                   <td align="right"><button type="button" id="createIdeaButton" class="btn btn-success"
+                          data-toggle="button" onclick = "createIdeaClick();">
+                      Create RQ</button></td>
+           </table>
           </div>
      </div>
     </div>
@@ -232,11 +237,15 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
               Dataset Mapping
           </h4>
       </div>
-      <h5><div class="col-md-4 text-right" style="color:red" id="idea_update_message_col"></div></h5>
-      <div class="col-md-2 text-right">
-          <button type="button" id="updateIdeaButton" class="btn btn-success"
-                    onclick = "updateIdeaClick()"
-                    uri = "" data-toggle="button">Insert Mapping</button>
+      <!--<h5><div class="col-md-4 text-right" style="color:red" id="idea_update_message_col"></div></h5>-->
+      <div class="col-md-6 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="idea_update_message_col"></div></td>
+                   <td align="right"><button type="button" id="updateIdeaButton" class="btn btn-success"
+                        onclick = "updateIdeaClick()" uri =""
+                        data-toggle="button">Insert Mapping</button></td>
+           </table>
       </div>
      </div>
     </div>

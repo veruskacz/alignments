@@ -54,7 +54,7 @@ function hideColDiv(containerId)
 
 function selectButton(button)
 {
-  $(button).addClass('btn-success');
+    $(button).addClass('btn-success');
 }
 
 function enableButtons(container, enable=true)
@@ -100,6 +100,18 @@ function newSelectButton(button)
     $(button).addClass('btn-success');
   }
 }
+
+function selectedButton(button)
+{
+  if ($(button).attr('class') != 'btn btn-primary')  {
+      selected = true;
+  }
+  else {
+      selected = false;
+  }
+  return selected
+}
+
 
 function selectMultiButton(item)
 {

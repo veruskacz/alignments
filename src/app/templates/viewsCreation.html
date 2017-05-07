@@ -154,7 +154,6 @@
                           data-toggle="button" onclick = 'createViewClick(mode="check")' >
                             Check View</button></td>
                </table>
-
               </div>
           </div>
 
@@ -227,16 +226,21 @@
                   Correspondences Filter
               </h4>
           </div>
-          <h5><div class="col-md-4 text-right" style="color:red" id="view_add_filter_message_col"></div></h5>
-          <div class="col-md-3 text-right">
-              <button type="button" id="btn_add_filter_view"
-                    class="btn btn-primary"
-                    onclick='addFilterViewClick()'
-                    >Add filter</button>
-              <button type="button" id="btn_apply_filter_view"
-                    class="btn btn-primary"
-                    onclick='applyFilterViewClick()'
-                    >Apply Filter(s)</button>
+          <!--<h5><div class="col-md-4 text-right" style="color:red" id="view_add_filter_message_col"></div></h5>-->
+          <div class="col-md-7 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="view_add_filter_message_col"></div></td>
+                       <td align="right"><button type="button" id="btn_add_filter_view"
+                            class="btn btn-primary"
+                            onclick='addFilterViewClick()'
+                            >Add filter</button>
+                            <button type="button" id="btn_apply_filter_view"
+                            class="btn btn-primary"
+                            onclick='applyFilterViewClick()'
+                            >Apply Filter(s)</button>
+                       </td>
+               </table>
               </div>
          </div>
         </div>
@@ -319,7 +323,6 @@
                         onclick = 'createViewClick(mode="save")'
                         >Save View</button></td>
                </table>
-
               </div>
              </div>
         </div>

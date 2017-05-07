@@ -172,6 +172,9 @@ function view_button(targetId)
 
 function create_idea_button(th)
 {
+   $('#idea_creation_message_col').html('');
+   $('#idea_update_message_col').html('');
+
   if (selectMultiButton(th)) {
     $('#idea_create_row').show();
     $('#inspect_idea_row').hide();
@@ -189,6 +192,9 @@ function create_idea_button(th)
 
 function inspect_idea_button(th)
 {
+   $('#idea_creation_message_col').html('');
+   $('#idea_update_message_col').html('');
+
   if (selectMultiButton(th))
   {
     $('#inspect_idea_row').show();
@@ -226,7 +232,7 @@ function inspect_idea_button(th)
 
 function overview_idea_button(th)
 {
-  if (selectMultiButton(th)) {
+  if (selectedButton(th)) {
     $('#idea_create_row').hide();
     $('#creation_idea_update_col').hide();
     $('#inspect_idea_row').show();
@@ -281,6 +287,8 @@ function overview_idea_enable(rq_uri)
     $('#overview_idea_alignment_mapping').val('Loading...');
     $('#overview_idea_lenses').val('Loading...');
     $('#overview_idea_views').val('Loading...');
+
+    $('#overview_idea_row').show();
     $.get('/getoverviewrq', data = {'rq_uri': rq_uri}, function(data)
     {
        var obj = JSON.parse(data)
@@ -324,10 +332,10 @@ function updateIdeaClick()
      $.get('/updaterq',data={'rq_uri': $(rq_elem).attr('uri'), 'list[]': list},function(data)
      {
          rqClick(rq_elem, mode='idea');
-         $('#idea_update_message_col').html(data);
+         $('#idea_update_message_col').html(addNote(data,cl='info'));
      });
    } else {
-      $('#idea_update_message_col').html("Select a Reserach Question!");
+      $('#idea_update_message_col').html(addNote("Some feature is not selected!"));
    }
 }
 
@@ -346,16 +354,21 @@ function createIdeaClick()
     // ... overview
 
    var rq_input = document.getElementById('research_question');
-   $.get('/insertrq',data={'question': rq_input.value},function(data)
+   if (rq_input.value)
    {
-       var obj = JSON.parse(data)
-       rq_input.setAttribute("uri", obj.result);
-       rq_input.setAttribute("label", rq_input.value);
+       $.get('/insertrq',data={'question': rq_input.value},function(data)
+       {
+           var obj = JSON.parse(data)
+           rq_input.setAttribute("uri", obj.result);
+           rq_input.setAttribute("label", rq_input.value);
 
-       $('#idea_creation_message_col').html(obj.message);
+           $('#idea_creation_message_col').html(addNote(obj.message,cl='info'));
 
-       update_idea_enable();
-   });
+           update_idea_enable();
+       });
+   } else {
+      $('#idea_creation_message_col').html(addNote("Please informe the Research Question!"));
+   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -601,19 +614,19 @@ function createLinksetClick()
         }
 
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
-        $('#linkset_creation_message_col').html(message);
+        $('#linkset_creation_message_col').html(addNote(message,cl='warning'));
 
         // call function that creates the linkset
         // HERE!!!!
         $.get('/createLinkset', specs, function(data)
         {
               var obj = JSON.parse(data);
-              $('#linkset_creation_message_col').html(obj.message);
+              $('#linkset_creation_message_col').html(addNote(obj.message,cl='info'));
         });
 
     }
     else {
-      $('#linkset_creation_message_col').html("Some feature is not selected!");
+      $('#linkset_creation_message_col').html(addNote("Some feature is not selected!"));
     }
 }
 
@@ -676,19 +689,19 @@ function refineLinksetClick()
       }
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
-      $('#linkset_refine_message_col').html(message);
+      $('#linkset_refine_message_col').html(addNote(message,cl='warning'));
 
       // call function that creates the linkset
       // HERE!!!!
       $.get('/refineLinkset', specs, function(data)
       {
             var obj = JSON.parse(data);
-            $('#linkset_refine_message_col').html(obj.message);
+            $('#linkset_refine_message_col').html(addNote(obj.message,cl='info'));
       });
 
   }
   else {
-    $('#linkset_refine_message_col').html("Some feature is not selected!");
+    $('#linkset_refine_message_col').html(addNote("Some feature is not selected!"));
   }
 }
 
@@ -710,16 +723,16 @@ function importLinksetClick()
                     'graphs[]': graphs};
 
         var message = "EXECUTING IMPORT.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
-        $('#linkset_import_message_col').html(message);
+        $('#linkset_import_message_col').html(addNote(message,cl='warning'));
 
         // call function that creates the linkset
         $.get('/importLinkset', data, function(data)
         {
-            $('#linkset_import_message_col').html(data);
+            $('#linkset_import_message_col').html(addNote(data,cl='info'));
         });
     }
     else {
-      $('#linkset_import_message_col').html("Some feature is not selected!");
+      $('#linkset_import_message_col').html(addNote("Some feature is not selected!"));
     }
 }
 
@@ -836,6 +849,7 @@ function applyFilterLinksetClick()
     });
 }
 
+
 function get_filter(rq_uri, linkset)
 {
     $.get('/getfilters',data={'rq_uri': rq_uri, 'graph_uri': linkset},function(data)
@@ -865,6 +879,7 @@ function inspect_lens_activate(mode)
   $('#creation_lens_correspondence_row').hide();
   $('#creation_lens_correspondence_col').html('');
   $('#inspect_lens_lens_details_col').html('');
+  refresh_create_lens();
 
   if (rq_uri)
   {
@@ -1002,7 +1017,7 @@ function createLensClick()
         $.get('/createLens', specs, function(data)
         {
             var obj = JSON.parse(data);
-            $('#lens_creation_message_col').html(addNote(obj.message, cl='success'));
+            $('#lens_creation_message_col').html(addNote(obj.message, cl='info'));
 
             $('#creation_lens_lens_selection_col').html('Loading...');
                $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
@@ -1366,13 +1381,8 @@ function rqClick(th, mode)
   var rq_uri = $(th).attr('uri');
   var rq_label = $(th).attr('label');
 
-  // var node = findAncestor(th, 'row rq');
-  // var target = $(node).attr('target');
-
   switch (mode) {
       case 'linkset':
-          //var target = 'creation_linkset_selected_RQ'
-
           enableButtons(document.getElementById('creation_linkset_buttons_col'));
 
           // get the datasets for the selected rq
@@ -1381,8 +1391,6 @@ function rqClick(th, mode)
 
           break;
       case 'lens':
-          //var target = 'creation_lens_selected_RQ';
-
           enableButtons(document.getElementById('creation_lens_buttons_col'));
 
           // get the datasets for the selected rq
@@ -1390,13 +1398,17 @@ function rqClick(th, mode)
           var btn = document.getElementById('btn_inspect_lens');
           break;
       case 'idea':
-          //var target = 'creation_idea_selected_RQ';
-          var btn = null;
+          var btn = document.getElementById('btn_inspect_idea');
           update_idea_enable(rq_uri);
           overview_idea_enable(rq_uri);
+          if ( selectedButton(btn) )
+          { $('#overview_idea_row').hide();
+          } else
+          { $('#creation_idea_update_col').hide();
+          }
+          btn = null;
           break;
       case 'view':
-          //var target = 'creation_view_selected_RQ';
           enableButtons(document.getElementById('creation_views_buttons_col'));
           refresh_create_view();
           var btn = document.getElementById('btn_inspect_view');
@@ -1428,7 +1440,7 @@ function rqClick(th, mode)
   setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
 
-  if (btn)       //inital button selected
+  if (btn)  //inital button selected
   {  btn.onclick();
   }
 }
@@ -1749,6 +1761,9 @@ function refresh_create_lens(mode='all')
 {
     var elem = Object;
     $('#lens_creation_message_col').html("");
+    $('#lens_import_message_col').html("");
+    $('#lens_add_filter_message_col').html("");
+    $('#lens_add_filter_message_col').html("");
     $('#selected_operator').html("Select a Operator");
     $('#selected_operator_desc').html("Operator Description");
 //    $('#creation_linkset_correspondence_row').hide();
