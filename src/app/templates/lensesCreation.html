@@ -67,12 +67,16 @@
                   Import Related Lenses <small>(select to see the details)</small>
               </h4>
           </div>
-          <h5><div class="col-md-6 text-right" style="color:red" id="lens_import_message_col"></div></h5>
-          <div class="col-md-2 text-right">
-              <button type="button" id="btn_import_lens"
-                    class="btn btn-primary btn btn-success"
-                    onclick='importLensClick()'
-                    >Import</button>
+          <!--<h5><div class="col-md-6 text-right" style="color:red" id="lens_import_message_col"></div></h5>-->
+          <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="lens_import_message_col"></div></td>
+                       <td align="right"><button type="button" id="btn_import_lens"
+                            class="btn btn-primary btn btn-success"
+                            onclick='importLensClick()'
+                            >Import</button></td>
+               </table>
           </div>
          </div>
         </div>
@@ -113,11 +117,15 @@
               Create Lens<br/><small>(Select operator and two or more linksets/lenses)</small>
           </h4>
        </div>
-       <h5><div class="col-md-6 text-right" style="color:red" id="lens_creation_message_col"></div></h5>
-       <div class="col-md-2 text-right">
-           <button type="button" id="createLensButton"
-                   class="btn btn-success btn btn-primary"
-                   onclick="createLensClick()">Create Lens</button>
+       <!--<h5><div class="col-md-6 text-right" style="color:red" id="lens_creation_message_col"></div></h5>-->
+       <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="lens_creation_message_col"></div></td>
+                   <td align="right"><button type="button" id="createLensButton"
+                    class="btn btn-success btn btn-primary"
+                               onclick="createLensClick()">Create Lens</button></td>
+           </table>
        </div>
      </div>
    </div>

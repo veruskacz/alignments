@@ -979,9 +979,9 @@ def viewdetails():
     """
     details += "<div class='row'><div class='col-md-6'>"
 
-    details += '<h4>View Lens</h4>'
+    details += '<h4>Final Integration Lens</h4>'
     details += "</div><div class ='col-md-6'>"
-    details += '<h4>View Filter </h4>'
+    details += '<h4>Property Selection </h4>'
     details += "</div></div> </div>"
 
     details += """<div class="panel-body">"""

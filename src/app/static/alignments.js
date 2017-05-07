@@ -214,6 +214,13 @@ function findAncestor (el, cls) {
     return el;
 }
 
+function addNote(text, cl='danger')
+{
+    // class = danger, info, success, warning
+    var note = '<div class="'+cl+' text-right"><p style="color:black">' + text +'&nbsp&nbsp</p></div>';
+    return note;
+}
+
 // ------------------------------------------------------------------- //
 // Admin mode
 

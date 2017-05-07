@@ -83,6 +83,27 @@
 {{super()}}
 <link rel="stylesheet"
       href="{{url_for('.static', filename='bootstrap.min.css')}}">
+<style>
+.danger {
+    background-color: #ffdddd;
+    border-right: 6px solid #f44336;
+}
+
+.success {
+    background-color: #ddffdd;
+    border-right: 6px solid #4CAF50;
+}
+
+.info {
+    background-color: #e7f3fe;
+    border-right: 6px solid #2196F3;
+}
+
+.warning {
+    background-color: #ffffcc;
+    border-right: 6px solid #ffeb3b;
+}
+</style>
 {% endblock %}
 
 {% block bootstrap_js_bottom %}

@@ -996,13 +996,13 @@ function createLensClick()
                     'operator': $('#selected_operator').attr('label')};
 
         var message = "EXECUTING YOUR LENS SPECS.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
-        $('#lens_creation_message_col').html(message);
+        $('#lens_creation_message_col').html(addNote(message,cl='warning'));
 
         // call function that creates the linkset
         $.get('/createLens', specs, function(data)
         {
             var obj = JSON.parse(data);
-            $('#lens_creation_message_col').html(obj.message);
+            $('#lens_creation_message_col').html(addNote(obj.message, cl='success'));
 
             $('#creation_lens_lens_selection_col').html('Loading...');
                $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
@@ -1018,7 +1018,7 @@ function createLensClick()
         });
     }
     else {
-      $('#lens_creation_message_col').html("Some feature is not selected!");
+      $('#lens_creation_message_col').html(addNote("Some feature is not selected!"));
     }
  }
 
@@ -1043,11 +1043,11 @@ function importLensClick()
         // call function that creates the linkset
         $.get('/importLens', data, function(data)
         {
-            $('#lens_import_message_col').html(data);
+            $('#lens_import_message_col').html(addNote(data, cl='info'));
         });
     }
     else {
-      $('#lens_import_message_col').html("Some feature is not selected!");
+      $('#lens_import_message_col').html(addNote("Some feature is not selected!"));
     }
 }
 
@@ -1062,6 +1062,7 @@ function create_views_activate()
     $('#creation_view_predicates_col').html('');
     $('#creation_view_selected_predicates_group').html('');
     $('#view_creation_message_col').html('');
+    $('#view_creation_save_message_col').html('');
     $('#creation_view_results_row').hide();
 
      $('#creation_view_dataset_col').html('Loading...');
@@ -1182,6 +1183,7 @@ function inspect_views_activate(mode="inspect")
           if (selectListItemUnique(this, 'inspect_views_selection_col'))
           {
             $('#view_creation_message_col').html("");
+            $('#view_creation_save_message_col').html("");
             $('#creation_view_selected_predicates_group').html("");
             var view_uri = $(this).attr('uri');
 
@@ -1259,6 +1261,7 @@ function inspect_views_activate(mode="inspect")
 function createViewClick(mode)
 {
     $('#view_creation_message_col').html("");
+    $('#view_creation_save_message_col').html("");
     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
     var elems = selectedElemsInGroupList('creation_view_linkset_col');
     var i;
@@ -1295,13 +1298,18 @@ function createViewClick(mode)
          var obj = JSON.parse(data);
          //{"metadata": metadata, "query": '', "table": []}
          $('#queryView').val(obj.query);
-         $('#view_creation_message_col').html(obj.metadata.message);
+         if (mode=='check')
+         { $('#view_creation_message_col').html(addNote(obj.metadata.message,cl='info'));
+         }
+         else
+         { $('#view_creation_save_message_col').html(addNote(obj.metadata.message,cl='info'));
+         }
          $('#creation_view_results_row').show();
          runViewClick();
      });
     }
     else {
-    $('#view_creation_message_col').html("Some feature is not selected!");
+    $('#view_creation_message_col').html(addNote("Some feature is not selected!"));
     }
 }
 
@@ -1766,6 +1774,7 @@ function refresh_create_view()
     btn = document.getElementById('createViewButton');
     resetButton(btn);
     $('#view_creation_message_col').html("");
+    $('#view_creation_save_message_col').html("");
     $('#inspect_views_details_col').html("");
     $('#creation_view_linkset_col').html("");
     $('#creation_view_lens_col').html("");

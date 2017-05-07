@@ -80,6 +80,140 @@
       </div>
      </div>
 
+
+    <div class="row creation" id = "creation_view_row" style='display:none'>
+     <div class="col-md-12" >
+
+      <div class="panel panel-default">
+          <div class="panel-heading">
+              <h4 class="panel-title">
+                  <a id="link_collapse_view_lens"
+                     data-toggle="collapse" href="#collapse_view_lens">
+                  <span class="badge alert-info"><strong>+</strong></span></a>
+                  Final Integration Lens <small>(more than one will be considered as intersection)</small>
+              </h4>
+          </div>
+          <div id="collapse_view_lens" class="panel-collapse collapse" target="link_collapse_view_lens">
+          <div class="panel-body">
+              <div class="row">
+
+                <div class="col-md-6" >
+                    <div class="row">
+                      <div class="col-md-10"><h4>Linksets</h4></div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-10">Select from the list:
+                      </div>
+                    </div>
+                    <!-- <div id="loading4"> Loading... </div> -->
+                    <div class="row">
+                      <div class="col-md-10" id="creation_view_linkset_col">
+
+                      </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6" >
+                    <div class="row">
+                      <div class="col-md-10"><h4>Lenses</h4></div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-10">Select from the list:
+                      </div>
+                    </div>
+                    <!--<div id="loading4"> Loading... </div>-->
+                    <div class="row">
+                      <div class="col-md-10" id="creation_view_lens_col">
+
+                      </div>
+                    </div>
+                </div>
+
+              </div>
+          </div>
+          </div>
+      </div>
+
+      <div class="panel panel-default">
+       <div class="panel-heading">
+          <div class="row">
+              <div class="col-md-4">
+                <h4 class="panel-title">
+                  <a id="link_collapse_view_filter"
+                     data-toggle="collapse" href="#collapse_view_filter">
+                      <span class="badge alert-info"><strong>+</strong></span></a>
+                  Property Selection <small> (select a dataset to see its attributes)</small>
+                </h4>
+              </div>
+              <!--<h5><div class="col-md-6 text-right" style="color:red" id="view_creation_message_col"></div></h5>-->
+              <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="view_creation_message_col"></div></td>
+                       <td align="right"><button type="button" id="createViewButton" class="btn btn-success"
+                          data-toggle="button" onclick = 'createViewClick(mode="check")' >
+                            Check View</button></td>
+               </table>
+
+              </div>
+          </div>
+
+       </div>
+       <div id="collapse_view_filter" class="panel-collapse collapse" target="link_collapse_view_filter">
+          <div class="panel-body">
+          <div class="row">
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Datasets</h4></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">Select from the list:</div>
+                </div>
+                <div id="loading3" style='display:none'> Loading... </div>
+                <div class="row">
+                  <div class="col-md-12" id="creation_view_dataset_col">
+
+                  </div>
+                </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Attributes</h4>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12" id="creation_view_predicates_msg_col"></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12" id="creation_view_predicates_col">
+
+                  </div>
+                </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Selected Attributes</h4>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="list-group" id="creation_view_selected_predicates_group"
+                            style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+          </div>
+       </div>
+      </div>
+
+     </div>
+    </div>
+
      <div class="row creation" id="creation_view_filter_row" style='display:none'>
       <div class="col-md-12">
         <div class="panel panel-default">
@@ -90,7 +224,7 @@
                   <a id="link_collapse_view_corresp_filter"
                      data-toggle="collapse" href="#collapse_view_corresp_filter">
                   <span class="badge alert-info"><strong>+</strong></span></a>
-                  Filter Linkset Conrrespondences
+                  Correspondences Filter
               </h4>
           </div>
           <h5><div class="col-md-4 text-right" style="color:red" id="view_add_filter_message_col"></div></h5>
@@ -164,140 +298,12 @@
       </div>
      </div>
 
-    <div class="row creation" id = "creation_view_row" style='display:none'>
-     <div class="col-md-12" >
-
-      <div class="panel panel-default">
-          <div class="panel-heading">
-              <h4 class="panel-title">
-                  <a id="link_collapse_view_lens"
-                     data-toggle="collapse" href="#collapse_view_lens">
-                  <span class="badge alert-info"><strong>+</strong></span></a>
-                  View-Lens <small>(more than one will be considered as intersection)</small>
-              </h4>
-          </div>
-          <div id="collapse_view_lens" class="panel-collapse collapse" target="link_collapse_view_lens">
-          <div class="panel-body">
-              <div class="row">
-
-                <div class="col-md-6" >
-                    <div class="row">
-                      <div class="col-md-10"><h4>Linksets</h4></div>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-10">Select from the list:
-                      </div>
-                    </div>
-                    <!-- <div id="loading4"> Loading... </div> -->
-                    <div class="row">
-                      <div class="col-md-10" id="creation_view_linkset_col">
-
-                      </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6" >
-                    <div class="row">
-                      <div class="col-md-10"><h4>Lenses</h4></div>
-                    </div>
-                    <div class="row">
-                      <div class="col-md-10">Select from the list:
-                      </div>
-                    </div>
-                    <!--<div id="loading4"> Loading... </div>-->
-                    <div class="row">
-                      <div class="col-md-10" id="creation_view_lens_col">
-
-                      </div>
-                    </div>
-                </div>
-
-              </div>
-          </div>
-          </div>
-      </div>
-
-      <div class="panel panel-default">
-       <div class="panel-heading">
-          <div class="row">
-              <div class="col-md-4">
-                <h4 class="panel-title">
-                  <a id="link_collapse_view_filter"
-                     data-toggle="collapse" href="#collapse_view_filter">
-                      <span class="badge alert-info"><strong>+</strong></span></a>
-                  View-Filter <small> (select a dataset to see its attributes)</small>
-                </h4>
-              </div>
-              <h5><div class="col-md-6 text-right" style="color:red" id="view_creation_message_col"></div></h5>
-              <div class="col-md-2 text-right">
-                <button type="button" id="createViewButton" class="btn btn-success"
-                        data-toggle="button" onclick = 'createViewClick(mode="check")' >
-                Check View</button>
-              </div>
-          </div>
-
-       </div>
-       <div id="collapse_view_filter" class="panel-collapse collapse" target="link_collapse_view_filter">
-          <div class="panel-body">
-          <div class="row">
-
-            <div class="col-md-4" >
-                <div class="row">
-                  <div class="col-md-12"><h4>Datasets</h4></div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12">Select from the list:</div>
-                </div>
-                <div id="loading3" style='display:none'> Loading... </div>
-                <div class="row">
-                  <div class="col-md-12" id="creation_view_dataset_col">
-
-                  </div>
-                </div>
-            </div>
-
-            <div class="col-md-4" >
-                <div class="row">
-                  <div class="col-md-12"><h4>Attributes</h4>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12" id="creation_view_predicates_msg_col"></div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12" id="creation_view_predicates_col">
-
-                  </div>
-                </div>
-            </div>
-
-            <div class="col-md-4" >
-                <div class="row">
-                  <div class="col-md-12"><h4>Selected Attributes</h4>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="list-group" id="creation_view_selected_predicates_group"
-                            style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
-                    </div>
-                  </div>
-                </div>
-            </div>
-          </div>
-          </div>
-       </div>
-      </div>
-
-     </div>
-    </div>
-
     <div class="row creation" id = "creation_view_results_row" style='display:none'>
      <div class="col-md-12">
       <div class="panel panel-default">
         <div class="panel-heading">
             <div class="row">
-              <div class="col-md-10">
+              <div class="col-md-4">
                   <h4 class="panel-title">
                       <a id="link_collapse_view_result"
                          data-toggle="collapse" href="#collapse_view_result">
@@ -305,14 +311,15 @@
                       View-Result
                   </h4>
               </div>
-              <div class="col-md-2 text-right">
-                <!--<h4><button type="button"-->
-                        <!--class="btn btn-primary"-->
-                        <!--onclick='showQuery(this);'-->
-                        <!--&gt;Show Query</button>-->
-                <button type="button" class="btn btn-primary"
+              <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="view_creation_save_message_col"></div></td>
+                       <td align="right"><button type="button" class="btn btn-primary"
                         onclick = 'createViewClick(mode="save")'
-                        >Save View</button></h4>
+                        >Save View</button></td>
+               </table>
+
               </div>
              </div>
         </div>
