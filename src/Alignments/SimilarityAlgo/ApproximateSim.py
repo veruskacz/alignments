@@ -1,18 +1,19 @@
 # encoding=utf-8
 
 import os
+import re
+from sys import maxint
+from operator import itemgetter
 import src.Alignments.Query as Qry
 import src.Alignments.Utility as Ut
 import src.Alignments.Settings as St
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Linksets.Linkset as Ls
-from sys import maxint
-import src.Alignments.GenericMetadata as Gn
-from operator import itemgetter
 from time import time, ctime, gmtime
-from src.Alignments.CheckRDFFile import check_rdf_file
+import src.Alignments.NameSpace as Ns
+import src.Alignments.GenericMetadata as Gn
+import src.Alignments.Linksets.Linkset as Ls
 from kitchen.text.converters import to_unicode
-
+import src.Alignments.UserActivities.UserRQ as Urq
+from src.Alignments.CheckRDFFile import check_rdf_file
 
 
 # LIMIT 2000
@@ -310,6 +311,7 @@ def prefixed_inverted_index(specs, theta):
     Ut.update_specification(source)
     Ut.update_specification(target)
     Ls.set_linkset_name(specs)
+    print "LINKSET: {}".format(specs[St.linkset_name])
 
     specs[St.graph] = specs[St.linkset]
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -320,7 +322,7 @@ def prefixed_inverted_index(specs, theta):
     check = Ls.run_checks(specs)
     if check[St.result] != "GOOD TO GO":
         return check
-
+    # print "LINKSET: {}".format(specs[St.linkset_name])
     """
     BACKGROUND
 
@@ -405,6 +407,7 @@ def prefixed_inverted_index(specs, theta):
 
     # HELPER FOR CREATING A CORRESPONDENCE
     def correspondence(description, writers, count):
+
         # GENERATE CORRESPONDENCE
         crpdce = "\n\t### Instance [{5}]\n\t<{0}> \t\t{1}_{2}_{3} \t\t<{4}> .\n".format(
             description[St.src_resource], description[St.link],
@@ -429,12 +432,18 @@ def prefixed_inverted_index(specs, theta):
         term_frequency = dict()
         for row in range(1, len(matrix)):
             # print "matrix[row]:", matrix[row]
-            tokens = to_unicode(matrix[row][1]).split(" ")
+
+            # REMOVE DATA IN BRACKETS
+            tokens = remove_info_in_bracket(to_unicode(matrix[row][1]))
+            tokens = tokens.split(" ")
+
+            # COMPUTE FREQUENCY
             for token in tokens:
                 if token not in term_frequency:
                     term_frequency[token] = 1
                 else:
                     term_frequency[token] += 1
+
         return term_frequency
 
     def get_inverted_index(matrix, tf, theta):
@@ -446,12 +455,19 @@ def prefixed_inverted_index(specs, theta):
 
             # GET THE VALUE
             value = to_unicode(matrix[row][1])
+
+            # REMOVE DATA IN BRACKETS
+            value = remove_info_in_bracket(value)
+
+            # REMOVE (....) FROM THE VALUE
+
             # GET THE TOKENS
             tokens = value.split(" ")
             # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
             included = len(tokens) - (int(theta*len(tokens)) - 1)
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
             for i in range(len(tokens)):
+                # print value + " | +" + tokens[i]
                 tokens[i] = [tokens[i], tf[tokens[i]]]
             # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
             tokens = sorted(tokens, key=itemgetter(1))
@@ -470,15 +486,63 @@ def prefixed_inverted_index(specs, theta):
 
         # GET THE TOKENS
         stg = to_unicode(string)
+        # print stg
+
+        # REMOVE DATA IN BRACKETS
+        stg = remove_info_in_bracket(stg)
+
+        # if stg != to_unicode(string):
+        #     print stg + "!!!!!!!!!"
+
         tokens = stg.split(" ")
         # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
-        included = len(tokens) - (int(theta * len(tokens)) - 1)
+        included = len(tokens) - (int(theta * len(tokens)) - 1) if int(theta * len(tokens)) > 1 else len(tokens)
+
         # UPDATE THE TOKENS WITH THEIR FREQUENCY
         for i in range(len(tokens)):
             tokens[i] = [tokens[i], tf[tokens[i]]]
+
         # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
         tokens = sorted(tokens, key=itemgetter(1))
         return tokens[:included]
+
+    def remove_info_in_bracket(text):
+
+        # text = "(Germany) 3M (United Kingdom) (Israel) in  (Canada) (France)"
+
+        temp = text
+
+        if temp:
+
+            pattern = re.findall('( *\(.*?\) *)', temp, re.S)
+
+            for item in pattern:
+
+                # print temp
+
+                if item.endswith(" ") and item.startswith(" "):
+                    temp = unicode(temp).replace(item, " ", 1)
+                    # print "both sides"
+                    # print text
+
+                elif item.startswith(" ") is not True and item.endswith(" "):
+                    temp = unicode(temp).replace(item, "", 1)
+                    # print "right side"
+                    # print text
+
+                elif item.startswith(" ") is True and item.endswith(" ") is not True:
+                    temp = unicode(temp).replace(item, "", 1)
+                    # print "left side"
+                    # print text
+
+                else:
+                    temp = unicode(temp).replace(item, "", 1)
+                    # print "None"
+                    # print text
+
+            temp = unicode(temp).strip()
+
+        return temp
 
     #################################################################
     # CREATING THE  INVERTED INDEX
@@ -495,9 +559,11 @@ def prefixed_inverted_index(specs, theta):
     if (src_dataset is not None) and (trg_dataset is None):
         print "WE COULD NOT EXTRACT PREDICATE VALUES FROM THE TARGET DATASET"
         return None
+
     elif (src_dataset is None) and (trg_dataset is not None):
         print "WE COULD NOT EXTRACT PREDICATE VALUES FROM THE SOURCE DATASET"
         return None
+
     elif (src_dataset is not None) and (trg_dataset is not None):
         # DISPLAY THE MERGE IN ACTIVATE IS TRUE
         Qry.display_matrix(src_dataset, is_activated=False)
@@ -514,6 +580,7 @@ def prefixed_inverted_index(specs, theta):
     t_tf = time()
     print "\t\t>>> In {}.\n\t\t>>> Elapse time: {}".format(t_tf - t_load, t_load - start)
     # print src_tf
+
     print "4. GENERATE THE INVERTED INDEX OF THE TARGET DATASET USING THE FILTERED PREFIX APPROACH"
     trg_inv_index = get_inverted_index(trg_dataset, trg_tf, theta)
     t_inv_ind = time()
@@ -530,7 +597,7 @@ def prefixed_inverted_index(specs, theta):
 
         # TOKENS IN THE CURRENT PREDICATE VALUE
         curr_index = set()
-        tokens = get_tokens_to_include( str(src_dataset[row][1]), theta, src_tf)
+        tokens = get_tokens_to_include(str(src_dataset[row][1]), theta, src_tf)
         # print tokens
 
         # GET THE INDEX WHERE A TOKEN IN THE CURRENT INSTANCE CAN BE FOUND
@@ -545,7 +612,9 @@ def prefixed_inverted_index(specs, theta):
         for idx in curr_index:
 
             # COMPARE THE CURRENT TO OTHERS THAT IS NOT YOURSELF
-            sim = edit_distance(src_dataset[row][1], trg_dataset[idx][1])
+            sim_val_1 = remove_info_in_bracket(to_unicode(src_dataset[row][1]))
+            sim_val_2 = remove_info_in_bracket(to_unicode(trg_dataset[idx][1]))
+            sim = edit_distance(sim_val_1, sim_val_2)
 
             # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
             # if sim >= theta and sim < 1:
@@ -561,7 +630,7 @@ def prefixed_inverted_index(specs, theta):
                 crpdce[St.row] = row
                 crpdce[St.inv_index] = idx
 
-                if gmtime(time()).tm_sec % 60 == 0:
+                if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
                     print correspondence(crpdce, writers, count)
                 else:
                     correspondence(crpdce, writers, count)
@@ -569,7 +638,7 @@ def prefixed_inverted_index(specs, theta):
     t_sim = time()
     print "\t\t>>> in {} MINUTE(S).\n\t\t>>> Elapse time: {} MINUTE(S)".format(
         (t_sim - t_inv_ind)/60, (t_sim - start)/60)
-    print "\t\t>>> {}. match found".format(count)
+    print "\t\t>>> {} match found".format(count)
 
 
     metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
@@ -599,19 +668,48 @@ def prefixed_inverted_index(specs, theta):
     print ">>> FINISHED ON {}".format(ctime(t_sim))
     print ">>> MATCH WAS DONE IN {}\n".format((t_sim - start)/60)
 
-    print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THEW TRIPLE STORE\n\t\t{}", writers[St.batch_output_path]
-    os.system(writers[St.batch_output_path])
-    print Qry.insert_size(specs[St.linkset], isdistinct=False)
 
-    check_rdf_file(writers[St.crpdce_writer_path])
-    check_rdf_file(writers[St.meta_writer_path])
-    check_rdf_file(writers[St.singletons_writer_path])
+    # print inserted
+    # if int(inserted[1]) > 0:
+    if count > 0:
 
-    print "\tLinkset created as: ", specs[St.linkset_name]
-    print "\t*** JOB DONE! ***"
+        print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THEW TRIPLE STORE\n\t\t{}", writers[
+            St.batch_output_path]
+        os.system(writers[St.batch_output_path])
+        inserted = Qry.insert_size(specs[St.linkset], isdistinct=False)
 
-    message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
-    return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+        # REGISTER THE ALIGNMENT
+        if check[St.result].__contains__("ALREADY EXISTS"):
+                Urq.register_alignment_mapping(specs, created=False)
+        else:
+            Urq.register_alignment_mapping(specs, created=True)
+
+        # WRITE TO FILE
+        check_rdf_file(writers[St.crpdce_writer_path])
+        check_rdf_file(writers[St.meta_writer_path])
+        check_rdf_file(writers[St.singletons_writer_path])
+
+        print "\tLinkset created as: ", specs[St.linkset_name]
+        print "\t*** JOB DONE! ***"
+
+        message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
+        return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+
+    else:
+        message = "\tLinkset was not created because no match was found: ", specs[St.linkset_name]
+        print message
+        print "\t*** JOB DONE! ***"
+        return {St.message: message, St.error_code: 0, St.result: None}
+
+
+# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(SingletonMetadata)-20170317.trig")
+# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(Linksets)-20170317.trig")
+# tokens = 5
+# theta = 0.8
+# print (int(theta*tokens))
+# print tokens - (int(theta*tokens) - 1)
+# included = tokens - (int(theta * tokens - 1)) if int(theta * tokens) > 1 else tokens
+# print included
 
 # check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(SingletonMetadata)-20170317.trig")
 # check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(Linksets)-20170317.trig")

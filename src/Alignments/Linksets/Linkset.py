@@ -66,35 +66,31 @@ def set_linkset_name(specs, inverse=False):
                  specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
                  specs[St.source][St.graph_name] + specs[St.source][St.aligns_name]
 
-
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        linkset_name = "{}_{}_{}_{}_{}".format(
+        specs[St.linkset_name] = "{}_{}_{}_{}_{}".format(
             specs[St.target][St.graph_name], specs[St.source][St.graph_name],
             specs[St.mechanism], specs[St.target][St.aligns_name], append)
 
-        linkset = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+        specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
-        return linkset
-
+        return specs[St.linkset]
 
 
 def set_linkset_identity_name(specs, inverse=False):
 
     if inverse is False:
 
-        h_name = specs[St.mechanism] + \
-                 specs[St.source][St.graph_name] + specs[St.target][St.graph_name]
+        h_name = specs[St.mechanism] + specs[St.source][St.graph_name] + specs[St.target][St.graph_name]
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
         specs[St.linkset_name] = "{}_{}_{}_{}".format(
-            specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-            specs[St.mechanism], append)
+            specs[St.source][St.graph_name], specs[St.target][St.graph_name], specs[St.mechanism], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -102,21 +98,18 @@ def set_linkset_identity_name(specs, inverse=False):
 
     else:
 
-        h_name = specs[St.mechanism] + \
-                 specs[St.target][St.graph_name] + specs[St.source][St.graph_name]
+        h_name = specs[St.mechanism] + specs[St.target][St.graph_name] + specs[St.source][St.graph_name]
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
         specs[St.linkset_name] = "{}_{}_{}_{}".format(
-            specs[St.target][St.graph_name], specs[St.source][St.graph_name],
-            specs[St.mechanism], append)
+            specs[St.target][St.graph_name], specs[St.source][St.graph_name], specs[St.mechanism], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
         return specs[St.linkset]
-
 
 
 def set_subset_name(specs, inverse=False):
@@ -133,12 +126,13 @@ def set_subset_name(specs, inverse=False):
 
         specs[St.linkset_name] = "subset_{}_{}_{}_{}_{}".format(
             specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-            specs[St.mechanism], specs[St.source][St.link_old_name], hashed)
+            specs[St.mechanism], specs[St.source][St.link_old_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
-        return specs[St.linkset]
+        # print specs[St.linkset]
 
+        return specs[St.linkset]
 
 
 def set_refined_name(specs):
@@ -186,7 +180,7 @@ def run_checks(specs):
     ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
     if ask_1 == "true":
 
-        # print "ASK_1"
+        print "ASK_1"
         message = Ec.ERROR_CODE_2.replace('#', linkset)
 
         if St.refined in specs:
@@ -226,7 +220,7 @@ def run_checks(specs):
     # CHECK WHETHER THE alternative LINKSET NAME EXIST
     elif  ask_1 == "false" and str(linkset).__contains__("subset") is False:
 
-        # print "ASK 2"
+        print "ASK 2"
         if St.refined not in specs:
 
             # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY JTO SUBSET BECAUSE WE ASSUME
@@ -242,8 +236,110 @@ def run_checks(specs):
                 print message
                 return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
-
+    print "NO PROBLEM"
     set_linkset_name(specs, inverse=False)
+    print "\n>>> GOOD TO GO !!!"
+    return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
+
+
+def run_checks_id(specs):
+
+    heading = "\n======================================================" \
+              "========================================================"\
+              "\nRUNNING LINKSET SPECS CHECK" \
+              "\n======================================================" \
+              "========================================================"
+    print heading
+
+    ask = "ASK {{ <#> ?p ?o . }}"
+
+    linkset = specs[St.refined] if St.refined in specs else specs[St.linkset]
+    # print linkset
+
+    """
+    # CHECK WHETHER THE SOURCE & TARGET GRAPHS EXIST
+    """
+    g_exist_q = "ASK { GRAPH <@> {?s ?p ?o} }"
+    src_g_exist = Qry.boolean_endpoint_response(g_exist_q.replace("@", specs[St.source][St.graph]))
+    trg_g_exist = Qry.boolean_endpoint_response(g_exist_q.replace("@", specs[St.target][St.graph]))
+    if (src_g_exist == "false") or (trg_g_exist == "false"):
+        print Ec.ERROR_CODE_10
+        return {St.message: Ec.ERROR_CODE_10, St.error_code: 10, St.result: None}
+
+    """
+    # CHECK THE TASK SPECIFIC PREDICATE COUNT
+    """
+    if specs[St.sameAsCount] is None:
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: None}
+
+    """
+    # CHECK WHETHER THE LINKSET WAS ALREADY CREATED AND ITS ALTERNATIVE NAME REPRESENTATION
+    """
+
+    # CHECK WHETHER THE CURRENT LINKSET NAME EXIST
+    ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
+    if ask_1 == "true":
+
+        print "ASK_1"
+        message = Ec.ERROR_CODE_2.replace('#', linkset)
+
+        if St.refined in specs:
+
+            # GET LINKSET DERIVED FROM
+            subjects_target = linkset_wasderivedfrom(linkset)
+            # CHECK THE RESULT OF THE DIFFERENCE AND OUT PUT BOTH THE REFINED AND THE DIFFERENCE
+            if subjects_target is not None:
+
+                diff_lens_specs = {
+                    St.researchQ_URI: specs[St.researchQ_URI],
+                    # THE OBJECT IS THE LINKSET THE REFINED LINKSET WAS DERIVED FROM
+                    St.subjectsTarget: subjects_target,
+                    # THE TARGET IS THE REFINED LINKSET
+                    St.objectsTarget: linkset
+                }
+
+                Lu.diff_lens_name(diff_lens_specs)
+                message2 = Ec.ERROR_CODE_7.replace('#', diff_lens_specs[St.lens])
+                refined = {St.message: message, St.error_code: 0, St.result: linkset}
+                difference = {St.message: message2, St.error_code: 7, St.result: diff_lens_specs[St.lens]}
+
+                # REGISTER THE ALIGNMENT
+                if refined[St.message].__contains__("ALREADY EXISTS"):
+                    Ura.register_alignment_mapping(specs, created=False)
+                else:
+                    Ura.register_alignment_mapping(specs, created=True)
+
+                # REGISTER THE LENS
+                Ura.register_lens(diff_lens_specs, is_created=False)
+
+                print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS"
+                return {St.message: "NOT GOOD TO GO", 'refined': refined, 'difference': difference}
+        print message
+        return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
+
+    # CHECK WHETHER THE alternative LINKSET NAME EXIST
+    elif  ask_1 == "false" and str(linkset).__contains__("subset") is False:
+
+        print "ASK 2"
+        if St.refined not in specs:
+
+            # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY JTO SUBSET BECAUSE WE ASSUME
+            # A LINKSET BY SUBSET DOES NEEDS NOT THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
+            counter_check = set_linkset_identity_name(specs, inverse=True)
+
+            # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
+            ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
+
+            if ask_2 == "true":
+                message = Ec.ERROR_CODE_3.replace('#', linkset).replace("@", counter_check)
+                print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS UNDER THE NAME {}".format(counter_check)
+                print message
+                return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
+
+    print "NO PROBLEM"
+    set_linkset_identity_name(specs, inverse=False)
+    print "NAME: " + specs[St.linkset]
     print "\n>>> GOOD TO GO !!!"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
@@ -266,6 +362,7 @@ def linkset_info(specs, same_as_count):
 
 
 def refined_info(specs, same_as_count):
+
     info = "{}{}{}{}{}". \
         format("======================================================="
                "=======================================================\n",

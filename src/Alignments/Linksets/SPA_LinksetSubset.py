@@ -196,10 +196,12 @@ def specification_2_linkset_subset(specs, activated=False):
             specs[St.link_comment] = "The predicate <{}> is used in replacement of the linktype <{}> used in the " \
                                      "original <{}> dataset.".format(
                 specs[St.link], specs[St.source][St.link_old], specs[St.source][St.graph])
+
             # COMMENT ON THE JUSTIFICATION FOR THIS LINKSET
             specs[St.justification_comment] = "In OrgRef's a set of entities are linked to GRID. The linking method " \
                                               "used by OrgRef is unknown. Here we assume that it is a curated work " \
                                               "and extracted it as a linkset.",
+
             # COMMENT ON THE LINKSET ITSELF
             specs[St.linkset_comment] = "The current linkset is a subset of the <{0}> dataset that links <{0}> to " \
                                         "<{1}>. The methodology used by <{0}> to generate this builtin linkset in " \
@@ -211,11 +213,13 @@ def specification_2_linkset_subset(specs, activated=False):
             # GENERATE THE LINKSET
             inserted_linkset = spa_linkset_subset(specs, activated)
 
-            # REGISTER THE ALIGNMENT
-            if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
-                Urq.register_alignment_mapping(specs, created=False)
-            else:
-                Urq.register_alignment_mapping(specs, created=True)
+            if specs[St.triples] > "0":
+
+                # REGISTER THE ALIGNMENT
+                if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
+                    Urq.register_alignment_mapping(specs, created=False)
+                else:
+                    Urq.register_alignment_mapping(specs, created=True)
 
             return inserted_linkset
 

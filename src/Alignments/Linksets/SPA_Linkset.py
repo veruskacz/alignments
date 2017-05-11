@@ -27,7 +27,7 @@ SINGLE PREDICATE ALIGNMENT
 """
 
 
-def spa_linksets(specs, display=False, activated=False):
+def spa_linksets(specs, id=False, display=False, activated=False):
 
     if activated is False:
         print "THE FUNCTION IS NOT ACTIVATED." \
@@ -52,11 +52,19 @@ def spa_linksets(specs, display=False, activated=False):
     try:
 
         if activated is True:
-
+            # print "NAME: " + specs[St.linkset]
             # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
-            check = Ls.run_checks(specs)
+
+            if id is False:
+                check = Ls.run_checks(specs)
+            else:
+                check = Ls.run_checks_id(specs)
+
             if check[St.result] != "GOOD TO GO":
                 return check
+
+            # print "NAME: " + specs[St.linkset]
+
 
             # THE LINKSET DOES NOT EXIT, LETS CREATE IT NOW
             print Ls.linkset_info(specs, specs[St.sameAsCount])
@@ -522,7 +530,8 @@ def spa_linkset_identity_query(specs):
 
     queries = [query01, query02, query03, query04]
     # print query01
-    print query02
+    # print query02
+    # print query03
 
     return queries
 
@@ -555,7 +564,7 @@ def specs_2_linkset_id(specs, display=False, activated=False):
         # print specs[St.linkset_insert_queries]
 
         # GENERATE THE LINKSET
-        inserted_linkset = spa_linksets(specs, display, activated)
+        inserted_linkset = spa_linksets(specs, id=True, display=display, activated=activated)
 
         # REGISTER THE ALIGNMENT
         if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
