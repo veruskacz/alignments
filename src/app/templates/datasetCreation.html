@@ -1,0 +1,110 @@
+<div class="panel panel-info">
+<div class="panel-heading">
+   <div class="row">
+    <div class="col-md-9"><h3>Dataset</h3></div>
+    <div class="col-md-3 text-right" id="creation_dataset_buttons_col">
+      <h4>
+      <!--<button type="button" id="btn_inspect_idea"-->
+              <!--class="btn btn-primary"-->
+              <!--onclick='inspect_idea_button(this);'-->
+              <!--&gt;Inspect</button>-->
+      <!--<button type="button" id="btn_create_idea"-->
+              <!--class="btn btn-primary"-->
+              <!--onclick='create_idea_button(this);'-->
+              <!--&gt;Create</button>-->
+      <!--<button type="button" id="btn_overview_idea"-->
+              <!--class="btn btn-primary"-->
+              <!--onclick='selectMultiButton(this);-->
+              <!--overview_idea_button(this);'-->
+              <!--&gt;Overview</button>-->
+      </h4>
+    </div>
+   </div>
+</div>
+
+<div class="panel-body">
+  <div class="row" id="dataset_convert_row" >
+    <div class="col-md-12">
+    <div class="panel panel-default">
+    <div class="panel-heading">
+     <div class="row">
+      <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_dataset_convert"
+                 data-toggle="collapse" href="#collapse_dataset_convert">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Dataset Convertion
+          </h4>
+      </div>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+      <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="dataset_convert_message_col"></div></td>
+                   <td align="right"><button type="button" id="uploadDatasetButton" class="btn btn-success"
+                          data-toggle="button" onclick = "uploadDatasetClick();">
+                          Convert</button>
+                       <button type="button" id="convertDatasetButton" class="btn btn-success"
+                          data-toggle="button" onclick = "convertDatasetClick();">
+                      Convert</button></td>
+           </table>
+      </div>
+     </div>
+    </div>
+    <div id="collapse_dataset_convert" class="panel-collapse collapse in" target="link_collapse_dataset_convert">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-4" id="dataset_files_list_col">
+           <textarea class="form-control" id="dataset_file_path">
+/Users/veruskacz/PyWebApp/alignments/src/data/orgref.csv</textarea>
+        </div>
+        <div class="col-md-12">
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+    </div>
+  </div>
+
+ <div class="row creation" id="inspect_dataset_row">
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" >
+      <div class="row">
+      <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_dataset_inspect"
+                 data-toggle="collapse" href="#collapse_dataset_inspect">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Converted-Dataset Inspection
+          </h4>
+      </div>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+      <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="dataset_creation_message_col"></div></td>
+                   <td align="right"><button type="button" id="createDatasetButton" class="btn btn-success"
+                          data-toggle="button" onclick = "createDatasetClick();">
+                      Import</button></td>
+           </table>
+      </div>
+     </div>
+    </div>
+    <div id="collapse_dataset_inspect" class="panel-collapse collapse in" target="link_collapse_dataset_inspect">
+    <div class="panel-body">
+      <div class="row rq" target = 'creation_dataset_selected_RQ'>
+        <div class="col-md-12">
+            Load Brws??
+        </div>
+      </div>
+    </div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+
+</div>
+</div>

@@ -12,6 +12,8 @@ logger.addHandler(handler)
 import xmltodict
 import collections
 from kitchen.text.converters import to_bytes
+# from os import listdir
+# from os.path import isfile, isdir, join
 
 import ast
 import re
@@ -24,6 +26,7 @@ ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
 DATABASE = "risis"
 HOST = "localhost:5820"
+PATH_DS_FILES= '/Users/veruskacz/PyWebApp/alignments/src/data/'
 
 REASONING_TYPE = 'SL'
 
@@ -43,6 +46,7 @@ if CREATION_ACTIVE:
     from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
     import src.Alignments.UserActivities.User_Validation as UVld
     import src.Alignments.Manage.AdminGraphs as adm
+    import src.Alignments.ToRDF.CSV as CSV
 else:
     from src.app import app
 
@@ -1187,6 +1191,47 @@ def adminDel():
     return 'done'
 
 
+@app.route('/convertCSVToRDF')
+def convertCSVToRDF():
+    filePath = request.args.get('file', '')
+    separator = request.args.get('separator', ',')
+    database = request.args.get('database', 'orgref2')
+
+    CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
+            separator=separator, entity_type='Organization',
+            rdftype=[3], subject_id=10, field_metadata=None)
+
+    return ""
+
+
+@app.route('/readFileSample')
+def readFileSample():
+    filePath = request.args.get('file', '')
+    # result = readAndReturnSample(filePath)
+    result = ""
+    return json.dumps(result)
+
+
+@app.route('/importConvertedDataset')
+def importConvertedDataset():
+    filePath = request.args.get('file', '')
+    # result = import(filePath)
+    result = ""
+    return json.dumps(result)
+
+
+# database, is_trig, file_to_convert, separator, entity_type,
+#                  rdftype=None, subject_id=None, field_metadata=None
+
+# @app.route('/getdatasetfiles')
+# def datasetfiles():
+#     list = []
+#     if isdir(PATH_DS_FILES):
+#         list = [f for f in listdir(PATH_DS_FILES) if isfile(join(PATH_DS_FILES, f))]
+#     print list
+#     # print listdir(PATH_DS_FILES)
+#     return render_template(template, list = graphs, btn_name = btn_name, function = '')
+
 # ######################################################################
 ## ENDPOINT
 # ######################################################################
@@ -1531,3 +1576,4 @@ def get_URI_local_name(uri):
             index = uri.rindex(last_char)
             name = uri[index + 1:]
             return name
+

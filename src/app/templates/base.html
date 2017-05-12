@@ -43,20 +43,28 @@
         </div>
         <!-- CREATION MODE -->
         <div class='row' id='divCreation' style='display:none'>
-          <div class="col-md-20" id="creation_linkset_col" style='display:none'>
-            {% include 'linksetsCreation.html' %}
-          </div>
-          <div class="col-md-20" id="creation_linkset_refine_col" style='display:none'>
-            {% include 'linksetsRefinement.html' %}
-          </div>
-          <div class="col-md-20" id="creation_lens_col" style='display:none'>
-            {% include 'lensesCreation.html' %}
-          </div>
-          <div class="col-md-20" id="creation_view_col" style='display:none'>
-            {% include 'viewsCreation.html' %}
-          </div>
           <div class="col-md-20" id="creation_idea_col" style='display:none'>
             {% include 'ideaCreation.html' %}
+          </div>
+          <div class="col-md-20" id="creation_linkset_col" style='display:none'
+            mode="linkset" targetButton="button_creation_linkset_RQ_col"
+            targetText="creation_linkset_selected_RQ">
+            {% include 'linksetsCreation.html' %}
+          </div>
+          <div class="col-md-20" id="creation_lens_col" style='display:none'
+            mode="lens" targetButton="button_rq_creation_lens_col"
+            targetText="creation_lens_selected_RQ">
+            {% include 'lensesCreation.html' %}
+          </div>
+          <div class="col-md-20" id="creation_view_col" style='display:none'
+            mode="view" targetButton="button_rq_creation_view_col"
+            targetText="creation_view_selected_RQ">
+            {% include 'viewsCreation.html' %}
+          </div>
+          <div class="col-md-20" id="creation_dataset_col" style='display:none'
+            mode="dataset" targetButton="button_creation_dataset_RQ_col"
+            targetText="creation_dataset_selected_RQ">
+            {% include 'datasetCreation.html' %}
           </div>
         </div>
 

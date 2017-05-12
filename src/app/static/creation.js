@@ -40,131 +40,46 @@ function idea_button(targetId)
 
 }
 
-function linkset_button(targetId)
+function mainButtonClick(targetId)
 {
    activateTargetDiv(targetId);
+   elem = document.getElementById(targetId);
+   mode = $('#'+targetId).attr('mode');
+   button = $('#'+targetId).attr('targetButton');
+   text = $('#'+targetId).attr('targetText');
 
-   $('#button_creation_linkset_RQ_col').html('Loading...');
+   $('#'+button).html('Loading...');
    // get research questions
    $.get('/getrquestions',
           data = {'template': 'list_dropdown.html',
-                  'function': 'rqClick(this,"linkset")'},
+                  'function': 'rqClick(this,"'+mode+'")'},
           function(data)
    {
      //load the results rendered as a button into a div-col
-     $('#button_creation_linkset_RQ_col').html(data);
+     $('#'+button).html(data);
    });
 
-   if ($('#creation_linkset_selected_RQ').attr('uri'))
+   if ($('#'+text).attr('uri'))
    {
-        elem = document.getElementById('creation_linkset_selected_RQ');
-        rqClick(elem, mode='linkset');
+        elem = document.getElementById('#'+text);
+        rqClick(elem, mode=mode);
    }
 }
 
-function lens_button(targetId)
+
+function datasetButtonClick(targetId)
 {
    activateTargetDiv(targetId);
+   elem = document.getElementById(targetId);
 
-   $('#button_rq_creation_lens_col').html('Loading...');
-   $.get('/getrquestions',
-          data = {'template': 'list_dropdown.html',
-                  'function': 'rqClick(this,"lens")'},
-          function(data)
-   {
-     //load the results rendered as a button into a div-col
-     $('#button_rq_creation_lens_col').html(data);
-   });
-
-   if ($('#creation_lens_selected_RQ').attr('uri'))
-   {
-        elem = document.getElementById('creation_lens_selected_RQ');
-        rqClick(elem, mode='lens');
-   }
-
-  //  $.get('/getrquestions',function(data)
-  //  {
-  //    $('#creation_lens_col').show();
-  //    $('#button_rq_creation_lens_col').html(data);
-   //
-  //     // select a research question
-  //    $('#button_rq_creation_lens_col a').on('click',function()
-  //    {
-  //     //  refresh_create_lens();
-  //     //  enableButton('createLensButton');
-  //
-  //      refresh_create_lens();
-  //      var rq_uri = $(this).attr('uri');
-  //      var rq_label = $(this).attr('label');
-  //      $('#creation_lens_selected_RQ').html(rq_label);
-   //
-  //      $('#creation_lens_row').show();
-   //  //
-   //
-
-   //
-  //      // set actions after clicking the button createLensButton
-  //      $('#createLensButton').on('click',function()
-  //      {
-  //         var elems = selectedElemsInGroupList('creation_lens_linkset_selection_col');
-  //         var i;
-  //         var graphs = []
-  //         for (i = 0; i < elems.length; i++) {
-  //           graphs.push($(elems[i]).attr('uri'));
-  //         }
-  //         elems = selectedElemsInGroupList('creation_lens_lens_selection_col');
-  //         var i;
-  //         for (i = 0; i < elems.length; i++) {
-  //           graphs.push($(elems[i]).attr('uri'));
-  //         }
-   //
-  //         if ((graphs.length > 0) &&
-  //             ($('#selected_operator').attr('label')))
-  //         {
-  //             var specs = {'rq_uri': rq_uri,
-  //                         'graphs[]': graphs,
-  //                         'operator': $('#selected_operator').attr('label')};
-   //
-  //             var message = "EXECUTING YOUR LENS SPECS.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
-  //             $('#lens_creation_message_col').html(message);
-   //
-  //             // call function that creates the linkset
-  //             $.get('/createLens', specs, function(data)
-  //             {
-  //                 var obj = JSON.parse(data);
-  //                 $('#lens_creation_message_col').html(obj.message);
-  //             });
-  //         }
-  //         else {
-  //           $('#lens_creation_message_col').html("Some feature is not selected!");
-  //         }
-  //      });
-  //    });
-  //  });
+//   // get files
+//   $.get('/getdatasetfiles'},
+//          function(data)
+//   {
+//     //load the results rendered as a button into a div-col
+//     $('#dataset_files_list_col').html(data);
+//   });
 }
-
-function view_button(targetId)
-{
- activateTargetDiv(targetId);
-
- $('#creation_view_col').show();
- $('#button_rq_creation_view_col').html('Loading...');
- $.get('/getrquestions',
-           data = {'template': 'list_dropdown.html',
-                  'function': 'rqClick(this,"view")'},
-          function(data)
-   {
-       $('#button_rq_creation_view_col').html(data);
-   });
-
-   if ($('#creation_view_selected_RQ').attr('uri'))
-   {
-        elem = document.getElementById('creation_view_selected_RQ');
-        rqClick(elem, mode='view');
-   }
-
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in ideaCreation.html
@@ -1835,3 +1750,30 @@ $(".collapse").on('shown.bs.collapse', function(){
     if (target)
     {$(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');}
 });
+
+function convertDatasetClick()
+{
+    var input = document.getElementById('dataset_file_path');
+    alert(input.value);
+
+    $.get('/convertCSVToRDF',
+          data={'file': input.value},
+          function(data)
+    {
+        //$('#button_int_dataset').html(data);
+    });
+
+}
+
+function uploadDatasetClick()
+{
+    var input = document.getElementById('dataset_file_path');
+
+    $.get('/readFileSample',
+          data={'file': input.value},
+          function(data)
+    {
+        //$('#button_int_dataset').html(data);
+    });
+
+}
