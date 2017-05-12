@@ -1,5 +1,6 @@
 # coding=utf-8
 
+from src.Alignments.Utility import win_bat as bat
 from src.Alignments.ToRDF.RDF import *
 
 __name__ = """CSV"""
@@ -118,6 +119,7 @@ class CSV(RDF):
             line = to_unicode(_file.readline(), "utf-8")
 
             if not line:
+
                 """ Closing the named-graph by closing the turtle writer """
                 if self.isClosed is not True:
                     self.close_writer()
@@ -125,6 +127,10 @@ class CSV(RDF):
                 print '\nNo more line... Process ended at line > ' + str(n)
                 print 'Done with converting [' + file_to_convert + '] to RDF!!!'
                 _file.close()
+
+                # WRITE THE BAT FILE
+                print self.dirName
+                self.bat_file = bat(self.dirName, self.database)
                 break
 
             # if n <= 5:
@@ -250,6 +256,10 @@ class CSV(RDF):
                 print '\nNo more line... Process ended at line > ' + str(n)
                 print 'Done with converting [' + file_to_convert + '] to RDF!!!'
                 _file.close()
+
+                # WRITE THE BAT FILE
+                print self.dirName
+                self.bat_file = bat(self.dirName, self.database)
                 break
 
             # if n <= 5:

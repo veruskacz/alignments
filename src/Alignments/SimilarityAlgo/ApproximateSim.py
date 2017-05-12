@@ -372,6 +372,7 @@ def prefixed_inverted_index(specs, theta):
     PREFIX = "PREFIX alivocab:\t<{}>\n" \
              "PREFIX linkset:\t<{}>\n" \
              "PREFIX singletons:\t<{}>\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
+
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
     Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
     writers = Ut.get_writers(specs[St.linkset_name])
@@ -646,7 +647,7 @@ def prefixed_inverted_index(specs, theta):
 
     load = """
     echo "Loading data"
-    stardog data add risis {} {} {}
+    stardog data add risis "{}" "{}" "{}"
     """.format(
         writers[St.crpdce_writer_path],
         writers[St.meta_writer_path],
@@ -675,6 +676,7 @@ def prefixed_inverted_index(specs, theta):
 
         print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THEW TRIPLE STORE\n\t\t{}", writers[
             St.batch_output_path]
+
         os.system(writers[St.batch_output_path])
         inserted = Qry.insert_size(specs[St.linkset], isdistinct=False)
 
@@ -700,6 +702,16 @@ def prefixed_inverted_index(specs, theta):
         print message
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
+
+
+# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(SingletonMetadata)-20170317.trig")
+# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(Linksets)-20170317.trig")
+# tokens = 5
+# theta = 0.8
+# print (int(theta*tokens))
+# print tokens - (int(theta*tokens) - 1)
+# included = tokens - (int(theta * tokens - 1)) if int(theta * tokens) > 1 else tokens
+# print included
 
 
 # check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(SingletonMetadata)-20170317.trig")

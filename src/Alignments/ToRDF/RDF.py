@@ -702,7 +702,8 @@ class RDF(object):
         self.turtleWriter.close()
         self.isClosed = True
 
-        self.check_rdf_file()
+        self.check_rdf_file(self.outputPath)
+        self.check_rdf_file(self.outputMetaPath)
 
     def refresh(self):
         """ This function makes sure that a new file is created whenever self.fileSplitSize is reached """
@@ -741,9 +742,9 @@ class RDF(object):
         """
         self.isClosed = False
 
-    def check_rdf_file(self):
+    def check_rdf_file(self, file_path):
 
-        rdf_file = os.path.basename(self.outputPath)
+        rdf_file = os.path.basename(file_path)
         graph_format = self.outputExtension
         if graph_format == 'ttl':
             graph_format = "turtle"
@@ -751,13 +752,13 @@ class RDF(object):
             Check the currently closed RDF file
         """
         print "\nRefresh: ", self.fileUpdate
-        print "###------------------------------------------------------------------------------------------------###"
-        print "Output file > " + self.outputPath
-        print "###------------------------------------------------------------------------------------------------###"
+        print "--------------------------------------------------------------------------------------------------------"
+        print "Output file > " + file_path
+        print "-------------------------------------------------------------------------------------------------------#"
         print "    Syntactic check of: ", rdf_file
         g = rdflib.Dataset()
         print '    Loading ', rdf_file
-        g.load(source=self.outputPath, format=graph_format)
+        g.load(source=file_path, format=graph_format)
         print '    The file is a valid RDF with length:', str(len(g))
 
     @staticmethod

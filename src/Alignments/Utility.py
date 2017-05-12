@@ -103,6 +103,60 @@ def intersect(a, b):
 
     return None
 
+
+def win_bat(file_directory, file_name):
+
+    # NORMALISE THE NAME TO AVOID below C:\Users\Al\Dropbox\Linksets\test
+    np = normalise_path(file_directory)
+    # print np
+
+    # GET THE DIRECTORY
+    directory = os.path.dirname(np) if os.path.isdir(np) is not True else np
+    # print dir
+
+    # LOAD ALL FILES
+    # file_list = [f for f in os.listdir(dir) if os.path.isfile(join(dir, f))]
+
+    load_bldr = cStringIO.StringIO()
+    load_bldr.write("""\n\techo "Loading data\"""")
+    load_bldr.write("\n\tstardog data add risis")
+
+    # LOAD ONLY .TRIG OR .TTL FILES
+    print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
+    for f in os.listdir(directory):
+
+        full_path = join(directory, f)
+
+        if os.path.isfile(full_path):
+
+            if f.endswith('.trig') or f.endswith('.ttl'):
+                # abs =  os.path.abspath(f).replace("\\", "/")
+
+                load_bldr.write(" \"{}\"".format(full_path))
+                print "  - {}".format(full_path)
+
+    print load_bldr.getvalue()
+
+    # GENERATE THE BAT FILE
+    bat_path = "{}\\{}.bat".format(directory, file_name)
+    writer = codecs.open(bat_path, "wb", "utf-8")
+    writer.write(to_unicode(load_bldr.getvalue()))
+    writer.close()
+    load_bldr.close()
+
+    # RETURN THE BAT FILE
+    print "\nTHE BAT FILE IS LOCATED AT:\n  - {}".format(bat_path)
+    return bat_path
+
+
+def bat_load(bat_path):
+
+    if isfile(bat_path) and bat_path.endswith('.bat'):
+        os.system(bat_path)
+        return "YOUR FILE(S) HAVE BEEN LOADED"
+    return "CHECK THE FILE PATH."
+
+
 #################################################################
 """
     ABOUT INSERTING NAMED GRAPHS FILES
@@ -110,7 +164,7 @@ def intersect(a, b):
 #################################################################
 
 
-def insertgraph( dataset_name, f_path, file_count, save=True):
+def insertgraph(dataset_name, f_path, file_count, save=True):
 
     limit = 70000
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
@@ -235,7 +289,7 @@ def insertgraphs(dataset_name, dir_path):
 
         if isfile(path) & (extension.lower() == ".trig"):
             # print path
-            insertgraph(path, file_count)
+            insertgraph(dataset_name, path, file_count)
             file_count += 1
 
 
@@ -313,7 +367,6 @@ def write_to_file(graph_name, metadata=None, correspondences=None, singletons=No
         print err
 
 
-
 def get_writers(graph_name):
 
     # print graph_name
@@ -349,9 +402,24 @@ def get_writers(graph_name):
     writers[St.crpdce_writer] = codecs.open(linkset_output, "wb", "utf-8")
     writers[St.singletons_writer] = codecs.open(singleton_metadata_output, "wb", "utf-8")
     writers[St.batch_writer] = codecs.open(batch_output, "wb", "utf-8")
+
     writers[St.meta_writer_path] = metadata_output
     writers[St.crpdce_writer_path] = linkset_output
     writers[St.singletons_writer_path] = singleton_metadata_output
     writers[St.batch_output_path] = batch_output
 
     return writers
+
+
+def normalise_path(file_path):
+
+    file_path = re.sub('[\']', "\\\\", file_path)
+    file_path = re.sub('[\"]', "\\\\", file_path)
+    file_path = re.sub('[\a]', "\\\\a", file_path)
+    file_path = re.sub('[\b]', "\\\\b", file_path)
+    file_path = re.sub('[\f]', "\\\\f", file_path)
+    file_path = re.sub('[\n]', "\\\\n", file_path)
+    file_path = re.sub('[\r]', "\\\\r", file_path)
+    file_path = re.sub('[\t]', "\\\\t", file_path)
+    file_path = re.sub('[\v]', "\\\\v", file_path)
+    return file_path
