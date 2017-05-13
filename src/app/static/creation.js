@@ -1759,14 +1759,29 @@ function convertDatasetClick()
     var dataset = document.getElementById('ds_name');
     var entity_type = document.getElementById('ds_entity_type_name');
 
+
     if ((dataset.value) && (entity_type.value) )
     {
+        var indexes = []
+        indexes = getSelectIndexes(document.getElementById('ds_type_list'))
+        if (indexes != [])
+        {    var rdftype = indexes }
+
+        indexes = getSelectIndexes(document.getElementById('ds_subject_id'))
+        if (indexes != [] && indexes[0] != 0)
+           // not empty and not "-- Select --"
+        {    var subject_id = indexes[0]-1  }
+        else
+        {    var subject_id = none  }
+
         $('#dataset_convertion_message_col').html(addNote("Your file is being converted!",cl='warning'));
         $.get('/convertCSVToRDF',
               data={'file': input.value,
                     'separator': separator.value,
                     'database': dataset.value,
-                    'entity_type': entity_type.value},
+                    'entity_type': entity_type.value,
+                    'rdftype[]': rdftype,
+                    'subject_id': subject_id},
               function(data)
         {
             if (data)
@@ -1838,6 +1853,22 @@ function getHeaderColumns() {
         $('#ds_type_list').html("");
     }
 }
+
+function getSelectIndexes(select) {
+  var result = [];
+  var options = select && select.options;
+  var opt;
+
+  for (var i=0; i<options.length; i++) {
+    opt = options[i];
+    if (opt.selected) {
+      result.push(i);
+    }
+  }
+//  alert(result);
+  return result;
+}
+
 
 function loadGraphClick()
 {

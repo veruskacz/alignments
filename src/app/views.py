@@ -1198,12 +1198,16 @@ def convertCSVToRDF():
     separator = request.args.get('separator', '')
     database = request.args.get('database', '')
     entity_type = request.args.get('entity_type', '')
-    rdftype = request.args.get('rdftype', None)
+    rdftype = map(int, request.args.getlist('rdftype[]'))
     subject_id = request.args.get('subject_id', None)
+
+    # print subject_id, rdftype
 
     converter = CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
             separator=separator, entity_type=entity_type,
-            rdftype=rdftype, subject_id=subject_id, field_metadata=None)
+            rdftype=rdftype if rdftype != [] else None,
+            subject_id = int(subject_id) if rdftype != None else None,
+            field_metadata=None)
 
     return converter.bat_file
 
