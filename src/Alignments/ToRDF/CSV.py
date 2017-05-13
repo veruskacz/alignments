@@ -160,6 +160,7 @@ class CSV(RDF):
             return
 
         bom = ''
+        _file = ""
 
         self.rdftype = rdftype
         self.subjectID = subject_id         # -> int      The index of the attribute to use as identification
@@ -173,9 +174,14 @@ class CSV(RDF):
         '''Replace unwanted characters -> #;:.-(–)—[']`=’/”{“}^@*+!~\,%'''
         self.pattern = '[?&#;:%!~+`=’*.(\-)–\\—@\['',\\]`{^}“/”]'
 
-        # Open the file to convert
-        _file = open(self.inputPath, 'rb')
-        # _file = codecs.open(self.inputPath, 'rb', encoding="utf-8")
+        try:
+            # Open the file to convert
+            # _file = codecs.open(self.inputPath, 'rb', encoding="utf-8")
+            _file = open(self.inputPath, 'rb')
+
+        except Exception as exception:
+            print "\n", exception
+            exit(1)
 
         """ About BYTE ORDER MARK (BOM) """
         self.first_line = _file.readline()
@@ -349,6 +355,45 @@ class CSV(RDF):
         content = name_space.getvalue()
         name_space.close()
         return content
+
+    @staticmethod
+    def view_file(file_path):
+        bom = ''
+        _file = ""
+        first_line = ""
+        text = ""
+        bldr = cStringIO.StringIO()
+        try:
+            # Open the file to convert
+            # _file = codecs.open(self.inputPath, 'rb', encoding="utf-8")
+            _file = open(file_path, 'rb')
+
+        except Exception as exception:
+            # print "\n", exception
+            message = "NO DATASET FILE UPLOADED\n\n\n\n\n\n\t\t" + str(exception)
+            return {"header": "NO DATASET FILE UPLOADED",  "sample": message}
+
+        """ About BYTE ORDER MARK (BOM) """
+        first_line = to_bytes(_file.readline())
+
+        if first_line.startswith(to_bytes(codecs.BOM_UTF8)):
+            for i in range(len(to_bytes(codecs.BOM_UTF8))):
+                bom += first_line[i]
+            first_line = first_line.replace(bom, '')
+            print u"[" + os.path.basename(file_path) + u"]", u"contains BOM."
+
+        # get the first line
+        first_line = first_line.strip(u'\r\n')
+        bldr.write(first_line + "\n")
+
+        for i in range(0, 10):
+            bldr.write(_file.readline())
+        text = bldr.getvalue()
+        bldr.close()
+        _file.close()
+
+        # print text
+        return {"header": first_line, "sample": text}
 
     def write_record_values(self, record, field_metadata=None):
         """ This function takes as an argument a csv record as
@@ -563,3 +608,10 @@ class CSV(RDF):
             # print("\n" + "[" + str(i) + "]" + self.csvHeader[i] + ": " + cur_value)
             self.write_line(
                 self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, to_unicode(value))) + u" ;")
+
+
+
+# print CSV.extractor("""\"Name","Country","State?","Level","Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID\"""", ",")
+
+# CSV.view_file("C:\Users\Al\PycharmProjects\Linkset\Data_uploaded\orgref.csv")
+

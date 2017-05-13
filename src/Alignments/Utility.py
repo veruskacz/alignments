@@ -149,10 +149,10 @@ def win_bat(file_directory, file_name):
     return bat_path
 
 
-def bat_load(bat_path):
+def batch_load(batch_path):
 
-    if isfile(bat_path) and bat_path.endswith('.bat'):
-        os.system(bat_path)
+    if isfile(batch_path) and batch_path.endswith('.bat'):
+        os.system(batch_path)
         return "YOUR FILE(S) HAVE BEEN LOADED"
     return "CHECK THE FILE PATH."
 

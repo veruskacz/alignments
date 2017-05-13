@@ -1754,26 +1754,101 @@ $(".collapse").on('shown.bs.collapse', function(){
 function convertDatasetClick()
 {
     var input = document.getElementById('dataset_file_path');
-    alert(input.value);
+    var separator = document.getElementById('ds_separator');
 
-    $.get('/convertCSVToRDF',
+    var dataset = document.getElementById('ds_name');
+    var entity_type = document.getElementById('ds_entity_type_name');
+
+    if ((dataset.value) && (entity_type.value) )
+    {
+        $('#dataset_convertion_message_col').html(addNote("Your file is being converted!",cl='warning'));
+        $.get('/convertCSVToRDF',
+              data={'file': input.value,
+                    'separator': separator.value,
+                    'database': dataset.value,
+                    'entity_type': entity_type.value},
+              function(data)
+        {
+            if (data)
+            {
+                alert(data);
+                //$('#button_int_dataset').html(data);
+    //            $('#dataset_convertion_message_col').html("");
+                $('#dataset_convertion_message_col').html(addNote("You can now load your data to the RISIS triple store in the next panel!",cl='success'));
+                enableButton('createDatasetButton');
+                setAttr('createDatasetButton','batchFile',data);
+            }
+            else
+            {
+                $('#dataset_convertion_message_col').html(addNote("Something went wrong!"));
+            }
+        });
+    }
+    else
+    {
+        $('#dataset_convertion_message_col').html(addNote("Some feature is not selected!"));
+//        if (!dataset.value)
+//        { setAttr('ds_name','style','background-color:lightred'); }
+//        if (!entity_type.value)
+//        { setAttr('ds_entity_type_name','style','background-color:lightred'); }
+    }
+}
+
+
+function viewSampleFileClick()
+{
+    var input = document.getElementById('dataset_file_path');
+
+    $.get('/viewSampleFile',
           data={'file': input.value},
           function(data)
     {
-        //$('#button_int_dataset').html(data);
+        var obj = JSON.parse(data)
+        $('#upload_sample').val(obj.sample);
+        $('#dataset_header').val(obj.header);
+        $('#dataset_upload_message_col').html(addNote("You can now convert te data!</br>Please fill in the separator in the panel below!",cl='success'));
     });
 
 }
 
-function uploadDatasetClick()
-{
-    var input = document.getElementById('dataset_file_path');
 
-    $.get('/readFileSample',
-          data={'file': input.value},
-          function(data)
+//$('#ds_separator').onkeyup(function() {
+function getHeaderColumns() {
+    //alert('keyup')
+    if ( document.getElementById("ds_separator").value )
     {
-        //$('#button_int_dataset').html(data);
-    });
+        var input = document.getElementById('dataset_header');
+        var separator = document.getElementById('ds_separator');
+        $.get('/headerExtractor',
+          data={'header_line': input.value,
+                'separator': separator.value},
+          function(data)
+        {
+            $('#ds_subject_id').html("<option>-- Select --</option>"+data);
+            $('#ds_type_list').html(data);
 
+        });
+        enableButton('convertDatasetButton');
+
+    }
+    else
+    {
+        enableButton('convertDatasetButton',enable=false);
+        $('#ds_subject_id').html("");
+        $('#ds_type_list').html("");
+    }
+}
+
+function loadGraphClick()
+{
+    //alert($('#createDatasetButton').attr('batchFile'));
+    if ($('#createDatasetButton').attr('batchFile'))
+    {
+        $.get('/loadGraph',
+              data={'batch_file': $('#createDatasetButton').attr('batchFile')},
+              function(data)
+            {
+                alert(data);
+            });
+    }
 }

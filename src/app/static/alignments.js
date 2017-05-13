@@ -63,17 +63,31 @@ function enableButtons(container, enable=true)
     var i;
     if (enable)
     {
-      // alert(enable);
+
       for (i = 0; i < elems.length; i++) {
         $(elems[i]).removeClass('disabled');
+        //alert(enable);
       }
     }
     else
     {
-      // alert(enable);
+      //alert(enable);
       for (i = 0; i < elems.length; i++) {
         $(elems[i]).addClass('disabled');
       }
+    }
+}
+
+function enableButton(button_name, enable=true)
+{
+    var elem = document.getElementById(button_name);
+    if (enable)
+    {
+         $(elem).removeClass('disabled');
+    }
+    else
+    {
+        $(elem).addClass('disabled');
     }
 }
 

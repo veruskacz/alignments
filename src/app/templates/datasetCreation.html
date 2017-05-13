@@ -40,29 +40,45 @@
       <div class="col-md-8 text-right">
            <table align="right">
                <tr align="right">
-                   <td align="right"><div id="dataset_convert_message_col"></div></td>
-                   <td align="right"><button type="button" id="uploadDatasetButton" class="btn btn-success"
-                          data-toggle="button" onclick = "uploadDatasetClick();">
-                          Convert</button>
-                       <button type="button" id="convertDatasetButton" class="btn btn-success"
-                          data-toggle="button" onclick = "convertDatasetClick();">
-                      Convert</button></td>
+                   <td align="right"><div id="dataset_upload_message_col"></div></td>
+                   <td align="right">
+                       <button type="button" id="viewDatasetButton" class="btn btn-success"
+                          data-toggle="button" onclick = "viewSampleFileClick();"> UPLOAD DATASET FILE
+                       </button>
+
+                       <!--<button type="button" id="uploadDatasetButton" class="btn btn-success disabled"-->
+                          <!--data-toggle="button" onclick = "uploadDatasetClick();"> UPLOAD DATASET FILE-->
+                       <!--</button>-->
+                       </td>
            </table>
       </div>
+
+
      </div>
     </div>
     <div id="collapse_dataset_convert" class="panel-collapse collapse in" target="link_collapse_dataset_convert">
     <div class="panel-body">
       <div class="row">
-        <div class="col-md-4" id="dataset_files_list_col">
-           <textarea class="form-control" id="dataset_file_path">
-/Users/veruskacz/PyWebApp/alignments/src/data/orgref.csv</textarea>
+        <div class="col-md-12" >
+            <br/>INPUT FILE PATH
+            <input type="text" class="form-control" id="dataset_file_path"
+                   value="C:\Users\Al\PycharmProjects\Linkset\Data_uploaded\Panel composition 2014 Mark.txt">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12" id="dataset_files_list_col">
+            <BR/>FILE SAMPLE
+           <textarea readonly wrap='off' class="form-control" id="upload_sample"
+                     style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE UPLOADED
+           </textarea>
         </div>
         <div class="col-md-12">
         </div>
       </div>
     </div>
     </div>
+
+
     </div>
     </div>
   </div>
@@ -84,20 +100,69 @@
       <div class="col-md-8 text-right">
            <table align="right">
                <tr align="right">
-                   <td align="right"><div id="dataset_creation_message_col"></div></td>
-                   <td align="right"><button type="button" id="createDatasetButton" class="btn btn-success"
-                          data-toggle="button" onclick = "createDatasetClick();">
-                      Import</button></td>
+                   <td align="right"><div id="dataset_convertion_message_col"></div></td>
+                   <td align="right">
+                   <button type="button" id="convertDatasetButton" class="btn btn-success disabled"
+                          data-toggle="button" onclick = "convertDatasetClick();"> CONVERT TO RDF
+                       </button>
+
+                   </td>
            </table>
       </div>
      </div>
     </div>
     <div id="collapse_dataset_inspect" class="panel-collapse collapse in" target="link_collapse_dataset_inspect">
     <div class="panel-body">
-      <div class="row rq" target = 'creation_dataset_selected_RQ'>
-        <div class="col-md-12">
-            Load Brws??
+        <div class="row">
+        <div class="col-md-11" >
+            <br/>INPUT FILE PATH
+
+            <!--<textarea readonly wrap='off' class="form-control" id="dataset_header"-->
+                      <!--style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='1'>"Name","Country","State","Level","Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID""1 Decembrie 1918 University, Alba Iulia","RO",,"Org","http://en.wikipedia.org/wiki?curid=10039929","http://www.wikidata.org/wiki/Q2053266",,"http://www.isni.org/isni/0000000121707636","http://www.grid.ac/institutes/grid.445667.2","http://www.uab.ro","10039929"-->
+           <!--</textarea>-->
+
+            <input readonly type="text" class="form-control" id="dataset_header"
+                   style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;'
+            value='NO DATASET FILE UPLOADED'>
         </div>
+        <div class="col-md-1 text-center" >
+            <br/> SEPARATOR
+            <input  type="text" class="form-control" id="ds_separator"
+                   style='font-size: 25pt;' onkeyup="getHeaderColumns();"
+                   value="">
+        </div>
+      </div>
+      <div class="row" target = 'creation_dataset'>
+        <div class="col-md-3">
+            <br/> DATASET NAME (<strong>*</strong>)
+            <input type="text" class="form-control" id="ds_name"
+                   value="">
+
+
+
+        </div>
+        <div class="col-md-4">
+             <br/> ENTITY TYPE (<strong>*</strong>)
+            <input type="text" class="form-control" id="ds_entity_type_name"
+                   value="">
+
+            <br/> SUBJECT IDENTIFIER
+            <!--<input type="text" class="form-control" id="ds_subject_id"-->
+                   <!--value="">-->
+            <select class="form-control" id="ds_subject_id">
+
+              </select>
+        </div>
+
+        <div class="col-md-4">
+            <br/> RDF TYPES <small>(press ctrl to select multiple)</small>
+            <!--<input type="text" class="form-control" id="ds_type_list"-->
+                   <!--value="">-->
+            <select multiple class="form-control" id="ds_type_list" style="height: 8em">
+
+              </select>
+        </div>
+
       </div>
     </div>
     </div>
@@ -105,6 +170,43 @@
   </div>
  </div>
 
+
+
+ <div class="row creation" id="inspect_dataset_row">
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" >
+      <div class="row">
+      <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_dataset_load"
+                 data-toggle="collapse" href="#collapse_dataset_load">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Load the uploaded dataset to the triple store
+          </h4>
+      </div>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+      <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="dataset_creation_message_col"></div></td>
+                   <td align="right"><button type="button" id="createDatasetButton" class="btn btn-success disabled"
+                          data-toggle="button" onclick = "loadGraphClick();" batchFile="">
+                      LOAD RDF DATASET</button></td>
+           </table>
+      </div>
+     </div>
+    </div>
+    <div id="collapse_dataset_load" class="panel-collapse collapse in" target="link_collapse_dataset_load">
+    <div class="panel-body">
+      <div class="row rq" target = 'creation_dataset_selected_RQ'>
+
+      </div>
+    </div>
+    </div>
+   </div>
+  </div>
+ </div>
 
 </div>
 </div>

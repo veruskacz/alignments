@@ -47,6 +47,7 @@ if CREATION_ACTIVE:
     import src.Alignments.UserActivities.User_Validation as UVld
     import src.Alignments.Manage.AdminGraphs as adm
     import src.Alignments.ToRDF.CSV as CSV
+    import src.Alignments.Utility as Ut
 else:
     from src.app import app
 
@@ -1194,15 +1195,17 @@ def adminDel():
 @app.route('/convertCSVToRDF')
 def convertCSVToRDF():
     filePath = request.args.get('file', '')
-    separator = request.args.get('separator', ',')
-    database = request.args.get('database', 'orgref2')
+    separator = request.args.get('separator', '')
+    database = request.args.get('database', '')
+    entity_type = request.args.get('entity_type', '')
+    rdftype = request.args.get('rdftype', None)
+    subject_id = request.args.get('subject_id', None)
 
-    CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
-            separator=separator, entity_type='Organization',
-            rdftype=[3], subject_id=10, field_metadata=None)
+    converter = CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
+            separator=separator, entity_type=entity_type,
+            rdftype=rdftype, subject_id=subject_id, field_metadata=None)
 
-    return ""
-
+    return converter.bat_file
 
 @app.route('/readFileSample')
 def readFileSample():
@@ -1218,6 +1221,28 @@ def importConvertedDataset():
     # result = import(filePath)
     result = ""
     return json.dumps(result)
+
+@app.route('/viewSampleFile')
+def viewSampleFile():
+    filePath = request.args.get('file', '')
+    return json.dumps(CSV.CSV.view_file(filePath))
+
+
+@app.route('/headerExtractor')
+def headerExtractor():
+    header_line = request.args.get('header_line', '')
+    separator = request.args.get('separator', '')
+    header_list = CSV.CSV.extractor(header_line, separator)
+    header = ""
+    for i in range(len(header_list)):
+        header += "<option>{}</option>".format(header_list[i])
+    print header
+    return header
+
+@app.route('/loadGraph')
+def loadGraph():
+    batch_file = request.args.get('batch_file', '')
+    return Ut.batch_load(batch_file)
 
 
 # database, is_trig, file_to_convert, separator, entity_type,
