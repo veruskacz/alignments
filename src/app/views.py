@@ -110,6 +110,9 @@ def upload():
         print "Path: {}".format(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
         print "{}\nWas uploaded to the server".format(file.filename)
+
+        list = [f for f in listdir(dir) if isfile(join(PATH_DS_FILES, f))]
+
     else:
         print "\nFile not allowed"
 
@@ -1311,53 +1314,6 @@ def loadGraph():
     batch_file = request.args.get('batch_file', '')
     return Ut.batch_load(batch_file)
 
-
-@app.route('/FileUpload', methods=['POST'])
-def fileUpload():
-    print "\n\nI am in......"
-
-    # upload_dir = "../AlignmentUI/UploadedFile"
-    #
-    # form = cgi.FieldStorage()
-    # if not form.has_key("file_upload"): return
-    # file_item = form["file_upload"]
-    # if not file_item.file: return
-    # f_out = file(os.path.join(upload_dir, file_item.filename), 'wb')
-    # while 1:
-    #     chunk = file_item.file.read(100000)
-    #     if not chunk: break
-    #     f_out.write(chunk)
-    # f_out.close()
-    #
-    #
-    # filedata = request.args.get('file', '')
-    # if filedata.file:  # field really is an upload
-    #     print "I AM A FILE"
-    #     # with file("Beautiful.mp3", 'w') as outfile:
-    #     #     outfile.write(filedata.file.read())
-    return '''
-        <!doctype html>
-        <title>Upload new File</title>
-        <h1>Upload new File</h1>
-        <form method=post enctype=multipart/form-data>
-          <p><input type=file name=file>
-             <input type=submit value=Upload>
-        </form>'''
-
-
-
-
-# @app.route('/upload', methods=['GET'])
-# def upload():
-#     print "In...."
-#     if request.method == 'POST':
-#         file = request.files['file']
-#         if file and allowed_file(file.filename):
-#             # now = datetime.now()
-#             # filename = os.path.join(app.config['UPLOAD_FOLDER'], "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
-#             # file.save(filename)
-#             print "I'm here ", file.filename
-#             return "" #jsonify({"success":True})
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
