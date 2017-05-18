@@ -157,6 +157,22 @@ def batch_load(batch_path):
     return "CHECK THE FILE PATH."
 
 
+def dir_files(directory, extension_list):
+
+    print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
+    list = []
+    for f in os.listdir(directory):
+
+        full_path = join(directory, f)
+
+        if os.path.isfile(full_path):
+            ext = os.path.splitext(f)[1].strip().lower()
+            if ext in extension_list:
+                list.append(full_path)
+    print list
+    return list
+
+
 #################################################################
 """
     ABOUT INSERTING NAMED GRAPHS FILES

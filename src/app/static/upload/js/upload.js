@@ -50,14 +50,14 @@ $(function(){
 //            console.log(file);
             var extensions = new Array("csv", "tsv", "txt");
             ext = file.name.slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2);
-            alert(file.name);
+//            alert(file.name);
             if (extensions.lastIndexOf(ext) != -1)
             {
 
             }
             else
             {
-                alert('Only comma separated files are allowed!');
+                alert('Only tabular files such as: (.csv .tsv .txt) are allowed!');
                 return false;
             }
 

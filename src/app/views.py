@@ -36,20 +36,22 @@ REASONING_TYPE = 'SL'
 CREATION_ACTIVE = True
 
 if CREATION_ACTIVE:
+
+    from src.app import app
+    from src.Alignments.Lenses.Lens_Union import union
     import src.Alignments.Linksets.SPA_Linkset as spa_linkset2
     import src.Alignments.Linksets.SPA_LinksetSubset as spa_subset
-    from src.Alignments.Lenses.Lens_Union import union
-    from src.app import app
 
-    import src.Alignments.Settings as St
-    import src.Alignments.UserActivities.UserRQ as Urq
-    import src.Alignments.Linksets.SPA_LinksetRefine as refine
-    import src.Alignments.UserActivities.View as mod_view
-    from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
-    import src.Alignments.UserActivities.User_Validation as UVld
-    import src.Alignments.Manage.AdminGraphs as adm
-    import src.Alignments.ToRDF.CSV as CSV
     import src.Alignments.Utility as Ut
+    import src.Alignments.Settings as St
+    import src.Alignments.ToRDF.CSV as CSV
+    import src.Alignments.Manage.AdminGraphs as adm
+    import src.Alignments.UserActivities.UserRQ as Urq
+    import src.Alignments.UserActivities.View as mod_view
+    import src.Alignments.Linksets.SPA_LinksetRefine as refine
+    import src.Alignments.UserActivities.User_Validation as UVld
+    from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
+
 else:
     from src.app import app
 
@@ -111,7 +113,7 @@ def upload():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
         print "{}\nWas uploaded to the server".format(file.filename)
 
-        list = [f for f in listdir(dir) if isfile(join(PATH_DS_FILES, f))]
+        list = Ut.dir_files(dir, [".csv", ".txt", ".tsv"])
 
     else:
         print "\nFile not allowed"

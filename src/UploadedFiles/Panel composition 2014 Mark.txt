@@ -1,0 +1,349 @@
+Last Name	Name	Year	Domain	Discipline	Field	Gender	Panel Chair	Year of birth	Place of Birth	Current working country	Name of home institution	Panel member in 2009	Panel member in 2010	Panel member in 2011	Panel member in 2012	Panel member in 2013	Panel member in 2014	Age	Change Country	Age Groups	Repeat?	Times of Repeats?	Times of Repeats(simple)	Times Participated?
+Fesus	Laszlo	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	M	No	1948	HU	HU	University of Debrecen	No	No	No	No	No	Yes	66	no	61-70	no	0	0	1
+Green	Rachel	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	F	No	1965	UK	US	Johns Hopkins University	No	No	No	no	No	Yes	49	yes	41-50	no	0	0	1
+Houdusse	Anne 	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	F	No	1965	FR	FR	Institute Curie	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Jackson	Sophie	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	F	No	1966	UK	UK	University of Cambridge	No	No	No	No	No	Yes	48	no	41-50	no	0	0	1
+Kisker	Caroline	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	F	No	1965	DE	DE	Wuerzburg University	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Lian	Lu-Yun	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	F	No	1953	UK	UK	University of Liverpool	No	No	No	No	No	Yes	61	no	61-70	no	0	0	1
+Lingner	Joachim	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	M	No	1963	CH	CH	EPFL Swiss Federal Institute of Technology Lausanne	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Makela	Tomi P	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	M	Yes	1963	UK	FI	University of Helsinki	No	No	No	Yes	No	Yes	51	yes	51-60	yes	1	1	2
+Riezman	Howard	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	M	No	1953	US	CH	University of Geneva	No	Yes	No	Yes	No	Yes	61	yes	61-70	yes	2	2	3
+Schmidt	Thomas	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	M	No	1959	DE	NL	Leiden University	No	No	No	Yes	No	Yes	55	yes	51-60	yes	1	1	2
+Vermeulen	Michiel	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	M	No	1978	NL	NL	University Medical Center Utrecht	No	No	No	No	No	Yes	36	no	<=40	no	0	0	1
+Ziegler	Christine	2014	LS	LS1	Molecular and Structural Biology and Biochemistry	F	No	1961	DE	DE	Max Planck Institute of Biophysics	No	no	No	Yes	No	Yes	53	no	51-60	yes	1	1	2
+Bahler	Jurg	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	No	1966	CH	UK	University College London	No	No	No	No	No	Yes	48	yes	41-50	no	0	0	1
+Bujnicki	Janusz M. 	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	No	1975	PL	PL	IIMCB International Institute of Molecular and Cell Biology	No	No	No	No	No	Yes	39	no	<=40	no	0	0	1
+Cascante Serratosa	Marta	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	F	No		ES	ES	Universidad de Barcelona	Yes	Yes	No	Yes	No	Yes		no	?	yes	3	3	4
+Furlong	Eileen 	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	F	No	1966	IE	DE	EMBL European Molecular Biology Lab	No	No	No	No	No	Yes	48	yes	41-50	no	0	0	1
+Gelfand	Mikhail	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	No	1964	RU	RU	Russian Academy of Sciences	No	No	No	No	No	Yes	50	no	41-50	no	0	0	1
+Grosveld	Frank	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	Yes	1948	NL	NL	Erasmus University Rotterdam	No	No	No	Yes	No	Yes	66	no	61-70	yes	1	1	2
+Hirsch	Ann	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	F	No		US	US	University of California	No	No	No	Yes	No	Yes		no	?	yes	1	1	2
+Sauer	Uwe	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	No	1961	NL	CH	ETH Zurich	No	No	No	Yes	No	Yes	53	yes	51-60	yes	1	1	2
+Tiret	Laurence	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	F	No	1952	FR	FR	INSERM French Institute of Health and Medical Research	No	No	No	No	No	Yes	62	no	61-70	no	0	0	1
+Veltman	Joris 	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	No	1971	NL	NL	Radboud University	No	No	No	No	No	Yes	43	no	41-50	no	0	0	1
+Voinnet	Olivier 	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	No	1972	FR	CH	ETH Zurich	No	No	No	No	No	Yes	42	yes	41-50	no	0	0	1
+Yarden	Yosef	2014	LS	LS2	"Genetics, Genomics, Bioinformatics and Systems Biology"	M	No	1952	IL	IL	Weizmann Institute	Yes	Yes	No	Yes	No	Yes	62	no	61-70	yes	3	3	4
+Affolter	Markus	2014	LS	LS3	Cellular and Developmental Biology	M	No	1958	CH	CH	University of Basel	No	No	No	Yes	No	Yes	56	no	51-60	yes	1	1	2
+Akhmanova	Anna	2014	LS	LS3	Cellular and Developmental Biology	F	No	1967	RU	NL	Utrecht University	No	No	No	Yes	No	Yes	46	yes	41-50	yes	1	1	2
+Averof	Michalis	2014	LS	LS3	Cellular and Developmental Biology	M	No	1969	EL	FR	INRA French National Institute for Agricultural Research	No	No	No	No	No	Yes	45	yes	41-50	no	0	0	1
+Bigas	Anna	2014	LS	LS3	Cellular and Developmental Biology	F	No	1966	ES	ES	IMIM Hospital del Mar	No	No	No	No	No	Yes	48	no	41-50	no	0	0	1
+Blanpain	Cedric	2014	LS	LS3	Cellular and Developmental Biology	M	No	1970	BE	BE	Free University of Brussels	No	No	No	Yes	No	Yes	44	no	41-50	yes	1	1	2
+Chacinska	Agnieszka 	2014	LS	LS3	Cellular and Developmental Biology	F	No	1969	PL	PL	IIMCB International Institute of Molecular and Cell Biology	No	No	No	No	No	Yes	45	no	41-50	no	0	0	1
+Frame	Margaret	2014	LS	LS3	Cellular and Developmental Biology	F	No	1957	UK	UK	University of Edinburgh	No	No	No	No	No	Yes	57	no	51-60	no	0	0	1
+St Johnston	Daniel	2014	LS	LS3	Cellular and Developmental Biology	M	Yes	1960	UK	UK	University of Cambridge	Yes	Yes	No	Yes	No	Yes	54	no	51-60	yes	3	3	4
+Labouesse	Michel	2014	LS	LS3	Cellular and Developmental Biology	M	No	1956	FR	FR	IGBMC Institute of Genetics and Molecular and Cellular Biology CNRS	No	No	No	Yes	No	Yes	58	no	51-60	yes	1	1	2
+Sugimoto	Keiko	2014	LS	LS3	Cellular and Developmental Biology	F	No	1972	JP	JP	RIKEN Yokohama Institute	No	No	No	No	No	Yes	42	no	41-50	no	0	0	1
+Tasken	Kjetil	2014	LS	LS3	Cellular and Developmental Biology	M	No	1966	NO	NO	University of Oslo	No	No	No	No	No	Yes	48	no	41-50	no	0	0	1
+Zazimalova	Eva 	2014	LS	LS3	Cellular and Developmental Biology	F	No	1955	CZ	CZ	Charles University	No	No	No	No	No	Yes	59	no	51-60	no	0	0	1
+Zerial	Marino	2014	LS	LS3	Cellular and Developmental Biology	M	No	1958	IT	DE	Max Planck Institute of Molecular Cell Biology and Genetics	No	No	No	Yes	No	Yes	56	yes	51-60	yes	1	1	2
+Augustin	Hellmut	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	Yes	1959	DE	DE	University of Heidelberg	No	Yes	No	Yes	No	Yes	55	no	51-60	yes	2	2	3
+Balkwill	Frances 	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	F	No	1952	UK	UK	Queen Mary University of London	No	No	No	No	No	Yes	62	no	61-70	no	0	0	1
+Battelino	Tadej	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	No	1967	SI	SI	University of Ljubljana	No	No	No	No	No	Yes	47	no	41-50	no	0	0	1
+Burgering	Boudewijn M. T.	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	No	1961	NL	NL	University Medical Center Utrecht	No	No	No	Yes	No	Yes	54	no	51-60	yes	1	1	2
+Delattre	Olivier	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	No	1958	FR	FR	Institute Curie	No	No	No	No	No	Yes	56	no	51-60	no	0	0	1
+Edlund	Helena	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	F	No	1960	SE	SE	Umea University	No	No	No	Yes	No	Yes	54	no	51-60	yes	1	1	2
+Kallioniemi	Olli	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	No	1961	FI	FI	University of Helsinki	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Maggi	Adriana	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	F	No	1951	IT	IT	University of Milan	No	No	No	No	No	Yes	63	no	61-70	no	0	0	1
+Murer	Heinrich	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	No	1944	CH	CH	University of Zurich	Yes	Yes	No	Yes	No	Yes	70	no	61-70	yes	3	3	4
+Sadoulet Puccio	Helene Monique	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	F	No	1971	FR	FR	INSERM French Institute of Health and Medical Research	No	No	No	No	No	Yes	43	no	41-50	no	0	0	1
+Shore	Angela	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	F	No	1957	UK	UK	University of Exeter	No	No	No	Yes	No	Yes	57	no	51-60	yes	1	1	2
+Tavernarakis	Nektarios	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	No	1967	EL	EL	University of Crete	No	No	No	Yes	No	Yes	47	no	41-50	yes	1	1	2
+Vereb	Gyorgy 	2014	LS	LS4	"Physiology, Pathophysiology and Endocrinology"	M	No	1965	HU	HU	University of Debrecen	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Belmonte	Carlos	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1943	ES	ES	University Miguel Hernández CSIC	Yes	Yes	No	Yes	No	Yes	71	no	71-80	yes	3	3	4
+Björklund	Anders	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1945	SE	SE	Lund university	Yes	Yes	No	Yes	No	Yes	69	no	61-70	yes	3	3	4
+Brecht	Michael	2014	LS	LS5	Neurosciences and Neural Disorders	M	Yes	1967	DE	DE	University of Freiburg	No	No	No	Yes	No	Yes	47	no	41-50	yes	1	1	2
+Castren	Eero	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1959	FI	FI	University of Helsinki	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Dierssen	Mara	2014	LS	LS5	Neurosciences and Neural Disorders	F	No	1962	ES	ES	Center for Genomic Regulation	No	No	No	No	No	Yes	52	no	51-60	no	0	0	1
+Érdi	Péter 	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1946	HU	US	Kalamazoo College	No	No	No	No	No	Yes	68	yes	61-70	no	0	0	1
+Everitt	Barry 	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1946	UK	UK	University of Cambridge	No	No	No	No	No	Yes	68	no	61-70	no	0	0	1
+Gjedde	Albert	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1946	DK	DK	University of Copenhagen	No	No	No	Yes	No	Yes	68	no	61-70	yes	1	1	2
+Johnstone	Eve Cordelia	2014	LS	LS5	Neurosciences and Neural Disorders	F	No	1944	UK	UK	University of Edinburgh	No	No	No	Yes	No	Yes	70	no	61-70	yes	1	1	2
+Paulesu	Eraldo	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1959	IT	IT	University of Milan Bicocca	No	No	No	Yes	No	Yes	55	no	51-60	yes	1	1	2
+Przew?ocki	Ryszard 	2014	LS	LS5	Neurosciences and Neural Disorders	M	No	1944	PL	PL	Polish Academy of Sciences	No	No	No	No	No	Yes	70	no	61-70	no	0	0	1
+Resende de Oliveira	Catarina	2014	LS	LS5	Neurosciences and Neural Disorders	F	No	1947	PT	PT	University of Coimbra	No	No	No	Yes	No	Yes	67	no	61-70	yes	1	1	2
+Schuman	Erin	2014	LS	LS5	Neurosciences and Neural Disorders	F	No	1963	US	DE	Max Planck Institute for Human Cognitive and Brain Sciences	No	No	No	Yes	No	Yes	51	yes	51-60	yes	1	1	2
+Thibaut	Florence 	2014	LS	LS5	Neurosciences and Neural Disorders	F	No	1961	FR	FR	University Hospital Cochin-Tarnier	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Amigorena	Sebastian	2014	LS	LS6	Immunity and Infection	M	Yes	1960	FR	FR	Institute Curie	No	No	No	Yes	No	Yes	54	no	51-60	yes	1	1	2
+Brocker	Thomas	2014	LS	LS6	Immunity and Infection	M	No		DE	DE	University of Munich	No	No	No	Yes	No	Yes		no	?	yes	1	1	2
+Cutruzzola	Francesca	2014	LS	LS6	Immunity and Infection	F	No	1963	IT	IT	"University of Rome ""La Sapienza"""	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Demengeot	Jocelyne 	2014	LS	LS6	Immunity and Infection	F	No	1962	FR	PT	Instituto Gulbenkian	No	No	No	No	No	Yes	53	yes	51-60	no	0	0	1
+Jonjic	Stipan 	2014	LS	LS6	Immunity and Infection	M	No	1953	BA	HR	University of Rijeka	No	No	No	No	No	Yes	61	yes	61-70	no	0	0	1
+Mantovani	Alberto	2014	LS	LS6	Immunity and Infection	M	No	1948	IT	IT	IRCCS Clinic ans Research Institute Humanitas	Yes	Yes	No	Yes	No	Yes	66	no	61-70	yes	3	3	4
+Riis Paludan	Soren 	2014	LS	LS6	Immunity and Infection	M	No	1972	DK	DK	Aarhus University	No	No	No	No	No	Yes	42	no	41-50	no	0	0	1
+Sallusto	Federica 	2014	LS	LS6	Immunity and Infection	F	No	1961	IT	CH	USI Università della Svizzera italiana	No	No	No	No	No	Yes	53	yes	51-60	no	0	0	1
+Sebo	Peter	2014	LS	LS6	Immunity and Infection	M	No	1960	CZ	CZ	Academy of Sciences of the Czech Republic	Yes	Yes	No	Yes	No	Yes	54	no	51-60	yes	3	3	4
+Simpson	Elizabeth	2014	LS	LS6	Immunity and Infection	F	No	1935	UK	UK	Imperial College of London	No	No	No	Yes	No	Yes	79	no	71-80	yes	1	1	2
+Toribio Garcia	Maria Luisa	2014	LS	LS6	Immunity and Infection	F	No	1959	ES	ES	UAM Universidad Autónoma de Madrid	No	No	No	Yes	No	Yes	55	no	51-60	yes	1	1	2
+van der Goot	Gisou	2014	LS	LS6	Immunity and Infection	F	No	1964	NL	CH	EPFL Swiss Federal Institute of Technology Lausanne	No	Yes	No	Yes	No	Yes	50	yes	41-50	yes	2	2	3
+Artal	Pablo	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1961	ES	ES	University of Murcia	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Dimmeler	Stefanie	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	F	Yes	1967	DE	DE	Goethe University Frankfurt	Yes	Yes	No	Yes	No	Yes	47	no	41-50	yes	3	3	4
+Dobrzyn	Agnieszka 	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	F	No	1973	PL	PL	Nencki Institute	No	No	No	No	No	Yes	41	no	41-50	no	0	0	1
+Figdor	Carl	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1954	NL	NL	Radboud University	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Gylling	Helena	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	F	No	1946	FI	FI	University of Helsinki	No	No	No	No	No	Yes	68	no	61-70	no	0	0	1
+Hennekam	Raoul	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1959	NL	NL	University of Amsterdam	No	No	No	Yes	No	Yes	55	no	51-60	yes	1	1	2
+Kokaia	Zaal	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1963	SE	SE	Lund University	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Kordas	Giorgios	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1950	EL	EL	National Center for Scientific Research Demokritos	No	No	No	No	No	Yes	64	no	61-70	no	0	0	1
+Marrugat	Jaume	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No		ES	ES	IMIM Hospital del Mar	No	No	No	Yes	No	Yes		no	?	yes	1	1	2
+Melzer	Andreas	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1960	DE	UK	University of Dundee	No	No	No	Yes	No	Yes	54	yes	51-60	yes	1	1	2
+Pfeiffer	Franz 	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1972	DE	DE	Technical University of Munich	No	No	No	No	No	Yes	42	no	41-50	no	0	0	1
+Romani	Luigina 	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	F	No	1952	IT	IT	University of Perugia	No	No	No	No	No	Yes	62	no	61-70	no	0	0	1
+Ruskoaho	Heikki	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	M	No	1952	FI	FI	University of Oulu	No	No	No	Yes	No	Yes	62	no	61-70	yes	1	1	2
+Thienpont	Linda 	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	F	No	1953	BE	BE	Ghent University	No	No	No	No	No	Yes	61	no	61-70	no	0	0	1
+Tuite	Eimer	2014	LS	LS7	"Diagnostic Tools, Therapies and Public Health"	F	No	1967	IE	UK	Newcastle University	No	No	No	No	No	Yes	47	yes	41-50	no	0	0	1
+Aguadé	Montserrat	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	F	No	1941	ES	ES	Universidad de Barcelona	Yes	Yes	No	Yes	No	Yes	73	no	71-80	yes	3	3	4
+Benedetti-Cecchi	Lisandro	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1962	IT	IT	University of Pisa	No	No	No	Yes	No	Yes	52	no	51-60	yes	1	1	2
+Boetius	Antje	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	F	No	1968	DE	DE	Max Planck Institute for Marine Microbiology	No	No	No	No	No	Yes	46	no	41-50	no	0	0	1
+Boomsma	Jacobus	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1952	NL	DK	University of Copenhagen	No	No	No	No	No	Yes	62	yes	61-70	no	0	0	1
+Boulinier	Thierry	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1969	FR	FR	CEFE Functional and Evolutionary Ecology Centre CNRS	No	No	No	Yes	No	Yes	45	no	41-50	yes	1	1	2
+Brakefield	Paul M.	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1952	UK	UK	University of Cambridge	Yes	Yes	No	Yes	No	Yes	62	no	61-70	yes	3	3	4
+Foster	Kevin 	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1973	UK	UK	Oxford University	No	No	No	No	No	Yes	41	no	41-50	no	0	0	1
+Jordan	Ferenc 	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1973	HU	HU	Hungarian Academy of Sciences	No	No	No	No	No	Yes	41	no	41-50	no	0	0	1
+Meyer	Axel	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1960	DE	DE	University Konstanz	Yes	Yes	No	Yes	No	Yes	54	no	51-60	yes	3	3	4
+Oliveira	Rui 	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	No	1966	PT	PT	Instituto Gulbenkian	No	No	No	No	No	Yes	48	no	41-50	no	0	0	1
+Ronce	Ophelie	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	F	No	1973	FR	FR	ISEM Institut des Sciences de l’Évolution CNRS	No	No	No	No	No	Yes	41	no	41-50	no	0	0	1
+Thompson	John N.	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	M	Yes	1958	US	US	University of California	No	No	No	Yes	No	Yes	56	no	51-60	yes	1	1	2
+Ziveri	Patrizia 	2014	LS	LS8	"Evolutionary, Population and Environmental Biology"	F	No	1963	IT	ES	Universidad Autónoma de Barcelona	No	No	No	No	No	Yes	51	yes	51-60	no	0	0	1
+Angelidaki	Irini	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	F	No	1959	DK	DK	DTU Technical University of Denmark	No	No	No	Yes	No	Yes	55	no	51-60	yes	1	1	2
+Banati	Diana	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	F	Yes	1962	HU	BE	ILSI The intenational Life Sciences Institute Europe	Yes	Yes	No	Yes	No	Yes	52	yes	51-60	yes	3	3	4
+Binarová	Pavla	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	F	No	1951	CZ	CZ	Academy of Sciences of the Czech Republic	No	No	No	No	No	Yes	63	no	61-70	no	0	0	1
+Burgyán	József 	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	M	No	1951	HU	HU	Agricultural Biotechnology Center	No	No	No	No	No	Yes	63	no	61-70	no	0	0	1
+Calsamiglia	Sergio 	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	M	No	1959	ES	ES	Universidad Autónoma de Barcelona	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Cheynier	Véronique	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	F	No	1956	FR	FR	INRA French National Institute for Agricultural Research	Yes	Yes	No	Yes	No	Yes	58	no	51-60	yes	3	3	4
+Elmerich	Claudine	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	F	No	1946	FR	FR	Institute Pasteur	No	No	No	No	No	Yes	68	no	61-70	no	0	0	1
+Hendrickson	Tamara L.	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	F	No	1968	US	US	Wayne State University	No	No	No	Yes	No	Yes	46	no	41-50	yes	1	1	2
+Kuipers	Oscar	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	M	No	1957	NL	NL	University of Groningen	No	No	No	No	No	Yes	57	no	51-60	no	0	0	1
+Panke	Sven	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	M	No	1968	DE	CH	ETH Zurich	No	No	No	No	No	Yes	46	yes	41-50	no	0	0	1
+Walloe	Lars	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	M	No	1938	NO	NO	University of Oslo	Yes	Yes	No	Yes	No	Yes	76	no	71-80	yes	3	3	4
+Woolliams	John	2014	LS	LS9	Applied Life Sciences and Non-Medical Biotechnology	M	No	1954	UK	UK	University of Edinburgh	Yes	Yes	No	Yes	No	Yes	60	no	51-60	yes	3	3	4
+Buttazzo	Giuseppe	2014	PE	PE1	Mathematics	M	No	1955	IT	IT	University of Pisa	No	No	No	No	No	Yes	59	no	51-60	no	0	0	1
+Drmota	Michael	2014	PE	PE1	Mathematics	M	No	1965	AT	AT	Vienna University of Technology	No	No	No	Yes	No	Yes	49	no	41-50	yes	1	1	2
+Hamenstaedt	Ursula 	2014	PE	PE1	Mathematics	F	No	1961	DE	DE	University of Bonn	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Laptev	Ari	2014	PE	PE1	Mathematics	M	Yes	1951	SE	UK	Imperial College of London	No	No	No	Yes	No	Yes	63	yes	61-70	yes	1	1	2
+Loeser	François	2014	PE	PE1	Mathematics	M	No	1959	FR	FR	University Paris VI	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Maes	Christian	2014	PE	PE1	Mathematics	M	No	1963	BE	BE	KU Leuven	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Michel	Philippe 	2014	PE	PE1	Mathematics	M	No	1969	FR	CH	EPFL Swiss Federal Institute of Technology Lausanne	No	No	No	Yes	No	Yes	45	yes	41-50	yes	1	1	2
+Puel	Jean-Pierre	2014	PE	PE1	Mathematics	M	No	1948	FR	FR	University of Versailles	No	No	No	No	No	Yes	66	no	61-70	no	0	0	1
+Shcherbina	Mariya	2014	PE	PE1	Mathematics	F	No	1959	UA	UA	National Academy of Sciences of Ukraine	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Tomczak-Jaegermann	Nicole 	2014	PE	PE1	Mathematics	F	No	1943	PL	CA	University of Alberta	No	No	No	No	No	Yes	71	yes	71-80	no	0	0	1
+van der Vaart	Aad 	2014	PE	PE1	Mathematics	M	No	1959	NL	NL	Leiden University	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Wozniakowski	Henryk 	2014	PE	PE1	Mathematics	M	No	1946	PL	PL	University of Warsaw	No	No	No	No	No	Yes	68	no	61-70	no	0	0	1
+Abramowicz	Halina	2014	PE	PE2	Fundamental Constituents of Matter	F	No	1955	IL	IL	Tel Aviv University	No	No	No	No	No	Yes	59	no	51-60	no	0	0	1
+Antoniadis	Ignatios 	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1959	EL	CH	CERN	No	No	No	Yes	No	Yes	55	yes	51-60	yes	1	1	2
+Bracco	Angela	2014	PE	PE2	Fundamental Constituents of Matter	F	No	1956	IT	IT	University of Milan	No	No	No	No	No	Yes	58	no	51-60	no	0	0	1
+Butler	John	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1959	US	US	Boston University	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Inguscio	Massimo	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1950	IT	IT	University of Florence	Yes	Yes	No	Yes	No	Yes	64	no	61-70	yes	3	3	4
+Koperski	Jaroslaw	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1960	PL	PL	Jagiellonian University	Yes	Yes	No	Yes	No	Yes	54	no	51-60	yes	3	3	4
+Kruecken	Reiner	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1969	DE	CA	University of British Columbia	No	No	No	No	No	Yes	45	yes	41-50	no	0	0	1
+Lewenstein	Maciej	2014	PE	PE2	Fundamental Constituents of Matter	M	Yes	1955	PL	ES	ICFO Institute of Photonic Sciences	No	No	No	Yes	No	Yes	59	yes	51-60	yes	1	1	2
+Malka	Victor	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1962	MA	FR	ParisTech CNRS	No	No	No	Yes	No	Yes	52	yes	51-60	yes	1	1	2
+Mulders	Piet	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1954	NL	NL	VU University of Amsterdam	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Norreys	Peter 	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1963	UK	UK	Oxford University	No	No	No	Yes	No	Yes	51	no	51-60	yes	1	1	2
+Oberthaler	Markus	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1968	AT	DE	University of Heidelberg	No	No	No	Yes	No	Yes	46	yes	41-50	yes	1	1	2
+Suominen	Kalle-Antti	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1965	FI	FI	University of Turku	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Vrakking	Marc J.J.	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1964	NL	DE	Max Born Institute	No	No	No	No	No	Yes	50	yes	41-50	no	0	0	1
+Zarembo	Konstantin	2014	PE	PE2	Fundamental Constituents of Matter	M	No	1971	RU	SE	NORDITA Nordic Institute for Theoretical Physics	No	No	No	No	No	Yes	43	yes	41-50	no	0	0	1
+Baroni	Stefano 	2014	PE	PE3	Condensed Matter Physics	M	No	1947	IT	IT	International School for Advanced Studies	No	No	No	No	No	Yes	67	no	61-70	no	0	0	1
+Bauer	Gerrit	2014	PE	PE3	Condensed Matter Physics	M	Yes	1956	NL	JP	Tohoku University	No	No	No	Yes	Yes	Yes	58	yes	51-60	yes	2	2	3
+Cibert	Joel	2014	PE	PE3	Condensed Matter Physics	M	No	1953	FR	FR	Institute Néel CNRS	No	No	No	Yes	No	Yes	59	no	51-60	yes	1	1	2
+Economou	Eleftherios 	2014	PE	PE3	Condensed Matter Physics	M	No	1940	EL	EL	University of Crete	No	No	No	No	No	Yes	74	no	71-80	no	0	0	1
+Gefen	Yuval 	2014	PE	PE3	Condensed Matter Physics	M	No	1954	IL	IL	Weizmann Institute	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Guinea	Francisco	2014	PE	PE3	Condensed Matter Physics	M	No	1954	ES	ES	IMDEA Nanoscience CSIC	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Kamaras	Katalin	2014	PE	PE3	Condensed Matter Physics	F	No	1954	HU	HU	Hungarian Academy of Sciences	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Kaminska	Maria 	2014	PE	PE3	Condensed Matter Physics	F	No	1953	PL	PL	University of Warsaw	No	No	No	Yes	No	Yes	61	no	61-70	yes	1	1	2
+Moshchalkov	Victor V	2014	PE	PE3	Condensed Matter Physics	M	No	1953	RU	BE	KU Leuven	No	No	No	No	No	Yes	61	yes	61-70	no	0	0	1
+Procaccia	Itamar 	2014	PE	PE3	Condensed Matter Physics	M	No	1949	IL	IL	Weizmann Institute	No	No	No	Yes	No	Yes	65	no	61-70	yes	1	1	2
+Strunk	Christoph	2014	PE	PE3	Condensed Matter Physics	M	No	1962	DE	DE	University of Regensburg	No	No	No	Yes	No	Yes	52	no	51-60	yes	1	1	2
+Vattulainen	Ilpo	2014	PE	PE3	Condensed Matter Physics	M	No	1969	FI	FI	Tampere University of Technology	No	No	No	No	No	Yes	45	no	41-50	no	0	0	1
+Vendruscolo	Michele	2014	PE	PE3	Condensed Matter Physics	M	No	1965	IT	UK	University of Cambridge	No	No	No	Yes	No	Yes	49	yes	41-50	yes	1	1	2
+Zojer	Egbert	2014	PE	PE3	Condensed Matter Physics	M	No	1973	AT	AT	Graz university of Technology	No	No	No	No	No	Yes	41	no	41-50	no	0	0	1
+Agren	Hans	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1951	SE	SE	Royal Institute of Technology	No	No	No	no	No	Yes	63	no	61-70	no	0	0	1
+Bowers	Michael	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1940	US	US	University of California	No	No	No	Yes	No	Yes	74	no	71-80	yes	1	1	2
+Compton	Richard	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1956	UK	UK	Oxford University	No	No	No	No	No	Yes	58	no	51-60	no	0	0	1
+Daturi	Marco	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	Yes	1964	IT	FR	University of Caen	No	No	No	Yes	No	Yes	50	yes	41-50	yes	1	1	2
+Dau	Holger 	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1956	DE	DE	Free University of Berlin	No	No	No	Yes	No	Yes	58	no	51-60	yes	1	1	2
+Fasolino	Annalisa	2014	PE	PE4	Physical and Analytical Chemical Sciences	F	No	1954	IT	NL	Radboud University	No	No	No	Yes	No	Yes	60	yes	51-60	yes	1	1	2
+Hadjiivanov	Konstantin	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1959	BG	BG	Bulgarian Academy of Sciences	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Ochsenfeld	Christian	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1969	DE	DE	University of Munich	No	No	No	No	No	Yes	45	no	41-50	no	0	0	1
+Orozco	Modesto 	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1962	ES	ES	Universidad de Barcelona	No	No	No	No	No	Yes	52	no	51-60	no	0	0	1
+Pireaux	Jean-Jacques	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1950	BE	BE	University of Namur	Yes	Yes	No	Yes	No	Yes	64	no	61-70	yes	3	3	4
+Pumera	Martin	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1974	CZ	SG	Nanyang Technological University	No	No	No	No	No	Yes	40	yes	<=40	no	0	0	1
+Roethlisberger	Ursula 	2014	PE	PE4	Physical and Analytical Chemical Sciences	F	No	1960	CH	CH	EPFL Swiss Federal Institute of Technology Lausanne	No	No	No	No	No	Yes	54	no	51-60	no	0	0	1
+Samec	Zdenek	2014	PE	PE4	Physical and Analytical Chemical Sciences	M	No	1947	CZ	CZ	Academy of Sciences of the Czech Republic	No	Yes	No	Yes	No	Yes	67	no	61-70	yes	2	2	3
+Yu	Jian Zhen 	2014	PE	PE4	Physical and Analytical Chemical Sciences	F	No	1959	CN	HK	Hong Kong University of Science and Technology	No	No	No	No	No	Yes	55	yes	51-60	no	0	0	1
+Adamo	Carlo	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1963	IT	FR	ParisTech	No	No	No	Yes	No	Yes	51	yes	51-60	yes	1	1	2
+Albericio Palomera	Fernando	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1954	ES	ES	Institut for Research in Biomedicine	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Backvall	Jan-Erling 	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1947	SE	SE	University of Stockholm	No	No	No	No	No	Yes	67	no	61-70	no	0	0	1
+Boons	Geert-Jan 	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1962	NL	US	University of Georgia	No	No	No	No	No	Yes	52	yes	51-60	no	0	0	1
+Draper	Sylvia	2014	PE	PE5	Synthetic Chemistry and Materials	F	No	1964	UK	IE	Trinity College of Dublin	No	No	No	Yes	No	Yes	50	yes	41-50	yes	1	1	2
+Dubois	Philippe 	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1965	BE	BE	University of Mons	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Gomes Da Rocha	Joao Matias Celestino	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1963	PT	PT	University of Aveiro	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Grijpma	Dirk 	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1962	NL	NL	University of Twente	No	No	No	No	No	Yes	52	no	51-60	no	0	0	1
+Hirsch	Andreas	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1961	DE	DE	University Erlangen-Nuremberg	No	No	No	no	No	Yes	53	no	51-60	no	0	0	1
+Holyst	Robert 	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1958	PL	PL	Polish Academy of Sciences	No	No	No	No	No	Yes	56	no	51-60	no	0	0	1
+Music	Svetozar 	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1946	MK	HR	Ru?er Boškovi? Institute	No	No	No	No	No	Yes	68	yes	61-70	no	0	0	1
+Netzer	Falko	2014	PE	PE5	Synthetic Chemistry and Materials	M	No		AT	AT	University of Graz	No	No	No	Yes	No	Yes	69	no	61-70	yes	1	1	2
+Stepanek	Petr	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1948	CZ	CZ	Academy of Sciences of the Czech Republic	No	No	No	Yes	No	Yes	66	no	61-70	yes	1	1	2
+Stephan	Doug	2014	PE	PE5	Synthetic Chemistry and Materials	M	No	1954	CA	CA	University of Toronto	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Weller	Horst	2014	PE	PE5	Synthetic Chemistry and Materials	M	Yes	1954	DE	DE	University of Hamburg	No	No	No	Yes	No	Yes	60	no	51-60	yes	1	1	2
+Bruckstein	Alfred M.	2014	PE	PE6	Computer Science and Informatics	M	No	1954	RO	IL	Technion Israel Institutute of Technology	No	No	No	Yes	No	Yes	60	yes	51-60	yes	1	1	2
+De Moor	Bart 	2014	PE	PE6	Computer Science and Informatics	M	No	1960	BE	BE	KU Leuven	No	No	No	No	No	Yes	54	no	51-60	no	0	0	1
+Dumas	Marlon	2014	PE	PE6	Computer Science and Informatics	M	No	1975	AU	EE	University of Tartu	no	No	No	No	No	Yes	39	yes	<=40	no	0	0	1
+Dzeroski	Saso	2014	PE	PE6	Computer Science and Informatics	M	No	1969	SI	SI	Jozef Stefan Institute	No	No	No	No	No	Yes	45	no	41-50	no	0	0	1
+Jensen	Christian S 	2014	PE	PE6	Computer Science and Informatics	M	No	1956	DK	DK	Aarhus University	No	No	No	No	No	Yes	58	no	51-60	no	0	0	1
+Kramer	Jeffrey	2014	PE	PE6	Computer Science and Informatics	M	No	1950	UK	UK	Imperial College of London	No	No	No	Yes	No	Yes	64	no	61-70	yes	1	1	2
+Kranakis	Evangelos	2014	PE	PE6	Computer Science and Informatics	M	No	1952	EL	CA	Carleton University	No	No	No	No	No	Yes	62	yes	61-70	no	0	0	1
+Kwiatkowska	Marta Zofia	2014	PE	PE6	Computer Science and Informatics	F	Yes		PL	UK	Oxford University	No	No	No	Yes	No	Yes		yes	?	yes	1	1	2
+Nebel	Bernhard	2014	PE	PE6	Computer Science and Informatics	M	No	1956	DE	DE	University of Freiburg	No	No	No	Yes	No	Yes	58	no	51-60	yes	1	1	2
+Pollefeys	Marc 	2014	PE	PE6	Computer Science and Informatics	M	No	1971	BE	CH	ETH Zurich	No	No	No	No	No	Yes	43	yes	41-50	no	0	0	1
+Rosson	Mary Beth	2014	PE	PE6	Computer Science and Informatics	F	No	1956	US	US	Penn State University	No	No	No	No	No	Yes	58	no	51-60	no	0	0	1
+Rytter	Wojciech 	2014	PE	PE6	Computer Science and Informatics	M	No	1948	PL	PL	University of Warsaw	No	No	No	No	No	Yes	66	no	61-70	no	0	0	1
+Schmid	Cordelia 	2014	PE	PE6	Computer Science and Informatics	F	No	1963	DE	FR	INRIA French Institute for Research in Computer Science and Automation	No	No	No	No	No	Yes	51	yes	51-60	no	0	0	1
+Verissimo	Paulo	2014	PE	PE6	Computer Science and Informatics	M	No	1953	PT	PT	University of Lisbon	No	No	No	Yes	No	Yes	61	no	61-70	yes	1	1	2
+Vrahatis	Michael 	2014	PE	PE6	Computer Science and Informatics	M	No	1955	EL	EL	University of Patras	No	No	No	No	No	Yes	59	no	51-60	no	0	0	1
+Ziou	Djemel 	2014	PE	PE6	Computer Science and Informatics	M	No	1964	FR	CA	University of Sherbrooke	No	No	No	No	No	Yes	50	yes	41-50	no	0	0	1
+Barsony	Istvan	2014	PE	PE7	Systems and Communication Engineering	M	No	1949	HU	HU	Hungarian Academy of Sciences	No	No	No	No	No	Yes	65	no	61-70	no	0	0	1
+De Schutter	Joris	2014	PE	PE7	Systems and Communication Engineering	M	No	1959	BE	BE	KU Leuven	No	No	No	No	No	Yes	55	no	51-60	no	0	0	1
+Farina	Dario	2014	PE	PE7	Systems and Communication Engineering	M	No	1974	IT	DE	University of Göttingen	No	No	No	No	No	Yes	40	yes	<=40	no	0	0	1
+Fragouli	Christina 	2014	PE	PE7	Systems and Communication Engineering	F	No	1973	EL	CH	EPFL Swiss Federal Institute of Technology Lausanne	No	No	No	No	No	Yes	41	yes	41-50	no	0	0	1
+Grallert	Hans-Joachim	2014	PE	PE7	Systems and Communication Engineering	M	No	1948	DE	DE	Fraunhofer	Yes	Yes	No	Yes	No	Yes	66	no	61-70	yes	3	3	4
+Kennedy	Peter 	2014	PE	PE7	Systems and Communication Engineering	M	Yes	1961	IE	IE	University College Cork	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+McLaughlin	Stephen	2014	PE	PE7	Systems and Communication Engineering	M	No	1961	UK	UK	University of Edinburgh	No	No	No	Yes	No	Yes	53	no	51-60	yes	1	1	2
+Prati	Giancarlo	2014	PE	PE7	Systems and Communication Engineering	M	No	1946	IT	IT	Sant'Anna School of Advanced Studies	Yes	Yes	No	Yes	No	Yes	68	no	61-70	yes	3	3	4
+Rodriguez	Pedro	2014	PE	PE7	Systems and Communication Engineering	M	No	1966	ES	ES	Technical University of Catalonia	No	No	No	No	No	Yes	48	no	41-50	no	0	0	1
+Srinivasan	Mandayam A.	2014	PE	PE7	Systems and Communication Engineering	M	No	1955	US	UK	University College London	No	No	No	No	No	Yes	59	yes	51-60	no	0	0	1
+Tarbouriech	Sophie	2014	PE	PE7	Systems and Communication Engineering	F	No	1965	FR	FR	LAAS CNRS	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Urey	Hakan	2014	PE	PE7	Systems and Communication Engineering	M	No	1971	TR	TR	Koc University	No	No	No	No	No	Yes	43	no	41-50	no	0	0	1
+Willems	Frans M.J. 	2014	PE	PE7	Systems and Communication Engineering	M	No	1954	NL	NL	Eindhoven University of Technology	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Alonso	Eduardo 	2014	PE	PE8	Products and Processes Engineering	M	No	1947	ES	ES	Technical University of Catalonia	No	No	No	No	No	Yes	67	no	61-70	no	0	0	1
+Ambrosio	Luigi 	2014	PE	PE8	Products and Processes Engineering	M	No	1963	IT	IT	Scuola Normale Superiore of Pisa	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Bauer	Siegfried 	2014	PE	PE8	Products and Processes Engineering	M	No	1961	DE	AT	Johannes Kepler University Linz	No	No	No	No	No	Yes	53	yes	51-60	no	0	0	1
+Camanho	Pedro 	2014	PE	PE8	Products and Processes Engineering	M	No	1969	PT	PT	University of Porto	No	No	No	No	No	Yes	45	no	41-50	no	0	0	1
+Fryer	Peter	2014	PE	PE8	Products and Processes Engineering	M	No	1959	UK	UK	University of Birmingham	Yes	Yes	No	Yes	No	Yes	55	no	51-60	yes	3	3	4
+Gijs	Martin	2014	PE	PE8	Products and Processes Engineering	M	No	1960	BE	CH	EPFL Swiss Federal Institute of Technology Lausanne	No	No	No	No	No	Yes	54	yes	51-60	no	0	0	1
+Hatziargyriou	Nikolaos 	2014	PE	PE8	Products and Processes Engineering	M	No	1954	EL	EL	National Technical University of Athens of Athens	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Kaveh	Ali 	2014	PE	PE8	Products and Processes Engineering	M	No	1948	IR	IR	Iran University Science and Technology	No	No	No	No	No	Yes	66	no	61-70	no	0	0	1
+Mang	Herbert	2014	PE	PE8	Products and Processes Engineering	M	No	1942	AT	AT	Vienna University of Technology	Yes	Yes	No	Yes	No	Yes	72	no	71-80	yes	3	3	4
+Pardoen	Thomas 	2014	PE	PE8	Products and Processes Engineering	M	No	1969	BE	BE	Catholic University of Louvain	No	No	No	No	No	Yes	45	no	41-50	no	0	0	1
+Prosperetti	Andrea 	2014	PE	PE8	Products and Processes Engineering	F	No	1945	IT	US	Johns Hopkins University	No	No	No	No	No	Yes	69	yes	61-70	no	0	0	1
+Sattler	Christian	2014	PE	PE8	Products and Processes Engineering	M	Yes		DE	DE	German Aerospace Center DLR	No	No	Yes	Yes	No	Yes		no	?	yes	2	2	3
+Stepan	Gábor	2014	PE	PE8	Products and Processes Engineering	M	No	1953	HU	HU	Budapest University of Technology and Economics	No	No	No	Yes	No	Yes	61	no	61-70	yes	1	1	2
+Tropea	Cameron	2014	PE	PE8	Products and Processes Engineering	M	No	1955	CA	DE	Technical University of Darmstadt	No	No	No	No	No	Yes	59	yes	51-60	no	0	0	1
+Uner	Deniz	2014	PE	PE8	Products and Processes Engineering	F	No	1964	TR	TR	Middle East Technical University	No	No	No	Yes	No	Yes	50	no	41-50	yes	1	1	2
+Zacchi	Guido	2014	PE	PE8	Products and Processes Engineering	M	No	1951	SE	SE	Lund University	No	No	No	Yes	Yes	Yes	63	no	61-70	yes	2	2	3
+Bachiller	Rafael	2014	PE	PE9	Universe Sciences	M	No	1958	ES	ES	National Astronomical Observatory	No	No	No	No	No	Yes	56	no	51-60	no	0	0	1
+Baraffe	Isabelle 	2014	PE	PE9	Universe Sciences	F	No	1963	FR	UK	University of Exeter	No	No	No	No	No	Yes	51	yes	51-60	no	0	0	1
+Barth Lilje	Per Vidar 	2014	PE	PE9	Universe Sciences	M	No	1957	NO	NO	University of Oslo	No	No	No	No	No	Yes	57	no	51-60	no	0	0	1
+Carollo	Marcella	2014	PE	PE9	Universe Sciences	F	No	1963	IT	CH	ETH Zurich	No	No	No	No	No	Yes	51	yes	51-60	no	0	0	1
+Grenier	Isabelle	2014	PE	PE9	Universe Sciences	F	No	1961	FR	FR	CEA University Paris VII	No	No	No	Yes	No	Yes	53	no	51-60	yes	1	1	2
+Karas	Vladimir 	2014	PE	PE9	Universe Sciences	M	No	1960	CZ	CZ	Academy of Sciences of the Czech Republic	No	No	No	No	No	Yes	54	no	51-60	no	0	0	1
+Kneib	Jean-Paul 	2014	PE	PE9	Universe Sciences	M	No	1966	FR	CH	EPFL Swiss Federal Institute of Technology Lausanne	No	No	No	No	No	Yes	48	yes	41-50	no	0	0	1
+Kuijken	Konrad	2014	PE	PE9	Universe Sciences	M	No	1959	BE	NL	Leiden University	Yes	Yes	No	Yes	No	Yes	55	yes	51-60	yes	3	3	4
+Launhardt	Ralf	2014	PE	PE9	Universe Sciences	M	No	1963	DE	DE	Max Planck Institute for Astronomy	No	No	No	Yes	No	Yes	51	no	51-60	yes	1	1	2
+Reimer	Olaf 	2014	PE	PE9	Universe Sciences	M	No	1965	DE	AT	University of Innsbruck	No	No	No	No	No	Yes	49	yes	41-50	no	0	0	1
+Roche	Patrick	2014	PE	PE9	Universe Sciences	M	No	1955	UK	UK	Oxford University	No	No	No	Yes	No	Yes	59	no	51-60	yes	1	1	2
+Scharmer	Goeran 	2014	PE	PE9	Universe Sciences	M	No	1951	SE	SE	The Royal Swedish Academy of Sciences	No	No	No	No	No	Yes	63	no	61-70	no	0	0	1
+Spyromilio	Jason	2014	PE	PE9	Universe Sciences	M	No	1964	EL	DE	European Southern Observatory	Yes	Yes	No	Yes	No	Yes	50	yes	41-50	yes	3	3	4
+Tosi	Monica	2014	PE	PE9	Universe Sciences	F	Yes	1979	IT	IT	INAF Astronomic Observatory of Bologna	No	Yes	No	Yes	No	Yes	35	no	<=40	yes	2	2	3
+Bishop	Kevin	2014	PE	PE10	Earth System Science	M	No	1961	US	SE	Uppsala University	No	No	No	No	No	Yes	53	yes	51-60	no	0	0	1
+Dahl-Jensen	Dorthe	2014	PE	PE10	Earth System Science	F	Yes	1958	DK	DK	University of Copenhagen	No	No	No	No	Yes	Yes	56	no	51-60	yes	1	1	2
+Dijkstra	Henk A.	2014	PE	PE10	Earth System Science	M	No	1960	NL	NL	Utrecht University	No	No	No	Yes	No	Yes	54	no	51-60	yes	1	1	2
+Garcia Ruiz	Juan Manuel	2014	PE	PE10	Earth System Science	M	No	1954	ES	ES	University of Granada CSIC	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Jones	Phil	2014	PE	PE10	Earth System Science	M	No	1953	UK	UK	University of East Anglia	No	No	No	Yes	No	Yes	61	no	61-70	yes	1	1	2
+Kromp-Kolb	Helga	2014	PE	PE10	Earth System Science	F	No	1948	AT	AT	University of Natural Resources and Life Sciences	Yes	Yes	No	Yes	No	Yes	66	no	61-70	yes	3	3	4
+Laaksonen	Ari	2014	PE	PE10	Earth System Science	M	No	1954	FI	FI	University of Eastern Finland	No	No	No	Yes	No	Yes	60	no	51-60	yes	1	1	2
+Manga	Michael	2014	PE	PE10	Earth System Science	M	No	1969	CA	US	University of California	No	No	No	No	No	Yes	45	yes	41-50	no	0	0	1
+McCammon	Catherine	2014	PE	PE10	Earth System Science	F	No	1958	DE	DE	University of Bayreuth	No	No	No	No	No	Yes	56	no	51-60	no	0	0	1
+Nisbet	Euan George	2014	PE	PE10	Earth System Science	M	No	1950	UK	UK	University of London	No	No	No	No	No	Yes	64	no	61-70	no	0	0	1
+Safanda	Jan	2014	PE	PE10	Earth System Science	M	No	1952	CZ	CZ	Academy of Sciences of the Czech Republic	Yes	Yes	No	Yes	No	Yes	62	no	61-70	yes	3	3	4
+Storti	Fabrizio	2014	PE	PE10	Earth System Science	M	No	1964	IT	IT	Rome Tre University	No	No	No	Yes	No	Yes	50	no	41-50	yes	1	1	2
+Trumbore	Susan	2014	PE	PE10	Earth System Science	F	No	1960	US	DE	Max Planck Institute for Biogeochemistry	No	No	No	No	No	Yes	54	yes	51-60	no	0	0	1
+Vander Auwera	Jacqueline	2014	PE	PE10	Earth System Science	F	No	1962	BE	BE	University of Liège	No	No	No	No	No	Yes	52	no	51-60	no	0	0	1
+Cassiman	Bruno 	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1967	BE	ES	IESE Business School in Barcelona	No	No	No	No	No	Yes	47	yes	41-50	no	0	0	1
+Espinosa	Maria Paz	2014	SH	SH1	"Markets, Individuals and Institutions"	F	No	1961	ES	ES	University of the Basque Country	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Fontagné	Lionel 	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1958	FR	FR	University Paris I	No	No	No	No	No	Yes	56	no	51-60	no	0	0	1
+Franses	Philip Hans B.F.	2014	SH	SH1	"Markets, Individuals and Institutions"	M	Yes	1963	NL	NL	Erasmus University Rotterdam	No	No	No	Yes	No	Yes	51	no	51-60	yes	1	1	2
+Magnac	Thierry	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1960	FR	FR	University of Toulouse I	No	No	No	Yes	No	Yes	54	no	51-60	yes	1	1	2
+Mairesse	Jacques	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1941	FR	FR	ParisTech	No	No	No	No	No	Yes	73	no	71-80	no	0	0	1
+Mohnen	Pierre	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1955	BE	NL	Maastricht University	No	No	No	No	No	Yes	59	yes	51-60	no	0	0	1
+Ottaviani	Marco	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1970	IT	IT	Bocconi University Milan	No	No	No	No	No	Yes	44	no	41-50	no	0	0	1
+Pammolli	Fabio 	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1965	IT	IT	IMT Institute for Advanced Studies	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Reynal-Querol	Marta	2014	SH	SH1	"Markets, Individuals and Institutions"	F	No	1973	ES	ES	University Pompeu Fabra	No	No	No	Yes	No	Yes	41	no	41-50	yes	1	1	2
+Spiegel	Yossi 	2014	SH	SH1	"Markets, Individuals and Institutions"	M	No	1960	IL	IL	Tel Aviv University	No	No	No	No	No	Yes	54	no	51-60	no	0	0	1
+Thursby	Marie 	2014	SH	SH1	"Markets, Individuals and Institutions"	F	No	1947	US	US	Georgia Institute of Technology	No	No	No	No	No	Yes	67	no	61-70	no	0	0	1
+van Praag	Mirjam 	2014	SH	SH1	"Markets, Individuals and Institutions"	F	No	1967	DK	DK	Copenhagen Business School	No	No	No	No	No	Yes	47	no	41-50	no	0	0	1
+Yuan	Kathy Zhichao 	2014	SH	SH1	"Markets, Individuals and Institutions"	F	No		CN	UK	London School of Economics	No	No	No	No	No	Yes		yes	?	no	0	0	1
+Alvares	Claudia	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1971	PT	PT	Universidade Lusofona	No	No	No	No	No	Yes	43	no	41-50	no	0	0	1
+Bast	Jürgen	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	No	1972	DE	DE	University of Giessen	No	No	No	Yes	No	Yes	42	no	41-50	yes	1	1	2
+Cardoso	Gustavo	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	Yes	1969	PT	PT	Lisbon University Institute	Yes	Yes	Yes	Yes	Yes	Yes	46	no	41-50	yes	5	5	6
+Felt	Ulrike	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1957	AT	AT	University of Vienna	No	No	No	Yes	No	Yes	57	no	51-60	yes	1	1	2
+Fodor	Éva	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1965	HU	HU	Central European University	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Letki	Natalia	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1973	PL	PL	University of Warsaw	No	No	No	No	No	Yes	41	no	41-50	no	0	0	1
+Mingione	Enzo	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	No	1947	IT	IT	University of Milan Bicocca	No	No	No	Yes	No	Yes	67	no	61-70	yes	1	1	2
+Morales	Laura	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1974	ES	UK	University of Leicester	No	No	No	No	No	Yes	40	yes	<=40	no	0	0	1
+Perez-Agote	Alfonso	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	No	1944	ES	ES	Complutense University of Madrid	No	No	No	No	No	Yes	70	no	61-70	no	0	0	1
+Portier	Philippe 	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	No		FR	FR	University of Sorbona CNRS	No	No	No	No	No	Yes		no	?	no	0	0	1
+Salecl	Renata	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1963	SI	UK	Birkbeck University of London	No	No	No	No	No	Yes	51	yes	51-60	no	0	0	1
+Sorensen	Georg	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	No	1950	DK	DK	Aarhus University	No	No	No	Yes	No	Yes	64	no	61-70	yes	1	1	2
+Toren	Christina	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1945	AU	UK	University of St Andrews	No	No	No	Yes	No	Yes	69	yes	61-70	yes	1	1	2
+Van Gelderen	Martin	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	No	1960	NL	DE	University of Göttingen	No	No	No	No	No	Yes	54	yes	51-60	no	0	0	1
+Vielle	Pascale	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	F	No	1966	BE	BE	Catholic University of Louvain	No	No	No	No	No	Yes	48	no	41-50	no	0	0	1
+Yesilkagit	Kutsal	2014	SH	SH2	"The Social World, Diversity, Institutions and Values"	M	No	1971	NL	NL	Leiden University	No	No	No	No	No	Yes	43	no	41-50	no	0	0	1
+Attard	Maria	2014	SH	SH3	"Environment, Space and Population"	F	No	1976	MT	MT	University of Malta	No	No	No	No	No	Yes	38	no	<=40	no	0	0	1
+Elliott	Susan	2014	SH	SH3	"Environment, Space and Population"	F	No	1961	CA	CA	University of Waterloo	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Gorzelak	Grzegorz 	2014	SH	SH3	"Environment, Space and Population"	M	No	1949	PL	PL	University of Warsaw	No	No	No	No	No	Yes	65	no	61-70	no	0	0	1
+Heran	François	2014	SH	SH3	"Environment, Space and Population"	M	No	1953	FR	FR	INED National Institute of Demography Studies	No	No	No	Yes	No	Yes	61	no	61-70	yes	1	1	2
+Musterd	Sako	2014	SH	SH3	"Environment, Space and Population"	M	No	1954	NL	NL	University of Amsterdam	No	No	No	Yes	No	Yes	60	no	51-60	yes	1	1	2
+Owens	Susan 	2014	SH	SH3	"Environment, Space and Population"	F	No	1954	UK	UK	University of Cambridge	No	No	No	No	No	Yes	60	no	51-60	no	0	0	1
+Pilesjo	Petter	2014	SH	SH3	"Environment, Space and Population"	M	Yes	1957	SE	SE	Lund University	No	No	No	Yes	No	Yes	57	no	51-60	yes	1	1	2
+Sathaye	Jayant	2014	SH	SH3	"Environment, Space and Population"	M	No		IN	US	Lawrence Berkeley National Laboratory	Yes	Yes	No	Yes	No	Yes		yes	?	yes	3	3	4
+Schipper	Lisa	2014	SH	SH3	"Environment, Space and Population"	F	No	1976	SE	US	Stockholm Environment Institute US Center	No	No	No	No	No	Yes	38	yes	<=40	no	0	0	1
+Thomas	Isabelle	2014	SH	SH3	"Environment, Space and Population"	F	No	1936	BE	BE	Catholic University of Louvain	No	No	No	Yes	No	Yes	78	no	71-80	yes	1	1	2
+van Wissen	Leo 	2014	SH	SH3	"Environment, Space and Population"	M	No	1956	NL	NL	University of Groningen	No	No	No	No	No	Yes	58	no	51-60	no	0	0	1
+Zajczyk	Francesca	2014	SH	SH3	"Environment, Space and Population"	F	No	1948	IT	IT	University of Milan Bicocca	No	No	No	No	No	Yes	66	no	61-70	no	0	0	1
+Avraamides	Marios	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1973	CY	CY	University of Cyprus	No	No	No	No	No	Yes	41	no	41-50	no	0	0	1
+Butera	Fabrizio	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1966	IT	CH	University of Lausanne	No	No	No	No	No	Yes	48	yes	41-50	no	0	0	1
+Byrne	Ruth	2014	SH	SH4	The Human Mind and Its Complexity	F	No	1963	IE	IE	Trinity College of Dublin	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Han	Shihui	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1964	CN	CN	Peking University	No	No	No	No	No	Yes	50	no	41-50	no	0	0	1
+Hartmann	Stephan	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1969	DE	DE	University of Munich	No	No	No	No	No	Yes	45	no	41-50	no	0	0	1
+Henik	Avishai	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1946	IL	IL	Ben Gurion University of the Negev	No	No	No	No	No	Yes	68	no	61-70	no	0	0	1
+Jäger	Gerhard 	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1963	DE	DE	University of Tübingen	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Keltikangas-Järvinen	Liisa	2014	SH	SH4	The Human Mind and Its Complexity	F	No	1947	FI	FI	University of Helsinki	No	No	No	No	No	Yes	67	no	61-70	no	0	0	1
+Kotz Cimon	Sonja Anette	2014	SH	SH4	The Human Mind and Its Complexity	F	Yes	1963	DE	DE	Max Planck Institute for Human Cognitive and Brain Sciences	No	No	Yes	Yes	Yes	Yes	51	no	51-60	yes	3	3	4
+Kusch	Martin	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1960	DE	AT	University of Vienna	No	No	No	No	No	Yes	54	yes	51-60	no	0	0	1
+Liberman	Nira	2014	SH	SH4	The Human Mind and Its Complexity	F	No	1967	IL	IL	Tel Aviv University	No	No	No	No	No	Yes	47	no	41-50	no	0	0	1
+Mithun	Marianne	2014	SH	SH4	The Human Mind and Its Complexity	F	No	1947	US	US	University of California	No	No	No	No	No	Yes	67	no	61-70	no	0	0	1
+Roelofs	Karin 	2014	SH	SH4	The Human Mind and Its Complexity	F	No		RU	RU	University Nijmegen	No	No	No	No	No	Yes		no	?	no	0	0	1
+Saddy	James Douglas	2014	SH	SH4	The Human Mind and Its Complexity	M	No	1955	CA	UK	University of Reading	No	No	No	Yes	No	Yes	59	yes	51-60	yes	1	1	2
+Vanhove	Martine	2014	SH	SH4	The Human Mind and Its Complexity	F	No	1956	FR	FR	LLACAN CNRS	No	No	No	No	No	Yes	58	no	51-60	no	0	0	1
+Yip	Virginia	2014	SH	SH4	The Human Mind and Its Complexity	F	No	1963	HK	HK	Chinese University of Hong Kong	No	No	No	No	No	Yes	51	no	51-60	no	0	0	1
+Amirav	Hagit 	2014	SH	SH5	Cultures and Cultural Production	F	No	1964	IL	NL	VU University of Amsterdam	No	No	No	No	No	Yes	50	yes	41-50	no	0	0	1
+Brown	Marshall Joseph	2014	SH	SH5	Cultures and Cultural Production	M	No	1935	US	US	University of Washington	No	No	No	Yes	No	Yes	79	no	71-80	yes	1	1	2
+Conroy	Jane	2014	SH	SH5	Cultures and Cultural Production	F	No	1948	IE	IE	National University of Ireland	No	No	No	No	No	Yes	66	no	61-70	no	0	0	1
+Felski	Rita	2014	SH	SH5	Cultures and Cultural Production	F	No	1957	US	US	University of Virginia	No	No	No	No	No	Yes	57	no	51-60	no	0	0	1
+Harari	Maurizio	2014	SH	SH5	Cultures and Cultural Production	M	No	1953	IT	IT	University of Pavia	No	No	No	Yes	No	Yes	61	no	61-70	yes	1	1	2
+Hugill	Andrew	2014	SH	SH5	Cultures and Cultural Production	M	No	1957	UK	UK	De Montfort University	No	No	No	Yes	No	Yes	57	no	51-60	yes	1	1	2
+Mäki	Uskali 	2014	SH	SH5	Cultures and Cultural Production	M	No	1951	FI	FI	University of Helsinki	No	No	No	No	No	Yes	63	no	61-70	no	0	0	1
+Marchart	Oliver 	2014	SH	SH5	Cultures and Cultural Production	M	No	1968	AT	DE	Kunstakademie Düsseldorf	No	No	No	No	No	Yes	46	yes	41-50	no	0	0	1
+McCarty	Willard 	2014	SH	SH5	Cultures and Cultural Production	M	No			UK	King´s College London	No	No	No	No	No	Yes		yes	?	no	0	0	1
+Michalsky	Tanja	2014	SH	SH5	Cultures and Cultural Production	F	No	1965	DE	DE	Berlin University of Arts	No	No	No	No	No	Yes	49	no	41-50	no	0	0	1
+Schich	Maximilian 	2014	SH	SH5	Cultures and Cultural Production	M	No	1974	DE	US	University of Texas	No	No	No	No	No	Yes	40	yes	<=40	no	0	0	1
+Seim	Turid Karlsen	2014	SH	SH5	Cultures and Cultural Production	F	No	1945	NO	NO	University of Oslo	No	No	No	Yes	No	Yes	69	no	61-70	yes	1	1	2
+Stankovic	Peter 	2014	SH	SH5	Cultures and Cultural Production	M	No	1960	SK	SI	University of Ljubljana	No	No	No	No	No	Yes	54	yes	51-60	no	0	0	1
+Szakolczai	Arpad	2014	SH	SH5	Cultures and Cultural Production	M	No	1958	HU	IE	University College Cork	No	No	No	Yes	No	Yes	56	yes	51-60	yes	1	1	2
+van Eck	Caroline	2014	SH	SH5	Cultures and Cultural Production	F	Yes	1964	NL	NL	Leiden University	No	No	No	Yes	No	Yes	50	no	41-50	yes	1	1	2
+Weddigen	Tristan	2014	SH	SH5	Cultures and Cultural Production	M	No	1969	CH	CH	University of Zurich	No	No	No	Yes	No	Yes	45	no	41-50	yes	1	1	2
+Algazi	Gadi 	2014	SH	SH6	The Study of the Human Past	M	No	1961	IL	IL	Tel Aviv University	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Aram	Bethany	2014	SH	SH6	The Study of the Human Past	F	No	1972	ES	ES	Pablo de Olavide University	No	No	No	No	No	Yes	42	no	41-50	no	0	0	1
+Díaz-Andreu Garcia	Margarita	2014	SH	SH6	The Study of the Human Past	F	No	1957	ES	ES	Universidad de Barcelona	No	No	No	No	No	Yes	57	no	51-60	no	0	0	1
+Fontaine	Laurence	2014	SH	SH6	The Study of the Human Past	F	No	1947	FR	FR	EHESS School for Advanced Studies in the Social Sciences CNRS	No	No	No	No	No	Yes	67	no	61-70	no	0	0	1
+Gilman	Antonio	2014	SH	SH6	The Study of the Human Past	M	No	1945	US	US	California State University	No	No	No	No	No	Yes	69	no	61-70	no	0	0	1
+Habermas	Rebekka	2014	SH	SH6	The Study of the Human Past	F	No	1959	DE	DE	University of Göttingen	Yes	Yes	No	Yes	No	Yes	55	no	51-60	yes	3	3	4
+Hurlet	Frédéric	2014	SH	SH6	The Study of the Human Past	M	No	1967	BE	FR	University of Nanterre	No	No	No	No	No	Yes	47	yes	41-50	no	0	0	1
+Kozlowski	Janusz K.	2014	SH	SH6	The Study of the Human Past	M	No	1936	PL	PL	Jagiellonian University	No	No	No	Yes	No	Yes	78	no	71-80	yes	1	1	2
+Middell	Matthias	2014	SH	SH6	The Study of the Human Past	M	No	1961	DE	DE	University of Leipzig	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Parusheva	Dobrinka	2014	SH	SH6	The Study of the Human Past	F	No	1961	BG	BG	University of Plovdiv	No	No	No	No	No	Yes	53	no	51-60	no	0	0	1
+Reid	Anthony	2014	SH	SH6	The Study of the Human Past	M	No	1940	AU	AU	Australian National University	No	No	No	No	No	Yes	74	no	71-80	no	0	0	1
+Sarris	Apostolos	2014	SH	SH6	The Study of the Human Past	M	No	1963	EL	EL	Foundation for Research and Technology	No	No	No	Yes	No	Yes	50	no	41-50	yes	1	1	2
+Todorova	Maria	2014	SH	SH6	The Study of the Human Past	F	Yes	1949	BG	US	University of Illinois	No	No	No	Yes	No	Yes	65	yes	61-70	yes	1	1	2
+Venclová	Natalie 	2014	SH	SH6	The Study of the Human Past	F	No	1945	CZ	CZ	Academy of Sciences of the Czech Republic	No	No	No	No	No	Yes	69	no	61-70	no	0	0	1
+von Greyerz	Kaspar	2014	SH	SH6	The Study of the Human Past	M	No	1948	CH	CH	University of Basel	No	No	No	No	No	Yes	66	no	61-70	no	0	0	1
