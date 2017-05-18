@@ -17,6 +17,7 @@ import cgi
 # from os.path import isfile, isdir, join
 
 import ast
+import os
 import re
 import urllib2
 import urllib
@@ -84,32 +85,71 @@ PRINT_RESULTS = False
 #     print msg
 #     return msg
 
-UPLOAD_FOLDER = '/path/to/the/uploads'
+UPLOAD_FOLDER = '/AlignmentUI/UploadedFiles/'
+"C:\Users\Al\PycharmProjects\AlignmentUI\UploadedFiles"
 # ALLOWED_EXTENSIONS2 = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = "{}\\UploadedFiles".format(os.getcwd())
+ALLOWED_EXTENSIONS = ['csv', 'txt']
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    # if request.method == 'POST':
+        # file = request.files['file']
+        # if file and allowed_file(file.filename):
+        #     now = datetime.now()
+        #     filename = os.path.join(app.config['UPLOAD_FOLDER'], "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
+        #     file.save(filename)
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+
+        dir = "{}\\UploadedFiles".format(os.getcwd())
+        print "\nWe will upload: {}".format(file.filename)
+        print "Directory: {}".format(dir)
+        print "Path: {}".format(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        print "{}\nWas uploaded to the server".format(file.filename)
+    else:
+        print "\nFile not allowed"
+
+
+    return jsonify({"success":True})
+
+
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
+
     if request.method == 'POST':
+
         # check if the post request has the file part
         if 'file' not in request.files:
             # flash('No file part')
+            print "Nothing to upload"
             return redirect(request.url)
+
         file = request.files['file']
         # if user does not select file, browser also
         # submit a empty part without filename
         if file.filename == '':
             # flash('No selected file')
             return redirect(request.url)
+
         if file and allowed_file(file.filename):
             # filename = secure_filename(file.filename)
-            # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                    filename=file.filename))
+            dir = "{}\\UploadedFiles".format(os.getcwd())
+            print "\nWe will upload: {}".format(file.filename)
+            print "Directory: {}".format(dir)
+            print "Path: {}".format(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+            print "{}\nWas uploaded to the server".format(file.filename)
+            # return jsonify({"success": True})
+            # return render_template('base.html')
+            # return redirect(url_for('uploaded_file', filename=file.filename))
     else:
         return render_template('base.html')
+
 
 
 @app.route('/getgraphs')
@@ -1305,19 +1345,19 @@ def fileUpload():
         </form>'''
 
 
-ALLOWED_EXTENSIONS = ['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'trig']
 
-@app.route('/upload', methods=['GET'])
-def upload():
-    print "In...."
-    if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            # now = datetime.now()
-            # filename = os.path.join(app.config['UPLOAD_FOLDER'], "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
-            # file.save(filename)
-            print "I'm here ", file.filename
-            return "" #jsonify({"success":True})
+
+# @app.route('/upload', methods=['GET'])
+# def upload():
+#     print "In...."
+#     if request.method == 'POST':
+#         file = request.files['file']
+#         if file and allowed_file(file.filename):
+#             # now = datetime.now()
+#             # filename = os.path.join(app.config['UPLOAD_FOLDER'], "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
+#             # file.save(filename)
+#             print "I'm here ", file.filename
+#             return "" #jsonify({"success":True})
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
