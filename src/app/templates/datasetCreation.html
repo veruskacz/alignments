@@ -27,12 +27,96 @@
     <div class="col-md-12">
     <div class="panel panel-default">
     <div class="panel-heading">
+
+
+
+
+
+
+
+
+
+
      <div class="row">
       <div class="col-md-4">
           <h4 class="panel-title">
               <a id="link_collapse_dataset_convert"
                  data-toggle="collapse" href="#collapse_dataset_convert">
               <span class="badge alert-info"><strong>-</strong></span></a>
+              Uploading File
+          </h4>
+      </div>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+      <div class="col-md-12 text-right">
+           <table align="right">
+               <tr align="right">
+                   <!--<td align="right">-->
+                        <form id="file_upload" action="/#test" method="post" enctype="multipart/form-data">
+                            <br/><a href="#test" ></a>
+                                <input id="dataset_file_path" type="file" value="Browse" name="file" size="100"/>
+                                <input id="submit_file_button" type="submit" value="Upload the File"/>
+                                <!--<input id="submit_file_button2" value="Upload the File2"/>-->
+
+                        </form>
+                   <!--</td>-->
+               <!--<tr><br/>-->
+
+                   <!--<div id="dropbox">-->
+                        <!--<br/>-->
+               <!--<br/>-->
+                        <!--<span class="message">Drop images here to upload.</span>-->
+
+                        <!--<br/>-->
+               <!--<br/>-->
+                    <!--</div>-->
+           <!--</tr>-->
+           </table>
+      </div>
+
+
+     </div>
+    </div>
+    <!--<div id="collapse_dataset_convert" class="panel-collapse collapse in" target="link_collapse_dataset_convert">-->
+
+  <!--</div>-->
+ </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel-body">
+  <div class="row" id="dataset_convert_row" >
+    <div class="col-md-12">
+    <div class="panel panel-default">
+    <div class="panel-heading">
+     <div class="row">
+      <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_dataset_convert"
+                 data-toggle="collapse" href="#collapse_dataset_convert">
+                 <span class="badge alert-info"><strong>-</strong></span>
+              </a>
               Dataset Convertion
           </h4>
       </div>
@@ -40,16 +124,18 @@
       <div class="col-md-8 text-right">
            <table align="right">
                <tr align="right">
-                   <td align="right"><div id="dataset_upload_message_col"></div></td>
+                   <td align="right">
+                       <div id="dataset_upload_message_col"></div>
+                   </td>
                    <td align="right">
                        <button type="button" id="viewDatasetButton" class="btn btn-success"
-                          data-toggle="button" onclick = "viewSampleFileClick();"> UPLOAD DATASET FILE
+                          data-toggle="button" onclick = "viewSampleFileClick();"> VIEW DATASET FILE
                        </button>
 
                        <!--<button type="button" id="uploadDatasetButton" class="btn btn-success disabled"-->
                           <!--data-toggle="button" onclick = "uploadDatasetClick();"> UPLOAD DATASET FILE-->
                        <!--</button>-->
-                       </td>
+                   </td>
            </table>
       </div>
 
@@ -59,11 +145,17 @@
     <div id="collapse_dataset_convert" class="panel-collapse collapse in" target="link_collapse_dataset_convert">
     <div class="panel-body">
       <div class="row">
-        <div class="col-md-12" >
-            <br/>INPUT FILE PATH
-            <input type="text" class="form-control" id="dataset_file_path"
-                   value="C:\Users\Al\PycharmProjects\Linkset\Data_uploaded\Panel composition 2014 Mark.txt">
-        </div>
+
+
+        <!--<div class="col-md-10" >-->
+            <!--<br/>INPUT FILE PATH-->
+             <!--<input type="text" class="form-control" id="dataset_file_path_2"-->
+                   <!--value="C:\Users\Al\PycharmProjects\Linkset\Data_uploaded\Panel composition 2014 Mark.txt">-->
+        <!--</div>-->
+
+
+
+
       </div>
       <div class="row">
         <div class="col-md-12" id="dataset_files_list_col">
@@ -71,6 +163,9 @@
            <textarea readonly wrap='off' class="form-control" id="upload_sample"
                      style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE UPLOADED
            </textarea>
+
+
+
         </div>
         <div class="col-md-12">
         </div>

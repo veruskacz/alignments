@@ -145,7 +145,8 @@ class CSV(RDF):
 
     def __init__(self, database, is_trig, file_to_convert, separator, entity_type,
                  rdftype=None, subject_id=None, field_metadata=None):
-
+        print rdftype
+        print subject_id
         """
             param database: name of the dataset
             param is_trig: A boolean value indicating the format of the RDF file that will be generated.

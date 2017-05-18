@@ -1,6 +1,7 @@
 // function fired when the Creation Mode is selected
 // by clicking #modeDropdown
 
+missing_feature = "One or more features are missing."
 
 function modeCreation(val)
 {
@@ -250,7 +251,7 @@ function updateIdeaClick()
          $('#idea_update_message_col').html(addNote(data,cl='info'));
      });
    } else {
-      $('#idea_update_message_col').html(addNote("Some feature is not selected!"));
+      $('#idea_update_message_col').html(addNote(missing_feature));
    }
 }
 
@@ -541,7 +542,7 @@ function createLinksetClick()
 
     }
     else {
-      $('#linkset_creation_message_col').html(addNote("Some feature is not selected!"));
+      $('#linkset_creation_message_col').html(addNote(missing_feature));
     }
 }
 
@@ -616,7 +617,7 @@ function refineLinksetClick()
 
   }
   else {
-    $('#linkset_refine_message_col').html(addNote("Some feature is not selected!"));
+    $('#linkset_refine_message_col').html(addNote(missing_feature));
   }
 }
 
@@ -647,7 +648,7 @@ function importLinksetClick()
         });
     }
     else {
-      $('#linkset_import_message_col').html(addNote("Some feature is not selected!"));
+      $('#linkset_import_message_col').html(addNote(missing_feature));
     }
 }
 
@@ -948,7 +949,7 @@ function createLensClick()
         });
     }
     else {
-      $('#lens_creation_message_col').html(addNote("Some feature is not selected!"));
+      $('#lens_creation_message_col').html(addNote(missing_feature));
     }
  }
 
@@ -977,7 +978,7 @@ function importLensClick()
         });
     }
     else {
-      $('#lens_import_message_col').html(addNote("Some feature is not selected!"));
+      $('#lens_import_message_col').html(addNote(missing_feature));
     }
 }
 
@@ -1239,7 +1240,7 @@ function createViewClick(mode)
      });
     }
     else {
-    $('#view_creation_message_col').html(addNote("Some feature is not selected!"));
+    $('#view_creation_message_col').html(addNote(missing_feature));
     }
 }
 
@@ -1755,26 +1756,38 @@ function convertDatasetClick()
 {
     var input = document.getElementById('dataset_file_path');
     var separator = document.getElementById('ds_separator');
-
     var dataset = document.getElementById('ds_name');
     var entity_type = document.getElementById('ds_entity_type_name');
 
-
     if ((dataset.value) && (entity_type.value) )
     {
-        var indexes = []
-        indexes = getSelectIndexes(document.getElementById('ds_type_list'))
-        if (indexes != [])
-        {    var rdftype = indexes }
 
-        indexes = getSelectIndexes(document.getElementById('ds_subject_id'))
-        if (indexes != [] && indexes[0] != 0)
-           // not empty and not "-- Select --"
-        {    var subject_id = indexes[0]-1  }
+        var indexes_1 = []
+        indexes_1 = getSelectIndexes(document.getElementById('ds_type_list'));
+        if (indexes_1.length != 0)
+        {
+            var rdftype = indexes_1
+        }
         else
-        {    var subject_id = none  }
+        {
+            var rdftype = None
+        }
+
+        // not empty and not "-- Select --"
+        indexes_2 = getSelectIndexes(document.getElementById('ds_subject_id'));
+        if (indexes_2 != [] && indexes_2[0] != 0)
+        {
+            var subject_id = indexes_2[0]-1
+        }
+        else
+        {
+            var subject_id = None
+        }
+
+        alert("Subject ID: " + subject_id + " | Types" + rdftype);
 
         $('#dataset_convertion_message_col').html(addNote("Your file is being converted!",cl='warning'));
+
         $.get('/convertCSVToRDF',
               data={'file': input.value,
                     'separator': separator.value,
@@ -1801,7 +1814,7 @@ function convertDatasetClick()
     }
     else
     {
-        $('#dataset_convertion_message_col').html(addNote("Some feature is not selected!"));
+        $('#dataset_convertion_message_col').html(addNote(missing_feature));
 //        if (!dataset.value)
 //        { setAttr('ds_name','style','background-color:lightred'); }
 //        if (!entity_type.value)
@@ -1821,7 +1834,7 @@ function viewSampleFileClick()
         var obj = JSON.parse(data)
         $('#upload_sample').val(obj.sample);
         $('#dataset_header').val(obj.header);
-        $('#dataset_upload_message_col').html(addNote("You can now convert te data!</br>Please fill in the separator in the panel below!",cl='success'));
+        $('#dataset_upload_message_col').html(addNote("You can now convert the data!</br>Please fill in the separator in the panel below!",cl='success'));
     });
 
 }
@@ -1883,3 +1896,40 @@ function loadGraphClick()
             });
     }
 }
+
+
+//$('#submit_file_button').addEventListener("click", myScript);
+//
+//function myScript(){
+////    alert("test"),
+//    paramname: 'file',
+//    maxfiles: 10,
+//    maxfilesize: 5,
+//    url: '/FileUpload',
+//    uploadFinished:function(i,file,response){
+//        $.data(file).addClass('done');
+//    }
+//}
+
+
+//dropbox.filedrop({
+//$("submit_file_button").click(function(){
+//    paramname: 'file',
+//    maxfiles: 10,
+//    maxfilesize: 5,
+//    url: '/upload',
+//    uploadFinished:function(i,file,response){
+//        $.data(file).addClass('done');
+//    }
+//});
+
+//$("submit_file_button").click(function(){
+//    $.post('/FileUpload',
+//    {
+//        name: "Donald Duck",
+//        city: "Duckburg"
+//    },
+//    function(data, status){
+//        alert("Data: " + data + "\nStatus: " + status);
+//    });
+//});

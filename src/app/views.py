@@ -3,7 +3,7 @@ import json
 import logging
 
 import requests
-from flask import render_template, request # , jsonify, make_response, g
+from flask import render_template, request, redirect,  url_for, jsonify  #, make_response, g
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -12,6 +12,7 @@ logger.addHandler(handler)
 import xmltodict
 import collections
 from kitchen.text.converters import to_bytes
+import cgi
 # from os import listdir
 # from os.path import isfile, isdir, join
 
@@ -83,10 +84,32 @@ PRINT_RESULTS = False
 #     print msg
 #     return msg
 
+UPLOAD_FOLDER = '/path/to/the/uploads'
+# ALLOWED_EXTENSIONS2 = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
-@app.route("/")
+# app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route("/", methods=['GET', 'POST'])
 def index():
-    return render_template('base.html')
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            # flash('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit a empty part without filename
+        if file.filename == '':
+            # flash('No selected file')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            # filename = secure_filename(file.filename)
+            # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('uploaded_file',
+                                    filename=file.filename))
+    else:
+        return render_template('base.html')
 
 
 @app.route('/getgraphs')
@@ -1249,6 +1272,57 @@ def loadGraph():
     return Ut.batch_load(batch_file)
 
 
+@app.route('/FileUpload', methods=['POST'])
+def fileUpload():
+    print "\n\nI am in......"
+
+    # upload_dir = "../AlignmentUI/UploadedFile"
+    #
+    # form = cgi.FieldStorage()
+    # if not form.has_key("file_upload"): return
+    # file_item = form["file_upload"]
+    # if not file_item.file: return
+    # f_out = file(os.path.join(upload_dir, file_item.filename), 'wb')
+    # while 1:
+    #     chunk = file_item.file.read(100000)
+    #     if not chunk: break
+    #     f_out.write(chunk)
+    # f_out.close()
+    #
+    #
+    # filedata = request.args.get('file', '')
+    # if filedata.file:  # field really is an upload
+    #     print "I AM A FILE"
+    #     # with file("Beautiful.mp3", 'w') as outfile:
+    #     #     outfile.write(filedata.file.read())
+    return '''
+        <!doctype html>
+        <title>Upload new File</title>
+        <h1>Upload new File</h1>
+        <form method=post enctype=multipart/form-data>
+          <p><input type=file name=file>
+             <input type=submit value=Upload>
+        </form>'''
+
+
+ALLOWED_EXTENSIONS = ['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'trig']
+
+@app.route('/upload', methods=['GET'])
+def upload():
+    print "In...."
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            # now = datetime.now()
+            # filename = os.path.join(app.config['UPLOAD_FOLDER'], "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
+            # file.save(filename)
+            print "I'm here ", file.filename
+            return "" #jsonify({"success":True})
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
 # database, is_trig, file_to_convert, separator, entity_type,
 #                  rdftype=None, subject_id=None, field_metadata=None
 
@@ -1276,6 +1350,7 @@ def sparql_update(query, endpoint_url = UPDATE_URL):
 
 
 def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
+
     """This method replaces the SPARQLWrapper SPARQL interface, since SPARQLWrapper
     cannot handle the Stardog-style query headers needed for inferencing"""
 
