@@ -10,6 +10,9 @@ $(function(){
 		url: '/upload',
 		uploadFinished:function(i,file,response){
 			$.data(file).addClass('done');
+//			alert(response.list.length);
+//			console.log(response);
+            $('#ds_files_list').html("<option>-- Select a file to view a sample --</option>"+response.selectlist);
 		},
 		
     	error: function(err, file) {

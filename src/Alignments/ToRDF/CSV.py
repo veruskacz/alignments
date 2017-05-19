@@ -396,6 +396,32 @@ class CSV(RDF):
         # print text
         return {"header": first_line, "sample": text}
 
+    def view_converted_data(self, limit=1000):
+        file = ""
+        sample = ""
+        builder = cStringIO.StringIO()
+        _file = open(self.outputPath, 'rb')
+        for i in range(0, limit):
+            builder.write(_file.readline())
+        builder.write("\n...")
+        sample = builder.getvalue()
+        _file.close()
+        builder.close()
+        return sample
+
+    def view_converted_schema(self, limit=1000):
+        file = ""
+        sample = ""
+        builder = cStringIO.StringIO()
+        _file = open(self.outputMetaPath, 'rb')
+        for i in range(0, limit):
+            builder.write(_file.readline())
+        builder.write("\n...")
+        sample = builder.getvalue()
+        _file.close()
+        builder.close()
+        return sample
+
     def write_record_values(self, record, field_metadata=None):
         """ This function takes as an argument a csv record as
         an array witch represents a csv line in the dataset """

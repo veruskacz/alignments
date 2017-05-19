@@ -2,6 +2,9 @@
 // by clicking #modeDropdown
 
 missing_feature = "One or more features are missing."
+loading_dataset = "Your dataset is being loaded!"
+loaded_dataset = "Your dataset is loaded to the triple store!"
+select_file = "<option>-- Select a file to view a sample --</option>"
 
 function modeCreation(val)
 {
@@ -73,13 +76,12 @@ function datasetButtonClick(targetId)
    activateTargetDiv(targetId);
    elem = document.getElementById(targetId);
 
-//   // get files
-//   $.get('/getdatasetfiles'},
-//          function(data)
-//   {
-//     //load the results rendered as a button into a div-col
-//     $('#dataset_files_list_col').html(data);
-//   });
+   // get files
+   $.get('/default_dir_files', function(data)
+   {
+     //load the results rendered as a button into a div-col
+     $('#ds_files_list').html(select_file + data.selected_list);
+   });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1754,42 +1756,43 @@ $(".collapse").on('shown.bs.collapse', function(){
 
 function convertDatasetClick()
 {
-    var input = document.getElementById('dataset_file_path');
+    var files = getSelectValues(document.getElementById('ds_files_list'));
+
+    //var input = document.getElementById('dataset_file_path');
     var separator = document.getElementById('ds_separator');
     var dataset = document.getElementById('ds_name');
     var entity_type = document.getElementById('ds_entity_type_name');
 
-    if ((dataset.value) && (entity_type.value) )
+    if ((files.length > 0) && (dataset.value) && (entity_type.value) )
     {
-
         var indexes_1 = []
         indexes_1 = getSelectIndexes(document.getElementById('ds_type_list'));
         if (indexes_1.length != 0)
         {
-            var rdftype = indexes_1
+            var rdftype = indexes_1;
         }
         else
         {
-            var rdftype = None
+            var rdftype = [];
         }
 
         // not empty and not "-- Select --"
         indexes_2 = getSelectIndexes(document.getElementById('ds_subject_id'));
         if (indexes_2 != [] && indexes_2[0] != 0)
         {
-            var subject_id = indexes_2[0]-1
+            var subject_id = indexes_2[0]-1;
         }
         else
         {
-            var subject_id = None
+            var subject_id = null;
         }
 
-        alert("Subject ID: " + subject_id + " | Types" + rdftype);
+//        alert("Subject ID: " + subject_id + " | Types" + rdftype);
 
         $('#dataset_convertion_message_col').html(addNote("Your file is being converted!",cl='warning'));
 
         $.get('/convertCSVToRDF',
-              data={'file': input.value,
+              data={'file': files[0],
                     'separator': separator.value,
                     'database': dataset.value,
                     'entity_type': entity_type.value,
@@ -1799,7 +1802,6 @@ function convertDatasetClick()
         {
             if (data)
             {
-                alert(data);
                 //$('#button_int_dataset').html(data);
     //            $('#dataset_convertion_message_col').html("");
                 $('#dataset_convertion_message_col').html(addNote("You can now load your data to the RISIS triple store in the next panel!",cl='success'));
@@ -1825,18 +1827,26 @@ function convertDatasetClick()
 
 function viewSampleFileClick()
 {
-    var input = document.getElementById('dataset_file_path');
+//    var input = document.getElementById('dataset_file_path');
 
-    $.get('/viewSampleFile',
-          data={'file': input.value},
-          function(data)
+    var files = getSelectValues(document.getElementById('ds_files_list'));
+
+    if (files.length > 0)
     {
-        var obj = JSON.parse(data)
-        $('#upload_sample').val(obj.sample);
-        $('#dataset_header').val(obj.header);
-        $('#dataset_upload_message_col').html(addNote("You can now convert the data!</br>Please fill in the separator in the panel below!",cl='success'));
-    });
-
+        $.get('/viewSampleFile',
+              data={'file':  files[0]}, //input.value},
+              function(data)
+        {
+            var obj = JSON.parse(data)
+            $('#upload_sample').val(obj.sample);
+            $('#dataset_header').val(obj.header);
+            $('#dataset_upload_message_col').html(addNote("You can now convert the data!</br>Please fill in the separator in the panel below!",cl='success'));
+        });
+    }
+    else
+    {
+        $('#dataset_upload_message_col').html(addNote(missing_feature));
+    }
 }
 
 
@@ -1867,20 +1877,6 @@ function getHeaderColumns() {
     }
 }
 
-function getSelectIndexes(select) {
-  var result = [];
-  var options = select && select.options;
-  var opt;
-
-  for (var i=0; i<options.length; i++) {
-    opt = options[i];
-    if (opt.selected) {
-      result.push(i);
-    }
-  }
-//  alert(result);
-  return result;
-}
 
 
 function loadGraphClick()
@@ -1888,12 +1884,19 @@ function loadGraphClick()
     //alert($('#createDatasetButton').attr('batchFile'));
     if ($('#createDatasetButton').attr('batchFile'))
     {
+        $('#dataset_creation_message_col').html(addNote(loading_dataset,cl='warning'));
         $.get('/loadGraph',
               data={'batch_file': $('#createDatasetButton').attr('batchFile')},
               function(data)
             {
-                alert(data);
+//                alert(data);
+                  $('#dataset_creation_message_col').html(addNote(loaded_dataset,cl='success'));
+
             });
+    }
+    else
+    {
+        $('#dataset_creation_message_col').html(addNote(missing_feature));
     }
 }
 

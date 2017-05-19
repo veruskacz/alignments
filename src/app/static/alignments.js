@@ -247,6 +247,38 @@ function addNote(text, cl='danger')
     return note;
 }
 
+function getSelectIndexes(select) {
+  var result = [];
+  var options = select && select.options;
+  var opt;
+
+  for (var i=0; i<options.length; i++) {
+    opt = options[i];
+    if (opt.selected) {
+      result.push(i);
+    }
+  }
+//  alert(result);
+  return result;
+}
+
+// Return an array of the selected opion values
+// select is an HTML select element
+function getSelectValues(select) {
+  var result = [];
+  var options = select && select.options;
+  var opt;
+
+  for (var i=0, iLen=options.length; i<iLen; i++) {
+    opt = options[i];
+
+    if (opt.selected) {
+      result.push(opt.text);
+    }
+  }
+  return result;
+}
+
 // ------------------------------------------------------------------- //
 // Admin mode
 

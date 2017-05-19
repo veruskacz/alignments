@@ -6,6 +6,7 @@ import codecs
 import datetime
 import cStringIO
 import xmltodict
+import subprocess
 import Query as Qry
 import Settings as St
 from os import listdir
@@ -149,17 +150,55 @@ def win_bat(file_directory, file_name):
     return bat_path
 
 
-def batch_load(batch_path):
+def bat_load(bat_path):
 
-    if isfile(batch_path) and batch_path.endswith('.bat'):
-        os.system(batch_path)
-        return "YOUR FILE(S) HAVE BEEN LOADED"
-    return "CHECK THE FILE PATH."
+    try:
+
+        if isfile(bat_path) and bat_path.endswith('.bat'):
+
+            # os.system returns 0 if it all went OK and 1 otherwise.
+            # BUT IT DOES NOT TELL HOW MANY TRIPLES WHERE ADDED
+            # output = os.system("{}".format(bat_path, c_path))
+
+            # SUBPOCESS PRINT THE ENTIRE OUTPUT:
+            #   THE FILES THAT WERE ADDED
+            #   HOW MANY TRIPLES WHERE ADDED
+            output = subprocess.check_output(bat_path)
+            output = re.sub('\(Conversion\).*\n', '', output)
+
+            # THE OUTPUT CONTAINS FULL PATH THAT IS NOT ADVISABLE TO DISPLAY
+            # FIND STRINGS THAT EXHIBIT A FILE PATTERN
+            file_path = re.findall(" .:.*\\.*\..*", output)
+            for f in file_path:
+
+                if f.__contains__("\\"):
+                    # print "FILE FOUND: {}".format(f)
+                    test = f.split("\\")
+                    # EXTRACT THE END OF THAT PATTERN
+                    new = test[len(test) - 1]
+                    # REPLACE THE PATTERN WITH THAT END FOUNb ABOVE
+                    output = output.replace(f, " " + new)
+
+                elif  f.__contains__("/"):
+                    # print "FILE FOUND: {}".format(f)
+                    test = f.split("/")
+                    # EXTRACT THE END OF THAT PATTERN
+                    new = test[len(test) - 1]
+                    # REPLACE THE PATTERN WITH THAT END FOUNb ABOVE
+                    output = output.replace(f, " " + new)
+
+
+            print "---------------------{}---------------------".format(output)
+            return output
+
+
+    except Exception as err:
+        return "CHECK THE FILE PATH."
 
 
 def dir_files(directory, extension_list):
 
-    print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
+    # print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
     list = []
     for f in os.listdir(directory):
 
@@ -169,7 +208,8 @@ def dir_files(directory, extension_list):
             ext = os.path.splitext(f)[1].strip().lower()
             if ext in extension_list:
                 list.append(full_path)
-    print list
+
+    # print list
     return list
 
 

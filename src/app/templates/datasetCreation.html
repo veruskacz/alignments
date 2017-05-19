@@ -23,102 +23,43 @@
 </div>
 
 <div class="panel-body">
-  <div class="row" id="dataset_convert_row" >
+  <div class="row" id="dataset_upload_row" >
     <div class="col-md-12">
-    <div class="panel panel-default">
-    <div class="panel-heading">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_dataset_upload"
+                     data-toggle="collapse" href="#collapse_dataset_upload">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Uploading File
+              </h4>
+          </div>
 
-
-
-
-
-
-
-
-
-
-     <div class="row">
-      <div class="col-md-4">
-          <h4 class="panel-title">
-              <a id="link_collapse_dataset_convert"
-                 data-toggle="collapse" href="#collapse_dataset_convert">
-              <span class="badge alert-info"><strong>-</strong></span></a>
-              Uploading File
-          </h4>
-      </div>
-      <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
-      <div class="col-md-12 text-right" align="center">
-          <div id="dropbox">
-            <span class="message">
-                <strong>
-                    <font size="6">
-                        Drop here your files to upload.
-                    </font>
-                </strong>
-            </span>
+         </div>
         </div>
-           <table align="right">
-               <tr align="center">
-                   <td align="center">
-                        <!--<form id="file_upload" action="" method="post" enctype="multipart/form-data">-->
-                            <!--<br/><a href="#test" ></a>-->
-                                <!--<input id="dataset_file_path" type="file" value="Browse" name="file" size="100"/>-->
-                                <!--<input id="submit_file_button" type="submit" value="Upload the File"/>-->
-                                <!--&lt;!&ndash;<input id="submit_file_button2" value="Upload the File2"/>&ndash;&gt;-->
+        <div id="collapse_dataset_upload" class="panel-collapse collapse in" target="link_collapse_dataset_upload">
+            <div class="panel-body">
+                <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+              <div class="col-md-12 text-right" align="center">
+                  <div id="dropbox">
+                    <span class="message">
+                        <strong>
+                            <font size="6">
+                                Drop here your files to upload.
+                            </font>
+                        </strong>
+                    </span>
+                  </div>
+              </div>
 
-                        <!--</form>-->
-
-
-
-
-                   <!--</td>-->
-               <!--<tr><br/>-->
-
-                   <!--<div id="dropbox">-->
-                        <!--<br/>-->
-               <!--<br/>-->
-                        <!--<span class="message">Drop images here to upload.</span>-->
-
-                        <!--<br/>-->
-               <!--<br/>-->
-                    <!--</div>-->
-           <!--</tr>-->
-           </table>
+            </div>
+        </div>
       </div>
-
-
-     </div>
     </div>
-    <!--<div id="collapse_dataset_convert" class="panel-collapse collapse in" target="link_collapse_dataset_convert">-->
+  </div>
 
-  <!--</div>-->
- </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div class="panel-body">
   <div class="row" id="dataset_convert_row" >
     <div class="col-md-12">
     <div class="panel panel-default">
@@ -172,9 +113,12 @@
       </div>
       <div class="row">
         <div class="col-md-12" id="dataset_files_list_col">
+            <select class="form-control" id="ds_files_list">
+                <!--<option>Test</option>-->
+              </select>
             <BR/>FILE SAMPLE
            <textarea readonly wrap='off' class="form-control" id="upload_sample"
-                     style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE UPLOADED
+                     style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE SELECTED
            </textarea>
 
 
@@ -231,7 +175,7 @@
 
             <input readonly type="text" class="form-control" id="dataset_header"
                    style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;'
-            value='NO DATASET FILE UPLOADED'>
+            value='NO DATASET FILE SELECTED'>
         </div>
         <div class="col-md-1 text-center" >
             <br/> SEPARATOR

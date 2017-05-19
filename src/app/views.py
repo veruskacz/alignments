@@ -95,6 +95,18 @@ UPLOAD_FOLDER = '/AlignmentUI/UploadedFiles/'
 app.config['UPLOAD_FOLDER'] = "{}\\UploadedFiles".format(os.getcwd())
 ALLOWED_EXTENSIONS = ['csv', 'txt']
 
+
+@app.route('/default_dir_files')
+def default_dir_files():
+    list = Ut.dir_files(app.config['UPLOAD_FOLDER'] , [".csv", ".txt", ".tsv"])
+    selected_list = ""
+    for i in range(len(list)):
+        selected_list += "<option>{}</option>".format(list[i])
+
+    # print list, selected_list
+    return jsonify({"success": True, 'selected_list': selected_list})
+
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
     # if request.method == 'POST':
@@ -114,12 +126,18 @@ def upload():
         print "{}\nWas uploaded to the server".format(file.filename)
 
         list = Ut.dir_files(dir, [".csv", ".txt", ".tsv"])
+        selectlist = ""
+        for i in range(len(list)):
+            selectlist += "<option>{}</option>".format(list[i])
+        # print list, selectlist
+        return jsonify({"success": True, 'selectlist': selectlist})
 
     else:
         print "\nFile not allowed"
+        return jsonify({"success": False, 'list': []})
 
 
-    return jsonify({"success":True})
+    # return jsonify({"success":True})
 
 
 
@@ -1268,13 +1286,14 @@ def convertCSVToRDF():
     entity_type = request.args.get('entity_type', '')
     rdftype = map(int, request.args.getlist('rdftype[]'))
     subject_id = request.args.get('subject_id', None)
+    print subject_id
 
     # print subject_id, rdftype
 
     converter = CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
             separator=separator, entity_type=entity_type,
             rdftype=rdftype if rdftype != [] else None,
-            subject_id = int(subject_id) if rdftype != None else None,
+            subject_id = int(subject_id) if subject_id != '' else None,
             field_metadata=None)
 
     return converter.bat_file
@@ -1308,7 +1327,7 @@ def headerExtractor():
     header = ""
     for i in range(len(header_list)):
         header += "<option>{}</option>".format(header_list[i])
-    print header
+    # print header
     return header
 
 @app.route('/loadGraph')
