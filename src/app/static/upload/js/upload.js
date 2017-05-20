@@ -9,6 +9,9 @@ $(function(){
     	maxfilesize: 50000,
 		url: '/upload',
 		uploadFinished:function(i,file,response){
+
+			var type = $(dropbox).attr('type');
+        	alert(type);
 			$.data(file).addClass('done');
 //			alert(response.list.length);
 //			console.log(response);

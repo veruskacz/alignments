@@ -1525,6 +1525,19 @@ function methodClick(th)
       description = `The method EMBEDED ALIGNMENT EXTRATION extracts an alignment already provided within the source dataset.
                      The extraction relies on the value of the linking property, i.e. property of the source that holds the identifier of the target. However, the real mechanism used to create the alignment (at the source) is unknown.`;
     }
+    else if (method == 'loadLinkset')
+    {
+      //refresh_create_linkset(mode='pred');
+      $('#src_selected_pred_row').show();
+      $('#src_list_pred_row').show();
+      $('#trg_selected_pred_row').hide();
+      $('#trg_list_pred_row').hide();
+      $('#dropbox_linkset_row').show();
+      description = `The method `+ '"' +`LOADS EXISTING LINKSET`+ '"' +` load the alignment provided within an RDF
+                    file and convert it according to the Lenticular Lens model. Source and target datasets,
+                    as well as Entity Type are mandatory. Other metadata can be filled in for documentation purpose.`;
+
+    }
     else
     {
         //refresh_create_linkset(mode='pred');

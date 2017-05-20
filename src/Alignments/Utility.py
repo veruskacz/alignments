@@ -146,7 +146,7 @@ def win_bat(file_directory, file_name):
 
     # GENERATE THE BAT FILE
 
-    bat_path = "{0}{1}{1}{2}.{3}".format(directory, os.path.sep, file_name, batch_extension())
+    bat_path = "{0}{1}{1}{2}{3}".format(directory, os.path.sep, file_name, batch_extension())
     writer = codecs.open(bat_path, "wb", "utf-8")
     writer.write(to_unicode(load_builder.getvalue()))
     writer.close()

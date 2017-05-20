@@ -117,6 +117,7 @@ def upload():
         #     filename = os.path.join(app.config['UPLOAD_FOLDER'], "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
         #     file.save(filename)
     file = request.files['file']
+    upload_type = request.args.get('upload_type', 'dataset')
     if file and allowed_file(file.filename):
 
         dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
@@ -126,12 +127,17 @@ def upload():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
         print "{}\nWas uploaded to the server".format(file.filename)
 
-        list = Ut.dir_files(dir, [".csv", ".txt", ".tsv"])
-        selectlist = ""
-        for i in range(len(list)):
-            selectlist += "<option>{}</option>".format(list[i])
-        # print list, selectlist
-        return jsonify({"success": True, 'selectlist': selectlist})
+        if upload_type == 'dataset':
+            list = Ut.dir_files(dir, [".csv", ".txt", ".tsv"])
+            selectlist = ""
+            for i in range(len(list)):
+                selectlist += "<option>{}</option>".format(list[i])
+            # print list, selectlist
+            return jsonify({"success": True, 'selectlist': selectlist})
+        elif upload_type == 'linkset':
+            list = Ut.dir_files(dir, [".trig", ".ttl"])
+            print list
+            return jsonify({"success": True, 'list': list})
 
     else:
         print "\nFile not allowed"

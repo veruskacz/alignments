@@ -423,6 +423,9 @@
                         <a href="javascript:void();" role="menuitem" tabindex="-1"
                             label="Match via Intermediate Dataset" uri="intermediate"
                             onclick="methodClick(this);">Match via Intermediate Dataset</a>
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Load existing Linkset" uri=loadLinkset
+                            onclick="methodClick(this);">Laod existing Linkset</a>
                     </li>
                 </ul>
                </span>
@@ -447,6 +450,21 @@
                <div class="well well-sm" id="selected_int_dataset" uri="">Select a Dataset</div>
             </div>
          </div>
+
+        <div class="row" id="dropbox_linkset_row" style='display:none'>
+          <div class="col-md-12" align="center">
+                  <div id="dropbox3" type = 'linkset'>
+                    <span class="message">
+                        <strong>
+                            <font size="5">
+                                Drop here your linkset.
+                            </font>
+                        </strong>
+                    </span>
+                  </div>
+              </div>
+         </div>
+
         <!--<div class="row" >-->
             <!--<button class="btn btn-primary" type="button"-->
                     <!--onclick='document.getElementById("loader").style.display = "none";'-->
