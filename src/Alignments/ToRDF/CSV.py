@@ -408,7 +408,6 @@ class CSV(RDF):
         sample = builder.getvalue()
         _file.close()
         builder.close()
-        print sample
         return sample
 
     def view_converted_data(self, limit=1000):
