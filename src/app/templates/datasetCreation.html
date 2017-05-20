@@ -71,7 +71,7 @@
                  data-toggle="collapse" href="#collapse_dataset_convert">
                  <span class="badge alert-info"><strong>-</strong></span>
               </a>
-              Dataset Convertion
+              Dataset Sample
           </h4>
       </div>
       <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
@@ -121,8 +121,6 @@
                      style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE SELECTED
            </textarea>
 
-
-
         </div>
         <div class="col-md-12">
         </div>
@@ -145,7 +143,7 @@
               <a id="link_collapse_dataset_inspect"
                  data-toggle="collapse" href="#collapse_dataset_inspect">
               <span class="badge alert-info"><strong>-</strong></span></a>
-              Converted-Dataset Inspection
+              Converting Dataset to RDF
           </h4>
       </div>
       <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
@@ -181,14 +179,14 @@
             <br/> SEPARATOR
             <input  type="text" class="form-control" id="ds_separator"
                    style='font-size: 25pt;' onkeyup="getHeaderColumns();"
-                   value="">
+                   value="	">
         </div>
       </div>
       <div class="row" target = 'creation_dataset'>
         <div class="col-md-3">
             <br/> DATASET NAME (<strong>*</strong>)
             <input type="text" class="form-control" id="ds_name"
-                   value="">
+                   value="Panel_">
 
 
 
@@ -196,7 +194,7 @@
         <div class="col-md-4">
              <br/> ENTITY TYPE (<strong>*</strong>)
             <input type="text" class="form-control" id="ds_entity_type_name"
-                   value="">
+                   value="Panel">
 
             <br/> SUBJECT IDENTIFIER
             <!--<input type="text" class="form-control" id="ds_subject_id"-->
@@ -223,8 +221,97 @@
  </div>
 
 
+<div class="row creation" id="schema_dataset_row">
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" >
+      <div class="row">
+      <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_dataset_schema"
+                 data-toggle="collapse" href="#collapse_dataset_schema">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              RDF Dataset Schema Sample
+          </h4>
+      </div>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+      <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="dataset_schema_message_col"></div></td>
+                   <td align="right"><button type="button" id="schemaDatasetButton" class="btn btn-success disabled"
+                          data-toggle="button" onclick = "viewSampleRDFFile(this);" file=""
+                          target_message="dataset_schema_message_col" target_result="schema_sample">
+                   VIEW SCHEMA SAMPLE</button></td>
+           </table>
+      </div>
+     </div>
+    </div>
+    <div id="collapse_dataset_schema" class="panel-collapse collapse in" target="link_collapse_dataset_schema">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-12" id="schema_sample_list_col">
+            <BR/>FILE SAMPLE
+           <textarea readonly class="form-control" id="schema_sample"
+                     style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE SELECTED
+           </textarea>
+        </div>
+      </div>
+    </div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+
+
+
 
  <div class="row creation" id="inspect_dataset_row">
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" >
+      <div class="row">
+      <div class="col-md-4">
+          <h4 class="panel-title">
+              <a id="link_collapse_dataset_converted_sample"
+                 data-toggle="collapse" href="#collapse_dataset_converted_sample">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Converted RDF Dataset Sample
+          </h4>
+      </div>
+      <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+      <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="converted_sample_message_col"></div></td>
+                   <td align="right"><button type="button" id="converted_sampleDatasetButton" class="btn btn-success disabled"
+                          data-toggle="button" onclick = "viewSampleRDFFile(this);" file=""
+                          target_message="converted_sample_message_col" target_result="dataset_sample">
+                      VIEW DATASET SAMPLE</button></td>
+           </table>
+      </div>
+     </div>
+    </div>
+    <div id="collapse_dataset_converted_sample" class="panel-collapse collapse in" target="link_collapse_dataset_converted_sample">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-md-12" id="dataset_sample_list_col">
+            <BR/>FILE SAMPLE
+           <textarea readonly class="form-control" id="dataset_sample"
+                     style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE SELECTED
+           </textarea>
+        </div>
+      </div>
+    </div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+
+
+<div class="row creation" id="load_dataset_row">
   <div class="col-md-12" >
     <div class="panel panel-default">
     <div class="panel-heading" >
@@ -244,21 +331,27 @@
                    <td align="right"><div id="dataset_creation_message_col"></div></td>
                    <td align="right"><button type="button" id="createDatasetButton" class="btn btn-success disabled"
                           data-toggle="button" onclick = "loadGraphClick();" batchFile="">
-                      LOAD RDF DATASET</button></td>
+                      LOAD RDF SCHEMA AND DATASET</button></td>
            </table>
       </div>
      </div>
     </div>
     <div id="collapse_dataset_load" class="panel-collapse collapse in" target="link_collapse_dataset_load">
     <div class="panel-body">
-      <div class="row rq" target = 'creation_dataset_selected_RQ'>
-
+      <div class="row">
+        <div class="col-md-12" id="dataset_load_col">
+            <BR/>FILE SAMPLE
+           <textarea readonly wrap='off' class="form-control" id="dataset_load"
+                     style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE SELECTED
+           </textarea>
+        </div>
       </div>
     </div>
     </div>
    </div>
   </div>
  </div>
+
 
 </div>
 </div>

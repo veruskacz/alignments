@@ -93,7 +93,7 @@ UPLOAD_FOLDER = '/AlignmentUI/UploadedFiles/'
 # ALLOWED_EXTENSIONS2 = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = "{0}{1}{1}UploadedFiles".format(os.getcwd(), os.path.sep)
+app.config['UPLOAD_FOLDER'] = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
 ALLOWED_EXTENSIONS = ['csv', 'txt']
 
 
@@ -119,7 +119,7 @@ def upload():
     file = request.files['file']
     if file and allowed_file(file.filename):
 
-        dir = "{}\\UploadedFiles".format(os.getcwd())
+        dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
         print "\nWe will upload: {}".format(file.filename)
         print "Directory: {}".format(dir)
         print "Path: {}".format(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
@@ -1298,14 +1298,15 @@ def convertCSVToRDF():
             subject_id = int(subject_id) if subject_id != '' else None,
             field_metadata=None)
 
-    return converter.bat_file
+    return jsonify({'batch': converter.bat_file, 'data': converter.outputPath, 'schema': converter.outputMetaPath})
 
-@app.route('/readFileSample')
-def readFileSample():
-    filePath = request.args.get('file', '')
-    # result = readAndReturnSample(filePath)
-    result = ""
-    return json.dumps(result)
+
+# @app.route('/readFileSample')
+# def readFileSample():
+#     filePath = request.args.get('file', '')
+#     # result = readAndReturnSample(filePath)
+#     result = ""
+#     return json.dumps(result)
 
 
 @app.route('/importConvertedDataset')
@@ -1315,10 +1316,17 @@ def importConvertedDataset():
     result = ""
     return json.dumps(result)
 
+
 @app.route('/viewSampleFile')
 def viewSampleFile():
     filePath = request.args.get('file', '')
     return json.dumps(CSV.CSV.view_file(filePath))
+
+
+@app.route('/viewSampleRDFFile')
+def viewSampleRDFFile():
+    filePath = request.args.get('file', '')
+    return json.dumps(CSV.CSV.view_data(filePath))
 
 
 @app.route('/headerExtractor')
@@ -1332,27 +1340,17 @@ def headerExtractor():
     # print header
     return header
 
+
 @app.route('/loadGraph')
 def loadGraph():
     batch_file = request.args.get('batch_file', '')
-    return Ut.batch_load(batch_file)
+    return json.dumps(Ut.batch_load(batch_file))
 
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-# database, is_trig, file_to_convert, separator, entity_type,
-#                  rdftype=None, subject_id=None, field_metadata=None
-
-# @app.route('/getdatasetfiles')
-# def datasetfiles():
-#     list = []
-#     if isdir(PATH_DS_FILES):
-#         list = [f for f in listdir(PATH_DS_FILES) if isfile(join(PATH_DS_FILES, f))]
-#     print list
-#     # print listdir(PATH_DS_FILES)
-#     return render_template(template, list = graphs, btn_name = btn_name, function = '')
 
 # ######################################################################
 ## ENDPOINT

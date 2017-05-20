@@ -15,6 +15,7 @@ from os.path import isfile, join
 from kitchen.text.converters import to_bytes, to_unicode
 write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
 OPE_SYS = platform.system().lower()
+mac_weird_name = "darwin"
 
 
 #################################################################
@@ -121,7 +122,11 @@ def win_bat(file_directory, file_name):
 
     load_builder = cStringIO.StringIO()
     load_builder.write("""\n\techo "Loading data\"""")
-    load_builder.write("\n\tstardog data add risis")
+    if OPE_SYS == 'windows':
+        load_builder.write("\n\tstardog data add risis")
+    if OPE_SYS.__contains__(mac_weird_name):
+        startdog_path = '/Applications/stardog-4.2.3/bin/'
+        load_builder.write("\n\t{}stardog data add risis".format(startdog_path))
 
     # LOAD ONLY .TRIG OR .TTL FILES
     print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
@@ -145,6 +150,10 @@ def win_bat(file_directory, file_name):
     writer = codecs.open(bat_path, "wb", "utf-8")
     writer.write(to_unicode(load_builder.getvalue()))
     writer.close()
+    print OPE_SYS
+    if OPE_SYS.__contains__(mac_weird_name):
+        os.chmod(bat_path, 0o777)
+        print "mac"
     load_builder.close()
 
     # RETURN THE BAT FILE
@@ -153,16 +162,25 @@ def win_bat(file_directory, file_name):
 
 
 def batch_extension():
+    print "\n\nOPERATING SYSTEM " ,OPE_SYS
     bat_ext = ""
     if OPE_SYS == "windows":
         bat_ext = ".bat"
 
-    elif OPE_SYS.__contains__("mac"):
+    elif OPE_SYS.__contains__(mac_weird_name):
         bat_ext = ".sh"
     return bat_ext
 
 
-def batch_load(bat_path):
+def batch_load(batch_load):
+    if OPE_SYS == "windows":
+        return bat_load(batch_load)
+
+    elif OPE_SYS.__contains__(mac_weird_name):
+        return sh_load(batch_load)
+
+
+def bat_load(bat_path):
     try:
 
         if isfile(bat_path) and bat_path.endswith(batch_extension()):
