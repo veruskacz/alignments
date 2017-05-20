@@ -21,6 +21,7 @@ import os
 import re
 import urllib2
 import urllib
+import platform
 import Queries as Qry
 
 
@@ -672,6 +673,7 @@ def sparqlDirect():
     return render_template('viewsDetails_list.html',
                             header = header,
                             results = results)
+
 
 #######################################################################
 ## VIEW MODE
