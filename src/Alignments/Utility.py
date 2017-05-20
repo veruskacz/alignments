@@ -139,10 +139,11 @@ def win_bat(file_directory, file_name):
     print load_bldr.getvalue()
 
     # GENERATE THE BAT FILE
-    bat_path = "{}\\{}.bat".format(directory, file_name)
+    bat_path = "{0}{1}{1}{2}.sh".format(directory, os.path.sep, file_name)
     writer = codecs.open(bat_path, "wb", "utf-8")
     writer.write(to_unicode(load_bldr.getvalue()))
     writer.close()
+    os.chmod(bat_path, 0o777)
     load_bldr.close()
 
     # RETURN THE BAT FILE
@@ -150,28 +151,36 @@ def win_bat(file_directory, file_name):
     return bat_path
 
 
-def bat_load(bat_path):
-
+def batch_load(batch_path):
+    # print "-1"
     try:
-
-        if isfile(bat_path) and bat_path.endswith('.bat'):
+        # print "0"
+        if isfile(batch_path) and batch_path.endswith('.sh'):
 
             # os.system returns 0 if it all went OK and 1 otherwise.
             # BUT IT DOES NOT TELL HOW MANY TRIPLES WHERE ADDED
-            # output = os.system("{}".format(bat_path, c_path))
+            # print 1
+            output = os.system("{}".format(batch_path))
+            return output
 
             # SUBPOCESS PRINT THE ENTIRE OUTPUT:
             #   THE FILES THAT WERE ADDED
             #   HOW MANY TRIPLES WHERE ADDED
-            output = subprocess.check_output(bat_path)
+            # print 2
+            output = subprocess.check_output(batch_path)
+            # return output
             output = re.sub('\(Conversion\).*\n', '', output)
+            # print 3
 
             # THE OUTPUT CONTAINS FULL PATH THAT IS NOT ADVISABLE TO DISPLAY
             # FIND STRINGS THAT EXHIBIT A FILE PATTERN
             file_path = re.findall(" .:.*\\.*\..*", output)
+            # print 4
             for f in file_path:
 
+                # print 5
                 if f.__contains__("\\"):
+                    # print 6
                     # print "FILE FOUND: {}".format(f)
                     test = f.split("\\")
                     # EXTRACT THE END OF THAT PATTERN
@@ -180,6 +189,7 @@ def bat_load(bat_path):
                     output = output.replace(f, " " + new)
 
                 elif  f.__contains__("/"):
+                    # print 7
                     # print "FILE FOUND: {}".format(f)
                     test = f.split("/")
                     # EXTRACT THE END OF THAT PATTERN
@@ -193,7 +203,8 @@ def bat_load(bat_path):
 
 
     except Exception as err:
-        return "CHECK THE FILE PATH."
+        # print "CHECK THE FILE PATH.\n{}".format(err.message)
+        return "CHECK THE FILE PATH.\n{}".format(err.message)
 
 
 def dir_files(directory, extension_list):
@@ -479,3 +490,4 @@ def normalise_path(file_path):
     file_path = re.sub('[\t]', "\\\\t", file_path)
     file_path = re.sub('[\v]', "\\\\v", file_path)
     return file_path
+

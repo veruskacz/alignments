@@ -1800,13 +1800,20 @@ function convertDatasetClick()
                     'subject_id': subject_id},
               function(data)
         {
-            if (data)
+//            alert(data);
+            var obj = data
+//            console.log(obj);
+            if (Object.keys(obj).length)
             {
                 //$('#button_int_dataset').html(data);
     //            $('#dataset_convertion_message_col').html("");
                 $('#dataset_convertion_message_col').html(addNote("You can now load your data to the RISIS triple store in the next panel!",cl='success'));
                 enableButton('createDatasetButton');
-                setAttr('createDatasetButton','batchFile',data);
+                enableButton('schemaDatasetButton');
+                enableButton('converted_sampleDatasetButton');
+                setAttr('createDatasetButton','batchFile',obj.batch);
+                setAttr('schemaDatasetButton','file',obj.schema);
+                setAttr('converted_sampleDatasetButton','file',obj.data);
             }
             else
             {
@@ -1837,7 +1844,7 @@ function viewSampleFileClick()
               data={'file':  files[0]}, //input.value},
               function(data)
         {
-            var obj = JSON.parse(data)
+            var obj = JSON.parse(data);
             $('#upload_sample').val(obj.sample);
             $('#dataset_header').val(obj.header);
             $('#dataset_upload_message_col').html(addNote("You can now convert the data!</br>Please fill in the separator in the panel below!",cl='success'));
@@ -1849,6 +1856,33 @@ function viewSampleFileClick()
     }
 }
 
+function viewSampleRDFFile(th)
+{
+//    var input = document.getElementById('dataset_file_path');
+    var target_message = $(th).attr('target_message')
+    var target_result = $(th).attr('target_result')
+    var file = $(th).attr('file')
+//    alert(target_message)
+//    alert(target_result)
+//    alert(file)
+
+    if (target_message && target_result && file)
+    {
+        $.get('/viewSampleRDFFile',
+              data={'file':  file}, //input.value},
+              function(data)
+        {
+            var obj = JSON.parse(data);
+//            console.log(obj);
+            $('#'+target_result).val(obj);
+            $('#'+target_message).html(addNote("A sample of the converted file is displayed in the box below",cl='success'));
+        });
+    }
+    else if (target_message)
+    {
+        $('#'+target_message).html(addNote(missing_feature));
+    }
+}
 
 //$('#ds_separator').onkeyup(function() {
 function getHeaderColumns() {
@@ -1889,7 +1923,9 @@ function loadGraphClick()
               data={'batch_file': $('#createDatasetButton').attr('batchFile')},
               function(data)
             {
-//                alert(data);
+                  var obj = JSON.parse(data);
+                  console.log(obj);
+                  $('#dataset_load').val(obj);
                   $('#dataset_creation_message_col').html(addNote(loaded_dataset,cl='success'));
 
             });
