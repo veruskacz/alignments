@@ -106,8 +106,7 @@ def intersect(a, b):
 
 
 def win_bat(file_directory, file_name):
-
-    # NORMALISE THE NAME TO AVOID below C:\Users\Al\Dropbox\Linksets\test
+    # NORMALISE THE NAME TO AVOID below
     np = normalise_path(file_directory)
     # print np
 
@@ -118,9 +117,9 @@ def win_bat(file_directory, file_name):
     # LOAD ALL FILES
     # file_list = [f for f in os.listdir(dir) if os.path.isfile(join(dir, f))]
 
-    load_bldr = cStringIO.StringIO()
-    load_bldr.write("""\n\techo "Loading data\"""")
-    load_bldr.write("\n\tstardog data add risis")
+    load_builder = cStringIO.StringIO()
+    load_builder.write("""\n\techo "Loading data\"""")
+    load_builder.write("\n\tstardog data add risis")
 
     # LOAD ONLY .TRIG OR .TTL FILES
     print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
@@ -133,28 +132,38 @@ def win_bat(file_directory, file_name):
             if f.endswith('.trig') or f.endswith('.ttl'):
                 # abs =  os.path.abspath(f).replace("\\", "/")
 
-                load_bldr.write(" \"{}\"".format(full_path))
+                load_builder.write(" \"{}\"".format(full_path))
                 print "  - {}".format(full_path)
 
-    print load_bldr.getvalue()
+    print load_builder.getvalue()
 
     # GENERATE THE BAT FILE
-    bat_path = "{}\\{}.bat".format(directory, file_name)
+
+    bat_path = "{0}{1}{1}{2}.{3}".format(directory, os.path.sep, file_name, batch_extension())
     writer = codecs.open(bat_path, "wb", "utf-8")
-    writer.write(to_unicode(load_bldr.getvalue()))
+    writer.write(to_unicode(load_builder.getvalue()))
     writer.close()
-    load_bldr.close()
+    load_builder.close()
 
     # RETURN THE BAT FILE
     print "\nTHE BAT FILE IS LOCATED AT:\n  - {}".format(bat_path)
     return bat_path
 
 
-def bat_load(bat_path):
+def batch_extension():
+    bat_ext = ""
+    if OPE_SYS == "windows":
+        bat_ext = ".bat"
 
+    elif OPE_SYS.__contains__("mac"):
+        bat_ext = ".sh"
+    return bat_ext
+
+
+def batch_load(bat_path):
     try:
 
-        if isfile(bat_path) and bat_path.endswith('.bat'):
+        if isfile(bat_path) and bat_path.endswith(batch_extension()):
 
             # os.system returns 0 if it all went OK and 1 otherwise.
             # BUT IT DOES NOT TELL HOW MANY TRIPLES WHERE ADDED
@@ -179,7 +188,7 @@ def bat_load(bat_path):
                     # REPLACE THE PATTERN WITH THAT END FOUNb ABOVE
                     output = output.replace(f, " " + new)
 
-                elif  f.__contains__("/"):
+                elif f.__contains__("/"):
                     # print "FILE FOUND: {}".format(f)
                     test = f.split("/")
                     # EXTRACT THE END OF THAT PATTERN
@@ -187,6 +196,21 @@ def bat_load(bat_path):
                     # REPLACE THE PATTERN WITH THAT END FOUNb ABOVE
                     output = output.replace(f, " " + new)
 
+            print "---------------------{}---------------------".format(output)
+            return output
+
+
+    except Exception as err:
+        return "CHECK THE FILE PATH."
+
+
+def sh_load(bat_path):
+    try:
+
+        if isfile(bat_path) and bat_path.endswith(batch_extension()):
+            # os.system returns 0 if it all went OK and 1 otherwise.
+            # BUT IT DOES NOT TELL HOW MANY TRIPLES WHERE ADDED
+            output = os.system("{}".format(bat_path))
 
             print "---------------------{}---------------------".format(output)
             return output

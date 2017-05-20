@@ -396,6 +396,20 @@ class CSV(RDF):
         # print text
         return {"header": first_line, "sample": text}
 
+    @staticmethod
+    def view_data(file_path, limit=1000):
+        file = ""
+        sample = ""
+        builder = cStringIO.StringIO()
+        _file = open(file_path, 'rb')
+        for i in range(0, limit):
+            builder.write(_file.readline())
+        builder.write("\n...")
+        sample = builder.getvalue()
+        _file.close()
+        builder.close()
+        return sample
+
     def view_converted_data(self, limit=1000):
         file = ""
         sample = ""

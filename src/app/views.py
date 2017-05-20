@@ -92,7 +92,7 @@ UPLOAD_FOLDER = '/AlignmentUI/UploadedFiles/'
 # ALLOWED_EXTENSIONS2 = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = "{}\\UploadedFiles".format(os.getcwd())
+app.config['UPLOAD_FOLDER'] = "{0}{1}{1}UploadedFiles".format(os.getcwd(), os.path.sep)
 ALLOWED_EXTENSIONS = ['csv', 'txt']
 
 
