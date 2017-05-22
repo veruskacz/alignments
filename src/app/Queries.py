@@ -3,8 +3,8 @@
 # sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/Alignments')
 # sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/app')
 
-import src.Alignments.NameSpace as Ns
-from src.Alignments.UserActivities.User_Validation import get_linkset_filter
+import Alignments.NameSpace as Ns
+from Alignments.UserActivities.User_Validation import get_linkset_filter
 
 PREFIX ="""
     ################################################################

@@ -1,11 +1,11 @@
-import src.Alignments.ErrorCodes as Ec
-import src.Alignments.GenericMetadata as Gn
-import src.Alignments.Lenses.LensUtility as Lu
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
-from src.Alignments.UserActivities.UserRQ import register_lens
-from src.Alignments.Utility import write_to_file
+import Alignments.ErrorCodes as Ec
+import Alignments.GenericMetadata as Gn
+import Alignments.Lenses.LensUtility as Lu
+import Alignments.NameSpace as Ns
+import Alignments.Query as Qry
+import Alignments.Settings as St
+from Alignments.UserActivities.UserRQ import register_lens
+from Alignments.Utility import write_to_file
 
 
 def difference(specs):

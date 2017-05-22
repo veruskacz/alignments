@@ -1,0 +1,9 @@
+workers = 1
+worker_class = 'socketio.sgunicorn.GeventSocketIOWorker'
+bind = '0.0.0.0:5077'
+pidfile = '/tmp/gunicorn-lenses.pid'
+debug = True
+loglevel = 'debug'
+errorlog = '/tmp/gunicorn_lenses_error.log'
+accesslog = '/tmp/gunicorn_lenses_access.log'
+daemon = True

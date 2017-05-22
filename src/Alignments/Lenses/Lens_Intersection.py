@@ -1,8 +1,8 @@
-import src.Alignments.ErrorCodes as Ec
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Settings as St
-import src.Alignments.Utility as Ut
-from src.Alignments.Query import get_graph_type, get_lens_operator, get_graph_targets, get_graph_source_target,\
+import Alignments.ErrorCodes as Ec
+import Alignments.NameSpace as Ns
+import Alignments.Settings as St
+import Alignments.Utility as Ut
+from Alignments.Query import get_graph_type, get_lens_operator, get_graph_targets, get_graph_source_target,\
     sparql_xml_to_matrix, display_matrix
 
 

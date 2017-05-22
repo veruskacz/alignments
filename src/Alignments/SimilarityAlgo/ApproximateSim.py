@@ -4,16 +4,16 @@ import os
 import re
 from sys import maxint
 from operator import itemgetter
-import src.Alignments.Query as Qry
-import src.Alignments.Utility as Ut
-import src.Alignments.Settings as St
+import Alignments.Query as Qry
+import Alignments.Utility as Ut
+import Alignments.Settings as St
 from time import time, ctime, gmtime
-import src.Alignments.NameSpace as Ns
-import src.Alignments.GenericMetadata as Gn
-import src.Alignments.Linksets.Linkset as Ls
+import Alignments.NameSpace as Ns
+import Alignments.GenericMetadata as Gn
+import Alignments.Linksets.Linkset as Ls
 from kitchen.text.converters import to_unicode
-import src.Alignments.UserActivities.UserRQ as Urq
-from src.Alignments.CheckRDFFile import check_rdf_file
+import Alignments.UserActivities.UserRQ as Urq
+from Alignments.CheckRDFFile import check_rdf_file
 
 
 # LIMIT 2000
