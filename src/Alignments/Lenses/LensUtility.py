@@ -1,8 +1,8 @@
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Utility as Ut
-from src.Alignments.Utility import get_uri_local_name, write_to_file, update_specification
+import Alignments.Query as Qry
+import Alignments.Settings as St
+import Alignments.NameSpace as Ns
+import Alignments.Utility as Ut
+from Alignments.Utility import get_uri_local_name, write_to_file, update_specification
 
 PREFIX = """
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>

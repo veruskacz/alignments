@@ -38,23 +38,23 @@ CREATION_ACTIVE = True
 
 if CREATION_ACTIVE:
 
-    from src.app import app
-    from src.Alignments.Lenses.Lens_Union import union
-    import src.Alignments.Linksets.SPA_Linkset as spa_linkset2
-    import src.Alignments.Linksets.SPA_LinksetSubset as spa_subset
+    from app import app
+    from Alignments.Lenses.Lens_Union import union
+    import Alignments.Linksets.SPA_Linkset as spa_linkset2
+    import Alignments.Linksets.SPA_LinksetSubset as spa_subset
 
-    import src.Alignments.Utility as Ut
-    import src.Alignments.Settings as St
-    import src.Alignments.ToRDF.CSV as CSV
-    import src.Alignments.Manage.AdminGraphs as adm
-    import src.Alignments.UserActivities.UserRQ as Urq
-    import src.Alignments.UserActivities.View as mod_view
-    import src.Alignments.Linksets.SPA_LinksetRefine as refine
-    import src.Alignments.UserActivities.User_Validation as UVld
-    from src.Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
+    import Alignments.Utility as Ut
+    import Alignments.Settings as St
+    import Alignments.ToRDF.CSV as CSV
+    import Alignments.Manage.AdminGraphs as adm
+    import Alignments.UserActivities.UserRQ as Urq
+    import Alignments.UserActivities.View as mod_view
+    import Alignments.Linksets.SPA_LinksetRefine as refine
+    import Alignments.UserActivities.User_Validation as UVld
+    from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
 
 else:
-    from src.app import app
+    from app import app
 
 # log = app.logger
 # log.setLevel(logging.DEBUG)

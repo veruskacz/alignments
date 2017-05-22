@@ -2,11 +2,11 @@
 
 import xmltodict
 from cStringIO import StringIO
-import src.Alignments.Utility as Ut
-import src.Alignments.Settings as St
-import src.Alignments.NameSpace as Ns
-from src.Alignments.Lenses.Lens_Intersection import intersection
-from src.Alignments.Query import endpoint, sparql_xml_to_matrix, display_matrix, boolean_endpoint_response
+import Alignments.Utility as Ut
+import Alignments.Settings as St
+import Alignments.NameSpace as Ns
+from Alignments.Lenses.Lens_Intersection import intersection
+from Alignments.Query import endpoint, sparql_xml_to_matrix, display_matrix, boolean_endpoint_response
 
 PREFIX = """
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>

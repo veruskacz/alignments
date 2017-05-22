@@ -1,8 +1,8 @@
 
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
-import src.Alignments.NameSpace as Ns
-from src.Alignments.Utility import intersect, write_to_file, get_uri_local_name
+import Alignments.Query as Qry
+import Alignments.Settings as St
+import Alignments.NameSpace as Ns
+from Alignments.Utility import intersect, write_to_file, get_uri_local_name
 import logging
 
 

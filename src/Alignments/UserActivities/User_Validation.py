@@ -1,5 +1,5 @@
-import src.Alignments.NameSpace as Ns
-from src.Alignments.Query import boolean_endpoint_response, sparql_xml_to_matrix
+import Alignments.NameSpace as Ns
+from Alignments.Query import boolean_endpoint_response, sparql_xml_to_matrix
 
 def update_evidence(singleton_uri, message, research_uri, accepted=True):
     """

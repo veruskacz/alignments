@@ -16,13 +16,13 @@ import os
 
 from kitchen.text.converters import to_unicode
 
-import src.Alignments.ErrorCodes as Ec
-import src.Alignments.Lenses.LensUtility as Lu
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
-import src.Alignments.UserActivities.UserRQ as Ura
-from src.Alignments.CheckRDFFile import check_rdf_file
+import Alignments.ErrorCodes as Ec
+import Alignments.Lenses.LensUtility as Lu
+import Alignments.NameSpace as Ns
+import Alignments.Query as Qry
+import Alignments.Settings as St
+import Alignments.UserActivities.UserRQ as Ura
+from Alignments.CheckRDFFile import check_rdf_file
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)

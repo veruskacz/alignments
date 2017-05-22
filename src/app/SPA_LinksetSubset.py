@@ -5,7 +5,7 @@ import NameSpace as Ns
 import Query as Qry
 import Settings as St
 
-from src.Alignments import write_to_file, update_specification
+from Alignments import write_to_file, update_specification
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
