@@ -1,8 +1,8 @@
 import re
 
-import src.Alignments.ErrorCodes as Ec
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
+import Alignments.ErrorCodes as Ec
+import Alignments.Query as Qry
+import Alignments.Settings as St
 
 INFO = False
 DETAIL = False

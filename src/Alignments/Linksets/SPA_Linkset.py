@@ -1,15 +1,15 @@
 import logging
 
 import Linkset as Ls
-import src.Alignments.ErrorCodes as Ec
-import src.Alignments.GenericMetadata as Gn
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
-import src.Alignments.UserActivities.UserRQ as Urq
-import src.Alignments.Utility as Ut
+import Alignments.ErrorCodes as Ec
+import Alignments.GenericMetadata as Gn
+import Alignments.NameSpace as Ns
+import Alignments.Query as Qry
+import Alignments.Settings as St
+import Alignments.UserActivities.UserRQ as Urq
+import Alignments.Utility as Ut
 from Linkset import writelinkset
-from src.Alignments.Utility import write_to_path, update_specification
+from Alignments.Utility import write_to_path, update_specification
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)

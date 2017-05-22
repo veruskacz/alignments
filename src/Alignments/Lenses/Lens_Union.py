@@ -4,13 +4,13 @@
 import logging
 
 import LensUtility as Lu
-import src.Alignments.ErrorCodes as Ec
-import src.Alignments.GenericMetadata as Gn
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
-import src.Alignments.UserActivities.UserRQ as Urq
-from src.Alignments.Utility import write_to_file, update_specification
+import Alignments.ErrorCodes as Ec
+import Alignments.GenericMetadata as Gn
+import Alignments.NameSpace as Ns
+import Alignments.Query as Qry
+import Alignments.Settings as St
+import Alignments.UserActivities.UserRQ as Urq
+from Alignments.Utility import write_to_file, update_specification
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)

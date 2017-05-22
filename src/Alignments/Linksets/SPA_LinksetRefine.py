@@ -1,12 +1,12 @@
 import Linkset as Ls
-import src.Alignments.ErrorCodes as Ec
-import src.Alignments.GenericMetadata as Gn
-import src.Alignments.Lenses.Lens_Difference as Df
-import src.Alignments.NameSpace as Ns
-import src.Alignments.Query as Qry
-import src.Alignments.Settings as St
-from src.Alignments.UserActivities.UserRQ import register_alignment_mapping
-from src.Alignments.Utility import write_to_file, update_specification
+import Alignments.ErrorCodes as Ec
+import Alignments.GenericMetadata as Gn
+import Alignments.Lenses.Lens_Difference as Df
+import Alignments.NameSpace as Ns
+import Alignments.Query as Qry
+import Alignments.Settings as St
+from Alignments.UserActivities.UserRQ import register_alignment_mapping
+from Alignments.Utility import write_to_file, update_specification
 
 
 def refine(specs, exact=False, exact_intermediate=False):

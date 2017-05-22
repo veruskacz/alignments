@@ -1,7 +1,7 @@
 # coding=utf-8
 
-from src.Alignments.Utility import win_bat as bat
-from src.Alignments.ToRDF.RDF import *
+from Alignments.Utility import win_bat as bat
+from Alignments.ToRDF.RDF import *
 
 __name__ = """CSV"""
 entity_type_prefix = u"entity"
