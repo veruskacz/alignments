@@ -94,9 +94,10 @@
 
 {% block styles %}
 {{super()}}
+<link href="/static/upload/css/styles.css" rel="stylesheet" media="screen">
 <link rel="stylesheet"
       href="{{url_for('.static', filename='bootstrap.min.css')}}">
-<link href="/static/upload/css/styles.css" rel="stylesheet" media="screen">
+
 <style>
 .danger {
     background-color: #ffdddd;
