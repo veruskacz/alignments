@@ -9,12 +9,16 @@ import Alignments.Settings as St
 import Alignments.UserActivities.UserRQ as Urq
 import Alignments.Utility as Ut
 from Linkset import writelinkset
-from Alignments.Utility import write_to_path, update_specification
+from Alignments.Utility import update_specification
+import Alignments.Server_Settings as Ss
+DIRECTORY = Ss.settings[St.linkset_Exact_dir]
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
+
 
 """
 SINGLE PREDICATE ALIGNMENT
@@ -29,6 +33,7 @@ SINGLE PREDICATE ALIGNMENT
 
 def spa_linksets(specs, id=False, display=False, activated=False):
 
+    print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
     if activated is False:
         print "THE FUNCTION IS NOT ACTIVATED." \
               "\n======================================================" \
@@ -56,7 +61,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
 
             if id is False:
-                check = Ls.run_checks(specs)
+                check = Ls.run_checks(specs, check_type="linkset")
             else:
                 check = Ls.run_checks_id(specs)
 
@@ -64,7 +69,6 @@ def spa_linksets(specs, id=False, display=False, activated=False):
                 return check
 
             # print "NAME: " + specs[St.linkset]
-
 
             # THE LINKSET DOES NOT EXIT, LETS CREATE IT NOW
             print Ls.linkset_info(specs, specs[St.sameAsCount])
@@ -115,7 +119,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
 
                 print "\t>>> WRITING TO FILE"
                 # linkset_path = "D:\datasets\Linksets\ExactName"
-                linkset_path = write_to_path
+                linkset_path = DIRECTORY
                 writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata)
                 server_message = "Linksets created as: {}".format(specs[St.linkset])
                 message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
@@ -342,8 +346,9 @@ def specs_2_linkset(specs, display=False, activated=False):
               "\n======================================================" \
               "========================================================"
 
-    inserted_mapping = None
-    inserted_linkset = None
+    print heading
+    # inserted_mapping = None
+    # inserted_linkset = None
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -361,7 +366,8 @@ def specs_2_linkset(specs, display=False, activated=False):
         specs[St.linkset_insert_queries] = spa_linkset_ess_query(specs)
 
         # GENERATE THE LINKSET
-        inserted_linkset = spa_linksets(specs, display, activated)
+        # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
+        inserted_linkset = spa_linksets(specs, display=display, activated=activated)
 
         # REGISTER THE ALIGNMENT
         if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):

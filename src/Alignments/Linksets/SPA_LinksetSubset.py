@@ -14,12 +14,15 @@ logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
+import Alignments.Server_Settings as Ss
+DIRECTORY = Ss.settings[St.linkset_Subset_dir]
+
 
 def spa_linkset_subset(specs, activated=False):
 
     if activated is True:
 
-        check = Ls.run_checks(specs)
+        check = Ls.run_checks(specs, check_type="subset")
         if check[St.result] != "GOOD TO GO":
             return check
 
@@ -106,7 +109,7 @@ def spa_linkset_subset(specs, activated=False):
 
         print "\t>>> WRITING TO FILE"
         write_to_file(graph_name=specs[St.linkset_name], metadata=metadata.replace("INSERT DATA", ""),
-                      correspondences=construct_response, singletons=singleton_construct)
+                      correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
 
         print "\tLinkset created as [SUBSET]: ", specs[St.linkset]
         print "\t*** JOB DONE! ***"

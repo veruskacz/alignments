@@ -8,46 +8,59 @@ import Alignments.Settings as St
 from Alignments.UserActivities.UserRQ import register_alignment_mapping
 from Alignments.Utility import write_to_file, update_specification
 
+import Alignments.Server_Settings as Ss
+DIRECTORY = Ss.settings[St.linkset_Refined_dir]
+
 
 def refine(specs, exact=False, exact_intermediate=False):
-    check_none = 0
-    check_not_none = 0
-    insert_query = ""
-    insert_code = 0
 
-    if exact is False:
-        check_none += 1
-    else:
-        check_not_none += 1
-        insert_query = insert_exact_query
-        insert_code = 1
+    # if True:
+    try:
+        check_none = 0
+        check_not_none = 0
+        insert_query = ""
+        insert_code = 0
 
-    if exact_intermediate is False:
-        check_none += 1
-    else:
-        check_not_none += 1
-        insert_query = refine_intermediate_query
-        insert_code = 2
+        if exact is False:
+            check_none += 1
+        else:
+            check_not_none += 1
+            insert_query = insert_exact_query
+            insert_code = 1
 
-    refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
-    diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
-    result = {'refined': refined, 'difference': diff}
+        if exact_intermediate is False:
+            check_none += 1
+        else:
+            check_not_none += 1
+            insert_query = refine_intermediate_query
+            insert_code = 2
 
-    if check_none > 1 or check_not_none > 1:
-        print "AT MOST, ONE OF THE ARGUMENTS (exact, exact_intermediate) SHOULD BE SET."
+        refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
+        diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
+        result = {'refined': refined, 'difference': diff}
 
-    if insert_code == 1:
-        print "REFINING WITH EXACT"
-        result = refining(specs, insert_query)
+        if check_none > 1 or check_not_none > 1:
+            print "AT MOST, ONE OF THE ARGUMENTS (exact, exact_intermediate) SHOULD BE SET."
 
-    elif insert_code == 2:
-        print "REFINING WITH INTERMEDIATE"
-        result = refining(specs, insert_query)
+        if insert_code == 1:
+            print "REFINING WITH EXACT"
+            result = refining(specs, insert_query)
 
-    return result
+        elif insert_code == 2:
+            print "REFINING WITH INTERMEDIATE"
+            result = refining(specs, insert_query)
+
+        return result
+
+    except Exception as err:
+        print err.message
+        refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
+        diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
+        return {'refined': refined, 'difference': diff}
 
 
 def refining(specs, insert_query):
+
     refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
     diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
 
@@ -65,16 +78,21 @@ def refining(specs, insert_query):
 
     # GENERATE THE NAME OF THE LINKSET
     Ls.set_refined_name(specs)
+    # print "\nREFINED NAME:", specs[St.refined]
+    # print "LINKSET TO REFINE BEFORE CHECK:", specs[St.linkset]
 
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
-    check = Ls.run_checks(specs)
+    check = Ls.run_checks(specs, check_type="refine")
+    # print "\nREFINED NAME:", specs[St.refined]
+    # print "LINKSET TO REFINE:", specs[St.linkset]
 
     if check[St.message] == "NOT GOOD TO GO":
         # refined = check[St.refined]
         # difference = check["difference"]
         return check
 
-    print "NAME:", specs[St.refined]
+    # print "\nREFINED:", specs[St.refined]
+    # print "LINKSET TO REFINE:", specs[St.linkset]
     print "CHECK:", check
 
     # THE LINKSET DOES NOT EXIT, LETS CREATE IT NOW
@@ -89,8 +107,9 @@ def refining(specs, insert_query):
 
     # RETRIEVING THE METADATA ABOUT THE GRAPH TO REFINE
     metadata_q = Qry.q_linkset_metadata(specs[St.linkset])
+    # print "QUERY:", metadata_q
     matrix = Qry.sparql_xml_to_matrix(metadata_q)
-    # print matrix
+    # print "\nMETA DATA: ", matrix
 
     if matrix:
         if matrix[St.message] == "NO RESPONSE":
@@ -412,6 +431,6 @@ def refine_metadata(specs):
         # WRITE TO FILE
         print "\t>>> WRITING TO FILE"
         write_to_file(graph_name=specs[St.refined_name], metadata=metadata["query"].replace("INSERT DATA", ""),
-                      correspondences=construct_response, singletons=singleton_construct)
+                      correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
 
         return metadata["message"]

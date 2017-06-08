@@ -12,10 +12,10 @@
 import codecs
 import datetime
 import logging
-import os
 
 from kitchen.text.converters import to_unicode
-
+import os
+import Alignments.Server_Settings as Ss
 import Alignments.ErrorCodes as Ec
 import Alignments.Lenses.LensUtility as Lu
 import Alignments.NameSpace as Ns
@@ -29,8 +29,10 @@ logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
-linksetpath = "E:\datasets\Linksets"
-write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
+# linksetpath = "E:\datasets\Linksets"
+write_to_path = Ss.settings[St.linkset_Exact_dir]
+# print  write_to_path
+# "C:\Users\Al\Dropbox\Linksets\ExactName"
 
 
 #################################################################
@@ -141,7 +143,7 @@ def set_refined_name(specs):
     specs[St.refined] = specs[St.linkset].replace(specs[St.linkset_name], specs[St.refined_name])
 
 
-def run_checks(specs):
+def run_checks(specs, check_type):
 
     heading = "\n======================================================" \
               "========================================================"\
@@ -178,6 +180,8 @@ def run_checks(specs):
 
     # CHECK WHETHER THE CURRENT LINKSET NAME EXIST
     ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
+
+    # THE CURRENT AME EXIST
     if ask_1 == "true":
 
         print "ASK_1"
@@ -218,14 +222,15 @@ def run_checks(specs):
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
 
     # CHECK WHETHER THE alternative LINKSET NAME EXIST
-    elif  ask_1 == "false" and str(linkset).__contains__("subset") is False:
+    elif ask_1 == "false" and str(check_type).lower() != "subset":
 
         print "ASK 2"
         if St.refined not in specs:
-
-            # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY JTO SUBSET BECAUSE WE ASSUME
-            # A LINKSET BY SUBSET DOES NEEDS NOT THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
+            print "REFINED"
+            # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY TO SUBSET BECAUSE WE ASSUME
+            # A LINKSET BY SUBSET DOES NOT NEED THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
             counter_check = set_linkset_name(specs, inverse=True)
+
 
             # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
             ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
@@ -237,7 +242,14 @@ def run_checks(specs):
                 return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
     print "NO PROBLEM"
-    set_linkset_name(specs, inverse=False)
+    if str(check_type).lower() == "subset":
+        set_subset_name(specs, inverse=False)
+    elif str(check_type).lower() == "linkset":
+        print "ASK 3"
+        set_linkset_name(specs, inverse=False)
+    elif str(check_type).lower() == "refine":
+        set_refined_name(specs)
+
     print "\n>>> GOOD TO GO !!!"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
@@ -281,7 +293,7 @@ def run_checks_id(specs):
     ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
     if ask_1 == "true":
 
-        print "ASK_1"
+        # print "ASK_1"
         message = Ec.ERROR_CODE_2.replace('#', linkset)
 
         if St.refined in specs:
@@ -319,9 +331,9 @@ def run_checks_id(specs):
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
 
     # CHECK WHETHER THE alternative LINKSET NAME EXIST
-    elif  ask_1 == "false" and str(linkset).__contains__("subset") is False:
+    elif ask_1 == "false" and str(linkset).__contains__("subset") is False:
 
-        print "ASK 2"
+        # print "ASK 2"
         if St.refined not in specs:
 
             # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY JTO SUBSET BECAUSE WE ASSUME
@@ -480,5 +492,3 @@ def linkset_wasderivedfrom(refined_linkset_uri):
         if dictionary_result[St.result]:
             return dictionary_result[St.result][1][0]
     return None
-
-
