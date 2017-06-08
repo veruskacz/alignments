@@ -7,6 +7,10 @@ import Alignments.Settings as St
 from Alignments.UserActivities.UserRQ import register_lens
 from Alignments.Utility import write_to_file
 
+import Alignments.Server_Settings as Ss
+DIRECTORY = Ss.settings[St.lens_Diff_dir]
+
+
 
 def difference(specs):
 
@@ -84,7 +88,7 @@ def difference(specs):
         # WRITE TO FILE
         print "\t>>> WRITING TO FILE"
         write_to_file(graph_name=specs[St.lens_name], metadata=metadata.replace("INSERT DATA", ""),
-                      correspondences=construct_response, singletons=None)
+                      correspondences=construct_response, singletons=None, directory=DIRECTORY)
 
         server_message = "LENS created as: {}".format(specs[St.lens])
         message = "The LENS was created!<br/>URI = {}".format(specs[St.lens])

@@ -11,6 +11,7 @@ import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.UserActivities.UserRQ as Urq
 from Alignments.Utility import write_to_file, update_specification
+import Alignments.Server_Settings as Ss
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -18,6 +19,7 @@ handler = logging.StreamHandler()
 logger.addHandler(handler)
 
 ERROR_CODE_11 = "DUE TO A SYSTEM ERROR, WE ARE UNABLE TO PROCESS YOUR REQUEST."
+DIRECTORY = Ss.settings[St.lens_Union__dir]
 
 
 #################################################################
@@ -199,7 +201,8 @@ def union(specs, activated=False):
         if construct_response is not None:
             print "\t>>> WRITING TO FILE"
             construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.lens]), 1)
-            write_to_file(graph_name=specs[St.lens_name], metadata=None, correspondences=construct_response)
+            write_to_file(
+                graph_name=specs[St.lens_name], metadata=None, correspondences=construct_response, directory=DIRECTORY)
         print "\tLens created as : ", specs[St.lens]
         print "\t*** JOB DONE! ***"
 

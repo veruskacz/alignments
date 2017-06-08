@@ -11,6 +11,9 @@ logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
+import Alignments.Server_Settings as Ss
+DIRECTORY = Ss.settings[St.lens_transitive__dir]
+
 
 def lens_transitive(data, activated=False):
 
@@ -59,7 +62,7 @@ def lens_transitive(data, activated=False):
 
     # WRITE TO FILE
     if activated is True:
-        write_to_file(graph_name=data['link_label'], metadata=metadata,
+        write_to_file(graph_name=data['link_label'], metadata=metadata, directory=DIRECTORY,
                       correspondences=construct_correspondence, singletons=construct_singletons)
 
     if activated is False:
