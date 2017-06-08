@@ -1,5 +1,4 @@
 import re
-
 import Alignments.ErrorCodes as Ec
 import Alignments.Query as Qry
 import Alignments.Settings as St

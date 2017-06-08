@@ -120,6 +120,9 @@ def view_data(view_specs, view_filter):
 def view(view_specs, view_filter, save=False, limit=10):
     """
     :param view_specs:
+    :param view_filter:
+    :param save:
+    :param limit
     :param view_filter: AN ARRAY OF DICTIONARY. THE DICTIONARY
         CONTAINS GRAPH AND PROPERTIES KEYWORDS. THE VALUE OF THE
         PROPERTIES KEYWORDS IS AN ARRAY OF PROPERTIES AVAILABLE IN THE GRAPH
@@ -145,8 +148,9 @@ def view(view_specs, view_filter, save=False, limit=10):
         print "We are in save mode!"
         is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
         print is_metadata_inserted
-        message = "The insertion metadata was successfully inserted." if is_metadata_inserted == "true" \
-         else "The metadata could not be inserted."
+        message = "The insertion metadata was successfully inserted." \
+            if is_metadata_inserted == "true" \
+            else "The metadata could not be inserted."
         print message
         view_metadata[St.message] = message
         # print view_metadata[St.insert_query]
@@ -775,4 +779,3 @@ def get_namedgraph_size(linkset_uri, isdistinct=False):
         return dropload_doc['sparql']['results']['result']['binding']['literal']['#text']
     else:
         return None
-
