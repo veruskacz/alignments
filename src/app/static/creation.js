@@ -65,7 +65,7 @@ function mainButtonClick(targetId)
 
    if ($('#'+text).attr('uri'))
    {
-        elem = document.getElementById('#'+text);
+        elem = document.getElementById(text);
         rqClick(elem, mode=mode);
    }
 }

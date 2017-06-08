@@ -1,8 +1,8 @@
 $(function(){
-	
+
 	var dropbox = $('#dropbox'),
 		message = $('.message', dropbox);
-	
+
 	dropbox.filedrop({
 		paramname: 'file',
 		maxfiles: 5,
@@ -17,7 +17,7 @@ $(function(){
 //			console.log(response);
             $('#ds_files_list').html("<option>-- Select a file to view a sample --</option>"+response.selectlist);
 		},
-		
+
     	error: function(err, file) {
 			switch(err) {
 				case 'BrowserNotSupported':
@@ -33,7 +33,7 @@ $(function(){
 					break;
 			}
 		},
-		
+
 //		beforeEach: function(file)
 //		{
 //			if(!file.type.match(/^.csv\//))
@@ -72,13 +72,13 @@ $(function(){
 		uploadStarted: function(i, file, len){
 			createImage(file);
 		},
-		
+
 		progressUpdated: function(i, file, progress) {
 			$.data(file).find('.progress').width(progress);
 		}
-    	 
+
 	});
-	
+
 	var template = '<div class="preview">'+
 						'<span class="imageHolder">'+
 							'<img />'+
@@ -87,28 +87,28 @@ $(function(){
 						'<div class="progressHolder">'+
 							'<div class="progress"></div>'+
 						'</div>'+
-					'</div>'; 
-	
-	
+					'</div>';
+
+
 	function createImage(file){
 
-		var preview = $(template), 
+		var preview = $(template),
 			image = $('img', preview);
-			
+
 		var reader = new FileReader();
-		
+
         image.width = 100;
 		image.height = 100;
 
 		reader.onload = function(e){
 			image.attr('src',e.target.result);
 		};
-		
+
 		reader.readAsDataURL(file);
-		
+
 		message.hide();
 		preview.appendTo(dropbox);
-		
+
 		$.data(file,preview);
 	}
 

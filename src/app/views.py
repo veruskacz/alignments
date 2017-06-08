@@ -1,74 +1,71 @@
 # encoding=utf-8
-import json
-import logging
 
+import os
+import re
+import ast
+import json
+import urllib
+import urllib2
+import logging
 import requests
+import xmltodict
+import collections
+import Queries as Qry
+from kitchen.text.converters import to_bytes
 from flask import render_template, request, redirect,  url_for, jsonify  #, make_response, g
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
-import xmltodict
-import collections
-from kitchen.text.converters import to_bytes
+
 import cgi
 # from os import listdir
 # from os.path import isfile, isdir, join
 
-import ast
-import os
-import re
-import urllib2
-import urllib
-import platform
-import Queries as Qry
 
+CREATION_ACTIVE = True
+FUNCTION_ACTIVATED = False
+if CREATION_ACTIVE:
+
+    from app import app
+    import Alignments.Utility as Ut
+    import Alignments.Settings as St
+    import Alignments.ToRDF.CSV as CSV
+    import Alignments.Manage.AdminGraphs as adm
+    from Alignments.Lenses.Lens_Union import union
+    import Alignments.UserActivities.UserRQ as Urq
+    import Alignments.UserActivities.View as mod_view
+    import Alignments.Linksets.SPA_Linkset as spa_linkset2
+    import Alignments.Linksets.SPA_LinksetRefine as refine
+    import Alignments.UserActivities.User_Validation as UVld
+    import Alignments.Linksets.SPA_LinksetSubset as spa_subset
+    from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
+
+else:
+    from app import app
 
 ENDPOINT_URL = 'http://localhost:5820/risis/query'
 UPDATE_URL = 'http://localhost:5820/risis/update'
 DATABASE = "risis"
 HOST = "localhost:5820"
 PATH_DS_FILES= '/Users/veruskacz/PyWebApp/alignments/src/data/'
-
 REASONING_TYPE = 'SL'
 
 
-CREATION_ACTIVE = True
-
-if CREATION_ACTIVE:
-
-    from app import app
-    from Alignments.Lenses.Lens_Union import union
-    import Alignments.Linksets.SPA_Linkset as spa_linkset2
-    import Alignments.Linksets.SPA_LinksetSubset as spa_subset
-
-    import Alignments.Utility as Ut
-    import Alignments.Settings as St
-    import Alignments.ToRDF.CSV as CSV
-    import Alignments.Manage.AdminGraphs as adm
-    import Alignments.UserActivities.UserRQ as Urq
-    import Alignments.UserActivities.View as mod_view
-    import Alignments.Linksets.SPA_LinksetRefine as refine
-    import Alignments.UserActivities.User_Validation as UVld
-    from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
-
-else:
-    from app import app
-
 # log = app.logger
 # log.setLevel(logging.DEBUG)
-
 ### This is old style, but leaving for backwards compatibility with earlier versions of Stardog
 QUERY_HEADERS = {
-                    'Accept': 'application/sparql-results+json',
-                    'SD-Connection-String': 'reasoning={}'.format(REASONING_TYPE)
-                }
+    'Accept': 'application/sparql-results+json',
+    'SD-Connection-String': 'reasoning={}'.format(REASONING_TYPE)
+}
 
 UPDATE_HEADERS = {
-                    'Content-Type': 'application/sparql-update',
-                    'SD-Connection-String': 'reasoning={}'.format(REASONING_TYPE)
-                 }
+    'Content-Type': 'application/sparql-update',
+    'SD-Connection-String': 'reasoning={}'.format(REASONING_TYPE)
+}
+
 # <http://www.w3.org/ns/prov#>
 PREFIXES =  """
     PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
@@ -88,18 +85,19 @@ PRINT_RESULTS = False
 #     print msg
 #     return msg
 
-UPLOAD_FOLDER = '/AlignmentUI/UploadedFiles/'
-"C:\Users\Al\PycharmProjects\AlignmentUI\UploadedFiles"
+# UPLOAD_FOLDER = '/AlignmentUI/UploadedFiles/'
+# "C:\Users\Al\PycharmProjects\AlignmentUI\UploadedFiles"
 # ALLOWED_EXTENSIONS2 = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
+UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
 ALLOWED_EXTENSIONS = ['csv', 'txt']
 
 
 @app.route('/default_dir_files')
 def default_dir_files():
-    list = Ut.dir_files(app.config['UPLOAD_FOLDER'] , [".csv", ".txt", ".tsv"])
+
+    list = Ut.dir_files(UPLOAD_FOLDER , [".csv", ".txt", ".tsv"])
     selected_list = ""
     for i in range(len(list)):
         selected_list += "<option>{}</option>".format(list[i])
@@ -114,7 +112,7 @@ def upload():
         # file = request.files['file']
         # if file and allowed_file(file.filename):
         #     now = datetime.now()
-        #     filename = os.path.join(app.config['UPLOAD_FOLDER'], "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
+        #     filename = os.path.join(UPLOAD_FOLDER, "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
         #     file.save(filename)
     file = request.files['file']
     upload_type = request.args.get('upload_type', 'dataset')
@@ -123,8 +121,8 @@ def upload():
         dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
         print "\nWe will upload: {}".format(file.filename)
         print "Directory: {}".format(dir)
-        print "Path: {}".format(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
+        file.save(os.path.join(UPLOAD_FOLDER, file.filename))
         print "{}\nWas uploaded to the server".format(file.filename)
 
         if upload_type == 'dataset':
@@ -148,7 +146,7 @@ def upload():
 
 
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/", methods=['GET'])
 def index():
 
     if request.method == 'POST':
@@ -171,15 +169,14 @@ def index():
             dir = "{}\\UploadedFiles".format(os.getcwd())
             print "\nWe will upload: {}".format(file.filename)
             print "Directory: {}".format(dir)
-            print "Path: {}".format(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+            print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
+            file.save(os.path.join(UPLOAD_FOLDER, file.filename))
             print "{}\nWas uploaded to the server".format(file.filename)
             # return jsonify({"success": True})
             # return render_template('base.html')
             # return redirect(url_for('uploaded_file', filename=file.filename))
     else:
         return render_template('base.html')
-
 
 
 @app.route('/getgraphs')
@@ -381,11 +378,11 @@ def linksetdetails():
             o_datatype = md['o_datatype_stripped']['value'],
             objTarget = md['objTarget_stripped']['value'],
             s_property = md['s_property_stripped']['value'],
-            o_property= md['o_property_stripped']['value'],
+            o_property = md['o_property_stripped']['value'],
             mechanism = md['mechanism_stripped']['value'],
-            s_property_list= s_property_list,
-            o_property_list= o_property_list,
-            mechanism_list= mechanism_list
+            s_property_list = s_property_list,
+            o_property_list = o_property_list,
+            mechanism_list = mechanism_list
         )
 
 
@@ -865,18 +862,19 @@ def spa_linkset():
         'mechanism': request.args.get('mechanism', '')
     }
 
-
-    # print "\n\n\nSPECS: ", specs
     if CREATION_ACTIVE:
+
+        # print "\n\n\nSPECS: ", specs
+
         if specs['mechanism'] == 'exactStrSim':
-            linkset_result = spa_linkset2.specs_2_linkset(specs, display=False, activated=True)
+            linkset_result = spa_linkset2.specs_2_linkset(specs=specs, display=False, activated=FUNCTION_ACTIVATED)
 
         elif specs['mechanism'] == 'embededAlignment':
             del specs['target']['aligns']
-            linkset_result = spa_subset.specification_2_linkset_subset(specs, activated=True)
+            linkset_result = spa_subset.specification_2_linkset_subset(specs, activated=FUNCTION_ACTIVATED)
 
         elif specs['mechanism'] == 'identity':
-            linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
+            linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
 
         elif specs['mechanism'] == 'approxStrSim':
             linkset_result = prefixed_inverted_index(specs, 0.8)
@@ -887,9 +885,7 @@ def spa_linkset():
         else:
             linkset_result = None
     else:
-        linkset_result = {'message': 'Linkset creation is inactive!',
-                           'error_code': -1,
-                           St.result: None}
+        linkset_result = {'message': 'Linkset creation is inactive!', 'error_code': -1, St.result: None}
 
     # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
 
