@@ -132,3 +132,23 @@ message = "message"
 researchQ_URI = "researchQ_URI"
 
 intermediate_graph = "intermediate_graph"
+
+
+stardog_host_name = "stardog_host_name"
+data_dir = "data_dir"
+linkset_dir = "linkset_dir"
+lens_dir = "lens_dir"
+uploaded_dataset_dir = "uploaded_dataset_dir"
+uploaded_alignments= "UPLOADED_ALIGNMENTS"
+
+linkset_Exact_dir = "linkset_Exact_dir"
+linkset_Approx_dir = "linkset_Approx_dir"
+linkset_Emb_dir = "linkset_Emb_dir"
+linkset_ID_dir = "linkset_ID_dir"
+linkset_Refined_dir = "linkset_Refined_dir"
+linkset_Subset_dir = "linkset_Subset_dir"
+
+lens_Diff_dir = "lens_Diff_dir"
+lens_transitive__dir = "lens_transitive__dir"
+lens_Union__dir = "lens_Union__dir"
+

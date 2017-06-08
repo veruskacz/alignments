@@ -3,17 +3,20 @@
 import os
 import re
 from sys import maxint
-from operator import itemgetter
 import Alignments.Query as Qry
+from operator import itemgetter
 import Alignments.Utility as Ut
 import Alignments.Settings as St
-from time import time, ctime, gmtime
 import Alignments.NameSpace as Ns
+from time import time, ctime, gmtime
 import Alignments.GenericMetadata as Gn
 import Alignments.Linksets.Linkset as Ls
-from kitchen.text.converters import to_unicode
 import Alignments.UserActivities.UserRQ as Urq
+from kitchen.text.converters import to_unicode
 from Alignments.CheckRDFFile import check_rdf_file
+
+import Alignments.Server_Settings as Ss
+DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 
 
 # LIMIT 2000
@@ -95,24 +98,24 @@ def inverted_index(specs, theta):
         return table_matrix
 
     # HELPER FOR CREATING A CORRESPONDENCE
-    def correspondence(description, writers):
-        # GENERATE CORRESPONDENCE
-        crpdce = "\t<{0}> \t\t{1}_{2}_{3} \t\t<{4}> .\n".format(
-            description[St.src_resource], description[St.link],
-            description[St.row], description[St.inv_index], description[St.trg_resource])
-        # WRITE CORRESPONDENCE TO FILE
-        writers[St.crpdce_writer].write(to_unicode(crpdce))
-
-        # GENERATE SINGLETONS METADATA
-        singleton = "\n\t{1}_{2}_{3}\n\t\t" \
-                    "alivocab:hasStrength \t\t{5} ;" \
-                    "\n\t\talivocab:hasEvidence  \t\t\"[{6}] was compared to [{7}]\" .\n".\
-            format(description[St.src_resource], description[St.link], description[St.row],
-                   description[St.inv_index], description[St.trg_resource], description[St.sim],
-                   description[St.src_value], description[St.trg_value])
-        writers[St.singletons_writer].write(to_unicode(singleton))
-        # WRITE SINGLETON EVIDENCE TO FILE
-        return crpdce + singleton
+    # def correspondence(description, writers):
+    #     # GENERATE CORRESPONDENCE
+    #     crpdce = "\t<{0}> \t\t{1}_{2}_{3} \t\t<{4}> .\n".format(
+    #         description[St.src_resource], description[St.link],
+    #         description[St.row], description[St.inv_index], description[St.trg_resource])
+    #     # WRITE CORRESPONDENCE TO FILE
+    #     writers[St.crpdce_writer].write(to_unicode(crpdce))
+    #
+    #     # GENERATE SINGLETONS METADATA
+    #     singleton = "\n\t{1}_{2}_{3}\n\t\t" \
+    #                 "alivocab:hasStrength \t\t{5} ;" \
+    #                 "\n\t\talivocab:hasEvidence  \t\t\"[{6}] was compared to [{7}]\" .\n".\
+    #         format(description[St.src_resource], description[St.link], description[St.row],
+    #                description[St.inv_index], description[St.trg_resource], description[St.sim],
+    #                description[St.src_value], description[St.trg_value])
+    #     writers[St.singletons_writer].write(to_unicode(singleton))
+    #     # WRITE SINGLETON EVIDENCE TO FILE
+    #     return crpdce + singleton
 
     #################################################################
     # CREATING THE  INVERTED INDEX
@@ -163,21 +166,20 @@ def inverted_index(specs, theta):
     """
     linkset_name = "approxLinkset"
     link = "alivocab:approxStrSim"
-    PREFIX = "PREFIX alivocab:\t<{}>\n" \
+    prefix = "PREFIX alivocab:\t<{}>\n" \
              "PREFIX linkset:\t<{}>\n" \
              "PREFIX singletons:\t<{}>\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
     Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
-    writers = Ut.get_writers(linkset_name)
+    writers = Ut.get_writers(linkset_name, directory=DIRECTORY)
     for key, writer in writers.items():
         # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
         if type(writer) is not str:
-            writer.write(PREFIX)
+            writer.write(prefix)
             if key is St.crpdce_writer:
                 writer.write("\nlinkset:{}\n{{\n".format(linkset_name))
             elif key is St.singletons_writer:
                 writer.write("\nsingletons:{}\n{{".format(linkset_name))
-
 
     # ITERATE THROUGH THE SOURCE DATASET
     for row in range(1, iteration):
@@ -225,7 +227,7 @@ def inverted_index(specs, theta):
             writer.close()
 
     t_sim = time()
-    print "\t\t>>> in {}".format( t_sim - start)
+    print "\t\t>>> in {}".format(t_sim - start)
     print "\t\t>>> in {} match found)".format(count)
 
     check_rdf_file(writers[St.crpdce_writer_path])
@@ -319,7 +321,7 @@ def prefixed_inverted_index(specs, theta):
     specs[St.threshold] = theta
 
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
-    check = Ls.run_checks(specs)
+    check = Ls.run_checks(specs, check_type="linkset")
     if check[St.result] != "GOOD TO GO":
         return check
     # print "LINKSET: {}".format(specs[St.linkset_name])
@@ -369,18 +371,18 @@ def prefixed_inverted_index(specs, theta):
     """
 
     link = "alivocab:approxStrSim"
-    PREFIX = "PREFIX alivocab:\t<{}>\n" \
+    prefix = "PREFIX alivocab:\t<{}>\n" \
              "PREFIX linkset:\t<{}>\n" \
              "PREFIX singletons:\t<{}>\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
 
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
     Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
-    writers = Ut.get_writers(specs[St.linkset_name])
+    writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY)
     for key, writer in writers.items():
         # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
         if type(writer) is not str:
             if key is not St.batch_writer:
-                writer.write(PREFIX)
+                writer.write(prefix)
             if key is St.crpdce_writer:
                 writer.write("\nlinkset:{}\n{{\n".format(specs[St.linkset_name]))
             elif key is St.singletons_writer:
@@ -407,14 +409,14 @@ def prefixed_inverted_index(specs, theta):
         return table_matrix[St.result]
 
     # HELPER FOR CREATING A CORRESPONDENCE
-    def correspondence(description, writers, count):
+    def correspondence(description, in_writers, counter):
 
         # GENERATE CORRESPONDENCE
-        crpdce = "\n\t### Instance [{5}]\n\t<{0}> \t\t{1}_{2}_{3} \t\t<{4}> .\n".format(
+        in_crpdce = "\n\t### Instance [{5}]\n\t<{0}> \t\t{1}_{2}_{3} \t\t<{4}> .\n".format(
             description[St.src_resource], description[St.link],
-            description[St.row], description[St.inv_index], description[St.trg_resource], count)
+            description[St.row], description[St.inv_index], description[St.trg_resource], counter)
         # WRITE CORRESPONDENCE TO FILE
-        writers[St.crpdce_writer].write(to_unicode(crpdce))
+        in_writers[St.crpdce_writer].write(to_unicode(in_crpdce))
 
         # GENERATE SINGLETONS METADATA
         singleton = "\n\t### Instance [{8}]\n\t{1}_{2}_{3}\n\t\t" \
@@ -422,40 +424,40 @@ def prefixed_inverted_index(specs, theta):
                     "\n\t\talivocab:hasEvidence  \t\t\"[{6}] was compared to [{7}]\" .\n".\
             format(description[St.src_resource], description[St.link], description[St.row],
                    description[St.inv_index], description[St.trg_resource], description[St.sim],
-                   description[St.src_value], description[St.trg_value], count)
-        writers[St.singletons_writer].write(to_unicode(singleton))
+                   description[St.src_value], description[St.trg_value], counter)
+        in_writers[St.singletons_writer].write(to_unicode(singleton))
         # WRITE SINGLETON EVIDENCE TO FILE
-        return crpdce + singleton
+        return in_crpdce + singleton
 
     def get_tf(matrix):
         # Qry.display_matrix(matrix, is_activated=True)
         # print matrix
         term_frequency = dict()
-        for row in range(1, len(matrix)):
+        for r in range(1, len(matrix)):
             # print "matrix[row]:", matrix[row]
 
             # REMOVE DATA IN BRACKETS
-            tokens = remove_info_in_bracket(to_unicode(matrix[row][1]))
-            tokens = tokens.split(" ")
+            in_tokens = remove_info_in_bracket(to_unicode(matrix[r][1]))
+            in_tokens = in_tokens.split(" ")
 
             # COMPUTE FREQUENCY
-            for token in tokens:
-                if token not in term_frequency:
-                    term_frequency[token] = 1
+            for t in in_tokens:
+                if t not in term_frequency:
+                    term_frequency[t] = 1
                 else:
-                    term_frequency[token] += 1
+                    term_frequency[t] += 1
 
         return term_frequency
 
-    def get_inverted_index(matrix, tf, theta):
+    def get_inverted_index(matrix, tf, threshold):
 
         # INVERTED INDEX DICTIONARY
         inv_index = dict()
 
-        for row in range(1, len(matrix)):
+        for in_row in range(1, len(matrix)):
 
             # GET THE VALUE
-            value = to_unicode(matrix[row][1])
+            value = to_unicode(matrix[in_row][1])
 
             # REMOVE DATA IN BRACKETS
             value = remove_info_in_bracket(value)
@@ -463,27 +465,27 @@ def prefixed_inverted_index(specs, theta):
             # REMOVE (....) FROM THE VALUE
 
             # GET THE TOKENS
-            tokens = value.split(" ")
+            in_tokens = value.split(" ")
             # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
-            included = len(tokens) - (int(theta*len(tokens)) - 1)
+            included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
-            for i in range(len(tokens)):
+            for i in range(len(in_tokens)):
                 # print value + " | +" + tokens[i]
-                tokens[i] = [tokens[i], tf[tokens[i]]]
+                in_tokens[i] = [in_tokens[i], tf[in_tokens[i]]]
             # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
-            tokens = sorted(tokens, key=itemgetter(1))
+            in_tokens = sorted(in_tokens, key=itemgetter(1))
 
             # INSERTING included TOKENS IN THE INVERTED INDEX
-            for token in tokens[:included]:
-                if token[0] not in inv_index:
+            for t in in_tokens[:included]:
+                if t[0] not in inv_index:
                     # THE INVERTED INDEX DICTIONARY HAS A TUPLE OF AN [ARRAY OF INDEXES] AND A [TERM FREQUENCY]
-                    inv_index[token[0]] = [row]
-                elif row not in inv_index[token[0]]:
+                    inv_index[t[0]] = [in_row]
+                elif in_row not in inv_index[t[0]]:
                     # UPDATE THE INDEX ARRAY AND INCREMENT THE TERM FREQUENCY
-                    inv_index[token[0]] += [row]
+                    inv_index[t[0]] += [in_row]
         return inv_index
 
-    def get_tokens_to_include(string, theta, tf):
+    def get_tokens_to_include(string, threshold, tf):
 
         # GET THE TOKENS
         stg = to_unicode(string)
@@ -495,17 +497,18 @@ def prefixed_inverted_index(specs, theta):
         # if stg != to_unicode(string):
         #     print stg + "!!!!!!!!!"
 
-        tokens = stg.split(" ")
+        in_tokens = stg.split(" ")
         # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
-        included = len(tokens) - (int(theta * len(tokens)) - 1) if int(theta * len(tokens)) > 1 else len(tokens)
+        included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1) \
+            if int(threshold * len(in_tokens)) > 1 else len(in_tokens)
 
         # UPDATE THE TOKENS WITH THEIR FREQUENCY
-        for i in range(len(tokens)):
-            tokens[i] = [tokens[i], tf[tokens[i]]]
+        for i in range(len(in_tokens)):
+            in_tokens[i] = [in_tokens[i], tf[in_tokens[i]]]
 
         # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
-        tokens = sorted(tokens, key=itemgetter(1))
-        return tokens[:included]
+        in_tokens = sorted(in_tokens, key=itemgetter(1))
+        return in_tokens[:included]
 
     def remove_info_in_bracket(text):
 
@@ -554,7 +557,7 @@ def prefixed_inverted_index(specs, theta):
     Ut.update_specification(specs)
 
     t_load = time()
-    print "1. DATASETS LOADED.\n\t\t>>> IN {}".format(t_load -start)
+    print "1. DATASETS LOADED.\n\t\t>>> IN {}".format(t_load - start)
 
     print "2. VALIDATING THE TABLES"
     if (src_dataset is not None) and (trg_dataset is None):
@@ -631,7 +634,8 @@ def prefixed_inverted_index(specs, theta):
                 crpdce[St.row] = row
                 crpdce[St.inv_index] = idx
 
-                if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
+                # if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
+                if gmtime(time()).tm_min % 10 == 0:
                     print correspondence(crpdce, writers, count)
                 else:
                     correspondence(crpdce, writers, count)
@@ -640,7 +644,6 @@ def prefixed_inverted_index(specs, theta):
     print "\t\t>>> in {} MINUTE(S).\n\t\t>>> Elapse time: {} MINUTE(S)".format(
         (t_sim - t_inv_ind)/60, (t_sim - start)/60)
     print "\t\t>>> {} match found".format(count)
-
 
     metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
     writers[St.meta_writer].write(to_unicode(metadata))
@@ -669,7 +672,6 @@ def prefixed_inverted_index(specs, theta):
     print ">>> FINISHED ON {}".format(ctime(t_sim))
     print ">>> MATCH WAS DONE IN {}\n".format((t_sim - start)/60)
 
-
     # print inserted
     # if int(inserted[1]) > 0:
     if count > 0:
@@ -678,7 +680,7 @@ def prefixed_inverted_index(specs, theta):
             St.batch_output_path]
 
         os.system(writers[St.batch_output_path])
-        inserted = Qry.insert_size(specs[St.linkset], isdistinct=False)
+        # inserted = Qry.insert_size(specs[St.linkset], isdistinct=False)
 
         # REGISTER THE ALIGNMENT
         if check[St.result].__contains__("ALREADY EXISTS"):
@@ -702,26 +704,3 @@ def prefixed_inverted_index(specs, theta):
         print message
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
-
-
-# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(SingletonMetadata)-20170317.trig")
-# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(Linksets)-20170317.trig")
-# tokens = 5
-# theta = 0.8
-# print (int(theta*tokens))
-# print tokens - (int(theta*tokens) - 1)
-# included = tokens - (int(theta * tokens - 1)) if int(theta * tokens) > 1 else tokens
-# print included
-
-
-# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(SingletonMetadata)-20170317.trig")
-# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(Linksets)-20170317.trig")
-# tokens = 5
-# theta = 0.8
-# print (int(theta*tokens))
-# print tokens - (int(theta*tokens) - 1)
-# included = tokens - (int(theta * tokens - 1)) if int(theta * tokens) > 1 else tokens
-# print included
-
-# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(SingletonMetadata)-20170317.trig")
-# check_rdf_file("C:\Users\Al\Dropbox\Linksets\ApproxSim\\approxLinkset(Linksets)-20170317.trig")

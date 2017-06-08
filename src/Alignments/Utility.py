@@ -4,16 +4,16 @@ import time
 import rdflib
 import codecs
 import datetime
+import platform
 import cStringIO
 import xmltodict
-import platform
 import subprocess
 import Query as Qry
 import Settings as St
 from os import listdir
 from os.path import isfile, join
 from kitchen.text.converters import to_bytes, to_unicode
-write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
+# write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
 OPE_SYS = platform.system().lower()
 mac_weird_name = "darwin"
 
@@ -109,6 +109,7 @@ def intersect(a, b):
 
 
 def win_bat(file_directory, file_name):
+
     # NORMALISE THE NAME TO AVOID below
     np = normalise_path(file_directory)
     # print np
@@ -122,11 +123,14 @@ def win_bat(file_directory, file_name):
 
     load_builder = cStringIO.StringIO()
     load_builder.write("""\n\techo "Loading data\"""")
+
     if OPE_SYS == 'windows':
         load_builder.write("\n\tstardog data add risis")
-    if OPE_SYS.__contains__(mac_weird_name):
-        startdog_path = '/Applications/stardog-4.2.3/bin/'
-        load_builder.write("\n\t{}stardog data add risis".format(startdog_path))
+
+    # if OPE_SYS.__contains__(mac_weird_name):
+    else:
+        stardog_path = '/Applications/stardog-4.2.3/bin/'
+        load_builder.write("\n\t{}stardog data add risis".format(stardog_path))
 
     # LOAD ONLY .TRIG OR .TTL FILES
     print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
@@ -162,22 +166,28 @@ def win_bat(file_directory, file_name):
 
 
 def batch_extension():
-    print "\n\nOPERATING SYSTEM " ,OPE_SYS
-    bat_ext = ""
+
+    print "\n\nOPERATING SYSTEM ", OPE_SYS
+    # bat_ext = ""
+
     if OPE_SYS == "windows":
         bat_ext = ".bat"
 
-    elif OPE_SYS.__contains__(mac_weird_name):
+    # elif OPE_SYS.__contains__(mac_weird_name):
+    else:
         bat_ext = ".sh"
+
     return bat_ext
 
 
-def batch_load(batch_load):
-    if OPE_SYS == "windows":
-        return bat_load(batch_load)
+def batch_load(batch_load_file):
 
-    elif OPE_SYS.__contains__(mac_weird_name):
-        return sh_load(batch_load)
+    if OPE_SYS == "windows":
+        return bat_load(batch_load_file)
+
+    # elif OPE_SYS.__contains__(mac_weird_name):
+    else:
+        return sh_load(batch_load_file)
 
 
 def bat_load(bat_path):
@@ -219,9 +229,8 @@ def bat_load(bat_path):
             print "---------------------{}---------------------".format(output)
             return output
 
-
     except Exception as err:
-        return "CHECK THE FILE PATH."
+        return "CHECK THE FILE PATH.\n{}".format(err.message)
 
 
 def sh_load(bat_path):
@@ -235,15 +244,14 @@ def sh_load(bat_path):
             print "---------------------{}---------------------".format(output)
             return output
 
-
     except Exception as err:
-        return "CHECK THE FILE PATH."
+        return "CHECK THE FILE PATH.\n{}".format(err.message)
 
 
 def dir_files(directory, extension_list):
 
     # print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
-    list = []
+    lst = []
     for f in os.listdir(directory):
 
         full_path = join(directory, f)
@@ -251,10 +259,10 @@ def dir_files(directory, extension_list):
         if os.path.isfile(full_path):
             ext = os.path.splitext(f)[1].strip().lower()
             if ext in extension_list:
-                list.append(full_path)
+                lst.append(full_path)
 
     # print list
-    return list
+    return lst
 
 
 #################################################################
@@ -290,7 +298,7 @@ def insertgraph(dataset_name, f_path, file_count, save=True):
 
     count = 1
     # count_chunk = 0
-    for graph in ds.graphs():
+    for graph in ds.graph():
         count_lines = 0
 
         # rdflib.graph.Graph
@@ -400,7 +408,7 @@ def insertgraphs(dataset_name, dir_path):
 #################################################################
 
 
-def write_to_file(graph_name, metadata=None, correspondences=None, singletons=None):
+def write_to_file(graph_name, directory, metadata=None, correspondences=None, singletons=None):
 
     # print graph_name
 
@@ -409,7 +417,7 @@ def write_to_file(graph_name, metadata=None, correspondences=None, singletons=No
     """
     try:
         date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-        dir_name = write_to_path  # os.path.dirname(f_path)
+        dir_name = directory  # write_to_path os.path.dirname(f_path)
         linkset_file = "{}(Linksets)-{}.trig".format(graph_name, date)
         metadata_file = "{}(Metadata)-{}.trig".format(graph_name, date)
         singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(graph_name, date)
@@ -467,15 +475,12 @@ def write_to_file(graph_name, metadata=None, correspondences=None, singletons=No
         print err
 
 
-def get_writers(graph_name):
+def get_writers(graph_name, directory):
 
-    # print graph_name
-
-    """
-        2. FILE NAME SETTINGS
-    """
+    #  print graph_name
+    """ 2. FILE NAME SETTINGS """
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    dir_name = write_to_path  # os.path.dirname(f_path)
+    dir_name = directory  # write_to_path  # os.path.dirname(f_path)
     batch_file = "{}_batch)_{}.bat".format(graph_name, date)
     linkset_file = "{}(Linksets)-{}.trig".format(graph_name, date)
     metadata_file = "{}(Metadata)-{}.trig".format(graph_name, date)

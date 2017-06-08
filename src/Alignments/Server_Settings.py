@@ -2,7 +2,7 @@ import Settings as St
 import os
 
 SEP = os.path.sep
-DIR = "{0}{1}{1}AlignmentUI{1}{1}Data".format(os.getcwd(), SEP)
+DIR = "{0}{1}{1}Alignments{1}{1}Data".format(os.getcwd(), SEP)
 settings = {
 
     # STARDOG LOCAL HOST NAME
@@ -32,3 +32,6 @@ settings = {
     # UPLOADED ALIGNMENTS
     St.uploaded_alignments: '{0}{1}{1}Alignments'.format(DIR, SEP),
 }
+
+
+# print DIR

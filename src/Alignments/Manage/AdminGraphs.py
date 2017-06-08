@@ -1,103 +1,12 @@
 import time
 import xmltodict
-import Alignments.Settings as St
-import Alignments.NameSpace as Ns
-from Alignments.Query import endpoint
+import src.Alignments.Settings as St
+import src.Alignments.NameSpace as Ns
+from src.Alignments.Query import endpoint
 
 #######################################################################################
-# DROP QUERY AND EXECUTION
+# DROP GENERIC
 #######################################################################################
-
-
-def drop_linkset(graph, display=False, activated=True):
-
-    queries = """
-    #################################################################
-    ### DELETE LINKSET NAMED GRAPHS AND METADATA                  ###
-    #################################################################
-
-    ### 1. DELETING GRAPHS's METADATA
-    PREFIX void:    <{0}>
-    PREFIX bdb:     <{1}>
-    PREFIX link:    <{2}>
-
-    DELETE {{ ?linktype ?x ?y }}
-    where
-    {{
-      <{3}>
-        void:linkPredicate  ?linktype .
-      ?linktype
-        ?x                  ?y
-    }} ;
-
-    ### 2. DELETING ASSERTION METADATA
-    DELETE {{ ?assertionMethod ?x ?y }}
-    where
-    {{
-      <{3}>
-        bdb:assertionMethod     ?assertionMethod .
-      ?assertionMethod
-        ?x                      ?y
-    }} ;
-
-    ### 3. DELETING JUSTIFICATION METADATA
-    DELETE {{ ?linksetJustification ?x ?y }}
-    where
-    {{
-      <{3}>
-        bdb:linksetJustification    ?linksetJustification .
-      ?linksetJustification
-        ?x                          ?y
-    }} ;
-
-    ### 4. DELETING THE SINGLETON GRAPH
-    DELETE {{ GRAPH ?singletonGraph {{ ?x ?y ?z }} }}
-    where
-    {{
-      <{3}>
-        link:singletonGraph 		?singletonGraph .
-        GRAPH ?singletonGraph       {{ ?x ?y ?z }} .
-    }} ;
-
-    ### 5. DELETING THE META DATA
-    DELETE {{ <{3}> ?x ?y . }}
-    where
-    {{
-      <{3}>
-               ?x   ?y
-    }} ;
-
-    #################################################################
-    ### DELETE LINKSET NAMED GRAPHS                              ###
-    #################################################################
-    DROP SILENT  GRAPH <{3}>
-
-    """.format(Ns.void, Ns.bdb, Ns.alivocab, graph)
-
-    if activated is False and display is True:
-        print queries
-
-    # print endpoint(queries, database_name, host)
-
-    if activated is True:
-        print "{}{}{}".format(
-            "======================================================="
-            "=======================================================\n",
-            "DROPPING THE GRAPH <{}>... \nPLEASE WAIT FOR FEEDBACK.".format(graph),
-            "\n======================================================="
-            "======================================================="
-        )
-        drop_start = time.time()
-        drops_response = endpoint(queries)
-        drop_end = time.time()
-
-        if drops_response[St.result] is not None:
-            drops_doc = xmltodict.parse(drops_response[St.result])
-            print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
-            print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
-            if display is True:
-                print ">>> Query details  : {}\n".format(queries)
-        print ""
 
 
 def drop_linksets(display=False, activated=True):
@@ -179,7 +88,7 @@ def drop_linksets(display=False, activated=True):
         print "{}{}{}".format(
             "======================================================="
             "=======================================================\n",
-            "DROPPING LINKSET...\nPLEASE WAIT FOR FEEDBACK.",
+            "DROPPING LINKSETS...\nPLEASE WAIT FOR FEEDBACK.",
             "\n======================================================="
             "======================================================="
         )
@@ -370,7 +279,7 @@ def drop_lenses(display=False, activated=False):
         print "{}{}{}".format(
             "======================================================="
             "=======================================================\n",
-            "DROPPING LENS...\nPLEASE WAIT FOR FEEDBACK.",
+            "DROPPING LENSES...\nPLEASE WAIT FOR FEEDBACK.",
             "\n======================================================="
             "=======================================================")
         drop_start = time.time()
@@ -472,6 +381,100 @@ def drop_unions(display=False, activated=False):
                 print ">>> Query details  : {}\n".format(queries)
         print ""
 
+
+#######################################################################################
+# DROP INDIVIDUALS
+#######################################################################################
+
+def drop_linkset(graph, display=False, activated=True):
+
+    queries = """
+    #################################################################
+    ### DELETE LINKSET NAMED GRAPHS AND METADATA                  ###
+    #################################################################
+
+    ### 1. DELETING GRAPHS's METADATA
+    PREFIX void:    <{0}>
+    PREFIX bdb:     <{1}>
+    PREFIX link:    <{2}>
+
+    DELETE {{ ?linktype ?x ?y }}
+    where
+    {{
+      <{3}>
+        void:linkPredicate  ?linktype .
+      ?linktype
+        ?x                  ?y
+    }} ;
+
+    ### 2. DELETING ASSERTION METADATA
+    DELETE {{ ?assertionMethod ?x ?y }}
+    where
+    {{
+      <{3}>
+        bdb:assertionMethod     ?assertionMethod .
+      ?assertionMethod
+        ?x                      ?y
+    }} ;
+
+    ### 3. DELETING JUSTIFICATION METADATA
+    DELETE {{ ?linksetJustification ?x ?y }}
+    where
+    {{
+      <{3}>
+        bdb:linksetJustification    ?linksetJustification .
+      ?linksetJustification
+        ?x                          ?y
+    }} ;
+
+    ### 4. DELETING THE SINGLETON GRAPH
+    DELETE {{ GRAPH ?singletonGraph {{ ?x ?y ?z }} }}
+    where
+    {{
+      <{3}>
+        link:singletonGraph 		?singletonGraph .
+        GRAPH ?singletonGraph       {{ ?x ?y ?z }} .
+    }} ;
+
+    ### 5. DELETING THE META DATA
+    DELETE {{ <{3}> ?x ?y . }}
+    where
+    {{
+      <{3}>
+               ?x   ?y
+    }} ;
+
+    #################################################################
+    ### DELETE LINKSET NAMED GRAPHS                              ###
+    #################################################################
+    DROP SILENT  GRAPH <{3}>
+
+    """.format(Ns.void, Ns.bdb, Ns.alivocab, graph)
+
+    if activated is False and display is True:
+        print queries
+
+    # print endpoint(queries, database_name, host)
+
+    if activated is True:
+        print "{}{}{}".format(
+            "======================================================="
+            "=======================================================\n",
+            "DROPPING THE GRAPH <{}>... \nPLEASE WAIT FOR FEEDBACK.".format(graph),
+            "\n======================================================="
+            "======================================================="
+        )
+        drop_start = time.time()
+        drops_response = endpoint(queries)
+        drop_end = time.time()
+
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
+            print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
+            print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
+            if display is True:
+                print ">>> Query details  : {}\n".format(queries)
+        print ""
 
 #######################################################################################
 # ABOUT RESEARCH QUESTIONS

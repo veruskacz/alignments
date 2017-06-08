@@ -304,10 +304,12 @@ def linkset_refined_metadata(specs, display=False):
     print "\t>>> {} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(
         str(int(triples) - int(specs[St.triples])))
 
-    message = "{}<br/>{}}<br/>{}".format(
+    message = "{}<br/>{}<br/>{}".format(
         "{} CORRESPONDENCES IN THE SOURCE".format(triples),
         "{} CORRESPONDENCES INSERTED".format(specs[St.triples]),
-        "{} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(str(int(triples) - int(specs[St.triples])))
+        "{} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(
+            str(int(triples) - int(specs[St.triples]))
+        )
     )
 
     derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
@@ -366,4 +368,3 @@ def linkset_refined_metadata(specs, display=False):
         print query
 
     return {"query": query, "message": message}
-

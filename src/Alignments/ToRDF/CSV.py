@@ -1,7 +1,8 @@
 # coding=utf-8
 
-from Alignments.Utility import win_bat as bat
 from Alignments.ToRDF.RDF import *
+from Alignments.Utility import win_bat as bat
+
 
 __name__ = """CSV"""
 entity_type_prefix = u"entity"
@@ -360,9 +361,9 @@ class CSV(RDF):
     @staticmethod
     def view_file(file_path):
         bom = ''
-        _file = ""
-        first_line = ""
-        text = ""
+        # _file = ""
+        # first_line = ""
+        # text = ""
         bldr = cStringIO.StringIO()
         try:
             # Open the file to convert
@@ -398,8 +399,8 @@ class CSV(RDF):
 
     @staticmethod
     def view_data(file_path, limit=1000):
-        file = ""
-        sample = ""
+        # file = ""
+        # sample = ""
         builder = cStringIO.StringIO()
         _file = open(file_path, 'rb')
         for i in range(0, limit):
@@ -411,8 +412,8 @@ class CSV(RDF):
         return sample
 
     def view_converted_data(self, limit=1000):
-        file = ""
-        sample = ""
+        # file = ""
+        # sample = ""
         builder = cStringIO.StringIO()
         _file = open(self.outputPath, 'rb')
         for i in range(0, limit):
@@ -424,8 +425,8 @@ class CSV(RDF):
         return sample
 
     def view_converted_schema(self, limit=1000):
-        file = ""
-        sample = ""
+        # file = ""
+        # sample = ""
         builder = cStringIO.StringIO()
         _file = open(self.outputMetaPath, 'rb')
         for i in range(0, limit):
@@ -650,9 +651,7 @@ class CSV(RDF):
             self.write_line(
                 self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, to_unicode(value))) + u" ;")
 
-
-
-# print CSV.extractor("""\"Name","Country","State?","Level","Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID\"""", ",")
+# print CSV.extractor("""\"Name","Country","State?","Level",
+# "Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID\"""", ",")
 
 # CSV.view_file("C:\Users\Al\PycharmProjects\Linkset\Data_uploaded\orgref.csv")
-
