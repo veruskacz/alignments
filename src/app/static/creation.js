@@ -1731,6 +1731,15 @@ function refresh_create_view()
     $('#queryView').val("");
 }
 
+function refresh_import()
+{
+    $('#dropbox').html('<span class="message"><strong><font size="6">Drop here your files to upload.</font></strong></span>');
+    $('#upload_sample').val('NO DATASET FILE SELECTED');
+    $('#ds_files_list').html(select_file);
+    $('#dataset_upload_message_col').html('');
+    $('#dataset_upload_message_col').html('');
+}
+
 // const Item = ({ url, title }) => '<p class="list-group-item-text">${title}</p>';
 // // Then you could easily render it, even mapped from an array, like so:
 //
@@ -1754,6 +1763,7 @@ function import_dataset_button(th)
     $('#import_title').html('<h3>Dataset</h3>');
     $('#import_dataset_div').show();
     $('#import_alignment_div').hide();
+    refresh_import();
 }
 
 function import_alignent_button(th)
@@ -1761,6 +1771,7 @@ function import_alignent_button(th)
     $('#import_title').html('<h3>Alignment</h3>');
     $('#import_alignment_div').show();
     $('#import_dataset_div').hide();
+    refresh_import();
 }
 
 $(".collapse").on('hidden.bs.collapse', function(){
