@@ -1,16 +1,27 @@
 import NameSpace as Ns
 import Settings as St
-
+import Utility as Ut
 import os
 import codecs
 import cStringIO
 from kitchen.text.converters import to_bytes, to_unicode
 
 
+
+
+
+
+
+
+
 mechanism_1 = "exactStrSim"
 mechanism_2 = "unknown"
 dt_base = "risis"
 host = "localhost:5820"
+
+"Does the collocation of applicants and panel members in an organisation influence the panel decision?"
+"Applicant and address => RISIS"
+"Panel members with address & and panel members"
 
 ################################################################################################
 ################################################################################################
@@ -193,14 +204,10 @@ align = """
 linkset:eter_eter_gadm_stat_identity_N307462801
 
 {
-	<http://risis.eu/eter/resource/BE0055> predicate:identity1_17b145bb-a92e-40b4-b30c-9e800f91970b <http://risis.eu/eter/resource/BE0055> .
-
-	<http://risis.eu/eter/resource/BE0056> predicate:identity1_a6fa90fc-1f94-4ee3-a503-b07523da0f99 <http://risis.eu/eter/resource/BE0056> .
-
+	tst:BE0055 predicate:identity1_17b145bb-a92e-40b4-b30c-9e800f91970b <http://risis.eu/eter/resource/BE0055>.
+	<http://risis.eu/eter/resource/BE0056> predicate:identity1_a6fa90fc-1f94-4ee3-a503-b07523da0f99 resource:BE0056 .
 	<http://risis.eu/eter/resource/BE0057> predicate:identity1_378b3656-03ba-4c29-a4e4-e3ea9d0237ac <http://risis.eu/eter/resource/BE0057> .
-
 	<http://risis.eu/eter/resource/BE0058> predicate:identity1_be72b413-3e88-4b3f-b3e1-cbad2bd7a481 <http://risis.eu/eter/resource/BE0058> .
-
 	<http://risis.eu/eter/resource/BE0059> predicate:identity1_7d4e6944-2341-4c8f-b051-e2ecc4d79762 <http://risis.eu/eter/resource/BE0059> .
 }
 """
@@ -208,155 +215,25 @@ linkset:eter_eter_gadm_stat_identity_N307462801
 import re
 # composition = re.findall('.prefix .*:.*<.*>.*\.', align, re.M)
 
+# lab_1 = re.findall('<.*> +(.*) <.*> *\.', align, re.M)
+# lab_2 = re.findall('.*:.* +(.*) <.*> *\.', align, re.M)
+# pred_extraction = re.findall('.*:.* +(.*:.*) .*:.* *\.', align, re.M)
 
-# print align
-
-def get_graph_name_1(text_input):
-
-    name = ""
-    lines = re.findall('(.*)\n', text_input, re.M)
-    for i in range(len(lines)):
-        # print i, composition[i]
-        if lines[i].__contains__('{'):
-            # print composition[i], i
-            for j in reversed(range(i)):
-                if lines[j]:
-                    # print j, composition[j]
-                    # print text_input[j]
-                    name  = lines[j]
-                    break
-    if name.__contains__('prefix'):
-        name = ""
-    return  name
-
-
-def get_graph_name_2(file_path):
-    bom = ''
-    builder = []
-    try:
-        # Open the file to convert
-        # _file = codecs.open(self.inputPath, 'rb', encoding="utf-8")
-        _file = open(file_path, 'rb')
-
-    except Exception as exception:
-        # print "\n", exception
-        message = "NO DATASET FILE UPLOADED\n\n\n\n\n\n\t\t" + str(exception)
-        return {"header": "NO DATASET FILE UPLOADED",  "sample": message}
-
-    """ About BYTE ORDER MARK (BOM) """
-    first_line = to_bytes(_file.readline())
-
-    if first_line.startswith(to_bytes(codecs.BOM_UTF8)):
-        for i in range(len(to_bytes(codecs.BOM_UTF8))):
-            bom += first_line[i]
-        first_line = first_line.replace(bom, '')
-        print u"[" + os.path.basename(file_path) + u"]", u"contains BOM."
-
-    name = ""
-    found = False
-    count_line = 1
-    while True:
-        # Next line
-        if count_line == 1:
-            current = first_line
-        else:
-            current = _file.readline()
-        count_line += 1
-
-        #  If next line is not empty
-        # print "Line: ", current, len(current.strip())
-        if current:
-            # Add it to the builder list
-            builder += [current]
-            # Check if we start a graph
-            if current.__contains__('{'):
-                # If yes, revert through the list
-                for item in reversed(range(len(builder) - 1)):
-                    # Stop at the very first non empty line
-                    # print item, builder[item]
-                    if len(builder[item].strip()) > 0:
-                        name = builder[item].replace("\n", "").replace("\r", "")
-                        found = True
-                        # print "current", name
-                        break
-        else:
-            "The end..."
-            break
-
-        if found is True:
-            break
-
-    # for line in builder:
-    #     print line
-    _file.close()
-    if name.__contains__('prefix'):
-        name = ""
-    return name
+# print len(pred_extraction)
+# for pred in pred_extraction:
+#     print pred
 
 # name_1 = get_graph_name_2(
 #     "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" +
 #     "eter_eter_gadm_stat_identity_N307462801(Linksets)-20170526.trig")
 
 
-name_2 = get_graph_name_2(
-    "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Approx\\" +
-    "eter_grid_approxStrSim_english_Institution_Name_P158607862(Linksets)-20170526.trig")
+
+# name_1 = get_graph_name_2(
+#     "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Approx\\" +
+#     "eter_grid_approxStrSim_english_Institution_Name_P158607862(Linksets)-20170526.trig")
+
+# name_2 = get_graph_name_2(file_3)
 
 # print get_graph_name_1(align)
 
-def import_graph(linkset_graph, meta_graph, parent_predicate, sameAsCount):
-
-    # linkset_graph is supposed to be automatically extracted.
-    # This means that it is either represented with a name-space
-    # or with '<' and '>"
-
-    if str(linkset_graph).__contains__("<"):
-        # Replace the prefix part of the URI with the "meta" prefix
-        graph = re.findall('<(.*)>', linkset_graph, re.M)
-        meta_graph = "<{}_meta>".format(graph[0])
-    else:
-        meta_graph = "{}_meta".format(linkset_graph)
-
-    import_query = """
-    INSERT
-    {{
-        ### Correspondence graph
-        GRAPH {0}
-        {{
-            ### Correspondence triple with singleton predicate
-            ?source ?singPre ?target .
-        }}
-
-        ### Metadata graph
-        GRAPH {1}
-        {{
-            ### Metadata is attached to the singleton property
-            singPre rdf:singletonPropertyOf <{2}> ;
-        }}
-    }}
-    WHERE
-    {{
-        ### Imported alignment loaded in a temporally graph
-        GRAPH <{3}load>
-        {{
-            ### Alignment described with the parent property
-            ?source <{2}> ?target .
-
-            ### Create A SINGLETON URI (in A, replace C with B)
-            BIND(
-                replace("{4}imported_{2}_{5}_#", "#",", STRAFTER(str(UUID()),"uuid:"))
-                as ?pre )
-
-            BIND(iri(?pre) as ?singPre)
-        }}
-    }}
-
-""".format(
-    # 0            1           2                 3            4            5
-    linkset_graph, meta_graph, parent_predicate, Ns.tmpgraph, Ns.alivocab, sameAsCount
-)
-
-    print import_query
-
-
-import_graph(linkset_graph=name_2, meta_graph="meta", parent_predicate="sameAs", sameAsCount=5)

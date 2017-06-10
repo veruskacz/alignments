@@ -149,15 +149,16 @@ def win_bat(file_directory, file_name):
     print load_builder.getvalue()
 
     # GENERATE THE BAT FILE
-
     bat_path = "{0}{1}{1}{2}{3}".format(directory, os.path.sep, file_name, batch_extension())
     writer = codecs.open(bat_path, "wb", "utf-8")
     writer.write(to_unicode(load_builder.getvalue()))
     writer.close()
-    print OPE_SYS
+
+    # print OPE_SYS
     if OPE_SYS.__contains__(mac_weird_name):
         os.chmod(bat_path, 0o777)
-        print "mac"
+        print "MAC"
+
     load_builder.close()
 
     # RETURN THE BAT FILE
@@ -227,10 +228,10 @@ def bat_load(bat_path):
                     output = output.replace(f, " " + new)
 
             print "---------------------{}---------------------".format(output)
-            return output
+            return {"message": "OK", "result": output}
 
     except Exception as err:
-        return "CHECK THE FILE PATH.\n{}".format(err.message)
+        return {"message": "CHECK THE FILE PATH.\n{}".format(err.message), "result": None}
 
 
 def sh_load(bat_path):

@@ -371,9 +371,9 @@ def prefixed_inverted_index(specs, theta):
     """
 
     link = "alivocab:approxStrSim"
-    prefix = "PREFIX alivocab:\t<{}>\n" \
-             "PREFIX linkset:\t<{}>\n" \
-             "PREFIX singletons:\t<{}>\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
+    prefix = "@PREFIX alivocab:\t<{}> .\n" \
+             "@PREFIX linkset:\t<{}> .\n" \
+             "@PREFIX singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
 
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
     Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"

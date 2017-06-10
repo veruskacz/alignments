@@ -1,8 +1,11 @@
-import Settings as St
 import os
+import Settings as St
+
 
 SEP = os.path.sep
 DIR = "{0}{1}{1}Alignments{1}{1}Data".format(os.getcwd(), SEP)
+# UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(), SEP)
+UPLOAD_FOLDER = os.getcwd()
 settings = {
 
     # STARDOG LOCAL HOST NAME
