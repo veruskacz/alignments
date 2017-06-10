@@ -91,13 +91,13 @@ PRINT_RESULTS = False
 
 # app = Flask(__name__)
 UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
-ALLOWED_EXTENSIONS = ['csv', 'txt']
+ALLOWED_EXTENSIONS = ['csv', 'txt','ttl','trig']
 
 
 @app.route('/default_dir_files')
 def default_dir_files():
 
-    list = Ut.dir_files(UPLOAD_FOLDER , [".csv", ".txt", ".tsv"])
+    list = Ut.dir_files(UPLOAD_FOLDER , [".csv", ".txt", ".tsv", ".ttl", '.trig'])
     selected_list = ""
     for i in range(len(list)):
         selected_list += "<option>{}</option>".format(list[i])
@@ -1226,21 +1226,28 @@ def rquestions():
     It queries ...
     The result list is passed as parameters to the template list_dropdown.html
     """
-    query = Qry.get_rqs();
-    result = sparql(query, strip=False)
-    # print result
+    try:
+        query = Qry.get_rqs();
+        result = sparql(query, strip=False)
+        # print result
 
-    template = request.args.get('template', 'list_dropdown.html')
-    function = request.args.get('function', '')
+        template = request.args.get('template', 'list_dropdown.html')
+        function = request.args.get('function', '')
 
-    if PRINT_RESULTS:
-        print "\n\nRQs:", result
+        if PRINT_RESULTS:
+            print "\n\nRQs:", result
 
-    # SEND BAK RESULTS
-    return render_template(template,
-                            list = result,
-                            btn_name = 'Research Question',
-                            function = function)
+        # SEND BAK RESULTS
+        return render_template(template,
+                                list = result,
+                                btn_name = 'Research Question',
+                                function = function)
+    except Exception as err:
+        # print err.message[1]
+        # (a,b) = err.message
+        print type(err.message)
+        return str(err.message[1])
+
 
 
 @app.route('/getoverviewrq')

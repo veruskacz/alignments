@@ -247,6 +247,20 @@ function addNote(text, cl='danger')
     return note;
 }
 
+function loadingGif(sourceElem, nLevel, show=true)
+{
+    var elem = sourceElem;
+    for (var i=0; i<nLevel; i++) {
+        elem = elem.parentNode;
+    }
+    var loadDiv = elem.getElementsByClassName("loading");
+    if (show)
+    {    $(loadDiv).show();
+    } else
+    {   $(loadDiv).hide();
+    }
+}
+
 function getSelectIndexes(select) {
   var result = [];
   var options = select && select.options;

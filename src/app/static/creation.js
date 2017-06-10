@@ -70,8 +70,8 @@ function mainButtonClick(targetId)
    }
 }
 
-
-function datasetButtonClick(targetId)
+//datasetButtonClick
+function importButtonClick(targetId)
 {
    activateTargetDiv(targetId);
    elem = document.getElementById(targetId);
@@ -538,13 +538,14 @@ function createLinksetClick()
         // HERE!!!!
         $.get('/createLinkset', specs, function(data)
         {
+
               var obj = JSON.parse(data);
               $('#linkset_creation_message_col').html(addNote(obj.message,cl='info'));
         });
-
     }
     else {
       $('#linkset_creation_message_col').html(addNote(missing_feature));
+      loadingGif(document.getElementById('linkset_creation_message_col'), 2);
     }
 }
 
@@ -1742,6 +1743,23 @@ function refresh_create_view()
 // }
 
 
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Functions called at onclick of the buttons in datasetCreation.html
+// (which stand now for import both dataset and alignment)
+///////////////////////////////////////////////////////////////////////////////
+function import_dataset_button(th)
+{
+    $('#import_title').html('<h3>Dataset</h3>');
+    $('#import_dataset_div').show();
+}
+
+function import_alignent_button(th)
+{
+    $('#import_title').html('<h3>Alignment</h3>');
+    $('#import_alignment_div').show();
+}
 
 $(".collapse").on('hidden.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));

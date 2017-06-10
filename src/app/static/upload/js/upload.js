@@ -10,12 +10,10 @@ $(function(){
 		url: '/upload',
 		uploadFinished:function(i,file,response){
 
-			var type = $(dropbox).attr('type');
-        	alert(type);
-			$.data(file).addClass('done');
-//			alert(response.list.length);
-//			console.log(response);
-            $('#ds_files_list').html("<option>-- Select a file to view a sample --</option>"+response.selectlist);
+//        var type = $(dropbox).attr('type');
+//        alert(type);
+        $.data(file).addClass('done');
+        $('#ds_files_list').html("<option>-- Select a file to view a sample --</option>"+response.selectlist);
 		},
 
     	error: function(err, file) {
@@ -54,16 +52,21 @@ $(function(){
         beforeEach: function(file)
         {
 //            console.log(file);
-            var extensions = new Array("csv", "tsv", "txt");
+            if (selectedButton( document.getElementById('btn_import_alignment')))
+            {  var extensions = new Array("ttl", "trig"); }
+            else
+            {  var extensions = new Array("csv", "tsv", "txt"); }
             ext = file.name.slice((file.name.lastIndexOf(".") - 1 >>> 0) + 2);
 //            alert(file.name);
+
             if (extensions.lastIndexOf(ext) != -1)
             {
 
             }
             else
             {
-                alert('Only tabular files such as: (.csv .tsv .txt) are allowed!');
+                alert('File type not allowed are allowed!');
+//                alert('Only tabular files such as: (.csv .tsv .txt) are allowed!');
                 return false;
             }
 
