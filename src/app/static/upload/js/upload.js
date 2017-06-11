@@ -3,17 +3,36 @@ $(function(){
 	var dropbox = $('#dropbox'),
 		message = $('.message', dropbox);
 
+
 	dropbox.filedrop({
+	    type: 'POST',
 		paramname: 'file',
 		maxfiles: 5,
     	maxfilesize: 50000,
 		url: '/upload',
 		uploadFinished:function(i,file,response){
+		refresh_import(mode='upload');
 
-//        var type = $(dropbox).attr('type');
-//        alert(type);
-        $.data(file).addClass('done');
-        $('#ds_files_list').html("<option>-- Select a file to view a sample --</option>"+response.selectlist);
+        if (selectedButton(document.getElementById('btn_import_dataset')))
+        { type = 'dataset'
+        }
+        else
+        { type = 'linkset' }
+
+        $.get('/getupload',
+              data={'type':  type, 'original': response.original},
+              function(data)
+        {
+//            var obj = JSON.parse(data);
+            $.data(file).addClass('done');
+            if (type == 'dataset')
+            { $('#ds_files_list').html("<option>-- Select a file to view a sample --</option>"+data.selectlist);  }
+            else
+            { $('#ds_files_list').html("<option>-- Select a predicate --</option>"+data.selectlist); }
+
+            setAttr('viewAlignmentButton','file_path',data.original)
+        });
+
 		},
 
     	error: function(err, file) {
@@ -65,7 +84,7 @@ $(function(){
             }
             else
             {
-                alert('File type not allowed are allowed!');
+                alert('File type not allowed!');
 //                alert('Only tabular files such as: (.csv .tsv .txt) are allowed!');
                 return false;
             }

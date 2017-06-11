@@ -1739,14 +1739,19 @@ function refresh_create_view()
     $('#queryView').val("");
 }
 
-function refresh_import()
+function refresh_import(mode='all')
 {
-    $('#dropbox').html('<span class="message"><strong><font size="6">Drop here your files to upload.</font></strong></span>');
+    if (mode == 'all')
+    { $('#dropbox').html('<span class="message"><strong><font size="6">Drop here your files to upload.</font></strong></span>');
+    }
     $('#upload_sample').val('NO DATASET FILE SELECTED');
     $('#ds_files_list').html(select_file);
     $('#dataset_upload_message_col').html('');
-    $('#dataset_upload_message_col').html('');
+    enableButton('importAlignmentButton', enable=false);
+//    $('#dataset_upload_message_col').html('');
 }
+
+
 
 // const Item = ({ url, title }) => '<p class="list-group-item-text">${title}</p>';
 // // Then you could easily render it, even mapped from an array, like so:
@@ -1768,17 +1773,21 @@ function refresh_import()
 ///////////////////////////////////////////////////////////////////////////////
 function import_dataset_button(th)
 {
-    $('#import_title').html('<h3>Dataset</h3>');
+    $('#import_title').html('<h3>Import Dataset</h3>');
     $('#import_dataset_div').show();
+    $('#viewDatasetButton').show();
     $('#import_alignment_div').hide();
+    $('#viewAlignmentButton').hide();
     refresh_import();
 }
 
 function import_alignent_button(th)
 {
-    $('#import_title').html('<h3>Alignment</h3>');
+    $('#import_title').html('<h3>Import Alignment</h3>');
     $('#import_alignment_div').show();
+    $('#viewAlignmentButton').show();
     $('#import_dataset_div').hide();
+    $('#viewDatasetButton').hide();
     refresh_import();
 }
 
@@ -1908,6 +1917,29 @@ function viewSampleFileClick()
     }
 }
 
+function viewSampleAlignFileClick()
+{
+    var file = $('#viewAlignmentButton').attr('file_path');
+
+    if (file)
+    {
+        $.get('/viewSampleFile',
+              data={'file':  file, 'size':1000},
+              function(data)
+        {
+            var obj = JSON.parse(data);
+            $('#upload_sample').val(obj.sample);
+            $('#dataset_header').val(obj.header);
+            $('#dataset_upload_message_col').html(addNote("You can now convert the data!</br>Please fill in the separator in the panel below!",cl='success'));
+        });
+    }
+    else
+    {
+        $('#dataset_upload_message_col').html(addNote(missing_feature));
+    }
+}
+
+
 function viewSampleRDFFile(th)
 {
 //    var input = document.getElementById('dataset_file_path');
@@ -1988,6 +2020,52 @@ function loadGraphClick()
     }
 }
 
+
+$('#ds_files_list').change(function() {
+
+    if (selectedButton(document.getElementById('btn_import_alignment')))
+    {
+        var selectedText = $(this).find("option:selected").text();
+        if (selectedText != "-- Select a predicate --")
+        {   enableButton('importAlignmentButton')
+        }
+        else
+        {   enableButton('importAlignmentButton', enable=false)
+        }
+    }
+});
+
+function importAlignmentClick()
+{
+    var file_path = $('#viewAlignmentButton').attr('file_path');
+    var indexes_1 = []
+    indexes_1 = getSelectIndexes(document.getElementById('ds_files_list'));
+    if (indexes_1.length != 0)
+    {
+        var index = indexes_1[0];
+        if ((file_path) && (index))
+        {
+            $('#import_alignment_message_col').html(addNote(loading_dataset,cl='warning'));
+            $.get('/userLinksetImport',
+              data={'original': file_path,
+                    'index': index},
+              function(data)
+            {
+                  var obj = JSON.parse(data);
+                  console.log(obj);
+                  $('#import_alignment').val(obj);
+                  $('#import_alignment_message_col').html(addNote(loaded_dataset,cl='success'));
+            });
+        }
+    }
+//        {
+//            var rdftype = indexes_1;
+//        }
+//        else
+//        {
+//            var rdftype = [];
+//        }
+}
 
 //$('#submit_file_button').addEventListener("click", myScript);
 //

@@ -27,7 +27,6 @@ import cgi
 CREATION_ACTIVE = True
 FUNCTION_ACTIVATED = False
 if CREATION_ACTIVE:
-
     from app import app
     import Alignments.Utility as Ut
     import Alignments.Settings as St
@@ -39,6 +38,7 @@ if CREATION_ACTIVE:
     import Alignments.Linksets.SPA_Linkset as spa_linkset2
     import Alignments.Linksets.SPA_LinksetRefine as refine
     import Alignments.UserActivities.User_Validation as UVld
+    from Alignments.UserActivities import Import_Data as Ipt
     import Alignments.Linksets.SPA_LinksetSubset as spa_subset
     from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
 
@@ -115,28 +115,19 @@ def upload():
         #     filename = os.path.join(UPLOAD_FOLDER, "%s.%s" % (now.strftime("%Y-%m-%d-%H-%M-%S-%f"), file.filename.rsplit('.', 1)[1]))
         #     file.save(filename)
     file = request.files['file']
-    upload_type = request.args.get('upload_type', 'dataset')
     if file and allowed_file(file.filename):
 
         dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
         print "\nWe will upload: {}".format(file.filename)
         print "Directory: {}".format(dir)
         print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
-        file.save(os.path.join(UPLOAD_FOLDER, file.filename))
-        print "{}\nWas uploaded to the server".format(file.filename)
+        # file.save(os.path.join(UPLOAD_FOLDER, file.filename))
 
-        if upload_type == 'dataset':
-            list = Ut.dir_files(dir, [".csv", ".txt", ".tsv"])
-            selectlist = ""
-            for i in range(len(list)):
-                selectlist += "<option>{}</option>".format(list[i])
-            # print list, selectlist
-            return jsonify({"success": True, 'selectlist': selectlist})
-        elif upload_type == 'linkset':
-            list = Ut.dir_files(dir, [".trig", ".ttl"])
-            print list
-            return jsonify({"success": True, 'list': list})
+        # SAVE ORIGINAL FILE
+        original = Ipt.save_original_file(file, UPLOAD_FOLDER)
+        # print "{}\nWas uploaded to the server".format(file.filename)
 
+        return jsonify({"success": True, 'original': original})
     else:
         print "\nFile not allowed"
         return jsonify({"success": False, 'list': []})
@@ -144,6 +135,47 @@ def upload():
 
     # return jsonify({"success":True})
 
+@app.route('/getupload')
+def getupload():
+
+    upload_type = request.args.get('type', 'linkset')
+    original = request.args.get('original', '')
+    print "upload_type", upload_type
+
+    # upload_type = request.args.get('type', 'linkset')
+    if upload_type == 'dataset':
+
+        list = Ut.dir_files(dir, [".csv", ".txt", ".tsv"])
+
+        select_list = ""
+        for i in range(len(list)):
+            select_list += "<option>{}</option>".format(list[i])
+        # print list, selectlist
+        return jsonify({"success": True, 'selectlist': select_list, 'original': original})
+
+    elif upload_type == 'linkset':
+
+        # RETURN A LIST OF PREDICATES IN THE ORIGINAL FILE
+        list = Ipt.extract_predicates(original)
+        # print "List", list
+
+        # DISPLAY THE LIST OF PREDICATES
+        select_list = ""
+        for i in range(len(list)):
+            select_list += "<option>{}</option>".format(str(list[i]).replace("<", "").replace(">", ""))
+
+        # list = Ut.dir_files(dir, [".trig", ".ttl"])
+        # print list
+        return jsonify({"success": True, 'selectlist': select_list, 'original': original})
+
+    return ""
+
+@app.route('/userLinksetImport')
+def userLinksetImport():
+    original = request.args.get('original', '')
+    index = request.args.get('index', '')
+    result = Ipt.import_graph(file_path=original, parent_predicate_index=int(index)-1, detail=False)
+    return result["message"]
 
 
 @app.route("/", methods=['GET'])
@@ -1329,8 +1361,8 @@ def importConvertedDataset():
 @app.route('/viewSampleFile')
 def viewSampleFile():
     filePath = request.args.get('file', '')
-    return json.dumps(CSV.CSV.view_file(filePath))
-
+    size = request.args.get('size', '10')
+    return json.dumps(CSV.CSV.view_file(filePath, int(size)))
 
 @app.route('/viewSampleRDFFile')
 def viewSampleRDFFile():

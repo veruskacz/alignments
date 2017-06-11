@@ -359,7 +359,7 @@ class CSV(RDF):
         return content
 
     @staticmethod
-    def view_file(file_path):
+    def view_file(file_path, size=10):
         bom = ''
         # _file = ""
         # first_line = ""
@@ -388,7 +388,7 @@ class CSV(RDF):
         first_line = first_line.strip(u'\r\n')
         bldr.write(first_line + "\n")
 
-        for i in range(0, 10):
+        for i in range(0, size):
             bldr.write(_file.readline())
         text = bldr.getvalue()
         bldr.close()

@@ -36,7 +36,47 @@ UPLOAD_FOLDER = os.path.join(current_dir, "UploadedFiles")
 UPLOAD_ARCHIVE = os.path.join(current_dir, "UploadedArchive")
 
 
-def save_original_file(uploaded_file):
+def extract_predicates(file_path):
+
+    pred_list = []
+
+    """ EXTRACTING THE PREDICATE USED IN THIS ALIGNMENT USING THE ORIGINAL TRIG FILE """
+    _file = open(file_path, 'rb')
+
+    while True:
+
+        current = to_bytes(_file.readline())
+
+        if len(current.strip()) > 0:
+
+            # THE RESULT OF THE FIND COMES AS A TUPLE
+            found = re.findall('.*:[^ \t].*[ \t]+(.*:[^ \t].*)[ \t]+.*:[^ \t].* *[.;]|'
+                               '([a-zA-Z0-9].*:[^ \t][^ \t]*)[ \t]+[^ \t]*:[^ \t].* *[.;]', current, re.M)
+
+            for pred in found:
+
+                pred_1 = pred[0].strip()
+                pred_2 = pred[1].strip()
+
+                if len(pred_1) > 0 and pred_1 not in pred_list:
+                    pred_list += [pred_1]
+
+                if len(pred_2) > 0 and pred_2 not in pred_list:
+                    pred_list += [pred_2]
+
+        elif not current:
+            "The end..."
+            break
+
+    _file.close()
+
+    # for key in pred_list:
+    #     print "\t{}".format(key)
+
+    return pred_list
+
+
+def save_original_file(uploaded_file, UPLOAD_FOLDER):
     # SAVE THE ORIGINAL FILE TO THE UPLOADED FOLDER
     new_path = os.path.join(UPLOAD_FOLDER, uploaded_file.filename)
     uploaded_file.save(new_path)
@@ -269,9 +309,9 @@ def import_graph(file_path, parent_predicate_index=0, detail=False):
     arguments = get_graph_name_2(file_path, new_name)
     if arguments["message"] != "OK":
         print arguments
-        return ""
+        return {"message": "A PROBLEM OCCURRED WHILE EXTRACTING ALL PARAMETERS."}
 
-    """ 3. Replace the prefix part of the URI with the "meta" prefix """
+    """ 3. GENERATE THE NAME OF THE META DATA GRAPH """
     # linkset_graph is supposed to be automatically extracted. This means that
     # it is either represented with a name-space or with '<' and '>"
     if str(arguments["graph"]).__contains__("<"):
@@ -366,6 +406,13 @@ def import_graph(file_path, parent_predicate_index=0, detail=False):
         Qr.boolean_endpoint_response("DROP SILENT GRAPH <{}load>".format(Ns.tmpgraph))
         print import_query
 
+    message = """
+    Graph                : {}
+    Meta Graph           : {}
+    Parent Predicate     : {}
+    """.format(arguments["graph"], meta_graph, arguments["predicate"][parent_predicate_index])
+
+    return {"message": message}
 
 file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
          "eter_eter_gadm_stat_identity_N307462801(Linksets)-20170526.trig"
@@ -374,4 +421,6 @@ file_1 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\import_test_2.trig"
 
 file_3 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\LODmapping.ttl"
 
-import_graph(file_path=file_1, parent_predicate_index=0, detail=False)
+# import_graph(file_path=file_1, parent_predicate_index=0, detail=False)
+
+# extract_predicates(file_1)

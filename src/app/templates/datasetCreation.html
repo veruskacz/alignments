@@ -78,12 +78,13 @@
                    </td>
                    <td align="right">
                        <button type="button" id="viewDatasetButton" class="btn btn-success"
+                               style="display:none"
                           data-toggle="button" onclick = "viewSampleFileClick();"> VIEW DATASET FILE
                        </button>
-
-                       <!--<button type="button" id="uploadDatasetButton" class="btn btn-success disabled"-->
-                          <!--data-toggle="button" onclick = "uploadDatasetClick();"> UPLOAD DATASET FILE-->
-                       <!--</button>-->
+                       <button type="button" id="viewAlignmentButton" class="btn btn-success"
+                               style="display:none" file_path=""
+                          data-toggle="button" onclick = "viewSampleAlignFileClick();"> VIEW ALIGMENT FILE
+                       </button>
                    </td>
            </table>
       </div>
@@ -350,7 +351,46 @@
  </div>
 
  <div id="import_alignment_div" style="display:none">
-
+    <div class="row creation" id="import_alignment_row">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_import_alignment"
+                     data-toggle="collapse" href="#collapse_import_alignment">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Load the uploaded alignment to the triple store
+              </h4>
+          </div>
+          <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+          <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="import_alignment_message_col"></div></td>
+                       <td align="right"><button type="button" id="importAlignmentButton" class="btn btn-success disabled"
+                              data-toggle="button" onclick = "importAlignmentClick();" batchFile="">
+                          IMPORT ALIGNMENT</button></td>
+               </table>
+          </div>
+         </div>
+        </div>
+        <div id="collapse_import_alignment" class="panel-collapse collapse in" target="link_collapse_import_alignment">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12" id="import_alignment_col">
+                <BR/>FILE SAMPLE
+               <textarea readonly wrap='off' class="form-control" id="import_alignment"
+                         style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE SELECTED
+               </textarea>
+            </div>
+          </div>
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
  </div>
 
 
