@@ -296,17 +296,6 @@ function createIdeaClick()
 // Button that activates the inspect div for either inspect, refine or import modes
 function inspect_linkset_activate(mode)
 {
-  if (mode == 'import') {
-    $('#inspect_heading_panel').hide()
-    $('#import_heading_panel').show()
-  }
-  else {
-    if (mode == 'refine') {
-      $('#item_identity').hide();
-    }
-    $('#import_heading_panel').hide()
-    $('#inspect_heading_panel').show()
-  }
 
   var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
   if (rq_uri)
@@ -365,6 +354,21 @@ function inspect_linkset_activate(mode)
           return false;
         });
      });
+  }
+
+  console.log(mode);
+  if (mode == 'import') {
+    $('#inspect_heading_panel').hide();
+    $('#import_heading_panel').show();
+//    alert(mode);
+  }
+  else {
+    if (mode == 'refine') {
+      $('#item_identity').hide();
+    }
+    $('#import_heading_panel').hide();
+    $('#inspect_heading_panel').show();
+//    alert(mode);
   }
 }
 
@@ -609,6 +613,7 @@ function refineLinksetClick()
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
       $('#linkset_refine_message_col').html(addNote(message,cl='warning'));
+      loadingGif(document.getElementById('linkset_refine_message_col'), 2);
 
       // call function that creates the linkset
       // HERE!!!!
@@ -616,6 +621,7 @@ function refineLinksetClick()
       {
             var obj = JSON.parse(data);
             $('#linkset_refine_message_col').html(addNote(obj.message,cl='info'));
+            loadingGif(document.getElementById('linkset_refine_message_col'), 2, show=false);
       });
 
   }
@@ -643,11 +649,13 @@ function importLinksetClick()
 
         var message = "EXECUTING IMPORT.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
         $('#linkset_import_message_col').html(addNote(message,cl='warning'));
+        loadingGif(document.getElementById('linkset_import_message_col'), 2);
 
         // call function that creates the linkset
         $.get('/importLinkset', data, function(data)
         {
             $('#linkset_import_message_col').html(addNote(data,cl='info'));
+            loadingGif(document.getElementById('linkset_import_message_col'), 2, show=false);
         });
     }
     else {
