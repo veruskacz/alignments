@@ -25,7 +25,7 @@ import cgi
 
 
 CREATION_ACTIVE = True
-FUNCTION_ACTIVATED = False
+FUNCTION_ACTIVATED = True
 if CREATION_ACTIVE:
     from app import app
     import Alignments.Utility as Ut
@@ -91,6 +91,7 @@ PRINT_RESULTS = False
 
 # app = Flask(__name__)
 UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
+UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(),os.path.sep)
 ALLOWED_EXTENSIONS = ['csv', 'txt','ttl','trig']
 
 
@@ -117,7 +118,7 @@ def upload():
     file = request.files['file']
     if file and allowed_file(file.filename):
 
-        dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
+        dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(), os.path.sep)
         print "\nWe will upload: {}".format(file.filename)
         print "Directory: {}".format(dir)
         print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
@@ -128,6 +129,7 @@ def upload():
         # print "{}\nWas uploaded to the server".format(file.filename)
 
         return jsonify({"success": True, 'original': original})
+
     else:
         print "\nFile not allowed"
         return jsonify({"success": False, 'list': []})
@@ -145,7 +147,7 @@ def getupload():
     # upload_type = request.args.get('type', 'linkset')
     if upload_type == 'dataset':
 
-        list = Ut.dir_files(dir, [".csv", ".txt", ".tsv"])
+        list = Ut.dir_files(UPLOAD_FOLDER, [".csv", ".txt", ".tsv"])
 
         select_list = ""
         for i in range(len(list)):
@@ -174,7 +176,8 @@ def getupload():
 def userLinksetImport():
     original = request.args.get('original', '')
     index = request.args.get('index', '')
-    result = Ipt.import_graph(file_path=original, parent_predicate_index=int(index)-1, detail=False)
+    result = Ipt.import_graph(file_path=original, upload_folder=UPLOAD_FOLDER, upload_archive=UPLOAD_ARCHIVE,
+                              parent_predicate_index=int(index)-1, detail=False)
     return result["message"]
 
 

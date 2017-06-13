@@ -251,6 +251,8 @@ def sh_load(bat_path):
 
 def dir_files(directory, extension_list):
 
+    print directory
+
     # print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
     lst = []
     for f in os.listdir(directory):

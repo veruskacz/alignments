@@ -7,13 +7,6 @@ import cStringIO
 from kitchen.text.converters import to_bytes, to_unicode
 
 
-
-
-
-
-
-
-
 mechanism_1 = "exactStrSim"
 mechanism_2 = "unknown"
 dt_base = "risis"

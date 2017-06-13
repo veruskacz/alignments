@@ -32,8 +32,8 @@ from kitchen.text.converters import to_bytes  # , to_unicode
 #    AND A SINGLE PREDICATE SHOULD BE SELECTED FROM THE LIST OF FOUND PREDICATES
 
 current_dir = os.path.dirname(os.path.dirname(Ss.UPLOAD_FOLDER))
-UPLOAD_FOLDER = os.path.join(current_dir, "UploadedFiles")
-UPLOAD_ARCHIVE = os.path.join(current_dir, "UploadedArchive")
+# UPLOAD_FOLDER = os.path.join(current_dir, "UploadedFiles")
+# UPLOAD_ARCHIVE = os.path.join(current_dir, "UploadedArchive")
 
 
 def extract_predicates(file_path):
@@ -76,38 +76,50 @@ def extract_predicates(file_path):
     return pred_list
 
 
-def save_original_file(uploaded_file, UPLOAD_FOLDER):
+def save_original_file(uploaded_file, upload_folder):
     # SAVE THE ORIGINAL FILE TO THE UPLOADED FOLDER
-    new_path = os.path.join(UPLOAD_FOLDER, uploaded_file.filename)
+    new_path = os.path.join(upload_folder, uploaded_file.filename)
     uploaded_file.save(new_path)
     return new_path
 
 
-def load_copy_2_stardog(original_file, altered_file):
+def load_copy_2_stardog(original_file, altered_file, upload_folder, upload_archive):
 
     try:
         # MOVE THE FILES TO THE ARCHIVE FOLDER AFTER LOADING IT TO STARDOG
 
+        # MOVE ORIGINAL FILE TO ARCHIVE
+        original = os.path.basename(original_file)
+        original_archive = os.path.join(upload_archive, original)
+        if os.path.exists(original_archive) is True:
+            os.remove(original_archive)
+        shutil.move(original_file, upload_archive)
+
         # GENERATE THE BATCH FILE
         file__name = os.path.basename(os.path.splitext(altered_file)[0])
-        altered = os.path.basename(altered_file)
-        batch_path = Ut.win_bat(UPLOAD_FOLDER, file__name)
+        batch_path = Ut.win_bat(upload_folder, file__name)
 
         # LOAD THE TRIG FILE TO STARDOG USING THE BATCH FILE
         loaded = Ut.batch_load(batch_path)
 
-        if loaded["message"] == "OK":
-            # MOVE ORIGINAL FILE TO ARCHIVE
-            # shutil.move(original_file, UPLOAD_ARCHIVE)
-            # MOVE ALTERED FILE TO archive
-            altered_archive = os.path.join(UPLOAD_ARCHIVE, altered)
-            if os.path.exists(altered_archive) is True:
-                os.remove(altered_archive)
-            shutil.move(altered_file, UPLOAD_ARCHIVE)
-            # DELETE THE CREATED BATCH FILE
-            os.remove(batch_path)
+        # if loaded["message"] == "OK":
 
-        return {"message": "OK"}
+        # MOVE ALTERED FILE TO archive
+        altered = os.path.basename(altered_file)
+        altered_archive = os.path.join(upload_archive, altered)
+        if os.path.exists(altered_archive) is True:
+            os.remove(altered_archive)
+        shutil.move(altered_file, upload_archive)
+
+        # MOVE THE CREATED BATCH FILE TO archive
+        batch = os.path.basename(batch_path)
+        batch_archive = os.path.join(upload_archive, batch)
+        if os.path.exists(batch_archive) is True:
+            os.remove(batch_archive)
+        shutil.move(batch_path, batch_archive)
+        # os.remove(batch_path)
+
+        return {"message": "OK", "result": loaded}
 
     except Exception as err:
         return {"message": str(err.message)}
@@ -132,7 +144,7 @@ def get_graph_name_1(text_input):
     return name
 
 
-def get_graph_name_2(file_path, file_copy_name):
+def get_graph_name_2(file_path, file_copy_name, upload_folder):
 
     bom = ''
     name = ""
@@ -141,6 +153,7 @@ def get_graph_name_2(file_path, file_copy_name):
     builder = []
     pred_list = []
     ns = cStringIO.StringIO()
+
     try:
         # Open the file to convert
         # _file = codecs.open(self.inputPath, 'rb', encoding="utf-8")
@@ -211,7 +224,7 @@ def get_graph_name_2(file_path, file_copy_name):
     EXTRACTING THE PREDICATE USED IN THIS ALIGNMENT USING THE ORIGINAL TRIG FILE
     """
     _file = open(file_path, 'rb')
-    copy = os.path.join(UPLOAD_FOLDER, file_copy_name)
+    copy = os.path.join(upload_folder, file_copy_name)
 
     # CREATE THE NEW FILE
     # print "PATH OF THE COPY:", copy
@@ -278,19 +291,15 @@ def get_graph_name_2(file_path, file_copy_name):
             "file_copy_path": copy}
 
 
-def import_graph(file_path, parent_predicate_index=0, detail=False):
+def import_graph(file_path, upload_folder, upload_archive, parent_predicate_index=0, detail=False):
 
     # NEED TO HAVE:
     #   1. THE NAMESPACE
     #   2. THE NAMED GRAPH
     #   3. THE PARENT PREDICATE
 
-    """
-    :param file_path:
-    :param parent_predicate_index:
-    :param detail:
-    :return:
-    """
+    # print "UPLOAD_FOLDER", UPLOAD_FOLDER
+    # print "UPLOAD_ARCHIVE", UPLOAD_ARCHIVE
 
     predicate = ""
 
@@ -306,7 +315,7 @@ def import_graph(file_path, parent_predicate_index=0, detail=False):
     same_as_count = 5
 
     """ 2. GET ALL ARGUMENTS USING THE ORIGINAL TRIG FILE """
-    arguments = get_graph_name_2(file_path, new_name)
+    arguments = get_graph_name_2(file_path, new_name, upload_folder)
     if arguments["message"] != "OK":
         print arguments
         return {"message": "A PROBLEM OCCURRED WHILE EXTRACTING ALL PARAMETERS."}
@@ -397,7 +406,7 @@ def import_graph(file_path, parent_predicate_index=0, detail=False):
 
     # LOAD THE ALTERED FILE TO STARDOG.
     # IF SUCCESSFUL, MOVE ORIGINAL AND ALTERED FILE TO ARCHIVE
-    loaded = load_copy_2_stardog(file_path, arguments["file_copy_path"])
+    loaded = load_copy_2_stardog(file_path, arguments["file_copy_path"], upload_folder, upload_archive)
 
     if loaded["message"] == "OK":
         if detail is True:
@@ -405,13 +414,15 @@ def import_graph(file_path, parent_predicate_index=0, detail=False):
         Qr.boolean_endpoint_response(import_query)
         Qr.boolean_endpoint_response("DROP SILENT GRAPH <{}load>".format(Ns.tmpgraph))
         print import_query
+    else:
+        print "NOT OKAY!"
 
     message = """
     Graph                : {}
     Meta Graph           : {}
     Parent Predicate     : {}
     """.format(arguments["graph"], meta_graph, arguments["predicate"][parent_predicate_index])
-
+    print "Done!!!"
     return {"message": message}
 
 file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
