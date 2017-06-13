@@ -130,7 +130,7 @@ def win_bat(file_directory, file_name):
     # if OPE_SYS.__contains__(mac_weird_name):
     else:
         # stardog_path = '/Applications/stardog-4.2.3/bin/'
-        stardog_path = './stardog-4.2.3/bin/'
+        stardog_path = '/scratch/risis/data/stardog/stardog-5.0-beta/bin/'
         load_builder.write("\n\t{}stardog data add risis".format(stardog_path))
 
     # LOAD ONLY .TRIG OR .TTL FILES
