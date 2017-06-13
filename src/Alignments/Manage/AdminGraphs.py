@@ -1,8 +1,8 @@
 import time
 import xmltodict
-import src.Alignments.Settings as St
-import src.Alignments.NameSpace as Ns
-from src.Alignments.Query import endpoint
+import Alignments.Settings as St
+import Alignments.NameSpace as Ns
+from Alignments.Query import endpoint
 
 #######################################################################################
 # DROP GENERIC
