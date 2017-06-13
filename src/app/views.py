@@ -45,12 +45,20 @@ if CREATION_ACTIVE:
 else:
     from app import app
 
-ENDPOINT_URL = 'http://localhost:5820/risis/query'
-UPDATE_URL = 'http://localhost:5820/risis/update'
 DATABASE = "risis"
 HOST = "localhost:5820"
+ENDPOINT_URL = 'http://localhost:5820/risis/query'
+UPDATE_URL = 'http://localhost:5820/risis/update'
 PATH_DS_FILES= '/Users/veruskacz/PyWebApp/alignments/src/data/'
 REASONING_TYPE = 'SL'
+if os.getcwd().endswith("src"):
+    UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
+    UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), os.path.sep)
+else:
+    UPLOAD_FOLDER = "{0}{1}{1}src{1}{1}UploadedFiles".format(os.getcwd(), os.path.sep)
+    UPLOAD_ARCHIVE = "{0}{1}{1}src{1}{1}UploadedArchive".format(os.getcwd(), os.path.sep)
+
+ALLOWED_EXTENSIONS = ['csv', 'txt','ttl','trig']
 
 
 # log = app.logger
@@ -90,9 +98,7 @@ PRINT_RESULTS = False
 # ALLOWED_EXTENSIONS2 = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # app = Flask(__name__)
-UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
-UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(),os.path.sep)
-ALLOWED_EXTENSIONS = ['csv', 'txt','ttl','trig']
+
 
 
 @app.route('/default_dir_files')
