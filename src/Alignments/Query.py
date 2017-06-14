@@ -399,9 +399,9 @@ def sparql_xml_to_matrix(query):
     logger.info("XML RESULT TO TABLE")
     # print query
 
-    if query.lower().__contains__("optional") is True:
-        message = "MATRIX DOES NOT YET DEAL WITH OPTIONAL"
-        return {St.message: message, St.result: None}
+    # if query.lower().__contains__("optional") is True:
+    #     message = "MATRIX DOES NOT YET DEAL WITH OPTIONAL"
+    #     return {St.message: message, St.result: None}
 
     response = endpoint(query)
     logger.info("1. RESPONSE OBTAINED")
@@ -411,9 +411,16 @@ def sparql_xml_to_matrix(query):
 
     if response[St.message] == "OK":
 
+        # print "response:", response[St.result]
+        # print "response length:", len(response[St.result])
+
+        if len(response[St.result]) == 0:
+            message = "NO RESULT FOR THE QUERY:"
+            return {St.message: message, St.result: None}
+
         logger.info("2. RESPONSE IS NOT ''NONE''")
 
-        try:
+        if True:
             xml_doc = xmltodict.parse(response[St.result])
             # print "3. FROM XML TO DOC IN {}".format(str(time.time() - start_time))
 
@@ -441,7 +448,7 @@ def sparql_xml_to_matrix(query):
                 return {St.message: message, St.result: None}
                 # print query
 
-            # SINGLE RESULT
+            # >>> SINGLE RESULT
             if type(results) is collections.OrderedDict:
 
                 # Creates a list containing h lists, each of w items, all set to 0
@@ -449,7 +456,7 @@ def sparql_xml_to_matrix(query):
                 w, h = variables_size, 2
                 # print "Creating matrix with size {} by {}".format(w, h)
                 # x*y*0 to avoid weak error say x and y where not used
-                matrix = [[x*y*0 for x in range(w)] for y in range(h)]
+                matrix = [[str(x*y*0).replace("0", "") for x in range(w)] for y in range(h)]
                 # print matrix
                 col = -1
 
@@ -485,22 +492,28 @@ def sparql_xml_to_matrix(query):
                             # print "value Items: ", value.items()[i][1]
                             # print "Length:", len(value.items())
                             if type(value) is list:
-                                # print value
+                                # print "value:", value
                                 data = value[i]
                                 index = name_index[data['@name']]
                                 item = value[index].items()[1][1]
                                 # print data['@name'], name_index[data['@name']]
+
                             elif type(value) is collections.OrderedDict:
-                                item = value.items()[i][1]
+                                index = name_index[value['@name']]
+                                if value.items()[i][0] != '@name':
+                                    item = value.items()[i][1]
+                                    # print "Collection:", value.items()[i][0]
+                                else:
+                                    item = ""
 
                             if type(item) is collections.OrderedDict:
-                                # print "Data is a collection"
+                                print "Data is a collection"
                                 # print "{} was inserted".format(data.items()[1][1])
-                                matrix[1][i] = item.items()[1][1]
+                                matrix[1][index] = item.items()[1][1]
                             else:
                                 # print "data is regular"
                                 # print "{} was inserted".format(data)
-                                matrix[1][i] = item
+                                matrix[1][index] = item
                                 # print matrix
 
                     # print "The matrix is: {}".format(matrix)
@@ -516,7 +529,7 @@ def sparql_xml_to_matrix(query):
                 w, h = variables_size, row_size + 1
 
                 # print "INITIALIZING THE MATRIX FOR: [{}][{}]".format(h, w)
-                matrix = [[x*y*0 for x in range(w)] for y in range(h)]
+                matrix = [[str(x*y*0).replace("0", "") for x in range(w)] for y in range(h)]
 
                 # HEADER
                 # print "UPDATING MATRIX'S HEADER"
@@ -553,32 +566,43 @@ def sparql_xml_to_matrix(query):
                             # print type(value)
                             row += 1
                             # value is a list
-                            for c in range(variables_size):
-                                # print row, c
-                                # print value[c].items()[1][1]
-                                data = value[c]
-                                # print data['@name'], name_index[data['@name']]
-                                index = name_index[data['@name']]
-                                item = data.items()[1][1]
+                            # for c in range(variables_size):
+                            for data in value:
+                                if type(data) is collections.OrderedDict:
 
-                                if type(item) is collections.OrderedDict:
-                                    item_value = item.items()[1][1]
-                                    matrix[row][index] = to_bytes(item_value)
-                                    # print to_bytes(item_value)
-                                    # print item.items()
-                                    # print "r{} c{} v{}".format(row, c, data.items()[1][1])
+                                    # print row, c
+                                    # print value[c].items()[1][1]
+                                    # data = value[c]
+                                    # print data['@name'], name_index[data['@name']]
+                                    get_index = data['@name']
+                                    index = name_index[get_index]
+                                    # print index, type(data)
+                                    item = data.items()[1][1]
+                                    # print index, item
+                                    if type(item) is collections.OrderedDict:
+                                        item_value = item.items()[1][1]
+                                        matrix[row][index] = to_bytes(item_value)
+                                        # print to_bytes(item_value)
+                                        # print item.items()
+                                        # print "r{} c{} v{}".format(row, c, data.items()[1][1])
+                                    else:
+                                        matrix[row][index] = to_bytes(item)
+                                        # print to_bytes(item)
+                                        # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
                                 else:
-                                    matrix[row][index] = to_bytes(item)
-                                    # print to_bytes(item)
-                                    # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
+                                    index = name_index[value['@name']]
+                                    if data != '@name':
+                                        matrix[row][index] = to_bytes(value[data])
+                                        # print "data:", data, value[data], name_index[value['@name']]
+
             # print "DONE"
             # print "out with: {}".format(matrix)
             return {St.message: "OK", St.result: matrix}
 
-        except Exception as err:
-            message = "\nUNACCEPTED ERROR IN THE RESPONSE."
-            print message
-            return {St.message: err, St.result: None}
+        # except Exception as err:
+        #     message = "\nUNACCEPTED ERROR IN THE RESPONSE."
+        #     print message
+        #     return {St.message: err, St.result: None}
 
     else:
         # logger.warning("NO RESPONSE")
@@ -603,9 +627,9 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
         logger.info(display_result)
         my_format = "{{:.<{}}}".format(spacing)
         my_format2 = "{{:<{}}}".format(spacing)
-        res_matrix = sparql_xml_to_matrix(query)
+        res_matrix = sparql_xml_to_matrix(query)[St.result]
 
-        if res_matrix is None:
+        if res_matrix is None or type(res_matrix) is dict:
             logger.warning("\nTHE MATRIX IS EMPTY\n")
             return None
 
@@ -618,6 +642,7 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
         print message
 
         count = 0
+
         for r in range(len(res_matrix)):
 
             count += 1

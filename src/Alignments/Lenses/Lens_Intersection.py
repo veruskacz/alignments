@@ -7,6 +7,7 @@ from Alignments.Query import get_graph_type, get_lens_operator, get_graph_target
 
 
 def intersection2(specification):
+
     print "\nINTERSECTION TASK" \
           "\n======================================================" \
           "========================================================\n"
@@ -30,7 +31,7 @@ def intersection2(specification):
         graph_name = Ut.get_uri_local_name(graph)
         # print "Dataset:", dataset
 
-        # tGET THE TYPE OF THE GRAPH
+        # GET THE TYPE OF THE GRAPH
         graph_type = get_graph_type(graph)
 
         if graph_type[St.message] != "NO RESPONSE":
@@ -131,7 +132,7 @@ def intersection2(specification):
     return query
 
 
-def intersection(specs):
+def intersection(specs, display=False):
 
     inter = ""
 
@@ -156,7 +157,8 @@ def intersection(specs):
     }}""".format(graph)
         response = sparql_xml_to_matrix(query)
 
-        print "QUERY:", query
+        if display:
+            print "QUERY:", query
         # print "\nGRAPH:", graph
         # print "RESPONSE:", response
         # exit(0)

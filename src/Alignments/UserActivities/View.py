@@ -20,13 +20,30 @@ PREFIX = """
 
 
 def view_data(view_specs, view_filter):
+
+    # GENERATING THE METADATA FOR REGISTERING A VIEW.
+    #
+    # THE VIEW IS COMPOSED OF
+    #   - EXACTLY ONE LENS
+    #   - ONE OR MORE FILTERS
+    #
+    # A FILTER IS COMPOSED OF
+    #   - EXACTLY ONE DATASET
+    #   - ONE OR MORE PROPERTIES
+
     # view_specs = {
     #     St.researchQ_URI: question_uri,
     #     St.datasets: view_lens,
     #     St.lens_operation: Ns.lensOpi
     # }
+    # TEXT BUFFER
+    string_buffer = StringIO()
+    string_buffer2 = StringIO()
 
-    question_uri = view_specs[St.researchQ_URI]
+    # HOLDER VARIABLE (STRING) FOR THE RESEARCH QUESTION URI
+    question_uri = str(view_specs[St.researchQ_URI]).strip()
+
+    # HOLDER VARIABLE (LIST) FOR LINKSETS AND/OR LENSES THAT COMPOSE THE LENS
     view_lens = view_specs[St.datasets]
 
     # KEY FUNCTION FOR ACCESSING ELEMENT ON WHICH TO SORT ON
@@ -34,24 +51,23 @@ def view_data(view_specs, view_filter):
         return item[St.graph]
 
     # SORT THE LIST BASED ON THE GRAPH NAME OF EACH DICTIONARY
+    # SORTING THE LIST OF FILTERS BASED ON THE DATASET NAME
     sorted_datasets = sorted(view_filter, key=get_key)
-
-    # TEXT BUFFER
-    string_buffer = StringIO()
-    string_buffer2 = StringIO()
 
     # [DESCRIPTION] RESEARCH QUESTION X
     string_buffer2.write("\t<{}>\n".format(question_uri))
 
     # [DESCRIPTION] CREATED A VIEW
-    string_buffer2.write("\t\t\t\talivocab:created\t\t<@URI> .\n\n")
+    string_buffer2.write("\t\t\t\talivocab:created\t\t\t<@URI> .\n\n")
 
     # [DESCRIPTION] THE VIEW
     string_buffer2.write("\t\t\t<@URI>\n".format(Ns.view))
+
     # [DESCRIPTION] IS A TYPE OF RISIS:VIEW
-    string_buffer2.write("\t\t\t\ta\t\t\t\t\t\t<{}View> ;\n".format(Ns.riclass))
+    string_buffer2.write("\t\t\t\ta\t\t\t\t\t\t\t<{}View> ;\n".format(Ns.riclass))
+
     # [DESCRIPTION] THAT HAS A LENS
-    string_buffer2.write("\t\t\t\talivocab:hasViewLens\t<{}view_lens_@> ;".format(Ns.view))
+    string_buffer2.write("\t\t\t\talivocab:hasViewLens\t\t<{}view_lens_@> ;".format(Ns.view))
 
     # SORT THE PROPERTIES IN EACH DICTIONARY
     count_ds = 0
@@ -61,34 +77,51 @@ def view_data(view_specs, view_filter):
 
         # APPEND THE GRAPH
         if St.graph in dataset:
+
             # [DESCRIPTION] THAT HAS A NUMBER OF FILTERS
             filter_c = "<{}filter_{}_@>".format(Ns.view, Ut.get_uri_local_name(dataset[St.graph]))
             string_buffer.write("\n\t\t\t{}".format(filter_c))
 
             # [DESCRIPTION] A FILTER HAS A DATASET
-            string_buffer.write("\n\t\t\t\tvoid:target\t\t\t\t<{}> ;".format(dataset[St.graph]))
+            string_buffer.write("\n\t\t\t\tvoid:target\t\t\t\t\t<{}> ;".format(dataset[St.graph]))
 
-            has_filter = "\n\t\t\t\talivocab:hasFilter\t\t{} {}".format(filter_c, append_ds)
+            has_filter = "\n\t\t\t\talivocab:hasFilter\t\t\t{} {}".format(filter_c, append_ds)
+
+            # [DESCRIPTION] ADDING THE FILTERS BELONGING TO THE VIEW
             string_buffer2.write(has_filter)
 
         # APPEND THE PROPERTIES
         if St.properties in dataset:
             dataset[St.properties].sort()
             count = 0
+            pro = None
 
             # [DESCRIPTION] WHERE EACH FILTER IS COMPOSED OF A NUMBER OF PROPERTIES
+            total_properties = len(dataset[St.properties])
             for ds_property in dataset[St.properties]:
-                append = ";" if count < len(dataset[St.properties]) - 1 else ".\n"
-                pro = "\n\t\t\t\talivocab:selected\t\t<{}> {}".format(ds_property, append)
-                string_buffer.write(pro)
-                count += 1
+                append = ";" if count < total_properties - 1 else ".\n"
 
-    # THE VIEW_LENS IS COMPOSED OF A NUMBER OF LENSES AND LINKSETS
+                if type(ds_property) is tuple and len(ds_property) == 2:
+                    cur_property = str(ds_property[0]).strip()
+
+                    if len(cur_property) > 0 and ds_property[1] is True:
+                        pro = "\n\t\t\t\talivocab:selectedOptional\t<{}> {}".format(ds_property[0], append)
+                    else:
+                        pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
+                else:
+                    cur_property = str(ds_property).strip()
+                    if len(cur_property) > 0:
+                        pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
+                if pro is not None:
+                    string_buffer.write(pro)
+                    count += 1
+
+    # THE VIEW_LENS IS COMPOSED OF A NUMBER OF LENSES AND LINKSETS SELECTED
     string_buffer2.write("\n\t\t\t<{}view_lens_@>".format(Ns.view))
     count_ls = 0
     for linkset_lens in view_lens:
         append_ls = ";" if count_ls < len(view_lens) - 1 else ".\n"
-        string_buffer2.write("\n\t\t\t\talivocab:selected\t\t<{}> {}".format(linkset_lens, append_ls))
+        string_buffer2.write("\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(linkset_lens, append_ls))
         count_ls += 1
 
     triples = string_buffer.getvalue()
@@ -99,7 +132,7 @@ def view_data(view_specs, view_filter):
     # CHANGE THE "-" NEGATIVE VALUE TO "N" AND POSITIVE TO "p"
     hash_value = str(hash_value).replace('-', "N") if str(hash_value).__contains__('-') else "P" + str(hash_value)
 
-    # GENERATE THE URI
+    # GENERATE THE URI FOR THE VIEW
     uri = "{}View_{}".format(Ns.view, hash_value)
 
     query = PREFIX + """
@@ -110,7 +143,7 @@ def view_data(view_specs, view_filter):
         {}{}\t\t}}\n\t}}
     """.format(question_uri, string_buffer2.getvalue().replace("@URI", uri), triples).replace("@", hash_value)
 
-    # print query
+    print "VIEW INSERT QUERY:", query
     message = "\nThe metadata was generated"
 
     print message
@@ -142,21 +175,23 @@ def view(view_specs, view_filter, save=False, limit=10):
 
     # GENERATE THE INSERT METADATA
     # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
-    # {St.message:message, St.insert_query: final, St.result: uri}
+    # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
     view_metadata = view_data(view_specs, view_filter)
+
+    # REGISTER THE METADATA IF SAVE ID SET TO TRUE
     if save:
         print "We are in save mode!"
         is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
         print is_metadata_inserted
         message = "The insertion metadata was successfully inserted." \
-            if is_metadata_inserted == "true" \
-            else "The metadata could not be inserted."
+            if is_metadata_inserted == "true" else "The metadata could not be inserted."
         print message
         view_metadata[St.message] = message
         # print view_metadata[St.insert_query]
 
     # GENERATE THE INTERSECTION
-    inter = intersection(view_specs)
+    # AND DISPLAY THE QUERIES NEEDED
+    inter = intersection(view_specs, display=False)
 
     if inter is None:
         print "WE CANNOT PROCEED AS THERE IS A PROBLEM WITH THE PROVIDED DATASETS."
@@ -165,9 +200,12 @@ def view(view_specs, view_filter, save=False, limit=10):
     #  and the list of properties to display
     for d_view in view_filter:
 
-        # Bout the dataset
+        optional = ""
+
+        # About the dataset
         ds_ns_name = Ut.get_uri_ns_local_name(d_view[St.graph])
-        # 3 characters string to differential the properties of a dataset
+
+        # 3 characters string to differentiate the properties of a dataset
         attache = ds_ns_name[1][:3]
 
         # GRAPH
@@ -176,7 +214,10 @@ def view(view_specs, view_filter, save=False, limit=10):
             if ds_ns_name[1] not in ns:
                 ns[ds_ns_name[1]] = ds_ns_name[0]
 
-        # Generate the dataset design view
+        # Generate the dataset design view WHICH LOOKS LIKE
+        # ### DATASET: grid
+        # GRAPH <http://risis.eu/genderc/grid>
+        # {
         view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{\n\t\t?{}".format(
             ds_ns_name[1], d_view[St.graph], ds_ns_name[1])
 
@@ -193,16 +234,24 @@ def view(view_specs, view_filter, save=False, limit=10):
         for i in range(len(properties)):
 
             if type(properties[i]) is str:
+
+                # EXTRACTING THE NAMESPACE TO USE FOR THE PROPERTY
                 curr_ns = Ut.get_uri_ns_local_name(properties[i])
+
                 # shortening prefix length
                 short_name = ds_ns_name[1][:6]
 
-                # Setting up the prefix and predicate
                 if type(curr_ns) is list:
+
+                    # Setting up the prefix and predicate
                     predicate = "{}voc:{}".format(short_name, curr_ns[1])
                     prefix = "{}voc".format(short_name)
 
-                    # ADDING NAMESPACE
+                    # GENERATE THE LIST OF OPTIONAL PROPERTIES
+                    # optional += "\n\t\tOPTIONAL{{ ?{}   {:55}   ?{}_{} .}}".format(
+                    #     ds_ns_name[1], predicate, attache, curr_ns[1])
+
+                    # ADDING NAMESPACE TO THE VIEW QUERY
                     if prefix not in namespace:
                         namespace[prefix] = curr_ns[0]
                         namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
@@ -256,7 +305,34 @@ def view(view_specs, view_filter, save=False, limit=10):
                         else:
                             view_select += value
 
-        view_where += "\n\t}"
+            elif type(properties[i]) is tuple:
+                # Setting up the prefix and predicate
+                curr_ns = Ut.get_uri_ns_local_name(properties[i][0])
+                predicate = "{}voc:{}".format(short_name, curr_ns[1])
+
+                if len(properties[i]) == 2:
+
+                    # Adding predicates
+                    if i == len(properties) - 1:
+
+                        if properties[i][1] is True:
+                            optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}_{} . }}".format(
+                                ds_ns_name[1], predicate, attache, curr_ns[1])
+                        else:
+                            view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
+
+                    else:
+                        if properties[i][1] is True:
+                            optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}_{} . }}".format(
+                                ds_ns_name[1], predicate, attache, curr_ns[1])
+                        else:
+                            view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
+
+        if len(optional) > 0:
+            view_where = "{}.".format(view_where[:len(view_where) - 1])
+            view_where += "\n\t\t### OPTIONAL PROPERTIES{}\n\t}}".format(optional)
+        else:
+            view_where += "\n\t}"
 
     my_list = ""
     for key, variable in variables_list.items():
@@ -268,7 +344,8 @@ def view(view_specs, view_filter, save=False, limit=10):
         lmt = "LIMIT {}".format(limit)
 
     query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
-    print query
+    print "VIEW TABLE:", query
+
     table = sparql_xml_to_matrix(query)
     display_matrix(table, spacing=80, limit=limit, is_activated=False)
 
@@ -324,14 +401,14 @@ def retrieve_view(question_uri, view_uri):
         }}
     }} ORDER BY ?target
     """.format(question_uri, view_uri)
+
     # RUN QUERY
     view_filter_matrix = sparql_xml_to_matrix(view_filter_query)
     # print "view_filter_query:", view_filter_query
+
     if view_filter_matrix:
         if view_filter_matrix[St.result]:
-
             # print "view_filter_matrix:", view_filter_matrix[St.result]
-
             return {"view_lens": view_lens, "view_filter_matrix": view_filter_matrix[St.result]}
 
     return {"view_lens": view_lens, "view_filter_matrix": None}
@@ -503,6 +580,7 @@ def alignments_mappings(question_uri):
             # alignments = alg_matrix[St.result]
             alignments = reduce(lambda x, y: x + y, alg_matrix[St.result][1:])
             return alignments
+
     return None
 
 
@@ -665,7 +743,8 @@ def linksets_and_lenses(question_uri, view_uri):
 def filters(question_uri, view_uri):
     query = """
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
-    ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)
+    ### GETTING THE FILTERS OF THE VIEW
+    ### [A FILTER IS COMPOSED OF A DATASET AND SELECTED PROPERTIES]
     select ?filters
     {{
         GRAPH <{}>
@@ -681,30 +760,34 @@ def filters(question_uri, view_uri):
     # RUN QUERY
     filters_matrix = sparql_xml_to_matrix(query)
     # print "view_filter_query:", view_filter_query
+
     if filters_matrix and filters_matrix[St.result]:
         # print "view_filter_matrix:", view_filter_matrix[St.result]
         display_matrix(filters_matrix, is_activated=False)
         return filters_matrix[St.result]
+
     else:
         return None
 
 
 def filter_data(question_uri, filter_uri):
+
     view_filter_query = """
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
     PREFIX void:        <http://rdfs.org/ns/void#>
     ### GETTING THE VIEW_FILTERS
-    select ?target ?selected
+    select ?target ?selected ?selected_selectedOptional
     {{
         GRAPH <{0}>
         {{
              <{1}>
-                void:target			?target ;
-                alivocab:selected	?selected .
+                void:target			                        ?target ;
+                ?selected_selectedOptional	                ?selected .
+                #alivocab:selected|alivocab:selectedOptional	?selected .
         }}
     }} ORDER BY ?target ?selected
     """.format(question_uri, filter_uri)
-    # print view_filter_query
+    print view_filter_query
     # RUN QUERY
     view_filter_matrix = sparql_xml_to_matrix(view_filter_query)
     # print "view_filter_query:", view_filter_query
@@ -716,7 +799,7 @@ def filter_data(question_uri, filter_uri):
         return None
 
 
-def reserch_first_hops(question_uri):
+def research_first_hops(question_uri):
     query = """
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
     ### GETTING THE VIEW_LENS ELEMENTS (LINKSET OR/AND LENS)

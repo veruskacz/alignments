@@ -6,7 +6,7 @@ import Alignments.Settings as St
 INFO = False
 DETAIL = False
 
-PREFIX ="""
+PREFIX = """
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
     PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX linkset:     <http://risis.eu/linkset/>
@@ -365,7 +365,7 @@ def import_linkset(question_uri, linkset_list):
 
 def register_lens(specs, is_created=True):
 
-    inverse = ""
+    # inverse = ""
 
     if is_created is True:
         created = "alivocab:created"
@@ -912,4 +912,3 @@ def delete_rq():
     if DETAIL:
         print query
     return query
-
