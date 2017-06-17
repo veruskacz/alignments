@@ -87,6 +87,7 @@ leiden_properties = {
 
 eter_properties = {
         St.graph: "http://risis.eu/dataset/eter",
+        St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
         St.properties: [("http://risis.eu/eter/ontology/predicate/english_Institution_Name", True),
                         ("http://risis.eu/eter/ontology/predicate/institution_Name", False),
                         ("http://risis.eu/eter/ontology/predicate/country_Code", True),

@@ -79,12 +79,20 @@ def view_data(view_specs, view_filter):
         if St.graph in dataset:
 
             # [DESCRIPTION] THAT HAS A NUMBER OF FILTERS
-            filter_c = "<{}filter_{}_@>".format(Ns.view, Ut.get_uri_local_name(dataset[St.graph]))
+            dataset_name = Ut.get_uri_local_name(dataset[St.graph])
+            if St.entity_datatype in dataset:
+                entity_type_name = Ut.get_uri_local_name(dataset[St.entity_datatype])
+                filter_c = "<{}filter_{}_{}_@>".format(Ns.view, dataset_name, entity_type_name)
+            else:
+                filter_c = "<{}filter_{}_@>".format(Ns.view, dataset_name)
             string_buffer.write("\n\t\t\t{}".format(filter_c))
 
             # [DESCRIPTION] A FILTER HAS A DATASET
             string_buffer.write("\n\t\t\t\tvoid:target\t\t\t\t\t<{}> ;".format(dataset[St.graph]))
 
+            # ADDING THE DATATYPE IF ANY
+            if St.entity_datatype in dataset:
+                string_buffer.write("\n\t\t\t\tvoid:hasDatatype\t\t\t<{}> ;".format(dataset[St.entity_datatype]))
             has_filter = "\n\t\t\t\talivocab:hasFilter\t\t\t{} {}".format(filter_c, append_ds)
 
             # [DESCRIPTION] ADDING THE FILTERS BELONGING TO THE VIEW
@@ -143,10 +151,9 @@ def view_data(view_specs, view_filter):
         {}{}\t\t}}\n\t}}
     """.format(question_uri, string_buffer2.getvalue().replace("@URI", uri), triples).replace("@", hash_value)
 
-    print "VIEW INSERT QUERY:", query
     message = "\nThe metadata was generated"
-
     print message
+    print "VIEW INSERT QUERY:", query
     return {St.message: message, St.insert_query: query, St.result: uri}
 
 
@@ -236,6 +243,7 @@ def view(view_specs, view_filter, save=False, limit=10):
         # Going though the properties of interest
         for i in range(len(properties)):
 
+            # >>> PROPERTY IS JUST A STRING
             if type(properties[i]) is str:
 
                 # EXTRACTING THE NAMESPACE TO USE FOR THE PROPERTY
@@ -284,7 +292,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                 else:
                     view_where += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
 
-            # HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
+            # >>> HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
             elif type(properties[i]) is list:
                 if len(properties[i]) == 2:
                     curr_ns = Ut.get_uri_ns_local_name(properties[i][1])
@@ -313,6 +321,8 @@ def view(view_specs, view_filter, save=False, limit=10):
                         else:
                             view_select += value
 
+            # >>> PROPERTY IS A OF TUPLE WITH THE PROPERTY AND A BOOLEAN
+            # VALE INDICATING WHETHER OR NOT THE PROPERTY IS OPTIONAL
             elif type(properties[i]) is tuple:
                 # Setting up the prefix and predicate
                 curr_ns = Ut.get_uri_ns_local_name(properties[i][0])

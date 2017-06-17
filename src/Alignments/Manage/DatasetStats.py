@@ -240,8 +240,10 @@ def stats_optimised(graph, display_table=False, display_text=False):
         print text.getvalue()
     return optional
 
+stats_optimised("http://risis.eu/dataset/eter", display_table=False, display_text=True)
 # stats_optimised("http://risis.eu/genderc/Applicant", display_table=False, display_text=True)
 # stats_optimised("http://risis.eu/dataset/grid_20170522", display_table=False, display_text=True)
 # stats("http://risis.eu/dataset/grid_20170522", display_table=False, display_text=True)
 # stats("http://risis.eu/dataset/Panellists", display_table=False, display_text=True)
 # stats("http://risis.eu/genderc/Applicant", display_table=True, display_text=True)
+
