@@ -13,6 +13,8 @@ function modeCreation(val)
    $(y).html(val + '<span class="caret"></span>');
    y.setAttribute("mode", 'C');
 
+   $('#divAdmin').hide();
+
    // hide investigation div
    $('#divInvestigation').hide();
    $('#investigation_buttons_col').hide();
@@ -1007,24 +1009,26 @@ function create_views_activate()
     $('#view_creation_save_message_col').html('');
     $('#creation_view_results_row').hide();
 
+
      $('#creation_view_dataset_col').html('Loading...');
-     $.get('/getdatasetsperrq',data={'rq_uri': rq_uri,
-                            'template': 'list_group.html'},function(data)
+     $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'view'},function(data)
      {
        $('#creation_view_dataset_col').html(data);
 
        // set actions after clicking a graph in the list
-       $('#creation_view_dataset_col a').on('click',function()
+       $('#creation_view_dataset_col li').on('click',function()
        {
           var graph_uri = $(this).attr('uri');
           var graph_label = $(this).attr('label');
+          var type_uri = $(this).attr('type_uri');
+          var type_label = $(this).attr('type_label');
 
           if (selectListItemUnique(this, 'creation_view_dataset_col'))
           {
               // Exhibit a waiting message for the user to know loading time might be long.
               $('#creation_view_predicates_col').html('Loading...');
               // get the distinct predicates and example values of a graph into a list group
-              $.get('/getpredicates',data={'dataset_uri': graph_uri},function(data)
+              $.get('/getpredicates',data={'dataset_uri': graph_uri, 'type': type_uri},function(data)
               {
                    // load the rendered template into the column #creation_view_predicates_col
                   $('#creation_view_predicates_col').html(data);
@@ -1051,8 +1055,9 @@ function create_views_activate()
                         if (!check) {
                            var item = '<li class="list-group-item" pred_uri="' + pred_uri
                                     + '" graph_uri="' + graph_uri
+                                    + '" type_uri="' + type_uri
                                     + '"><span class="list-group-item-heading"><b>'
-                                    + graph_label + '</b>: ' + pred_label + '</span></li>';
+                                    + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
                            $('#creation_view_selected_predicates_group').prepend(item);
                         }
                     }
@@ -1223,7 +1228,9 @@ function createViewClick(mode)
     }
     var dict = {};
     for (i = 0; i < elems.length; i++) {
+
     dict = {'ds': $(elems[i]).attr('graph_uri'),
+           'type': $(elems[i]).attr('type_uri'),
           'att': $(elems[i]).attr('pred_uri') };
     view_filter.push( JSON.stringify(dict));
     }
@@ -1235,19 +1242,33 @@ function createViewClick(mode)
                   'view_lens[]': view_lens,
                   'view_filter[]': view_filter};
 
+     if (mode=='check')
+         {
+            $('#view_creation_message_col').html(addNote('The proposed view is being processed',cl='warning'));
+            loadingGif(document.getElementById('view_creation_message_col'), 2);
+         }
+         else
+         {
+            $('#view_creation_save_message_col').html(addNote('The proposed view is being processed',cl='warning'));
+            loadingGif(document.getElementById('view_creation_save_message_col'), 2);
+         }
+
      $.get('/createView', specs, function(data)
      {
          var obj = JSON.parse(data);
          //{"metadata": metadata, "query": '', "table": []}
          $('#queryView').val(obj.query);
+         $('#creation_view_results_row').show();
+         runViewClick();
+
          if (mode=='check')
          { $('#view_creation_message_col').html(addNote(obj.metadata.message,cl='info'));
+           loadingGif(document.getElementById('view_creation_message_col'), 2, show = false);
          }
          else
          { $('#view_creation_save_message_col').html(addNote(obj.metadata.message,cl='info'));
+           loadingGif(document.getElementById('view_creation_save_message_col'), 2, show = false);
          }
-         $('#creation_view_results_row').show();
-         runViewClick();
      });
     }
     else {
@@ -1259,9 +1280,13 @@ function runViewClick()
 {
   //$('#view_creation_message_col').html("");
   var query = $('#queryView').val();
+  $('#view_run_message_col').html(addNote('The query is running.',cl='warning'));
+  loadingGif(document.getElementById('view_run_message_col'), 2);
   $.get('/sparql',data={'query': query}, function(data)
   {
     $('#views-results').html(data);
+    $('#view_run_message_col').html("");
+    loadingGif(document.getElementById('view_run_message_col'), 2, show = false);
   });
 }
 
@@ -1326,13 +1351,15 @@ function rqClick(th, mode)
           break;
       case 'idea':
           var btn = document.getElementById('btn_inspect_idea');
+          var btn2 = document.getElementById('btn_create_idea');
           update_idea_enable(rq_uri);
           overview_idea_enable(rq_uri);
           if ( selectedButton(btn) )
           { $('#overview_idea_row').hide();
+          } else if ( selectedButton(btn2))
+          { $('#overview_idea_row').hide();
           } else
-          { $('#creation_idea_update_col').hide();
-          }
+          { $('#creation_idea_update_col').hide(); }
           btn = null;
           break;
       case 'view':

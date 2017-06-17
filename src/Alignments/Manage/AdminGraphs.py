@@ -514,6 +514,38 @@ def drop_all_research_questions(display=False, activated=False):
             print ""
 
 
+def drop_a_research_question(graph, display=False, activated=False):
+
+    query = """ DROP SILENT GRAPH <{}> """.format(graph)
+
+    if activated is True:
+        print "{}{}{}".format(
+            "======================================================="
+            "=======================================================\n",
+            "DROPPING A RESEARCH QUESTIONS...\nPLEASE WAIT FOR FEEDBACK.",
+            "\n======================================================="
+            "=======================================================")
+        drop_start = time.time()
+        try:
+            drops_response = endpoint(query)
+        except Exception as error:
+            print "\t>>> Query NOT executed'"
+            print "\t>>>", error.message
+            return error.message
+        drop_end = time.time()
+
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
+            print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
+            print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
+            if display is True:
+                print ">>> Query details  : {}\n".format(query)
+            print ""
+            return 'The query was successfully executed'
+        else:
+            return 'The query was not executed'
+
+
 def drop_research_question_lenses(research_uri, display=False, activated=False):
 
     query = """

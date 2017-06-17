@@ -205,6 +205,9 @@ def view(view_specs, view_filter, save=False, limit=10):
         # About the dataset
         ds_ns_name = Ut.get_uri_ns_local_name(d_view[St.graph])
 
+        # shortening prefix length
+        short_name = ds_ns_name[1][:6]
+
         # 3 characters string to differentiate the properties of a dataset
         attache = ds_ns_name[1][:3]
 
@@ -238,9 +241,6 @@ def view(view_specs, view_filter, save=False, limit=10):
                 # EXTRACTING THE NAMESPACE TO USE FOR THE PROPERTY
                 curr_ns = Ut.get_uri_ns_local_name(properties[i])
 
-                # shortening prefix length
-                short_name = ds_ns_name[1][:6]
-
                 if type(curr_ns) is list:
 
                     # Setting up the prefix and predicate
@@ -258,9 +258,17 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                     # Adding predicates
                     if i == len(properties) - 1:
-                        view_where += "\n\t\t\t{:55} ?{}_{} .".format(predicate, attache, curr_ns[1])
+
+                        if namespace[prefix] != curr_ns[0]:
+                            view_where += "\n\t\t\t<{}> ?{}_{} .".format(properties[i], attache, curr_ns[1])
+                        else:
+                            view_where += "\n\t\t\t{:55} ?{}_{} .".format(predicate, attache, curr_ns[1])
                     else:
-                        view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
+
+                        if namespace[prefix] != curr_ns[0]:
+                            view_where += "\n\t\t\t<{}> ?{}_{} ;".format(properties[i], attache, curr_ns[1])
+                        else:
+                            view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
 
                     # ADDING THE VARIABLE LIST and making it
                     # unique to a dataset with the variable attache
@@ -315,6 +323,13 @@ def view(view_specs, view_filter, save=False, limit=10):
                     # Adding predicates
                     if i == len(properties) - 1:
 
+                        prefix = "{}voc".format(short_name)
+
+                        # ADDING NAMESPACE
+                        if prefix not in namespace:
+                            namespace[prefix] = curr_ns[0]
+                            namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
+
                         if properties[i][1] is True:
                             optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}_{} . }}".format(
                                 ds_ns_name[1], predicate, attache, curr_ns[1])
@@ -327,6 +342,16 @@ def view(view_specs, view_filter, save=False, limit=10):
                                 ds_ns_name[1], predicate, attache, curr_ns[1])
                         else:
                             view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
+
+                    # ADDING THE VARIABLE LIST
+                    value = (" ?{}_{}".format(attache, curr_ns[1]))
+                    if len(view_select + value) > str_limit:
+                        variables_list[count] = view_select
+                        view_select = value
+                        count += 1
+
+                    else:
+                        view_select += value
 
         if len(optional) > 0:
             view_where = "{}.".format(view_where[:len(view_where) - 1])

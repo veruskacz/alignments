@@ -448,9 +448,9 @@ def sparql_xml_to_matrix(query):
                 return {St.message: message, St.result: None}
                 # print query
 
-            # >>> SINGLE RESULT
+            """ >>> SINGLE RESULT """
             if type(results) is collections.OrderedDict:
-
+                # print "SINGLE RESULT"
                 # Creates a list containing h lists, each of w items, all set to 0
                 # INITIALIZING THE MATRIX
                 w, h = variables_size, 2
@@ -462,14 +462,24 @@ def sparql_xml_to_matrix(query):
 
                 if variables_size == 1:
                     for name, variable in variables_list.items():
+                        # HEADER
                         col += 1
                         # print variable
                         matrix[0][col] = variable
-                    # print matrix
+                        # print matrix
 
                     # RECORDS
                     for key, value in results.items():
-                        matrix[1][0] = value.items()[1][1]
+                        # print type(value)
+                        if type(value) is collections.OrderedDict:
+                            item_value = value.items()[1][1]
+                            if "#text" in item_value:
+                                # print to_bytes(item_value["#text"])
+                                matrix[1][0] = to_bytes(item_value["#text"])
+                            else:
+                                matrix[1][0] = to_bytes(item_value)
+                        else:
+                            matrix[1][0] = value.items()[1][1]
 
                 else:
                     # print "Variable greater than 1"
@@ -507,7 +517,7 @@ def sparql_xml_to_matrix(query):
                                     item = ""
 
                             if type(item) is collections.OrderedDict:
-                                print "Data is a collection"
+                                # print "Data is a collection"
                                 # print "{} was inserted".format(data.items()[1][1])
                                 matrix[1][index] = item.items()[1][1]
                             else:
@@ -568,15 +578,16 @@ def sparql_xml_to_matrix(query):
                             # value is a list
                             # for c in range(variables_size):
                             for data in value:
+
                                 if type(data) is collections.OrderedDict:
 
-                                    # print row, c
+                                    # print row
                                     # print value[c].items()[1][1]
                                     # data = value[c]
                                     # print data['@name'], name_index[data['@name']]
                                     get_index = data['@name']
                                     index = name_index[get_index]
-                                    # print index, type(data)
+                                    # print "index:", index, "TYPE:", type(data)
                                     item = data.items()[1][1]
                                     # print index, item
                                     if type(item) is collections.OrderedDict:
@@ -908,8 +919,6 @@ def get_graph_type(graph):
                 a    ?type .
     }}""".format(graph)
     # print query
-    # return query
-
     return sparql_xml_to_matrix(query)
 
 

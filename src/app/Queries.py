@@ -183,7 +183,9 @@ def get_types_per_graph(rq_uri, mode):
     filter = """
         ## CHECK FOR DATASETS/GRAPHS SELECTED IN A RESERACH QUESTION
         GRAPH <{0}>
-          {{  <{0}> alivocab:selected ?Dataset
+          {{  <{0}> alivocab:selected ?Dataset .
+
+              ?Dataset alivocab:hasDatatype  ?EntityType .
           }}
         """.format(rq_uri)
     if (mode == 'toAdd'):
@@ -815,19 +817,25 @@ def get_resource_description(graph, resource, predicate=None):
     return query
 
 
-def get_predicates(graph):
+def get_predicates(graph, type = None):
+
+    if type:
+        type_query = '?s a <{}> .'.format(type)
+    else:
+        type_query = ''
 
     query = """
     ### GET PREDICATES WITHIN A CERTAIN GRAPH WITH EXAMPLE VALUE
     SELECT ?pred (MAX(?o) AS ?obj)
-    {
-        GRAPH <""" + graph + """>
-        {
+    {{
+        GRAPH <{}>
+        {{
+            {}
             ?s ?pred ?o
-        }
+        }}
         FILTER (lcase(str(?o)) != 'null')
-    } GROUP BY ?pred
-    """
+    }} GROUP BY ?pred
+    """.format(graph, type_query)
     if DETAIL:
         print query
     return query

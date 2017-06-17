@@ -1,0 +1,57 @@
+<div class="panel panel-info">
+<div class="panel-heading">
+   <div class="row">
+    <div class="col-md-9"><h3>Research Question</h3></div>
+   </div>
+</div>
+
+<div class="panel-body">
+ <div class="row deletion" id="deletion_idea_row" style='display:none'>
+  <div class="col-md-12" >
+     <div class="row deletion">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <div class="row">
+              <div class="col-md-4">
+                  <h4 class="panel-title">
+                      <a id="link_collapse_idea_delete"
+                         data-toggle="collapse" href="#collapse_idea_delete">
+                      <span class="badge alert-info"><strong>-</strong></span></a>
+                      Delete Research Question
+                  </h4>
+              </div>
+              <!--<h5><div class="col-md-6 text-right" style="color:red" id="idea_creation_message_col"></div></h5>-->
+              <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="idea_deletion_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="deleteIdeaButton" class="btn btn-success"
+                              data-toggle="button" onclick = "deleteIdeaButtonClick();">
+                          Execute</button></td>
+               </table>
+              </div>
+         </div>
+        </div>
+        <div id="collapse_idea_delete" class="panel-collapse collapse in" target="link_collapse_idea_delete">
+        <div class="panel-body">
+          <div class="row rq" target = 'deletion_idea_selected_RQ'>
+            <div class="col-md-2" id="button_select_RQ_col">
+                <!-- will be rendered via server -->
+            </div>
+            <div class="col-md-10">
+                <div class="well well-sm" id="deletion_idea_selected_RQ" uri="" label="">Select a Research Question</div>
+            </div>
+          </div>
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+  </div>
+ </div>
+
+</div>
+</div>

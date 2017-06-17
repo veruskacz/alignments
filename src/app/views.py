@@ -41,6 +41,7 @@ if CREATION_ACTIVE:
     from Alignments.UserActivities import Import_Data as Ipt
     import Alignments.Linksets.SPA_LinksetSubset as spa_subset
     from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
+    from Alignments.Manage.DatasetStats import stats_optimised as stats
 
 else:
     from app import app
@@ -812,9 +813,10 @@ def predicates():
     The result list is passed as parameters to the template datadetails_list.html
     """
     dataset_uri = request.args.get('dataset_uri', '')
+    type = request.args.get('type', '')
     function = request.args.get('function', '')
     # GET QUERY
-    query = Qry.get_predicates(dataset_uri)
+    query = Qry.get_predicates(dataset_uri, type)
 
     # RUN QUERY AGAINST ENDPOINT
     dataDetails = sparql(query, strip=True)
@@ -1070,21 +1072,45 @@ def createView():
         'datasets': view_lens,
         'lens_operation': 'http://risis.eu/lens/operator/intersection'}
 
+    dict_stats = {}
+
     view_filter = []
     for json_item in view_filter_js:
-        f = ast.literal_eval(json_item)
+        filter_row = ast.literal_eval(json_item)
         exist = False
+        print "KEYS", filter_row.keys()
 
         for d in view_filter:
-            if d['graph'] == f['ds'] :
-                d['properties'].append(f['att'])
+            if d['graph'] == filter_row['ds'] :
+
+                if 'type' in filter_row:
+                    optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+                    tuple_data = (filter_row['att'], optional)
+                    d['properties'].append(tuple_data)
+                else:
+                    d['properties'].append(filter_row['att'])
+
                 exist = True
                 break
 
         if not exist:
-            dict = {'graph': f['ds'],
-                    'properties': [f['att']]}
-            view_filter.append(dict)
+            dict_stats = {filter_row['ds']: stats(filter_row['ds'], display_table=False, display_text=True)}
+
+            if 'type' in filter_row:
+
+                print "\n\nPRINTING:", filter_row['ds'], filter_row['att']
+                print "DICTIONARY 0:", dict_stats
+                print "DICTIONARY 1:", dict_stats[filter_row['ds']]
+                print "DICTIONARY 2:", dict_stats[filter_row['ds']][filter_row['type']]
+                print "OPTIONAL:", dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+
+                optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+                tuple_data = (filter_row['att'],optional)
+                dict = {'graph': filter_row['ds'], 'properties': [tuple_data]}
+                view_filter.append(dict)
+            else:
+                dict = {'graph': filter_row['ds'], 'properties': [filter_row['att']]}
+                view_filter.append(dict)
 
     # print "\n\nVIEW SPECS:", view_specs
     # print "\n\nVIEW DESIGN:", view_filter
@@ -1095,7 +1121,8 @@ def createView():
 
     if CREATION_ACTIVE:
         save = (mode == 'save')
-        result = mod_view.view(view_specs, view_filter, save=save, limit=10)
+        print "FILTER:", view_filter
+        result = mod_view.view(view_specs, view_filter, save=save, limit=100)
         # print result
     else:
         metadata = {'message': 'View creation is not active!'}
@@ -1160,12 +1187,16 @@ def graphsEntityTypes():
     function = request.args.get('function', '')
     rq_uri = request.args.get('rq_uri', '')
     mode = request.args.get('mode', 'toAdd')
-    query = Qry.get_types_per_graph(rq_uri, mode)
 
     if (mode == 'added'):
         style = 'background-color:lightblue'
     else:
         style = ''
+
+    if (mode == 'view'):
+        mode = 'added'
+
+    query = Qry.get_types_per_graph(rq_uri, mode)
 
     # RUN QUERY AGAINST ENDPOINT
     data = sparql(query, strip=True)
@@ -1319,9 +1350,14 @@ def adminDel():
     The result list is passed as parameters to the template list_dropdown.html
     """
     typeDel = request.args.get('typeDel', '')
+    uri = request.args.get('uri', '')
 
     if typeDel == 'idea':
-        adm.drop_all_research_questions(display=True, activated=True)
+        if len(str(uri).strip()) > 0:
+            adm.drop_a_research_question(uri, display=True, activated=True)
+        else:
+            print 'I am deleting...'
+            adm.drop_all_research_questions(display=True, activated=True)
     elif typeDel == 'linkset':
         adm.drop_linksets(display=True, activated=True)
     elif typeDel == 'lens':

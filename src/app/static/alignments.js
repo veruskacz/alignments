@@ -318,6 +318,79 @@ function modeAdmin(val)
    $('#admin_buttons_col').show();
 }
 
+function DelRQClick()
+{
+    $("#divAdmin").show();
+    $("#deletion_dataset_col").show();
+    $("#deletion_idea_row").show();
+
+   $('#button_select_RQ_col').html('Loading...');
+   // get research questions
+   $.get('/getrquestions',
+          data = {'template': 'list_dropdown.html',
+                  'function': 'rqAdminClick(this,"idea")'},
+          function(data)
+   {
+     //load the results rendered as a button into a div-col
+     $('#button_select_RQ_col').html(data);
+   });
+
+  var target = 'deletion_idea_selected_RQ';
+  setAttr(target,'uri','');
+  setAttr(target,'label','');
+  setAttr(target,'style','background-color:none');
+  $('#'+target).html('');
+
+}
+
+function rqAdminClick(th, mode)
+{
+  // get the values of the selected rq
+  var rq_uri = $(th).attr('uri');
+  var rq_label = $(th).attr('label');
+
+  //set target div with selected RQ
+  var target = 'deletion_idea_selected_RQ';
+  setAttr(target,'uri',rq_uri);
+  setAttr(target,'label',rq_label);
+  setAttr(target,'style','background-color:lightblue');
+  $('#'+target).html(rq_label);
+}
+
+function deleteIdeaButtonClick()
+{
+    var rq_uri = $('#deletion_idea_selected_RQ').attr('uri');
+    if (rq_uri)
+    {
+        $('#idea_deletion_message_col').html(addNote('Deleting the selected Research Question',cl='warning'));
+        loadingGif(document.getElementById('idea_deletion_message_col'), 2);
+        $.get('/adminDel',
+          data = {'typeDel': 'idea', 'uri': rq_uri},
+          function(data)
+          {
+             $('#idea_deletion_message_col').html(addNote(data,cl='info'));
+             loadingGif(document.getElementById('idea_deletion_message_col'), 2, show=false);
+             DelRQClick(); // Refresh
+          });
+    }
+    else
+    {   var test = confirm("Press a button!");
+        if (test)
+        {   $('#idea_deletion_message_col').html(addNote('Deleting ALL Research Questions',cl='warning'));
+            loadingGif(document.getElementById('idea_deletion_message_col'), 2);
+            $.get('/adminDel',
+              data = {'typeDel': 'idea'},
+              function(data)
+              {
+                 $('#idea_deletion_message_col').html(addNote(data,cl='info'));
+                 loadingGif(document.getElementById('idea_deletion_message_col'), 2, show=false);
+                 DelRQClick(); // Refresh
+              });
+        }
+
+    }
+}
+
 function del_ideas_button()
 {
     alert("in");
@@ -329,6 +402,7 @@ function del_ideas_button()
    });
     alert("out");
 }
+
 
 function del_linksets_button()
 {
