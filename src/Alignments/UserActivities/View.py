@@ -107,6 +107,7 @@ def view_data(view_specs, view_filter, display=False):
     # TEXT BUFFER
     string_buffer = StringIO()
     string_buffer2 = StringIO()
+    dataset_opt = []  # LIST OF DATASET THAT HAVE ONLY OPTIONAL PROPERTIES
 
     # HOLDER VARIABLE (STRING) FOR THE RESEARCH QUESTION URI
     question_uri = str(view_specs[St.researchQ_URI]).strip()
@@ -177,6 +178,7 @@ def view_data(view_specs, view_filter, display=False):
             pro = None
 
             # [DESCRIPTION] WHERE EACH FILTER IS COMPOSED OF A NUMBER OF PROPERTIES
+            check_optional = False
             total_properties = len(filter[St.properties])
             for ds_property in filter[St.properties]:
                 append = ";" if count < total_properties - 1 else ".\n"
@@ -187,14 +189,20 @@ def view_data(view_specs, view_filter, display=False):
                     if len(cur_property) > 0 and ds_property[1] is True:
                         pro = "\n\t\t\t\talivocab:selectedOptional\t<{}> {}".format(ds_property[0], append)
                     else:
+                        check_optional = True
                         pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
                 else:
                     cur_property = str(ds_property).strip()
                     if len(cur_property) > 0:
+                        check_optional = True
                         pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
                 if pro is not None:
                     string_buffer.write(pro)
                     count += 1
+
+            # THESE DATASETS ARE COMPPOSED OF ONLY OPTIONAL PROPERTIES
+            if check_optional is False:
+                dataset_opt += [filter[St.graph]]
 
     # THE VIEW_LENS IS COMPOSED OF A NUMBER OF LENSES AND LINKSETS SELECTED
     string_buffer2.write("\n\t\t\t### THE COMPONENT OF THE LENS".format(Ns.view))
@@ -228,7 +236,8 @@ def view_data(view_specs, view_filter, display=False):
     print message
     if display:
         print "VIEW INSERT QUERY:", query
-    return {St.message: message, St.insert_query: query, St.result: uri}
+    # return {St.message: message, St.insert_query: query, St.result: uri}
+    return {St.message: message, St.insert_query: query, St.result: uri, "sparql_issue": dataset_opt}
 
 
 def view(view_specs, view_filter, save=False, limit=10):
@@ -253,22 +262,37 @@ def view(view_specs, view_filter, save=False, limit=10):
     namespace = dict()
     namespace_str = ""
     count = 1
+    is_problematic = False
 
     # GENERATE THE INSERT METADATA
     # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
     # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
     view_metadata = view_data(view_specs, view_filter)
 
+    # CHECK FOR POTENTIAL SPARQL TIMEOUT
+    opt_list = view_metadata["sparql_issue"]
+    if len(opt_list) != 0:
+        is_problematic = True
+        the_list = ""
+        for ds in opt_list:
+            the_list += "{} ".format(ds)
+        message = "The insertion metadata was generated but not inserted. The properties listed in theses datasets" \
+                  " [{}] are ALL OPTIONAL. The presence of at least one non OPTIONAL property is required.".format(
+            the_list)
+        view_metadata[St.message] = message
+        print message
+
     # REGISTER THE METADATA IF SAVE ID SET TO TRUE
     if save:
-        print "We are in save mode!"
-        is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
-        print is_metadata_inserted
-        message = "The insertion metadata was successfully inserted." \
-            if is_metadata_inserted == "true" else "The metadata could not be inserted."
-        print message
-        view_metadata[St.message] = message
-        # print view_metadata[St.insert_query]
+        if is_problematic is False:
+            print "We are in save mode!"
+            is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
+            print is_metadata_inserted
+            message = "The insertion metadata was successfully inserted." \
+                if is_metadata_inserted == "true" else "The metadata could not be inserted."
+            print message
+            view_metadata[St.message] = message
+            # print view_metadata[St.insert_query]
 
     # GENERATE THE INTERSECTION
     # AND DISPLAY THE QUERIES NEEDED
@@ -478,7 +502,7 @@ def view(view_specs, view_filter, save=False, limit=10):
     # display_matrix(table, spacing=80, limit=limit, is_activated=False)
     print "DONE GENERATING THE VIEW"
     # return {"metadata": view_metadata, "query": query, "table": table}
-    return {"metadata": view_metadata, "query": query}
+    return {"metadata": view_metadata, "query": query, "problematic": is_problematic}
 
 
 def retrieve_view(question_uri, view_uri):
