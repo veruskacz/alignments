@@ -18,8 +18,76 @@ PREFIX = """
     PREFIX prov:        <http://www.w3.org/ns/prov#>
 """
 
+# AN EXAMPLE OF A VIEW
+#     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
+#     PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+#     PREFIX linkset:     <http://risis.eu/linkset/>
+#     PREFIX void:        <http://rdfs.org/ns/void#>
+#     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+#     PREFIX tmpgraph:    <http://risis.eu/alignment/temp-match/>
+#     PREFIX prov:        <http://www.w3.org/ns/prov#>
+#
+#     INSERT DATA
+#     {
+#         GRAPH <http://risis.eu/activity/idea_77f81f>
+#         {
+#         	<http://risis.eu/activity/idea_77f81f>
+# 				alivocab:created			<http://risis.eu/view/View_N389901427> .
+#
+# 			<http://risis.eu/view/View_N389901427>
+# 				a							<http://risis.eu/class/View> ;
+# 				alivocab:hasViewLens		<http://risis.eu/view/view_lens_N389901427> ;
+# 				alivocab:hasFilter			<http://risis.eu/view/filter_eter_University_N389901427> ;
+# 				alivocab:hasFilter			<http://risis.eu/view/filter_eter_gadm_stat_N389901427> ;
+# 				alivocab:hasFilter			<http://risis.eu/view/filter_grid_N389901427> ;
+# 				alivocab:hasFilter			<http://risis.eu/view/filter_grid_gadm_stat_N389901427> ;
+# 				alivocab:hasFilter			<http://risis.eu/view/filter_leidenRanking_N389901427> .
+#
+# 			<http://risis.eu/view/view_lens_N389901427>
+# 				alivocab:selected			<http://risis.eu/lens/union_Eter_LeidenRanking_P1614043027> ;
+# 				alivocab:selected			<http://risis.eu/lens/union_Eter_Grid_N312479101> ;
+# 				alivocab:selected			<http://risis.eu/linkset/eter_eter_gadm_stat_identity_N307462801> ;
+# 				alivocab:selected			<http://risis.eu/linkset/grid_grid_gadm_stat_identity_N627321033> .
+#
+# 			<http://risis.eu/view/filter_eter_University_N389901427>
+# 				void:target					<http://risis.eu/dataset/eter> ;
+# 				void:hasDatatype			<http://risis.eu/eter/ontology/class/University> ;
+# 				alivocab:selected			<http://risis.eu/eter/ontology/predicate/core_budget_EURO> ;
+# 				alivocab:selected			<http://risis.eu/eter/ontology/predicate/foundation_year> ;
+# 				alivocab:selected			<http://risis.eu/eter/ontology/predicate/geographic_coordinates_latitude> ;
+# 				alivocab:selected			<http://risis.eu/eter/ontology/predicate/university_hospital> ;
+# 				alivocab:selectedOptional	<http://risis.eu/eter/ontology/predicate/country_Code> ;
+# 				alivocab:selectedOptional	<http://risis.eu/eter/ontology/predicate/english_Institution_Name> ;
+# 				alivocab:selected			<http://risis.eu/eter/ontology/predicate/institution_Name> .
+#
+# 			<http://risis.eu/view/filter_eter_gadm_stat_N389901427>
+# 				void:target					<http://risis.eu/dataset/eter_gadm_stat> ;
+# 				alivocab:selected			<http://risis.eu//temp-match/temp-match/predicate/level> ;
+# 				alivocab:selected			<http://risis.eu//temp-match/temp-match/predicate/total> .
+#
+# 			<http://risis.eu/view/filter_grid_N389901427>
+# 				void:target					<http://risis.eu/dataset/grid> ;
+# 				alivocab:selected			<http://risis.eu/grid/ontology/predicate/city> ;
+# 				alivocab:selected			<http://risis.eu/grid/ontology/predicate/country> ;
+# 				alivocab:selected			<http://risis.eu/grid/ontology/predicate/name> ;
+# 				alivocab:selected			<http://risis.eu/grid/ontology/predicate/types> .
+#
+# 			<http://risis.eu/view/filter_grid_gadm_stat_N389901427>
+# 				void:target					<http://risis.eu/dataset/grid_gadm_stat> ;
+# 				alivocab:selected			<http://risis.eu//temp-match/temp-match/predicate/level> ;
+# 				alivocab:selected			<http://risis.eu//temp-match/temp-match/predicate/typeCount> .
+#
+# 			<http://risis.eu/view/filter_leidenRanking_N389901427>
+# 				void:target					<http://risis.eu/dataset/leidenRanking> ;
+# 				alivocab:selected			<http://risis.eu/leidenRanking/ontology/predicate/Country> ;
+# 				alivocab:selected			<http://risis.eu/leidenRanking/ontology/predicate/Field> ;
+# 				alivocab:selected			<http://risis.eu/leidenRanking/ontology/predicate/Frac_counting> ;
+# 				alivocab:selected			<http://risis.eu/leidenRanking/ontology/predicate/Period> ;
+# 				alivocab:selected			<http://risis.eu/leidenRanking/ontology/predicate/University> .
+# 		}
+# 	}
 
-def view_data(view_specs, view_filter):
+def view_data(view_specs, view_filter, display=False):
 
     # GENERATING THE METADATA FOR REGISTERING A VIEW.
     #
@@ -55,12 +123,14 @@ def view_data(view_specs, view_filter):
     sorted_datasets = sorted(view_filter, key=get_key)
 
     # [DESCRIPTION] RESEARCH QUESTION X
-    string_buffer2.write("\t<{}>\n".format(question_uri))
+    string_buffer2.write("\t### THE VIEW\n".format(question_uri))
+    string_buffer2.write("\t\t\t<{}>\n".format(question_uri))
 
     # [DESCRIPTION] CREATED A VIEW
     string_buffer2.write("\t\t\t\talivocab:created\t\t\t<@URI> .\n\n")
 
     # [DESCRIPTION] THE VIEW
+    string_buffer2.write("\t\t\t### THE COMPONENT OF THE VIEW: THE TYPE, THE LENS AND THE FILTERS\n".format(Ns.view))
     string_buffer2.write("\t\t\t<@URI>\n".format(Ns.view))
 
     # [DESCRIPTION] IS A TYPE OF RISIS:VIEW
@@ -71,42 +141,44 @@ def view_data(view_specs, view_filter):
 
     # SORT THE PROPERTIES IN EACH DICTIONARY
     count_ds = 0
-    for dataset in sorted_datasets:
+
+    for filter in sorted_datasets:
         append_ds = ";" if count_ds < len(sorted_datasets) - 1 else ".\n"
         count_ds += 1
 
         # APPEND THE GRAPH
-        if St.graph in dataset:
+        string_buffer.write("\n\t\t\t### FILTER {}".format(count_ds))
+        if St.graph in filter:
 
             # [DESCRIPTION] THAT HAS A NUMBER OF FILTERS
-            dataset_name = Ut.get_uri_local_name(dataset[St.graph])
-            if St.entity_datatype in dataset:
-                entity_type_name = Ut.get_uri_local_name(dataset[St.entity_datatype])
+            dataset_name = Ut.get_uri_local_name(filter[St.graph])
+            if St.entity_datatype in filter:
+                entity_type_name = Ut.get_uri_local_name(filter[St.entity_datatype])
                 filter_c = "<{}filter_{}_{}_@>".format(Ns.view, dataset_name, entity_type_name)
             else:
                 filter_c = "<{}filter_{}_@>".format(Ns.view, dataset_name)
             string_buffer.write("\n\t\t\t{}".format(filter_c))
 
             # [DESCRIPTION] A FILTER HAS A DATASET
-            string_buffer.write("\n\t\t\t\tvoid:target\t\t\t\t\t<{}> ;".format(dataset[St.graph]))
+            string_buffer.write("\n\t\t\t\tvoid:target\t\t\t\t\t<{}> ;".format(filter[St.graph]))
 
             # ADDING THE DATATYPE IF ANY
-            if St.entity_datatype in dataset:
-                string_buffer.write("\n\t\t\t\tvoid:hasDatatype\t\t\t<{}> ;".format(dataset[St.entity_datatype]))
+            if St.entity_datatype in filter:
+                string_buffer.write("\n\t\t\t\tvoid:hasDatatype\t\t\t<{}> ;".format(filter[St.entity_datatype]))
             has_filter = "\n\t\t\t\talivocab:hasFilter\t\t\t{} {}".format(filter_c, append_ds)
 
             # [DESCRIPTION] ADDING THE FILTERS BELONGING TO THE VIEW
             string_buffer2.write(has_filter)
 
         # APPEND THE PROPERTIES
-        if St.properties in dataset:
-            dataset[St.properties].sort()
+        if St.properties in filter:
+            filter[St.properties].sort()
             count = 0
             pro = None
 
             # [DESCRIPTION] WHERE EACH FILTER IS COMPOSED OF A NUMBER OF PROPERTIES
-            total_properties = len(dataset[St.properties])
-            for ds_property in dataset[St.properties]:
+            total_properties = len(filter[St.properties])
+            for ds_property in filter[St.properties]:
                 append = ";" if count < total_properties - 1 else ".\n"
 
                 if type(ds_property) is tuple and len(ds_property) == 2:
@@ -125,6 +197,7 @@ def view_data(view_specs, view_filter):
                     count += 1
 
     # THE VIEW_LENS IS COMPOSED OF A NUMBER OF LENSES AND LINKSETS SELECTED
+    string_buffer2.write("\n\t\t\t### THE COMPONENT OF THE LENS".format(Ns.view))
     string_buffer2.write("\n\t\t\t<{}view_lens_@>".format(Ns.view))
     count_ls = 0
     for linkset_lens in view_lens:
@@ -153,7 +226,8 @@ def view_data(view_specs, view_filter):
 
     message = "\nThe metadata was generated"
     print message
-    print "VIEW INSERT QUERY:", query
+    if display:
+        print "VIEW INSERT QUERY:", query
     return {St.message: message, St.insert_query: query, St.result: uri}
 
 
@@ -204,7 +278,7 @@ def view(view_specs, view_filter, save=False, limit=10):
         print "WE CANNOT PROCEED AS THERE IS A PROBLEM WITH THE PROVIDED DATASETS."
 
     # For each design view, we have the dataset of interest
-    #  and the list of properties to display
+    #  and the list of properties to display in a filter
     for d_view in view_filter:
 
         optional = ""
@@ -215,8 +289,8 @@ def view(view_specs, view_filter, save=False, limit=10):
         # shortening prefix length
         short_name = ds_ns_name[1][:6]
 
-        # 3 characters string to differentiate the properties of a dataset
-        attache = ds_ns_name[1][:3]
+        # 4 characters string to differentiate the properties of a dataset
+        attache = ds_ns_name[1][:4]
 
         # GRAPH
         # Adding the dataset name to the namespace dictionary [local name: namespace]
@@ -228,9 +302,10 @@ def view(view_specs, view_filter, save=False, limit=10):
         # ### DATASET: grid
         # GRAPH <http://risis.eu/genderc/grid>
         # {
+        #   ?GRID
         view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{\n\t\t?{}".format(
             ds_ns_name[1], d_view[St.graph], ds_ns_name[1])
-
+        # print "################# DATASET:", ds_ns_name[1]
         # Adding the resource as a variable to the variable list
         view_select += (" ?{}".format(ds_ns_name[1]))
 
@@ -307,6 +382,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                             namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
 
                         # REMOVE PREVIOUS PUNCTUATION
+                        # print "REMOVING PREDICATE"
                         view_where = view_where[:len(view_where) - 2]
                         view_where += " .\n\t\t?{}\n\t\t\t{:55} ?{}_{} .".format(
                             properties[i][0], predicate, attache, curr_ns[1])
@@ -328,6 +404,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                 curr_ns = Ut.get_uri_ns_local_name(properties[i][0])
                 predicate = "{}voc:{}".format(short_name, curr_ns[1])
 
+                # CHECKING IF TUY/PLE OF 2
                 if len(properties[i]) == 2:
 
                     # Adding predicates
@@ -363,8 +440,22 @@ def view(view_specs, view_filter, save=False, limit=10):
                     else:
                         view_select += value
 
+        # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
+        # print "########################WERE", view_where
+        # view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
+
+
+
         if len(optional) > 0:
-            view_where = "{}.".format(view_where[:len(view_where) - 1])
+
+            if view_where[len(view_where) - 1] == ";":
+                view_where = "{}.".format(view_where[:len(view_where) - 1])
+
+            else:
+                # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
+                # print "########################WERE", view_where
+                view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
+
             view_where += "\n\t\t### OPTIONAL PROPERTIES{}\n\t}}".format(optional)
         else:
             view_where += "\n\t}"
@@ -381,10 +472,11 @@ def view(view_specs, view_filter, save=False, limit=10):
     query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
     print "VIEW TABLE:", query
 
-    table = sparql_xml_to_matrix(query)
-    display_matrix(table, spacing=80, limit=limit, is_activated=False)
-
-    return {"metadata": view_metadata, "query": query, "table": table}
+    # table = sparql_xml_to_matrix(query)
+    # display_matrix(table, spacing=80, limit=limit, is_activated=False)
+    print "DONE GENERATING THE VIEW"
+    # return {"metadata": view_metadata, "query": query, "table": table}
+    return {"metadata": view_metadata, "query": query}
 
 
 def retrieve_view(question_uri, view_uri):
