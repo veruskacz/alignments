@@ -309,8 +309,9 @@ def endpoint(query):
         return {St.message: "OK", St.result: result}
 
     except urllib2.HTTPError, err:
-        print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, err.read())
-        return {St.message: err.read(), St.result: None}
+        message =  err.read()
+        print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, message)
+        return {St.message: message, St.result: None}
 
     except Exception as err:
 
@@ -319,7 +320,7 @@ def endpoint(query):
             # print ERROR
             return {St.message: ERROR, St.result: None}
 
-        elif str(err).__contains__("timeout") is True:
+        elif str(err.message).__contains__("timeout") is True:
             print "Query execution cancelled: Execution time exceeded query timeout"
             return {St.message: "Query execution cancelled: Execution time exceeded query timeout.",
                     St.result: None}
