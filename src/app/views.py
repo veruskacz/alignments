@@ -716,11 +716,12 @@ def sparqlDirect():
 
         # response = sparql_xml_to_matrix(query)
         response = dic_response[St.result]
+        results = []
         if (response):
             header = response[0]
             results_x = response[1:]
 
-            results = []
+            # results = []
             f = lambda x: x.decode('utf-8') if str(x) else x
             for r in results_x:
               results += [map(f, r)]
@@ -730,13 +731,14 @@ def sparqlDirect():
             message = "Have a look at the result in the table below."
         else:
             message = "The query was successfully run with no result to show. " \
-                      "<br/>Probably the selected properties need some revising"
+                      "<br/>Probably the selected properties need some revising."
 
-        return render_template('viewsDetails_list.html', header = header, results = results)
+        return json.dumps({'message': message, 'result': render_template('viewsDetails_list.html', header = header, results = results)})
 
     elif dic_response[St.message] == "NO RESPONSE":
         print "NO RESULT FOR THIS QUERY..."
         message = dic_response[St.result][St.message]
+        return json.dumps({'message': message, 'result': None})
 
 
 #######################################################################

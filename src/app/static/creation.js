@@ -1285,12 +1285,14 @@ function runViewClick()
 {
   //$('#view_creation_message_col').html("");
   var query = $('#queryView').val();
+  refresh_create_view(mode='quey');
   $('#view_run_message_col').html(addNote('The query is running.',cl='warning'));
   loadingGif(document.getElementById('view_run_message_col'), 2);
   $.get('/sparql',data={'query': query}, function(data)
   {
-    $('#views-results').html(data);
-    $('#view_run_message_col').html("");
+    var obj = JSON.parse(data);
+    $('#views-results').html(obj.result);
+    $('#view_run_message_col').html(addNote(obj.message,cl='info'));
     loadingGif(document.getElementById('view_run_message_col'), 2, show = false);
   });
 }
@@ -1754,7 +1756,7 @@ function refresh_create_idea()
 }
 
 
-function refresh_create_view()
+function refresh_create_view(mode='all')
 {
 //    alert('here');
     var btn = document.getElementById('detailsViewButton');
@@ -1767,8 +1769,11 @@ function refresh_create_view()
     $('#creation_view_linkset_col').html("");
     $('#creation_view_lens_col').html("");
     $('#creation_view_selected_predicates_group').html("");
-    $('#views-results').html("");
-    $('#queryView').val("");
+    if (mode=='query')
+    {
+        $('#views-results').html("");
+        $('#queryView').val("");
+    }
 }
 
 function refresh_import(mode='all')
