@@ -313,10 +313,16 @@ def endpoint(query):
         return {St.message: err.read(), St.result: None}
 
     except Exception as err:
+
         if str(err).__contains__("No connection") is True:
             # logger.warning(err)
             # print ERROR
             return {St.message: ERROR, St.result: None}
+
+        elif str(err).__contains__("timeout") is True:
+            print "Query execution cancelled: Execution time exceeded query timeout"
+            return {St.message: "Query execution cancelled: Execution time exceeded query timeout.",
+                    St.result: None}
 
         logger.warning(err)
         message = "\nOR MAYBE THERE IS AN ERROR IN THIS QUERY"

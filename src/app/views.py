@@ -42,6 +42,7 @@ if CREATION_ACTIVE:
     import Alignments.Linksets.SPA_LinksetSubset as spa_subset
     from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
     from Alignments.Manage.DatasetStats import stats_optimised as stats
+    from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
 
 else:
     from app import app
@@ -700,24 +701,38 @@ def updEvidence():
 
 @app.route('/sparql', methods=['GET'])
 def sparqlDirect():
-    query = str(request.args.get('query', None))
 
     results = []
     header = []
-    response = sparql_xml_to_matrix(query)
-    if (response):
-        header = response[0]
-        results_x = response[1:]
-        results = []
-        f = lambda x: x.decode('utf-8') if str(x) else x
-        for r in results_x:
-          results += [map(f, r)]
+    query = str(request.args.get('query', None))
 
-    # print '\n\n', results
+    print "RUNNING SPARQL QUERY"
+    dic_response = sparql2matrix(query)
+    # print dic_response
+    # print St.message in dic_response
+    if dic_response[St.message] == "OK":
 
-    return render_template('viewsDetails_list.html',
-                            header = header,
-                            results = results)
+        # response = sparql_xml_to_matrix(query)
+        response = dic_response[St.result]
+        if (response):
+            header = response[0]
+            results_x = response[1:]
+
+            results = []
+            f = lambda x: x.decode('utf-8') if str(x) else x
+            for r in results_x:
+              results += [map(f, r)]
+
+        # print '\n\n', results
+        if len(response) > 1:
+            message = "Have a look at the result in the table below."
+        else:
+            message = "The query was successfully run with no result to show. " \
+                      "<br/>Probably the selected properties need some revising"
+        return render_template('viewsDetails_list.html', header = header, results = results)
+
+    elif dic_response[St.message] == "NO RESPONSE":
+        message = dic_response[St.result][St.message]
 
 
 #######################################################################
@@ -1141,8 +1156,8 @@ def createView():
 
 @app.route('/getviewdetails')
 def viewdetails():
-    rq_uri = request.args.get('rq_uri');
-    view_uri = request.args.get('view_uri');
+    rq_uri = request.args.get('rq_uri')
+    view_uri = request.args.get('view_uri')
 
     view = mod_view.retrieve_view(rq_uri, view_uri)
     # print "\nVIEW:", view
@@ -2044,9 +2059,14 @@ def endpoint(query):
         return result
 
     except Exception as err:
+
         if str(err).__contains__("No connection") is True:
             logger.warning(err)
             return "No connection"
+
+        elif str(err).__contains__("timeout") is True:
+            print "Query execution cancelled: Execution time exceeded query timeout"
+            return "Timeout"
 
         logger.warning(err)
         print "\nTHERE IS AN ERROR IN THIS QUERY"
