@@ -1214,6 +1214,8 @@ function createViewClick(mode)
 {
     $('#view_creation_message_col').html("");
     $('#view_creation_save_message_col').html("");
+    $('#queryView').val("");
+
     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
     var elems = selectedElemsInGroupList('creation_view_linkset_col');
     var i;
@@ -1285,7 +1287,7 @@ function runViewClick()
 {
   //$('#view_creation_message_col').html("");
   var query = $('#queryView').val();
-  refresh_create_view(mode='quey');
+  $('#views-results').html("");
   $('#view_run_message_col').html(addNote('The query is running.',cl='warning'));
   loadingGif(document.getElementById('view_run_message_col'), 2);
   $.get('/sparql',data={'query': query}, function(data)
@@ -1759,21 +1761,23 @@ function refresh_create_idea()
 function refresh_create_view(mode='all')
 {
 //    alert('here');
-    var btn = document.getElementById('detailsViewButton');
-    resetButton(btn);
-    btn = document.getElementById('createViewButton');
-    resetButton(btn);
-    $('#view_creation_message_col').html("");
-    $('#view_creation_save_message_col').html("");
-    $('#inspect_views_details_col').html("");
-    $('#creation_view_linkset_col').html("");
-    $('#creation_view_lens_col').html("");
-    $('#creation_view_selected_predicates_group').html("");
-    if (mode=='query')
-    {
+    if (mode == 'all')
+    {   var btn = document.getElementById('detailsViewButton');
+        resetButton(btn);
+        btn = document.getElementById('createViewButton');
+        resetButton(btn);
+        $('#view_creation_message_col').html("");
+        $('#view_creation_save_message_col').html("");
+        $('#inspect_views_details_col').html("");
+        $('#creation_view_linkset_col').html("");
+        $('#creation_view_lens_col').html("");
+        $('#creation_view_selected_predicates_group').html("");
+    }
+//    if (mode=='query')
+//    {
         $('#views-results').html("");
         $('#queryView').val("");
-    }
+//    }
 }
 
 function refresh_import(mode='all')
