@@ -1204,53 +1204,52 @@ def viewdetails():
     print view
 
     for row in view['view_filter_matrix'][1:]:
-        dataset = get_URI_local_name(row[0])
+        dataset_uri = row[0]
+        dataset = get_URI_local_name(dataset_uri)
         details += '<strong>' + dataset
-        if row[2]:
-            entityType = get_URI_local_name(row[2])
+        if str(row[1]) != '':
+            entityType_uri = row[1]
+            entityType = get_URI_local_name(entityType_uri)
             if entityType is None:
                 entityType = ""
             details += ' | ' + entityType
         else:
+            entityType_uri = ''
             entityType = ''
 
-        predicatesList = str(row[1]).split(', ')
+        predicatesList = str(row[2]).split(', ')
         predicatesNames = []
-        for pred_uri in predicatesList:
-            pred = get_URI_local_name(pred_uri)
-            list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
-                         + 'pred_uri="' + pred_uri \
-                         + '" graph_uri="' + row[0] \
-                         + '" type_uri="' + row[2] \
-                         + '"><span class="list-group-item-heading"><b>' \
-                         + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
-            predicatesNames += [pred]
-        # predicatesList = map(lambda x: get_URI_local_name(x), predicatesList)
-        predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
-        details += '</strong><br/> - ' + predicates + '<br/>'
+        if predicatesList != ['']:
+            for pred_uri in predicatesList:
+                pred = get_URI_local_name(pred_uri)
+                list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
+                             + 'pred_uri="' + pred_uri \
+                             + '" graph_uri="' + dataset_uri \
+                             + '" type_uri="' + entityType_uri \
+                             + '"><span class="list-group-item-heading"><b>' \
+                             + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
+                predicatesNames += [pred]
+            # predicatesList = map(lambda x: get_URI_local_name(x), predicatesList)
+            predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
+            details += '</strong><br/> - ' + predicates + '<br/>'
 
         predicatesList = str(row[3]).split(', ')
         predicatesNames = []
-
-        for pred_uri in predicatesList:
-            pred = get_URI_local_name(pred_uri)
-
-            # print "dataset:", dataset
-            # print "entityType:", entityType
-            # print "pred:", pred
-            if pred is None:
-                pred = ""
-
-            list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
-                + ' pred_uri="' + pred_uri \
-                + '" graph_uri="' + row[0] \
-                + '" type_uri="' + row[2] \
-                + '"><span class="list-group-item-heading"><b>' \
-                + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
-            predicatesNames += [pred]
-        # predicatesNames = map(lambda x: get_URI_local_name(x), predicatesList)
-        predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
-        details += ' - Opt: ' + predicates + '<br/>'
+        if predicatesList != ['']:
+            for pred_uri in predicatesList:
+                pred = get_URI_local_name(pred_uri)
+                if pred is None:
+                    pred = ""
+                list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
+                    + ' pred_uri="' + pred_uri \
+                    + '" graph_uri="' + dataset_uri \
+                    + '" type_uri="' + entityType_uri \
+                    + '"><span class="list-group-item-heading"><b>' \
+                    + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
+                predicatesNames += [pred]
+            # predicatesNames = map(lambda x: get_URI_local_name(x), predicatesList)
+            predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
+            details += ' - Opt: ' + predicates + '<br/>'
 
 
     details += "</div></div></div></div>"

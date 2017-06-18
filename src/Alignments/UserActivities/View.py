@@ -514,7 +514,7 @@ def retrieve_view(question_uri, view_uri):
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
     PREFIX void:        <http://rdfs.org/ns/void#>
     ### GETTING THE VIEW_FILTERS
-    select ?target ?selected ?datatype ?selectedOptional
+    select ?target ?datatype ?selected ?selectedOptional
     {{
         GRAPH <{}>
         {{
@@ -527,7 +527,7 @@ def retrieve_view(question_uri, view_uri):
                 void:target			?target ;
             OPTIONAL {{ ?filter void:hasDatatype	?datatype }} 
 
-            {{ SELECT ?filter (GROUP_CONCAT(DISTINCT ?sel; SEPARATOR=", ") as ?selected) 
+            OPTIONAL {{ SELECT ?filter (GROUP_CONCAT(DISTINCT ?sel; SEPARATOR=", ") as ?selected) 
 			    {{  ?filter alivocab:selected	?sel }} 
               group by ?filter }}.
           
