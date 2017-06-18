@@ -728,7 +728,7 @@ def sparqlDirect():
 
         # print '\n\n', results
         if len(response) > 1:
-            message = "Have a look at the result in the table below."
+            message = "Have a look at the result in the table below"
         else:
             message = "The query was successfully run with no result to show. " \
                       "<br/>Probably the selected properties need some revising."

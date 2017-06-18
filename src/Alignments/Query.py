@@ -422,7 +422,7 @@ def sparql_xml_to_matrix(query):
         # print "response length:", len(response[St.result])
 
         if len(response[St.result]) == 0:
-            message = "NO RESULT FOR THE QUERY:"
+            message = "NO RESULT FOR THE QUERY"
             return {St.message: message, St.result: None}
 
         logger.info("2. RESPONSE IS NOT ''NONE''")
