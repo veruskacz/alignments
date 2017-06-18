@@ -502,7 +502,7 @@ def view(view_specs, view_filter, save=False, limit=10):
     # display_matrix(table, spacing=80, limit=limit, is_activated=False)
     print "DONE GENERATING THE VIEW"
     # return {"metadata": view_metadata, "query": query, "table": table}
-    return {"metadata": view_metadata, "query": query, "problematic": is_problematic}
+    return {"metadata": view_metadata, "query": query, "sparql_issue": is_problematic}
 
 
 def retrieve_view(question_uri, view_uri):
