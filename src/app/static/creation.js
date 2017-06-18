@@ -1242,6 +1242,11 @@ function createViewClick(mode)
     view_filter.push( JSON.stringify(dict));
     }
 
+     if (mode=='check')
+     {   var message_col = 'view_creation_message_col'; }
+     else
+     {   var message_col = 'view_creation_save_message_col'; }
+
     if ((view_lens.length > 0) && (view_filter.length > 0))
     {
      var specs = {'mode': mode,
@@ -1249,16 +1254,8 @@ function createViewClick(mode)
                   'view_lens[]': view_lens,
                   'view_filter[]': view_filter};
 
-     if (mode=='check')
-         {
-            $('#view_creation_message_col').html(addNote('The proposed view is being processed',cl='warning'));
-            loadingGif(document.getElementById('view_creation_message_col'), 2);
-         }
-         else
-         {
-            $('#view_creation_save_message_col').html(addNote('The proposed view is being processed',cl='warning'));
-            loadingGif(document.getElementById('view_creation_save_message_col'), 2);
-         }
+     $('#'+message_col).html(addNote('The proposed view is being processed',cl='warning'));
+     loadingGif(document.getElementById(message_col), 2);
 
      $.get('/createView', specs, function(data)
      {
@@ -1266,20 +1263,23 @@ function createViewClick(mode)
          //{"metadata": metadata, "query": '', "table": []}
          $('#queryView').val(obj.query);
          $('#creation_view_results_row').show();
-         runViewClick();
 
-         if (mode=='check')
-         { $('#view_creation_message_col').html(addNote(obj.metadata.message,cl='info'));
-           loadingGif(document.getElementById('view_creation_message_col'), 2, show = false);
+         if (obj.sparql_issue)
+         {   var message = 'We cannot run the query because at least one non-optional property is required for each dataset in the select clause.'
+             $('#'+message_col).html(addNote(message,cl='warning'));
+             enableButton('view_run_button', enable=false);
          }
          else
-         { $('#view_creation_save_message_col').html(addNote(obj.metadata.message,cl='info'));
-           loadingGif(document.getElementById('view_creation_save_message_col'), 2, show = false);
+         {   runViewClick();
+             enableButton('view_run_button');
+             $('#'+message_col).html(addNote(obj.metadata.message,cl='info'));
          }
+
+         loadingGif(document.getElementById(message_col), 2, show = false);
      });
     }
     else {
-    $('#view_creation_message_col').html(addNote(missing_feature));
+        $('#'+message_col).html(addNote(missing_feature));
     }
 }
 
