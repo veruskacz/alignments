@@ -143,13 +143,13 @@ view_filter = [grid_gadm_stat_pro, eter_gadm_stat_pro, grid_properties, leiden_p
 #  return {"metadata": view_metadata, "query": query, "table": table}
 OUTPUT = view(view_specs, view_filter, save=False, limit=75)
 
-for key, value in OUTPUT.items():
-    print key, ":\n", value
+# for key, value in OUTPUT.items():
+#     print key, ":\n", value
 
 # PRINT THE RESULT OF THE VIEW QUERY
 query = OUTPUT["query"]
-print query
+# print query
 
 # DISPLAY THE RESULT OF THE VIEW A A TABLE
 space = 70 # DETERMINES THE DISTANCE BETWEEN COLUMNS
-display_result( query, info=filter, spacing=space, limit=10, is_activated=True)
+# display_result( query, info=filter, spacing=space, limit=10, is_activated=True)

@@ -128,8 +128,6 @@ def stats_optimised(graph, display_table=False, display_text=False):
     stat = {}
     text = buffer()
 
-
-
     # 1. FIND ALL TYPES IN THE GRAPH
     qry_types = """
     ### RETRIEVE ALL TYPES FROM THE GRAPH
@@ -199,30 +197,6 @@ def stats_optimised(graph, display_table=False, display_text=False):
                         # THE PROPERTY IS THE KEY OF THE DICTIONARY
                         cur_dic[Occurrences[i][0]] = int(Occurrences[i][1]) % float(instances) != 0
 
-                # for i in range(1, len(properties)):
-                #     if count == 2:
-                #         append = "\n"
-                #         count = 0
-                #     local_name = Ut.get_uri_local_name(properties[i][0])
-                #     sel_text.write("{1}(COUNT(?{0}) as ?{0}Count) ".format(local_name, append))
-                #     grp_text.write("{}?{} ".format(append, local_name))
-                #     # pro_text.write("\n\t\tOPTIONAL {{ ?resource <{}> ?{} . }}".format(
-                #     #     properties[i][0], local_name))
-                #     append = ""
-                #     count += 1
-                #
-                #     if i == len(properties) -1:
-                #         # pro_text.write("\n\t}}\n}}\nGROUP BY ?predicate".format(grp_text.getvalue()))
-                #         qry_property_stats = pro_text.getvalue().replace("@@@", sel_text.getvalue())
-                #         print qry_property_stats
-                #
-                #         Occurrences_matrix = sparql_xml_to_matrix(qry_property_stats)
-                #         # display_matrix(Occurrences_matrix, spacing=70, limit=100, is_activated=True)
-                #         if Occurrences_matrix["result"] != None:
-                #             Occurrences = Occurrences_matrix["result"]
-                #             for i in range(len(Occurrences[0])):
-                #                 cur_dic[Occurrences[0][i]] = int(Occurrences[1][i]) % float(instances) == 0
-                # print cur_dic
     text.write("\nGRAPH: {}".format(graph))
     for key, value in optional.items():
         line = "-------------------------------------------------------------------------------------------------"
@@ -240,10 +214,11 @@ def stats_optimised(graph, display_table=False, display_text=False):
         print text.getvalue()
     return optional
 
-stats_optimised("http://risis.eu/dataset/eter", display_table=False, display_text=True)
+# stats_optimised("http://risis.eu/dataset/eter", display_table=False, display_text=True)
 # stats_optimised("http://risis.eu/genderc/Applicant", display_table=False, display_text=True)
 # stats_optimised("http://risis.eu/dataset/grid_20170522", display_table=False, display_text=True)
 # stats("http://risis.eu/dataset/grid_20170522", display_table=False, display_text=True)
 # stats("http://risis.eu/dataset/Panellists", display_table=False, display_text=True)
 # stats("http://risis.eu/genderc/Applicant", display_table=True, display_text=True)
+# stats_optimised("http://risis.eu/dataset/grid", display_table=False, display_text=True)
 
