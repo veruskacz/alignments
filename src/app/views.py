@@ -733,10 +733,14 @@ def sparqlDirect():
             message = "The query was successfully run with no result to show. " \
                       "<br/>Probably the selected properties need some revising."
 
-        return json.dumps({'message': message, 'result': render_template('viewsDetails_list.html', header = header, results = results)})
+        return json.dumps({'message': message, 'result':
+            render_template('viewsDetails_list.html', header = header, results = results)})
 
     elif dic_response[St.message] == "NO RESPONSE":
         print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': "NO RESPONSE", 'result': None})
+
+    else:
         message = dic_response[St.result][St.message]
         return json.dumps({'message': message, 'result': None})
 
@@ -1197,25 +1201,29 @@ def viewdetails():
     #     details += '<br/>'
     list_pred = []
 
+    print view
+
     for row in view['view_filter_matrix'][1:]:
         dataset = get_URI_local_name(row[0])
         details += '<strong>' + dataset
-        if row[1]:
-            entityType = get_URI_local_name(row[1])
+        if row[2]:
+            entityType = get_URI_local_name(row[2])
+            if entityType is None:
+                entityType = ""
             details += ' | ' + entityType
         else:
             entityType = ''
 
-        predicatesList = str(row[2]).split(', ')
+        predicatesList = str(row[1]).split(', ')
         predicatesNames = []
         for pred_uri in predicatesList:
             pred = get_URI_local_name(pred_uri)
             list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
                          + 'pred_uri="' + pred_uri \
                          + '" graph_uri="' + row[0] \
-                         + '" type_uri="' + row[1] \
+                         + '" type_uri="' + row[2] \
                          + '"><span class="list-group-item-heading"><b>' \
-                         + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>'];
+                         + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
             predicatesNames += [pred]
         # predicatesList = map(lambda x: get_URI_local_name(x), predicatesList)
         predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
@@ -1223,14 +1231,22 @@ def viewdetails():
 
         predicatesList = str(row[3]).split(', ')
         predicatesNames = []
+
         for pred_uri in predicatesList:
             pred = get_URI_local_name(pred_uri)
+
+            # print "dataset:", dataset
+            # print "entityType:", entityType
+            # print "pred:", pred
+            if pred is None:
+                pred = ""
+
             list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
                 + ' pred_uri="' + pred_uri \
                 + '" graph_uri="' + row[0] \
-                + '" type_uri="' + row[1] \
+                + '" type_uri="' + row[2] \
                 + '"><span class="list-group-item-heading"><b>' \
-                + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>'];
+                + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
             predicatesNames += [pred]
         # predicatesNames = map(lambda x: get_URI_local_name(x), predicatesList)
         predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)

@@ -365,7 +365,9 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                 # IN THIS CASE, ONLY THE SUBJECT IS PROVIDED
                 else:
-                    view_where += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
+                    # TODO check this
+                    ""
+                    # view_where += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
 
             # >>> HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
             elif type(properties[i]) is list:
@@ -512,7 +514,7 @@ def retrieve_view(question_uri, view_uri):
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
     PREFIX void:        <http://rdfs.org/ns/void#>
     ### GETTING THE VIEW_FILTERS
-    select ?target ?datatype ?selected ?selectedOptional
+    select ?target ?selected ?datatype ?selectedOptional
     {{
         GRAPH <{}>
         {{
@@ -529,7 +531,7 @@ def retrieve_view(question_uri, view_uri):
 			    {{  ?filter alivocab:selected	?sel }} 
               group by ?filter }}.
           
-          	{{ SELECT ?filter (GROUP_CONCAT(?selOpt; SEPARATOR=", ") as ?selectedOptional) 
+          	OPTIONAL {{ SELECT ?filter (GROUP_CONCAT(?selOpt; SEPARATOR=", ") as ?selectedOptional)
           	    {{ ?filter alivocab:selectedOptional	?selOpt }} 
             group by ?filter }}.
                 
@@ -537,6 +539,8 @@ def retrieve_view(question_uri, view_uri):
     }} ORDER BY ?target
     """.format(question_uri, view_uri)
     # print view_filter_query
+
+    print view_filter_query
 
     # RUN QUERY
     view_filter_matrix = sparql_xml_to_matrix(view_filter_query)
