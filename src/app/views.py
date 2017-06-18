@@ -731,7 +731,7 @@ def sparqlDirect():
         else:
             message = "The query was successfully run with no result to show. " \
                       "<br/>Probably the selected properties need some revising"
-        
+
         return render_template('viewsDetails_list.html', header = header, results = results)
 
     elif dic_response[St.message] == "NO RESPONSE":
