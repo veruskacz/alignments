@@ -400,7 +400,6 @@ def retrieve_view(question_uri, view_uri):
             <{}>
                 a 						<http://risis.eu/class/View> ;
                 alivocab:hasViewLens/alivocab:selected ?linkset_lens
-
         }}
     }}
     """.format(question_uri, view_uri)
@@ -421,21 +420,31 @@ def retrieve_view(question_uri, view_uri):
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
     PREFIX void:        <http://rdfs.org/ns/void#>
     ### GETTING THE VIEW_FILTERS
-    select ?target ?selected
+    select ?target ?datatype ?selected ?selectedOptional
     {{
         GRAPH <{}>
         {{
             #?idea	alivocab:created ?view .
             <{}>
                 a 						<http://risis.eu/class/View> ;
-                alivocab:hasFilter 		?filters .
+                alivocab:hasFilter 		?filter .
 
-             ?filters
+             ?filter
                 void:target			?target ;
-                alivocab:selected	?selected .
+            OPTIONAL {{ ?filter void:hasDatatype	?datatype }} 
+
+            {{ SELECT ?filter (GROUP_CONCAT(DISTINCT ?sel; SEPARATOR=", ") as ?selected) 
+			    {{  ?filter alivocab:selected	?sel }} 
+              group by ?filter }}.
+          
+          	{{ SELECT ?filter (GROUP_CONCAT(?selOpt; SEPARATOR=", ") as ?selectedOptional) 
+          	    {{ ?filter alivocab:selectedOptional	?selOpt }} 
+            group by ?filter }}.
+                
         }}
     }} ORDER BY ?target
     """.format(question_uri, view_uri)
+    # print view_filter_query
 
     # RUN QUERY
     view_filter_matrix = sparql_xml_to_matrix(view_filter_query)

@@ -1077,27 +1077,34 @@ def createView():
     view_filter = []
     for json_item in view_filter_js:
         filter_row = ast.literal_eval(json_item)
-        exist = False
-        print "KEYS", filter_row.keys()
+        exist_dataset_entityType = False
+        # print "KEYS", filter_row.keys()
 
-        for d in view_filter:
-            if d['graph'] == filter_row['ds'] :
-
-                if 'type' in filter_row:
-                    optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
-                    tuple_data = (filter_row['att'], optional)
-                    d['properties'].append(tuple_data)
+        for dict_elem in view_filter:
+            # check if the dataset has been already registered
+            if (dict_elem['graph'] == filter_row['ds']):
+                # if type is provided, check if it has been already registerd
+                if 'type' in filter_row and 'entity_datatype' in dict_elem:
+                    if (dict_elem['entity_datatype'] == filter_row['type']):
+                        optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+                        tuple_data = (filter_row['att'], optional)
+                        dict_elem['properties'].append(tuple_data)
+                        # if desired dictionary is found, the loop can be broken
+                        exist_dataset_entityType = True
+                        break
                 else:
-                    d['properties'].append(filter_row['att'])
+                    dict_elem['properties'].append(filter_row['att'])
+                    exist_dataset_entityType = True
+                    break
 
-                exist = True
-                break
+        # if the above loop finished wihtout finding the desired dictionary, then it will be registerd
+        if not exist_dataset_entityType:
 
-        if not exist:
-            dict_stats = {filter_row['ds']: stats(filter_row['ds'], display_table=False, display_text=True)}
+            # calculate the stats per dataset, if it hasn't been done yet
+            if filter_row['ds'] not in dict_stats.keys():
+                dict_stats = {filter_row['ds']: stats(filter_row['ds'], display_table=False, display_text=True)}
 
-            if 'type' in filter_row:
-
+            if ('type' in filter_row) and (filter_row['type'] != ''):
                 print "\n\nPRINTING:", filter_row['ds'], filter_row['att']
                 print "DICTIONARY 0:", dict_stats
                 print "DICTIONARY 1:", dict_stats[filter_row['ds']]
@@ -1106,7 +1113,7 @@ def createView():
 
                 optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
                 tuple_data = (filter_row['att'],optional)
-                dict = {'graph': filter_row['ds'], 'properties': [tuple_data]}
+                dict = {'graph': filter_row['ds'], 'entity_datatype': filter_row['type'], 'properties': [tuple_data]}
                 view_filter.append(dict)
             else:
                 dict = {'graph': filter_row['ds'], 'properties': [filter_row['att']]}
@@ -1138,7 +1145,8 @@ def viewdetails():
     view_uri = request.args.get('view_uri');
 
     view = mod_view.retrieve_view(rq_uri, view_uri)
-    badge = "<span class='badge alert-primary'><strong>{}</strong></span>";
+    # print "\nVIEW:", view
+    # badge = "<span class='badge alert-primary'><strong>{}</strong></span>";
     details = """
     <div class="panel panel-primary">
         <div class="panel-heading" id="inspect_lens_lens_details_col">
@@ -1154,16 +1162,60 @@ def viewdetails():
     details += "<div class='row'><div class='col-md-6'>"
     for g in view['view_lens']:
         details += '- ' + get_URI_local_name(g).replace('_', ' ') +'<br/>'
-    datasets_bag = map(lambda x: x[0], view['view_filter_matrix'][1:])
-    datasets = list(set(datasets_bag))
+
+    # datasets_bag = map(lambda x: x[0], view['view_filter_matrix'][1:])
+    # datasets = list(set(datasets_bag))
+
     details += "</div><div class ='col-md-6'>"
-    for d in set(datasets):
-        details += '<strong>' + get_URI_local_name(d) + '</strong><br/>'
-        details += '- '
-        for f in view['view_filter_matrix'][1:]:
-            if f[0] == d:
-                details += get_URI_local_name(f[1]) + ', '
-        details += '<br/>'
+    # for d in set(datasets):
+    #     details += '<strong>' + get_URI_local_name(d) + '</strong><br/>'
+    #     details += '- '
+    #     for f in view['view_filter_matrix'][1:]:
+    #         if f[0] == d:
+    #             details += get_URI_local_name(f[1]) + ', '
+    #     details += '<br/>'
+    list_pred = []
+
+    for row in view['view_filter_matrix'][1:]:
+        dataset = get_URI_local_name(row[0])
+        details += '<strong>' + dataset
+        if row[1]:
+            entityType = get_URI_local_name(row[1])
+            details += ' | ' + entityType
+        else:
+            entityType = ''
+
+        predicatesList = str(row[2]).split(', ')
+        predicatesNames = []
+        for pred_uri in predicatesList:
+            pred = get_URI_local_name(pred_uri)
+            list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
+                         + 'pred_uri="' + pred_uri \
+                         + '" graph_uri="' + row[0] \
+                         + '" type_uri="' + row[1] \
+                         + '"><span class="list-group-item-heading"><b>' \
+                         + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>'];
+            predicatesNames += [pred]
+        # predicatesList = map(lambda x: get_URI_local_name(x), predicatesList)
+        predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
+        details += '</strong><br/> - ' + predicates + '<br/>'
+
+        predicatesList = str(row[3]).split(', ')
+        predicatesNames = []
+        for pred_uri in predicatesList:
+            pred = get_URI_local_name(pred_uri)
+            list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
+                + ' pred_uri="' + pred_uri \
+                + '" graph_uri="' + row[0] \
+                + '" type_uri="' + row[1] \
+                + '"><span class="list-group-item-heading"><b>' \
+                + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>'];
+            predicatesNames += [pred]
+        # predicatesNames = map(lambda x: get_URI_local_name(x), predicatesList)
+        predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
+        details += ' - Opt: ' + predicates + '<br/>'
+
+
     details += "</div></div></div></div>"
 
     for i in range(1,len(view['view_filter_matrix'])):
@@ -1172,6 +1224,9 @@ def viewdetails():
         view['view_filter_matrix'][i] += [get_URI_local_name(filter[0]), get_URI_local_name(filter[1])]
 
     view['details'] = details
+
+    view['list_pred'] = list_pred
+    print list_pred
 
     return json.dumps(view)
 

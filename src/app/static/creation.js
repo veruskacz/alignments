@@ -1178,16 +1178,21 @@ function inspect_views_activate(mode="inspect")
                 }
 
                 $('#creation_view_registered_predicates_group').html("");
-                var view_filters = obj.view_filter_matrix
-                for (i = 1; i < view_filters.length; i++) {
-                      var item = '<li class="list-group-item" style="background-color:lightblue"'
-                                + 'pred_uri="' + view_filters[i][1]
-                                + '" graph_uri="' + view_filters[i][0]
-                                + '"><span class="list-group-item-heading"><b>'
-                                + view_filters[i][2] + '</b>: ' + view_filters[i][3] + '</span></li>';
-
-                      $('#creation_view_selected_predicates_group').prepend(item);
+                var view_filters = obj.list_pred
+                for (i = 0; i < view_filters.length; i++) {
+                      $('#creation_view_selected_predicates_group').prepend(view_filters[i]);
                 }
+
+//                var view_filters = obj.view_filter_matrix
+//                for (i = 1; i < view_filters.length; i++) {
+//                      var item = '<li class="list-group-item" style="background-color:lightblue"'
+//                                + 'pred_uri="' + view_filters[i][1]
+//                                + '" graph_uri="' + view_filters[i][0]
+//                                + '"><span class="list-group-item-heading"><b>'
+//                                + view_filters[i][2] + '</b>: ' + view_filters[i][3] + '</span></li>';
+//
+//                      $('#creation_view_selected_predicates_group').prepend(item);
+//                }
 
               });
 //           var btn = document.getElementById('createViewButton');
