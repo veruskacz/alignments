@@ -38,98 +38,141 @@ view_specs = {
 
 grid_properties = {
     St.graph: "http://risis.eu/dataset/grid",
-    St.properties: ["http://risis.eu/grid/ontology/predicate/types",
-                    "http://risis.eu/grid/ontology/predicate/country",
-                    "http://risis.eu/grid/ontology/predicate/city",
-                    "http://risis.eu/grid/ontology/predicate/name"]
+    St.data: [
+        {St.entity_datatype: "http://risis.eu/grid/ontology/class/Institution",
+         St.properties: ["http://risis.eu/grid/ontology/predicate/types",
+                         "http://risis.eu/grid/ontology/predicate/country",
+                         "http://risis.eu/grid/ontology/predicate/city",
+                         "http://risis.eu/grid/ontology/predicate/name"]
+         }
+    ]
 }
 
 gridStats_properties = {
     St.graph: "http://risis.eu/dataset/gridStats",
-    St.properties: ["http://risis.eu//temp-match/temp-match/predicate/hasCode",
-                    "http://risis.eu//temp-match/temp-match/predicate/type",
-                    "http://risis.eu//temp-match/temp-match/predicate/country",
-                    "http://risis.eu//temp-match/temp-match/predicate/city",
-                    "http://risis.eu//temp-match/temp-match/predicate/subTotal",
-                    "http://risis.eu//temp-match/temp-match/predicate/hasOrgCount"]
+    St.data: [
+        {
+            St.entity_datatypes: "http://risis.eu/grid/ontology/class/Institution",
+            St.properties: ["http://risis.eu//temp-match/temp-match/predicate/hasCode",
+                            "http://risis.eu//temp-match/temp-match/predicate/type",
+                            "http://risis.eu//temp-match/temp-match/predicate/country",
+                            "http://risis.eu//temp-match/temp-match/predicate/city",
+                            "http://risis.eu//temp-match/temp-match/predicate/subTotal",
+                            "http://risis.eu//temp-match/temp-match/predicate/hasOrgCount"]
+         }
+    ]
 }
 
 grid_gadm_stat_pro = {
     St.graph: "http://risis.eu/dataset/grid_gadm_stat",
-    St.properties: ["http://risis.eu//temp-match/temp-match/predicate/level",
-                    "http://risis.eu//temp-match/temp-match/predicate/typeCount"]
+    St.data: [
+        {
+            St.entity_datatypes: "http://risis.eu/grid/ontology/class/Institution",
+            St.properties: ["http://risis.eu//temp-match/temp-match/predicate/level",
+                            "http://risis.eu//temp-match/temp-match/predicate/typeCount"]
+        }
+    ]
 }
 
 eter_gadm_stat_pro = {
     St.graph: "http://risis.eu/dataset/eter_gadm_stat",
-    St.properties: ["http://risis.eu//temp-match/temp-match/predicate/level",
-                    "http://risis.eu//temp-match/temp-match/predicate/total"]
+    St.data: [
+        {
+            St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
+            St.properties: ["http://risis.eu//temp-match/temp-match/predicate/level",
+                            "http://risis.eu//temp-match/temp-match/predicate/total"]
+        }
+    ]
+
 }
 
 leiden_properties = {
     St.graph: "http://risis.eu/dataset/leidenRanking",
-    St.properties: ["http://risis.eu/leidenRanking/ontology/predicate/University",
-                    "http://risis.eu/leidenRanking/ontology/predicate/Country",
-                    "http://risis.eu/leidenRanking/ontology/predicate/Field",
-                    "http://risis.eu/leidenRanking/ontology/predicate/Period",
-                    "http://risis.eu/leidenRanking/ontology/predicate/Frac_counting",
-                    "http://risis.eu/leidenRanking/ontology/predicate/P",
-                    "http://risis.eu/leidenRanking/ontology/predicate/P_top1",
-                    "http://risis.eu/leidenRanking/ontology/predicate/PP_top1",
-                    "http://risis.eu/leidenRanking/ontology/predicate/P_top10",
-                    "http://risis.eu/leidenRanking/ontology/predicate/PP_top10",
-                    "http://risis.eu/leidenRanking/ontology/predicate/P_collab",
-                    "http://risis.eu/leidenRanking/ontology/predicate/P_int_collab",
-                    "http://risis.eu/leidenRanking/ontology/predicate/PP_short_dist_collab",
-                    "http://risis.eu/leidenRanking/ontology/predicate/P_long_dist_collab"
-                    ]
+    St.data: [
+        {
+            St.entity_datatype: "no_type",
+            St.properties: ["http://risis.eu/leidenRanking/ontology/predicate/University",
+                            "http://risis.eu/leidenRanking/ontology/predicate/Country",
+                            "http://risis.eu/leidenRanking/ontology/predicate/Field",
+                            "http://risis.eu/leidenRanking/ontology/predicate/Period",
+                            "http://risis.eu/leidenRanking/ontology/predicate/Frac_counting",
+                            "http://risis.eu/leidenRanking/ontology/predicate/P",
+                            "http://risis.eu/leidenRanking/ontology/predicate/P_top1",
+                            "http://risis.eu/leidenRanking/ontology/predicate/PP_top1",
+                            "http://risis.eu/leidenRanking/ontology/predicate/P_top10",
+                            "http://risis.eu/leidenRanking/ontology/predicate/PP_top10",
+                            "http://risis.eu/leidenRanking/ontology/predicate/P_collab",
+                            "http://risis.eu/leidenRanking/ontology/predicate/P_int_collab",
+                            "http://risis.eu/leidenRanking/ontology/predicate/PP_short_dist_collab",
+                            "http://risis.eu/leidenRanking/ontology/predicate/P_long_dist_collab"
+                            ]
+        }
+    ]
+
 }
 
 eter_properties = {
         St.graph: "http://risis.eu/dataset/eter",
-        St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
-        St.properties: [("http://risis.eu/eter/ontology/predicate/english_Institution_Name", True),
-                        ("http://risis.eu/eter/ontology/predicate/institution_Name", False),
-                        ("http://risis.eu/eter/ontology/predicate/country_Code", True),
-                        "http://risis.eu/eter/ontology/predicate/institution_Category_English",
-                        "http://risis.eu/eter/ontology/predicate/foundation_year",
-                        "http://risis.eu/eter/ontology/predicate/university_hospital",
-                        "http://risis.eu/eter/ontology/predicate/geographic_coordinates_latitude",
-                        "http://risis.eu/eter/ontology/predicate/geographic_coordinates_longitude",
-                        "http://risis.eu/eter/ontology/predicate/multisite_institution",
-                        "http://risis.eu/eter/ontology/predicate/personnel_expenditure_EURO",
-                        "http://risis.eu/eter/ontology/predicate/nonpersonnel_expenditure_EURO",
-                        "http://risis.eu/eter/ontology/predicate/nonpersonnel_expenditure_EURO",
-                        "http://risis.eu/eter/ontology/predicate/core_budget_EURO",
-                        "http://risis.eu/eter/ontology/predicate/third_party_funding_EURO",
-                        "http://risis.eu/eter/ontology/predicate/private_funding_EURO",
-                        "http://risis.eu/eter/ontology/predicate/student_fees_funding_EURO",
-                        "http://risis.eu/eter/ontology/predicate/total_academic_staff_FTE",
-                        "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_6_men",
-                        "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_6_women",
-                        "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_6_foreigner",
-                        "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_7_men",
-                        "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_7_women",
-                        "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_7_foreigner",
-                        "http://risis.eu/eter/ontology/predicate/graduates_at_ISCED_8_men",
-                        "http://risis.eu/eter/ontology/predicate/graduates_at_ISCED_8_women",
-                        "http://risis.eu/eter/ontology/predicate/graduates_at_ISCED_8_foreigner"]
+        St.data: [
+            {
+                St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
+                St.properties: [("http://risis.eu/eter/ontology/predicate/english_Institution_Name", True),
+                                ("http://risis.eu/eter/ontology/predicate/institution_Name", False),
+                                ("http://risis.eu/eter/ontology/predicate/country_Code", True),
+                                "http://risis.eu/eter/ontology/predicate/institution_Category_English",
+                                "http://risis.eu/eter/ontology/predicate/foundation_year",
+                                "http://risis.eu/eter/ontology/predicate/university_hospital",
+                                "http://risis.eu/eter/ontology/predicate/geographic_coordinates_latitude",
+                                "http://risis.eu/eter/ontology/predicate/geographic_coordinates_longitude",
+                                "http://risis.eu/eter/ontology/predicate/multisite_institution",
+                                "http://risis.eu/eter/ontology/predicate/personnel_expenditure_EURO",
+                                "http://risis.eu/eter/ontology/predicate/nonpersonnel_expenditure_EURO",
+                                "http://risis.eu/eter/ontology/predicate/nonpersonnel_expenditure_EURO",
+                                "http://risis.eu/eter/ontology/predicate/core_budget_EURO",
+                                "http://risis.eu/eter/ontology/predicate/third_party_funding_EURO",
+                                "http://risis.eu/eter/ontology/predicate/private_funding_EURO",
+                                "http://risis.eu/eter/ontology/predicate/student_fees_funding_EURO",
+                                "http://risis.eu/eter/ontology/predicate/total_academic_staff_FTE",
+                                "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_6_men",
+                                "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_6_women",
+                                "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_6_foreigner",
+                                "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_7_men",
+                                "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_7_women",
+                                "http://risis.eu/eter/ontology/predicate/students_enrolled_at_ISCED_7_foreigner",
+                                "http://risis.eu/eter/ontology/predicate/graduates_at_ISCED_8_men",
+                                "http://risis.eu/eter/ontology/predicate/graduates_at_ISCED_8_women",
+                                "http://risis.eu/eter/ontology/predicate/graduates_at_ISCED_8_foreigner"]
+            }
+        ]
+
+
 }
 
 # SPECIAL CASE WHERE THE PROPERTY NAME SPACE....
 eter_enriched = {
     St.graph: "http://risis.eu/dataset/eter_orgCountPerAdminLevelInGrid",
-    St.properties: ["http://risis.eu//temp-match/temp-match/predicate/isIn",
-                    ["isIn", "http://risis.eu//temp-match/temp-match/predicate/hasOrgCount"],
-                    ["isIn", "http://risis.eu//temp-match/temp-match/predicate/hasCode"]
-                    ]
+    St.data: [
+        {
+            St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
+            St.properties: ["http://risis.eu//temp-match/temp-match/predicate/isIn",
+                            ["isIn", "http://risis.eu//temp-match/temp-match/predicate/hasOrgCount"],
+                            ["isIn", "http://risis.eu//temp-match/temp-match/predicate/hasCode"]
+                            ]
+        }
+    ]
+
 }
 
 leiden_p = {
     St.graph: "http://risis.eu/dataset/leidenRanking",
-    St.properties: [
-                    "http://risis.eu/leidenRanking/ontology/predicate/P_long_dist_collab"
-                    ]
+    St.data: [
+        {
+            St.entity_datatype: "http://risis.eu/leidenRanking/ontology/class/University",
+            St.properties: [
+                "http://risis.eu/leidenRanking/ontology/predicate/P_long_dist_collab"
+            ]
+        }
+    ]
 }
 
 view_filter = [grid_gadm_stat_pro, eter_gadm_stat_pro, grid_properties, leiden_properties, eter_properties]

@@ -3,6 +3,8 @@
 """ DICTIONANY VARIABLES                                                         """
 #####################################################################################
 
+data = "data"
+
 # URI of the RESOURCE
 entity = "entity"
 entity_prefix = "entity_prefix"

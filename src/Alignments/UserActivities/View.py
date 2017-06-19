@@ -268,6 +268,7 @@ def view(view_specs, view_filter, save=False, limit=10):
     # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
     # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
     view_metadata = view_data(view_specs, view_filter)
+    print view_filter
 
     # CHECK FOR POTENTIAL SPARQL TIMEOUT
     opt_list = view_metadata["sparql_issue"]
@@ -303,20 +304,24 @@ def view(view_specs, view_filter, save=False, limit=10):
 
     # For each design view, we have the dataset of interest
     #  and the list of properties to display in a filter
-    for d_view in view_filter:
+    # THE FILTER IS A LIST OF GRAPH DICTIONARIES
+    # [GRAPH1, GRAPH2, GRAPH3, ...]
+    for graph in view_filter:
 
         optional = ""
 
-        # About the dataset
-        ds_ns_name = Ut.get_uri_ns_local_name(d_view[St.graph])
+        # THE GRAPH CONTAINS GRAPH AND DATA
+        graph_uri = graph[St.graph]
+
+        # About the dataset: [NAMESPACE, NAME]
+        ds_ns_name = Ut.get_uri_ns_local_name(graph_uri)
 
         # shortening prefix length
         short_name = ds_ns_name[1][:6]
 
-        # 4 characters string to differentiate the properties of a dataset
-        attache = ds_ns_name[1][:4]
+        # HOLDING INFORMATION ABOUT THIS GRAPH (FOR EACH ENTITY DATATYPE, THE PROPERTIES SELECTED)
+        graph_data = graph["data"]
 
-        # GRAPH
         # Adding the dataset name to the namespace dictionary [local name: namespace]
         if ds_ns_name is not None:
             if ds_ns_name[1] not in ns:
@@ -326,95 +331,163 @@ def view(view_specs, view_filter, save=False, limit=10):
         # ### DATASET: grid
         # GRAPH <http://risis.eu/genderc/grid>
         # {
-        #   ?GRID
-        view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{\n\t\t?{}".format(
-            ds_ns_name[1], d_view[St.graph], ds_ns_name[1])
-        # print "################# DATASET:", ds_ns_name[1]
+        view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{".format(ds_ns_name[1], graph_uri)
+
         # Adding the resource as a variable to the variable list
         view_select += (" ?{}".format(ds_ns_name[1]))
 
-        # VARIABLES
-        properties = d_view[St.properties]
-        if type(properties) is not list:
-            print "THIS <PROPERTIES> NEED TO BE of TYPE A LIST"
-            return None
+        # graph_data IS A LIST OF DICTIONARIES FOR HOLDING THE TYPES AND THEIR LISTED PROPERTIES
+        for data_info in graph_data:
 
-        # Going though the properties of interest
-        for i in range(len(properties)):
+            e_type_uri = data_info[St.entity_datatype]
+            type_triple = ""
+            if e_type_uri == "no_type":
+                e_type = ""
+            else:
+                e_type = Ut.get_uri_local_name(e_type_uri)
+                if e_type:
+                    e_type = "_{}".format(e_type[:3])
 
-            # >>> PROPERTY IS JUST A STRING
-            if type(properties[i]) is str:
+                    type_triple = "\n\t\t\ta{:54} <{}> ;".format("", e_type_uri)
 
-                # EXTRACTING THE NAMESPACE TO USE FOR THE PROPERTY
-                curr_ns = Ut.get_uri_ns_local_name(properties[i])
+            #   ?GRID
+            # TODO ADD THE TYPE TO THE ALIGNMENTS IN THE INTERSECT
+            # view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], e_type, type_triple)
+            view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], "", type_triple)
 
-                if type(curr_ns) is list:
+            t_properties = data_info[St.properties]
 
-                    # Setting up the prefix and predicate
-                    predicate = "{}voc:{}".format(short_name, curr_ns[1])
-                    prefix = "{}voc".format(short_name)
+            # 3 characters string to differentiate the properties of a dataset
+            attache = ds_ns_name[1][:3]
 
-                    # GENERATE THE LIST OF OPTIONAL PROPERTIES
-                    # optional += "\n\t\tOPTIONAL{{ ?{}   {:55}   ?{}_{} .}}".format(
-                    #     ds_ns_name[1], predicate, attache, curr_ns[1])
+            # VARIABLES
+            if type(t_properties) is not list:
+                print "THIS <PROPERTIES> NEED TO BE of TYPE A LIST"
+                return None
 
-                    # ADDING NAMESPACE TO THE VIEW QUERY
-                    if prefix not in namespace:
-                        namespace[prefix] = curr_ns[0]
-                        namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
+            # Going though the properties of interest
+            for i in range(len(t_properties)):
 
-                    # Adding predicates
-                    if i == len(properties) - 1:
+                # >>> PROPERTY IS JUST A STRING
+                if type(t_properties[i]) is str:
 
-                        if namespace[prefix] != curr_ns[0]:
-                            view_where += "\n\t\t\t<{}> ?{}_{} .".format(properties[i], attache, curr_ns[1])
-                        else:
-                            view_where += "\n\t\t\t{:55} ?{}_{} .".format(predicate, attache, curr_ns[1])
-                    else:
-
-                        if namespace[prefix] != curr_ns[0]:
-                            view_where += "\n\t\t\t<{}> ?{}_{} ;".format(properties[i], attache, curr_ns[1])
-                        else:
-                            view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
-
-                    # ADDING THE VARIABLE LIST and making it
-                    # unique to a dataset with the variable attache
-                    value = (" ?{}_{}".format(attache, curr_ns[1]))
-                    if len(view_select + value) > str_limit:
-                        variables_list[count] = view_select
-                        view_select = value
-                        count += 1
-                    else:
-                        view_select += value
-
-                # IN THIS CASE, ONLY THE SUBJECT IS PROVIDED
-                else:
-                    # TODO check this
-                    ""
-                    # view_where += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
-
-            # >>> HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
-            elif type(properties[i]) is list:
-                if len(properties[i]) == 2:
-                    curr_ns = Ut.get_uri_ns_local_name(properties[i][1])
+                    # EXTRACTING THE NAMESPACE TO USE FOR THE PROPERTY
+                    curr_ns = Ut.get_uri_ns_local_name(t_properties[i])
 
                     if type(curr_ns) is list:
+
+                        # Setting up the prefix and predicate
                         predicate = "{}voc:{}".format(short_name, curr_ns[1])
                         prefix = "{}voc".format(short_name)
 
-                        # ADDING NAMESPACE
+                        # GENERATE THE LIST OF OPTIONAL PROPERTIES
+                        # optional += "\n\t\tOPTIONAL{{ ?{}   {:55}   ?{}_{} .}}".format(
+                        #     ds_ns_name[1], predicate, attache, curr_ns[1])
+
+                        # ADDING NAMESPACE TO THE VIEW QUERY
                         if prefix not in namespace:
                             namespace[prefix] = curr_ns[0]
                             namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
 
-                        # REMOVE PREVIOUS PUNCTUATION
-                        # print "REMOVING PREDICATE"
-                        view_where = view_where[:len(view_where) - 2]
-                        view_where += " .\n\t\t?{}\n\t\t\t{:55} ?{}_{} .".format(
-                            properties[i][0], predicate, attache, curr_ns[1])
+                        # Adding predicates
+                        if i == len(t_properties) - 1:
+
+                            if namespace[prefix] != curr_ns[0]:
+                                view_where += "\n\t\t\t<{}> ?{}{}_{} .".format(
+                                    t_properties[i], attache, e_type, curr_ns[1])
+                            else:
+                                view_where += "\n\t\t\t{:55} ?{}{}_{} .".format(predicate, attache, e_type, curr_ns[1])
+                        else:
+
+                            if namespace[prefix] != curr_ns[0]:
+                                view_where += "\n\t\t\t<{}> ?{}{}_{} ;".format(
+                                    t_properties[i], attache, e_type, curr_ns[1])
+                            else:
+                                view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
+
+                        # ADDING THE VARIABLE LIST and making it
+                        # unique to a dataset with the variable attache
+                        value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
+                        if len(view_select + value) > str_limit:
+                            variables_list[count] = view_select
+                            view_select = value
+                            count += 1
+                        else:
+                            view_select += value
+
+                    # IN THIS CASE, ONLY THE SUBJECT IS PROVIDED
+                    else:
+                        # TODO check this
+                        # ""
+                        view_where += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
+
+                # >>> HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
+                elif type(t_properties[i]) is list:
+
+                    if len(t_properties[i]) == 2:
+                        curr_ns = Ut.get_uri_ns_local_name(t_properties[i][1])
+
+                        if type(curr_ns) is list:
+                            predicate = "{}voc:{}".format(short_name, curr_ns[1])
+                            prefix = "{}voc".format(short_name)
+
+                            # ADDING NAMESPACE
+                            if prefix not in namespace:
+                                namespace[prefix] = curr_ns[0]
+                                namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
+
+                            # REMOVE PREVIOUS PUNCTUATION
+                            # print "REMOVING PREDICATE"
+                            view_where = view_where[:len(view_where) - 2]
+                            view_where += " .\n\t\t?{}\n\t\t\t{:55} ?{}{}_{} .".format(
+                                t_properties[i][0], predicate, attache, e_type, curr_ns[1])
+
+                            # ADDING THE VARIABLE LIST
+                            value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
+                            if len(view_select + value) > str_limit:
+                                variables_list[count] = view_select
+                                view_select = value
+                                count += 1
+
+                            else:
+                                view_select += value
+
+                # >>> PROPERTY IS A OF TUPLE WITH THE PROPERTY AND A BOOLEAN
+                # VALE INDICATING WHETHER OR NOT THE PROPERTY IS OPTIONAL
+                elif type(t_properties[i]) is tuple:
+
+                    # Setting up the prefix and predicate
+                    curr_ns = Ut.get_uri_ns_local_name(t_properties[i][0])
+                    predicate = "{}voc:{}".format(short_name, curr_ns[1])
+
+                    # CHECKING IF TUY/PLE OF 2
+                    if len(t_properties[i]) == 2:
+
+                        # Adding predicates
+                        if i == len(t_properties) - 1:
+
+                            prefix = "{}voc".format(short_name)
+
+                            # ADDING NAMESPACE
+                            if prefix not in namespace:
+                                namespace[prefix] = curr_ns[0]
+                                namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
+
+                            if t_properties[i][1] is True:
+                                optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
+                                    ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
+                            else:
+                                view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
+
+                        else:
+                            if t_properties[i][1] is True:
+                                optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
+                                    ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
+                            else:
+                                view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
 
                         # ADDING THE VARIABLE LIST
-                        value = (" ?{}_{}".format(attache, curr_ns[1]))
+                        value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
                         if len(view_select + value) > str_limit:
                             variables_list[count] = view_select
                             view_select = value
@@ -422,49 +495,6 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                         else:
                             view_select += value
-
-            # >>> PROPERTY IS A OF TUPLE WITH THE PROPERTY AND A BOOLEAN
-            # VALE INDICATING WHETHER OR NOT THE PROPERTY IS OPTIONAL
-            elif type(properties[i]) is tuple:
-                # Setting up the prefix and predicate
-                curr_ns = Ut.get_uri_ns_local_name(properties[i][0])
-                predicate = "{}voc:{}".format(short_name, curr_ns[1])
-
-                # CHECKING IF TUY/PLE OF 2
-                if len(properties[i]) == 2:
-
-                    # Adding predicates
-                    if i == len(properties) - 1:
-
-                        prefix = "{}voc".format(short_name)
-
-                        # ADDING NAMESPACE
-                        if prefix not in namespace:
-                            namespace[prefix] = curr_ns[0]
-                            namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
-
-                        if properties[i][1] is True:
-                            optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}_{} . }}".format(
-                                ds_ns_name[1], predicate, attache, curr_ns[1])
-                        else:
-                            view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
-
-                    else:
-                        if properties[i][1] is True:
-                            optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}_{} . }}".format(
-                                ds_ns_name[1], predicate, attache, curr_ns[1])
-                        else:
-                            view_where += "\n\t\t\t{:55} ?{}_{} ;".format(predicate, attache, curr_ns[1])
-
-                    # ADDING THE VARIABLE LIST
-                    value = (" ?{}_{}".format(attache, curr_ns[1]))
-                    if len(view_select + value) > str_limit:
-                        variables_list[count] = view_select
-                        view_select = value
-                        count += 1
-
-                    else:
-                        view_select += value
 
         # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
         # print "########################WERE", view_where
@@ -474,12 +504,16 @@ def view(view_specs, view_filter, save=False, limit=10):
 
         if len(optional) > 0:
 
-            if view_where[len(view_where) - 1] == ";":
+            if view_where[len(view_where) - 1] == ".":
+                "DO NOTHING"
+
+            elif view_where[len(view_where) - 1] == ";":
                 view_where = "{}.".format(view_where[:len(view_where) - 1])
 
             else:
                 # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
                 # print "########################WERE", view_where
+                # print "############", view_where[len(view_where) - 1]
                 view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
 
             view_where += "\n\t\t### OPTIONAL PROPERTIES{}\n\t}}".format(optional)
