@@ -892,8 +892,10 @@ def get_same_as_count(curr_mechanism):
 
         if matrix:
             if matrix[St.message] != "NO RESPONSE":
+                # print matrix[St.result]
                 if matrix[St.result]:
-                    c_code = int(list(dict(matrix[St.result][1][0]).items())[1][1]) + 1
+                    current_code = matrix[St.result][1][0]
+                    c_code = int(current_code) + 1
                     # c_code = code
                     # print "Next is: {}".format(c_code)
                 else:
