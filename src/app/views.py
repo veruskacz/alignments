@@ -1111,7 +1111,7 @@ def createView():
             # check if the dataset has been already registered
             if (elem['graph'] == filter_row['ds']):
                 # only assigns value to dict_graph if the desired dataset was found
-                dict_graph = elem['graph']
+                dict_graph = elem
                 data_list = elem['data']
                 for data in data_list:
                     # check if the entityType has been already registered for that graph
@@ -1132,13 +1132,13 @@ def createView():
         # if the above loop finished wihtout finding the desired dictionary, then it will be registerd
         if not exists_dataset_entityType:
 
-            # this means the entry for the dataset already exists
+            # this means the entry for the dataset does not exists
             if (dict_graph is None):
                 # create an entry for this dataset
                 dict_graph = {'graph': filter_row['ds'], 'data':[]}
                 view_filter.append(dict_graph)
                 # check if there is already an entry for the dataset in dict_stats
-                if filter_row['ds'] not in dict_stats.keys():
+                if filter_row['ds'] not in dict_stats:
                     # calculate the stats per dataset, if it hasn't been done yet
                     dict_stats = {filter_row['ds']: stats(filter_row['ds'], display_table=False, display_text=True)}
 
@@ -1159,6 +1159,10 @@ def createView():
                 # view_filter.append(dict)
 
             data = {'entity_datatype': filter_row['type'], 'properties': properties}
+
+            print "data", data
+            print "dict_graph", dict_graph
+
             dict_graph['data'].append(data)
 
 
@@ -1166,7 +1170,7 @@ def createView():
     # print "\n\nVIEW DESIGN:", view_filter
 
     # CREATION_ACTIVE = False
-    # print view_filter
+    print view_filter
 
     if CREATION_ACTIVE:
         save = (mode == 'save')
