@@ -1102,54 +1102,75 @@ def createView():
     view_filter = []
     for json_item in view_filter_js:
         filter_row = ast.literal_eval(json_item)
-        exist_dataset_entityType = False
+        # exists_dataset = False
+        dict_graph = None
+        exists_dataset_entityType = False
         # print "KEYS", filter_row.keys()
 
-        for dict_elem in view_filter:
+        for elem in view_filter:
             # check if the dataset has been already registered
-            if (dict_elem['graph'] == filter_row['ds']):
-                # if type is provided, check if it has been already registerd
-                if 'type' in filter_row and 'entity_datatype' in dict_elem:
-                    if (dict_elem['entity_datatype'] == filter_row['type']):
-                        optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
-                        tuple_data = (filter_row['att'], optional)
-                        dict_elem['properties'].append(tuple_data)
-                        # if desired dictionary is found, the loop can be broken
-                        exist_dataset_entityType = True
-                        break
-                else:
-                    dict_elem['properties'].append(filter_row['att'])
-                    exist_dataset_entityType = True
-                    break
+            if (elem['graph'] == filter_row['ds']):
+                # only assigns value to dict_graph if the desired dataset was found
+                dict_graph = elem
+                data_list = elem['data']
+                for data in data_list:
+                    # check if the entityType has been already registered for that graph
+                    if (data['entity_datatype'] == filter_row['type']):
+                        # if a valid entity type is provided
+                        if (filter_row['type'] != 'no_type'):
+                            optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+                            tuple_data = (filter_row['att'], optional)
+                            data['properties'].append(tuple_data)
+                            # if desired dictionary is found, the loop can be broken
+                            exists_dataset_entityType = True
+                            break
+                        else:
+                            data['properties'].append(filter_row['att'])
+                            exists_dataset_entityType = True
+                            break
 
         # if the above loop finished wihtout finding the desired dictionary, then it will be registerd
-        if not exist_dataset_entityType:
+        if not exists_dataset_entityType:
 
-            # calculate the stats per dataset, if it hasn't been done yet
-            if filter_row['ds'] not in dict_stats.keys():
-                dict_stats = {filter_row['ds']: stats(filter_row['ds'], display_table=False, display_text=True)}
+            # this means the entry for the dataset does not exists
+            if (dict_graph is None):
+                # create an entry for this dataset
+                dict_graph = {'graph': filter_row['ds'], 'data':[]}
+                view_filter.append(dict_graph)
+                # check if there is already an entry for the dataset in dict_stats
+                if filter_row['ds'] not in dict_stats:
+                    # calculate the stats per dataset, if it hasn't been done yet
+                    dict_stats = {filter_row['ds']: stats(filter_row['ds'], display_table=False, display_text=True)}
 
-            if ('type' in filter_row) and (filter_row['type'] != ''):
-                print "\n\nPRINTING:", filter_row['ds'], filter_row['att']
-                print "DICTIONARY 0:", dict_stats
-                print "DICTIONARY 1:", dict_stats[filter_row['ds']]
-                print "DICTIONARY 2:", dict_stats[filter_row['ds']][filter_row['type']]
-                print "OPTIONAL:", dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+            if (filter_row['type'] != 'no_type'):
+                # print "\n\nPRINTING:", filter_row['ds'], filter_row['att']
+                # print "DICTIONARY 0:", dict_stats
+                # print "DICTIONARY 1:", dict_stats[filter_row['ds']]
+                # print "DICTIONARY 2:", dict_stats[filter_row['ds']][filter_row['type']]
+                # print "OPTIONAL:", dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
 
                 optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
-                tuple_data = (filter_row['att'],optional)
-                dict = {'graph': filter_row['ds'], 'entity_datatype': filter_row['type'], 'properties': [tuple_data]}
-                view_filter.append(dict)
+                properties = [(filter_row['att'],optional)]
+                # dict = {'graph': filter_row['ds'], 'entity_datatype': filter_row['type'], 'properties': [tuple_data]}
+                # view_filter.append(dict)
             else:
-                dict = {'graph': filter_row['ds'], 'properties': [filter_row['att']]}
-                view_filter.append(dict)
+                properties = [filter_row['att']]
+                # dict = {'graph': filter_row['ds'], 'properties': [filter_row['att']]}
+                # view_filter.append(dict)
+
+            data = {'entity_datatype': filter_row['type'], 'properties': properties}
+
+            print "data", data
+            print "dict_graph", dict_graph
+
+            dict_graph['data'].append(data)
+
 
     # print "\n\nVIEW SPECS:", view_specs
     # print "\n\nVIEW DESIGN:", view_filter
 
-    # metadata: {"select": view_select, "where": view_where}
-    # view_query = {"select": view_select, "where": view_where}
-    # final result: {"metadata": view_metadata, "query": view_query, "table": table}
+    # CREATION_ACTIVE = False
+    print view_filter
 
     if CREATION_ACTIVE:
         save = (mode == 'save')

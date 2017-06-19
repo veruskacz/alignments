@@ -1215,6 +1215,7 @@ function createViewClick(mode)
     $('#view_creation_message_col').html("");
     $('#view_creation_save_message_col').html("");
     $('#queryView').val("");
+    $('#views-results').html("");
 
     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
     var elems = selectedElemsInGroupList('creation_view_linkset_col');
@@ -1236,10 +1237,12 @@ function createViewClick(mode)
     var dict = {};
     for (i = 0; i < elems.length; i++) {
 
-    dict = {'ds': $(elems[i]).attr('graph_uri'),
-           'type': $(elems[i]).attr('type_uri'),
-          'att': $(elems[i]).attr('pred_uri') };
-    view_filter.push( JSON.stringify(dict));
+        var entityType = $(elems[i]).attr('type_uri');
+        if (!entityType) {entityType = 'no_type'}
+        dict = {'ds': $(elems[i]).attr('graph_uri'),
+                'type': entityType,
+                'att': $(elems[i]).attr('pred_uri') };
+        view_filter.push( JSON.stringify(dict));
     }
 
      if (mode=='check')
