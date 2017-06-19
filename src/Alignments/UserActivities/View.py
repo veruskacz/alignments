@@ -264,183 +264,228 @@ def view(view_specs, view_filter, save=False, limit=10):
     count = 1
     is_problematic = False
 
-    # GENERATE THE INSERT METADATA
-    # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
-    # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
-    view_metadata = view_data(view_specs, view_filter)
-    print view_filter
+    try:
+        # GENERATE THE INSERT METADATA
+        # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
+        # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
+        view_metadata = view_data(view_specs, view_filter)
+        print view_filter
 
-    # CHECK FOR POTENTIAL SPARQL TIMEOUT
-    opt_list = view_metadata["sparql_issue"]
-    if len(opt_list) != 0:
-        is_problematic = True
-        the_list = ""
-        for ds in opt_list:
-            the_list += "{} ".format(ds)
-        message = "The insertion metadata was generated but not inserted. The properties listed in theses datasets" \
-                  " [{}] are ALL OPTIONAL. The presence of at least one non OPTIONAL property is required.".format(
-            the_list)
-        view_metadata[St.message] = message
-        print message
-
-    # REGISTER THE METADATA IF SAVE ID SET TO TRUE
-    if save:
-        if is_problematic is False:
-            print "We are in save mode!"
-            is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
-            print is_metadata_inserted
-            message = "The insertion metadata was successfully inserted." \
-                if is_metadata_inserted == "true" else "The metadata could not be inserted."
-            print message
+        # CHECK FOR POTENTIAL SPARQL TIMEOUT
+        opt_list = view_metadata["sparql_issue"]
+        if len(opt_list) != 0:
+            is_problematic = True
+            the_list = ""
+            for ds in opt_list:
+                the_list += "{} ".format(ds)
+            message = "The insertion metadata was generated but not inserted. The properties listed in theses datasets" \
+                      " [{}] are ALL OPTIONAL. The presence of at least one non OPTIONAL property is required.".format(
+                the_list)
             view_metadata[St.message] = message
-            # print view_metadata[St.insert_query]
+            print message
 
-    # GENERATE THE INTERSECTION
-    # AND DISPLAY THE QUERIES NEEDED
-    inter = intersection(view_specs, display=False)
+        # REGISTER THE METADATA IF SAVE ID SET TO TRUE
+        if save:
+            if is_problematic is False:
+                print "We are in save mode!"
+                is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
+                print is_metadata_inserted
+                message = "The insertion metadata was successfully inserted." \
+                    if is_metadata_inserted == "true" else "The metadata could not be inserted."
+                print message
+                view_metadata[St.message] = message
+                # print view_metadata[St.insert_query]
 
-    if inter is None:
-        print "WE CANNOT PROCEED AS THERE IS A PROBLEM WITH THE PROVIDED DATASETS."
+        # GENERATE THE INTERSECTION
+        # AND DISPLAY THE QUERIES NEEDED
+        inter = intersection(view_specs, display=False)
 
-    # For each design view, we have the dataset of interest
-    #  and the list of properties to display in a filter
-    # THE FILTER IS A LIST OF GRAPH DICTIONARIES
-    # [GRAPH1, GRAPH2, GRAPH3, ...]
-    for graph in view_filter:
+        if inter is None:
+            print "WE CANNOT PROCEED AS THERE IS A PROBLEM WITH THE PROVIDED DATASETS."
 
-        optional = ""
+        # For each design view, we have the dataset of interest
+        #  and the list of properties to display in a filter
+        # THE FILTER IS A LIST OF GRAPH DICTIONARIES
+        # [GRAPH1, GRAPH2, GRAPH3, ...]
+        for graph in view_filter:
 
-        # THE GRAPH CONTAINS GRAPH AND DATA
-        graph_uri = graph[St.graph]
+            optional = ""
 
-        # About the dataset: [NAMESPACE, NAME]
-        ds_ns_name = Ut.get_uri_ns_local_name(graph_uri)
+            # THE GRAPH CONTAINS GRAPH AND DATA
+            graph_uri = graph[St.graph]
 
-        # shortening prefix length
-        short_name = ds_ns_name[1][:6]
+            # About the dataset: [NAMESPACE, NAME]
+            ds_ns_name = Ut.get_uri_ns_local_name(graph_uri)
 
-        # HOLDING INFORMATION ABOUT THIS GRAPH (FOR EACH ENTITY DATATYPE, THE PROPERTIES SELECTED)
-        graph_data = graph["data"]
+            # shortening prefix length
+            short_name = ds_ns_name[1][:6]
 
-        # Adding the dataset name to the namespace dictionary [local name: namespace]
-        if ds_ns_name is not None:
-            if ds_ns_name[1] not in ns:
-                ns[ds_ns_name[1]] = ds_ns_name[0]
+            # HOLDING INFORMATION ABOUT THIS GRAPH (FOR EACH ENTITY DATATYPE, THE PROPERTIES SELECTED)
+            graph_data = graph["data"]
 
-        # Generate the dataset design view WHICH LOOKS LIKE
-        # ### DATASET: grid
-        # GRAPH <http://risis.eu/genderc/grid>
-        # {
-        view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{".format(ds_ns_name[1], graph_uri)
+            # Adding the dataset name to the namespace dictionary [local name: namespace]
+            if ds_ns_name is not None:
+                if ds_ns_name[1] not in ns:
+                    ns[ds_ns_name[1]] = ds_ns_name[0]
 
-        # Adding the resource as a variable to the variable list
-        view_select += (" ?{}".format(ds_ns_name[1]))
+            # Generate the dataset design view WHICH LOOKS LIKE
+            # ### DATASET: grid
+            # GRAPH <http://risis.eu/genderc/grid>
+            # {
+            view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{".format(ds_ns_name[1], graph_uri)
 
-        # graph_data IS A LIST OF DICTIONARIES FOR HOLDING THE TYPES AND THEIR LISTED PROPERTIES
-        for data_info in graph_data:
+            # Adding the resource as a variable to the variable list
+            view_select += (" ?{}".format(ds_ns_name[1]))
 
-            e_type_uri = data_info[St.entity_datatype]
-            type_triple = ""
-            if e_type_uri == "no_type":
-                e_type = ""
-            else:
-                e_type = Ut.get_uri_local_name(e_type_uri)
-                if e_type:
-                    e_type = "_{}".format(e_type[:3])
+            # graph_data IS A LIST OF DICTIONARIES FOR HOLDING THE TYPES AND THEIR LISTED PROPERTIES
+            for data_info in graph_data:
 
-                    type_triple = "\n\t\t\ta{:54} <{}> ;".format("", e_type_uri)
+                e_type_uri = data_info[St.entity_datatype]
+                type_triple = ""
+                if e_type_uri == "no_type":
+                    e_type = ""
+                else:
+                    e_type = Ut.get_uri_local_name(e_type_uri)
+                    if e_type:
+                        e_type = "_{}".format(e_type[:3])
 
-            #   ?GRID
-            # TODO ADD THE TYPE TO THE ALIGNMENTS IN THE INTERSECT
-            # view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], e_type, type_triple)
-            view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], "", type_triple)
+                        type_triple = "\n\t\t\ta{:54} <{}> ;".format("", e_type_uri)
 
-            t_properties = data_info[St.properties]
+                #   ?GRID
+                # TODO ADD THE TYPE TO THE ALIGNMENTS IN THE INTERSECT
+                # view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], e_type, type_triple)
+                view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], "", type_triple)
 
-            # 3 characters string to differentiate the properties of a dataset
-            attache = ds_ns_name[1][:3]
+                t_properties = data_info[St.properties]
 
-            # VARIABLES
-            if type(t_properties) is not list:
-                print "THIS <PROPERTIES> NEED TO BE of TYPE A LIST"
-                return None
+                # 3 characters string to differentiate the properties of a dataset
+                attache = ds_ns_name[1][:3]
 
-            # Going though the properties of interest
-            for i in range(len(t_properties)):
+                # VARIABLES
+                if type(t_properties) is not list:
+                    print "THIS <PROPERTIES> NEED TO BE of TYPE A LIST"
+                    return None
 
-                # >>> PROPERTY IS JUST A STRING
-                if type(t_properties[i]) is str:
+                # Going though the properties of interest
+                for i in range(len(t_properties)):
 
-                    # EXTRACTING THE NAMESPACE TO USE FOR THE PROPERTY
-                    curr_ns = Ut.get_uri_ns_local_name(t_properties[i])
+                    # >>> PROPERTY IS JUST A STRING
+                    if type(t_properties[i]) is str:
 
-                    if type(curr_ns) is list:
-
-                        # Setting up the prefix and predicate
-                        predicate = "{}voc:{}".format(short_name, curr_ns[1])
-                        prefix = "{}voc".format(short_name)
-
-                        # GENERATE THE LIST OF OPTIONAL PROPERTIES
-                        # optional += "\n\t\tOPTIONAL{{ ?{}   {:55}   ?{}_{} .}}".format(
-                        #     ds_ns_name[1], predicate, attache, curr_ns[1])
-
-                        # ADDING NAMESPACE TO THE VIEW QUERY
-                        if prefix not in namespace:
-                            namespace[prefix] = curr_ns[0]
-                            namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
-
-                        # Adding predicates
-                        if i == len(t_properties) - 1:
-
-                            if namespace[prefix] != curr_ns[0]:
-                                view_where += "\n\t\t\t<{}> ?{}{}_{} .".format(
-                                    t_properties[i], attache, e_type, curr_ns[1])
-                            else:
-                                view_where += "\n\t\t\t{:55} ?{}{}_{} .".format(predicate, attache, e_type, curr_ns[1])
-                        else:
-
-                            if namespace[prefix] != curr_ns[0]:
-                                view_where += "\n\t\t\t<{}> ?{}{}_{} ;".format(
-                                    t_properties[i], attache, e_type, curr_ns[1])
-                            else:
-                                view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
-
-                        # ADDING THE VARIABLE LIST and making it
-                        # unique to a dataset with the variable attache
-                        value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
-                        if len(view_select + value) > str_limit:
-                            variables_list[count] = view_select
-                            view_select = value
-                            count += 1
-                        else:
-                            view_select += value
-
-                    # IN THIS CASE, ONLY THE SUBJECT IS PROVIDED
-                    else:
-                        # TODO check this
-                        # ""
-                        view_where += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
-
-                # >>> HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
-                elif type(t_properties[i]) is list:
-
-                    if len(t_properties[i]) == 2:
-                        curr_ns = Ut.get_uri_ns_local_name(t_properties[i][1])
+                        # EXTRACTING THE NAMESPACE TO USE FOR THE PROPERTY
+                        curr_ns = Ut.get_uri_ns_local_name(t_properties[i])
 
                         if type(curr_ns) is list:
+
+                            # Setting up the prefix and predicate
                             predicate = "{}voc:{}".format(short_name, curr_ns[1])
                             prefix = "{}voc".format(short_name)
 
-                            # ADDING NAMESPACE
+                            # GENERATE THE LIST OF OPTIONAL PROPERTIES
+                            # optional += "\n\t\tOPTIONAL{{ ?{}   {:55}   ?{}_{} .}}".format(
+                            #     ds_ns_name[1], predicate, attache, curr_ns[1])
+
+                            # ADDING NAMESPACE TO THE VIEW QUERY
                             if prefix not in namespace:
                                 namespace[prefix] = curr_ns[0]
                                 namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
 
-                            # REMOVE PREVIOUS PUNCTUATION
-                            # print "REMOVING PREDICATE"
-                            view_where = view_where[:len(view_where) - 2]
-                            view_where += " .\n\t\t?{}\n\t\t\t{:55} ?{}{}_{} .".format(
-                                t_properties[i][0], predicate, attache, e_type, curr_ns[1])
+                            # Adding predicates
+                            if i == len(t_properties) - 1:
+
+                                if namespace[prefix] != curr_ns[0]:
+                                    view_where += "\n\t\t\t<{}> ?{}{}_{} .".format(
+                                        t_properties[i], attache, e_type, curr_ns[1])
+                                else:
+                                    view_where += "\n\t\t\t{:55} ?{}{}_{} .".format(predicate, attache, e_type, curr_ns[1])
+                            else:
+
+                                if namespace[prefix] != curr_ns[0]:
+                                    view_where += "\n\t\t\t<{}> ?{}{}_{} ;".format(
+                                        t_properties[i], attache, e_type, curr_ns[1])
+                                else:
+                                    view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
+
+                            # ADDING THE VARIABLE LIST and making it
+                            # unique to a dataset with the variable attache
+                            value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
+                            if len(view_select + value) > str_limit:
+                                variables_list[count] = view_select
+                                view_select = value
+                                count += 1
+                            else:
+                                view_select += value
+
+                        # IN THIS CASE, ONLY THE SUBJECT IS PROVIDED
+                        else:
+                            # TODO check this
+                            # ""
+                            view_where += ".\n\t\t?{}\n\t\t\t?p ?o .".format(curr_ns)
+
+                    # >>> HERE, WE ARE DEALING WITH A SUBJECT AND A PREDICATE
+                    elif type(t_properties[i]) is list:
+
+                        if len(t_properties[i]) == 2:
+                            curr_ns = Ut.get_uri_ns_local_name(t_properties[i][1])
+
+                            if type(curr_ns) is list:
+                                predicate = "{}voc:{}".format(short_name, curr_ns[1])
+                                prefix = "{}voc".format(short_name)
+
+                                # ADDING NAMESPACE
+                                if prefix not in namespace:
+                                    namespace[prefix] = curr_ns[0]
+                                    namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
+
+                                # REMOVE PREVIOUS PUNCTUATION
+                                # print "REMOVING PREDICATE"
+                                view_where = view_where[:len(view_where) - 2]
+                                view_where += " .\n\t\t?{}\n\t\t\t{:55} ?{}{}_{} .".format(
+                                    t_properties[i][0], predicate, attache, e_type, curr_ns[1])
+
+                                # ADDING THE VARIABLE LIST
+                                value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
+                                if len(view_select + value) > str_limit:
+                                    variables_list[count] = view_select
+                                    view_select = value
+                                    count += 1
+
+                                else:
+                                    view_select += value
+
+                    # >>> PROPERTY IS A OF TUPLE WITH THE PROPERTY AND A BOOLEAN
+                    # VALE INDICATING WHETHER OR NOT THE PROPERTY IS OPTIONAL
+                    elif type(t_properties[i]) is tuple:
+
+                        # Setting up the prefix and predicate
+                        curr_ns = Ut.get_uri_ns_local_name(t_properties[i][0])
+                        predicate = "{}voc:{}".format(short_name, curr_ns[1])
+
+                        # CHECKING IF TUY/PLE OF 2
+                        if len(t_properties[i]) == 2:
+
+                            # Adding predicates
+                            if i == len(t_properties) - 1:
+
+                                prefix = "{}voc".format(short_name)
+
+                                # ADDING NAMESPACE
+                                if prefix not in namespace:
+                                    namespace[prefix] = curr_ns[0]
+                                    namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
+
+                                if t_properties[i][1] is True:
+                                    optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
+                                        ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
+                                else:
+                                    view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
+
+                            else:
+                                if t_properties[i][1] is True:
+                                    optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
+                                        ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
+                                else:
+                                    view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
 
                             # ADDING THE VARIABLE LIST
                             value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
@@ -452,91 +497,52 @@ def view(view_specs, view_filter, save=False, limit=10):
                             else:
                                 view_select += value
 
-                # >>> PROPERTY IS A OF TUPLE WITH THE PROPERTY AND A BOOLEAN
-                # VALE INDICATING WHETHER OR NOT THE PROPERTY IS OPTIONAL
-                elif type(t_properties[i]) is tuple:
-
-                    # Setting up the prefix and predicate
-                    curr_ns = Ut.get_uri_ns_local_name(t_properties[i][0])
-                    predicate = "{}voc:{}".format(short_name, curr_ns[1])
-
-                    # CHECKING IF TUY/PLE OF 2
-                    if len(t_properties[i]) == 2:
-
-                        # Adding predicates
-                        if i == len(t_properties) - 1:
-
-                            prefix = "{}voc".format(short_name)
-
-                            # ADDING NAMESPACE
-                            if prefix not in namespace:
-                                namespace[prefix] = curr_ns[0]
-                                namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
-
-                            if t_properties[i][1] is True:
-                                optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
-                                    ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
-                            else:
-                                view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
-
-                        else:
-                            if t_properties[i][1] is True:
-                                optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
-                                    ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
-                            else:
-                                view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
-
-                        # ADDING THE VARIABLE LIST
-                        value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
-                        if len(view_select + value) > str_limit:
-                            variables_list[count] = view_select
-                            view_select = value
-                            count += 1
-
-                        else:
-                            view_select += value
-
-        # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
-        # print "########################WERE", view_where
-        # view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
+            # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
+            # print "########################WERE", view_where
+            # view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
 
 
 
-        if len(optional) > 0:
+            if len(optional) > 0:
 
-            if view_where[len(view_where) - 1] == ".":
-                "DO NOTHING"
+                if view_where[len(view_where) - 1] == ".":
+                    "DO NOTHING"
 
-            elif view_where[len(view_where) - 1] == ";":
-                view_where = "{}.".format(view_where[:len(view_where) - 1])
+                elif view_where[len(view_where) - 1] == ";":
+                    view_where = "{}.".format(view_where[:len(view_where) - 1])
 
+                else:
+                    # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
+                    # print "########################WERE", view_where
+                    # print "############", view_where[len(view_where) - 1]
+                    view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
+
+                view_where += "\n\t\t### OPTIONAL PROPERTIES{}\n\t}}".format(optional)
             else:
-                # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
-                # print "########################WERE", view_where
-                # print "############", view_where[len(view_where) - 1]
-                view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
+                view_where += "\n\t}"
 
-            view_where += "\n\t\t### OPTIONAL PROPERTIES{}\n\t}}".format(optional)
+        my_list = ""
+        for key, variable in variables_list.items():
+            my_list += "\n" + variable
+
+        if limit == 0:
+            lmt = ""
         else:
-            view_where += "\n\t}"
+            lmt = "LIMIT {}".format(limit)
 
-    my_list = ""
-    for key, variable in variables_list.items():
-        my_list += "\n" + variable
+        query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
+        print "VIEW TABLE:", query
 
-    if limit == 0:
-        lmt = ""
-    else:
-        lmt = "LIMIT {}".format(limit)
+        # table = sparql_xml_to_matrix(query)
+        # display_matrix(table, spacing=80, limit=limit, is_activated=False)
+        print "DONE GENERATING THE VIEW"
+        # return {"metadata": view_metadata, "query": query, "table": table}
+        return {"metadata": view_metadata, "query": query, "sparql_issue": is_problematic}
 
-    query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
-    print "VIEW TABLE:", query
-
-    # table = sparql_xml_to_matrix(query)
-    # display_matrix(table, spacing=80, limit=limit, is_activated=False)
-    print "DONE GENERATING THE VIEW"
-    # return {"metadata": view_metadata, "query": query, "table": table}
-    return {"metadata": view_metadata, "query": query, "sparql_issue": is_problematic}
+    except Exception as err:
+        print ">>> ERROR:", err
+        view_metadata = {St.message: "Fatal Error"}
+        return {"metadata": view_metadata, "query": None, "sparql_issue": is_problematic}
 
 
 def retrieve_view(question_uri, view_uri):
