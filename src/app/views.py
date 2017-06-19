@@ -741,7 +741,7 @@ def sparqlDirect():
         return json.dumps({'message': "NO RESPONSE", 'result': None})
 
     else:
-        message = dic_response[St.result][St.message]
+        message = dic_response[St.message]
         return json.dumps({'message': message, 'result': None})
 
 
