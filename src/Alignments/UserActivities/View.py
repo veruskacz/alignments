@@ -478,7 +478,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                                     optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
                                         ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
                                 else:
-                                    view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
+                                    view_where += "\n\t\t\t{:55} ?{}{}_{} .".format(predicate, attache, e_type, curr_ns[1])
 
                             else:
                                 if t_properties[i][1] is True:
@@ -497,29 +497,30 @@ def view(view_specs, view_filter, save=False, limit=10):
                             else:
                                 view_select += value
 
-            # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
-            # print "########################WERE", view_where
-            # view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
+                # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
+                # print "########################WERE", view_where
+                # view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
 
+                if len(optional) > 0:
 
+                    if view_where[len(view_where) - 1] == ".":
+                        "DO NOTHING"
 
-            if len(optional) > 0:
+                    elif view_where[len(view_where) - 1] == ";":
+                        view_where = "{}.".format(view_where[:len(view_where) - 1])
 
-                if view_where[len(view_where) - 1] == ".":
-                    "DO NOTHING"
+                    else:
+                        # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
+                        # print "########################WERE", view_where
+                        # print "############", view_where[len(view_where) - 1]
+                        view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
 
-                elif view_where[len(view_where) - 1] == ";":
-                    view_where = "{}.".format(view_where[:len(view_where) - 1])
+                    view_where += "\n\t\t### OPTIONAL PROPERTIES{}\n\t".format(optional)
+                # refresh
+                optional = ""
 
-                else:
-                    # IN CASE THE SELECTED PROPERTIES ARE ALL OPTIONAL, REMOVE THE RESOURCE
-                    # print "########################WERE", view_where
-                    # print "############", view_where[len(view_where) - 1]
-                    view_where = view_where.replace("?{}".format(ds_ns_name[1]), "")
-
-                view_where += "\n\t\t### OPTIONAL PROPERTIES{}\n\t}}".format(optional)
-            else:
-                view_where += "\n\t}"
+            # close
+            view_where += "\n\t}\n"
 
         my_list = ""
         for key, variable in variables_list.items():
