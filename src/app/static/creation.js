@@ -1000,6 +1000,7 @@ function importLensClick()
 // Functions called at onclick of the buttons in viewsCreation.html
 ///////////////////////////////////////////////////////////////////////////////
 
+
 function create_views_activate()
 {
     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
@@ -1056,18 +1057,20 @@ function create_views_activate()
                            var item = '<li class="list-group-item" pred_uri="' + pred_uri
                                     + '" graph_uri="' + graph_uri
                                     + '" type_uri="' + type_uri
-                                    + '"><span class="list-group-item-heading"><b>'
+                                    + '" onclick= "this.parentElement.removeChild(this);"'
+                                    + '><span class="list-group-item-heading"><b>'
                                     + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
                            $('#creation_view_selected_predicates_group').prepend(item);
                         }
                     }
 
-                    $('#creation_view_selected_predicates_group li').on('ondblclick',function()
-                    {
-                        var id = $(this).attr('id');
-                        var element = document.getElementById(id);
-                        element.parentNode.removeChild(element);
-                    });
+//                    $('#creation_view_selected_predicates_group li').on('click',function()
+//                    {
+////                        var id = $(this).attr('id');
+////                        var element = document.getElementById(id);
+//                        var parent = this.parentElement;
+//                        parent.removeChild(this);
+//                    });
 
                   });
               });
