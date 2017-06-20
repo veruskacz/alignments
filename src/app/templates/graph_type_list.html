@@ -3,7 +3,8 @@
                 onclick = "{{ function }}" style = "{{ style }}"
                 uri='{{e.Dataset.value }}' type_uri = '{{e.EntityType.value}}'
                 label="{{e.Dataset_stripped.value }}"
-                type_label="{{e.EntityType_stripped.value}}">
+                type_label="{{e.EntityType_stripped.value}}"
+                total=" {{ e.EntityCount.value }} " >
                 <span class="list-group-item-heading">{{ e.Dataset_stripped.value }}
                     | {{ e.EntityType_stripped.value }}
                     | {{ e.EntityCount.value }}
