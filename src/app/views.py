@@ -839,9 +839,10 @@ def predicates():
     """
     dataset_uri = request.args.get('dataset_uri', '')
     type = request.args.get('type', '')
+    total = request.args.get('total', None)
     function = request.args.get('function', '')
     # GET QUERY
-    query = Qry.get_predicates(dataset_uri, type)
+    query = Qry.get_predicates(dataset_uri, type, total)
 
     # RUN QUERY AGAINST ENDPOINT
     dataDetails = sparql(query, strip=True)

@@ -203,9 +203,9 @@
         <div class="row" id="src_datasets_row">
           <div class="col-md-4 graph-list" id="button-src-col" mode="source"
                 targetTxt="src_selected_graph"
+                targetHidden="hidden_src_entType_div"
                 targetBtn="button-src-entity-type-col"
-                targetAddBtn="button_src_add_entity_type_pred_col"
-                targetList="src_predicates_col">
+                targetAddBtn="button_src_add_entity_type_pred_col">
                 <div id="hidden_src_div" style='display:none' uri="" label="" ></div>
               <!-- will be rendered via server -->
           </div>
@@ -233,8 +233,11 @@
                </div>
                <div class="row" id="src_entitytype_row">
                   <div class="col-md-4 entity-list" id="button-src-entity-type-col"
-                        targetTxt="src_selected_entity-type">
+                        graph_uri=""
+                        targetTxt="src_selected_entity-type"
+                        targetList="src_predicates_col">
                     <!-- will be rendered via server -->
+                    <div id="hidden_src_entType_div" style='display:none' uri="" label="" ></div>
                     <button class="btn btn-primary btn-round dropdown-toggle" type="button"
                             data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
                   </div>
@@ -281,7 +284,7 @@
 
         <div class="row" id = "src_selected_pred_row">
          <div class="col-md-12">
-             <div class="well well-sm" id="src_selected_pred" uri="">Select a Property +
+             <div class="well well-sm" id="src_selected_pred" uri="" >Select a Property +
                <span style="color:blue"><strong> example value </strong>
                </span>
              </div>
@@ -289,6 +292,10 @@
         </div>
 
         <div class="row" id = "src_list_pred_row">
+         <div class="col-md-12">
+             <small><strong> (<span style="color:blue"> mandatory </span> x <span style="color:red"> optional</span>)
+             </strong></small>
+         </div>
          <div class="col-md-12 pred-list" id="src_predicates_col"
               targetTxt="src_selected_pred"> </div>
         </div>
@@ -306,6 +313,7 @@
           <div class="row" id="trg_datasets_row">
             <div class="col-md-4 graph-list" id="button-trg-col" mode="target"
                   targetTxt="trg_selected_graph"
+                  targetHidden="hidden_trg_entType_div"
                   targetBtn="button-trg-entity-type-col"
                   targetAddBtn="button_trg_add_entity_type_pred_col"
                   targetList="trg_predicates_col">
@@ -337,8 +345,11 @@
                </div>
                <div class="row" id="trg_entitytype_row">
                   <div class="col-md-4 entity-list" id="button-trg-entity-type-col"
-                        targetTxt="trg_selected_entity-type">
+                        graph_uri=""
+                        targetTxt="trg_selected_entity-type"
+                        targetList="trg_predicates_col">
                     <!-- will be rendered via server -->
+                    <div id="hidden_trg_entType_div" style='display:none' uri="" label="" ></div>
                     <button class="btn btn-primary btn-round dropdown-toggle" type="button"
                             data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
                   </div>
@@ -391,7 +402,11 @@
            </div>
          </div>
          <div class="row" id = "trg_list_pred_row">
-           <div class="col-md-12 pred-list" id="trg_predicates_col"
+            <div class="col-md-12">
+                 <small><strong> (<span style="color:blue"> mandatory </span> x <span style="color:red"> optional</span>)
+                 </strong></small>
+             </div>
+            <div class="col-md-12 pred-list" id="trg_predicates_col"
                 targetTxt="trg_selected_pred">
               <!-- will be rendered via server --></div>
          </div>

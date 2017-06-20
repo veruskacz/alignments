@@ -235,7 +235,7 @@ def get_types_per_graph(rq_uri, mode):
 def get_entity_type_rq(rq_uri, graph_uri):
     query = PREFIX + """
     ### GET ENTITYTYPE PER DATASET IN THE SCOPE OF THE RESEARCH QUESTION
-    SELECT DISTINCT ?uri
+    SELECT DISTINCT ?uri (COUNT(?s) AS ?count)
     {{
     	GRAPH <{0}>
 	    {{
@@ -245,7 +245,12 @@ def get_entity_type_rq(rq_uri, graph_uri):
           	<{1}>
           	    alivocab:hasDatatype  ?uri .
         }}
-    }}""".format(rq_uri, graph_uri)
+        
+        GRAPH <{1}>
+        {{
+           ?s a ?uri .
+        }}
+    }} GROUP BY ?uri """.format(rq_uri, graph_uri)
     if DETAIL:
         print query
     return query
@@ -817,16 +822,22 @@ def get_resource_description(graph, resource, predicate=None):
     return query
 
 
-def get_predicates(graph, type = None):
+def get_predicates(graph, type=None, total=None):
 
     if type:
         type_query = '?s a <{}> .'.format(type)
     else:
         type_query = ''
 
+    print "TOTAL:", total
+    if total:
+        opt_query = '(count(distinct ?s)/{} as ?ratio) (((?ratio)-floor(?ratio))>0 as ?optional)'.format(str(total))
+    else:
+        opt_query = ''
+
     query = """
     ### GET PREDICATES WITHIN A CERTAIN GRAPH WITH EXAMPLE VALUE
-    SELECT ?pred (MAX(?o) AS ?obj)
+    SELECT ?pred (MAX(?o) AS ?obj) {}
     {{
         GRAPH <{}>
         {{
@@ -835,7 +846,7 @@ def get_predicates(graph, type = None):
         }}
         FILTER (lcase(str(?o)) != 'null')
     }} GROUP BY ?pred
-    """.format(graph, type_query)
+    """.format(opt_query, graph, type_query)
     if DETAIL:
         print query
     return query

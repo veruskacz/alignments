@@ -376,17 +376,28 @@ function inspect_linkset_activate(mode)
 
 function loadEditPanel(obj, mode)
 {
-
     setAttr('hidden_src_div','uri',obj.subTarget.value);
     setAttr('hidden_src_div','label',obj.subTarget_stripped.value);
 
     setAttr('hidden_trg_div','uri',obj.objTarget.value);
     setAttr('hidden_trg_div','label',obj.objTarget_stripped.value);
 
+    setAttr('hidden_src_entType_div','uri',obj.s_datatype.value);
+    setAttr('hidden_src_entType_div','label',obj.s_datatype_stripped.value);
+
+    setAttr('hidden_trg_entType_div','uri',obj.o_datatype.value);
+    setAttr('hidden_trg_entType_div','label',obj.o_datatype_stripped.value);
+
     if (mode == 'refine' || mode == 'edit')
     {
         datasetClick(document.getElementById('hidden_src_div'));
         datasetClick(document.getElementById('hidden_trg_div'));
+
+        setAttr('hidden_src_div','uri','');
+        setAttr('hidden_src_div','label','');
+
+        setAttr('hidden_trg_div','uri','');
+        setAttr('hidden_trg_div','label','');
     }
     else
     {
@@ -398,13 +409,33 @@ function loadEditPanel(obj, mode)
         $('#trg_selected_graph').html(obj.objTarget_stripped.value);
     }
 
-    setAttr('src_selected_entity-type','uri',obj.s_datatype.value);
-    setAttr('src_selected_entity-type','style','background-color:lightblue');
-    $('#src_selected_entity-type').html(obj.s_datatype_stripped.value);
 
-    setAttr('trg_selected_entity-type','uri',obj.o_datatype.value);
-    setAttr('trg_selected_entity-type','style','background-color:lightblue');
-    $('#trg_selected_entity-type').html(obj.o_datatype_stripped.value);
+    if (mode == 'refine' || mode == 'edit')
+    {
+        var ancestorType = "entity-list";
+//        alert(ancestorType);
+        var elem = document.getElementById('hidden_src_entType_div')
+//        console.log(elem);
+        selectionClick(elem, ancestorType);
+        selectionClick(document.getElementById('hidden_trg_entType_div'), ancestorType);
+
+        setAttr('hidden_src_entType_div','uri','');
+        setAttr('hidden_src_entType_div','label','');
+
+        setAttr('hidden_trg_entType_div','uri','');
+        setAttr('hidden_trg_entType_div','label','');
+
+    }
+    else
+    {
+        setAttr('src_selected_entity-type','uri',obj.s_datatype.value);
+        setAttr('src_selected_entity-type','style','background-color:lightblue');
+        $('#src_selected_entity-type').html(obj.s_datatype_stripped.value);
+
+        setAttr('trg_selected_entity-type','uri',obj.o_datatype.value);
+        setAttr('trg_selected_entity-type','style','background-color:lightblue');
+        $('#trg_selected_entity-type').html(obj.o_datatype_stripped.value);
+    }
 
     if (mode == 'reject-refine')
     {
@@ -1023,13 +1054,14 @@ function create_views_activate()
           var graph_label = $(this).attr('label');
           var type_uri = $(this).attr('type_uri');
           var type_label = $(this).attr('type_label');
+          var total = $(this).attr('total');
 
           if (selectListItemUnique(this, 'creation_view_dataset_col'))
           {
               // Exhibit a waiting message for the user to know loading time might be long.
               $('#creation_view_predicates_col').html('Loading...');
               // get the distinct predicates and example values of a graph into a list group
-              $.get('/getpredicates',data={'dataset_uri': graph_uri, 'type': type_uri},function(data)
+              $.get('/getpredicates',data={'dataset_uri': graph_uri, 'type': type_uri, 'total': total},function(data)
               {
                    // load the rendered template into the column #creation_view_predicates_col
                   $('#creation_view_predicates_col').html(data);
@@ -1217,6 +1249,7 @@ function createViewClick(mode)
 {
     $('#view_creation_message_col').html("");
     $('#view_creation_save_message_col').html("");
+    $('#view_run_message_col').html("");
     $('#queryView').val("");
     $('#views-results').html("");
 
@@ -1225,17 +1258,17 @@ function createViewClick(mode)
     var i;
     var view_lens = []
     for (i = 0; i < elems.length; i++) {
-    view_lens.push($(elems[i]).attr('uri'));
+        view_lens.push($(elems[i]).attr('uri'));
     }
     elems = selectedElemsInGroupList('creation_view_lens_col');
     for (i = 0; i < elems.length; i++) {
-    view_lens.push($(elems[i]).attr('uri'));
+        view_lens.push($(elems[i]).attr('uri'));
     }
 
     var view_filter = []
     var elem = document.getElementById('creation_view_selected_predicates_group');
     if (elem) {
-    elems = elem.getElementsByClassName('list-group-item');
+        elems = elem.getElementsByClassName('list-group-item');
     }
     var dict = {};
     for (i = 0; i < elems.length; i++) {
@@ -1428,7 +1461,8 @@ function datasetClick(th)
     //alert(list);
 
     //refresh the source components of this task
-    // refresh_create_linkset(mode=$(list).attr('mode'));
+//    alert($(list).attr('mode'));
+//    refresh_create_linkset($(list).attr('mode'));
 
     // get the graph uri and label from the clicked dataset
     var graph_uri = $(th).attr('uri');
@@ -1442,27 +1476,36 @@ function datasetClick(th)
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue');
 
+//    alert(targetHidden)
+//    alert($('#'+targetHidden).attr('uri'))
     var button = $(list).attr('targetBtn');
     if (button)
     {
-        // clean previously selected entity type
-        targetTxt = $('#'+button).attr('targetTxt');
-        setAttr(targetTxt,'uri','');
-        $('#'+targetTxt).html('Select an Entity Type');
-        setAttr(targetTxt,'style','background-color:none');
+        setAttr(button,'graph_uri',graph_uri);
+        var targetHidden = $(list).attr('targetHidden');
+        // if there is not entity type settled via the targetHidden
+        // then load the button
+        var elem = document.getElementById(targetHidden)
+        if ((!elem) || ($('#'+targetHidden).attr('uri') == ''))
+        {
+            // clean previously selected entity type
+            targetTxt = $('#'+button).attr('targetTxt');
+            setAttr(targetTxt,'uri','');
+            $('#'+targetTxt).html('Select an Entity Type');
+            setAttr(targetTxt,'style','background-color:none');
 
-        // get new entity types
-        $('#'+button).html('Loading...');
-        $.get('/getentitytyperq',
-                  data={'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
-                        'function': 'selectionClick(this, "entity-list");',
-                        'graph_uri': graph_uri},
-                  function(data)
-        { // load the rendered template into the target column
-          $('#'+button).html(data);
-        });
+            // get new entity types
+            $('#'+button).html('Loading...');
+            $.get('/getentitytyperq',
+                      data={'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
+                            'function': 'selectionClick(this, "entity-list");',
+                            'graph_uri': graph_uri},
+                      function(data)
+            { // load the rendered template into the target column
+              $('#'+button).html(data);
+            });
+        }
     }
-
 
     // Load additional entity types into the div informed as targetBtn
     var button2 = $(list).attr('targetAddBtn');
@@ -1485,24 +1528,24 @@ function datasetClick(th)
         });
     }
 
-    var listCol = $(list).attr('targetList');
-    if (listCol)
-    {
-        // clean previously selected entity type
-        targetTxt = $('#'+listCol).attr('targetTxt');
-        setAttr(targetTxt,'uri','');
-        $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
-        setAttr(targetTxt,'style','background-color:none');
-
-        // get the distinct predicates and example values of a graph into a list group
-        $('#'+listCol).html('Loading...');
-        $.get('/getpredicates', data={'dataset_uri': graph_uri,
-                                      'function': 'selectionClick(this, "pred-list");'},
-                                function(data)
-        {  // load the rendered template into the column target list col
-           $('#'+listCol).html(data);
-        });
-    }
+//    var listCol = $(list).attr('targetList');
+//    if (listCol)
+//    {
+//        // clean previously selected entity type
+//        targetTxt = $('#'+listCol).attr('targetTxt');
+//        setAttr(targetTxt,'uri','');
+//        $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+//        setAttr(targetTxt,'style','background-color:none');
+//
+//        // get the distinct predicates and example values of a graph into a list group
+//        $('#'+listCol).html('Loading...');
+//        $.get('/getpredicates', data={'dataset_uri': graph_uri,
+//                                      'function': 'selectionClick(this, "pred-list");'},
+//                                function(data)
+//        {  // load the rendered template into the column target list col
+//           $('#'+listCol).html(data);
+//        });
+//    }
 }
 
 // Function fired onclick of a option from a list
@@ -1516,8 +1559,17 @@ function selectionClick(th, ancestorType)
     // where the name is displayed
     var targetTxt = $(list).attr('targetTxt');
     setAttr(targetTxt,'uri', $(th).attr('uri') );
-    $('#'+targetTxt).html( $(th).attr('label') );
-    setAttr(targetTxt,'style','background-color:lightblue');
+    var label = $(th).attr('label');
+    var optional = $(th).attr('optional');
+    if (optional)
+    {
+        if (optional == 'true')
+        {    label = '<strong><span style="color:red">'+label+'</span></strong>' }
+        else
+        {    label = '<strong><span style="color:blue">'+label+'</span></strong>' }
+    }
+    $('#'+targetTxt).html( label );
+    setAttr(targetTxt,'style', 'background-color:lightblue');
 
     //If there is a button to be loaded...
     //TODO: make it generic
@@ -1544,6 +1596,27 @@ function selectionClick(th, ancestorType)
                   function(data)
         { // load the rendered template into the target column
           $('#'+button).html(data);
+        });
+    }
+
+    var listCol = $(list).attr('targetList');
+    var graph_uri = $(list).attr('graph_uri');
+    if (listCol)
+    {
+        // clean previously selected entity type
+        targetTxt = $('#'+listCol).attr('targetTxt');
+
+        setAttr(targetTxt,'uri','');
+        $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+        setAttr(targetTxt,'style','background-color:none');
+
+        // get the distinct predicates and example values of a graph into a list group
+        $('#'+listCol).html('Loading...');
+        $.get('/getpredicates', data={'dataset_uri': graph_uri, 'type': $(th).attr('uri'), 'total': $(th).attr('total'),
+                                      'function': 'selectionClick(this, "pred-list");'},
+                                function(data)
+        {  // load the rendered template into the column target list col
+           $('#'+listCol).html(data);
         });
     }
 }
@@ -1665,7 +1738,6 @@ function refresh_create_linkset(mode='all')
       elem.setAttribute('style', 'background-color:none');
       $('#selected_method_desc').html("Method Description");
 
-
       $('#inspect_linkset_linkset_details_col').html("");
       $('#creation_linkset_filter_row').hide();
       $('#creation_linkset_correspondence_row').hide();
@@ -1678,16 +1750,31 @@ function refresh_create_linkset(mode='all')
       $('#selected_int_dataset').html("Select a Dataset");
 
       $('#linkset_refine_message_col').html('');
+
+      $('#button-src-col').html('<div id="hidden_src_div" style="display:none" uri="" label="" ></div>');
+      $('#button-trg-col').html('<div id="hidden_trg_div" style="display:none" uri="" label="" ></div>');
     }
 
     if (mode == 'all' || mode == 'source')
     {
-      $('#button-src-col').html('<div id="hidden_src_div" style="display:none" uri="" label="" ></div>');
+
+      elem = document.getElementById('button-src-entity-type-col');
+      console.log(elem);
+      var content = '<div id="hidden_src_entType_div" style="display:none" uri="" label="" ></div>';
+      content += '<button class="btn btn-primary btn-round dropdown-toggle" type="button"';
+      content += 'data-toggle="dropdown">Entity Type<span class="caret"></span></button>';
+//      alert(content);
+      $(elem).html(content);
+//      console.log(elem);
 
       elem = document.getElementById('src_selected_entity-type');
       $(elem).html("Select an Entity Type");
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');
+
+//      elem = document.getElementById('hidden_src_entType_div');
+//      elem.setAttribute('uri', '');
+//      elem.setAttribute('label', '');
 
       elem = document.getElementById('src_selected_add_entity_type_pred');
       $(elem).html("Select a Type-Property");
@@ -1704,12 +1791,21 @@ function refresh_create_linkset(mode='all')
 
     if (mode == 'all' || mode == 'target')
     {
-      $('#button-trg-col').html('<div id="hidden_trg_div" style="display:none" uri="" label="" ></div>');
+
+      elem = document.getElementById('button-trg-entity-type-col');
+      var content = '<div id="hidden_trg_entType_div" style="display:none" uri="" label="" ></div>';
+      content += '<button class="btn btn-primary btn-round dropdown-toggle" type="button"';
+      content += 'data-toggle="dropdown">Entity Type<span class="caret"></span></button>';
+      $(elem).html(content);
 
       elem = document.getElementById('trg_selected_entity-type');
       $(elem).html("Select an Entity Type");
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');
+
+//      elem = document.getElementById('hidden_trg_entType_div');
+//      elem.setAttribute('uri', '');
+//      elem.setAttribute('label', '');
 
       elem = document.getElementById('trg_selected_add_entity_type_pred');
       $(elem).html("Select a Type-Property");
@@ -2055,7 +2151,7 @@ function loadGraphClick()
               function(data)
             {
                   var obj = JSON.parse(data);
-                  console.log(obj);
+//                  console.log(obj);
                   $('#dataset_load').val(obj);
                   $('#dataset_creation_message_col').html(addNote(loaded_dataset,cl='success'));
 

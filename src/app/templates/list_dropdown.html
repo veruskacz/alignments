@@ -5,8 +5,18 @@
       {% for l in list|sort(attribute='uri_label') %}
       <li role="presentation"> 
           <a href="javascript:void();" role="menuitem" tabindex="-1" onclick="{{function}}"
-          uri='{{l.uri.value }}' label='{{l.uri_label.value}}'>
-          {{ l.uri_label.value }}</a>
+          uri='{{l.uri.value }}'
+            {% if (l.count) %}
+             label='{{l.uri_label.value}} | {{ l.count.value }} '
+             total = '{{ l.count.value }}'
+            {% else %}
+             label='{{l.uri_label.value}} '
+            {% endif %} >
+          {{ l.uri_label.value }}
+          {% if (l.count) %}
+             | {{ l.count.value }}
+          {% endif %}
+          </a>
       </li>
       {% endfor %}
   </ul>
