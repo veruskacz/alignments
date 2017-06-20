@@ -241,7 +241,6 @@ def run_checks(specs, check_type):
                 print message
                 return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
-    print "NO PROBLEM"
     if str(check_type).lower() == "subset":
         print "ASK 3: IT IS A SUBSET"
         set_subset_name(specs, inverse=False)

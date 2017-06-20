@@ -334,8 +334,7 @@ def view(view_specs, view_filter, save=False, limit=10):
             # {
             view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{".format(ds_ns_name[1], graph_uri)
 
-            # Adding the resource as a variable to the variable list
-            view_select += (" ?{}".format(ds_ns_name[1]))
+
 
             # graph_data IS A LIST OF DICTIONARIES FOR HOLDING THE TYPES AND THEIR LISTED PROPERTIES
             for data_info in graph_data:
@@ -353,8 +352,11 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                 #   ?GRID
                 # TODO ADD THE TYPE TO THE ALIGNMENTS IN THE INTERSECT
-                # view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], e_type, type_triple)
-                view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], "", type_triple)
+                view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], e_type, type_triple)
+                # view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], "", type_triple)
+
+                # Adding the resource as a variable to the variable list
+                view_select += " ?{}{}".format(ds_ns_name[1], e_type, )
 
                 t_properties = data_info[St.properties]
 
@@ -475,17 +477,19 @@ def view(view_specs, view_filter, save=False, limit=10):
                                     namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
 
                                 if t_properties[i][1] is True:
-                                    optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
-                                        ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
+                                    optional += "\n\t\tOPTIONAL{{ ?{}{:15} {:60} ?{}{}_{} . }}".format(
+                                        ds_ns_name[1], e_type, predicate, attache, e_type, curr_ns[1])
                                 else:
-                                    view_where += "\n\t\t\t{:55} ?{}{}_{} .".format(predicate, attache, e_type, curr_ns[1])
+                                    view_where += "\n\t\t\t{:55} ?{}{}_{} .".format(
+                                        predicate, attache, e_type, curr_ns[1])
 
                             else:
                                 if t_properties[i][1] is True:
-                                    optional += "\n\t\tOPTIONAL{{ ?{:15} {:40} ?{}{}_{} . }}".format(
-                                        ds_ns_name[1], predicate, attache, e_type, curr_ns[1])
+                                    optional += "\n\t\tOPTIONAL{{ ?{}{:15} {:60} ?{}{}_{} . }}".format(
+                                        ds_ns_name[1], e_type, predicate, attache, e_type, curr_ns[1])
                                 else:
-                                    view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(predicate, attache, e_type, curr_ns[1])
+                                    view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(
+                                        predicate, attache, e_type, curr_ns[1])
 
                             # ADDING THE VARIABLE LIST
                             value = (" ?{}{}_{}".format(attache, e_type, curr_ns[1]))
