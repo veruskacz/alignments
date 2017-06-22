@@ -1064,7 +1064,11 @@ function create_views_activate()
               $.get('/getpredicates',data={'dataset_uri': graph_uri, 'type': type_uri, 'total': total},function(data)
               {
                    // load the rendered template into the column #creation_view_predicates_col
-                  $('#creation_view_predicates_col').html(data);
+                    var obj = JSON.parse(data);
+                    if (obj.message == 'OK')
+                        $('#creation_view_predicates_col').html(obj.result);
+                    else
+                        $('#creation_view_predicates_col').html(obj.message);
 
                   // set actions after clicking one of the predicates
                   $('#creation_view_predicates_col li').on('click',function()
@@ -1277,7 +1281,7 @@ function createViewClick(mode)
         if (!entityType) {entityType = 'no_type'}
         dict = {'ds': $(elems[i]).attr('graph_uri'),
                 'type': entityType,
-                'att': $(elems[i]).attr('pred_uri') };
+                'att': $(elems[i]).attr('pred_uri').replace('>',"").replace('<',"") };
         view_filter.push( JSON.stringify(dict));
     }
 
@@ -1659,7 +1663,11 @@ function selectionClick(th, ancestorType)
                                           'function': 'selectionClick(this, "pred-list");'},
                                     function(data)
             {  // load the rendered template into the column target list col
-               $('#'+listCol).html(data);
+                var obj = JSON.parse(data);
+                if (obj.message == 'OK')
+                    $('#'+listCol).html(obj.result);
+                else
+                    $('#'+listCol).html(obj.message);
             });
         }
         else if ((checkPropPath.checked) && ($('#'+listCol).attr('propPath')!='disabled'))
@@ -1671,12 +1679,26 @@ function selectionClick(th, ancestorType)
                 // then the pred-list will be reloaeded with the predicates
                 // that are available for the objects of the selected property
                 // if (property_path is selected)
+                var preivousContentListCol = $('#'+listCol).html();
                 $('#'+listCol).html('Loading...');
                 $.get('/getpredicates', data={'dataset_uri': graph_uri, 'propPath': propPath,
                                           'function': 'selectionClick(this, "pred-list");'},
                                     function(data)
                 {  // load the rendered template into the column target list col
-                   $('#'+listCol).html(data);
+                    var obj = JSON.parse(data);
+                    if (obj.message == 'OK')
+                    {    $('#'+listCol).html(obj.result); }
+                    else
+                    { if (obj.message == 'Empty')
+                        {    // it is a uri but not a valid property path
+                            // restore the preivous content
+                            $('#'+listCol).html(preivousContentListCol);
+                            // disable the continuation of property path
+                            setAttr(listCol,'propPath','disabled');
+                        }
+                        else
+                        {    $('#'+listCol).html(obj.message); }
+                    }
                 });
             }
             else
@@ -1691,7 +1713,7 @@ function resetDivSelectedEntity(button_id,mode)
 {
     if (mode == 'predicate')
     {
-        alert('test');
+//        alert('test');
         var button = document.getElementById(button_id) //button-src-entity-type-col
         var predList = $(button).attr('targetList');
 
@@ -1708,12 +1730,13 @@ function resetDivSelectedEntity(button_id,mode)
         var hiddenDiv = $(button).attr('hiddenDiv');
         if (hiddenDiv)
         {
-                alert(hiddenDiv);
+//                alert(hiddenDiv);
+                $(button).html($(button).html() + '<div class="hiddenDiv" id="' + hiddenDiv +'" style="display:none" uri="" label="" ></div>')
                 setAttr(hiddenDiv,'uri',$('#'+target).attr('uri'));
-                setAttr(hiddenDiv,'label',$('#'+target).attr('label'));
+                setAttr(hiddenDiv,'label',$('#'+target).html());
                 var elem = document.getElementById(hiddenDiv);
                 // TODO Fix error finding the ancestor of hiddenDiv
-//                selectionClick(elem, "entity-list");
+                selectionClick(elem, "entity-list");
         }
     }
 }
@@ -1855,7 +1878,7 @@ function refresh_create_linkset(mode='all')
     {
 
       elem = document.getElementById('button-src-entity-type-col');
-      console.log(elem);
+//      console.log(elem);
       var content = '<div id="hidden_src_entType_div" style="display:none" uri="" label="" ></div>';
       content += '<button class="btn btn-primary btn-round dropdown-toggle" type="button"';
       content += 'data-toggle="dropdown">Entity Type<span class="caret"></span></button>';

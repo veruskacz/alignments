@@ -846,13 +846,21 @@ def predicates():
     query = Qry.get_predicates(dataset_uri, type, total, propPath)
 
     # RUN QUERY AGAINST ENDPOINT
-    dataDetails = sparql(query, strip=True)
-    if PRINT_RESULTS:
-        print "\n\nPREDICATES:", dataDetails
-    # SEND BAK RESULTS
-    return render_template('datadetails_list.html',
-                            dataDetails = dataDetails,
-                            function = function)
+    try:
+        dataDetails = sparql(query, strip=True)
+        if PRINT_RESULTS:
+            print "\n\nPREDICATES:", dataDetails
+        # SEND BAK RESULTS
+
+        # print "RESULTS: ", len(dataDetails), len(dataDetails[0])
+        if (len(dataDetails) > 0) and (len(dataDetails[0]) > 0):
+            return json.dumps({'message': 'OK', 'result': render_template('datadetails_list.html',
+                                dataDetails = dataDetails,
+                                function = function)})
+        else:
+            return json.dumps({'message': 'Empty', 'result': None})
+    except Exception as error:
+        return json.dumps({'message': str(error.message), 'result': None})
 
 
 

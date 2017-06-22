@@ -236,6 +236,7 @@ function selectListItemUniqueWithTarget(item)
 }
 
 function findAncestor (el, cls) {
+//    console.log(el);
     while ((el = el.parentElement) && !el.classList.contains(cls));
     return el;
 }
