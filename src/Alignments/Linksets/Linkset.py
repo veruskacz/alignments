@@ -184,7 +184,7 @@ def run_checks(specs, check_type):
     # THE CURRENT AME EXIST
     if ask_1 == "true":
 
-        print "ASK_1"
+        print "ASK_1: THE CURRENT AME EXIST"
         message = Ec.ERROR_CODE_2.replace('#', linkset)
 
         if St.refined in specs:
@@ -221,12 +221,12 @@ def run_checks(specs, check_type):
         print message
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
 
-    # CHECK WHETHER THE alternative LINKSET NAME EXIST
+    # CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST
     elif ask_1 == "false" and str(check_type).lower() != "subset":
 
-        print "ASK 2"
+        print "ASK 2: CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST"
         if St.refined not in specs:
-            print "REFINED"
+            print "\t- REFINED"
             # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY TO SUBSET BECAUSE WE ASSUME
             # A LINKSET BY SUBSET DOES NOT NEED THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
             counter_check = set_linkset_name(specs, inverse=True)
@@ -241,13 +241,14 @@ def run_checks(specs, check_type):
                 print message
                 return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
-    print "NO PROBLEM"
     if str(check_type).lower() == "subset":
+        print "ASK 3: IT IS A SUBSET"
         set_subset_name(specs, inverse=False)
     elif str(check_type).lower() == "linkset":
-        print "ASK 3"
+        print "ASK 3: IT IS A LINKSET"
         set_linkset_name(specs, inverse=False)
     elif str(check_type).lower() == "refine":
+        print "ASK 3: IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
         set_refined_name(specs)
 
     print "\n>>> GOOD TO GO !!!"

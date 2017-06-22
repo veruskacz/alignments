@@ -141,24 +141,26 @@ def intersection(specs, display=False):
 
         query = """
     PREFIX void: <http://rdfs.org/ns/void#>
-    SELECT distinct ?subTarget ?objTarget
+    SELECT distinct ?subTarget ?objTarget ?subjectEntityType ?objectEntityType
     {{
         <{}>
             #void:target*/(void:subjectsTarget|void:objectsTarget)* ?x ;
             void:target*/(void:subjectsTarget|void:objectsTarget)* ?x .
 
         ?x
-            void:subjectsTarget ?subTarget ;
-            void:objectsTarget ?objTarget .
+            void:subjectsTarget     ?subTarget ;
+            void:objectsTarget      ?objTarget ;
+            bdb:subjectsDatatype    ?subjectEntityType ;
+            bdb:objectsDatatype     ?objectEntityType .
 
         FILTER NOT EXISTS {{ ?subTarget a void:Linkset }}
         FILTER NOT EXISTS {{ ?objTarget a void:Linkset }}
-
     }}""".format(graph)
+        # print "INTERSECTION QUERY:", query
         response = sparql_xml_to_matrix(query)
 
         if display:
-            print "QUERY:", query
+            print "INTERSECTION QUERY:", query
         # print "\nGRAPH:", graph
         # print "RESPONSE:", response
         # exit(0)
@@ -166,6 +168,7 @@ def intersection(specs, display=False):
         if response:
             targets = response[St.result]
 
+            # IF THE RESULT HAS MORE THAN
             # print "LENGTH:", len(targets)
             if targets is not None and len(targets) > 2:
                 union = ""
@@ -176,7 +179,11 @@ def intersection(specs, display=False):
                     src = Ut.get_uri_local_name(targets[i][0])
                     trg = Ut.get_uri_local_name(targets[i][1])
 
-                    union += "\n\t\t{}{{ ?{} ?predicate_{} ?{} . }} {}".format(tab, src, i, trg, append)
+                    src_TYPE = Ut.get_uri_local_name(targets[i][2])
+                    trg_TYPE = Ut.get_uri_local_name(targets[i][3])
+
+                    union += "\n\t\t{0}{{ ?{1}_{5}  ?predicate_{2}  ?{3}_{6} . }} {4}".format(
+                        tab, src, i, trg, append, src_TYPE[:3],  trg_TYPE[:3])
 
                 union = """
     ### ABOUT {0}
@@ -191,13 +198,17 @@ def intersection(specs, display=False):
             elif targets and len(targets) == 2:
                 src = Ut.get_uri_local_name(targets[1][0])
                 trg = Ut.get_uri_local_name(targets[1][1])
+
+                src_TYPE = Ut.get_uri_local_name(targets[1][2])
+                trg_TYPE = Ut.get_uri_local_name(targets[1][3])
+
                 inter += """
     ### ABOUT {0}
     GRAPH <{0}>
     {{
-        ?{1} ?pred_{2} ?{3} .
+        ?{1}_{4}    ?pred_{2}   ?{3}_{5} .
     }}
-    """.format(graph, src, count_graph,trg)
+    """.format(graph, src, count_graph, trg, src_TYPE[:3],  trg_TYPE[:3])
 
         count_graph += 1
 
