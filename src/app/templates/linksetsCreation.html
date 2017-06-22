@@ -235,9 +235,10 @@
                   <div class="col-md-4 entity-list" id="button-src-entity-type-col"
                         graph_uri=""
                         targetTxt="src_selected_entity-type"
-                        targetList="src_predicates_col">
+                        targetList="src_predicates_col"
+                        hiddenDiv="hidden_src_entType_div">
                     <!-- will be rendered via server -->
-                    <div id="hidden_src_entType_div" style='display:none' uri="" label="" ></div>
+                    <div class="hiddenDiv" id="hidden_src_entType_div" style='display:none' uri="" label="" ></div>
                     <button class="btn btn-primary btn-round dropdown-toggle" type="button"
                             data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
                   </div>
@@ -284,20 +285,32 @@
 
         <div class="row" id = "src_selected_pred_row">
          <div class="col-md-12">
-             <div class="well well-sm" id="src_selected_pred" uri="" >Select a Property +
-               <span style="color:blue"><strong> example value </strong>
-               </span>
+             <div class="well well-sm" id="src_selected_pred" uri="" >
+                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
              </div>
          </div>
         </div>
 
         <div class="row" id = "src_list_pred_row">
-         <div class="col-md-12">
-             <small><strong> (<span style="color:blue"> mandatory </span> x <span style="color:red"> optional</span>)
-             </strong></small>
+        <div class="col-md-12">
+         <div class="row">
+             <div class="col-md-7">
+                 <small><strong> [<span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>]
+                     </strong></small>
+             </div>
+             <div class="col-md-5" align="right">
+                 <small><div class="checkbox-inline" ><label><input type="checkbox" id="src_enable_prop_path"
+                        onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Property Path</label></div></small>
+             </div>
          </div>
-         <div class="col-md-12 pred-list" id="src_predicates_col"
-              targetTxt="src_selected_pred"> </div>
+         <div class="row">
+             <div class="col-md-12 pred-list" id="src_predicates_col"
+                  targetList="src_predicates_col"
+                  targetTxt="src_selected_pred"
+                  propPathCheckBok="src_enable_prop_path"
+                  propPath="enabled"> </div>
+         </div>
+        </div>
         </div>
 
       </div>
@@ -349,7 +362,7 @@
                         targetTxt="trg_selected_entity-type"
                         targetList="trg_predicates_col">
                     <!-- will be rendered via server -->
-                    <div id="hidden_trg_entType_div" style='display:none' uri="" label="" ></div>
+                    <div class="hiddenDiv" id="hidden_trg_entType_div" style='display:none' uri="" label="" ></div>
                     <button class="btn btn-primary btn-round dropdown-toggle" type="button"
                             data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
                   </div>
@@ -403,12 +416,24 @@
          </div>
          <div class="row" id = "trg_list_pred_row">
             <div class="col-md-12">
-                 <small><strong> (<span style="color:blue"> mandatory </span> x <span style="color:red"> optional</span>)
-                 </strong></small>
+             <div class="row">
+                 <div class="col-md-7">
+                     <small><strong> [<span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>]
+                         </strong></small>
+                 </div>
+                 <div class="col-md-5" align="right">
+                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="trg_enable_prop_path"
+                        onclick='resetDivSelectedEntity("trg_selected_pred","trg_predicates_col","predicate")' >Enable Property Path</label></div></small>
+                 </div>
              </div>
-            <div class="col-md-12 pred-list" id="trg_predicates_col"
-                targetTxt="trg_selected_pred">
-              <!-- will be rendered via server --></div>
+             <div class="row">
+                 <div class="col-md-12 pred-list" id="trg_predicates_col"
+                    targetList="trg_predicates_col"
+                    targetTxt="trg_selected_pred"
+                    propPathCheckBok="trg_enable_prop_path"
+                    propPath="enabled"> </div>
+             </div>
+            </div>
          </div>
       </div>
 

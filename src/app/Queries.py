@@ -822,7 +822,7 @@ def get_resource_description(graph, resource, predicate=None):
     return query
 
 
-def get_predicates(graph, type=None, total=None):
+def get_predicates(graph, type=None, total=None, propPath=None):
 
     if type:
         type_query = '?s a <{}> .'.format(type)
@@ -835,18 +835,23 @@ def get_predicates(graph, type=None, total=None):
     else:
         opt_query = ''
 
+    if propPath:
+        propPath_query = '?sub {} ?s .'.format(propPath)
+    else:
+        propPath_query = ''
+
     query = """
     ### GET PREDICATES WITHIN A CERTAIN GRAPH WITH EXAMPLE VALUE
     SELECT ?pred (MAX(?o) AS ?obj) {}
     {{
         GRAPH <{}>
         {{
-            {}
+            {}{}
             ?s ?pred ?o
         }}
         FILTER (lcase(str(?o)) != 'null')
     }} GROUP BY ?pred
-    """.format(opt_query, graph, type_query)
+    """.format(opt_query, graph, type_query, propPath_query)
     if DETAIL:
         print query
     return query
