@@ -140,8 +140,8 @@ def intersection(specs, display=False):
     for graph in specs[St.datasets]:
 
         query = """
-    PREFIX void : {}
-    PREFIX bdb  : {}
+    PREFIX void: <{}>
+    PREFIX bdb: <{}>
     SELECT distinct ?subTarget ?objTarget ?subjectEntityType ?objectEntityType
     {{
         <{}>
