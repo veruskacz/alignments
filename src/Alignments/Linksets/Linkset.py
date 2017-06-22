@@ -15,6 +15,7 @@ import logging
 
 from kitchen.text.converters import to_unicode
 import os
+import re
 import Alignments.Server_Settings as Ss
 import Alignments.ErrorCodes as Ec
 import Alignments.Lenses.LensUtility as Lu
@@ -23,6 +24,7 @@ import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.UserActivities.UserRQ as Ura
 from Alignments.CheckRDFFile import check_rdf_file
+from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -40,6 +42,22 @@ write_to_path = Ss.settings[St.linkset_Exact_dir]
     LINKSETS
 """
 #################################################################
+
+
+def nt_format(resource):
+    try:
+        temp = str(resource).strip()
+        return temp.startswith("<") and temp.endswith(">")
+
+    except Exception as err:
+        print "Exception:", err
+        return False
+
+def is_property_path(resource):
+    temp = str(resource).strip()
+    check = re.findall("> */ *<", temp)
+    return len(check) != 0
+
 
 
 def set_linkset_name(specs, inverse=False):
@@ -226,11 +244,10 @@ def run_checks(specs, check_type):
 
         print "ASK 2: CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST"
         if St.refined not in specs:
-            print "\t- REFINED"
+            print "\t- NOT REFINED"
             # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY TO SUBSET BECAUSE WE ASSUME
             # A LINKSET BY SUBSET DOES NOT NEED THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
             counter_check = set_linkset_name(specs, inverse=True)
-
 
             # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
             ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
@@ -493,3 +510,5 @@ def linkset_wasderivedfrom(refined_linkset_uri):
         if dictionary_result[St.result]:
             return dictionary_result[St.result][1][0]
     return None
+
+# print is_property_path("<mh>/<>/<>")

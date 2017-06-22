@@ -105,6 +105,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             """ 5. GENERATING LINKSET METADATA                                   """
             ########################################################################
             metadata = Gn.linkset_metadata(specs)
+            print metadata
 
             # NO POINT TO CREATE ANY FILE WHEN NO TRIPLE WAS INSERTED
             if int(specs[St.triples]) > 0:
@@ -184,12 +185,33 @@ def spa_linkset_ess_query(specs):
     '''
         LOADING SOURCE TO TEMPORARY GRAPH tmpgraph:load00
     '''
-    load_temp00 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns]\
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns]\
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
+    # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
+    if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
+        src_rdf_pred = source[St.rdf_predicate]\
+            if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
+    else:
+        src_rdf_pred = "a"
+
+    if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
+        trg_rdf_pred = target[St.rdf_predicate] \
+            if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
+    else:
+        trg_rdf_pred = "a"
+
+    load_temp00 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
         format("\tINSERT",
                "\t{",
                "\t  GRAPH tmpgraph:load00",
                "\t  {",
-               "\t    ?source <{}> ?label .".format(source[St.aligns]),
+               "\t    ?source {} ?label .".format(src_aligns),
                "\t  }",
                "\t}",
 
@@ -198,7 +220,8 @@ def spa_linkset_ess_query(specs):
                "\t  ### Selecting source data instances based on name",
                "\t  GRAPH <{}>".format(source[St.graph]),
                "\t  {",
-               "\t    ?source <{}> ?aLabel .".format(source[St.aligns]),
+               "\t    ?source {} <{}> .".format(src_rdf_pred, source[St.entity_datatype]),
+               "\t    ?source {} ?aLabel .".format(src_aligns),
                "\t    BIND(lcase(str(?aLabel)) as ?label)",
                "\t  }",
                "\t}")
@@ -206,12 +229,12 @@ def spa_linkset_ess_query(specs):
     '''
         LOADING TARGET TO TEMPORARY GRAPH tmpgraph:load01
     '''
-    load_temp01 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
+    load_temp01 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
         format("\tINSERT",
                "\t{",
                "\t  GRAPH tmpgraph:load01",
                "\t  {",
-               "\t    ?target <{}>  ?label .".format(target[St.aligns]),
+               "\t    ?target {}  ?label .".format(trg_aligns),
                "\t  }",
                "\t}",
 
@@ -220,7 +243,8 @@ def spa_linkset_ess_query(specs):
                "\t  ### Selecting target data instances based on exact name",
                "\t  graph <{}>".format(target[St.graph]),
                "\t  {",
-               "\t    ?target <{}>  ?bLabel .".format(target[St.aligns]),
+               "\t    ?source {} <{}> .".format(trg_rdf_pred, target[St.entity_datatype]),
+               "\t    ?target {}  ?bLabel .".format(trg_aligns),
                "\t    BIND(lcase(str(?bLabel)) as ?label)",
                "\t  }",
                "\t}")
@@ -243,13 +267,13 @@ def spa_linkset_ess_query(specs):
                "\t  ### Selecting source data instances based on name",
                "\t  GRAPH tmpgraph:load00",
                "\t  {",
-               "\t    ?source <{}> ?label .".format(source[St.aligns]),
+               "\t    ?source {} ?label .".format(src_aligns),
                "\t  }",
 
                "\t  ### Selecting target data instances based on exact name",
                "\t  graph tmpgraph:load01",
                "\t  {",
-               "\t    ?target <{}>  ?label .".format(target[St.aligns]),
+               "\t    ?target {}  ?label .".format(trg_aligns),
                "\t  }",
 
                "\t}", )
@@ -396,6 +420,13 @@ def spa_linkset_identity_query(specs):
 
     source = specs[St.source]
     target = specs[St.target]
+
+    src_aligns = source[St.aligns]\
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns]\
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
     """
         NAMESPACE
     """
@@ -422,25 +453,34 @@ def spa_linkset_identity_query(specs):
     load_temp00 = """
     INSERT
     {{
-        GRAPH tmpgraph:load00 {{ ?source <{0}> <{1}> . }}
+        GRAPH tmpgraph:load00
+        {{
+            ?source {0} <{1}> .
+        }}
     }}
     WHERE
     {{
         ### Selecting source data instances based on name
-        GRAPH <{2}> {{ ?source <{0}> <{1}> . }}
-    }}""".format(source[St.aligns], source[St.entity_datatype], source[St.graph])
+        GRAPH <{2}>
+        {{
+            ?source {0} <{1}> .
+        }}
+    }}""".format(src_aligns, source[St.entity_datatype], source[St.graph])
 
     ''' LOADING TARGET TO TEMPORARY GRAPH tmpgraph:load01 '''
     load_temp01 = """
     INSERT
     {{
-       GRAPH tmpgraph:load01 {{ ?target <{0}> <{1}> . }}
+       GRAPH tmpgraph:load01
+       {{
+            ?target {0} <{1}> .
+       }}
     }}
     WHERE
     {{
        ### Selecting target data instances based on name
-       GRAPH <{2}> {{ ?target <{0}> <{1}> . }}
-    }}""".format(target[St.aligns], target[St.entity_datatype], target[St.graph])
+       GRAPH <{2}> {{ ?target {0} <{1}> . }}
+    }}""".format(trg_aligns, target[St.entity_datatype], target[St.graph])
 
     ''' LOADING CORRESPONDENCE TO TEMPORARY GRAPH tmpgraph:load '''
     load_temp = """
@@ -454,10 +494,10 @@ def spa_linkset_identity_query(specs):
     }}
     WHERE
     {{
-        GRAPH tmpgraph:load00 {{ ?subject <{}> <{}> . }}
-        GRAPH tmpgraph:load01 {{ ?subject <{}> <{}> . }}
-    }}""".format(source[St.aligns], source[St.entity_datatype],
-                 target[St.aligns], target[St.entity_datatype])
+        GRAPH tmpgraph:load00 {{ ?subject {} <{}> . }}
+        GRAPH tmpgraph:load01 {{ ?subject {} <{}> . }}
+    }}""".format(src_aligns, source[St.entity_datatype],
+                 trg_aligns, target[St.entity_datatype])
 
     ''' CREATING THE LINKSET & METADATA GRAPHS lsMetadata '''
     load_linkset = """
