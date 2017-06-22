@@ -53,11 +53,26 @@ def nt_format(resource):
         print "Exception:", err
         return False
 
+
 def is_property_path(resource):
     temp = str(resource).strip()
     check = re.findall("> */ *<", temp)
     return len(check) != 0
 
+
+def format_aligns(resource):
+    # STARTS WITH < AND ENDS WITH >
+    if nt_format(resource):
+
+        # IS A SEQUENCE PATH
+        if is_property_path(resource):
+            return "\"{}\"".format(resource)
+        else:
+            return resource
+
+    # DOES NOT STARTS WITH < AND ENDS WITH >
+    else:
+        return "<{}>".format(resource)
 
 
 def set_linkset_name(specs, inverse=False):
@@ -380,13 +395,9 @@ def linkset_info(specs, same_as_count):
                "=======================================================\n",
                "Results for creating the linkset between {} and {}.\n".format(
                    specs[St.source][St.graph_name], specs[St.target][St.graph_name]),
-
                "\t   Linksets GRAPH            : linkset:{}\n".format(specs[St.linkset_name]),
-
                "\t   Metadata GRAPH            : lsMetadata:{}\n".format(specs[St.linkset_name]),
-
                "\t   Singleton Metadata GRAPH  : singMetadata:{}\n".format(specs[St.linkset_name]),
-
                "\t   LINKTYPE                  : alivocab:{}{}\n".format(specs[St.mechanism], same_as_count))
     return info
 

@@ -25,6 +25,22 @@ mac_weird_name = "darwin"
 #################################################################
 
 
+def is_nt_format(resource):
+    try:
+        temp = str(resource).strip()
+        return temp.startswith("<") and temp.endswith(">")
+
+    except Exception as err:
+        print "Exception:", err
+        return False
+
+
+def is_property_path(resource):
+    temp = str(resource).strip()
+    check = re.findall("> */ *<", temp)
+    return len(check) != 0
+
+
 def get_uri_local_name(uri):
     # print "URI: {}".format(uri)
     # print type(uri)
@@ -87,8 +103,22 @@ def update_specification(specs):
 
     if St.aligns in specs:
         if specs[St.aligns]:
-            specs[St.aligns_name] = get_uri_local_name(specs[St.aligns])
-            specs[St.aligns_ns] = str(specs[St.aligns]).replace(specs[St.aligns_name], '')
+            if is_property_path(specs[St.aligns]) or is_nt_format(specs[St.aligns]):
+                pro_list = re.findall("<([^<>]*)>/*", specs[St.aligns])
+                name = ""
+                for i in range(len(pro_list)):
+                    local = get_uri_local_name(pro_list[i])
+                    if i == 0:
+                        name = local
+                    else:
+                        name = "{}.{}".format(name, local)
+                    # print ">>>> name: ", name
+                specs[St.aligns_name] = name
+                specs[St.aligns_ns] = None
+
+            else:
+                specs[St.aligns_name] = get_uri_local_name(specs[St.aligns])
+                specs[St.aligns_ns] = str(specs[St.aligns]).replace(specs[St.aligns_name], '')
             # print specs[St.aligns_name]
 
     if St.lens in specs:

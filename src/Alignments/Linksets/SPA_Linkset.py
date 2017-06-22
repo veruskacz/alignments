@@ -1,19 +1,17 @@
 import logging
-
 import Linkset as Ls
-import Alignments.ErrorCodes as Ec
-import Alignments.GenericMetadata as Gn
-import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
-import Alignments.Settings as St
-import Alignments.UserActivities.UserRQ as Urq
 import Alignments.Utility as Ut
+import Alignments.Settings as St
 from Linkset import writelinkset
-from Alignments.Utility import update_specification
+import Alignments.NameSpace as Ns
+import Alignments.ErrorCodes as Ec
 import Alignments.Server_Settings as Ss
+import Alignments.GenericMetadata as Gn
+import Alignments.UserActivities.UserRQ as Urq
+from Alignments.Utility import update_specification
+
 DIRECTORY = Ss.settings[St.linkset_Exact_dir]
-
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
@@ -59,6 +57,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
         if activated is True:
             # print "NAME: " + specs[St.linkset]
             # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
+            # print Ls.linkset_info(specs, specs[St.sameAsCount])
 
             if id is False:
                 check = Ls.run_checks(specs, check_type="linkset")
@@ -82,27 +81,27 @@ def spa_linksets(specs, id=False, display=False, activated=False):
 
             # print time.time()
             ########################################################################
-            """ 1. SAFETY GRAPHS DROPS                                           """
+            print """ 1. SAFETY GRAPH DROPS                                      """
             ########################################################################
             Qry.boolean_endpoint_response(insertqueries[0])
 
             ########################################################################
-            """ 2. TEMPORARY GRAPHS                                              """
+            print """ 2. TEMPORARY GRAPHS                                        """
             ########################################################################
             Qry.boolean_endpoint_response(insertqueries[1])
 
             ########################################################################
-            """ 3. LINKSET & METADATA                                            """
+            print """ 3. LINKSET & METADATA                                      """
             ########################################################################
             Qry.boolean_endpoint_response(insertqueries[2])
 
             ########################################################################
-            """ 4. DROPPING TEMPORARY GRAPHS                                     """
+            print """ 4. DROPPING TEMPORARY GRAPHS                               """
             ########################################################################
             Qry.boolean_endpoint_response(insertqueries[3])
 
             ########################################################################
-            """ 5. GENERATING LINKSET METADATA                                   """
+            print """ 5. GENERATING LINKSET METADATA                             """
             ########################################################################
             metadata = Gn.linkset_metadata(specs)
             print metadata
@@ -113,7 +112,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
                 Qry.boolean_endpoint_response(metadata)
 
                 ########################################################################
-                """ 6. WRITING TO FILE                                               """
+                print """ 6. WRITING TO FILE                                         """
                 ########################################################################
                 src = [source[St.graph_name], "", source[St.entity_ns]]
                 trg = [target[St.graph_name], "", target[St.entity_ns]]
@@ -211,7 +210,7 @@ def spa_linkset_ess_query(specs):
                "\t{",
                "\t  GRAPH tmpgraph:load00",
                "\t  {",
-               "\t    ?source {} ?label .".format(src_aligns),
+               "\t    ?source alivocab:hasProperty ?label .",
                "\t  }",
                "\t}",
 
@@ -234,7 +233,7 @@ def spa_linkset_ess_query(specs):
                "\t{",
                "\t  GRAPH tmpgraph:load01",
                "\t  {",
-               "\t    ?target {}  ?label .".format(trg_aligns),
+               "\t    ?target alivocab:hasProperty  ?label .",
                "\t  }",
                "\t}",
 
@@ -243,7 +242,7 @@ def spa_linkset_ess_query(specs):
                "\t  ### Selecting target data instances based on exact name",
                "\t  graph <{}>".format(target[St.graph]),
                "\t  {",
-               "\t    ?source {} <{}> .".format(trg_rdf_pred, target[St.entity_datatype]),
+               "\t    ?target {} <{}> .".format(trg_rdf_pred, target[St.entity_datatype]),
                "\t    ?target {}  ?bLabel .".format(trg_aligns),
                "\t    BIND(lcase(str(?bLabel)) as ?label)",
                "\t  }",
@@ -267,13 +266,13 @@ def spa_linkset_ess_query(specs):
                "\t  ### Selecting source data instances based on name",
                "\t  GRAPH tmpgraph:load00",
                "\t  {",
-               "\t    ?source {} ?label .".format(src_aligns),
+               "\t    ?source alivocab:hasProperty ?label .",
                "\t  }",
 
                "\t  ### Selecting target data instances based on exact name",
                "\t  graph tmpgraph:load01",
                "\t  {",
-               "\t    ?target {}  ?label .".format(trg_aligns),
+               "\t    ?target alivocab:hasProperty  ?label .",
                "\t  }",
 
                "\t}", )
@@ -355,11 +354,8 @@ def spa_linkset_ess_query(specs):
         drop_tmp01,
         drop_tmp
     )
-
-    queries = [query01, query02, query03, query04]
-
     # print query01, query02, query03, query04
-
+    queries = [query01, query02, query03, query04]
     return queries
 
 

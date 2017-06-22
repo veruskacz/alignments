@@ -310,6 +310,8 @@ def endpoint(query):
 
     except urllib2.HTTPError, err:
         message =  err.read()
+        if len(message) == 0:
+            message = err
         print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, message)
         return {St.message: message, St.result: None}
 

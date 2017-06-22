@@ -180,6 +180,17 @@ def refining(specs, insert_query):
 
 
 def insert_exact_query(specs):
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns] \
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns] \
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
     # GENERATE THE INSERT QUERY
     insert_query = """
     PREFIX prov:        <{}>
@@ -220,14 +231,14 @@ def insert_exact_query(specs):
         ### SOURCE DATASET
         GRAPH <{}>
         {{
-            ?subject   <{}> 	?s_label ;
+            ?subject   {} 	?s_label ;
             BIND(lcase(str(?s_label)) as ?label)
         }}
 
         ### TARGET DATASET
         GRAPH <{}>
         {{
-          ?object      <{}> 	?o_label ;
+          ?object      {} 	?o_label ;
             BIND(lcase(str(?o_label)) as ?label)
         }}
     }}
@@ -235,21 +246,31 @@ def insert_exact_query(specs):
                specs[St.refined], Ns.singletons, specs[St.refined_name], specs[St.mechanism], specs[St.sameAsCount],
                specs[St.linkset], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
                specs[St.singletonGraph],
-               specs[St.source][St.graph], specs[St.source][St.aligns],
-               specs[St.target][St.graph], specs[St.target][St.aligns])
+               source[St.graph], src_aligns,
+               target[St.graph], trg_aligns)
     # print insert_query
     return insert_query
 
 
 def refine_intermediate_query(specs):
 
+    source = specs[St.source]
+    target = specs[St.target]
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns] \
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns] \
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
     src_name = specs[St.source][St.graph_name]
     src_uri = specs[St.source][St.graph]
-    src_aligns = specs[St.source][St.aligns]
+    # src_aligns = specs[St.source][St.aligns]
 
     trg_name = specs[St.target][St.graph_name]
     trg_uri = specs[St.target][St.graph]
-    trg_aligns = specs[St.target][St.aligns]
+    # trg_aligns = specs[St.target][St.aligns]
 
     insert = """
     PREFIX alivocab:    <{16}>
@@ -265,9 +286,9 @@ def refine_intermediate_query(specs):
         GRAPH <{0}load01>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} <{2}> ?src_value .
+            ?{1} {2} ?src_value .
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} <{4}> ?trg_value .
+            ?{3} {4} ?trg_value .
         }}
     }}
     WHERE
@@ -281,14 +302,14 @@ def refine_intermediate_query(specs):
         graph <{6}>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} <{2}> ?value_1 .
+            ?{1} {2} ?value_1 .
             bind (lcase(str(?value_1)) as ?src_value)
         }}
         ### TARGET DATASET
         graph <{7}>
         {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} <{4}> ?value_2 .
+            ?{3} {4} ?value_2 .
             bind (lcase(str(?value_2)) as ?trg_value)
         }}
     }} ;
@@ -312,8 +333,8 @@ def refine_intermediate_query(specs):
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
         GRAPH <{0}load01>
         {{
-            ?{1} <{2}> ?src_value .
-            ?{3} <{4}> ?trg_value .
+            ?{1} {2} ?src_value .
+            ?{3} {4} ?trg_value .
         }}
         ### INTERMEDIATE DATASET
        graph <{9}>
@@ -363,8 +384,8 @@ def refine_intermediate_query(specs):
                 ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
                 GRAPH <{0}load01>
                 {{
-                    ?{1} <{2}> ?src_value .
-                    ?{3} <{4}> ?trg_value .
+                    ?{1} {2} ?src_value .
+                    ?{3} {4} ?trg_value .
                     BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
                 }}
             }}
