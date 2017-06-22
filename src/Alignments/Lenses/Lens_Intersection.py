@@ -140,7 +140,8 @@ def intersection(specs, display=False):
     for graph in specs[St.datasets]:
 
         query = """
-    PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX void : {}
+    PREFIX bdb  : {}
     SELECT distinct ?subTarget ?objTarget ?subjectEntityType ?objectEntityType
     {{
         <{}>
@@ -155,7 +156,7 @@ def intersection(specs, display=False):
 
         FILTER NOT EXISTS {{ ?subTarget a void:Linkset }}
         FILTER NOT EXISTS {{ ?objTarget a void:Linkset }}
-    }}""".format(graph)
+    }}""".format(Ns.void, Ns.bdb, graph)
         # print "INTERSECTION QUERY:", query
         response = sparql_xml_to_matrix(query)
 

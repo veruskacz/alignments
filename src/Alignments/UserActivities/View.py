@@ -1,6 +1,7 @@
 # encoding=utf-8
 
 import xmltodict
+import re
 from cStringIO import StringIO
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -335,7 +336,6 @@ def view(view_specs, view_filter, save=False, limit=10):
             view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{".format(ds_ns_name[1], graph_uri)
 
 
-
             # graph_data IS A LIST OF DICTIONARIES FOR HOLDING THE TYPES AND THEIR LISTED PROPERTIES
             for data_info in graph_data:
 
@@ -360,6 +360,15 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                 t_properties = data_info[St.properties]
 
+                # FOR BACKWARD COMPATIBILITY, REMOVE "<" AND ">"
+                for i in range(len(t_properties)):
+                    # print "PROPERTY TUPLE:", t_properties[i]
+                    if type(t_properties[i]) is tuple:
+                        # print "PROPERTY:", t_properties[i][0]
+                        t_properties[i] = (re.sub('[<>]', "", t_properties[i][0]), t_properties[i][1])
+                        print "PROPERTY:", t_properties[i]
+                    else:
+                        t_properties[i] = re.sub('[<>]', "", t_properties[i])
                 # 3 characters string to differentiate the properties of a dataset
                 attache = ds_ns_name[1][:3]
 
@@ -461,20 +470,24 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                         # Setting up the prefix and predicate
                         curr_ns = Ut.get_uri_ns_local_name(t_properties[i][0])
-                        predicate = "{}voc:{}".format(short_name, curr_ns[1])
+                        prefix = "{}voc_{}".format(short_name, str(i))
 
-                        # CHECKING IF TUY/PLE OF 2
+                        # ADDING NAMESPACE
+                        if curr_ns[0] not in namespace:
+                            namespace[curr_ns[0]] = prefix
+                            namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
+
+                        # ACCESSING THE RIGHT NAMESPACE
+                        prefix = namespace[curr_ns[0]]
+
+                        # SETTING THE PREDICATE WITH THE RIGHT NAMESPACE
+                        predicate = "{}:{}".format(prefix, curr_ns[1])
+
+                        # CHECKING IF TUPLE OF 2
                         if len(t_properties[i]) == 2:
 
-                            # Adding predicates
+                            # ADDING PREDICATE AND SPARQL PUNCTUATION
                             if i == len(t_properties) - 1:
-
-                                prefix = "{}voc".format(short_name)
-
-                                # ADDING NAMESPACE
-                                if prefix not in namespace:
-                                    namespace[prefix] = curr_ns[0]
-                                    namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
 
                                 if t_properties[i][1] is True:
                                     optional += "\n\t\tOPTIONAL{{ ?{}{:15} {:60} ?{}{}_{} . }}".format(
