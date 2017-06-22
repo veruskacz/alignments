@@ -4,6 +4,7 @@
 #####################################################################################
 
 data = "data"
+rdf_predicate = "rdf_predicate"
 
 # URI of the RESOURCE
 entity = "entity"

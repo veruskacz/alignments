@@ -1126,9 +1126,16 @@ def createView():
                 for data in data_list:
                     # check if the entityType has been already registered for that graph
                     if (data['entity_datatype'] == filter_row['type']):
+
                         # if a valid entity type is provided
                         if (filter_row['type'] != 'no_type'):
-                            optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+                            uri = filter_row['att'].replace("<", "").replace(">", "")
+                            print "\nURI", uri
+                            print "TYPE:", filter_row['type']
+                            print "OPTIONAL CODE:", dict_stats[filter_row['ds']][filter_row['type']]
+                            print "STATS:", dict_stats
+
+                            optional = dict_stats[filter_row['ds']][filter_row['type']][uri]
                             tuple_data = (filter_row['att'], optional)
                             data['properties'].append(tuple_data)
                             # if desired dictionary is found, the loop can be broken
@@ -1150,16 +1157,20 @@ def createView():
                 # check if there is already an entry for the dataset in dict_stats
                 if filter_row['ds'] not in dict_stats:
                     # calculate the stats per dataset, if it hasn't been done yet
-                    dict_stats = {filter_row['ds']: stats(filter_row['ds'], display_table=False, display_text=True)}
+                    dict_stats[filter_row['ds']] =  stats(filter_row['ds'], display_table=False, display_text=True)
+                    print "DATASET:", filter_row['ds']
+                    print "STATS:", dict_stats
 
             if (filter_row['type'] != 'no_type'):
+                uri = filter_row['att'].replace("<", "").replace(">", "")
+                # print "URI:", uri
                 # print "\n\nPRINTING:", filter_row['ds'], filter_row['att']
                 # print "DICTIONARY 0:", dict_stats
                 # print "DICTIONARY 1:", dict_stats[filter_row['ds']]
                 # print "DICTIONARY 2:", dict_stats[filter_row['ds']][filter_row['type']]
-                # print "OPTIONAL:", dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+                # print "OPTIONAL:", dict_stats[filter_row['ds']][filter_row['type']][uri]
 
-                optional = dict_stats[filter_row['ds']][filter_row['type']][filter_row['att']]
+                optional = dict_stats[filter_row['ds']][filter_row['type']][uri]
                 properties = [(filter_row['att'],optional)]
                 # dict = {'graph': filter_row['ds'], 'entity_datatype': filter_row['type'], 'properties': [tuple_data]}
                 # view_filter.append(dict)

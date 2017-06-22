@@ -1,11 +1,15 @@
 import NameSpace as Ns
 import Settings as St
 import Query as Qry
+import Linksets.Linkset as Ls
 
 
 def linkset_metadata(specs, display=False):
     source = specs[St.source]
     target = specs[St.target]
+
+    src_aligns = Ls.format_aligns(source[St.aligns])
+    trg_aligns = Ls.format_aligns(target[St.aligns])
 
     # specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
     specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.linkset_name])
@@ -22,8 +26,8 @@ def linkset_metadata(specs, display=False):
         specs[St.justification_comment] = "We assume that entities with the aligned predicates sharing the " \
                                           "exact same content are same. This assumption applies when dealing " \
                                           "with entities such as Organisation."
-        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning <{}> with <{}> using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], source[St.aligns], target[St.aligns], specs[St.mechanism])
+        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
 
     elif str(specs[St.mechanism]).lower() == "identity":
         specs[St.link_name] = "Same URI"
@@ -73,8 +77,8 @@ def linkset_metadata(specs, display=False):
                "        alivocab:singletonGraph     <{}> ;".format(specs[St.singleton]),
                "        bdb:assertionMethod         <{}> ;".format(specs[St.assertion_method]),
                "        bdb:linksetJustification    <{}> ;".format(specs[St.justification]),
-               "        alivocab:alignsSubjects     <{}> ;".format(source[St.aligns]),
-               "        alivocab:alignsObjects      <{}> ;".format(target[St.aligns]),
+               "        alivocab:alignsSubjects     {} ;".format(src_aligns),
+               "        alivocab:alignsObjects      {} ;".format(trg_aligns),
                "        rdfs:comment                \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
 
                "\n    ### METADATA ABOUT THE LINKTYPE",
@@ -92,6 +96,7 @@ def linkset_metadata(specs, display=False):
                "        alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
 
                "}")
+    print query
     if display is True:
         print query
     return query
@@ -255,6 +260,8 @@ def linkset_refined_metadata(specs, display=False):
 
     source = specs[St.source]
     target = specs[St.target]
+    src_aligns = Ls.format_aligns(source[St.aligns])
+    trg_aligns = Ls.format_aligns(target[St.aligns])
 
     specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.refined_name])
     specs[St.link] = "{}{}{}".format(Ns.alivocab, "exactStrSim", specs[St.sameAsCount])
@@ -270,8 +277,8 @@ def linkset_refined_metadata(specs, display=False):
         specs[St.justification_comment] = "We assume that entities with the aligned predicates sharing the " \
                                           "exact same content are same. This assumption applies when dealing " \
                                           "with entities such as Organisation."
-        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning <{}> with <{}> using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], source[St.aligns], target[St.aligns], specs[St.mechanism])
+        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
 
     elif str(specs[St.mechanism]).lower() == "identity":
         specs[St.link_name] = "Same URI"
@@ -294,8 +301,8 @@ def linkset_refined_metadata(specs, display=False):
         specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
         specs[St.justification_comment] = "This is an implementation of the Exact String Similarity Mechanism over " \
                                           "the aligned predicates."
-        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning <{}> with <{}> using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], source[St.aligns], target[St.aligns], specs[St.mechanism])
+        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
 
     specs[St.triples] = Qry.get_namedgraph_size(specs[St.refined], isdistinct=False)
     triples = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
@@ -345,8 +352,8 @@ def linkset_refined_metadata(specs, display=False):
                "        alivocab:singletonGraph         <{}> ;".format(specs[St.singleton]),
                "        bdb:assertionMethod             <{}> ;".format(specs[St.assertion_method]),
                "        bdb:linksetJustification        <{}> ;".format(specs[St.justification]),
-               "        alivocab:alignsSubjects         <{}> ;".format(source[St.aligns]),
-               "        alivocab:alignsObjects          <{}> ;".format(target[St.aligns]),
+               "        alivocab:alignsSubjects         {} ;".format(src_aligns),
+               "        alivocab:alignsObjects          {} ;".format(trg_aligns),
                "        rdfs:comment                    \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
 
                "\n    ### METADATA ABOUT THE LINKTYPE",
