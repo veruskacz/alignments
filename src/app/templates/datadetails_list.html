@@ -1,8 +1,9 @@
 <div class="list-group" target="" style='scroll: both; overflow: auto; height: 14em; width: 100%;'>
         {% for e in dataDetails|sort(attribute='pred_stripped') %}
-            <li class="list-group-item" id='DT{{e.pred.value }}' uri='{{e.pred.value }}'
+            <li class="list-group-item" id='DT{{e.pred.value }}' uri='<{{e.pred.value}}>'
                 onclick='{{ function }}'
                 label='{{ e.pred_stripped.value }}'
+                obj_type="{{ e.obj.type }}"
                 {% if (e.optional) %}
                     optional = '{{ e.optional.value }}'
                 {% else %}

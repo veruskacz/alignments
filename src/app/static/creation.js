@@ -43,7 +43,6 @@ function idea_button(targetId)
         elem = document.getElementById('creation_idea_selected_RQ');
         rqClick(elem, mode='idea');
    }
-
 }
 
 function mainButtonClick(targetId)
@@ -414,9 +413,10 @@ function loadEditPanel(obj, mode)
     {
         var ancestorType = "entity-list";
 //        alert(ancestorType);
-        var elem = document.getElementById('hidden_src_entType_div')
-//        console.log(elem);
-        selectionClick(elem, ancestorType);
+//        var elem = document.getElementById('hidden_src_entType_div')
+////        console.log(elem);
+//        selectionClick(elem, ancestorType);
+        selectionClick(document.getElementById('hidden_src_entType_div'), ancestorType);
         selectionClick(document.getElementById('hidden_trg_entType_div'), ancestorType);
 
         setAttr('hidden_src_entType_div','uri','');
@@ -1555,11 +1555,53 @@ function selectionClick(th, ancestorType)
 {
     list = findAncestor(th, ancestorType);
 
-    // Attributes the uri of the selected predicate to the div
-    // where the name is displayed
     var targetTxt = $(list).attr('targetTxt');
-    setAttr(targetTxt,'uri', $(th).attr('uri') );
     var label = $(th).attr('label');
+    var listCol = $(list).attr('targetList');
+    var checkPropPath = document.getElementById($(list).attr('propPathCheckBok'));
+
+    // Attributes the uri of the selected entity to the
+    // corresponding div where the label is displayed
+    // and changes its background color
+
+    // it is not the list of predicates, then just attribute
+    // the uri and label to the corresponding divs
+    if ((ancestorType != 'pred-list') || !(checkPropPath.checked))
+    {   setAttr(targetTxt,'uri', $(th).attr('uri') );
+        $('#'+targetTxt).html( label );
+    }
+    // however, if the ancestor is list of predicates, we need to consider the
+    // cumulative attribution of values in a property path
+    else
+    {
+        if ( ($('#'+targetTxt).html() == 'Select a Property + <span style="color:blue"><strong> example value </strong></span>') )
+        {
+            setAttr(targetTxt,'uri', $(th).attr('uri') );
+            $('#'+targetTxt).html( label );
+            var propPath = $(th).attr('uri');
+        }
+        else if ($('#'+listCol).attr('propPath')!='disabled')
+        {
+            var new_text = $('#'+targetTxt).html() + ' / ' + label;
+            var propPath = $('#'+targetTxt).attr('uri') + '/' + $(th).attr('uri');
+            setAttr(targetTxt,'uri', propPath );
+            $('#'+targetTxt).html( new_text );
+        }
+        else //replace the last property in the path
+        {
+            var old_text = $('#'+targetTxt).html();
+            var old_path = $('#'+targetTxt).attr('uri');
+            var index =  old_text.lastIndexOf(" / ");
+            var new_text = old_text.substring(0, index) + ' / ' + label;
+            index =  old_path.lastIndexOf("/<");
+            var propPath = old_path.substring(0, index) + '/' + $(th).attr('uri');
+            setAttr(targetTxt,'uri', propPath );
+            $('#'+targetTxt).html( new_text );
+        }
+    }
+    setAttr(targetTxt,'style', 'background-color:lightblue');
+
+    // If a tag optional is provided, change the color of the label accordingly
     var optional = $(th).attr('optional');
     if (optional)
     {
@@ -1568,8 +1610,6 @@ function selectionClick(th, ancestorType)
         else
         {    label = '<strong><span style="color:blue">'+label+'</span></strong>' }
     }
-    $('#'+targetTxt).html( label );
-    setAttr(targetTxt,'style', 'background-color:lightblue');
 
     //If there is a button to be loaded...
     //TODO: make it generic
@@ -1599,28 +1639,84 @@ function selectionClick(th, ancestorType)
         });
     }
 
-    var listCol = $(list).attr('targetList');
     var graph_uri = $(list).attr('graph_uri');
     if (listCol)
     {
-        // clean previously selected entity type
-        targetTxt = $('#'+listCol).attr('targetTxt');
+//        alert($('#'+listCol).attr('propPath'));
+        if (ancestorType != 'pred-list')
+        {
+            setAttr(listCol,'graph_uri',graph_uri);
+            // clean previously selected entity type
+            targetTxt = $('#'+listCol).attr('targetTxt');
 
-        setAttr(targetTxt,'uri','');
-        $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
-        setAttr(targetTxt,'style','background-color:none');
+            setAttr(targetTxt,'uri','');
+            $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+            setAttr(targetTxt,'style','background-color:none');
 
-        // get the distinct predicates and example values of a graph into a list group
-        $('#'+listCol).html('Loading...');
-        $.get('/getpredicates', data={'dataset_uri': graph_uri, 'type': $(th).attr('uri'), 'total': $(th).attr('total'),
-                                      'function': 'selectionClick(this, "pred-list");'},
-                                function(data)
-        {  // load the rendered template into the column target list col
-           $('#'+listCol).html(data);
-        });
+            // get the distinct predicates and example values of a graph into a list group
+            $('#'+listCol).html('Loading...');
+            $.get('/getpredicates', data={'dataset_uri': graph_uri, 'type': $(th).attr('uri'), 'total': $(th).attr('total'),
+                                          'function': 'selectionClick(this, "pred-list");'},
+                                    function(data)
+            {  // load the rendered template into the column target list col
+               $('#'+listCol).html(data);
+            });
+        }
+        else if ((checkPropPath.checked) && ($('#'+listCol).attr('propPath')!='disabled'))
+        {
+            // check if the value of the selected property is of type uri
+            if ($(th).attr('obj_type') == 'uri')
+            {    //alert('uri')
+                // if the user choose to use property path
+                // then the pred-list will be reloaeded with the predicates
+                // that are available for the objects of the selected property
+                // if (property_path is selected)
+                $('#'+listCol).html('Loading...');
+                $.get('/getpredicates', data={'dataset_uri': graph_uri, 'propPath': propPath,
+                                          'function': 'selectionClick(this, "pred-list");'},
+                                    function(data)
+                {  // load the rendered template into the column target list col
+                   $('#'+listCol).html(data);
+                });
+            }
+            else
+            {
+                setAttr(listCol,'propPath','disabled');
+            }
+        }
     }
 }
 
+function resetDivSelectedEntity(button_id,mode)
+{
+    if (mode == 'predicate')
+    {
+        alert('test');
+        var button = document.getElementById(button_id) //button-src-entity-type-col
+        var predList = $(button).attr('targetList');
+
+        // clear the selection of predicates
+        setAttr(predList,'propPath','enabled');
+        var selectedPredDiv = $('#'+predList).attr('targetTxt');
+        setAttr(selectedPredDiv,'uri','');
+        $('#'+selectedPredDiv).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+        setAttr(selectedPredDiv,'style','background-color:none');
+
+        // reload the predicates list
+        var hidden_divs = button.getElementsByClassName('hiddenDiv');
+        var target = $(button).attr('targetTxt');
+        var hiddenDiv = $(button).attr('hiddenDiv');
+        if (hiddenDiv)
+        {
+                alert(hiddenDiv);
+                setAttr(hiddenDiv,'uri',$('#'+target).attr('uri'));
+                setAttr(hiddenDiv,'label',$('#'+target).attr('label'));
+                var elem = document.getElementById(hiddenDiv);
+                // TODO Fix error finding the ancestor of hiddenDiv
+//                selectionClick(elem, "entity-list");
+        }
+    }
+}
 
 // Function fired onclick of a methods from list
 function methodClick(th)
