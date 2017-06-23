@@ -386,7 +386,8 @@ def drop_unions(display=False, activated=False):
 # DROP INDIVIDUALS
 #######################################################################################
 
-def drop_linkset(graph, display=False, activated=True):
+
+def drop_linkset(graph, display=False, activated=False):
 
     queries = """
     #################################################################
@@ -475,6 +476,7 @@ def drop_linkset(graph, display=False, activated=True):
             if display is True:
                 print ">>> Query details  : {}\n".format(queries)
         print ""
+
 
 #######################################################################################
 # ABOUT RESEARCH QUESTIONS

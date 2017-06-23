@@ -111,7 +111,7 @@ def update_specification(specs):
                     if i == 0:
                         name = local
                     else:
-                        name = "{}.{}".format(name, local)
+                        name = "{}_{}".format(name, local)
                     # print ">>>> name: ", name
                 specs[St.aligns_name] = name
                 specs[St.aligns_ns] = None

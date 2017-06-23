@@ -309,7 +309,7 @@ def endpoint(query):
         return {St.message: "OK", St.result: result}
 
     except urllib2.HTTPError, err:
-        message =  err.read()
+        message = err.read()
         if len(message) == 0:
             message = err
         print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, message)
@@ -453,7 +453,7 @@ def sparql_xml_to_matrix(query):
                 # print results
                 # print type(results)
             else:
-                message = "NO RESULT FOR THE QUERY:"
+                message = "NO RESULT FOR THE QUERY"
                 return {St.message: message, St.result: None}
                 # print query
 
@@ -1082,7 +1082,8 @@ def get_triples(linkset):
         return
 
     if len(triples[St.result]) > 1:
-        return dict(triples[St.result][1][0]).items()[1][1]
+        # print "FOUND SOME RESULTS", triples[St.result]
+        return triples[St.result][1][0]
 
     return None
 
@@ -1135,7 +1136,7 @@ def get_union_triples(lens):
         return
 
     if len(triples[St.result]) > 1:
-        return dict(triples[St.result][1][0]).items()[1][1]
+        return triples[St.result][1][0]
 
     return None
 
