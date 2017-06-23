@@ -394,31 +394,45 @@ function deleteIdeaButtonClick()
 
 function del_ideas_button()
 {
-    alert("in");
-   $.get('/adminDel',
-          data = {'typeDel': 'idea'},
-          function(data)
-   {
-    alert("during");
-   });
-    alert("out");
+//    alert("in");
+    var test = confirm("Delete all the research questions?");
+    if (test)
+    {
+        $.get('/adminDel',
+              data = {'typeDel': 'idea'},
+              function(data)
+       {
+        alert("done");
+       });
+        //alert("out");
+    }
 }
 
 
 function del_linksets_button()
 {
-   $.get('/adminDel',
-          data = {'typeDel': 'linkset'},
-          function(data)
-   {
-   });
+    var test = confirm("Delete all the linksets?");
+    if (test)
+    {
+       $.get('/adminDel',
+              data = {'typeDel': 'linkset'},
+              function(data)
+       {
+        alert("done");
+       });
+    }
 }
 
 function del_lenses_button()
 {
-   $.get('/adminDel',
-          data = {'typeDel': 'lens'},
-          function(data)
-   {
-   });
+    var test = confirm("Delete all the lenses?");
+    if (test)
+    {
+       $.get('/adminDel',
+              data = {'typeDel': 'lens'},
+              function(data)
+       {
+        alert("done");
+       });
+    }
 }

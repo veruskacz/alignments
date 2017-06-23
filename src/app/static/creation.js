@@ -1278,7 +1278,7 @@ function createViewClick(mode)
     for (i = 0; i < elems.length; i++) {
 
         var entityType = $(elems[i]).attr('type_uri');
-        if (!entityType) {entityType = 'no_type'}
+        if (!entityType) {entityType = 'no_type'};
         dict = {'ds': $(elems[i]).attr('graph_uri'),
                 'type': entityType,
                 'att': $(elems[i]).attr('pred_uri').replace('>',"").replace('<',"") };
@@ -2036,6 +2036,8 @@ function refresh_import(mode='all')
 function import_dataset_button(th)
 {
     $('#import_title').html('<h3>Import Dataset</h3>');
+    $('#dataset_upload_row').show();
+    $('#dataset_convert_row').show();
     $('#import_dataset_div').show();
     $('#viewDatasetButton').show();
     $('#import_alignment_div').hide();
@@ -2046,6 +2048,8 @@ function import_dataset_button(th)
 function import_alignent_button(th)
 {
     $('#import_title').html('<h3>Import Alignment</h3>');
+    $('#dataset_upload_row').show();
+    $('#dataset_convert_row').show();
     $('#import_alignment_div').show();
     $('#viewAlignmentButton').show();
     $('#import_dataset_div').hide();
