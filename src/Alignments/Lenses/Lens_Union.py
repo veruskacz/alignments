@@ -2,16 +2,16 @@
 # linkset = load("Linkset", "C:\Users\Al\PycharmProjects\Linkset\Linksets\Linkset.py")
 
 import logging
-
 import LensUtility as Lu
-import Alignments.ErrorCodes as Ec
-import Alignments.GenericMetadata as Gn
-import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
 import Alignments.Settings as St
-import Alignments.UserActivities.UserRQ as Urq
-from Alignments.Utility import write_to_file, update_specification
+import Alignments.NameSpace as Ns
+import Alignments.ErrorCodes as Ec
+import Alignments.GenericMetadata as Gn
 import Alignments.Server_Settings as Ss
+import Alignments.UserActivities.UserRQ as Urq
+from Alignments.Manage.AdminGraphs import drop_linkset
+from Alignments.Utility import write_to_file, update_specification
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -28,15 +28,14 @@ DIRECTORY = Ss.settings[St.lens_Union__dir]
 """
 #################################################################
 
+
 def run_checks(specs, query):
 
-    print query
-
-
+    print "RUNNING GOOD TO GO CHECK"
+    # print "QUERY FOR CHECK:", query
     # CHECK-1: CHECK WHETHER THE LENS EXIST BY ASKING ITS METADATA WHETHER IT IS COMPOSED OF THE SAME GRAPHS
     ask = Qry.sparql_xml_to_matrix(query)
-    # print"ANSWER", ask
-
+    # print"ANSWER 1:", ask
 
     # ASK IS NOT SUPPOSED TO BE NONE
     # CHECK-1-RESULT: PROBLEM CONNECTING WITH THE SERVER
@@ -52,6 +51,7 @@ def run_checks(specs, query):
             message = Ec.ERROR_CODE_7.replace("#", specs[St.lens]).replace("@", ask[St.result][1][0])
             print message
             return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: specs[St.lens]}
+        print " CHECK 1: THERE IS NO METADATA FOR TIS LENS"
         # ELSE
         # WITH THE UNSTATED ELSE, WE GET OUT AND PROCEED TO THE CREATION OF A NEW LENS
     else:
@@ -60,29 +60,29 @@ def run_checks(specs, query):
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: None}
 
     # print "GOT OUT!!!"
-    # THE LENS <X> ALREADY EXISTS
     update_specification(specs)
 
-    # CHECK-2: CHECK WHETHER THE ACTUAL LENS EXISTS UNDER THIS NAME
+    # print "CHECK 2: CHECK WHETHER THE ACTUAL LENS EXISTS UNDER THIS NAME"
     check_02 = "\nASK {{ graph <{}> {{ ?S ?p ?o . }} }}".format(specs[St.lens])
     ask = Qry.boolean_endpoint_response(check_02)
     # print specs
     # print check_02
     # print ask
 
-    # CHECK-2-RESULT: PROBLEM CONNECTING WITH THE SERVER
     if ask is None:
         # PROBLEM CONNECTING WITH THE SERVER
+        print " CHECK 2: PROBLEM CONNECTING WITH THE SERVER"
         print Ec.ERROR_CODE_1
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: specs[St.lens]}
 
-    # CHECK-2-RESULT: THE LINKSET ALREADY EXISTS
+
     if ask == "true":
+        print " CHECK 2: THE LINKSET ALREADY EXISTS"
         message = Ec.ERROR_CODE_6.replace("#", specs[St.lens])
         print message
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: specs[St.lens]}
 
-
+    print " DIAGNOSTICS: GOOD TO GO\n"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 
@@ -106,6 +106,7 @@ def union(specs, activated=False):
     # SET THE NAME OF THE UNION-LENS
     info = Lu.generate_lens_name(specs[St.datasets])
     specs[St.lens] = "{}{}".format(Ns.lens, info["name"])
+    print "LENS: ", info["name"]
 
     # CHECK WHETHER THE LENS EXISTS
     check = run_checks(specs, info["query"])
@@ -123,6 +124,7 @@ def union(specs, activated=False):
     source = "{}{}".format(Ns.tmpgraph, "load00")
     message_2 = Ec.ERROR_CODE_8.replace("#", specs[St.lens])
     count = -1
+    insert_ans = False
 
     try:
 
@@ -132,11 +134,12 @@ def union(specs, activated=False):
         #   3-GENERATE THE INSERT QUERY FOR MOVING BOTH LINKSET AND SINGLETON GRAPHS TO THE UNION GRAPH
         for linkset in specs[St.datasets]:
 
-            # print linkset
+            # print "TARGET: ", linkset
             count += 1
 
             # GET THE TOTAL NUMBER OF CORRESPONDENCE TRIPLES INSERTED
             curr_triples = Qry.get_triples(linkset)
+            print "{} Contains {} triples".format(linkset, curr_triples)
 
             # print "Current triples: ", curr_triples
             if curr_triples is not None:
@@ -165,7 +168,7 @@ def union(specs, activated=False):
         # GENERATE THE LENS UNION
         if activated is True:
 
-            # print data[St.insert_query]
+            # print specs[St.insert_query]
             insert_ans = Qry.boolean_endpoint_response(specs[St.insert_query])
 
             specs[St.triples] = Qry.get_namedgraph_size(lens, isdistinct=False)
@@ -192,10 +195,12 @@ def union(specs, activated=False):
 
             # LOAD THE METADATA
             inserted_correspondences = int(Qry.get_union_triples(lens))
+            # print "inserted_correspondences:", inserted_correspondences
             specs[St.removedDuplicates] = specs[St.expectedTriples] - inserted_correspondences
             metadata = Gn.union_meta(specs)
+            # print "METADATA:", metadata
             meta_ans = Qry.boolean_endpoint_response(metadata)
-            print "\t>>> Is the metadata generated and inserted?  {}".format(meta_ans)
+            print "\t>>> IS THE METADATA GENERATED AND INSERTED?  {}".format(meta_ans)
 
         construct_response = Qry.get_constructed_graph(specs[St.lens])
         if construct_response is not None:
@@ -215,7 +220,11 @@ def union(specs, activated=False):
 
     except Exception as err:
         # logger.warning(err)
-        print "ERROR IN UNION LENS CREATION", err
+        if insert_ans == "true":
+            "DROP THE INSERTED UNION"
+            drop_linkset(lens, activated=True)
+
+        print "ERROR IN UNION LENS CREATION:", err
         return {St.message: ERROR_CODE_11, St.error_code: 11, St.result: None}
 
 

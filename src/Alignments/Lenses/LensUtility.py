@@ -2,7 +2,7 @@ import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Utility as Ut
-from Alignments.Utility import get_uri_local_name, write_to_file, update_specification
+from Alignments.Utility import get_uri_local_name, update_specification  # write_to_file,
 
 PREFIX = """
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
@@ -13,6 +13,7 @@ PREFIX = """
     PREFIX tmpgraph:    <http://risis.eu/alignment/temp-match/>
     PREFIX prov:        <http://www.w3.org/ns/prov#>
 """
+
 
 def diff_lens_name(specs):
     specs[St.lens_operation] = Ns.lensOpd
@@ -101,6 +102,7 @@ def ask_union(datasets):
         connect = "\t\t" if i == 0 else ";\n\t\t\t"
         triples += "{}void:target\t\t<{}> ".format(connect, datasets[i])
     return """
+    ### CHECKING WHETHER A GRAPH (LENS UNION) ALREADY EXISTS WITH THESE TARGETS
     PREFIX void:<{}>
     SELECT *
     {{
@@ -154,4 +156,3 @@ def generate_lens_name(datasets):
     # print query
     # print hash(name)
     return {"name": name, "query": query}
-
