@@ -1018,6 +1018,95 @@ def get_linkset_corresp_details(linkset, limit=1):
         print query
     return query
 
+def check_linkset_dependencies_rq(rq_uri, linkset_uri):
+    query = PREFIX + """
+    ### CHECK LINKSET DEPENDENCIES
+    
+    SELECT ?uri ?type
+    {{  
+        {{
+          ?uri 	a 			    ?type;
+                void:target     <{1}>.
+          
+          GRAPH <{0}>
+          {{
+                ?s alivocab:created|prov:used ?uri.
+          }}
+        }} UNION {{
+          GRAPH <{0}>
+          {{
+              ?uri a		?type;
+                   alivocab:hasViewLens/alivocab:selected <{1}>.
+          }}      
+        }}
+    }}  ORDER BY ?type   
+    """.format(rq_uri, linkset_uri)
+    print query
+    return query
+
+
+def delete_linkset_rq(rq_uri, linkset_uri):
+    query = PREFIX + """
+    ### FIRST DELETE THE LINKSET TRIPLE INSIDE THE RQ IF IT EXISTS 
+    DELETE {{ GRAPH <{0}>
+       {{
+             ?s ?p ?linkset.
+       }}
+    }}
+    WHERE {{
+    
+        BIND(<{1}> AS ?linkset) .
+          GRAPH <http://risis.eu/activity/idea_57db8d> {{
+    	    ?s alivocab:created|prov:used ?linkset.
+    	    ?s ?p ?linkset .
+        }}
+
+        FILTER NOT EXISTS
+        {{ GRAPH <{0}> 
+            {{
+             ?view_lens alivocab:selected ?linkset. 
+            }}
+        }}
+        FILTER NOT EXISTS
+        {{
+            ?lens 	a 			?type;
+                    void:target ?linkset.
+    
+            GRAPH <{0}>
+            {{
+               ?s3 alivocab:created|prov:used ?lens.
+            }}
+       }}
+    }}
+    ;
+    # SECOND, DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE {{ ?linkset ?p ?o.
+            GRAPH ?linkset 
+            {{
+                ?sub ?pred ?obj 
+            }}
+    }}
+    WHERE {{
+        BIND(<{1}> AS ?linkset) .
+        ?linkset ?p ?o .
+          GRAPH ?linkset {{
+    	    ?sub ?pred ?obj .
+        }}
+        
+        FILTER NOT EXISTS
+        {{ GRAPH ?g 
+            {{
+                ?sg ?pg ?linkset. 
+            }}
+        }}
+    }}
+    ;
+    # DROP SILENT GRAPH <{1}>
+    # WHERE {{ FILTER NOT EXISTS {{ GRAPH <{1}> {{ ?s ?p ?o }} }} }}
+    """.format(rq_uri, linkset_uri)
+    print query
+    return query
+
 
 def get_lens_corresp_details(lens, limit=1):
 

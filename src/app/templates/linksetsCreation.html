@@ -55,7 +55,7 @@
  <div class="row creation" id="inspect_linkset_row" style='display:none'>
   <div class="col-md-12" >
     <div class="panel panel-default">
-    <div class="panel-heading" id="inspect_heading_panel">
+    <div class="panel-heading" id="inspect_heading_panel" style='display:none'>
       <h4 class="panel-title">
         <a id="link_collapse_linkset_inspect"
              data-toggle="collapse" href="#collapse_linkset_inspect">
@@ -155,8 +155,12 @@
                        <td align="right"><div id="linkset_edit_message_col"></div></td>
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="editLinksetButton"
+                           class="btn btn-success btn btn-primary disabled"
+                           onclick="editLinksetClick()">Edit Linkset</button>
+                       <button type="button" id="delteLinksetButton"
                            class="btn btn-success btn btn-primary"
-                           onclick="editLinksetClick()">Edit Linkset</button></td>
+                           onclick="deleteLinksetClick()">Delete Linkset</button>
+                       </td>
                </table>
            </div>
          </div>
@@ -189,7 +193,7 @@
          target="link_collapse_linkset_create"
          target2="link_collapse_linkset_edit"
          target3="link_collapse_linkset_refine">
-   <div class="panel-body">
+   <div class="panel-body" id="inspect_panel_body">
     <div class="row">
 
       <!-- SOURCE OPTIONS -->

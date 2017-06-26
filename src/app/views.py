@@ -1501,6 +1501,36 @@ def adminDel():
     # SEND BAK RESULTS
     return 'done'
 
+@app.route('/deleteLinkset')
+def deleteLinkset():
+    rq_uri = request.args.get('rq_uri', '')
+    linkset_uri = request.args.get('linkset_uri', '')
+    mode = request.args.get('mode', '')
+
+    try:
+        if mode == 'check':
+            query = Qry.check_linkset_dependencies_rq(rq_uri,linkset_uri)
+            result = sparql(query, strip=True)
+            print ">>>>", result, len(result) #, len(result[0])
+            if (len(result) > 0) and (len(result[0]) > 0): #result is not empty [{}]
+                dependencies = 'The following dependencies need to be deleted first:</br>'
+                for r in result:
+                    dependencies += r['type_label']['value'] + ': ' + r['uri_stripped']['value'] + '</br>'
+                print dependencies
+                return json.dumps({'message': 'Check Dependencies', 'result': dependencies})
+            else:
+                return json.dumps({'message':'OK', 'result':None})
+            # return json.dumps({'message':'OK', 'result':None})
+        elif mode == 'delete':
+            query = Qry.delete_linkset_rq(rq_uri, linkset_uri)
+            # result = sparql(query, strip=False)
+            print ">>>>", result, len(result)
+            return json.dumps({'message': 'Linkset successfully deleted', 'result': None})
+        else:
+            return json.dumps({'message':'Invalid mode.', 'result':None})
+    except Exception as error:
+        return json.dumps({'message':str(error.message), 'result':None})
+
 
 @app.route('/convertCSVToRDF')
 def convertCSVToRDF():

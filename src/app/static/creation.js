@@ -357,19 +357,23 @@ function inspect_linkset_activate(mode)
      });
   }
 
-  console.log(mode);
   if (mode == 'import') {
-    $('#inspect_heading_panel').hide();
     $('#import_heading_panel').show();
-//    alert(mode);
+    $('#inspect_heading_panel').hide();
   }
   else {
     if (mode == 'refine') {
       $('#item_identity').hide();
     }
-    $('#import_heading_panel').hide();
+    if (mode == 'edit') {
+      $('#inspect_panel_body').hide();
+    }
+    else
+    {
+      $('#inspect_panel_body').show();
+    }
     $('#inspect_heading_panel').show();
-//    alert(mode);
+    $('#import_heading_panel').hide();
   }
 }
 
@@ -386,6 +390,10 @@ function loadEditPanel(obj, mode)
 
     setAttr('hidden_trg_entType_div','uri',obj.o_datatype.value);
     setAttr('hidden_trg_entType_div','label',obj.o_datatype_stripped.value);
+
+    // just do nothing while it is not implemented
+    if (mode == 'edit')
+        mode = ''
 
     if (mode == 'refine' || mode == 'edit')
     {
@@ -412,10 +420,7 @@ function loadEditPanel(obj, mode)
     if (mode == 'refine' || mode == 'edit')
     {
         var ancestorType = "entity-list";
-//        alert(ancestorType);
-//        var elem = document.getElementById('hidden_src_entType_div')
-////        console.log(elem);
-//        selectionClick(elem, ancestorType);
+
         selectionClick(document.getElementById('hidden_src_entType_div'), ancestorType);
         selectionClick(document.getElementById('hidden_trg_entType_div'), ancestorType);
 
@@ -715,6 +720,60 @@ $('#linkset_filter_property').change(function() {
         document.getElementById("value2_smaller").checked = true;
     }
 });
+
+
+function deleteLinksetClick()
+{
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    var linkset = '';
+    var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        linkset = $(elems[0]).attr('uri');  // it should have only one selected
+        var message = "Checking for linkset dependencies...";
+        $('#linkset_edit_message_col').html(addNote(message,cl='warning'));
+        loadingGif(document.getElementById('linkset_edit_message_col'), 2);
+
+        // call function that creates the linkset
+        $.get('/deleteLinkset', data={'rq_uri':rq_uri, 'linkset_uri':linkset, 'mode':'check'}, function(data)
+        {
+            var obj = JSON.parse(data);
+            if (obj.message == 'OK')
+            {   var test = confirm("Delete the linkset?");
+                if (test)
+                {
+                    var message = "Deleting Linkset...";
+                    $('#linkset_edit_message_col').html(addNote(message,cl='warning'));
+
+                    $.get('/deleteLinkset', data={'rq_uri':rq_uri, 'linkset_uri':linkset, 'mode':'delete'}, function(data)
+                    {
+                        var obj = JSON.parse(data);
+                        if (obj.message == 'OK')
+                        {    $('#linkset_edit_message_col').html(addNote('Linkset is deleted.',cl='info')); }
+                        else
+                        {    $('#linkset_edit_message_col').html(addNote(obj.message)); }
+
+                        loadingGif(document.getElementById('linkset_edit_message_col'), 2, show=false);
+                    });
+                }
+                else
+                {   $('#linkset_edit_message_col').html('');
+                    loadingGif(document.getElementById('linkset_edit_message_col'), 2, show=false);
+                }
+            }
+            else if (obj.message == 'Check Dependencies')
+            {
+                $('#linkset_edit_message_col').html(addNote(obj.result));
+                loadingGif(document.getElementById('linkset_edit_message_col'), 2, show=false);
+            }
+            else
+            {
+                $('#linkset_edit_message_col').html(addNote(obj.message));
+                loadingGif(document.getElementById('linkset_edit_message_col'), 2, show=false);
+            }
+        });
+    }
+}
 
 
 function addFilterLinksetClick()
