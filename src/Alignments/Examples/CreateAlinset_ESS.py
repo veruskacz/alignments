@@ -37,6 +37,6 @@ ls_specs_1 = {
 """ EXECUTE LINKSET SPECIFICATIONS """
 linkset_2 = specs_2_linkset(ls_specs_1, display=False, activated=True)
 
-""" EXECUTE LINKSET SPECIFICATIONS """
+
 drop_linkset("http://risis.eu/linkset/eter_grid_exactStrSim_english_Institution_Name_N1410131292",
              display=False, activated=False)

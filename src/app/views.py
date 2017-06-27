@@ -326,6 +326,7 @@ def setlinkesetfilter():
 def getlinkesetfilter():
     return ''
 
+
 @app.route('/getdetails', methods=['GET'])
 def details():
     """
@@ -863,7 +864,6 @@ def predicates():
         return json.dumps({'message': str(error.message), 'result': None})
 
 
-
 @app.route('/getpredicateslist')
 def predicatesList():
     """
@@ -1171,7 +1171,7 @@ def createView():
                 # print "OPTIONAL:", dict_stats[filter_row['ds']][filter_row['type']][uri]
 
                 optional = dict_stats[filter_row['ds']][filter_row['type']][uri]
-                properties = [(filter_row['att'],optional)]
+                properties = [(filter_row['att'], optional)]
                 # dict = {'graph': filter_row['ds'], 'entity_datatype': filter_row['type'], 'properties': [tuple_data]}
                 # view_filter.append(dict)
             else:
@@ -1375,6 +1375,7 @@ def getfilters():
                             style = style,
                             list = data)
 
+
 # TODO: REMOVE
 @app.route('/insertrq', methods=['GET'])
 def insertrq():
@@ -1395,6 +1396,7 @@ def insertrq():
     # print "\n\nRESPONSE:", dict
 
     return json.dumps(response)
+
 
 # TODO: REMOVE
 @app.route('/updaterq', methods=['GET'])
@@ -1457,7 +1459,6 @@ def rquestions():
         return str(err.message[1])
 
 
-
 @app.route('/getoverviewrq')
 def overviewrq():
     """
@@ -1501,6 +1502,7 @@ def adminDel():
     # SEND BAK RESULTS
     return 'done'
 
+
 @app.route('/deleteLinkset')
 def deleteLinkset():
     rq_uri = request.args.get('rq_uri', '')
@@ -1508,10 +1510,11 @@ def deleteLinkset():
     mode = request.args.get('mode', '')
 
     try:
+
         if mode == 'check':
-            query = Qry.check_linkset_dependencies_rq(rq_uri,linkset_uri)
+            query = Qry.check_linkset_dependencies_rq(rq_uri, linkset_uri)
             result = sparql(query, strip=True)
-            print ">>>>", result, len(result) #, len(result[0])
+            print ">>>> CHECKED: ", result, len(result) #, len(result[0])
             if (len(result) > 0) and (len(result[0]) > 0): #result is not empty [{}]
                 dependencies = 'The following dependencies need to be deleted first:</br>'
                 for r in result:
@@ -1521,11 +1524,14 @@ def deleteLinkset():
             else:
                 return json.dumps({'message':'OK', 'result':None})
             # return json.dumps({'message':'OK', 'result':None})
+
         elif mode == 'delete':
             query = Qry.delete_linkset_rq(rq_uri, linkset_uri)
-            # result = sparql(query, strip=False)
-            print ">>>>", result, len(result)
+            print query
+            result = sparql(query, strip=False)
+            print ">>>> TO DELETE:", result, len(result)
             return json.dumps({'message': 'Linkset successfully deleted', 'result': None})
+
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
     except Exception as error:

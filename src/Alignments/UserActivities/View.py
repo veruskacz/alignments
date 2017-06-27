@@ -107,7 +107,7 @@ def view_data(view_specs, view_filter, display=False):
     # }
     # TEXT BUFFER
     string_buffer = StringIO()
-    string_buffer2 = StringIO()
+    main_buffer = StringIO()
     dataset_opt = []  # LIST OF DATASET THAT HAVE ONLY OPTIONAL PROPERTIES
 
     # HOLDER VARIABLE (STRING) FOR THE RESEARCH QUESTION URI
@@ -125,21 +125,21 @@ def view_data(view_specs, view_filter, display=False):
     sorted_datasets = sorted(view_filter, key=get_key)
 
     # [DESCRIPTION] RESEARCH QUESTION X
-    string_buffer2.write("\t### THE VIEW\n".format(question_uri))
-    string_buffer2.write("\t\t\t<{}>\n".format(question_uri))
+    main_buffer.write("\t### THE VIEW\n".format(question_uri))
+    main_buffer.write("\t\t\t<{}>\n".format(question_uri))
 
     # [DESCRIPTION] CREATED A VIEW
-    string_buffer2.write("\t\t\t\talivocab:created\t\t\t<@URI> .\n\n")
+    main_buffer.write("\t\t\t\talivocab:created\t\t\t<@URI> .\n\n")
 
     # [DESCRIPTION] THE VIEW
-    string_buffer2.write("\t\t\t### THE COMPONENT OF THE VIEW: THE TYPE, THE LENS AND THE FILTERS\n".format(Ns.view))
-    string_buffer2.write("\t\t\t<@URI>\n".format(Ns.view))
+    main_buffer.write("\t\t\t### THE COMPONENT OF THE VIEW: THE TYPE, THE LENS AND THE FILTERS\n".format(Ns.view))
+    main_buffer.write("\t\t\t<@URI>\n".format(Ns.view))
 
     # [DESCRIPTION] IS A TYPE OF RISIS:VIEW
-    string_buffer2.write("\t\t\t\ta\t\t\t\t\t\t\t<{}View> ;\n".format(Ns.riclass))
+    main_buffer.write("\t\t\t\ta\t\t\t\t\t\t\t<{}View> ;\n".format(Ns.riclass))
 
     # [DESCRIPTION] THAT HAS A LENS
-    string_buffer2.write("\t\t\t\talivocab:hasViewLens\t\t<{}view_lens_@> ;".format(Ns.view))
+    main_buffer.write("\t\t\t\talivocab:hasViewLens\t\t<{}view_lens_@> ;".format(Ns.view))
 
     # SORT THE PROPERTIES IN EACH DICTIONARY
     count_ds = 0
@@ -154,64 +154,81 @@ def view_data(view_specs, view_filter, display=False):
 
             # [DESCRIPTION] THAT HAS A NUMBER OF FILTERS
             dataset_name = Ut.get_uri_local_name(filter[St.graph])
-            if St.entity_datatype in filter:
-                entity_type_name = Ut.get_uri_local_name(filter[St.entity_datatype])
-                filter_c = "<{}filter_{}_{}_@>".format(Ns.view, dataset_name, entity_type_name)
-            else:
-                filter_c = "<{}filter_{}_@>".format(Ns.view, dataset_name)
-            string_buffer.write("\n\t\t\t{}".format(filter_c))
 
-            # [DESCRIPTION] A FILTER HAS A DATASET
-            string_buffer.write("\n\t\t\t\tvoid:target\t\t\t\t\t<{}> ;".format(filter[St.graph]))
 
-            # ADDING THE DATATYPE IF ANY
-            if St.entity_datatype in filter:
-                string_buffer.write("\n\t\t\t\tvoid:hasDatatype\t\t\t<{}> ;".format(filter[St.entity_datatype]))
-            has_filter = "\n\t\t\t\talivocab:hasFilter\t\t\t{} {}".format(filter_c, append_ds)
+            # DATA IS AN ARRAY OF DICTIONARIES WHERE, FOR EACH DATATYPE, WE HAVE A LIST OF PROPERTIES SELECTED
+            data = filter["data"]
+            count_sub_filter = 0
+            for dictionary in data:
+                count_sub_filter += 1
+                ent_type = dictionary["entity_datatype"]
+                pro_list = dictionary["properties"]
 
-            # [DESCRIPTION] ADDING THE FILTERS BELONGING TO THE VIEW
-            string_buffer2.write(has_filter)
-
-        # APPEND THE PROPERTIES
-        if St.properties in filter:
-            filter[St.properties].sort()
-            count = 0
-            pro = None
-
-            # [DESCRIPTION] WHERE EACH FILTER IS COMPOSED OF A NUMBER OF PROPERTIES
-            check_optional = False
-            total_properties = len(filter[St.properties])
-            for ds_property in filter[St.properties]:
-                append = ";" if count < total_properties - 1 else ".\n"
-
-                if type(ds_property) is tuple and len(ds_property) == 2:
-                    cur_property = str(ds_property[0]).strip()
-
-                    if len(cur_property) > 0 and ds_property[1] is True:
-                        pro = "\n\t\t\t\talivocab:selectedOptional\t<{}> {}".format(ds_property[0], append)
-                    else:
-                        check_optional = True
-                        pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
+                if St.entity_datatype in filter:
+                    entity_type_name = Ut.get_uri_local_name(filter[St.entity_datatype])
+                    filter_c = "<{}filter_{}_{}_{}_@>".format(Ns.view, dataset_name, count_sub_filter, entity_type_name)
                 else:
-                    cur_property = str(ds_property).strip()
-                    if len(cur_property) > 0:
-                        check_optional = True
-                        pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
-                if pro is not None:
-                    string_buffer.write(pro)
-                    count += 1
+                    filter_c = "<{}filter_{}_{}_@>".format(Ns.view, dataset_name, count_sub_filter)
+                string_buffer.write("\n\t\t\t{}".format(filter_c))
 
-            # THESE DATASETS ARE COMPPOSED OF ONLY OPTIONAL PROPERTIES
-            if check_optional is False:
-                dataset_opt += [filter[St.graph]]
+                # [DESCRIPTION] A FILTER HAS A DATASET
+                string_buffer.write("\n\t\t\t\tvoid:target\t\t\t\t\t<{}> ;".format(filter[St.graph]))
+                has_filter = "\n\t\t\t\talivocab:hasFilter\t\t\t{} {}".format(filter_c, append_ds)
+
+                # [DESCRIPTION] ADDING THE FILTERS BELONGING TO THE VIEW
+                main_buffer.write(has_filter)
+
+
+
+
+
+                # ADDING THE DATATYPE IF ANY
+                if St.entity_datatype in dictionary:
+                    string_buffer.write("\n\t\t\t\tvoid:hasDatatype\t\t\t<{}> ;".format(dictionary[St.entity_datatype]))
+
+                # APPEND THE PROPERTIES
+                # print "\n>>>>>>> FILTER:", filter
+                if St.properties in dictionary:
+                    dictionary[St.properties].sort()
+                    count = 0
+                    pro = None
+
+                    # [DESCRIPTION] WHERE EACH FILTER IS COMPOSED OF A NUMBER OF PROPERTIES
+                    check_optional = False
+                    total_properties = len(dictionary[St.properties])
+
+                    for ds_property in dictionary[St.properties]:
+
+                        append = ";" if count < total_properties - 1 else ".\n"
+
+                        if type(ds_property) is tuple and len(ds_property) == 2:
+                            cur_property = str(ds_property[0]).strip()
+
+                            if len(cur_property) > 0 and ds_property[1] is True:
+                                pro = "\n\t\t\t\talivocab:selectedOptional\t<{}> {}".format(ds_property[0], append)
+                            else:
+                                check_optional = True
+                                pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
+                        else:
+                            cur_property = str(ds_property).strip()
+                            if len(cur_property) > 0:
+                                check_optional = True
+                                pro = "\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(cur_property, append)
+                        if pro is not None:
+                            string_buffer.write(pro)
+                            count += 1
+
+                    # THESE DATASETS ARE COMPOSED OF ONLY OPTIONAL PROPERTIES
+                    if check_optional is False:
+                        dataset_opt += [filter[St.graph]]
 
     # THE VIEW_LENS IS COMPOSED OF A NUMBER OF LENSES AND LINKSETS SELECTED
-    string_buffer2.write("\n\t\t\t### THE COMPONENT OF THE LENS".format(Ns.view))
-    string_buffer2.write("\n\t\t\t<{}view_lens_@>".format(Ns.view))
+    main_buffer.write("\n\t\t\t### THE COMPONENT OF THE LENS".format(Ns.view))
+    main_buffer.write("\n\t\t\t<{}view_lens_@>".format(Ns.view))
     count_ls = 0
     for linkset_lens in view_lens:
         append_ls = ";" if count_ls < len(view_lens) - 1 else ".\n"
-        string_buffer2.write("\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(linkset_lens, append_ls))
+        main_buffer.write("\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(linkset_lens, append_ls))
         count_ls += 1
 
     triples = string_buffer.getvalue()
@@ -231,9 +248,10 @@ def view_data(view_specs, view_filter, display=False):
         GRAPH <{}>
         {{
         {}{}\t\t}}\n\t}}
-    """.format(question_uri, string_buffer2.getvalue().replace("@URI", uri), triples).replace("@", hash_value)
+    """.format(question_uri, main_buffer.getvalue().replace("@URI", uri), triples).replace("@", hash_value)
 
     message = "\nThe metadata was generated"
+    print "VIEW INSERT QUERY:", query
     print message
     if display:
         print "VIEW INSERT QUERY:", query
@@ -366,7 +384,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                     if type(t_properties[i]) is tuple:
                         # print "PROPERTY:", t_properties[i][0]
                         t_properties[i] = (re.sub('[<>]', "", t_properties[i][0]), t_properties[i][1])
-                        print "PROPERTY:", t_properties[i]
+                        # print "PROPERTY:", t_properties[i]
                     else:
                         t_properties[i] = re.sub('[<>]', "", t_properties[i])
                 # 3 characters string to differentiate the properties of a dataset

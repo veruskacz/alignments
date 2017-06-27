@@ -8,14 +8,14 @@ from Alignments.UserActivities.User_Validation import get_linkset_filter
 
 PREFIX ="""
     ################################################################
-    PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
-    PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-    PREFIX linkset:     <http://risis.eu/linkset/>
-    PREFIX void:        <http://rdfs.org/ns/void#>
-    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
-    PREFIX tmpgraph:    <http://risis.eu/alignment/temp-match/>
-    PREFIX prov:        <http://www.w3.org/ns/prov#>
-"""
+    PREFIX bdb:         <{6}>
+    PREFIX rdf:         <{5}>
+    PREFIX linkset:     <{4}>
+    PREFIX void:        <{3}>
+    PREFIX alivocab:    <{0}>
+    PREFIX tmpgraph:    <{2}>
+    PREFIX prov:        <{1}>
+""".format(Ns.alivocab, Ns.prov, Ns.tmpgraph, Ns.void, Ns.linkset, Ns.rdf, Ns.bdb)
 
 INFO = False
 DETAIL = True
@@ -878,6 +878,7 @@ def get_predicates_list(graph, exclude_rdf_type=False):
         print query
     return query
 
+
 def get_dataset_predicate_values(graph, predicate):
 
     query = """
@@ -893,6 +894,7 @@ def get_dataset_predicate_values(graph, predicate):
     if DETAIL:
         print query
     return query
+
 
 def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
@@ -1018,6 +1020,7 @@ def get_linkset_corresp_details(linkset, limit=1):
         print query
     return query
 
+
 def check_linkset_dependencies_rq(rq_uri, linkset_uri):
     query = PREFIX + """
     ### CHECK LINKSET DEPENDENCIES
@@ -1047,26 +1050,32 @@ def check_linkset_dependencies_rq(rq_uri, linkset_uri):
 
 def delete_linkset_rq(rq_uri, linkset_uri):
     query = PREFIX + """
-    ### FIRST DELETE THE LINKSET TRIPLE INSIDE THE RQ IF IT EXISTS 
-    DELETE {{ GRAPH <{0}>
-       {{
+    # 1 DISCONNECT THE LINKSET
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
              ?s ?p ?linkset.
-       }}
+        }}
     }}
-    WHERE {{
-    
+    WHERE
+    {{
+
         BIND(<{1}> AS ?linkset) .
-          GRAPH <http://risis.eu/activity/idea_57db8d> {{
+        GRAPH <{0}>
+        {{
     	    ?s alivocab:created|prov:used ?linkset.
     	    ?s ?p ?linkset .
         }}
 
         FILTER NOT EXISTS
-        {{ GRAPH <{0}> 
+        {{
+            GRAPH <{0}>
             {{
-             ?view_lens alivocab:selected ?linkset. 
+                ?view_lens alivocab:selected ?linkset.
             }}
         }}
+
         FILTER NOT EXISTS
         {{
             ?lens 	a 			?type;
@@ -1078,33 +1087,69 @@ def delete_linkset_rq(rq_uri, linkset_uri):
             }}
        }}
     }}
-    ;
-    # SECOND, DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
-    DELETE {{ ?linkset ?p ?o.
-            GRAPH ?linkset 
-            {{
-                ?sub ?pred ?obj 
-            }}
+     ;
+    # 2-A DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
     }}
-    WHERE {{
+    WHERE
+    {{
+        BIND(<{1}> AS ?linkset) .
+        ?linkset    alivocab:singletonGraph 		?singletonGraph .
+        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?linkset.
+            }}
+        }}
+    }}
+    ;
+    # 2-A DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        ?linkset ?p ?o .
+        ?o ?predicate ?object .
+    }}
+    WHERE
+    {{
         BIND(<{1}> AS ?linkset) .
         ?linkset ?p ?o .
-          GRAPH ?linkset {{
-    	    ?sub ?pred ?obj .
-        }}
-        
+        OPTIONAL {{ ?o ?predicate ?object . }}
         FILTER NOT EXISTS
-        {{ GRAPH ?g 
+        {{
+            GRAPH ?rqg
             {{
                 ?sg ?pg ?linkset. 
             }}
         }}
     }}
     ;
-    # DROP SILENT GRAPH <{1}>
-    # WHERE {{ FILTER NOT EXISTS {{ GRAPH <{1}> {{ ?s ?p ?o }} }} }}
-    """.format(rq_uri, linkset_uri)
-    print query
+    # 2-B DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        GRAPH   ?linkset                    {{ ?sub ?pred ?obj . }}
+    }}
+    WHERE
+    {{
+        BIND(<{1}> AS ?linkset) .
+        GRAPH ?linkset
+        {{
+    	    ?sub    ?pred                       ?obj .
+        }}
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?linkset.
+            }}
+        }}
+    }}
+
+    """.format(rq_uri, linkset_uri, Ns.alivocab)
+    # print query
     return query
 
 
