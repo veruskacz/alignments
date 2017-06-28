@@ -598,7 +598,6 @@ def specs_2_linkset_id(specs, display=False, activated=False):
         update_specification(specs[St.target])
 
         # GENERATE THE NAME OF THE LINKSET
-        # GENERATE THE NAME OF THE LINKSET
         Ls.set_linkset_identity_name(specs)
 
         # SET THE INSERT QUERY

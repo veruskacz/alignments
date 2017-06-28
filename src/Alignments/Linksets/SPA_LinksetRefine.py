@@ -379,7 +379,147 @@ def refine_intermediate_query(specs):
              bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
         }}
         {{
-            SELECT ?grid ?orgref  ?evidence
+            SELECT ?evidence
+            {{
+                ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+                GRAPH <{0}load01>
+                {{
+                    ?{1} {2} ?src_value .
+                    ?{3} {4} ?trg_value .
+                    BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
+                }}
+            }}
+        }}
+    }} ;
+
+    DROP GRAPH <{0}load01> ;
+    DROP GRAPH <{0}load02>
+    """.format(
+        # 0          1         2           3         4
+        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
+        # 5                6        7        8            9
+        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
+        # 10               11           12                  13
+        specs[St.refined], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
+        # 14           15                      16           17
+        Ns.singletons, specs[St.refined_name], Ns.alivocab, Ns.prov
+    )
+
+    # print insert
+    return insert
+
+
+def intermediate_query(specs):
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns] \
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns] \
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
+    src_name = specs[St.source][St.graph_name]
+    src_uri = specs[St.source][St.graph]
+    # src_aligns = specs[St.source][St.aligns]
+
+    trg_name = specs[St.target][St.graph_name]
+    trg_uri = specs[St.target][St.graph]
+    # trg_aligns = specs[St.target][St.aligns]
+
+    insert = """
+    PREFIX alivocab:    <{16}>
+    PREFIX prov:        <{17}>
+
+    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load02> ;
+    DROP SILENT GRAPH <{10}> ;
+
+    ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
+    INSERT
+    {{
+        GRAPH <{0}load01>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1} {2} ?src_value .
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3} {4} ?trg_value .
+        }}
+    }}
+    WHERE
+    {{
+        ### SOURCE DATASET
+        graph <{6}>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1} {2} ?value_1 .
+            bind (lcase(str(?value_1)) as ?src_value)
+        }}
+        ### TARGET DATASET
+        graph <{7}>
+        {{
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3} {4} ?value_2 .
+            bind (lcase(str(?value_2)) as ?trg_value)
+        }}
+    }} ;
+
+    ### 2. FINDING CANDIDATE MATCH
+    INSERT
+    {{
+        ### MATCH FOUND
+        GRAPH <{0}load02>
+        {{
+            ?{1} <{8}relatesTo> ?{3} .
+        }}
+    }}
+    WHERE
+    {{
+        ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+        GRAPH <{0}load01>
+        {{
+            ?{1} {2} ?src_value .
+            ?{3} {4} ?trg_value .
+        }}
+        ### INTERMEDIATE DATASET VIA URI
+       graph <{9}>
+       {{
+            ?intermediate_uri
+                ?intPred_1 ?value_3 ;
+                ?intPred_2 ?value_4 .
+            bind (lcase(?value_3) as ?src_value)
+            bind (lcase(?value_4) as ?trg_value)
+       }}
+    }} ;
+
+    ### 3. CREATING THE CORRESPONDENCES
+    INSERT
+    {{
+        GRAPH <{10}>
+        {{
+            ?{1} ?newSingletons  ?{3} .
+        }}
+        ### SINGLETONS' METADATA
+        GRAPH <{14}{15}>
+        {{
+            ?newSingletons
+                rdf:singletonPropertyOf     alivocab:{12}{13} ;
+                prov:wasDerivedFrom         ?pred ;
+                alivocab:hasEvidence        ?evidence .
+        }}
+    }}
+    WHERE
+    {{
+        ### MATCH FOUND
+        GRAPH <{0}load02>
+        {{
+            ?{1} <{8}relatesTo> ?{3} .
+             bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+        }}
+        {{
+            SELECT ?evidence
             {{
                 ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
                 GRAPH <{0}load01>
