@@ -1130,14 +1130,14 @@ def delete_linkset_rq(rq_uri, linkset_uri):
     # 2-B DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
     DELETE
     {{
-        GRAPH   ?linkset                    {{ ?sub ?pred ?obj . }}
+        GRAPH   ?linkset    {{ ?sub ?pred ?obj . }}
     }}
     WHERE
     {{
         BIND(<{1}> AS ?linkset) .
         GRAPH ?linkset
         {{
-    	    ?sub    ?pred                       ?obj .
+    	    ?sub    ?pred   ?obj .
         }}
         FILTER NOT EXISTS
         {{

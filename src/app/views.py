@@ -1509,8 +1509,8 @@ def deleteLinkset():
     linkset_uri = request.args.get('linkset_uri', '')
     mode = request.args.get('mode', '')
 
-    try:
-
+    # try:
+    if True:
         if mode == 'check':
             query = Qry.check_linkset_dependencies_rq(rq_uri, linkset_uri)
             result = sparql(query, strip=True)
@@ -1526,16 +1526,19 @@ def deleteLinkset():
             # return json.dumps({'message':'OK', 'result':None})
 
         elif mode == 'delete':
+            print ">>>> TO DELETE:"
             query = Qry.delete_linkset_rq(rq_uri, linkset_uri)
             print query
             result = sparql(query, strip=False)
-            print ">>>> TO DELETE:", result, len(result)
-            return json.dumps({'message': 'Linkset successfully deleted', 'result': None})
+            print ">>>> DELETION RESULT:", result
+            return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
 
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
-    except Exception as error:
-        return json.dumps({'message':str(error.message), 'result':None})
+
+    # except Exception as error:
+    #     print "AN ERROR OCCURRED: ", error
+    #     return json.dumps({'message':str(error.message), 'result':None})
 
 
 @app.route('/convertCSVToRDF')
@@ -1641,7 +1644,11 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
         return new_results
     else :
         # print result_dict
-        return result_dict['results']['bindings']
+        if "results" in result_dict:
+            return result_dict['results']['bindings']
+        elif "boolean" in result_dict:
+            return result_dict['boolean']
+
 
 
 def strip_dict(result_dict):

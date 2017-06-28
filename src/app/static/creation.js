@@ -748,8 +748,8 @@ function deleteLinksetClick()
                     $.get('/deleteLinkset', data={'rq_uri':rq_uri, 'linkset_uri':linkset, 'mode':'delete'}, function(data)
                     {
                         var obj = JSON.parse(data);
-                        if (obj.message == 'OK')
-                        {    $('#linkset_edit_message_col').html(addNote('Linkset is deleted.',cl='info')); }
+                        if (obj.result == 'OK')
+                        {    $('#linkset_edit_message_col').html(addNote(obj.message,cl='info')); }
                         else
                         {    $('#linkset_edit_message_col').html(addNote(obj.message)); }
 
