@@ -20,11 +20,22 @@ def linkset_metadata(specs, display=False):
                              "linking approach based on the <{}{}> mechanism.". \
         format(specs[St.link], Ns.mechanism, specs[St.mechanism])
 
+    if str(specs[St.mechanism]).lower() == "intermediate":
+        specs[St.link_name] = "Exact String Similarity via intermediate dataset"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "The method MATCH VIA INTERMEDIATE DATASET is used to align the" \
+                                          "source and the target by using properties that present different " \
+                                          "descriptions of a same entity, such as country name and country code. " \
+                                          "This is possible by providing an intermediate dataset that binds the " \
+                                          "two alternative descriptions to the very same identifier."
+        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
+
     if str(specs[St.mechanism]).lower() == "exactstrsim":
         specs[St.link_name] = "Exact String Similarity"
         specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
         specs[St.justification_comment] = "We assume that entities with the aligned predicates sharing the " \
-                                          "exact same content are same. This assumption applies when dealing " \
+                                          "exact same content are the same. This assumption applies when dealing " \
                                           "with entities such as Organisation."
         specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
             format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])

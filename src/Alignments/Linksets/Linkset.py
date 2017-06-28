@@ -448,7 +448,7 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
     """
     linkset_construct = Qry.endpointconstruct(linkset_query)
     if linkset_construct is not None:
-        linkset_construct = linkset_construct.replace('{', "linkset:{}\n{{".format(linkset_graph_name), 1)
+        linkset_construct = to_unicode(linkset_construct.replace('{', "linkset:{}\n{{".format(linkset_graph_name), 1))
 
     singleton_metadata_construct = Qry.endpointconstruct(singleton_metadata_query)
     if singleton_metadata_construct is not None:

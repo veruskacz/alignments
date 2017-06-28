@@ -88,6 +88,8 @@ PREFIX = """
 # 		}
 # 	}
 
+short = 0
+
 def view_data(view_specs, view_filter, display=False):
 
     # GENERATING THE METADATA FOR REGISTERING A VIEW.
@@ -355,6 +357,7 @@ def view(view_specs, view_filter, save=False, limit=10):
 
 
             # graph_data IS A LIST OF DICTIONARIES FOR HOLDING THE TYPES AND THEIR LISTED PROPERTIES
+            count_ns = 0
             for data_info in graph_data:
 
                 e_type_uri = data_info[St.entity_datatype]
@@ -364,7 +367,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                 else:
                     e_type = Ut.get_uri_local_name(e_type_uri)
                     if e_type:
-                        e_type = "_{}".format(e_type[:3])
+                        e_type = "_{}".format(e_type[short:])
 
                         type_triple = "\n\t\t\ta{:54} <{}> ;".format("", e_type_uri)
 
@@ -388,7 +391,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                     else:
                         t_properties[i] = re.sub('[<>]', "", t_properties[i])
                 # 3 characters string to differentiate the properties of a dataset
-                attache = ds_ns_name[1][:3]
+                attache = ds_ns_name[1][short:]
 
                 # VARIABLES
                 if type(t_properties) is not list:
@@ -488,10 +491,11 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                         # Setting up the prefix and predicate
                         curr_ns = Ut.get_uri_ns_local_name(t_properties[i][0])
-                        prefix = "{}voc_{}".format(short_name, str(i))
+                        prefix = "{}voc_{}".format(short_name, str(count_ns))
 
                         # ADDING NAMESPACE
                         if curr_ns[0] not in namespace:
+                            count_ns += 1
                             namespace[curr_ns[0]] = prefix
                             namespace_str += "\nPREFIX {}: <{}>".format(prefix, curr_ns[0])
 

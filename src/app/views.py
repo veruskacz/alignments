@@ -937,7 +937,9 @@ def spa_linkset():
             'entity_datatype': request.args.get('trg_entity_datatye', '')
         },
 
-        'mechanism': request.args.get('mechanism', '')
+        'mechanism': request.args.get('mechanism', ''),
+
+        St.intermediate_graph: request.args.get('intermediate_graph', '')
     }
 
     if CREATION_ACTIVE:
@@ -956,6 +958,9 @@ def spa_linkset():
 
         elif specs['mechanism'] == 'approxStrSim':
             linkset_result = prefixed_inverted_index(specs, 0.8)
+
+        elif specs[St.mechanism] == "intermediate":
+            linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=True, activated=FUNCTION_ACTIVATED)
 
         elif specs['mechanism'] == 'geoSim':
             linkset_result = None

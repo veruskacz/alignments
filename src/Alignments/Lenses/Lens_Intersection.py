@@ -5,8 +5,11 @@ import Alignments.Utility as Ut
 from Alignments.Query import get_graph_type, get_lens_operator, get_graph_targets, get_graph_source_target,\
     sparql_xml_to_matrix, display_matrix
 
+short = 0
 
 def intersection2(specification):
+
+
 
     print "\nINTERSECTION TASK" \
           "\n======================================================" \
@@ -184,7 +187,7 @@ def intersection(specs, display=False):
                     trg_TYPE = Ut.get_uri_local_name(targets[i][3])
 
                     union += "\n\t\t{0}{{ ?{1}_{5}  ?predicate_{2}  ?{3}_{6} . }} {4}".format(
-                        tab, src, i, trg, append, src_TYPE[:3],  trg_TYPE[:3])
+                        tab, src, i, trg, append, src_TYPE[short:],  trg_TYPE[short:])
 
                 union = """
     ### ABOUT {0}
@@ -209,7 +212,7 @@ def intersection(specs, display=False):
     {{
         ?{1}_{4}    ?pred_{2}   ?{3}_{5} .
     }}
-    """.format(graph, src, count_graph, trg, src_TYPE[:3],  trg_TYPE[:3])
+    """.format(graph, src, count_graph, trg, src_TYPE[short:],  trg_TYPE[short:])
 
         count_graph += 1
 
