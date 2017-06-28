@@ -1509,8 +1509,7 @@ def deleteLinkset():
     linkset_uri = request.args.get('linkset_uri', '')
     mode = request.args.get('mode', '')
 
-    # try:
-    if True:
+    try:
         if mode == 'check':
             query = Qry.check_linkset_dependencies_rq(rq_uri, linkset_uri)
             result = sparql(query, strip=True)
@@ -1536,9 +1535,32 @@ def deleteLinkset():
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
 
-    # except Exception as error:
-    #     print "AN ERROR OCCURRED: ", error
-    #     return json.dumps({'message':str(error.message), 'result':None})
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        return json.dumps({'message':str(error.message), 'result':None})
+
+
+@app.route('/deleteView')
+def deleteView():
+    rq_uri = request.args.get('rq_uri', '')
+    view_uri = request.args.get('view_uri', '')
+    mode = request.args.get('mode', '')
+
+    try:
+        if mode == 'delete':
+            print ">>>> TO DELETE:"
+            query = Qry.delete_view_rq(rq_uri, view_uri)
+            print query
+            result = sparql(query, strip=False)
+            print ">>>> DELETION RESULT:", result
+            return json.dumps({'message': 'View successfully deleted', 'result': 'OK'})
+
+        else:
+            return json.dumps({'message':'Invalid mode.', 'result':None})
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        return json.dumps({'message':str(error.message), 'result':None})
 
 
 @app.route('/convertCSVToRDF')

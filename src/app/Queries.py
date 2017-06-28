@@ -1148,7 +1148,35 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         }}
     }}
 
-    """.format(rq_uri, linkset_uri, Ns.alivocab)
+    """.format(rq_uri, linkset_uri)
+    # print query
+    return query
+
+
+def delete_view_rq(rq_uri, view_uri):
+    query = PREFIX + """
+    DELETE
+    {{
+      GRAPH ?rq
+      {{
+        ?rq	    alivocab:created 	?view .
+        ?view   ?pre 		        ?obj .
+        ?obj 	?predicate 	        ?object .
+      }}   
+    }}
+    WHERE
+    {{
+      BIND(<{0}> AS ?rq) .
+      BIND(<{1}> AS ?view) .
+      GRAPH ?rq
+      {{
+        ?rq     alivocab:created 	?view .
+        ?view   ?pre                ?obj .
+        OPTIONAL {{ ?obj ?predicate ?object }}
+               
+      }}
+    }}
+    """.format(rq_uri, view_uri)
     # print query
     return query
 

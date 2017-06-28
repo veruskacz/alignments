@@ -1212,6 +1212,21 @@ function inspect_views_activate(mode="inspect")
 
   if (rq_uri)
   {
+
+    if (mode == 'inspect')
+    {
+        $('#inspect_view_heading').show();
+        $('#edit_view_heading').hide();
+    }
+    else //edit
+    {
+        $('#inspect_view_heading').hide();
+        $('#edit_view_heading').show();
+        enableButton('deleteViewButton', enable=false);
+    }
+
+    $('#view_edit_message_col').html("");
+
     $('#inspect_views_details_col').html('');
     $('#inspect_views_selection_col').html('Loading...');
     $.get('/getgraphsperrqtype',
@@ -1228,74 +1243,69 @@ function inspect_views_activate(mode="inspect")
           if (selectListItemUnique(this, 'inspect_views_selection_col'))
           {
             $('#view_creation_message_col').html("");
+            $('#view_creation_message_col').html("");
             $('#view_creation_save_message_col').html("");
             $('#creation_view_selected_predicates_group').html("");
             var view_uri = $(this).attr('uri');
-
-            //show the creation-panels containing the linksets/lenses
-            //and the datasets and properties to be selected
-            create_views_activate();
-            $('#creation_view_row').show();
-            $('#creation_view_filter_row').show();
-
 
             // load the panel for correspondences details
               $('#inspect_views_details_col').html('Loading...');
               $.get('/getviewdetails',data={'rq_uri': rq_uri,
                                             'view_uri': view_uri},function(data)
               {
-
                 var obj = JSON.parse(data);
 
                 $('#inspect_views_details_col').html(obj.details);
 
-                // assigning the selected graphs and properties
-                var i, elem, elems;
-                elem = document.getElementById('creation_view_linkset_col');
-                if (elem) {
-                    elems = elem.getElementsByClassName('list-group-item');
-                    for (i = 0; i < elems.length; i++) {
-                        uri = $(elems[i]).attr('uri');
-                        if (obj.view_lens.includes(uri))
-                        {
-                            selectListItem(elems[i]);
+                if (mode == 'inspect')
+                {
+                    //show the creation-panels containing the linksets/lenses
+                    //and the datasets and properties to be selected
+                    create_views_activate();
+                    $('#creation_view_row').show();
+                    $('#creation_view_filter_row').show();
+
+                    // assigning the selected graphs and properties
+                    var i, elem, elems;
+                    elem = document.getElementById('creation_view_linkset_col');
+                    if (elem) {
+                        elems = elem.getElementsByClassName('list-group-item');
+                        for (i = 0; i < elems.length; i++) {
+                            uri = $(elems[i]).attr('uri');
+                            if (obj.view_lens.includes(uri))
+                            {
+                                selectListItem(elems[i]);
+                            }
                         }
                     }
-                }
 
-                elem = document.getElementById('creation_view_lens_col');
-                if (elem) {
-                    elems = elem.getElementsByClassName('list-group-item');
-                    for (i = 0; i < elems.length; i++) {
-                        uri = $(elems[i]).attr('uri');
-                        if (obj.view_lens.includes(uri))
-                        {
-                            selectListItem(elems[i]);
+                    elem = document.getElementById('creation_view_lens_col');
+                    if (elem) {
+                        elems = elem.getElementsByClassName('list-group-item');
+                        for (i = 0; i < elems.length; i++) {
+                            uri = $(elems[i]).attr('uri');
+                            if (obj.view_lens.includes(uri))
+                            {
+                                selectListItem(elems[i]);
+                            }
                         }
                     }
-                }
 
-                $('#creation_view_registered_predicates_group').html("");
-                var view_filters = obj.list_pred
-                for (i = 0; i < view_filters.length; i++) {
-                      $('#creation_view_selected_predicates_group').prepend(view_filters[i]);
+                    $('#creation_view_registered_predicates_group').html("");
+                    var view_filters = obj.list_pred
+                    for (i = 0; i < view_filters.length; i++) {
+                          $('#creation_view_selected_predicates_group').prepend(view_filters[i]);
+                    }
                 }
-
-//                var view_filters = obj.view_filter_matrix
-//                for (i = 1; i < view_filters.length; i++) {
-//                      var item = '<li class="list-group-item" style="background-color:lightblue"'
-//                                + 'pred_uri="' + view_filters[i][1]
-//                                + '" graph_uri="' + view_filters[i][0]
-//                                + '"><span class="list-group-item-heading"><b>'
-//                                + view_filters[i][2] + '</b>: ' + view_filters[i][3] + '</span></li>';
-//
-//                      $('#creation_view_selected_predicates_group').prepend(item);
-//                }
+                else if (mode == 'edit')
+                {
+                    $('#creation_view_row').hide();
+                    $('#creation_view_filter_row').hide();
+                    enableButton('deleteViewButton');
+                }
 
               });
-//           var btn = document.getElementById('createViewButton');
-//           resetButton(btn);
-//           create_views_activate();
+
            $('#creation_view_results_row').hide();
 
            $("#collapse_view_lens").collapse("hide");
@@ -1382,6 +1392,38 @@ function createViewClick(mode)
     }
     else {
         $('#'+message_col).html(addNote(missing_feature));
+    }
+}
+
+function deleteViewClick()
+{
+    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
+    var view = '';
+    var elems = selectedElemsInGroupList('inspect_views_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        view = $(elems[0]).attr('uri');  // it should have only one selected
+        //var message = "Checking for linkset dependencies...";
+        //$('#linkset_edit_message_col').html(addNote(message,cl='warning'));
+        //loadingGif(document.getElementById('linkset_edit_message_col'), 2);
+
+        var test = confirm("Delete the view?");
+        if (test)
+        {
+            var message = "Deleting View...";
+            $('#view_edit_message_col').html(addNote(message,cl='warning'));
+            loadingGif(document.getElementById('view_edit_message_col'), 2);
+            $.get('/deleteView', data={'rq_uri':rq_uri, 'view_uri':view, 'mode':'delete'}, function(data)
+            {
+                var obj = JSON.parse(data);
+                if (obj.result == 'OK')
+                {    $('#view_edit_message_col').html(addNote(obj.message,cl='info')); }
+                else
+                {    $('#view_edit_message_col').html(addNote(obj.message)); }
+
+                loadingGif(document.getElementById('view_edit_message_col'), 2, show=false);
+            });
+        }
     }
 }
 
