@@ -210,7 +210,7 @@ def stats_optimised(graph, display_table=False, display_text=False):
                 text.write("\n\t\t{:100}{}".format("{} ***".format(pro), opt))
             else:
                 text.write("\n\t\t{:100}{}".format(pro, opt))
-                
+
     if display_text:
         print text.getvalue()
     return optional
