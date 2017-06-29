@@ -116,6 +116,8 @@ def linkset_metadata(specs, display=False):
 def spa_subset_metadata(specs):
     source = specs[St.source]
     target = specs[St.target]
+    src_aligns = Ls.format_aligns(source[St.link_old])
+
     metadata = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
@@ -145,7 +147,7 @@ def spa_subset_metadata(specs):
                "\t       alivocab:singletonGraph   <{}{}> ;".format(Ns.singletons, specs[St.linkset_name]),
                "\t       bdb:assertionMethod       <{}> ;".format(specs[St.assertion_method]),
                "\t       bdb:linksetJustification  <{}> ;".format(specs[St.justification]),
-               "\t       alivocab:alignsSubjects   <{}> ;".format(specs[St.source][St.link_old]),
+               "\t       alivocab:alignsSubjects   {} ;".format(src_aligns),
                "\t       alivocab:alignsObjects   <{}> ;".format(Ns.rsrId),
                "\t       rdfs:comment              \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
 

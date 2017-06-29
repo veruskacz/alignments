@@ -144,7 +144,7 @@ def spa_subset_insert(specs):
     {{
         GRAPH <{}>
         {{
-            ?subject <{}>  ?object .
+            ?subject {}  ?object .
         }}
 
         ### Create A SINGLETON URI

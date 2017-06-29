@@ -87,8 +87,24 @@ def update_specification(specs):
 
     if St.link_old in specs:
         if specs[St.link_old]:
-            specs[St.link_old_name] = get_uri_local_name(specs[St.link_old])
-            specs[St.link_old_ns] = get_uri_ns_local_name(specs[St.link_old])[0]
+            if is_property_path(specs[St.link_old]) or is_nt_format(specs[St.link_old]):
+                pro_list = re.findall("<([^<>]*)>/*", specs[St.link_old])
+                name = ""
+                for i in range(len(pro_list)):
+                    local = get_uri_local_name(pro_list[i])
+                    if i == 0:
+                        name = local
+                    else:
+                        name = "{}_{}".format(name, local)
+                    # print ">>>> name: ", name
+                specs[St.link_old_name] = name
+                if len(pro_list) == 1:
+                    specs[St.link_old_ns] = str(specs[St.aligns]).replace(specs[St.link_old_name], '')
+                else:
+                    specs[St.link_old_ns] = None
+            else:
+                specs[St.link_old_name] = get_uri_local_name(specs[St.link_old])
+                specs[St.link_old_ns] = get_uri_ns_local_name(specs[St.link_old])[0]
 
     if St.graph in specs:
         if specs[St.graph]:
@@ -114,7 +130,10 @@ def update_specification(specs):
                         name = "{}_{}".format(name, local)
                     # print ">>>> name: ", name
                 specs[St.aligns_name] = name
-                specs[St.aligns_ns] = None
+                if len(pro_list) == 1:
+                    specs[St.aligns_ns] = str(specs[St.aligns]).replace(specs[St.aligns_name], '')
+                else:
+                    specs[St.aligns_ns] = None
 
             else:
                 specs[St.aligns_name] = get_uri_local_name(specs[St.aligns])

@@ -570,7 +570,7 @@ def view(view_specs, view_filter, save=False, limit=10):
         else:
             lmt = "LIMIT {}".format(limit)
 
-        query = "{}\n\nSELECT{}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
+        query = "{}\n\nSELECT DISTINCT {}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
         print "VIEW TABLE:", query
 
         # table = sparql_xml_to_matrix(query)
