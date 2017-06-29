@@ -662,6 +662,7 @@ def spa_linkset_intermediate_query(specs):
         "prefix tmpvocab:   <{}>".format(Ns.tmpvocab))
 
     query01 = """
+    DROP SILENT GRAPH <{0}load00> ;
     DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load02> ;
     DROP SILENT GRAPH <{1}{2}>
@@ -671,10 +672,13 @@ def spa_linkset_intermediate_query(specs):
     ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
     INSERT
     {{
-        GRAPH <{0}load01>
+        GRAPH <{0}load00>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
             ?{1} {2} ?src_value .
+        }}
+        GRAPH <{0}load01>
+        {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
             ?{3} {4} ?trg_value .
         }}
@@ -709,20 +713,23 @@ def spa_linkset_intermediate_query(specs):
     WHERE
     {{
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-        GRAPH <{0}load01>
+        GRAPH <{0}load00>
         {{
             ?{1} {2} ?src_value .
+        }}
+        GRAPH <{0}load01>
+        {{
             ?{3} {4} ?trg_value .
         }}
         ### INTERMEDIATE DATASET VIA URI
-       graph <{9}>
-       {{
+        graph <{9}>
+        {{
             ?intermediate_uri
                 ?intPred_1 ?value_3 ;
                 ?intPred_2 ?value_4 .
             bind (lcase(?value_3) as ?src_value)
             bind (lcase(?value_4) as ?trg_value)
-       }}
+        }}
     }}
     """.format(
         # 0          1         2           3         4
@@ -891,6 +898,7 @@ def spa_linkset_intermediate_query(specs):
     # )
 
     query04 = """
+    DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load02>
     """.format(Ns.tmpgraph)
