@@ -287,9 +287,9 @@ def refine_intermediate_query(specs):
         GRAPH <{0}load01>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} {2} ?src_value .
+            ?{1} <{8}relatesTo1> ?src_value .
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} {4} ?trg_value .
+            ?{3} <{8}relatesTo3> ?trg_value .
         }}
     }}
     WHERE
@@ -334,8 +334,8 @@ def refine_intermediate_query(specs):
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
         GRAPH <{0}load01>
         {{
-            ?{1} {2} ?src_value .
-            ?{3} {4} ?trg_value .
+            ?{1} <{8}relatesTo1> ?src_value .
+            ?{3} <{8}relatesTo3> ?trg_value .
         }}
         ### INTERMEDIATE DATASET
        graph <{9}>
@@ -343,8 +343,8 @@ def refine_intermediate_query(specs):
             ?intermediate_uri
                 ?intPred_1 ?value_3 ;
                 ?intPred_2 ?value_4 .
-            bind (lcase(?value_3) as ?src_value)
-            bind (lcase(?value_4) as ?trg_value)
+            bind (lcase(str(?value_3)) as ?src_value)
+            bind (lcase(str(?value_4)) as ?trg_value)
        }}
     }} ;
 
