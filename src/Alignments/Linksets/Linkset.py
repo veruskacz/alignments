@@ -217,7 +217,7 @@ def run_checks(specs, check_type):
     # THE CURRENT AME EXIST
     if ask_1 == "true":
 
-        print "ASK_1: THE CURRENT AME EXIST"
+        print "ASK_1: THE CURRENT NAME EXIST"
         message = Ec.ERROR_CODE_2.replace('#', linkset)
 
         if St.refined in specs:

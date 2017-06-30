@@ -317,7 +317,10 @@ def linkset_refined_metadata(specs, display=False):
         specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
             format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
 
+    # CHECKING WHETHER THE REFINED HAS SOME TRIPLES INSERTED
     specs[St.triples] = Qry.get_namedgraph_size(specs[St.refined], isdistinct=False)
+
+
     triples = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
     print "\t>>> {} CORRESPONDENCES IN THE SOURCE".format(triples)
     print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
@@ -332,59 +335,62 @@ def linkset_refined_metadata(specs, display=False):
         )
     )
 
-    derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
-    intermediate = "        alivocab:intermediatesTarget    <{}> ;".format(specs[St.intermediate_graph]) \
-        if str(specs[St.mechanism]).lower() == "intermediate" else ""
+    if int(specs[St.triples] ) > 0:
+        derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
+        intermediate = "        alivocab:intermediatesTarget    <{}> ;".format(specs[St.intermediate_graph]) \
+            if str(specs[St.mechanism]).lower() == "intermediate" else ""
 
-    query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-            "\n{}\n{}\n{}\n{}\n{}" \
-            "\n{}\n{}\n{}" \
-            "\n{}\n{}\n{}\n{}\n{}". \
-        format("##################################################################",
-               "### METADATA FOR {}".format(specs[St.refined]),
-               "##################################################################",
-               "PREFIX alivocab:    <{}>".format(Ns.alivocab),
-               "PREFIX rdfs:        <{}>".format(Ns.rdfs),
-               "PREFIX void:        <{}>".format(Ns.void),
-               "PREFIX bdb:         <{}>".format(Ns.bdb),
+        query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}". \
+            format("##################################################################",
+                   "### METADATA FOR {}".format(specs[St.refined]),
+                   "##################################################################",
+                   "PREFIX alivocab:    <{}>".format(Ns.alivocab),
+                   "PREFIX rdfs:        <{}>".format(Ns.rdfs),
+                   "PREFIX void:        <{}>".format(Ns.void),
+                   "PREFIX bdb:         <{}>".format(Ns.bdb),
 
-               "INSERT DATA",
-               "{",
-               "    <{}>".format(specs[St.refined]),
-               "        a                               void:Linkset ;\n{}".format(derived_from),
-               "        rdfs:label                      \"{}\" ; ".format(specs[St.refined_name]),
-               "        void:triples                    {} ;".format(specs[St.triples]),
-               "        alivocab:sameAsCount            {} ;".format(specs[St.sameAsCount]),
-               "        alivocab:alignsMechanism        <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),
-               "        void:subjectsTarget             <{}> ;\n{}".format(source[St.graph], intermediate),
-               "        void:objectsTarget              <{}> ;".format(target[St.graph]),
-               "        void:linkPredicate              <{}> ;".format(specs[St.link]),
-               "        bdb:subjectsDatatype            <{}> ;".format(source[St.entity_datatype]),
-               "        bdb:objectsDatatype             <{}> ;".format(target[St.entity_datatype]),
-               "        alivocab:singletonGraph         <{}> ;".format(specs[St.singleton]),
-               "        bdb:assertionMethod             <{}> ;".format(specs[St.assertion_method]),
-               "        bdb:linksetJustification        <{}> ;".format(specs[St.justification]),
-               "        alivocab:alignsSubjects         {} ;".format(src_aligns),
-               "        alivocab:alignsObjects          {} ;".format(trg_aligns),
-               "        rdfs:comment                    \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
+                   "INSERT DATA",
+                   "{",
+                   "    <{}>".format(specs[St.refined]),
+                   "        a                               void:Linkset ;\n{}".format(derived_from),
+                   "        rdfs:label                      \"{}\" ; ".format(specs[St.refined_name]),
+                   "        void:triples                    {} ;".format(specs[St.triples]),
+                   "        alivocab:sameAsCount            {} ;".format(specs[St.sameAsCount]),
+                   "        alivocab:alignsMechanism        <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),
+                   "        void:subjectsTarget             <{}> ;\n{}".format(source[St.graph], intermediate),
+                   "        void:objectsTarget              <{}> ;".format(target[St.graph]),
+                   "        void:linkPredicate              <{}> ;".format(specs[St.link]),
+                   "        bdb:subjectsDatatype            <{}> ;".format(source[St.entity_datatype]),
+                   "        bdb:objectsDatatype             <{}> ;".format(target[St.entity_datatype]),
+                   "        alivocab:singletonGraph         <{}> ;".format(specs[St.singleton]),
+                   "        bdb:assertionMethod             <{}> ;".format(specs[St.assertion_method]),
+                   "        bdb:linksetJustification        <{}> ;".format(specs[St.justification]),
+                   "        alivocab:alignsSubjects         {} ;".format(src_aligns),
+                   "        alivocab:alignsObjects          {} ;".format(trg_aligns),
+                   "        rdfs:comment                    \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
 
-               "\n    ### METADATA ABOUT THE LINKTYPE",
-               "      <{}>".format(specs[St.link]),
-               "        rdfs:comment                \"\"\"{}\"\"\" ;".format(specs[St.link_comment]),
-               "        rdfs:label                  \"{} {}\" ;".format(specs[St.link_name], specs[St.sameAsCount]),
-               "        rdfs:subPropertyOf          <{}> .".format(specs[St.link_subpropertyof]),
+                   "\n    ### METADATA ABOUT THE LINKTYPE",
+                   "      <{}>".format(specs[St.link]),
+                   "        rdfs:comment                \"\"\"{}\"\"\" ;".format(specs[St.link_comment]),
+                   "        rdfs:label                  \"{} {}\" ;".format(specs[St.link_name], specs[St.sameAsCount]),
+                   "        rdfs:subPropertyOf          <{}> .".format(specs[St.link_subpropertyof]),
 
-               "\n    ### METADATA ABOUT THE LINKSET JUSTIFICATION",
-               "    <{}>".format(specs[St.justification]),
-               "        rdfs:comment              \"\"\"{}\"\"\" .".format(specs[St.justification_comment]),
+                   "\n    ### METADATA ABOUT THE LINKSET JUSTIFICATION",
+                   "    <{}>".format(specs[St.justification]),
+                   "        rdfs:comment              \"\"\"{}\"\"\" .".format(specs[St.justification_comment]),
 
-               "\n    ### ASSERTION METHOD",
-               "    <{}>".format(specs[St.assertion_method]),
-               "        alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
+                   "\n    ### ASSERTION METHOD",
+                   "    <{}>".format(specs[St.assertion_method]),
+                   "        alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
 
-               "}")
-    if display is True:
-        print query
+                   "}")
+        if display is True:
+            print query
 
-    return {"query": query, "message": message}
+        return {"query": query, "message": message}
+    else:
+        return {"query": None, "message": message}

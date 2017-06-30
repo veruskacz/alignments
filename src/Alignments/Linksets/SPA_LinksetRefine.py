@@ -107,19 +107,23 @@ def refining(specs, insert_query):
 
     # RETRIEVING THE METADATA ABOUT THE GRAPH TO REFINE
     metadata_q = Qry.q_linkset_metadata(specs[St.linkset])
+
     # print "QUERY:", metadata_q
     matrix = Qry.sparql_xml_to_matrix(metadata_q)
     # print "\nMETA DATA: ", matrix
 
     if matrix:
+
         if matrix[St.message] == "NO RESPONSE":
             print Ec.ERROR_CODE_1
             print matrix[St.message]
             return {'refined': refined, 'difference': diff}
+
         elif matrix[St.result] is None:
             print matrix[St.message]
             returned = {St.message: matrix[St.message], St.error_code: 666, St.result: None}
             return {'refined': returned, 'difference': diff}
+
     else:
         print Ec.ERROR_CODE_1
         return {'refined': refined, 'difference': diff}
@@ -130,17 +134,21 @@ def refining(specs, insert_query):
 
     # RUN INSERT QUERY
     specs[St.insert_query] = insert_query(specs)
+
     # print specs[St.insert_query]
     is_run = Qry.boolean_endpoint_response(specs[St.insert_query])
     print ">>> RUN SUCCESSFULLY:", is_run
 
     # NO INSERTION HAPPENED
-    if is_run:
+    if is_run == "true":
+
         # GENERATE THE
         #   (1) LINKSET METADATA
         #   (2) LINKSET OF CORRESPONDENCES
         #   (3) SINGLETON METADATA
         # AND WRITE THEM ALL TO FILE
+
+        # GENERATE THE METADATA
         pro_message = refine_metadata(specs)
 
         # SET THE RESULT ASSUMING IT WENT WRONG
@@ -149,7 +157,10 @@ def refining(specs, insert_query):
 
         server_message = "Linksets created as: {}".format(specs[St.refined])
         message = "The linkset was created!<br/>URI = {}. <br/>{}".format(specs[St.linkset], pro_message)
+
+        # MESSAGE ABOUT THE INSERTION STATISTICS
         print "\t", server_message
+
         if int(specs[St.triples]) > 0:
 
             # UPDATE THE REFINED VARIABLE AS THE INSERTION WAS SUCCESSFUL
@@ -171,9 +182,14 @@ def refining(specs, insert_query):
             message_2 = "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
             print message_2
 
-        print "\tLinkset created as: ", specs[St.linkset]
-        print "\t*** JOB DONE! ***"
-        return {'refined': refined, 'difference': diff}
+            print "\tLinkset created as: ", specs[St.refined]
+            print "\t*** JOB DONE! ***"
+
+            return {'refined': refined, 'difference': diff}
+
+        else:
+            print ">>> NO TRIPLE WAS INSERTED BECAUSE NO MATCH COULD BE FOUND"
+            return {'refined': refined, 'difference': diff}
 
     else:
         print "NO MATCH COULD BE FOUND."
@@ -366,12 +382,11 @@ def refine_intermediate_query(specs):
     }}
     WHERE
     {{
-        ## LINKSET TO REFINE
-         graph <{5}>
-         {{
-             ?{1} ?pred  ?{3} .
-        #     bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
-         }}
+        ### LINKSET TO REFINE
+        graph <{5}>
+        {{
+         ?{1} ?pred  ?{3} .
+        }}
 
         ### MATCH FOUND
         GRAPH <{0}load02>
@@ -385,8 +400,8 @@ def refine_intermediate_query(specs):
                 ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
                 GRAPH <{0}load01>
                 {{
-                    ?{1} {2} ?src_value .
-                    ?{3} {4} ?trg_value .
+                    ?{1} <{8}relatesTo1> ?src_value .
+                    ?{3} <{8}relatesTo3> ?trg_value .
                     BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
                 }}
             }}
@@ -411,13 +426,16 @@ def refine_intermediate_query(specs):
 
 
 def refine_metadata(specs):
+
     # GENERATE GENERIC METADATA
     metadata = Gn.linkset_refined_metadata(specs)
-    # print metadata
-    is_inserted = Qry.boolean_endpoint_response(metadata["query"])
-    print ">>> THE METADATA IS SUCCESSFULLY INSERTED:", is_inserted
 
     if int(specs[St.triples]) > 0:
+
+
+        # print metadata
+        is_inserted = Qry.boolean_endpoint_response(metadata["query"])
+        print ">>> THE METADATA IS SUCCESSFULLY INSERTED:", is_inserted
 
         # GENERATE LINKSET CONSTRUCT QUERY
         construct_query = "\n{}\n{}\n{}\n{}\n{}\n".format(
@@ -455,4 +473,4 @@ def refine_metadata(specs):
         write_to_file(graph_name=specs[St.refined_name], metadata=metadata["query"].replace("INSERT DATA", ""),
                       correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
 
-        return metadata["message"]
+    return metadata["message"]
