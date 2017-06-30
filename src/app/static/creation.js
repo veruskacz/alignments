@@ -976,6 +976,7 @@ function create_lens_activate()
    });
 }
 
+
 function operatorClick(th)
 {
   var operator_label = $(th).attr('label');
@@ -1005,6 +1006,7 @@ function operatorClick(th)
   }
   $('#selected_operator_desc').html(description);
 }
+
 
 function createLensClick()
 {
@@ -1090,23 +1092,32 @@ function importLensClick()
 // Functions called at onclick of the buttons in viewsCreation.html
 ///////////////////////////////////////////////////////////////////////////////
 
-
 function create_views_activate()
 {
-    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
+    // cleaning ...
     $('#creation_view_predicates_col').html('');
     $('#creation_view_selected_predicates_group').html('');
     $('#view_creation_message_col').html('');
     $('#view_creation_save_message_col').html('');
     $('#creation_view_results_row').hide();
 
+    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
 
+    // loading...
+    view_load_datasets_predicates(rq_uri);
+
+    view_load_linkesets_lenses(rq_uri);
+}
+
+function view_load_datasets_predicates(rq_uri, view_filters=null)
+{
+// Load into div the selected datasets for a certain research question
      $('#creation_view_dataset_col').html('Loading...');
      $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'view'},function(data)
      {
        $('#creation_view_dataset_col').html(data);
 
-       // set actions after clicking a graph in the list
+       // when a dataset from the list is selected, its list of predicates will be loaded
        $('#creation_view_dataset_col li').on('click',function()
        {
           var graph_uri = $(this).attr('uri');
@@ -1122,11 +1133,11 @@ function create_views_activate()
               // get the distinct predicates and example values of a graph into a list group
               $.get('/getpredicates',data={'dataset_uri': graph_uri, 'type': type_uri, 'total': total},function(data)
               {
-                   // load the rendered template into the column #creation_view_predicates_col
-                    var obj = JSON.parse(data);
-                    if (obj.message == 'OK')
+                  // load the rendered template into the column #creation_view_predicates_col
+                  var obj = JSON.parse(data);
+                  if (obj.message == 'OK')
                         $('#creation_view_predicates_col').html(obj.result);
-                    else
+                  else
                         $('#creation_view_predicates_col').html(obj.message);
 
                   // set actions after clicking one of the predicates
@@ -1143,7 +1154,7 @@ function create_views_activate()
                         for (i = 0; i < elems.length; i++) {
                             if ( ($(elems[i]).attr('pred_uri') == pred_uri)
                                      && ($(elems[i]).attr('graph_uri') == graph_uri) )
-                            { //('true');
+                            {
                               check = true;
                               break;
                             }
@@ -1158,15 +1169,6 @@ function create_views_activate()
                            $('#creation_view_selected_predicates_group').prepend(item);
                         }
                     }
-
-//                    $('#creation_view_selected_predicates_group li').on('click',function()
-//                    {
-////                        var id = $(this).attr('id');
-////                        var element = document.getElementById(id);
-//                        var parent = this.parentElement;
-//                        parent.removeChild(this);
-//                    });
-
                   });
               });
           }
@@ -1174,12 +1176,42 @@ function create_views_activate()
        });
      });
 
-     $('#creation_view_linkset_col').html('Loading...');
+     if ((view_filters) && (view_filters.length > 0))
+     {
+        $('#creation_view_registered_predicates_group').html("");
+        //var view_filters = obj.list_pred
+        for (i = 0; i < view_filters.length; i++) {
+              $('#creation_view_selected_predicates_group').prepend(view_filters[i]);
+        }
+     }
+}
+
+function view_load_linkesets_lenses(rq_uri, view_lens=null)
+{
+  $('#creation_view_linkset_col').html('Loading...');
      $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
                             'type': 'linkset',
                             'template': 'list_group.html'},function(data)
      {
        $('#creation_view_linkset_col').html(data);
+
+        if ((view_lens) && (view_lens.length > 0))
+        {
+            // assigning the selected graphs and properties
+            var i, elem, elems;
+            elem = document.getElementById('creation_view_linkset_col');
+            console.log(elem);
+            if (elem) {
+                elems = elem.getElementsByClassName('list-group-item');
+                for (i = 0; i < elems.length; i++) {
+                    uri = $(elems[i]).attr('uri');
+                    if (view_lens.includes(uri))
+                    {
+                        selectListItem(elems[i]);
+                    }
+                }
+            }
+        }
 
        // set actions after clicking a graph in the list
        $('#creation_view_linkset_col a').on('click',function()
@@ -1195,6 +1227,21 @@ function create_views_activate()
                             'template': 'list_group.html'},function(data)
      {
        $('#creation_view_lens_col').html(data);
+
+       if ((view_lens) && (view_lens.length > 0))
+       {
+            elem = document.getElementById('creation_view_lens_col');
+            if (elem) {
+                elems = elem.getElementsByClassName('list-group-item');
+                for (i = 0; i < elems.length; i++) {
+                    uri = $(elems[i]).attr('uri');
+                    if (view_lens.includes(uri))
+                    {
+                        selectListItem(elems[i]);
+                    }
+                }
+            }
+       }
 
        // set actions after clicking a graph in the list
        $('#creation_view_lens_col a').on('click',function()
@@ -1229,6 +1276,7 @@ function inspect_views_activate(mode="inspect")
 
     $('#inspect_views_details_col').html('');
     $('#inspect_views_selection_col').html('Loading...');
+    // Load into div all the existing views for a certain research question
     $.get('/getgraphsperrqtype',
                   data={'rq_uri': rq_uri,
                         'type': 'view',
@@ -1248,7 +1296,7 @@ function inspect_views_activate(mode="inspect")
             $('#creation_view_selected_predicates_group').html("");
             var view_uri = $(this).attr('uri');
 
-            // load the panel for correspondences details
+              // load the panel for correspondences details
               $('#inspect_views_details_col').html('Loading...');
               $.get('/getviewdetails',data={'rq_uri': rq_uri,
                                             'view_uri': view_uri},function(data)
@@ -1261,41 +1309,14 @@ function inspect_views_activate(mode="inspect")
                 {
                     //show the creation-panels containing the linksets/lenses
                     //and the datasets and properties to be selected
-                    create_views_activate();
+                    //create_views_activate( function(){ alert('sync'); } );
+
+                    //alert('after');
                     $('#creation_view_row').show();
                     $('#creation_view_filter_row').show();
 
-                    // assigning the selected graphs and properties
-                    var i, elem, elems;
-                    elem = document.getElementById('creation_view_linkset_col');
-                    if (elem) {
-                        elems = elem.getElementsByClassName('list-group-item');
-                        for (i = 0; i < elems.length; i++) {
-                            uri = $(elems[i]).attr('uri');
-                            if (obj.view_lens.includes(uri))
-                            {
-                                selectListItem(elems[i]);
-                            }
-                        }
-                    }
-
-                    elem = document.getElementById('creation_view_lens_col');
-                    if (elem) {
-                        elems = elem.getElementsByClassName('list-group-item');
-                        for (i = 0; i < elems.length; i++) {
-                            uri = $(elems[i]).attr('uri');
-                            if (obj.view_lens.includes(uri))
-                            {
-                                selectListItem(elems[i]);
-                            }
-                        }
-                    }
-
-                    $('#creation_view_registered_predicates_group').html("");
-                    var view_filters = obj.list_pred
-                    for (i = 0; i < view_filters.length; i++) {
-                          $('#creation_view_selected_predicates_group').prepend(view_filters[i]);
-                    }
+                    view_load_datasets_predicates(rq_uri, obj.list_pred);
+                    view_load_linkesets_lenses(rq_uri, obj.view_lens);
                 }
                 else if (mode == 'edit')
                 {
@@ -1563,11 +1584,6 @@ function rqClick(th, mode)
 function datasetClick(th)
 {
     list = findAncestor(th,'graph-list');
-    //alert(list);
-
-    //refresh the source components of this task
-//    alert($(list).attr('mode'));
-//    refresh_create_linkset($(list).attr('mode'));
 
     // get the graph uri and label from the clicked dataset
     var graph_uri = $(th).attr('uri');
@@ -1576,13 +1592,10 @@ function datasetClick(th)
     // Attribute the uri of the selected graph to the div
     // where the name/label is displayed
     var targetTxt = $(list).attr('targetTxt');
-    //alert(targetTxt);
     setAttr(targetTxt,'uri',graph_uri);
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue');
 
-//    alert(targetHidden)
-//    alert($('#'+targetHidden).attr('uri'))
     var button = $(list).attr('targetBtn');
     if (button)
     {
@@ -1632,25 +1645,6 @@ function datasetClick(th)
           $('#'+button2).html(data);
         });
     }
-
-//    var listCol = $(list).attr('targetList');
-//    if (listCol)
-//    {
-//        // clean previously selected entity type
-//        targetTxt = $('#'+listCol).attr('targetTxt');
-//        setAttr(targetTxt,'uri','');
-//        $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
-//        setAttr(targetTxt,'style','background-color:none');
-//
-//        // get the distinct predicates and example values of a graph into a list group
-//        $('#'+listCol).html('Loading...');
-//        $.get('/getpredicates', data={'dataset_uri': graph_uri,
-//                                      'function': 'selectionClick(this, "pred-list");'},
-//                                function(data)
-//        {  // load the rendered template into the column target list col
-//           $('#'+listCol).html(data);
-//        });
-//    }
 }
 
 // Function fired onclick of a option from a list
@@ -1747,7 +1741,7 @@ function selectionClick(th, ancestorType)
     var graph_uri = $(list).attr('graph_uri');
     if (listCol)
     {
-//        alert($('#'+listCol).attr('propPath'));
+        //alert($('#'+listCol).attr('propPath'));
         if (ancestorType != 'pred-list')
         {
             setAttr(listCol,'graph_uri',graph_uri);
@@ -1775,8 +1769,7 @@ function selectionClick(th, ancestorType)
         {
             // check if the value of the selected property is of type uri
             if ($(th).attr('obj_type') == 'uri')
-            {    //alert('uri')
-                // if the user choose to use property path
+            {    // if the user choose to use property path
                 // then the pred-list will be reloaeded with the predicates
                 // that are available for the objects of the selected property
                 // if (property_path is selected)
@@ -2102,6 +2095,7 @@ function refresh_create_view(mode='all')
 //    }
 }
 
+
 function refresh_import(mode='all')
 {
     if (mode == 'all')
@@ -2335,6 +2329,7 @@ function viewSampleRDFFile(th)
     }
 }
 
+
 //$('#ds_separator').onkeyup(function() {
 function getHeaderColumns() {
     //alert('keyup')
@@ -2361,7 +2356,6 @@ function getHeaderColumns() {
         $('#ds_type_list').html("");
     }
 }
-
 
 
 function loadGraphClick()
@@ -2401,6 +2395,7 @@ $('#ds_files_list').change(function() {
         }
     }
 });
+
 
 function importAlignmentClick()
 {

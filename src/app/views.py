@@ -960,7 +960,7 @@ def spa_linkset():
             linkset_result = prefixed_inverted_index(specs, 0.8)
 
         elif specs[St.mechanism] == "intermediate":
-            linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=True, activated=FUNCTION_ACTIVATED)
+            linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
 
         elif specs['mechanism'] == 'geoSim':
             linkset_result = None
@@ -1162,7 +1162,7 @@ def createView():
                 # check if there is already an entry for the dataset in dict_stats
                 if filter_row['ds'] not in dict_stats:
                     # calculate the stats per dataset, if it hasn't been done yet
-                    dict_stats[filter_row['ds']] =  stats(filter_row['ds'], display_table=False, display_text=True)
+                    dict_stats[filter_row['ds']] =  stats(filter_row['ds'], display_table=False, display_text=False)
                     print "DATASET:", filter_row['ds']
                     print "STATS:", dict_stats
 
@@ -1309,7 +1309,7 @@ def viewdetails():
     view['details'] = details
 
     view['list_pred'] = list_pred
-    print list_pred
+    # print list_pred
 
     return json.dumps(view)
 
