@@ -366,12 +366,12 @@ def refine_intermediate_query(specs):
     }}
     WHERE
     {{
-        ### LINKSET TO REFINE
-        # graph <{5}>
-        # {{
-        #     ?{1} ?pred  ?{3} .
+        ## LINKSET TO REFINE
+         graph <{5}>
+         {{
+             ?{1} ?pred  ?{3} .
         #     bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
-        # }}
+         }}
 
         ### MATCH FOUND
         GRAPH <{0}load02>
