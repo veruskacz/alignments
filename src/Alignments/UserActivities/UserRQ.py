@@ -168,7 +168,7 @@ def register_alignment_mapping(alignment_mapping, created):
 
         ask = Qry.boolean_endpoint_response(ask_query)
         # print ask_query
-        # print ask
+        print "ASK WHETHER THE ALIGNMENT WAS REGISTERED:", ask
 
         # 2 THE ALIGNMENT WAS NOT REGISTERED
         if ask == "false":
@@ -208,6 +208,8 @@ def register_alignment_mapping(alignment_mapping, created):
 
             # CHECK IF THE LINKSET WAS REGISTERED
             is_linkset_registered_query = ask_query.replace("> .", "> ;\n\t\t?pred\t<{}> .".format(linkset_uri))
+            is_linkset_registered_query = is_linkset_registered_query.replace(">\" .", ">\" ;\n\t\t?pred\t<{}> .".format(linkset_uri))
+            # print "CHECKING WHETHER THE LINKSET WAS TRULY REGISTERED QUERY:", is_linkset_registered_query
             is_linkset_registered = Qry.boolean_endpoint_response(is_linkset_registered_query)
             # print is_linkset_registered_query
             print ">>> WAS LINKSET REGISTERED?:", is_linkset_registered
@@ -252,8 +254,15 @@ def linkset_composition(alignment_mapping, request_ask_select_or_insert="ask", g
 
     # 1.1 GET THE LINKSET ALIGNMENT
     linkset_alignment_query = get_linkset_alignment(question_uri, linkset_uri)
+    # print "ALIGNMENT QUERY:", linkset_alignment_query
+
     construct = Qry.endpointconstruct(linkset_alignment_query)
-    # print construct
+    # print "CONSTRUCT:", construct
+
+    composition_init = re.findall('{(.*\)).*<.*> a <.*?> ;.*}', construct, re.S)
+    if len(composition_init) > 0:
+        composition_init = composition_init[0]
+    # print "COMPOSITION BINDINGS:", composition_init
     composition = re.findall('{.*a <.*?> ;(.*)}', construct, re.S)
 
     if get_composition:
@@ -268,6 +277,7 @@ def linkset_composition(alignment_mapping, request_ask_select_or_insert="ask", g
     composition_str = composition[0]
 
     composition_str = composition_str.replace("\t\t", "\t\t\t\t")
+    # print "COMPOSITION STRING EXTRACTED:", composition_str
 
     ask = "ASK"
     where = ""
@@ -279,20 +289,24 @@ def linkset_composition(alignment_mapping, request_ask_select_or_insert="ask", g
         ask = "INSERT"
         where = """
     WHERE
-    {
+    {{
+        {}
        BIND(iri(replace('http://risis.eu/activity/idea_algmt_#','#',SUBSTR(str(uuid()), 40))) as ?alignmentMapping)
-    }"""
+    }}""".format(composition_init)
+        # SO THAT IT IS NOT INSERTED MORE THAN ONES
+        composition_init = ""
 
     # 1.2 CHECK WHETHER THE ALIGNMENT WAS REGISTERED
     query = PREFIX + """
     {0}
     {{
+        {4}
         GRAPH <{1}>
         {{
             <{1}>   alivocab:created   ?alignmentMapping .
             ?alignmentMapping a <http://risis.eu/class/AlignmentMapping> ;{2}\t\t}}
     }}
-    {3}""".format(ask, question_uri, composition_str, where)
+    {3}""".format(ask, question_uri, composition_str, where, composition_init)
 
     if ask:
         return query
@@ -319,11 +333,11 @@ def get_linkset_alignment(question_uri, linkset_uri):
     {{
       #BIND(iri(replace('http://risis.eu/activity/idea_algmt_#','#',SUBSTR(str(uuid()), 40))) as ?alignmentMapping)
         <{1}>    void:subjectsTarget		?subjectsTarget ;
-        optional {{ <{1}>    void:objectsTarget		?objectsTarget . }}
+        optional {{ <{1}>    void:objectsTarget		    ?objectsTarget . }}
         optional {{ <{1}>    bdb:subjectsDatatype	    ?subjectsDatatype . }}
         optional {{ <{1}>    bdb:objectsDatatype		?objectsDatatype . }}
         optional {{ <{1}>    alivocab:alignsSubjects	?alignsSubjects . }}
-        optional {{ <{1}>    alivocab:alignsObjects	?alignsObjects . }}
+        optional {{ <{1}>    alivocab:alignsObjects	    ?alignsObjects . }}
     }}
     """.format(question_uri, linkset_uri)
     # print alignment_query
@@ -446,16 +460,33 @@ def import_lens(question_uri, linkset_list):
 
 def register_evolution(research_question_uri, alignment_uri, evolution_str):
 
-    query = """
-    PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
-    INSERT DATA
-    {{
-        GRAPH <{0}>
+    if alignment_uri.__contains__("<<"):
+        alignment_uri = str(alignment_uri).replace("<<", "<").replace(">>", ">")
+        bind = "BIND(iri(\"{}\") AS ?LINK)".format(alignment_uri)
+
+        query = """
+            PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+            INSERT DATA
+            {{
+                {0}
+                GRAPH <{1}>
+                {{
+                    ?LINK   alivocab:evolution        ""\"{2}\""" .
+                }}
+            }}
+            """.format(bind, research_question_uri, evolution_str)
+    else:
+        query = """
+        PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
+        INSERT DATA
         {{
-            <{1}>   alivocab:evolution        ""\"{2}\""" .
+            GRAPH <{0}>
+            {{
+                <{1}>   alivocab:evolution        ""\"{2}\""" .
+            }}
         }}
-    }}
-    """.format(research_question_uri, alignment_uri, evolution_str)
+        """.format(research_question_uri, alignment_uri, evolution_str)
+
     # print query
     registered = Qry.boolean_endpoint_response(query)
     print ">>> IS EVOLUTION REGISTERED FOR {}?: {}".format(alignment_uri, registered)
@@ -522,6 +553,9 @@ def linkset_evolution_composition(alignment_mapping):
 
 
 def linkset_createdorused(question_uri, alignment_mapping_uri, specs, is_created=True):
+
+    if alignment_mapping_uri.__contains__("<<"):
+        alignment_uri = str(alignment_mapping_uri).replace("<<", "<").replace(">>", ">")
 
     linkset_uri = specs[St.refined] if St.refined in specs else specs[St.linkset]
 

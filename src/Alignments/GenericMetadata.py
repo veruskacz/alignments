@@ -59,20 +59,22 @@ def linkset_metadata(specs, display=False):
     specs[St.triples] = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
     print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
 
-    query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+    query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}". \
         format("##################################################################",
                "### METADATA FOR {}".format(specs[St.linkset]),
                "##################################################################",
+               "PREFIX prov:        <{}>".format(Ns.prov),
                "PREFIX alivocab:    <{}>".format(Ns.alivocab),
                "PREFIX rdfs:        <{}>".format(Ns.rdfs),
                "PREFIX void:        <{}>".format(Ns.void),
                "PREFIX bdb:         <{}>".format(Ns.bdb),
 
-               "INSERT DATA",
+               "INSERT",
                "{",
                "    <{}>".format(specs[St.linkset]),
                "        rdfs:label                  \"{}\" ; ".format(specs[St.linkset_name]),
@@ -88,8 +90,8 @@ def linkset_metadata(specs, display=False):
                "        alivocab:singletonGraph     <{}> ;".format(specs[St.singleton]),
                "        bdb:assertionMethod         <{}> ;".format(specs[St.assertion_method]),
                "        bdb:linksetJustification    <{}> ;".format(specs[St.justification]),
-               "        alivocab:alignsSubjects     {} ;".format(src_aligns),
-               "        alivocab:alignsObjects      {} ;".format(trg_aligns),
+               "        alivocab:alignsSubjects     ?src_aligns ;",
+               "        alivocab:alignsObjects      ?trg_aligns ;",
                "        rdfs:comment                \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
 
                "\n    ### METADATA ABOUT THE LINKTYPE",
@@ -105,7 +107,12 @@ def linkset_metadata(specs, display=False):
                "\n    ### ASSERTION METHOD",
                "    <{}>".format(specs[St.assertion_method]),
                "        alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
+               "}",
 
+               "WHERE",
+               "{",
+               "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
+               "    BIND(iri({}) AS ?trg_aligns)".format(trg_aligns),
                "}")
     print query
     if display is True:
@@ -118,17 +125,20 @@ def spa_subset_metadata(specs):
     target = specs[St.target]
     src_aligns = Ls.format_aligns(source[St.link_old])
 
-    metadata = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+    metadata = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
                "\n{}\n{}\n{}\n{}\n{}\n{}" \
-               "\n{}\n{}\n{}\n{}\n{}\n{}". \
+               "\n{}\n{}\n{}\n{}\n{}\n{}" \
+               "\n{}\n{}\n{}\n{}". \
         format("\t###### METADATA",
+               "\tPREFIX prov:        <{}>".format(Ns.prov),
                "\tPREFIX rdfs:      <{}>".format(Ns.rdfs),
                "\tPREFIX void:      <{}>".format(Ns.void),
                "\tPREFIX alivocab:  <{}>".format(Ns.alivocab),
                "\tPREFIX bdb:       <{}>".format(Ns.bdb),
-               "\tINSERT DATA",
+
+               "\tINSERT",
                "\t{",
                "\t     ### [SUBSET of {}]".format(source[St.graph]),
                "\t     ### METADATA ABOUT THE SUBSET LINKSET",
@@ -147,7 +157,7 @@ def spa_subset_metadata(specs):
                "\t       alivocab:singletonGraph   <{}{}> ;".format(Ns.singletons, specs[St.linkset_name]),
                "\t       bdb:assertionMethod       <{}> ;".format(specs[St.assertion_method]),
                "\t       bdb:linksetJustification  <{}> ;".format(specs[St.justification]),
-               "\t       alivocab:alignsSubjects   {} ;".format(src_aligns),
+               "\t       alivocab:alignsSubjects   ?src_aligns ;",
                "\t       alivocab:alignsObjects   <{}> ;".format(Ns.rsrId),
                "\t       rdfs:comment              \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
 
@@ -163,8 +173,13 @@ def spa_subset_metadata(specs):
                "\n\t     ### ASSERTION METHOD",
                "\t     <{}>".format(specs[St.assertion_method]),
                "\t       alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
+               "\t}",
 
-               "\t}")
+               "\tWHERE",
+               "\t{",
+               "\t      BIND(iri({}) AS ?src_aligns)".format(src_aligns),
+               "\t}"
+               )
     # print metadata
     return metadata
 
@@ -340,20 +355,22 @@ def linkset_refined_metadata(specs, display=False):
         intermediate = "        alivocab:intermediatesTarget    <{}> ;".format(specs[St.intermediate_graph]) \
             if str(specs[St.mechanism]).lower() == "intermediate" else ""
 
-        query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+        query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
                 "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
                 "\n{}\n{}\n{}\n{}\n{}" \
                 "\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}" \
                 "\n{}\n{}\n{}\n{}\n{}". \
             format("##################################################################",
                    "### METADATA FOR {}".format(specs[St.refined]),
                    "##################################################################",
+                   "PREFIX prov:        <{}>".format(Ns.prov),
                    "PREFIX alivocab:    <{}>".format(Ns.alivocab),
                    "PREFIX rdfs:        <{}>".format(Ns.rdfs),
                    "PREFIX void:        <{}>".format(Ns.void),
                    "PREFIX bdb:         <{}>".format(Ns.bdb),
 
-                   "INSERT DATA",
+                   "INSERT",
                    "{",
                    "    <{}>".format(specs[St.refined]),
                    "        a                               void:Linkset ;\n{}".format(derived_from),
@@ -369,8 +386,8 @@ def linkset_refined_metadata(specs, display=False):
                    "        alivocab:singletonGraph         <{}> ;".format(specs[St.singleton]),
                    "        bdb:assertionMethod             <{}> ;".format(specs[St.assertion_method]),
                    "        bdb:linksetJustification        <{}> ;".format(specs[St.justification]),
-                   "        alivocab:alignsSubjects         {} ;".format(src_aligns),
-                   "        alivocab:alignsObjects          {} ;".format(trg_aligns),
+                   "        alivocab:alignsSubjects         ?src_aligns ;",
+                   "        alivocab:alignsObjects          ?trg_aligns ;",
                    "        rdfs:comment                    \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
 
                    "\n    ### METADATA ABOUT THE LINKTYPE",
@@ -386,7 +403,12 @@ def linkset_refined_metadata(specs, display=False):
                    "\n    ### ASSERTION METHOD",
                    "    <{}>".format(specs[St.assertion_method]),
                    "        alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
+                   "}",
 
+                   "WHERE",
+                   "{",
+                   "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
+                   "    BIND(iri({}) AS ?trg_aligns)".format(trg_aligns),
                    "}")
         if display is True:
             print query

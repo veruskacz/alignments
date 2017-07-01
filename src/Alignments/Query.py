@@ -2,6 +2,7 @@
 # encoding=utf-8
 from kitchen.text.converters import to_bytes
 # to_unicode
+import re
 import urllib
 import urllib2
 import time
@@ -382,7 +383,27 @@ def endpointconstruct(query):
 
     try:
         response = urllib2.urlopen(request)
+        # print "RESPONSE", response
         result = response.read()
+        # print "RESPONSE RESULT:", result
+        # result = str(result).replace("<<", "<").replace(">>", ">").replace("\
+
+        # REGULAR EXPRESSION FOR FIRST EXTRACTION OF STARDOG MESS
+        # <<http://dbpedia.org/ontology/author\>/<http://dbpedia.org/property/name\>>
+        regex_result = re.findall("<(<.*>)>", result)
+
+        # CLEANING UP THE  MESS
+        bind = "\t### BINDING THIS BECAUSE STARDOG MESSES UP THE RESULT WHEN USING PROPERTY PATH\n"
+        for i in range(len(regex_result)):
+            # SOLVING THE PROBLEM BY INSERTING SOME VARIABLE BINDINGS
+            result = result.replace("<{}>".format(regex_result[i]), "?LINK_{}".format(i))
+            bind += "\tBIND( IRI(\"{}\") AS ?LINK_{} )\n".format(regex_result[i].replace("\>", ">"), i)
+
+        # FINAL CLEANING
+        if len(regex_result) > 0:
+            result = result.replace("{", "{{\n{}".format(bind))
+            # print "RESPONSE RESULT ALTERED:", result
+
         return result
 
     except Exception as err:

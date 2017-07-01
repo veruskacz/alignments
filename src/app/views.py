@@ -1531,8 +1531,8 @@ def deleteLinkset():
 
         elif mode == 'delete':
             print ">>>> TO DELETE:"
-            query = Qry.delete_linkset_rq(rq_uri, linkset_uri)
-            print query
+            query = adm.delete_linkset_rq(rq_uri, linkset_uri)
+            print "CONDITIONAL DELETE QUERY:", query
             result = sparql(query, strip=False)
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})

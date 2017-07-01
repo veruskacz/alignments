@@ -4,6 +4,17 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 from Alignments.Query import endpoint
 
+PREFIX ="""
+    ################################################################
+    PREFIX bdb:         <{6}>
+    PREFIX rdf:         <{5}>
+    PREFIX linkset:     <{4}>
+    PREFIX void:        <{3}>
+    PREFIX alivocab:    <{0}>
+    PREFIX tmpgraph:    <{2}>
+    PREFIX prov:        <{1}>
+""".format(Ns.alivocab, Ns.prov, Ns.tmpgraph, Ns.void, Ns.linkset, Ns.rdf, Ns.bdb)
+
 #######################################################################################
 # DROP GENERIC
 #######################################################################################
@@ -476,6 +487,114 @@ def drop_linkset(graph, display=False, activated=False):
             if display is True:
                 print ">>> Query details  : {}\n".format(queries)
         print ""
+
+
+def delete_linkset_rq(rq_uri, linkset_uri):
+    query = PREFIX + """
+    # 1 DISCONNECT THE LINKSET
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
+             ?s ?p ?linkset.
+        }}
+    }}
+    WHERE
+    {{
+
+        BIND(<{1}> AS ?linkset) .
+        GRAPH <{0}>
+        {{
+            ?s alivocab:created|prov:used ?linkset.
+            ?s ?p ?linkset .
+        }}
+
+        FILTER NOT EXISTS
+        {{
+            GRAPH <{0}>
+            {{
+                ?view_lens alivocab:selected ?linkset.
+            }}
+        }}
+
+        FILTER NOT EXISTS
+        {{
+            ?lens 	a 			?type;
+                    void:target ?linkset.
+
+            GRAPH <{0}>
+            {{
+               ?s3 alivocab:created|prov:used ?lens.
+            }}
+       }}
+    }}
+     ;
+    # 2-A DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
+    }}
+    WHERE
+    {{
+        BIND(<{1}> AS ?linkset) .
+        ?linkset    alivocab:singletonGraph 		?singletonGraph .
+        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?linkset.
+            }}
+        }}
+    }}
+    ;
+    # 2-A DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        ?linkset ?p ?o .
+        ?object ?pred ?obj .
+    }}
+    WHERE
+    {{
+        BIND(<{1}> AS ?linkset) .
+
+        ?linkset    bdb:assertionMethod|bdb:linksetJustification    ?object .
+        ?object     ?pred                                           ?obj .
+        ?linkset    ?p                                              ?o .
+
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?linkset.
+            }}
+        }}
+    }}
+    ;
+    # 2-B DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        GRAPH   ?linkset    {{ ?sub ?pred ?obj . }}
+    }}
+    WHERE
+    {{
+        BIND(<{1}> AS ?linkset) .
+        GRAPH ?linkset
+        {{
+            ?sub    ?pred   ?obj .
+        }}
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?linkset.
+            }}
+        }}
+    }}
+
+    """.format(rq_uri, linkset_uri)
+    # print query
+    return query
 
 
 #######################################################################################
