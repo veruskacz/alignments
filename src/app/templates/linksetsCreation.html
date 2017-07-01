@@ -16,7 +16,7 @@
             activateTargetDiv(targetId="item_identity");
             create_linkset_activate()'
             >Create</button>
-    <button type="button" class="btn btn-primary disabled"
+    <button type="button" id="btn_edit_linkset" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
             activateTargetDiv(targetId="edit_linkset_heading",cl="panel-heading");
@@ -157,7 +157,7 @@
                        <td align="right"><button type="button" id="editLinksetButton"
                            class="btn btn-success btn btn-primary disabled"
                            onclick="editLinksetClick()">Edit Linkset</button>
-                       <button type="button" id="delteLinksetButton"
+                       <button type="button" id="deleteLinksetButton"
                            class="btn btn-success btn btn-primary"
                            onclick="deleteLinksetClick()">Delete Linkset</button>
                        </td>

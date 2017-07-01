@@ -340,6 +340,7 @@ function inspect_linkset_activate(mode)
                 {
                    $('#creation_linkset_row').show();
                    loadEditPanel(obj, mode);
+                   enableButton('deleteLinksetButton');
                 }
                 else if (mode == 'inspect')
                 {
@@ -357,6 +358,7 @@ function inspect_linkset_activate(mode)
      });
   }
 
+
   if (mode == 'import') {
     $('#import_heading_panel').show();
     $('#inspect_heading_panel').hide();
@@ -367,6 +369,9 @@ function inspect_linkset_activate(mode)
     }
     if (mode == 'edit') {
       $('#inspect_panel_body').hide();
+      $('#creation_linkset_row').show();
+      $('#edit_linkset_heading').show();
+      enableButton('deleteLinksetButton', enable=false);
     }
     else
     {
@@ -730,6 +735,7 @@ function deleteLinksetClick()
     if (elems.length > 0) // if any element is selected
     {
         linkset = $(elems[0]).attr('uri');  // it should have only one selected
+        alert(linkset);
         var message = "Checking for linkset dependencies...";
         $('#linkset_edit_message_col').html(addNote(message,cl='warning'));
         loadingGif(document.getElementById('linkset_edit_message_col'), 2);
@@ -749,7 +755,8 @@ function deleteLinksetClick()
                     {
                         var obj = JSON.parse(data);
                         if (obj.result == 'OK')
-                        {    $('#linkset_edit_message_col').html(addNote(obj.message,cl='info')); }
+                        {   $('#btn_edit_linkset').click();
+                            $('#linkset_edit_message_col').html(addNote(obj.message,cl='info')); }
                         else
                         {    $('#linkset_edit_message_col').html(addNote(obj.message)); }
 
@@ -1296,6 +1303,8 @@ function inspect_views_activate(mode="inspect")
             $('#creation_view_selected_predicates_group').html("");
             var view_uri = $(this).attr('uri');
 
+
+
               // load the panel for correspondences details
               $('#inspect_views_details_col').html('Loading...');
               $.get('/getviewdetails',data={'rq_uri': rq_uri,
@@ -1329,7 +1338,7 @@ function inspect_views_activate(mode="inspect")
 
            $('#creation_view_results_row').hide();
 
-           $("#collapse_view_lens").collapse("hide");
+//           $("#collapse_view_lens").collapse("hide");
            $("#collapse_view_filter").collapse("hide");
 
           }
