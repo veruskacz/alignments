@@ -24,7 +24,7 @@ def linkset_metadata(specs, display=False):
         specs[St.link_name] = "Exact String Similarity via intermediate dataset"
         specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
         specs[St.justification_comment] = "The method MATCH VIA INTERMEDIATE DATASET is used to align the" \
-                                          "source and the target by using properties that present different " \
+                                          " source and the target by using properties that present different " \
                                           "descriptions of a same entity, such as country name and country code. " \
                                           "This is possible by providing an intermediate dataset that binds the " \
                                           "two alternative descriptions to the very same identifier."
@@ -114,7 +114,7 @@ def linkset_metadata(specs, display=False):
                "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
                "    BIND(iri({}) AS ?trg_aligns)".format(trg_aligns),
                "}")
-    print query
+    # print query
     if display is True:
         print query
     return query

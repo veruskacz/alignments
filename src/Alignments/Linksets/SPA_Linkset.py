@@ -31,12 +31,14 @@ SINGLE PREDICATE ALIGNMENT
 
 def spa_linksets(specs, id=False, display=False, activated=False):
 
-    print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
+    # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
     if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATED." \
+        print "THE FUNCTION IS NOT ACTIVATED" \
               "\n======================================================" \
               "========================================================"
         return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
+    else:
+        print "THE FUNCTION IS ACTIVATED"
 
     source = specs[St.source]
     target = specs[St.target]
@@ -104,7 +106,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             print """ 5. GENERATING LINKSET METADATA                             """
             ########################################################################
             metadata = Gn.linkset_metadata(specs)
-            print metadata
+            # print metadata
 
             # NO POINT TO CREATE ANY FILE WHEN NO TRIPLE WAS INSERTED
             if int(specs[St.triples]) > 0:
@@ -362,9 +364,9 @@ def spa_linkset_ess_query(specs):
 def specs_2_linkset(specs, display=False, activated=False):
 
     # if activated is True:
-    heading = "\nEXECUTING LINKSET SPECS" \
-              "\n======================================================" \
-              "========================================================"
+    heading = "======================================================" \
+              "========================================================" \
+              "\nEXECUTING LINKSET SPECS"
 
     print heading
     # inserted_mapping = None
@@ -389,11 +391,13 @@ def specs_2_linkset(specs, display=False, activated=False):
         # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
         inserted_linkset = spa_linksets(specs, display=display, activated=activated)
 
-        # REGISTER THE ALIGNMENT
-        if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
-            Urq.register_alignment_mapping(specs, created=False)
-        else:
-            Urq.register_alignment_mapping(specs, created=True)
+        if activated is True:
+
+            # REGISTER THE ALIGNMENT
+            if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
+                Urq.register_alignment_mapping(specs, created=False)
+            else:
+                Urq.register_alignment_mapping(specs, created=True)
 
         # SPA_LINKSET returns
         # {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
@@ -580,9 +584,9 @@ def spa_linkset_identity_query(specs):
 
 def specs_2_linkset_id(specs, display=False, activated=False):
 
-    print "\nEXECUTING LINKSET SPECS" \
-          "\n======================================================" \
-          "========================================================"
+    print "======================================================" \
+          "========================================================" \
+          "\nEXECUTING LINKSET SPECS"
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -675,12 +679,12 @@ def spa_linkset_intermediate_query(specs):
         GRAPH <{0}load00>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} {2} ?src_value .
+            ?{1} <{8}relatesTo1> ?src_value .
         }}
         GRAPH <{0}load01>
         {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} {4} ?trg_value .
+            ?{3} <{8}relatesTo3> ?trg_value .
         }}
     }}
     WHERE
@@ -715,11 +719,11 @@ def spa_linkset_intermediate_query(specs):
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
         GRAPH <{0}load00>
         {{
-            ?{1} {2} ?src_value .
+            ?{1} <{8}relatesTo1> ?src_value .
         }}
         GRAPH <{0}load01>
         {{
-            ?{3} {4} ?trg_value .
+            ?{3} <{8}relatesTo3> ?trg_value .
         }}
         ### INTERMEDIATE DATASET VIA URI
         graph <{9}>
@@ -766,12 +770,15 @@ def spa_linkset_intermediate_query(specs):
             SELECT ?{1} ?{3} ?evidence
             {{
                 ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+                GRAPH <{0}load00>
+                {{
+                    ?{1} <{6}relatesTo1> ?src_value .
+                }}
                 GRAPH <{0}load01>
                 {{
-                    ?{1} {2} ?src_value .
-                    ?{3} {4} ?trg_value .
-                    BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
+                    ?{3} <{6}relatesTo3> ?trg_value .
                 }}
+                BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
             }}
         }}
     }}
@@ -905,7 +912,7 @@ def spa_linkset_intermediate_query(specs):
 
     # print insert
     # return insert
-    print query01, query02, query03, query04
+    # print query01, query02, query03, query04
     queries = [query01, query02, query03, query04]
     return queries
 
@@ -913,9 +920,9 @@ def spa_linkset_intermediate_query(specs):
 def specs_2_linkset_intermediate(specs, display=False, activated=False):
 
     # if activated is True:
-    heading = "\nEXECUTING LINKSET SPECS" \
-              "\n======================================================" \
-              "========================================================"
+    heading = "======================================================" \
+              "========================================================" \
+              "\nEXECUTING LINKSET VIA INTERMEDIATE SPECS"
 
     print heading
     # inserted_mapping = None

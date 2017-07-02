@@ -122,4 +122,4 @@ def check_converted_folder(converted_folder):
 #     check_rdf_file(main)
 
 
-# check_rdf_file("E:\queryResults.ttl")
+# check_rdf_file("C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\en_nl_intermediate_author_label_P1605654795(Metadata)-20170702.trig")

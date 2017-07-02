@@ -24,7 +24,6 @@ import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.UserActivities.UserRQ as Ura
 from Alignments.CheckRDFFile import check_rdf_file
-from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -178,9 +177,7 @@ def set_refined_name(specs):
 
 def run_checks(specs, check_type):
 
-    heading = "\n======================================================" \
-              "========================================================"\
-              "\nRUNNING LINKSET SPECS CHECK" \
+    heading = "RUNNING LINKSET SPECS CHECK" \
               "\n======================================================" \
               "========================================================"
     print heading
@@ -217,7 +214,7 @@ def run_checks(specs, check_type):
     # THE CURRENT AME EXIST
     if ask_1 == "true":
 
-        print "ASK_1: THE CURRENT NAME EXIST"
+        print "ASK_1: YES, THE CURRENT NAME EXIST"
         message = Ec.ERROR_CODE_2.replace('#', linkset)
 
         if St.refined in specs:
@@ -226,6 +223,8 @@ def run_checks(specs, check_type):
             subjects_target = linkset_wasderivedfrom(linkset)
             # CHECK THE RESULT OF THE DIFFERENCE AND OUT PUT BOTH THE REFINED AND THE DIFFERENCE
             if subjects_target is not None:
+
+                print "\t>>> NOT GOOD TO GO, IT ALREADY EXISTS"
 
                 diff_lens_specs = {
                     St.researchQ_URI: specs[St.researchQ_URI],
@@ -239,6 +238,7 @@ def run_checks(specs, check_type):
                 message2 = Ec.ERROR_CODE_7.replace('#', diff_lens_specs[St.lens])
                 refined = {St.message: message, St.error_code: 0, St.result: linkset}
                 difference = {St.message: message2, St.error_code: 7, St.result: diff_lens_specs[St.lens]}
+                # print "difference", difference
 
                 # REGISTER THE ALIGNMENT
                 if refined[St.message].__contains__("ALREADY EXISTS"):
@@ -249,7 +249,6 @@ def run_checks(specs, check_type):
                 # REGISTER THE LENS
                 Ura.register_lens(diff_lens_specs, is_created=False)
 
-                print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS"
                 return {St.message: "NOT GOOD TO GO", 'refined': refined, 'difference': difference}
         print message
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
@@ -521,5 +520,3 @@ def linkset_wasderivedfrom(refined_linkset_uri):
         if dictionary_result[St.result]:
             return dictionary_result[St.result][1][0]
     return None
-
-# print is_property_path("<mh>/<>/<>")

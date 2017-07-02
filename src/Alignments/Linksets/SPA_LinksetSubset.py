@@ -121,6 +121,9 @@ def spa_linkset_subset(specs, activated=False):
 
 def spa_subset_insert(specs):
 
+    src_aligns = specs[St.source][St.link_old] \
+        if Ls.nt_format(specs[St.source][St.link_old]) else "<{}>".format(specs[St.source][St.link_old])
+
     insert_query = """
     ###### INSERT SUBSET LINKSET
     PREFIX rdf:        <{}>
@@ -153,7 +156,7 @@ def spa_subset_insert(specs):
     }}
     """.format(Ns.rdf, Ns.singletons, Ns.alivocab,
                specs[St.linkset], specs[St.linkset_name], specs[St.sameAsCount], specs[St.source][St.graph_name],
-               specs[St.source][St.graph], specs[St.source][St.link_old], Ns.alivocab, specs[St.mechanism],
+               specs[St.source][St.graph], src_aligns, Ns.alivocab, specs[St.mechanism],
                specs[St.sameAsCount])
     # print insert_query
     return insert_query
@@ -162,7 +165,12 @@ def spa_subset_insert(specs):
 def specification_2_linkset_subset(specs, activated=False):
 
     if activated is False:
-        logger.warning("THE FUNCTION IS NOT ACTIVATED.")
+        print "\n======================================================" \
+              "========================================================" \
+              "\nTHE FUNCTION IS NOT ACTIVATED." \
+              "\n======================================================" \
+              "========================================================"
+        # logger.warning("THE FUNCTION IS NOT ACTIVATED.")
 
     if activated is True:
 
@@ -215,6 +223,10 @@ def specification_2_linkset_subset(specs, activated=False):
 
             # GENERATE THE LINKSET
             inserted_linkset = spa_linkset_subset(specs, activated)
+            # print "LINKSET SUBSET RESULT:", inserted_linkset
+
+            if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
+                return inserted_linkset
 
             if specs[St.triples] > "0":
 

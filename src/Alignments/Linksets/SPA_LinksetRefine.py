@@ -12,7 +12,21 @@ import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Refined_dir]
 
 
-def refine(specs, exact=False, exact_intermediate=False):
+def refine(specs, exact=False, exact_intermediate=False, activated=False):
+
+    heading = "======================================================" \
+              "========================================================" \
+              "\nEXECUTING LINKSET REFINE SPECIFICATIONS"
+    print heading
+
+    if activated is False:
+        print "THE FUNCTION IS NOT ACTIVATED" \
+              "\n======================================================" \
+              "========================================================"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
+    else:
+        print "THE FUNCTION IS ACTIVATED"
+
 
     # if True:
     try:
@@ -65,6 +79,7 @@ def refining(specs, insert_query):
     diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
 
     # UPDATE THE SPECS VARIABLE
+    # print "UPDATE THE SPECS VARIABLE"
     update_specification(specs)
     update_specification(specs[St.source])
     update_specification(specs[St.target])
@@ -93,7 +108,7 @@ def refining(specs, insert_query):
 
     # print "\nREFINED:", specs[St.refined]
     # print "LINKSET TO REFINE:", specs[St.linkset]
-    print "CHECK:", check
+    # print "CHECK:", check
 
     # THE LINKSET DOES NOT EXIT, LETS CREATE IT NOW
     print Ls.refined_info(specs, specs[St.sameAsCount])
@@ -431,7 +446,6 @@ def refine_metadata(specs):
     metadata = Gn.linkset_refined_metadata(specs)
 
     if int(specs[St.triples]) > 0:
-
 
         # print metadata
         is_inserted = Qry.boolean_endpoint_response(metadata["query"])

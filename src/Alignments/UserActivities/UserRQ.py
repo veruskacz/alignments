@@ -2,6 +2,7 @@ import re
 import Alignments.ErrorCodes as Ec
 import Alignments.Query as Qry
 import Alignments.Settings as St
+import Alignments.Utility as Ut
 
 INFO = False
 DETAIL = False
@@ -129,17 +130,18 @@ def research_question(question):
 #####################################################################################
 
 
-def register_dataset_mapping(question_uri, mapping):
+def register_dataset_mapping(question_uri, mapping, activated=True):
 
-    print "\nREGISTERING A [DATASET-MAPPING]" \
-          "\n======================================================" \
-          "========================================================"
-    ds_mapping_query = ds_mapping(question_uri, mapping)
-    inserted = Qry.boolean_endpoint_response(ds_mapping_query)
-    message = "THE DATASET MAPPING WAS SUCCESSFULLY INSERTED." if inserted \
-        else "DUE TO A SYSTEM FAILURE, THE MAPPING COULD NOT BE INSERTED."
-    print message
-    return {St.message: message, St.result: message}
+    if activated:
+        print "\nREGISTERING A [DATASET-MAPPING]" \
+              "\n======================================================" \
+              "========================================================"
+        ds_mapping_query = ds_mapping(question_uri, mapping)
+        inserted = Qry.boolean_endpoint_response(ds_mapping_query)
+        message = "THE DATASET MAPPING WAS SUCCESSFULLY INSERTED." if inserted \
+            else "DUE TO A SYSTEM FAILURE, THE MAPPING COULD NOT BE INSERTED."
+        print message
+        return {St.message: message, St.result: message}
 
 
 #####################################################################################
@@ -149,12 +151,12 @@ def register_dataset_mapping(question_uri, mapping):
 
 def register_alignment_mapping(alignment_mapping, created):
 
-    print "\nREGISTERING AN [ALIGNMENT-MAPPING]"
+    print "REGISTERING AN [ALIGNMENT-MAPPING]"
     question_uri = alignment_mapping[St.researchQ_URI]
 
     # MAKE URE THE WRITE URI IS USED WHEN REGISTERING A REFINED LINKSET
     linkset_uri = alignment_mapping[St.refined] if St.refined in alignment_mapping else alignment_mapping[St.linkset]
-    print "linkset_uri:", linkset_uri
+    print "\tLINKSET TO REGISTER:", linkset_uri
 
     # LINKSET EXISTS
     if linkset_uri:
@@ -168,7 +170,7 @@ def register_alignment_mapping(alignment_mapping, created):
 
         ask = Qry.boolean_endpoint_response(ask_query)
         # print ask_query
-        print "ASK WHETHER THE ALIGNMENT WAS REGISTERED:", ask
+        print "\t>>> ASK WHETHER THE [ALIGNMENT] WAS REGISTERED:", ask
 
         # 2 THE ALIGNMENT WAS NOT REGISTERED
         if ask == "false":
@@ -177,16 +179,16 @@ def register_alignment_mapping(alignment_mapping, created):
             insert_alignment_query = linkset_composition(alignment_mapping, request_ask_select_or_insert="insert")
             insert_alignment = Qry.boolean_endpoint_response(insert_alignment_query)
             # print insert_alignment_query
-            print ">>> ALIGNMENT INSERTED?:", insert_alignment
+            print "\t>>> IS THE [ALIGNMENT] NOW INSERTED?:", insert_alignment
 
             # 2.1 RETRIEVE THE ALIGNMENT-MAPPING URI
             alignment_uri = None
-            alignment_uri_query = ask_query.replace("ASK", "SELECT *")
+            alignment_uri_query = ask_query.replace("ASK", "SELECT ?alignmentMapping")
             alignment_uri_resp = Qry.sparql_xml_to_matrix(alignment_uri_query)
             if alignment_uri_resp:
                 if alignment_uri_resp[St.result]:
                     alignment_uri = alignment_uri_resp[St.result][1][0]
-            print "alignment_uri", alignment_uri
+            print "\t>>> ALIGNMENT REGISTERED AS:", alignment_uri
 
             if alignment_uri:
 
@@ -201,24 +203,29 @@ def register_alignment_mapping(alignment_mapping, created):
                     question_uri, alignment_uri, alignment_mapping, is_created=created)
 
                 is_linkset_registered = Qry.boolean_endpoint_response(assign_ls_query)
-                print ">>> IS LINKSET REGISTERED?:", is_linkset_registered
+                print ">>> IS THE [LINKSET] REGISTERED?:", is_linkset_registered
 
         # 3 THE ALIGNMENT WAS REGISTERED
         else:
 
             # CHECK IF THE LINKSET WAS REGISTERED
-            is_linkset_registered_query = ask_query.replace("> .", "> ;\n\t\t?pred\t<{}> .".format(linkset_uri))
-            is_linkset_registered_query = is_linkset_registered_query.replace(">\" .", ">\" ;\n\t\t?pred\t<{}> .".format(linkset_uri))
+            # is_linkset_registered_query = ask_query.replace("> .", "> ;\n\t\t?pred\t<{}> .".format(linkset_uri))
+            # is_linkset_registered_query = is_linkset_registered_query.replace(">\" .", ">\" ;\n\t\t?pred\t<{}> .".format(linkset_uri))
+
+            is_linkset_registered_query = ask_query.replace(
+                "###@SLOT", "\n\t\t\t?alignmentMapping ?pred\t<{}> .".format(linkset_uri))
+
             # print "CHECKING WHETHER THE LINKSET WAS TRULY REGISTERED QUERY:", is_linkset_registered_query
             is_linkset_registered = Qry.boolean_endpoint_response(is_linkset_registered_query)
             # print is_linkset_registered_query
-            print ">>> WAS LINKSET REGISTERED?:", is_linkset_registered
+            print "\t>>> ASK WHETHER [LINKSET] WAS REGISTERED?:", is_linkset_registered
 
             if is_linkset_registered == "false":
 
                 # RETRIEVE THE ALIGNMENT-MAPPING URI
                 alignment_uri = None
-                alignment_uri_query = ask_query.replace("ASK", "SELECT *")
+                alignment_uri_query = ask_query.replace("ASK", "SELECT ?alignmentMapping")
+                # print "alignment_uri_query:", alignment_uri_query
                 alignment_uri_resp = Qry.sparql_xml_to_matrix(alignment_uri_query)
                 if alignment_uri_resp:
                     if alignment_uri_resp[St.result]:
@@ -229,7 +236,7 @@ def register_alignment_mapping(alignment_mapping, created):
                     # IF WE ARE DEALING WITH A REFINED LINKSET,
                     # REGISTER ITS EVOLUTION IF NOT REGISTERED YET
                     if St.refined in alignment_mapping:
-                        print "REGISTERING THE EVOLUTION OF THIS REFINED LINKSET\n", alignment_uri
+                        print "REGISTERING THE EVOLUTION OF THIS REFINED LINKSET"
                         evolution_str = linkset_evolution(question_uri, linkset_uri)
                         register_evolution(question_uri, alignment_uri, evolution_str)
 
@@ -238,7 +245,7 @@ def register_alignment_mapping(alignment_mapping, created):
                         question_uri, alignment_uri, alignment_mapping, is_created=created)
 
                     is_linkset_registered = Qry.boolean_endpoint_response(assign_ls_query)
-                    print ">>> IS LINKSET NOW REGISTERED?:", is_linkset_registered
+                    print "\t>>> IS LINKSET NOW REGISTERED?:", is_linkset_registered
 
     # ELSE, NO NEED TO REGISTER AN ALIGNMENT FOR A NON EXISTING LINKSET
     # 2. LINKSET DOES NOT EXIST
@@ -262,6 +269,8 @@ def linkset_composition(alignment_mapping, request_ask_select_or_insert="ask", g
     composition_init = re.findall('{(.*\)).*<.*> a <.*?> ;.*}', construct, re.S)
     if len(composition_init) > 0:
         composition_init = composition_init[0]
+    else:
+        composition_init = ""
     # print "COMPOSITION BINDINGS:", composition_init
     composition = re.findall('{.*a <.*?> ;(.*)}', construct, re.S)
 
@@ -283,7 +292,7 @@ def linkset_composition(alignment_mapping, request_ask_select_or_insert="ask", g
     where = ""
 
     if request_ask_select_or_insert.upper() == "SELECT *":
-        ask = "SELECT"
+        ask = "SELECT "
 
     elif request_ask_select_or_insert.upper() == "INSERT":
         ask = "INSERT"
@@ -304,7 +313,7 @@ def linkset_composition(alignment_mapping, request_ask_select_or_insert="ask", g
         GRAPH <{1}>
         {{
             <{1}>   alivocab:created   ?alignmentMapping .
-            ?alignmentMapping a <http://risis.eu/class/AlignmentMapping> ;{2}\t\t}}
+            ?alignmentMapping a <http://risis.eu/class/AlignmentMapping> ;{2}\t\t\t\t###@SLOT\n\t\t}}
     }}
     {3}""".format(ask, question_uri, composition_str, where, composition_init)
 
@@ -384,12 +393,12 @@ def register_lens(specs, is_created=True):
     if is_created is True:
         created = "alivocab:created"
         inverse = "prov:used"
-        print "\nREGISTERING [{}] AS CREATED".format(specs[St.lens])
+        print "REGISTERING [{}] AS CREATED".format(specs[St.lens])
 
     else:
         created = "prov:used\t\t"
         inverse = "alivocab:created"
-        print "\nREGISTERING [{}] AS IMPORTED".format(specs[St.lens])
+        print "REGISTERING [{}] AS IMPORTED".format(specs[St.lens])
 
     query = PREFIX + """
     INSERT
@@ -409,11 +418,10 @@ def register_lens(specs, is_created=True):
                 <{0}>    {3}       <{2}> .
             }}
         }}
-    }}
-    """.format(specs[St.researchQ_URI], created, specs[St.lens], inverse)
+    }}""".format(specs[St.researchQ_URI], created, specs[St.lens], inverse)
     # print query
     registered = Qry.boolean_endpoint_response(query)
-    print ">>> IS lens REGISTERED?:", registered
+    print "\t>>> IS THE LENS REGISTERED?:", registered
 
 
 def linkset_wasderivedfrom(refined_linkset_uri):
@@ -489,7 +497,7 @@ def register_evolution(research_question_uri, alignment_uri, evolution_str):
 
     # print query
     registered = Qry.boolean_endpoint_response(query)
-    print ">>> IS EVOLUTION REGISTERED FOR {}?: {}".format(alignment_uri, registered)
+    print "\t>>> IS EVOLUTION REGISTERED FOR {}?: {}".format(alignment_uri, registered)
 
 
 def linkset_evolution(research_question_uri, refined_linkset_uri):
@@ -555,7 +563,10 @@ def linkset_evolution_composition(alignment_mapping):
 def linkset_createdorused(question_uri, alignment_mapping_uri, specs, is_created=True):
 
     if alignment_mapping_uri.__contains__("<<"):
-        alignment_uri = str(alignment_mapping_uri).replace("<<", "<").replace(">>", ">")
+        alignment_mapping_uri = str(alignment_mapping_uri).replace("<<", "<").replace(">>", ">")
+
+    if Ut.is_nt_format(alignment_mapping_uri) is False:
+        alignment_mapping_uri = "<{}>".format(alignment_mapping_uri)
 
     linkset_uri = specs[St.refined] if St.refined in specs else specs[St.linkset]
 
@@ -564,21 +575,21 @@ def linkset_createdorused(question_uri, alignment_mapping_uri, specs, is_created
     if is_created is True:
         created = "alivocab:created"
         opposed = "prov:used\t\t"
-        print "\nREGISTERING [{}] AS CREATED".format(linkset_uri)
+        print "REGISTERING [{}] AS CREATED".format(linkset_uri)
 
     else:
         created = "prov:used\t\t"
         opposed = "alivocab:created"
         comment = "#"
-        print "\nREGISTERING [{}] AS IMPORTED".format(linkset_uri)
+        print "REGISTERING [{}] AS IMPORTED".format(linkset_uri)
 
     query = PREFIX + """
     INSERT
     {{
         GRAPH <{0}>
         {{
-            <{1}>    {2}        <{3}> .
-            {4}<{1}>   prov:wasDerivedFrom     <{3}> .
+            {1}   {2}        <{3}> .
+            {4}{1}  prov:wasDerivedFrom     <{3}> .
         }}
     }}
     WHERE
@@ -587,9 +598,10 @@ def linkset_createdorused(question_uri, alignment_mapping_uri, specs, is_created
         {{
             FILTER NOT EXISTS
             {{
-                <{1}>    {5}        <{3}> .
+                {1}    {5}        <{3}> .
             }}
         }}
+        ### BIND(iri(\"{1}\") AS ?aligns)
     }}
     """.format(question_uri, alignment_mapping_uri, created, linkset_uri, comment, opposed)
 

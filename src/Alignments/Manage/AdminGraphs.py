@@ -472,7 +472,7 @@ def drop_linkset(graph, display=False, activated=False):
         print "{}{}{}".format(
             "======================================================="
             "=======================================================\n",
-            "DROPPING THE GRAPH <{}>... \nPLEASE WAIT FOR FEEDBACK.".format(graph),
+            "DROPPING THE LINKSET GRAPH <{}>... \nPLEASE WAIT FOR FEEDBACK.".format(graph),
             "\n======================================================="
             "======================================================="
         )
