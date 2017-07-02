@@ -6,60 +6,63 @@ from Alignments.Linksets.SPA_Linkset import specs_2_linkset, specs_2_linkset_int
 
 """ CREATED 6 LINKSETS BASED ON THE SPECIFICATIONS BELLOW
 
-    1 - http://risis.eu/activity/idea_algmt_d1a022
-    subjectsTarget   :	http://mytest.org/dbpedia-en
-    objectsTarget    :	http://mytest.org/dbpedia-nl
-    subjectsDatatype :	http://dbpedia.org/ontology/Artist
-    objectsDatatype  :	http://dbpedia.org/ontology/Artist
-    alignsSubjects   :	http://dbpedia.org/property/name
-    alignsObjects    :	http://nl.dbpedia.org/property/naam
-    >>> used         : 	http://risis.eu/linkset/en_nl_intermediate_name_P1910125924 | 3 correspondences found
-    >>> created      : 	http://risis.eu/linkset/en_nl_exactStrSim_name_N467336337 | 1 correspondences found
+     1 - http://risis.eu/activity/idea_algmt_d1a022
+        subjectsTarget   :	http://mytest.org/dbpedia-en
+        objectsTarget    :	http://mytest.org/dbpedia-nl
+        subjectsDatatype :	http://dbpedia.org/ontology/Artist
+        objectsDatatype  :	http://dbpedia.org/ontology/Artist
+        alignsSubjects   :	http://dbpedia.org/property/name
+        alignsObjects    :	http://nl.dbpedia.org/property/naam
+        >>> used         : 	http://risis.eu/linkset/en_nl_intermediate_name_P1910125924 | 3 correspondences found
+        >>> created      : 	http://risis.eu/linkset/en_nl_exactStrSim_name_N467336337 | 1 correspondences found
 
-    2 - http://risis.eu/activity/idea_algmt_b9870c
-    subjectsTarget   :	http://mytest.org/dbpedia-en
-    objectsTarget    :	http://mytest.org/dbpedia-nl
-    subjectsDatatype :	http://dbpedia.org/ontology/Artwork
-    objectsDatatype  :	http://schema.org/Painting
-    alignsSubjects   :	http://www.w3.org/2000/01/rdf-schema#label
-    alignsObjects    :	http://www.w3.org/2000/01/rdf-schema#label
-    >>> used         : 	http://risis.eu/linkset/en_nl_exactStrSim_label_P916744941 | 27 correspondences found
+     2 - http://risis.eu/activity/idea_algmt_b9870c
+        subjectsTarget   :	http://mytest.org/dbpedia-en
+        objectsTarget    :	http://mytest.org/dbpedia-nl
+        subjectsDatatype :	http://dbpedia.org/ontology/Artwork
+        objectsDatatype  :	http://schema.org/Painting
+        alignsSubjects   :	http://www.w3.org/2000/01/rdf-schema#label
+        alignsObjects    :	http://www.w3.org/2000/01/rdf-schema#label
+        >>> used         : 	http://risis.eu/linkset/en_nl_exactStrSim_label_P916744941 | 27 correspondences found
 
-    3 - http://risis.eu/activity/idea_algmt_d7fc6a
-    subjectsTarget   :	http://mytest.org/dbpedia-en
-    objectsTarget    :	http://mytest.org/dbpedia-en
-    subjectsDatatype :	http://dbpedia.org/ontology/Artwork
-    objectsDatatype  :	http://dbpedia.org/ontology/Artist
-    alignsSubjects   :	http://dbpedia.org/ontology/author
-    alignsObjects    :	http://risis.eu/alignment/predicate/resourceIdentifier
-    >>> created      : 	http://risis.eu/linkset/subset_en_en_unknown_author_P954196570 | 61 correspondences found
+     3 - http://risis.eu/activity/idea_algmt_d7fc6a
+        subjectsTarget   :	http://mytest.org/dbpedia-en
+        objectsTarget    :	http://mytest.org/dbpedia-en
+        subjectsDatatype :	http://dbpedia.org/ontology/Artwork
+        objectsDatatype  :	http://dbpedia.org/ontology/Artist
+        alignsSubjects   :	http://dbpedia.org/ontology/author
+        alignsObjects    :	http://risis.eu/alignment/predicate/resourceIdentifier
+        >>> created      : 	http://risis.eu/linkset/subset_en_en_unknown_author_P954196570 | 61 correspondences found
 
-    4 - http://risis.eu/activity/idea_algmt_9c5b05
-    subjectsTarget   :	http://mytest.org/dbpedia-nl
-    objectsTarget    :	http://mytest.org/dbpedia-nl
-    subjectsDatatype :	http://schema.org/Painting
-    objectsDatatype  :	http://dbpedia.org/ontology/Artist
-    alignsSubjects   :	http://dbpedia.org/ontology/painter
-    alignsObjects    :	http://risis.eu/alignment/predicate/resourceIdentifier
-    >>> created      : 	http://risis.eu/linkset/subset_nl_nl_unknown_painter_P946887441 | 73 correspondences found
+     4 - http://risis.eu/activity/idea_algmt_9c5b05
+        subjectsTarget   :	http://mytest.org/dbpedia-nl
+        objectsTarget    :	http://mytest.org/dbpedia-nl
+        subjectsDatatype :	http://schema.org/Painting
+        objectsDatatype  :	http://dbpedia.org/ontology/Artist
+        alignsSubjects   :	http://dbpedia.org/ontology/painter
+        alignsObjects    :	http://risis.eu/alignment/predicate/resourceIdentifier
+        >>> created      : 	http://risis.eu/linkset/subset_nl_nl_unknown_painter_P946887441 | 73 correspondences found
 
-    5 - http://risis.eu/activity/idea_algmt_cb1476
-    subjectsTarget   :	http://mytest.org/dbpedia-en
-    objectsTarget    :	http://mytest.org/dbpedia-nl
-    subjectsDatatype :	http://dbpedia.org/ontology/Artwork
-    objectsDatatype  :	http://schema.org/Painting
-    alignsSubjects   :	<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>
-    alignsObjects    :	<http://dbpedia.org/ontology/painter>/<http://nl.dbpedia.org/property/naam>
-    >>> used         : 	http://risis.eu/linkset/en_nl_exactStrSim_author_name_P435378798 | 4380 correspondences found
+     5 - http://risis.eu/activity/idea_algmt_cb1476
+        subjectsTarget   :	http://mytest.org/dbpedia-en
+        objectsTarget    :	http://mytest.org/dbpedia-nl
+        subjectsDatatype :	http://dbpedia.org/ontology/Artwork
+        objectsDatatype  :	http://schema.org/Painting
+        alignsSubjects   :	<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>
+        alignsObjects    :	<http://dbpedia.org/ontology/painter>/<http://nl.dbpedia.org/property/naam>
+        >>> used         : 	http://risis.eu/linkset/refined_en_nl_exactStrSim_label_P916744941_intermediate_author_name | 27 correspondences found
+        >>> used         : 	http://risis.eu/linkset/en_nl_exactStrSim_author_name_P435378798 | 4380 correspondences found
+        evolution        :	;
+    [Subjects=<http://www.w3.org/2000/01/rdf-schema#label> | Objects=<http://www.w3.org/2000/01/rdf-schema#label> | Mechanism=<http://risis.eu/mechanism/exactStrSim>]
 
-    6 - http://risis.eu/activity/idea_algmt_a2602a
-    subjectsTarget   :	http://mytest.org/dbpedia-en
-    objectsTarget    :	http://mytest.org/dbpedia-nl
-    subjectsDatatype :	http://dbpedia.org/ontology/Artwork
-    objectsDatatype  :	http://schema.org/Painting
-    alignsSubjects   :	<http://dbpedia.org/ontology/author>/<http://www.w3.org/2000/01/rdf-schema#label>
-    alignsObjects    :	<http://dbpedia.org/ontology/painter>/<http://nl.dbpedia.org/property/naam>
-    >>> created      : 	http://risis.eu/linkset/en_nl_exactStrSim_author_label_P566692296 | 4380 correspondences found
+     6 - http://risis.eu/activity/idea_algmt_a2602a
+        subjectsTarget   :	http://mytest.org/dbpedia-en
+        objectsTarget    :	http://mytest.org/dbpedia-nl
+        subjectsDatatype :	http://dbpedia.org/ontology/Artwork
+        objectsDatatype  :	http://schema.org/Painting
+        alignsSubjects   :	<http://dbpedia.org/ontology/author>/<http://www.w3.org/2000/01/rdf-schema#label>
+        alignsObjects    :	<http://dbpedia.org/ontology/painter>/<http://nl.dbpedia.org/property/naam>
+        >>> created      : 	http://risis.eu/linkset/en_nl_exactStrSim_author_label_P566692296 | 4380 correspondences found
 """
 
 ################################################################################################
@@ -189,6 +192,7 @@ ls_refined_specs = {
 
     St.mechanism: intermediate_exact_mechanism,
 
+    # THE LINKSET 2 NEEDS TO BE ACTIVATED FOR THIS
     St.linkset: linkset_2[St.result],
 
     St.intermediate_graph: dataset_intermediate,
