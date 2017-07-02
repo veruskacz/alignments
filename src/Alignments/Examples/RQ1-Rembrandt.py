@@ -177,8 +177,9 @@ ls_specs_2 = {
     St.target: dbpNlPainting,
     St.mechanism: exact_mechanism}
 
+
 print "\n\n>>> LINKSET 2: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
-linkset_2 = specs_2_linkset(ls_specs_2, display=False, activated=True)
+linkset_2 = specs_2_linkset(ls_specs_2, display=False, activated=False)
 # linkset_2 = ""
 # alignment_2 = ""
 
@@ -211,10 +212,11 @@ ls_refined_specs = {
 }
 
 print "\n\n>>> LINKSET 3: REFINING LINKSET 1"
-linkset_3 = refine(ls_refined_specs, exact=False, exact_intermediate=True, activated=True)
+linkset_3 = refine(ls_refined_specs, exact=False, exact_intermediate=True, activated=False)
 # linkset_3 = ""
 # alignment_3 = ""
-exit(0)
+
+
 ################################################################################################
 """ SPECS FOR GENERATING STANDARD LINKSETS WITH INTERMEDIATE DATASET """
 ################################################################################################
@@ -227,10 +229,11 @@ ls_specs_4 = {
     St.intermediate_graph: dataset_intermediate,
     St.mechanism: intermediate_exact_mechanism}
 
-print "\n\n>>> LINKSET 3: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
-linkset_4 = specs_2_linkset_intermediate(ls_specs_4, display=False, activated=True)
+print "\n\n>>> LINKSET 4: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
+linkset_4 = specs_2_linkset_intermediate(ls_specs_4, display=False, activated=False)
 # linkset_4 = ""
 # alignment_4 = ""
+
 
 ################################################################################################
 """ SPECS FOR GENERATING STANDARD LINKSETS WITH PROPERTY PATH """
@@ -250,12 +253,12 @@ ls_specs_6 = {
     St.target: dbpNlPainting_ProPath,
     St.mechanism: exact_mechanism}
 
-print "\n\n>>> LINKSET 4: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
+print "\n\n>>> LINKSET 5: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
 linkset_5 = specs_2_linkset(ls_specs_5, display=False, activated=False)
 # linkset_5 = "http://risis.eu/linkset/en_nl_exactStrSim_author_name_P435378798"
 # alignment_5 = "http://risis.eu/activity/idea_algmt_b9870c"
 
-print "\n\n>>> LINKSET 5: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
+print "\n\n>>> LINKSET 6: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
 linkset_6 = specs_2_linkset(ls_specs_6, display=False, activated=False)
 # linkset_6 = "http://risis.eu/linkset/en_nl_exactStrSim_author_label_P566692296"
 # alignment_6 = "http://risis.eu/activity/idea_algmt_a2602a"
@@ -271,8 +274,8 @@ ls_sub_specs_1 = {
     St.target: dbpEnSub_Artwork2Artist_trg,
     St.mechanism: subset_mechanism}
 
-print "\n\n>>> LINKSET 6: LINKING [ARTWORK] TO [ARTIST] WITHIN [THE SAME DATABASE] BDP ENGLISH "
-linkset_subset_1 = specification_2_linkset_subset(ls_sub_specs_1, activated=False)
+print "\n\n>>> LINKSET 7: LINKING [ARTWORK] TO [ARTIST] WITHIN [THE SAME DATABASE] BDP ENGLISH "
+linkset_subset_1 = specification_2_linkset_subset(ls_sub_specs_1, activated=True)
 # linkset_subset_1 = "http://risis.eu/linkset/subset_en_en_unknown_author_P954196570"
 # alignment_subset_1 = "http://risis.eu/activity/idea_algmt_d7fc6a"
 
@@ -283,7 +286,8 @@ ls_sub_specs_2 = {
     St.target: dbpNlSub_Painting2Artist_trg,
     St.mechanism: subset_mechanism}
 
-print "\n\n>>> LINKSET 7: LINKING [PAINTING] TO [ARTIST] WITHIN [THE SAME DATABASE] BDP NETHERLANDS "
-linkset_subset_2 = specification_2_linkset_subset(ls_sub_specs_2, activated=False)
+print "\n\n>>> LINKSET 8: LINKING [PAINTING] TO [ARTIST] WITHIN [THE SAME DATABASE] BDP NETHERLANDS "
+linkset_subset_2 = specification_2_linkset_subset(ls_sub_specs_2, activated=True)
 # linkset_subset_2 = "http://risis.eu/linkset/subset_nl_nl_unknown_painter_P946887441"
 # alignment_subset_2 = "http://risis.eu/activity/idea_algmt_9c5b05"
+exit(0)
