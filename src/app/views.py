@@ -1516,7 +1516,7 @@ def deleteLinkset():
 
     try:
         if mode == 'check':
-            query = Qry.check_linkset_dependencies_rq(rq_uri, linkset_uri)
+            query = Qry.check_graph_dependencies_rq(rq_uri, linkset_uri)
             result = sparql(query, strip=True)
             print ">>>> CHECKED: ", result, len(result) #, len(result[0])
             if (len(result) > 0) and (len(result[0]) > 0): #result is not empty [{}]
@@ -1536,6 +1536,43 @@ def deleteLinkset():
             result = sparql(query, strip=False)
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
+
+        else:
+            return json.dumps({'message':'Invalid mode.', 'result':None})
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        return json.dumps({'message':str(error.message), 'result':None})
+
+
+@app.route('/deleteLens')
+def deleteLens():
+    rq_uri = request.args.get('rq_uri', '')
+    lens_uri = request.args.get('lens_uri', '')
+    mode = request.args.get('mode', '')
+
+    try:
+        if mode == 'check':
+            query = Qry.check_graph_dependencies_rq(rq_uri, lens_uri)
+            result = sparql(query, strip=True)
+            print ">>>> CHECKED: ", result, len(result) #, len(result[0])
+            if (len(result) > 0) and (len(result[0]) > 0): #result is not empty [{}]
+                dependencies = 'The following dependencies need to be deleted first:</br>'
+                for r in result:
+                    dependencies += r['type_label']['value'] + ': ' + r['uri_stripped']['value'] + '</br>'
+                print dependencies
+                return json.dumps({'message': 'Check Dependencies', 'result': dependencies})
+            else:
+                return json.dumps({'message':'OK', 'result':None})
+            # return json.dumps({'message':'OK', 'result':None})
+
+        elif mode == 'delete':
+            print ">>>> TO DELETE:"
+            # query = adm.delete_lens_rq(rq_uri, lens_uri)
+            # print "CONDITIONAL DELETE QUERY:", query
+            # result = sparql(query, strip=False)
+            # print ">>>> DELETION RESULT:", result
+            return json.dumps({'message': 'Lens successfully deleted', 'result': 'OK'})
 
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
