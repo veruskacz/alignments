@@ -528,12 +528,18 @@ def sparql_xml_to_matrix(query):
                         # COLUMNS
                         # print "Key: ", key
                         # print "Value: ", value
-                        for i in range(variables_size):
+                        for data in value:
                             # print "value Items: ", value.items()[i][1]
                             # print "Length:", len(value.items())
                             if type(value) is list:
                                 # print "value:", value
-                                data = value[i]
+                                # data = value[i]
+
+                                get_property = data['@name']
+                                # print "get_property:", get_property
+                                index = name_index[get_property]
+                                # print "index", index
+
                                 index = name_index[data['@name']]
                                 item = value[index].items()[1][1]
                                 # print data['@name'], name_index[data['@name']]

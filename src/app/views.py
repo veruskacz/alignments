@@ -1248,7 +1248,7 @@ def viewdetails():
     #     details += '<br/>'
     list_pred = []
 
-    print view
+    # print view
 
     for row in view['view_filter_matrix'][1:]:
         dataset_uri = row[0]
