@@ -378,6 +378,9 @@ def linksetdetails():
     query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
     details = sparql(query, strip=True)
 
+    print "LINKSET DETAIL QUERY:", query
+    print "LINKSET DETAIL RESULT:", details
+
     s_property_list = ''
     o_property_list = ''
     mechanism_list = ''
@@ -390,15 +393,20 @@ def linksetdetails():
         list3 = d['mechanism']['value'].split("|")
 
         for i in range(len(list1)):
-            s_property_list += get_URI_local_name(list1[i]) + ' | ' \
-                if i < len(list1) - 1 else get_URI_local_name(list1[i])
 
-            o_property_list += get_URI_local_name(list2[i]) + ' | ' \
-                if i < len(list1) - 1 else get_URI_local_name(list2[i])
+            # print "list1", i, list1
 
-            mechanism_list += get_URI_local_name(list3[i]) + ' | ' \
-                if i < len(list1) - 1 else get_URI_local_name(list3[i])
+            if len(list1[i]) > 0:
+                s_property_list += get_URI_local_name(list1[i]) + ' | ' \
+                    if i < len(list1) - 1 else get_URI_local_name(list1[i])
 
+            if len(list2[i]) > 0:
+                o_property_list += get_URI_local_name(list2[i]) + ' | ' \
+                    if i < len(list1) - 1 else get_URI_local_name(list2[i])
+
+            if len(list3[i]) > 0:
+                mechanism_list += get_URI_local_name(list3[i]) + ' | ' \
+                    if i < len(list1) - 1 else get_URI_local_name(list3[i])
 
     query = Qry.get_linkset_corresp_details(linkset, limit=10)
     metadata = sparql(query, strip=True)

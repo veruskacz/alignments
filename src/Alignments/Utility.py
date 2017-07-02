@@ -42,7 +42,7 @@ def is_property_path(resource):
 
 
 def get_uri_local_name(uri):
-    # print "URI: {}".format(uri)
+    print "URI: {}".format(uri)
     # print type(uri)
 
     if uri is None:
