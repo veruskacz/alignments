@@ -129,8 +129,36 @@
        </div>
      </div>
    </div>
-   <div id="collapse_lens_create" class="panel-collapse collapse in" target="link_collapse_lens_create">
-   <div class="panel-body">
+    <div class="panel-heading" id="edit_lens_heading" style='display:none'>
+     <div class="row">
+       <div class="col-md-4">
+          <h4 class="panel-title">
+            <a id="link_collapse_lens_edit"
+                 data-toggle="collapse" href="#collapse_lens_create">
+                <span class="badge alert-info"><strong>-</strong></span></a>
+            Edit Lens
+          </h4>
+       </div>
+       <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="lens_edit_message_col"></div></td>
+                   <td valign="center"><div class="loading"></div></td>
+                   <td align="right"><button type="button" id="editLensButton"
+                       class="btn btn-success btn btn-primary disabled"
+                       onclick="editLensClick()">Edit Lens</button>
+                   <button type="button" id="deleteLensButton"
+                       class="btn btn-success btn btn-primary"
+                       onclick="deleteLensClick()">Delete Lens</button>
+                   </td>
+           </table>
+       </div>
+     </div>
+   </div>
+   <div id="collapse_lens_create" class="panel-collapse collapse in"
+        target="link_collapse_lens_create"
+        target2="link_collapse_lens_edit">
+   <div class="panel-body" id="lens_inspect_panel_body">
     <div class="row">
       <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_operation_col">
           <div class="row">
