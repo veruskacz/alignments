@@ -1732,10 +1732,11 @@ def strip_dict(result_dict):
             if v['type'] == 'uri' and not k+'_label' in r.keys():
                 new_result[k+'_label'] = {}
                 new_result[k+'_label']['type'] = 'literal'
-                temp = v['value']
-                temp = temp[temp.rfind('/')+1:]
-                temp = temp[temp.rfind('#')+1:]
-                new_result[k+'_label']['value'] = temp
+                # temp = v['value']
+                # temp = temp[temp.rfind('/')+1:]
+                # temp = temp[temp.rfind('#')+1:]
+                # new_result[k+'_label']['value'] = temp
+                new_result[k + '_label']['value'] = Ut.get_uri_local_name(v['value'])
 
             elif not k+'_label' in r.keys():
                 new_result[k+'_label'] = {}
@@ -1744,18 +1745,19 @@ def strip_dict(result_dict):
 
             new_result[k+'_stripped'] = {}
             new_result[k+'_stripped']['type'] = 'literal'
-            temp = v['value']
-            temp = temp[temp.rfind('/')+1:]
-            temp = temp[temp.rfind('#')+1:]
+            # temp = v['value']
+            # temp = temp[temp.rfind('/')+1:]
+            # temp = temp[temp.rfind('#')+1:]
             if k == 'uri':  ## specially for removing _ when var name is uri
-                new_result[k+'_stripped']['value'] = temp.replace('_',' ')
+                new_result[k+'_stripped']['value'] = new_result[k + '_label']['value'].replace('_',' ')
             else:
-                new_result[k+'_stripped']['value'] = temp
+                new_result[k+'_stripped']['value'] = new_result[k + '_label']['value']
 
             new_result[k] = v
 
         new_results.append(new_result)
     return new_results
+
 
 # TODO Deprecated because its been updated with optional functionality
 def sparql_xml_to_matrix2(query):
