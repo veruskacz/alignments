@@ -537,12 +537,13 @@ def sparql_xml_to_matrix(query):
 
                                 get_property = data['@name']
                                 # print "get_property:", get_property
-                                index = name_index[get_property]
+                                # index = name_index[get_property]
                                 # print "index", index
 
                                 index = name_index[data['@name']]
-                                item = value[index].items()[1][1]
+                                item = data.items()[1][1]
                                 # print data['@name'], name_index[data['@name']]
+                                matrix[1][index] = item
 
                             elif type(value) is collections.OrderedDict:
                                 index = name_index[value['@name']]
@@ -2150,6 +2151,27 @@ def construct_namedgraph(namedgraph):
     )
     return query
 
+
+def linkset_aligns_prop(linkset_uri):
+    query = """
+        ################################################################
+        PREFIX ll:    <{}>
+        PREFIX prov:  <{}>
+
+        ### LINKSET ALIGNED PROPERTIES
+
+        SELECT ?s_prop ?o_prop
+        {{
+            ### RETRIEVING LINKSET METADATA
+            <{}>
+                prov:wasDerivedFrom*        ?linkset .
+
+            ?linkset
+                ll:alignsSubjects     ?s_prop ;
+                ll:alignsObjects      ?o_prop .
+        }}
+    """.format(Ns.alivocab, Ns.prov, linkset_uri)
+    return query
 
 def properties(named_graph_uri, display=False):
 

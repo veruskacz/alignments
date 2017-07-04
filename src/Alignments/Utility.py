@@ -42,7 +42,7 @@ def is_property_path(resource):
 
 
 def get_uri_local_name(uri):
-    print "URI: {}".format(uri)
+    # print "URI: {}".format(uri)
     # print type(uri)
 
     if uri is None:
@@ -53,6 +53,21 @@ def get_uri_local_name(uri):
 
     # if type(uri) is not str:
     #     return None
+
+    if is_property_path(uri) or is_nt_format(uri):
+
+        name = ""
+        pro_list = re.findall("<([^<>]*)>/*", uri)
+
+        for i in range(len(pro_list)):
+            local = get_uri_local_name(pro_list[i])
+            if i == 0:
+                name = local
+            else:
+                name = "{}_{}".format(name, local)
+                # print ">>>> name: ", name
+        return name
+
 
     else:
         non_alphanumeric_str = re.sub('[ \w]', '', uri)
@@ -68,6 +83,21 @@ def get_uri_local_name(uri):
 def get_uri_ns_local_name(uri):
     if (uri is None) or (uri == ""):
         return None
+
+    if is_property_path(uri) or is_nt_format(uri):
+
+        name = ""
+        pro_list = re.findall("<([^<>]*)>/*", uri)
+
+        for i in range(len(pro_list)):
+            local = get_uri_local_name(pro_list[i])
+            if i == 0:
+                name = local
+            else:
+                name = "{}_{}".format(name, local)
+                # print ">>>> name: ", name
+        return [None, name]
+
     else:
         non_alphanumeric_str = re.sub('[ \w]', '', uri)
         if non_alphanumeric_str == "":
@@ -583,3 +613,7 @@ def normalise_path(file_path):
     file_path = re.sub('[\t]', "\\\\t", file_path)
     file_path = re.sub('[\v]', "\\\\v", file_path)
     return file_path
+
+
+# print get_uri_local_name("<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>")
+# print get_uri_ns_local_name("<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>")

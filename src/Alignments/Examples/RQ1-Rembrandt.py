@@ -179,7 +179,7 @@ ls_specs_2 = {
 
 
 print "\n\n>>> LINKSET 2: LINKING [ARTWORK] IN BDP ENGLISH TO [PAINTING] IN DBP NETHERLANDS "
-linkset_2 = specs_2_linkset(ls_specs_2, display=False, activated=False)
+linkset_2 = specs_2_linkset(ls_specs_2, display=False, activated=True)
 # linkset_2 = ""
 # alignment_2 = ""
 
@@ -212,7 +212,7 @@ ls_refined_specs = {
 }
 
 print "\n\n>>> LINKSET 3: REFINING LINKSET 1"
-linkset_3 = refine(ls_refined_specs, exact=False, exact_intermediate=True, activated=False)
+linkset_3 = refine(ls_refined_specs, exact=False, exact_intermediate=True, activated=True)
 # linkset_3 = ""
 # alignment_3 = ""
 
