@@ -78,6 +78,10 @@
                            <!--<button type="button" id="editViewButton"-->
                            <!--class="btn btn-success btn btn-primary disabled"-->
                            <!--onclick="editViewClick()">Edit View</button>-->
+                       <button type="button" id="editLabelViewButton"
+                           class="btn btn-success btn btn-primary disabled"
+                           data-toggle="modal" data-target="#myModal"
+                           onclick="editLabelViewClick()">Edit Label</button>
                        <button type="button" id="deleteViewButton"
                            class="btn btn-success btn btn-primary disabled"
                            onclick="deleteViewClick()">Delete View</button>
@@ -103,6 +107,31 @@
               <div class="row">
                 <div class="col" id="inspect_views_details_col" style='width: 100%;'>
                 <!-- will be rendered via server -->
+                </div>
+              </div>
+            </div>
+          </div>
+        <!-- Modal -->
+          <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">  <!--modal-sm">-->
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Edit View Label</h4>
+                </div>
+                <div class="modal-body">
+                  <!--<p>This is a small modal.</p>-->
+                    <form role="form">
+                        <div class="form-group">
+                          <label for="viewLabel"><span class="glyphicon glyphicon glyphicon-tag"></span> View Label</label>
+                          <input type="text" class="form-control" id="viewLabel" placeholder="Enter label">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                  <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                  <button type="button" data-dismiss="modal"
+                          class="btn btn-success pull-right" onclick='editLabelViewClick(this);'> Save</button>
                 </div>
               </div>
             </div>

@@ -1103,9 +1103,9 @@ def get_linkset_corresp_details(linkset, limit=1):
     return query
 
 
-def check_linkset_dependencies_rq(rq_uri, linkset_uri):
+def check_graph_dependencies_rq(rq_uri, graph_uri):
     query = PREFIX + """
-    ### CHECK LINKSET DEPENDENCIES
+    ### CHECK LINKSET/LENS DEPENDENCIES
     
     SELECT ?uri ?type
     {{  
@@ -1125,7 +1125,7 @@ def check_linkset_dependencies_rq(rq_uri, linkset_uri):
           }}      
         }}
     }}  ORDER BY ?type   
-    """.format(rq_uri, linkset_uri)
+    """.format(rq_uri, graph_uri)
     print query
     return query
 

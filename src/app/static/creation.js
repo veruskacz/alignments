@@ -45,6 +45,7 @@ function idea_button(targetId)
    }
 }
 
+
 function mainButtonClick(targetId)
 {
    activateTargetDiv(targetId);
@@ -70,6 +71,7 @@ function mainButtonClick(targetId)
         rqClick(elem, mode=mode);
    }
 }
+
 
 //datasetButtonClick
 function importButtonClick(targetId)
@@ -108,6 +110,7 @@ function create_idea_button(th)
     $('#idea_create_row').hide();
   }
 }
+
 
 function inspect_idea_button(th)
 {
@@ -149,6 +152,7 @@ function inspect_idea_button(th)
   }
 }
 
+
 function overview_idea_button(th)
 {
   if (selectedButton(th)) {
@@ -171,6 +175,7 @@ function overview_idea_button(th)
   }
 //  refresh_create_idea();
 }
+
 
 function update_idea_enable(rq_uri)
 {
@@ -199,6 +204,7 @@ function update_idea_enable(rq_uri)
     });
 }
 
+
 function overview_idea_enable(rq_uri)
 {
     $('#overview_idea_selected_RQ').val('Loading...');
@@ -220,12 +226,14 @@ function overview_idea_enable(rq_uri)
     });
 }
 
+
 function datasetMappingClick(th)
 {
   var target = $(th.parentNode).attr('target');
   var newContainer = document.getElementById(target);
   $(newContainer).append(th);
 }
+
 
 function updateIdeaClick()
 {
@@ -257,6 +265,7 @@ function updateIdeaClick()
       $('#idea_update_message_col').html(addNote(missing_feature));
    }
 }
+
 
 function createIdeaClick()
 {
@@ -382,6 +391,7 @@ function inspect_linkset_activate(mode)
   }
 }
 
+
 function loadEditPanel(obj, mode)
 {
     setAttr('hidden_src_div','uri',obj.subTarget.value);
@@ -497,6 +507,7 @@ function create_linkset_activate()
       $('#button-trg-col').html(data);
    });
 }
+
 
 // Button that actually creates the linkset
 // it checks the selected elements and assemble them into dictionaries
@@ -735,7 +746,7 @@ function deleteLinksetClick()
     if (elems.length > 0) // if any element is selected
     {
         linkset = $(elems[0]).attr('uri');  // it should have only one selected
-        alert(linkset);
+        //alert(linkset);
         var message = "Checking for linkset dependencies...";
         $('#linkset_edit_message_col').html(addNote(message,cl='warning'));
         loadingGif(document.getElementById('linkset_edit_message_col'), 2);
@@ -933,23 +944,44 @@ function inspect_lens_activate(mode)
              { $('#inspect_lens_lens_details_col').html(data);
              });
 
-            // load the panel for filter
-              $('#creation_lens_filter_row').show();
+            if (mode == 'edit')
+            {
+                $('#creation_lens_row').show();
+                enableButton('deleteLensButton');
+            }
+            else
+            {
+                // load the panel for filter
+                  $('#creation_lens_filter_row').show();
 
-            // load the panel for correspondences details
-              $('#creation_lens_correspondence_row').show();
-              //already has Loading...
-              $.get('/getlensdetails',data={'lens': lens_uri,
-                                            'template': 'none'},function(data)
-              {
-                var obj = JSON.parse(data);
-                showDetails(rq_uri, lens_uri, obj);
-              });
+                // load the panel for correspondences details
+                  $('#creation_lens_correspondence_row').show();
+                  //already has Loading...
+                  $.get('/getlensdetails',data={'lens': lens_uri,
+                                                'template': 'none'},function(data)
+                  {
+                    var obj = JSON.parse(data);
+                    showDetails(rq_uri, lens_uri, obj);
+                  });
+            }
           }
         });
     });
+
+    if (mode == 'edit') {
+      $('#lens_inspect_panel_body').hide();
+      $('#creation_lens_filter_row').hide();
+      $('#creation_lens_correspondence_row').hide();
+      $('#creation_lens_row').show();
+      $('#edit_lens_heading').show();
+      enableButton('deleteLensButton', enable=false);
+    }
+    else
+    { $('#lens_inspect_panel_body').show(); }
+
   }
 }
+
 
 function create_lens_activate()
 {
@@ -957,6 +989,7 @@ function create_lens_activate()
 
     //   $('#lens_creation_message_col').html('');
     refresh_create_lens();
+    $('#lens_inspect_panel_body').show();
 
    $('#creation_lens_linkset_selection_col').html('Loading...');
    $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
@@ -1065,6 +1098,7 @@ function createLensClick()
     }
  }
 
+
 function importLensClick()
 {
     var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
@@ -1095,6 +1129,61 @@ function importLensClick()
 }
 
 
+function deleteLensClick()
+{
+    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+    var lens = '';
+    var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        lens = $(elems[0]).attr('uri');  // it should have only one selected
+        //alert(lens);
+        var message = "Checking for lens dependencies...";
+        $('#lens_edit_message_col').html(addNote(message,cl='warning'));
+        loadingGif(document.getElementById('lens_edit_message_col'), 2);
+
+        // call function that creates the linkset
+        $.get('/deleteLens', data={'rq_uri':rq_uri, 'lens_uri':lens, 'mode':'check'}, function(data)
+        {
+            var obj = JSON.parse(data);
+            if (obj.message == 'OK')
+            {   var test = confirm("Delete the lens?");
+                if (test)
+                {
+                    var message = "Deleting Lens...";
+                    $('#lens_edit_message_col').html(addNote(message,cl='warning'));
+
+                    $.get('/deleteLens', data={'rq_uri':rq_uri, 'lens_uri':lens, 'mode':'delete'}, function(data)
+                    {
+                        var obj = JSON.parse(data);
+                        if (obj.result == 'OK')
+                        {   $('#btn_edit_ens').click();
+                            $('#lens_edit_message_col').html(addNote(obj.message,cl='info')); }
+                        else
+                        {    $('#lens_edit_message_col').html(addNote(obj.message)); }
+
+                        loadingGif(document.getElementById('lens_edit_message_col'), 2, show=false);
+                    });
+                }
+                else
+                {   $('#lens_edit_message_col').html('');
+                    loadingGif(document.getElementById('lens_edit_message_col'), 2, show=false);
+                }
+            }
+            else if (obj.message == 'Check Dependencies')
+            {
+                $('#lens_edit_message_col').html(addNote(obj.result));
+                loadingGif(document.getElementById('lens_edit_message_col'), 2, show=false);
+            }
+            else
+            {
+                $('#lens_edit_message_col').html(addNote(obj.message));
+                loadingGif(document.getElementById('lens_edit_message_col'), 2, show=false);
+            }
+        });
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in viewsCreation.html
 ///////////////////////////////////////////////////////////////////////////////
@@ -1115,6 +1204,7 @@ function create_views_activate()
 
     view_load_linkesets_lenses(rq_uri);
 }
+
 
 function view_load_datasets_predicates(rq_uri, view_filters=null)
 {
@@ -1193,6 +1283,7 @@ function view_load_datasets_predicates(rq_uri, view_filters=null)
      }
 }
 
+
 function view_load_linkesets_lenses(rq_uri, view_lens=null)
 {
   $('#creation_view_linkset_col').html('Loading...');
@@ -1260,6 +1351,7 @@ function view_load_linkesets_lenses(rq_uri, view_lens=null)
 
 }
 
+
 function inspect_views_activate(mode="inspect")
 {
   var rq_uri = $('#creation_view_selected_RQ').attr('uri');
@@ -1277,6 +1369,7 @@ function inspect_views_activate(mode="inspect")
         $('#inspect_view_heading').hide();
         $('#edit_view_heading').show();
         enableButton('deleteViewButton', enable=false);
+        enableButton('editLabelViewButton', enable=false);
     }
 
     $('#view_edit_message_col').html("");
@@ -1302,8 +1395,6 @@ function inspect_views_activate(mode="inspect")
             $('#view_creation_save_message_col').html("");
             $('#creation_view_selected_predicates_group').html("");
             var view_uri = $(this).attr('uri');
-
-
 
               // load the panel for correspondences details
               $('#inspect_views_details_col').html('Loading...');
@@ -1332,13 +1423,12 @@ function inspect_views_activate(mode="inspect")
                     $('#creation_view_row').hide();
                     $('#creation_view_filter_row').hide();
                     enableButton('deleteViewButton');
+                    enableButton('editLabelViewButton');
                 }
 
               });
 
            $('#creation_view_results_row').hide();
-
-//           $("#collapse_view_lens").collapse("hide");
            $("#collapse_view_filter").collapse("hide");
 
           }
@@ -1347,6 +1437,7 @@ function inspect_views_activate(mode="inspect")
 
   }
 }
+
 
 function createViewClick(mode)
 {
@@ -1425,6 +1516,18 @@ function createViewClick(mode)
     }
 }
 
+
+function editLabelViewClick(elem)
+{
+    var test = $("#myModal #viewLabel").val().trim();
+    if (test)
+    {
+        alert(test);
+    }
+    $(elem).dialog("close");
+}
+
+
 function deleteViewClick()
 {
     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
@@ -1457,6 +1560,7 @@ function deleteViewClick()
     }
 }
 
+
 function runViewClick()
 {
   //$('#view_creation_message_col').html("");
@@ -1473,6 +1577,7 @@ function runViewClick()
   });
 }
 
+
 function showQuery(th)
 {
     if (selectMultiButton(th)) {
@@ -1483,6 +1588,7 @@ function showQuery(th)
     }
 }
 
+
 function detailsViewClick(th)
 {
     if (selectMultiButton(th)) {
@@ -1492,6 +1598,7 @@ function detailsViewClick(th)
         $('#creation_view_row').hide();
     }
 }
+
 
 function resultViewClick(th)
 {
@@ -1582,6 +1689,7 @@ function rqClick(th, mode)
   }
 }
 
+
 // Function fired onclick of a dataset from list. It fires the requests
 // /getentitytyperq and /getpredicates the resulting list_dropdown are
 // loaded into both buttons button-src-col and button-trg-col.
@@ -1655,6 +1763,7 @@ function datasetClick(th)
         });
     }
 }
+
 
 // Function fired onclick of a option from a list
 // it reads from the ancestor-element of a certain class
@@ -1812,6 +1921,7 @@ function selectionClick(th, ancestorType)
     }
 }
 
+
 function resetDivSelectedEntity(button_id,mode)
 {
     if (mode == 'predicate')
@@ -1843,6 +1953,7 @@ function resetDivSelectedEntity(button_id,mode)
         }
     }
 }
+
 
 // Function fired onclick of a methods from list
 function methodClick(th)
@@ -2149,6 +2260,7 @@ function import_dataset_button(th)
     refresh_import();
 }
 
+
 function import_alignent_button(th)
 {
     $('#import_title').html('<h3>Import Alignment</h3>');
@@ -2160,6 +2272,7 @@ function import_alignent_button(th)
     $('#viewDatasetButton').hide();
     refresh_import();
 }
+
 
 $(".collapse").on('hidden.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));
@@ -2173,6 +2286,7 @@ $(".collapse").on('hidden.bs.collapse', function(){
     {$(target).html(' <span class="badge alert-info"><strong>+</strong></span> ');}
 });
 
+
 $(".collapse").on('shown.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));
     if (target)
@@ -2184,6 +2298,7 @@ $(".collapse").on('shown.bs.collapse', function(){
     if (target)
     {$(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');}
 });
+
 
 function convertDatasetClick()
 {
@@ -2286,6 +2401,7 @@ function viewSampleFileClick()
         $('#dataset_upload_message_col').html(addNote(missing_feature));
     }
 }
+
 
 function viewSampleAlignFileClick()
 {
