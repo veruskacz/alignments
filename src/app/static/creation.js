@@ -295,7 +295,7 @@ function createIdeaClick()
            update_idea_enable();
        });
    } else {
-      $('#idea_creation_message_col').html(addNote("Please informe the Research Question!"));
+      $('#idea_creation_message_col').html(addNote("Please inform the Research Question!"));
    }
 }
 
