@@ -2173,6 +2173,7 @@ def linkset_aligns_prop(linkset_uri):
     """.format(Ns.alivocab, Ns.prov, linkset_uri)
     return query
 
+
 def properties(named_graph_uri, display=False):
 
     query = """

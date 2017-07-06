@@ -929,6 +929,7 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
         print query
     return query
 
+
 # TODO: this seams to not work for property path
 def get_linkset_corresp_sample_details_old(linkset, limit=1):
 
@@ -995,53 +996,52 @@ def get_linkset_corresp_sample_details_old(linkset, limit=1):
 def get_linkset_corresp_sample_details(linkset, limit=1):
 
     query = PREFIX + """
-        SELECT DISTINCT
-		(GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
-		(GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
-		(GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
-        ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
-		?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-        WHERE
+    SELECT DISTINCT
+    (GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
+    (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
+    (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
+    ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
+    ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
+    WHERE {{
+        <{0}>
+            prov:wasDerivedFrom*        ?linkset .
+        ?linkset
+            alivocab:alignsMechanism    ?mec ;
+            void:subjectsTarget         ?subTarget ;
+            bdb:subjectsDatatype        ?s_datatype ;
+            alivocab:alignsSubjects     ?s_prop;
+            void:objectsTarget          ?objTarget ;
+            bdb:objectsDatatype         ?o_datatype ;
+            alivocab:alignsObjects      ?o_prop ;
+            void:triples                ?triples .
         {{
-            <{0}>
-                prov:wasDerivedFrom*        ?linkset .
-            ?linkset
-                alivocab:alignsMechanism    ?mec ;
-                void:subjectsTarget         ?subTarget ;
-                bdb:subjectsDatatype        ?s_datatype ;
-                alivocab:alignsSubjects     ?s_prop;
-                void:objectsTarget          ?objTarget ;
-                bdb:objectsDatatype         ?o_datatype ;
-                alivocab:alignsObjects      ?o_prop ;
-                void:triples                ?triples .
+            SELECT ?sub_uri ?obj_uri
+            (GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
+            (GROUP_CONCAT(DISTINCT ?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
             {{
-            	SELECT ?sub_uri ?obj_uri
-              	(GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
-        		(GROUP_CONCAT(DISTINCT ?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
-              	{{
-                    GRAPH  <{0}>
+                GRAPH  <{0}>
+                {{
+                    ?sub_uri    ?aligns        ?obj_uri
+                }}
+                GRAPH ?subTarget
+                {{
+                    ###SOURCE SLOT
+                }}
+                OPTIONAL
+                {{
+                    graph ?objTarget
                     {{
-                        ?sub_uri    ?aligns        ?obj_uri
+                        ###TARGET SLOT
                     }}
-                    GRAPH ?subTarget
-                    {{
-                        ###SOURCE SLOT
-                    }}
-                    OPTIONAL
-                    {{
-                        graph ?objTarget
-                        {{
-                            ###TARGET SLOT
-                        }}
-                    }}
-                    BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
-                    BIND ("" AS ?operator)
-                }} GROUP BY ?sub_uri ?obj_uri
-            }}
+                }}
+                BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
+                BIND ("" AS ?operator)
+            }} GROUP BY ?sub_uri ?obj_uri
         }}
-        GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype
-        ?triples ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
-        LIMIT {1}""".format(linkset, limit)
+    }}
+    GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype
+    ?triples ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
+    LIMIT {1}""".format(linkset, limit)
 
     source = ""
     source_bind = ""

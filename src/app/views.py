@@ -1715,8 +1715,8 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
     """This method replaces the SPARQLWrapper SPARQL interface, since SPARQLWrapper
     cannot handle the Stardog-style query headers needed for inferencing"""
 
-    result = requests.get(endpoint_url,
-        params={'query': query, 'reasoning': REASONING_TYPE}, headers=QUERY_HEADERS)
+    result = requests.post(endpoint_url,
+        data={'query': query, 'reasoning': REASONING_TYPE}, headers=QUERY_HEADERS)
     try :
         result_dict = json.loads(result.content)
     except Exception as e:
