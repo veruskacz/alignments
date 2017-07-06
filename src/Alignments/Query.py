@@ -2157,10 +2157,11 @@ def linkset_aligns_prop(linkset_uri):
         ################################################################
         PREFIX ll:    <{}>
         PREFIX prov:  <{}>
+        PREFIX alivocab:  <{}>
 
         ### LINKSET ALIGNED PROPERTIES
 
-        SELECT ?s_prop ?o_prop
+        SELECT ?s_prop ?o_prop ?mec
         {{
             ### RETRIEVING LINKSET METADATA
             <{}>
@@ -2168,9 +2169,11 @@ def linkset_aligns_prop(linkset_uri):
 
             ?linkset
                 ll:alignsSubjects     ?s_prop ;
-                ll:alignsObjects      ?o_prop .
+                ll:alignsObjects      ?o_prop ;
+                alivocab:alignsMechanism   ?mec .
         }}
-    """.format(Ns.alivocab, Ns.prov, linkset_uri)
+    """.format(Ns.alivocab, Ns.prov, Ns.alivocab, linkset_uri)
+    print query
     return query
 
 
