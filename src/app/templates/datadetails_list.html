@@ -3,6 +3,7 @@
             <li class="list-group-item" id='DT{{e.pred.value }}' uri='<{{e.pred.value}}>'
                 onclick='{{ function }}'
                 label='{{ e.pred_stripped.value }}'
+                value = '{{ e.obj.value }}'
                 obj_type="{{ e.obj.type }}"
                 {% if (e.optional) %}
                     optional = '{{ e.optional.value }}'
