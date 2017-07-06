@@ -1550,7 +1550,8 @@ function deleteViewClick()
             {
                 var obj = JSON.parse(data);
                 if (obj.result == 'OK')
-                {    $('#view_edit_message_col').html(addNote(obj.message,cl='info')); }
+                {   $('#btn_edit_view').click();
+                    $('#view_edit_message_col').html(addNote(obj.message,cl='info')); }
                 else
                 {    $('#view_edit_message_col').html(addNote(obj.message)); }
 
