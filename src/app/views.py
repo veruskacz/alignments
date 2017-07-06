@@ -1032,7 +1032,8 @@ def refineLinkset():
             linkset_result = None
 
         elif specs[St.mechanism] == "intermediate":
-            linkset_result = refine.refine(specs, exact_intermediate=True)
+            linkset_result = refine.refine(specs, exact_intermediate=True, activated=True)
+            # print linkset_result
             #linkset_result = result['refined']
 
         else:
@@ -1044,11 +1045,15 @@ def refineLinkset():
 
     # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
     if linkset_result:
-        refined = linkset_result[St.refined]
-        if refined:
-            if refined[St.error_code] == 0:
-                return json.dumps(refined)
-
+        if St.refined in linkset_result:
+            refined = linkset_result[St.refined]
+            if refined:
+                if refined[St.error_code] == 0:
+                    return json.dumps(refined)
+        else:
+            linkset_result = {'message': linkset_result[St.message],
+                              'error_code': -1,
+                              'linkset': ''}
     # print "\n\n\n{}".format(linkset_result['message'])
     return json.dumps(linkset_result)
 
