@@ -912,7 +912,7 @@ def spa_linkset_intermediate_query(specs):
 
     # print insert
     # return insert
-    # print query01, query02, query03, query04
+    print query01, query02, query03, query04
     queries = [query01, query02, query03, query04]
     return queries
 

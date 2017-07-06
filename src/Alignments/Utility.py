@@ -27,7 +27,7 @@ mac_weird_name = "darwin"
 
 def is_nt_format(resource):
     try:
-        temp = str(resource).strip()
+        temp = str(to_bytes(resource)).strip()
         return temp.startswith("<") and temp.endswith(">")
 
     except Exception as err:
@@ -36,12 +36,12 @@ def is_nt_format(resource):
 
 
 def is_property_path(resource):
-    temp = str(resource).strip()
+    temp = str(to_bytes(resource)).strip()
     check = re.findall("> */ *<", temp)
     return len(check) != 0
 
 
-def get_uri_local_name(uri):
+def get_uri_local_name(uri, sep="_"):
     # print "URI: {}".format(uri)
     # print type(uri)
 
@@ -54,6 +54,21 @@ def get_uri_local_name(uri):
     # if type(uri) is not str:
     #     return None
 
+    if is_property_path(uri) or is_nt_format(uri):
+
+        name = ""
+        pro_list = re.findall("<([^<>]*)>/*", uri)
+
+        for i in range(len(pro_list)):
+            local = get_uri_local_name(pro_list[i])
+            if i == 0:
+                name = local
+            else:
+                name = "{}{}{}".format(name, sep, local)
+                # print ">>>> name: ", name
+        return name
+
+
     else:
         non_alphanumeric_str = re.sub('[ \w]', '', uri)
         if non_alphanumeric_str == "":
@@ -65,9 +80,38 @@ def get_uri_local_name(uri):
             return name
 
 
+def pipe_split(text, sep="_"):
+    altered = ""
+    split = str(to_bytes(text)).split("|")
+    for i in range(len(split)):
+        item = split[i].strip()
+        item = get_uri_local_name(item, sep)
+        if i == 0:
+            altered = item
+        else:
+            altered += " | {}".format(item)
+    return altered
+
+# print pipe_split("http://risis.eu/mechanism/exactStrSim|http://risis.eu/mechanism/exactStrSim|http://risis.eu/mechanism/intermediate|http://risis.eu/mechanism/intermediate|http://risis.eu/mechanism/intermediate|http://risis.eu/mechanism/exactStrSim")
+
 def get_uri_ns_local_name(uri):
     if (uri is None) or (uri == ""):
         return None
+
+    if is_property_path(uri) or is_nt_format(uri):
+
+        name = ""
+        pro_list = re.findall("<([^<>]*)>/*", uri)
+
+        for i in range(len(pro_list)):
+            local = get_uri_local_name(pro_list[i])
+            if i == 0:
+                name = local
+            else:
+                name = "{}_{}".format(name, local)
+                # print ">>>> name: ", name
+        return [None, name]
+
     else:
         non_alphanumeric_str = re.sub('[ \w]', '', uri)
         if non_alphanumeric_str == "":
@@ -583,3 +627,7 @@ def normalise_path(file_path):
     file_path = re.sub('[\t]', "\\\\t", file_path)
     file_path = re.sub('[\v]', "\\\\v", file_path)
     return file_path
+
+
+# print get_uri_local_name("<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>/<http://dbpedia.org/ontology/author>")
+# print get_uri_ns_local_name("<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>")

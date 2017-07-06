@@ -4,6 +4,8 @@
 # sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/app')
 
 import Alignments.NameSpace as Ns
+from Alignments.Query import linkset_aligns_prop
+from Alignments.Query import sparql_xml_to_matrix as sparql_matrix
 from Alignments.UserActivities.User_Validation import get_linkset_filter
 
 PREFIX ="""
@@ -923,8 +925,8 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
         print query
     return query
 
-
-def get_linkset_corresp_sample_details(linkset, limit=1):
+# TODO: this seams to not work for property path
+def get_linkset_corresp_sample_details_old(linkset, limit=1):
 
     query = PREFIX + """
     ### LINKSET DETAILS WITH SAMPLE OF ALIGNED PREDICATES
@@ -940,7 +942,6 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
 
     WHERE
     {{
-
         ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
         <{0}>
             prov:wasDerivedFrom*        ?linkset .
@@ -960,7 +961,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
         GRAPH  <{0}>
         {{
             ?sub_uri    ?aligns        ?obj_uri
-        }}.
+        }}
 
         ### RETRIEVING SUBJECT DATASET INFO
         GRAPH ?subTarget
@@ -984,6 +985,90 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     LIMIT {1}""".format(linkset, limit)
     if DETAIL:
         print query
+    return query
+
+
+def get_linkset_corresp_sample_details(linkset, limit=1):
+
+    query = PREFIX + """
+        SELECT DISTINCT
+		(GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
+		(GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
+		(GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
+        ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
+		?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
+        WHERE
+        {{
+            <{0}>
+                prov:wasDerivedFrom*        ?linkset .
+            ?linkset
+                alivocab:alignsMechanism    ?mec ;
+                void:subjectsTarget         ?subTarget ;
+                bdb:subjectsDatatype        ?s_datatype ;
+                alivocab:alignsSubjects     ?s_prop;
+                void:objectsTarget          ?objTarget ;
+                bdb:objectsDatatype         ?o_datatype ;
+                alivocab:alignsObjects      ?o_prop ;
+                void:triples                ??triples .
+            {{
+            	SELECT ?sub_uri ?obj_uri
+              	(GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
+        		(GROUP_CONCAT(DISTINCT ?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
+              	{{
+                    GRAPH  <{0}>
+                    {{
+                        ?sub_uri    ?aligns        ?obj_uri
+                    }}
+                    GRAPH ?subTarget
+                    {{
+                        ###SOURCE SLOT
+                    }}
+                    OPTIONAL
+                    {{
+                        graph ?objTarget
+                        {{
+                            ###TARGET SLOT
+                        }}
+                    }}
+                    BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
+                    BIND ("" AS ?operator)
+                }} GROUP BY ?sub_uri ?obj_uri
+            }}
+        }}
+        GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype
+        ?triples ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
+        LIMIT {1}""".format(linkset, limit)
+
+    source = ""
+    source_bind = ""
+    target = ""
+    target_bind = ""
+    prop_query = linkset_aligns_prop(linkset)
+    prop_matrix = sparql_matrix(prop_query)["result"]
+    # print "\n\nprop_matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", prop_matrix
+    # print "length", len(prop_matrix)
+    for i in range(1, len(prop_matrix)):
+        # print "matrix!!!!!!!!!!!!!!!!!!!!", prop_matrix[i]
+        src = "<{}>".format(prop_matrix[i][0]) if prop_matrix[i][0].__contains__(">/<") is False else prop_matrix[i][0]
+        trg = "<{}>".format(prop_matrix[i][1]) if prop_matrix[i][1].__contains__(">/<") is False else prop_matrix[i][1]
+        if i == 1:
+            source = "?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
+            target = "?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
+            source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?s_PredV_{})".format(str(i))
+            target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?o_PredVal_{})".format(str(i))
+        else:
+            source += "\n\t\t\t\t\t\t?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
+            target += "\n\t\t\t\t\t\t\t?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
+            source_bind += ", \"|\", STR(?s_PredV_{})".format(str(i))
+            target_bind += ", \"|\",  STR(?o_PredVal_{})".format(str(i))
+
+    source_bind += ", \"]\" ) AS ?s_PredV )"
+    target_bind += ", \"]\" ) AS ?o_PredVal )"
+    source += source_bind
+    target += target_bind
+    query = str(query).replace("###SOURCE SLOT", source).replace("###TARGET SLOT", target)
+    print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
+    # print query
     return query
 
 
