@@ -375,42 +375,6 @@ def linksetdetails():
     # RETRIEVE VARIABLES
     linkset = request.args.get('linkset', '')
     template = request.args.get('template', 'linksetDetails_list.html')
-    query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
-    details = sparql(query, strip=True)
-
-    # print "LINKSET DETAIL QUERY:", query
-    # print "LINKSET DETAIL RESULT:", details
-
-    s_property_list = ''
-    o_property_list = ''
-    mechanism_list = ''
-    D = None
-    # print "RESULT!!!!!!!!", details
-    if details:
-        d = details[0]
-        # print "!!!!!!!! D", d
-        s_property_list = d['s_property_label']['value']
-        o_property_list = d['o_property_label']['value']
-        mechanism_list = d['mechanism_label']['value']
-    # list1 = d['s_property']['value'].split("|")
-    # list2 = d['o_property']['value'].split("|")
-    # list3 = d['mechanism']['value'].split("|")
-    #
-    #     for i in range(len(list1)):
-    #
-    #         # print "list1", i, list1
-    #
-    #         if len(list1[i]) > 0:
-    #             s_property_list += get_URI_local_name(list1[i]) + ' | ' \
-    #                 if i < len(list1) - 1 else get_URI_local_name(list1[i])
-    #
-    #         if len(list2[i]) > 0:
-    #             o_property_list += get_URI_local_name(list2[i]) + ' | ' \
-    #                 if i < len(list1) - 1 else get_URI_local_name(list2[i])
-    #
-    #         if len(list3[i]) > 0:
-    #             mechanism_list += get_URI_local_name(list3[i]) + ' | ' \
-    #                 if i < len(list1) - 1 else get_URI_local_name(list3[i])
 
     query = Qry.get_linkset_corresp_details(linkset, limit=10)
     metadata = sparql(query, strip=True)
@@ -420,14 +384,51 @@ def linksetdetails():
     else:
         return 'NO RESULTS!'
 
-    if PRINT_RESULTS:
-        print "\n\nDETAILS:", details
-
     # RETURN THE RESULT
     if (template == 'none'):
         return json.dumps(md)
     else:
-        return render_template(template,
+        query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
+        details = sparql(query, strip=True)
+
+        # print "LINKSET DETAIL QUERY:", query
+        # print "LINKSET DETAIL RESULT:", details
+
+        s_property_list = ''
+        o_property_list = ''
+        mechanism_list = ''
+        D = None
+        # print "RESULT!!!!!!!!", details
+        if details:
+            d = details[0]
+            # print "!!!!!!!! D", d
+            s_property_list = d['s_property_label']['value']
+            o_property_list = d['o_property_label']['value']
+            mechanism_list = d['mechanism_label']['value']
+        # list1 = d['s_property']['value'].split("|")
+        # list2 = d['o_property']['value'].split("|")
+        # list3 = d['mechanism']['value'].split("|")
+        #
+        #     for i in range(len(list1)):
+        #
+        #         # print "list1", i, list1
+        #
+        #         if len(list1[i]) > 0:
+        #             s_property_list += get_URI_local_name(list1[i]) + ' | ' \
+        #                 if i < len(list1) - 1 else get_URI_local_name(list1[i])
+        #
+        #         if len(list2[i]) > 0:
+        #             o_property_list += get_URI_local_name(list2[i]) + ' | ' \
+        #                 if i < len(list1) - 1 else get_URI_local_name(list2[i])
+        #
+        #         if len(list3[i]) > 0:
+        #             mechanism_list += get_URI_local_name(list3[i]) + ' | ' \
+        #                 if i < len(list1) - 1 else get_URI_local_name(list3[i])
+
+        if PRINT_RESULTS:
+            print "\n\nDETAILS:", details
+
+        data = render_template(template,
             details = details,
             s_datatype = md['s_datatype_stripped']['value'],
             subTarget = md['subTarget_stripped']['value'],
@@ -440,6 +441,8 @@ def linksetdetails():
             o_property_list = o_property_list,
             mechanism_list = mechanism_list
         )
+
+        return json.dumps({'metadata': md, 'data': data})
 
 
 @app.route('/getlensspecs', methods=['GET'])

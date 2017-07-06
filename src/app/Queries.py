@@ -4,6 +4,7 @@
 # sys.path.append('/Users/veruskacz/PyWebApp/alignments/src/app')
 
 import Alignments.NameSpace as Ns
+import Alignments.Utility as Ut
 from Alignments.Query import linkset_aligns_prop
 from Alignments.Query import sparql_xml_to_matrix as sparql_matrix
 from Alignments.UserActivities.User_Validation import get_linkset_filter
@@ -900,6 +901,9 @@ def get_dataset_predicate_values(graph, predicate):
 
 def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
+    src_aligns = "<{}>".format(src_aligns) if Ut.is_nt_format(src_aligns) is not True else src_aligns
+    trg_aligns = "<{}>".format(trg_aligns) if Ut.is_nt_format(trg_aligns) is not True else trg_aligns
+
     query = """
     ### GET VALUES OF ALIGNED PREDICATES
     SELECT DISTINCT ?srcPredValue ?trgPredValue
@@ -907,14 +911,14 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
         GRAPH ?g_source
         {
             <""" + source + """>
-                <""" + src_aligns + """>        ?srcPredValue
+                """ + src_aligns + """        ?srcPredValue .
         }
         OPTIONAL
         {
             graph ?g_target
             {
                 <""" + target + """>
-                    <""" + trg_aligns + """>    ?trgPredVal
+                    """ + trg_aligns + """    ?trgPredVal .
             }
         }
         FILTER((?g_source) != (?g_target))

@@ -81,8 +81,10 @@ def get_uri_local_name(uri, sep="_"):
 
 
 def pipe_split(text, sep="_"):
+
     altered = ""
     split = str(to_bytes(text)).split("|")
+
     for i in range(len(split)):
         item = split[i].strip()
         item = get_uri_local_name(item, sep)
@@ -90,9 +92,13 @@ def pipe_split(text, sep="_"):
             altered = item
         else:
             altered += " | {}".format(item)
+
+    if altered is None or len(altered) == 0:
+        return text
+
     return altered
 
-# print pipe_split("http://risis.eu/mechanism/exactStrSim|http://risis.eu/mechanism/exactStrSim|http://risis.eu/mechanism/intermediate|http://risis.eu/mechanism/intermediate|http://risis.eu/mechanism/intermediate|http://risis.eu/mechanism/exactStrSim")
+# print pipe_split("[rembrandt van rijn] aligns with [rembrandt van rijn]")
 
 def get_uri_ns_local_name(uri):
     if (uri is None) or (uri == ""):

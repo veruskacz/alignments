@@ -335,27 +335,28 @@ function inspect_linkset_activate(mode)
             $('#inspect_linkset_linkset_details_col').html('Loading...');
             $.get('/getlinksetdetails',data={'linkset': linkset_uri},function(data)
             {
-                $('#inspect_linkset_linkset_details_col').html(data);
-            });
+                var obj = JSON.parse(data);
+                $('#inspect_linkset_linkset_details_col').html(obj.data);
+            //});
 
             get_filter(rq_uri, linkset_uri);
 
-            $.get('/getlinksetdetails',data={'linkset': linkset_uri,
-                                             'template': 'none'},function(data)
-            {
-                var obj = JSON.parse(data);
+            //$.get('/getlinksetdetails',data={'linkset': linkset_uri,
+            //                                 'template': 'none'},function(data)
+            //{
+                //var obj = JSON.parse(data);
 
                 if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine')
                 {
                    $('#creation_linkset_row').show();
-                   loadEditPanel(obj, mode);
+                   loadEditPanel(obj.metadata, mode);
                    enableButton('deleteLinksetButton');
                 }
                 else if (mode == 'inspect')
                 {
                    $('#creation_linkset_filter_row').show();
                    $('#creation_linkset_correspondence_row').show();
-                   showDetails(rq_uri, linkset_uri, obj, filter_uri='none');
+                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
                 }
             });
 

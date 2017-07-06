@@ -364,8 +364,10 @@ def view(view_specs, view_filter, save=False, limit=10):
                 type_triple = ""
                 if e_type_uri == "no_type":
                     e_type = ""
+                    print "!!!!!!!!!!!!!!!!!!!!!!!!!! NO TYPE"
                 else:
                     e_type = Ut.get_uri_local_name(e_type_uri)
+                    print "!!!!!!!!!!!!!!!!!!!!!!!!!!e_type", e_type
                     if e_type:
                         e_type = "_{}".format(e_type[short:])
 
