@@ -1009,7 +1009,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
                 void:objectsTarget          ?objTarget ;
                 bdb:objectsDatatype         ?o_datatype ;
                 alivocab:alignsObjects      ?o_prop ;
-                void:triples                ??triples .
+                void:triples                ?triples .
             {{
             	SELECT ?sub_uri ?obj_uri
               	(GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
@@ -1068,7 +1068,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     target += target_bind
     query = str(query).replace("###SOURCE SLOT", source).replace("###TARGET SLOT", target)
     print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
-    # print query
+    print query
     return query
 
 
