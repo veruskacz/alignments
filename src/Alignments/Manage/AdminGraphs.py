@@ -306,6 +306,90 @@ def drop_lenses(display=False, activated=False):
         print ""
 
 
+def drop_a_lens(lens, display=False, activated=False):
+
+    queries = """
+    PREFIX void:    <{0}>
+    PREFIX bdb:     <{1}>
+    PREFIX link:    <{2}>
+
+    ### 1. DELETING ASSERTION METHOD
+    DELETE {{ ?assertionMethod ?x ?y }}
+    where
+    {{
+      <{3}>
+        a 							bdb:Lens ;
+        bdb:assertionMethod 		?assertionMethod .
+      ?assertionMethod ?x ?y .
+    }} ;
+
+    ### 2. DELETING JUSTIFICATION
+    DELETE {{ ?linksetJustification ?x ?y }}
+    where
+    {{
+      <{3}>
+        a 							bdb:Lens ;
+        bdb:linksetJustification 	?linksetJustification ;.
+      ?linksetJustification ?x ?y .
+    }} ;
+
+    ### 3. DELETING LINK-TYPE
+    DELETE {{ ?linkPredicate ?x ?y }}
+    where
+    {{
+      <{3}>
+        a 							bdb:Lens ;
+        void:linkPredicate 			?linkPredicate .
+      ?linkPredicate ?x ?y .
+    }} ;
+
+    ### 4. DELETING THE SINGLETON GRAPH
+    DELETE {{ GRAPH ?singletonGraph {{ ?x ?y ?z }} }}
+    where
+    {{
+      <{3}>
+        a 							bdb:Lens ;
+        link:singletonGraph 		?singletonGraph .
+        GRAPH ?singletonGraph       {{ ?x ?y ?z }} .
+    }} ;
+
+    ### 5. DELETING THE METADATA
+    DELETE {{ <{3}> ?x ?y }}
+    where
+    {{
+      <{3}>
+        a 							bdb:Lens ;
+        ?x                          ?y.
+    }} ;
+
+    #################################################################
+    ### DELETE LINKSET NAMED GRAPHS                              ###
+    #################################################################
+    DROP SILENT GRAPH <{3}>
+    """.format(Ns.void, Ns.bdb, Ns.alivocab, lens)
+
+    if activated is True:
+        print "{}{}{}".format(
+            "======================================================="
+            "=======================================================\n",
+            "DROPPING A LENS...\nPLEASE WAIT FOR FEEDBACK.",
+            "\n======================================================="
+            "=======================================================")
+        # print queries
+
+        drop_start = time.time()
+        drops_response = endpoint(queries)
+        drop_end = time.time()
+
+        if drops_response[St.result] is not None:
+            drops_doc = xmltodict.parse(drops_response[St.result])
+            print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
+            print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
+            if display is True:
+                print ">>> Query details  : {}\n".format(queries)
+        print ""
+
+
 def drop_all():
     print "{}{}{}".format(
         "\n====================================================================================\n",
