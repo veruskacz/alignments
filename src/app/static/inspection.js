@@ -356,7 +356,6 @@ function validationRadioOnClick()
    { var pred_source = selected_elems[0]; //assuming only one is selected
      value1 = $(pred_source).attr('value');
      pred1 = $(pred_source).attr('label');
-     dataset1 = $('#srcDetails').attr('target');
    }
 
    // get the selected predicate within the target div
@@ -365,8 +364,11 @@ function validationRadioOnClick()
    { var pred_target = selected_elems[0]; //assuming only one is selected
      value2 = $(pred_target).attr('value');
      pred2 = $(pred_target).attr('label');
-     dataset2 = $('#trgDetails').attr('target');
    }
+
+     dataset1 = $('#srcDetails').attr('target');
+     dataset2 = $('#trgDetails').attr('target');
+
 
     var text = ' based on the values "'
                 + value1 + '" and "' + value2 + '" respectively of the properties "'
@@ -376,7 +378,12 @@ function validationRadioOnClick()
     if(document.getElementById('ValidationRefine_btn').checked) {
         text = 'I disagree with this particular alignment ' + text;
     } else if(document.getElementById('ValidationYes_btn').checked) {
-        text = 'I agree with this particular alignment ' + text;
+        pred1 = $('#srcDetails').attr('aligns'); //'px0'; //SourceAligns
+        pred2 = $('#trgDetails').attr('aligns'); //'py0'; //TargetAligns
+        var text_agree = ' based on the aligned properties "'
+                + pred1 + '" from "' + dataset1 + '" and "'
+                + pred2 + '" from "' + dataset2 + '"';
+        text = 'I agree with this particular alignment ' + text_agree;
     } else if(document.getElementById('ValidationNo_btn').checked) {
         pred1 = $('#srcDetails').attr('aligns'); //'px0'; //SourceAligns
         pred2 = $('#trgDetails').attr('aligns'); //'py0'; //TargetAligns
