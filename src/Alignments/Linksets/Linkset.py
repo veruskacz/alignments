@@ -80,15 +80,16 @@ def set_linkset_name(specs, inverse=False):
 
         h_name = specs[St.mechanism] + \
                  specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
-                 specs[St.target][St.graph_name] + specs[St.target][St.aligns_name]
+                 specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
+                 specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype]
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}_{}_{}".format(
+        specs[St.linkset_name] = "{}_{}_{}_{}_{}_{}".format(
             specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-            specs[St.mechanism], specs[St.source][St.aligns_name], append)
+            specs[St.mechanism], specs[St.source][St.entity_name], specs[St.source][St.aligns_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -98,15 +99,16 @@ def set_linkset_name(specs, inverse=False):
 
         h_name = specs[St.mechanism] + \
                  specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
-                 specs[St.source][St.graph_name] + specs[St.source][St.aligns_name]
+                 specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
+                 specs[St.target][St.entity_datatype] + specs[St.source][St.entity_datatype]
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}_{}_{}".format(
+        specs[St.linkset_name] = "{}_{}_{}_{}_{}_()".format(
             specs[St.target][St.graph_name], specs[St.source][St.graph_name],
-            specs[St.mechanism], specs[St.target][St.aligns_name], append)
+            specs[St.mechanism], specs[St.target][St.entity_name], specs[St.target][St.aligns_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -117,14 +119,16 @@ def set_linkset_identity_name(specs, inverse=False):
 
     if inverse is False:
 
-        h_name = specs[St.mechanism] + specs[St.source][St.graph_name] + specs[St.target][St.graph_name]
+        h_name = specs[St.mechanism] + specs[St.source][St.graph_name] + specs[St.target][St.graph_name] + \
+                 specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype]
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}_{}".format(
-            specs[St.source][St.graph_name], specs[St.target][St.graph_name], specs[St.mechanism], append)
+        specs[St.linkset_name] = "{}_{}_{}_{}_{}".format(
+            specs[St.source][St.graph_name], specs[St.target][St.graph_name], specs[St.mechanism],
+            specs[St.source][St.entity_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -132,14 +136,16 @@ def set_linkset_identity_name(specs, inverse=False):
 
     else:
 
-        h_name = specs[St.mechanism] + specs[St.target][St.graph_name] + specs[St.source][St.graph_name]
+        h_name = specs[St.mechanism] + specs[St.target][St.graph_name] + specs[St.source][St.graph_name] + \
+                 specs[St.target][St.entity_datatype] + specs[St.source][St.entity_datatype]
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}_{}".format(
-            specs[St.target][St.graph_name], specs[St.source][St.graph_name], specs[St.mechanism], append)
+        specs[St.linkset_name] = "{}_{}_{}_{}_{}".format(
+            specs[St.target][St.graph_name], specs[St.source][St.graph_name], specs[St.mechanism],
+            specs[St.target][St.entity_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -152,15 +158,16 @@ def set_subset_name(specs, inverse=False):
 
         h_name = specs[St.mechanism] + \
                  specs[St.source][St.graph_name] + specs[St.source][St.link_old_name] + \
-                 specs[St.target][St.graph_name]
+                 specs[St.target][St.graph_name] + specs[St.source][St.entity_datatype] + \
+                 specs[St.target][St.entity_datatype]
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "subset_{}_{}_{}_{}_{}".format(
+        specs[St.linkset_name] = "subset_{}_{}_{}_{}_{}_{}".format(
             specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-            specs[St.mechanism], specs[St.source][St.link_old_name], append)
+            specs[St.mechanism], specs[St.source][St.entity_name], specs[St.source][St.link_old_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
