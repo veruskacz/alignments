@@ -307,6 +307,14 @@
                         onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Property Path</label></div></small>
              </div>
          </div>
+             <div class="row"> &nbsp </div>
+             <div class="row">
+                 <div class="col-md-12">
+                <span class="glyphicon glyphicon glyphicon-search"></span>
+               <input type="text" onkeyup='filterListGroup(this,"src_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+               </div>
+             </div>
+             <div class="row"> &nbsp </div>
          <div class="row">
              <div class="col-md-12 pred-list" id="src_predicates_col"
                   targetList="src_predicates_col"
@@ -416,6 +424,7 @@
                <div class="well well-sm" id="trg_selected_pred" uri="">Select a Property +
                  <span style="color:blue"><strong> example value </strong></span>
                </div>
+
            </div>
          </div>
          <div class="row" id = "trg_list_pred_row">
@@ -430,6 +439,14 @@
                         onclick='resetDivSelectedEntity("button-trg-entity-type-col","predicate")' >Enable Property Path</label></div></small>
                  </div>
              </div>
+             <div class="row"> &nbsp </div>
+             <div class="row">
+                 <div class="col-md-12">
+                <span class="glyphicon glyphicon glyphicon-search"></span>
+               <input type="text" onkeyup='filterListGroup(this,"trg_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+               </div>
+             </div>
+             <div class="row"> &nbsp </div>
              <div class="row">
                  <div class="col-md-12 pred-list" id="trg_predicates_col"
                     targetList="trg_predicates_col"
