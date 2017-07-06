@@ -147,7 +147,8 @@ def spa_subset_insert(specs):
     {{
         GRAPH <{}>
         {{
-            ?subject {}  ?object .
+            ?subject a <{}> ;
+                {}  ?object .
         }}
 
         ### Create A SINGLETON URI
@@ -156,9 +157,9 @@ def spa_subset_insert(specs):
     }}
     """.format(Ns.rdf, Ns.singletons, Ns.alivocab,
                specs[St.linkset], specs[St.linkset_name], specs[St.sameAsCount], specs[St.source][St.graph_name],
-               specs[St.source][St.graph], src_aligns, Ns.alivocab, specs[St.mechanism],
+               specs[St.source][St.graph], specs[St.source][St.entity_datatype] ,src_aligns, Ns.alivocab, specs[St.mechanism],
                specs[St.sameAsCount])
-    # print insert_query
+    print insert_query
     return insert_query
 
 
