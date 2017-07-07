@@ -542,9 +542,9 @@ def detailsLens():
     alignsObjects = request.args.get('alignsObjects', '')
 
     evi_query = Qry.get_evidences(graph_uri, singleton_uri, "prov:wasDerivedFrom")
-    # print "QUERY:", evi_query
+    print "QUERY:", evi_query
     evi_matrix = sparql_xml_to_matrix(evi_query)
-    # print "MATRIX:", evi_matrix
+    print "MATRIX:", evi_matrix
     det_query = Qry.get_target_datasets(evi_matrix)
     # print det_query
     # print "\n\n\n\n\n"
