@@ -275,6 +275,9 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
                     $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': sub_uri},function(data)
                     {
                       $('#srcDetailsLS').html(data);
+                      $("#srcDetailsLS li").on('click', function()
+                      {  selectListItemUniqueWithTarget(this);
+                      });
                     });
                   });
 
@@ -286,6 +289,9 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
                     $.get('/getdatadetails',data={'dataset_uri': dataset, 'resource_uri': obj_uri},function(data)
                     {
                       $('#trgDetailsLS').html(data);
+                      $("#trgDetailsLS li").on('click', function()
+                      {  selectListItemUniqueWithTarget(this);
+                      });
                     });
                   });
 
@@ -341,8 +347,23 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
   });
 }
 
-function validationRadioOnClick()
+function validationRadioOnClick(th)
 {
+    var list = findAncestor(th,'evidence_col');
+    var type = $(list).attr('type');
+//    alert($(list).attr('type'));
+
+    if (type == 'lens')
+    {
+        var srcDetails = 'srcDetailsLS'
+        var trgDetails = 'trgDetailsLS'
+    }
+    else
+    {
+        var srcDetails = 'srcDetails'
+        var trgDetails = 'trgDetails'
+    }
+
     var value1 = 'x';
     var value2 = 'y';
     var pred1 = 'px';
@@ -351,7 +372,7 @@ function validationRadioOnClick()
     var dataset2 = 'dsy';
 
    // get the selected predicate within the source div
-   var selected_elems = selectedElemsInDiv('srcDetails');
+   var selected_elems = selectedElemsInDiv(srcDetails);
    if (selected_elems.length > 0)
    { var pred_source = selected_elems[0]; //assuming only one is selected
      value1 = $(pred_source).attr('value');
@@ -359,15 +380,15 @@ function validationRadioOnClick()
    }
 
    // get the selected predicate within the target div
-   var selected_elems = selectedElemsInDiv('trgDetails');
+   var selected_elems = selectedElemsInDiv(trgDetails);
    if (selected_elems.length > 0)
    { var pred_target = selected_elems[0]; //assuming only one is selected
      value2 = $(pred_target).attr('value');
      pred2 = $(pred_target).attr('label');
    }
 
-     dataset1 = $('#srcDetails').attr('target');
-     dataset2 = $('#trgDetails').attr('target');
+     dataset1 = $('#'+srcDetails).attr('target');
+     dataset2 = $('#'+trgDetails).attr('target');
 
 
     var text = ' based on the values "'
@@ -378,15 +399,18 @@ function validationRadioOnClick()
     if(document.getElementById('ValidationRefine_btn').checked) {
         text = 'I disagree with this particular alignment ' + text;
     } else if(document.getElementById('ValidationYes_btn').checked) {
-        pred1 = $('#srcDetails').attr('aligns'); //'px0'; //SourceAligns
-        pred2 = $('#trgDetails').attr('aligns'); //'py0'; //TargetAligns
+        pred1 = $('#'+srcDetails).attr('aligns'); //'px0'; //SourceAligns
+        pred2 = $('#'+trgDetails).attr('aligns'); //'py0'; //TargetAligns
         var text_agree = ' based on the aligned properties "'
                 + pred1 + '" from "' + dataset1 + '" and "'
                 + pred2 + '" from "' + dataset2 + '"';
         text = 'I agree with this particular alignment ' + text_agree;
+        // TODO: fix the messages for lens
+        if (type == 'lens')
+            text = 'I agree with this particular alignment based on the aligned properties';
     } else if(document.getElementById('ValidationNo_btn').checked) {
-        pred1 = $('#srcDetails').attr('aligns'); //'px0'; //SourceAligns
-        pred2 = $('#trgDetails').attr('aligns'); //'py0'; //TargetAligns
+        pred1 = $('#'+srcDetails).attr('aligns'); //'px0'; //SourceAligns
+        pred2 = $('#'+trgDetails).attr('aligns'); //'py0'; //TargetAligns
         text = 'I agree with the general alignment of the properties "'
                 + pred1 + '" from "' + dataset1 + '" and "'
                 + pred2 + '" from "' + dataset2
@@ -395,11 +419,13 @@ function validationRadioOnClick()
     else { text = '';
     }
 
+//    alert(text);
+
     $('#validation_textbox').val(text);
 }
 
 
-function validationSaveOnClick()
+function validationSaveOnClick(th)
 {
   if ( !(document.getElementById('ValidationRefine_btn').checked) &&
         !(document.getElementById('ValidationYes_btn').checked) &&
@@ -407,6 +433,22 @@ function validationSaveOnClick()
   {  $('#evidence_message_col').html("Select one of the three options bellow.");
   } else
   {
+
+        var listCol = findAncestor(th,'evidence_col');
+        var type = $(listCol).attr('type');
+//        alert(type);
+
+        if (type == 'lens')
+        {
+            var srcDetails = 'srcDetailsLS'
+            var trgDetails = 'trgDetailsLS'
+        }
+        else
+        {
+            var srcDetails = 'srcDetails'
+            var trgDetails = 'trgDetails'
+        }
+
       // retrieve the uri of the selected singleton
       var lg = document.getElementById('corresp_list_group');
       var graph_uri = $(lg).attr("uri");
@@ -419,6 +461,7 @@ function validationSaveOnClick()
       {   var research_uri = $('#creation_lens_selected_RQ').attr('uri'); }
 
       // if the validation option selected is reject&refine
+      // TODO: adpat for refinement of lens
       if(document.getElementById('ValidationRefine_btn').checked) {
            // retrieve the selected properties, if any
 
@@ -489,29 +532,239 @@ function validationSaveOnClick()
 
          // if the validation option selected is agreement
          if(document.getElementById('ValidationYes_btn').checked)
-         {   var type = 'accept';
+         {   var type_val = 'accept';
          } else
          // if the validation option selected is disagreement
          if(document.getElementById('ValidationNo_btn').checked)
-         {    var type = 'reject';
+         {    var type_val = 'reject';
          }
 
          // register the agreement comment as evidence
          $.get('/updateevidence',data={'singleton_uri': uri,
-                                       'type': type,
+                                       'type': type_val,
                                        'research_uri': research_uri,
                                        'validation_text': validation_text},
                                  function(data)
          {
             // reload the evidences
-            $('#evidence_list_col').html('Reloading...');
+            $(listCol).html('Reloading...');
 
             $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
             {
-                  $('#evidence_list_col').html(data);
+                  $(listCol).html(data);
             });
          });
 
       }
   }
+}
+
+
+
+
+function validationSaveOnClickBAckup(th)
+{
+  if ( !(document.getElementById('ValidationRefine_btn').checked) &&
+        !(document.getElementById('ValidationYes_btn').checked) &&
+        !(document.getElementById('ValidationNo_btn').checked) )
+  {  $('#evidence_message_col').html("Select one of the three options bellow.");
+  } else
+  {
+
+        var listCol = findAncestor(th,'evidence_col');
+        var type = $(listCol).attr('type');
+        alert(type);
+
+        if (type == 'lens')
+        {
+            var srcDetails = 'srcDetailsLS'
+            var trgDetails = 'trgDetailsLS'
+        }
+        else
+        {
+            var srcDetails = 'srcDetails'
+            var trgDetails = 'trgDetails'
+        }
+
+      // retrieve the uri of the selected singleton
+      var lg = document.getElementById('corresp_list_group');
+      var graph_uri = $(lg).attr("uri");
+      var target = $(lg).attr("target");
+      var elem = document.getElementById(target);
+      var uri = $(elem).attr("uri");
+
+      var research_uri = $('#creation_linkset_selected_RQ').attr('uri');
+      if (!research_uri)
+      {   var research_uri = $('#creation_lens_selected_RQ').attr('uri'); }
+
+      // if the validation option selected is reject&refine
+      // TODO: adpat for refinement of lens
+      if(document.getElementById('ValidationRefine_btn').checked) {
+           // retrieve the selected properties, if any
+
+           // get the selected predicate within the source div
+           var selected_elems = selectedElemsInDiv(srcDetails);
+           if (selected_elems.length > 0)
+           { var pred_source = selected_elems[0];} //assuming only one is selected
+
+           // get the selected predicate within the target div
+           var selected_elems = selectedElemsInDiv(trgDetails);
+           if (selected_elems.length > 0)
+           { var pred_target = selected_elems[0];} //assuming only one is selected
+
+           // if both properties are selected
+           if (pred_source && pred_target)
+           {
+               // load the Edit Panel, "as-if" the button refine wasc clicked
+               //  but without realoding, i.e. the selected linkset is maintained
+               $('#creation_linkset_correspondence_row').hide();
+               $('#creation_linkset_filter_row').hide();
+               btn = document.getElementById('btn_refine_linkset');
+               newSelectButton(btn);
+               $('#creation_linkset_row').show();
+               activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
+
+                var validation_text = $('#validation_textbox').val();
+                var type = 'reject';
+
+                 // register the agreement comment as evidence
+                 $.get('/updateevidence',data={'singleton_uri': uri,
+                                               'type': type,
+                                               'research_uri': research_uri,
+                                               'validation_text': validation_text},
+                                         function(data)
+                 {
+                    // reload the evidences
+                    $('#evidence_list_col').html('Reloading...');
+
+                    $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
+                    {
+                          $('#evidence_list_col').html(data);
+                    });
+                 });
+
+               $.get('/getlinksetdetails',data={'linkset': graph_uri,
+                                             'template': 'none'},function(data)
+               {
+                    var obj = JSON.parse(data);
+                    loadEditPanel(obj, mode='reject-refine');
+
+                   // load the properties selected for refinement
+                   setAttr('trg_selected_pred','uri',$(pred_target).attr('uri'));
+                   $('#trg_selected_pred').html($(pred_target).attr('label'));
+                   setAttr('src_selected_pred','uri',$(pred_source).attr('uri'));
+                   $('#src_selected_pred').html($(pred_source).attr('label'));
+
+               });
+
+           }
+           else
+           {
+               $('#evidence_message_col').html("Select a pair of properties in the above panel <strong>Details</strong>");
+           }
+      }
+      else
+      {
+         var validation_text = $('#validation_textbox').val();
+
+         // if the validation option selected is agreement
+         if(document.getElementById('ValidationYes_btn').checked)
+         {   var type_val = 'accept';
+         } else
+         // if the validation option selected is disagreement
+         if(document.getElementById('ValidationNo_btn').checked)
+         {    var type_val = 'reject';
+         }
+
+         // register the agreement comment as evidence
+         $.get('/updateevidence',data={'singleton_uri': uri,
+                                       'type': type_val,
+                                       'research_uri': research_uri,
+                                       'validation_text': validation_text},
+                                 function(data)
+         {
+            // reload the evidences
+            $(listCol).html('Reloading...');
+
+            $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
+            {
+                  $(listCol).html(data);
+            });
+         });
+
+      }
+  }
+}
+
+
+function validationRadioOnClickBackup(th)
+{
+
+    var list = findAncestor(th,'evidence_col');
+    var type = $(list).attr('type');
+//    alert($(list).attr('type'));
+
+//    alert('test');
+    var value1 = 'x';
+    var value2 = 'y';
+    var pred1 = 'px';
+    var pred2 = 'py';
+    var dataset1 = 'dsx';
+    var dataset2 = 'dsy';
+
+
+    if (type == 'lens')
+    {
+        var srcDetails = 'srcDetailsLS'
+        var trgDetails = 'trgDetailsLS'
+    }
+    else
+    {
+        var srcDetails = 'srcDetails'
+        var trgDetails = 'trgDetails'
+    }
+
+   // get the selected predicate within the source div
+   var selected_elems = selectedElemsInDiv(srcDetails);
+   if (selected_elems.length > 0)
+   { var pred_source = selected_elems[0]; //assuming only one is selected
+     value1 = $(pred_source).attr('value');
+     pred1 = $(pred_source).attr('label');
+     dataset1 = $('#'+srcDetails).attr('target');
+   }
+
+   // get the selected predicate within the target div
+   var selected_elems = selectedElemsInDiv(trgDetails);
+   if (selected_elems.length > 0)
+   { var pred_target = selected_elems[0]; //assuming only one is selected
+     value2 = $(pred_target).attr('value');
+     pred2 = $(pred_target).attr('label');
+     dataset2 = $('#'+trgDetails).attr('target');
+   }
+
+    var text = ' based on the values "'
+                + value1 + '" and "' + value2 + '" respectively of the properties "'
+                + pred1 + '" from "' + dataset1 + '" and "'
+                + pred2 + '" from "' + dataset2 + '"';
+
+//    alert(text);
+
+    if(document.getElementById('ValidationRefine_btn').checked) {
+        text = 'I disagree with this particular alignment ' + text;
+    } else if(document.getElementById('ValidationYes_btn').checked) {
+        text = 'I agree with this particular alignment ' + text;
+    } else if(document.getElementById('ValidationNo_btn').checked) {
+        pred1 = $('#'+srcDetails).attr('aligns'); //'px0'; //SourceAligns
+        pred2 = $('#'+trgDetails).attr('aligns'); //'py0'; //TargetAligns
+        text = 'I agree with the general alignment of the properties "'
+                + pred1 + '" from "' + dataset1 + '" and "'
+                + pred2 + '" from "' + dataset2
+                + '" but I disagree with this particular alignment ' + text;
+    }
+    else { text = '';
+    }
+
+//    alert(text);
+
+    $('#validation_textbox').val(text);
 }
