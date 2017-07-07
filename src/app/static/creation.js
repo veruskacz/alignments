@@ -988,6 +988,9 @@ function create_lens_activate()
 {
    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
 
+
+    $('#creation_linkset_correspondence_row').html('');
+
     //   $('#lens_creation_message_col').html('');
     refresh_create_lens();
     $('#lens_inspect_panel_body').show();
@@ -1074,12 +1077,15 @@ function createLensClick()
 
         var message = "EXECUTING YOUR LENS SPECS.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
         $('#lens_creation_message_col').html(addNote(message,cl='warning'));
+        loadingGif(document.getElementById('lens_creation_message_col'), 2);
+
 
         // call function that creates the linkset
         $.get('/createLens', specs, function(data)
         {
             var obj = JSON.parse(data);
             $('#lens_creation_message_col').html(addNote(obj.message, cl='info'));
+              loadingGif(document.getElementById('lens_creation_message_col'), 2, show=false);
 
             $('#creation_lens_lens_selection_col').html('Loading...');
                $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
