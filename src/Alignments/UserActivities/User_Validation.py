@@ -22,7 +22,7 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
     	    ### 1. CREATE A VALIDATION RESOURCE WITH A TYPE AND MESSAGE
             <{2}>
                 a   <{3}> ;
-                <{6}comment> \"\"\"{7}\"\"\" .
+                <{6}comment> \"\"\"{7}.\"\"\" .
 
             ### 2. LINK THE RESEARCH QUESTION TO THE VALIDATION
             <{5}>
