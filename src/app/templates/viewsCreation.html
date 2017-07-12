@@ -443,7 +443,7 @@
               <div class="panel panel-default">
                   <div class="panel-heading">
                     <div class="row">
-                        <div class="col-md-10">
+                        <div class="col-md-2">
                           <h4 class="panel-title">
                               <a id="link_collapse_view_table"
                                  data-toggle="collapse" href="#collapse_view_table">
@@ -451,10 +451,23 @@
                               Result Table
                           </h4>
                         </div>
-                        <div class="col-md-2 text-right">
-                            <h5><a href="#" id="downloadResultTable"><button type="button" class="btn btn-primary"
-                            >Download Table
-                            </button></a></h5>
+                        <div class="col-md-10 text-right">
+                            <table align="right">
+                               <tr align="right">
+                                   <td align="right"><div id="view_download_message_col"></div></td>
+                                   <td valign="center"><div class="loading"></div></td>
+                                   <td align="right">
+                                        <a href="#" id="downloadResultTable"><button type="button" class="btn btn-primary"
+                                        >Download Table
+                                        </button></a>
+                                        <!--<h5><a href="#" id="downloadResultQuery">-->
+                                        <button type="button" class="btn btn-primary"
+                                        onclick='download("export.csv", $("#queryView").val())'
+                                        >Download Complete Result
+                                        </button>
+                                        <!--</a></h5>-->
+                                   </td>
+                            </table>
                         </div>
                     </div>
                   </div>

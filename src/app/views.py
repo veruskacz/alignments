@@ -43,6 +43,7 @@ if CREATION_ACTIVE:
     from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
     from Alignments.Manage.DatasetStats import stats_optimised as stats
     from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
+    from Alignments.Query import sparql_xml_to_csv as sparql2csv
 
 else:
     from app import app
@@ -744,7 +745,6 @@ def updEvidence():
 @app.route('/sparql', methods=['GET'])
 def sparqlDirect():
 
-    results = []
     header = []
     query = str(request.args.get('query', None))
 
@@ -786,6 +786,34 @@ def sparqlDirect():
         message = dic_response[St.message]
         return json.dumps({'message': message, 'result': None})
 
+
+@app.route('/sparqlToCSV', methods=['GET'])
+def sparqlToCSV():
+
+    query = str(request.args.get('query', None)).replace("LIMIT", "### LIMIT")
+
+    print "RUNNING SPARQL QUERY:{}".format(query)
+    dic_response = sparql2csv(query)
+
+    print "PROCESSING THE RESULT..."
+    if dic_response[St.message] == "OK":
+
+        if (dic_response[St.result]):
+            result = dic_response[St.result].getvalue()
+        else:
+            result = ''
+        if len(result) > 1:
+            message = "OK"
+        else:
+            message = "The query was successfully run with no result to show. " \
+                      "<br/>Probably the selected properties need some revising."
+
+        return json.dumps({'message': message, 'result':result})
+
+    else:
+        if dic_response[St.message] == "NO RESPONSE":
+            print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': dic_response[St.message], 'result': None})
 
 #######################################################################
 ## VIEW MODE

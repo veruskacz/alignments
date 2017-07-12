@@ -494,14 +494,16 @@ function exportTableToCSV($table, filename) {
         // Data URI
         csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
 
-//        console.log(csv);
+//        console.log(csvData);
 
         if (window.navigator.msSaveBlob) { // IE 10+
             //alert('IE' + csv);
             window.navigator.msSaveOrOpenBlob(new Blob([csv], {type: "text/plain;charset=utf-8;"}), "csvname.csv")
         }
         else {
+//            alert('chrom' + csvData);
             $(this).attr({ 'download': filename, 'href': csvData, 'target': '_blank' });
+            console.log(this);
         }
 }
 
@@ -513,3 +515,95 @@ $("#downloadResultTable").on('click', function (event) {
     // IF CSV, don't do event.preventDefault() or return false
     // We actually need this to be a typical hyperlink
 });
+
+function exportResultToCSV($query, filename) {
+
+    loadingGif(document.getElementById('view_download_message_col'), 2);
+    $('#view_download_message_col').html(addNote('Loading...',cl='warning'));
+
+    var query = $query.val();
+
+    $.get('/sparqlToCSV',
+          data = {'query': query},
+          function(data)
+    {
+        var obj = JSON.parse(data);
+        loadingGif(document.getElementById('view_download_message_col'), 2, show=false);
+
+        if (obj.message == 'OK')
+        {
+            message = 'Have a look at the downloaded file';
+            $('#view_download_message_col').html(addNote(message,cl='info'));
+            csv = obj.result;
+
+            // Data URI
+            csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+
+//            console.log(csvData);
+
+            if (window.navigator.msSaveBlob) { // IE 10+
+                alert('IE' + csv);
+                window.navigator.msSaveOrOpenBlob(new Blob([csv], {type: "text/plain;charset=utf-8;"}), "csvname.csv")
+            }
+            else {
+//                alert('chrom' + csvData);
+                $(this).attr({ 'download': filename, 'href': csvData, 'target': '_blank' });
+                console.log(this);
+            }
+        }
+        else
+        {
+            $('#view_download_message_col').html(addNote(obj.message));
+        }
+
+    });
+}
+
+// This must be a hyperlink
+$("#downloadResultQuery").on('click', function (event) {
+
+    exportResultToCSV.apply(this, [$('#queryView'), 'export.csv']);
+
+    // IF CSV, don't do event.preventDefault() or return false
+    // We actually need this to be a typical hyperlink
+});
+
+
+function download(filename, query) {
+
+    loadingGif(document.getElementById('view_download_message_col'), 2);
+    $('#view_download_message_col').html(addNote('Loading...',cl='warning'));
+
+    $.get('/sparqlToCSV',
+          data = {'query': query},
+          function(data)
+    {
+        var obj = JSON.parse(data);
+        loadingGif(document.getElementById('view_download_message_col'), 2, show=false);
+
+        if (obj.message == 'OK')
+        {
+            message = 'Have a look at the downloaded file';
+            $('#view_download_message_col').html(addNote(message,cl='info'));
+            csv = obj.result;
+
+              var element = document.createElement('a');
+              element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+              element.setAttribute('download', filename);
+
+              element.style.display = 'none';
+              document.body.appendChild(element);
+
+              element.click();
+
+              document.body.removeChild(element);
+
+        }
+        else
+        {
+            $('#view_download_message_col').html(addNote(obj.message));
+        }
+
+    });
+}
+
