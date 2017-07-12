@@ -626,7 +626,14 @@ def detailsLens():
                 pred_value = {'pred': get_URI_local_name(align_list[i]), 'value': ""}
             else:
                 pred_value = {'pred': get_URI_local_name(align_list[i]), 'value':values_matrix[1][i]}
+
             pred_values += [pred_value]
+
+        # print 'BEFORE: ',pred_values
+        for d in pred_values:
+            d['value'] = d['value'].decode('utf-8') if str(d['value']) else d['value']
+        # print 'AFTER: ',pred_values
+
 
     rows = []
     for i in range(max(len(sub_datasets),len(sub_datasets))):
@@ -645,6 +652,7 @@ def detailsLens():
         else:
             col2 = ""
         rows += [{'col1': col1, 'col2': col2}]
+    # print 'ROWS: ',rows
 
     return render_template('lensDetails_list1.html',
                             detailHeadings = details,
