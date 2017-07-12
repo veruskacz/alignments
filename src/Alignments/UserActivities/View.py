@@ -90,6 +90,7 @@ PREFIX = """
 
 short = 0
 
+
 def view_data(view_specs, view_filter, display=False):
 
     # GENERATING THE METADATA FOR REGISTERING A VIEW.
@@ -299,8 +300,9 @@ def view(view_specs, view_filter, save=False, limit=10):
             the_list = ""
             for ds in opt_list:
                 the_list += "{} ".format(ds)
-            message = "The insertion metadata was generated but not inserted. The properties listed in theses datasets" \
-                      " [{}] are ALL OPTIONAL. The presence of at least one non OPTIONAL property is required.".format(
+            message = "The insertion metadata was generated but not inserted. The properties listed in theses " \
+                      " datasets [{}] are ALL OPTIONAL. The presence of at least one non OPTIONAL property is " \
+                      "required.".format(
                 the_list)
             view_metadata[St.message] = message
             print message
@@ -354,7 +356,6 @@ def view(view_specs, view_filter, save=False, limit=10):
             # GRAPH <http://risis.eu/genderc/grid>
             # {
             view_where += "\n\t### DATASET: {}\n\tGRAPH <{}>\n\t{{".format(ds_ns_name[1], graph_uri)
-
 
             # graph_data IS A LIST OF DICTIONARIES FOR HOLDING THE TYPES AND THEIR LISTED PROPERTIES
             count_ns = 0
@@ -572,7 +573,8 @@ def view(view_specs, view_filter, save=False, limit=10):
         else:
             lmt = "LIMIT {}".format(limit)
 
-        query = "{}\n\nSELECT DISTINCT {}\n{{{}{}\n}} {}".format(namespace_str, my_list + view_select, inter, view_where, lmt)
+        query = "{}\n\nSELECT DISTINCT {}\n{{{}{}\n}} {}".format(
+            namespace_str, my_list + view_select, inter, view_where, lmt)
         print "VIEW TABLE:", query
 
         # table = sparql_xml_to_matrix(query)
