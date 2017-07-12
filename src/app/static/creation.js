@@ -1305,7 +1305,7 @@ function view_load_linkesets_lenses(rq_uri, view_lens=null)
             // assigning the selected graphs and properties
             var i, elem, elems;
             elem = document.getElementById('creation_view_linkset_col');
-            console.log(elem);
+//            console.log(elem);
             if (elem) {
                 elems = elem.getElementsByClassName('list-group-item');
                 for (i = 0; i < elems.length; i++) {
@@ -1526,10 +1526,27 @@ function createViewClick(mode)
 
 function editLabelViewClick(elem)
 {
-    var test = $("#myModal #viewLabel").val().trim();
-    if (test)
+    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
+    var view = '';
+    var elems = selectedElemsInGroupList('inspect_views_selection_col');
+    if (elems.length > 0) // if any element is selected
     {
-        alert(test);
+        view = $(elems[0]).attr('uri');  // it should have only one selected
+
+        var label = $("#myModal #viewLabel").val().trim();
+        if (label)
+        {
+            //        alert(test);
+            $.get('/updateViewLabel', data={'rq_uri':rq_uri, 'view_uri':view, 'view_label':label}, function(data)
+            {
+                var obj = JSON.parse(data);
+                if (obj.result == 'OK')
+                {   $('#btn_edit_view').click();
+                    $('#view_edit_message_col').html(addNote(obj.message,cl='info')); }
+                else
+                {    $('#view_edit_message_col').html(addNote(obj.message)); }
+            });
+        }
     }
     $(elem).dialog("close");
 }
@@ -2547,7 +2564,7 @@ function importAlignmentClick()
               function(data)
             {
                   var obj = JSON.parse(data);
-                  console.log(obj);
+//                  console.log(obj);
                   $('#import_alignment').val(obj);
                   $('#import_alignment_message_col').html(addNote(loaded_dataset,cl='success'));
             });

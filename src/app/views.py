@@ -541,11 +541,13 @@ def detailsLens():
     alignsSubjects = request.args.get('alignsSubjects', '')
     alignsObjects = request.args.get('alignsObjects', '')
 
-    evi_query = Qry.get_evidences(graph_uri, singleton_uri, "prov:wasDerivedFrom")
+    #evi_query = Qry.get_evidences(graph_uri, singleton_uri, "prov:wasDerivedFrom")
     # print "QUERY:", evi_query
-    evi_matrix = sparql_xml_to_matrix(evi_query)
+    #evi_matrix = sparql_xml_to_matrix(evi_query)
     # print "MATRIX:", evi_matrix
-    det_query = Qry.get_target_datasets(evi_matrix)
+    # evi_matrix = ''
+    # det_query = Qry.get_target_datasets(evi_matrix, graph_uri)
+    det_query = Qry.get_target_datasets(graph_uri)
     # print det_query
     # print "\n\n\n\n\n"
     details = sparql(det_query, strip=True)
@@ -559,29 +561,45 @@ def detailsLens():
         trg_dataset = details[i]['objectsTarget']['value']
 
         # ALIGNED PREDICATES
-        src_aligns = details[i]['alignsSubjects']['value']
-        trg_aligns = details[i]['alignsObjects']['value']
+        try:
+            src_aligns = details[i]['alignsSubjects']['value']
+        except:
+            src_aligns = ''
 
-        src_resource = details[i]['sub']['value']
-        trg_resource = details[i]['obj']['value']
+        try:
+            trg_aligns = details[i]['alignsObjects']['value']
+        except:
+            trg_aligns = ''
+
+        try:
+            src_resource = details[i]['sub']['value']
+        except:
+            src_resource = sub_uri
+
+        try:
+            trg_resource = details[i]['obj']['value']
+        except:
+            trg_resource = obj_uri
 
         # LOAD THE DICTIONARY WITH UNIQUE DATASETS AS KEY
         # AND LIST OF UNIQUE ALIGNED PREDICATES AS VALUE
-        if src_dataset not in datasets_dict:
-            datasets_dict[src_dataset] = (src_resource, [src_aligns], [])
-        else:
-            (res, align_list, pred_values) = datasets_dict[src_dataset]
-            if src_aligns not in align_list:
-                # datasets_dict[src_dataset] = (res, align_list+[src_aligns])
-                align_list += [src_aligns]
+        if src_aligns:
+            if src_dataset not in datasets_dict:
+                datasets_dict[src_dataset] = (src_resource, [src_aligns], [])
+            else:
+                (res, align_list, pred_values) = datasets_dict[src_dataset]
+                if src_aligns not in align_list:
+                    # datasets_dict[src_dataset] = (res, align_list+[src_aligns])
+                    align_list += [src_aligns]
         # print datasets_dict
 
-        if trg_dataset not in datasets_dict:
-            datasets_dict[trg_dataset] = (trg_resource, [trg_aligns], [])
-        else:
-            (res, align_list, pred_values) = datasets_dict[trg_dataset]
-            if trg_aligns not in align_list:
-                align_list += [trg_aligns]
+        if trg_aligns:
+            if trg_dataset not in datasets_dict:
+                datasets_dict[trg_dataset] = (trg_resource, [trg_aligns], [])
+            else:
+                (res, align_list, pred_values) = datasets_dict[trg_dataset]
+                if trg_aligns not in align_list:
+                    align_list += [trg_aligns]
 
     # FOR EACH ALIGNED PREDICATE, GET IT DESCRIPTION VALUE
     sub_datasets = []
@@ -1619,6 +1637,24 @@ def deleteView():
 
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        return json.dumps({'message':str(error.message), 'result':None})
+
+
+@app.route('/updateViewLabel')
+def updateViewLabel():
+    rq_uri = request.args.get('rq_uri', '')
+    view_uri = request.args.get('view_uri', '')
+    view_label = request.args.get('view_label', '')
+
+    try:
+        query = Qry.update_view_label_rq(rq_uri, view_uri, view_label)
+        print query
+        result = sparql(query, strip=False)
+        print ">>>> RESULT:", result
+        return json.dumps({'message': 'View successfully updated', 'result': 'OK'})
 
     except Exception as error:
         print "AN ERROR OCCURRED: ", error

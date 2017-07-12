@@ -10,7 +10,11 @@
                       (l.mode.value == 'danger') or (l.mode.value == 'success')%}
                   <small><span class='badge alert-{{l.mode.value}}'>-</span></small>
                 {% endif %}
-                {{l.uri_stripped.value}}</span>
+                {% if (l.label.value != "-") %}
+                    {{l.label.value}}
+                {% else %}
+                    {{l.uri_stripped.value}}
+                {% endif %} </span>
             </a>
         {% endfor %}
 </div>

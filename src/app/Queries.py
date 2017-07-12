@@ -18,7 +18,8 @@ PREFIX ="""
     PREFIX alivocab:    <{0}>
     PREFIX tmpgraph:    <{2}>
     PREFIX prov:        <{1}>
-""".format(Ns.alivocab, Ns.prov, Ns.tmpgraph, Ns.void, Ns.linkset, Ns.rdf, Ns.bdb)
+    PREFIX skos:        <{7}>    
+""".format(Ns.alivocab, Ns.prov, Ns.tmpgraph, Ns.void, Ns.linkset, Ns.rdf, Ns.bdb, Ns.skos)
 
 INFO = False
 DETAIL = True
@@ -414,7 +415,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?uri ?mode
+    SELECT DISTINCT ?uri ?mode ?label
     WHERE
     {{
         GRAPH <{0}>
@@ -442,6 +443,8 @@ def get_graphs_per_rq_type(rq_uri, type=None):
                 BIND("info" as ?mode)
             }}
             {2}
+            OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
+            BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
         }}
 
         ### FILTER THE TYPE OF GRAPH
@@ -641,49 +644,30 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
     return query
 
 
-def get_target_datasets(singleton_matrix):
-
-    sample = """
-    ### LINKSET WHERE A CORRESPONDENCE MIGHT HAVE HAPPENED
-    GRAPH ?graph { ?sub <_#_> ?obj .
-    }"""
-
-    union = "{"
-    if len(singleton_matrix) > 2:
-        for i in range(1, len(singleton_matrix)):
-            if i == 1:
-                union += sample.replace('_#_', singleton_matrix[i][0])
-            else:
-                union += "\n\t     }\n\t      UNION\n\t     {" + sample.replace('_#_', singleton_matrix[i][0])
-            if i == len(singleton_matrix)-1:
-                union += "\n\t     }"
-    else:
-        union = """
-        GRAPH ?graph
-        {{
-            ?sub <{}> ?obj .
-        }}""".format(singleton_matrix[1][0])
+def get_target_datasets(graph_uri=''):
 
     query = """
     ### GET TARGET DATASETS
     ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
     {}
-    SELECT DISTINCT ?sub ?obj ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism
+    SELECT DISTINCT ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism
     where
     {{
-        ### Initially, we have A -> B via Z
-        ### Z is derived from X, Y and W
-        ### So we could replaced Z with X or Y or Z and find out the graph for with the assertion holds
-        {}
+            ### Retrieves the lens 
+            <{}>  (void:target|void:subjectsTarget|void:objectsTarget)*   ?graph.
 
         ### Once we find those graphs, it means that we can extract the same source
         ### and target datasets that hold details about the entities being linked
         ?graph
            void:subjectsTarget 			?subjectsTarget ;
-           void:objectsTarget  			?objectsTarget .
+           void:objectsTarget  			?objectsTarget ;
+           alivocab:alignsSubjects   ?alignsSubjects .
         OPTIONAL {{ ?graph	  alivocab:alignsMechanism  ?alignsMechanism }}
-        OPTIONAL {{ ?graph    alivocab:alignsSubjects   ?alignsSubjects }}
         OPTIONAL {{ ?graph    alivocab:alignsObjects    ?alignsObjS }}
+        
+        GRAPH ?graph
+        {{ ?sub ?pred ?obj
+        }}
 
         # ### Here, we could easily have the description of the entities from
         # ### the source and target datasets
@@ -701,7 +685,7 @@ def get_target_datasets(singleton_matrix):
         # }}
         BIND (IF(bound(?alignsObjS), ?alignsObjS , "resource identifier") AS ?alignsObjects)
     }}
-    """.format(PREFIX, union)
+    """.format(PREFIX, graph_uri) #union)
 
     if DETAIL:
         print query
@@ -804,12 +788,14 @@ def get_resource_description(graph, resource, predicate=None):
     elif type(predicate) is list:
         for i in range(len(predicate)):
             if predicate[i] != "resource identifier":
-                triples += "\n\t   <{}> <{}> ?obj_{} .".format(resource, predicate[i], i)
+                pred = predicate[i] if Ut.is_nt_format(predicate[i]) else "<{}>".format(predicate[i])
+                triples += "\n\t   <{}> {} ?obj_{} .".format(resource, pred, i)
         # print "TRIPLES", triples
 
     elif type(predicate) is str:
         if predicate != "resource identifier":
-            triples += "\n\t   <{}> <{}> ?obj .".format(resource, predicate)
+            pred = predicate if Ut.is_nt_format(predicate) else "<{}>".format(predicate)
+            triples += "\n\t   <{}> {} ?obj .".format(resource, pred)
 
     query = """
     ### GET RESOURCE DESCRIPTION
@@ -1239,8 +1225,6 @@ def check_graph_dependencies_rq(rq_uri, graph_uri):
 
 
 
-
-
 def delete_view_rq(rq_uri, view_uri):
     query = PREFIX + """
     DELETE
@@ -1267,6 +1251,21 @@ def delete_view_rq(rq_uri, view_uri):
     """.format(rq_uri, view_uri)
     # print query
     return query
+
+
+def update_view_label_rq(rq_uri, view_uri, view_label):
+    query = PREFIX + """
+    INSERT DATA
+    {{
+      GRAPH <{}>
+      {{
+        <{}>   skos:prefLabel 		    "{}".
+      }}   
+    }}
+    """.format(rq_uri, view_uri, view_label)
+    # print query
+    return query
+
 
 
 def get_lens_corresp_details(lens, limit=1):
