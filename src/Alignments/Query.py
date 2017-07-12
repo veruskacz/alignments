@@ -868,10 +868,14 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                             # print value
                             # matrix[0][columns] = to_bytes(value)
 
+                            cell = to_bytes(value)
+                            if cell is None:
+                                cell = ""
+
                             if columns == 0:
-                                csv_builder.write("\"{}\"".format(to_bytes(value)))
+                                csv_builder.write("\"{}\"".format(cell))
                             else:
-                                csv_builder.write(",\"{}\"".format(to_bytes(value)))
+                                csv_builder.write(",\"{}\"".format(cell))
 
                             name_index[to_bytes(value)] = columns
                     else:
@@ -881,10 +885,13 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                         columns += 1
                         # print "COLUMN: ", columns
                         # matrix[0][columns] = to_bytes(variables_list.items()[0][1])
+                        cell = to_bytes(variables_list.items()[0][1])
+                        if cell is None:
+                            cell = ""
                         if columns == 0:
-                            csv_builder.write("\"{}\"".format(to_bytes(variables_list.items()[0][1])))
+                            csv_builder.write("\"{}\"".format(cell))
                         else:
-                            csv_builder.write(",\"{}\"".format(to_bytes(variables_list.items()[0][1])))
+                            csv_builder.write(",\"{}\"".format(cell))
 
                 # END OF THE HEADER
                 csv_builder.write("\r\n")
@@ -898,9 +905,11 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                             row += 1
                             for c in range(variables_size):
                                 # print value.items()[1][1]
-                                item = value.items()[1][1]
+                                cell = to_bytes(value.items()[1][1])
+                                if cell is None:
+                                    cell = ""
                                 # matrix[row][0] = item
-                                csv_builder.write("\"{}\"\n".format(to_bytes(item)))
+                                csv_builder.write("\"{}\"\n".format(cell))
                     else:
                         for key, value in result.items():
                             # COLUMNS
@@ -922,33 +931,40 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                                     item = data.items()[1][1]
                                     # print index, item
                                     if type(item) is collections.OrderedDict:
-                                        item_value = item.items()[1][1]
+                                        cell = to_bytes(item.items()[1][1])
+                                        if cell is None:
+                                            cell = ""
                                         # matrix[row][index] = to_bytes(item_value)
 
                                         if index == 0:
-                                            csv_builder.write("\"{}\"".format(to_bytes(item_value)))
+                                            csv_builder.write("\"{}\"".format(cell))
                                         else:
-                                            csv_builder.write(",\"{}\"".format(to_bytes(item_value)))
+                                            csv_builder.write(",\"{}\"".format(cell))
                                         # print to_bytes(item_value)
                                         # print item.items()
                                         # print "r{} c{} v{}".format(row, c, data.items()[1][1])
                                     else:
                                         # matrix[row][index] = to_bytes(item)
+                                        cell = to_bytes(item)
+                                        if cell is None:
+                                            cell = ""
                                         if index == 0:
-                                            csv_builder.write("\"{}\"".format(to_bytes(item)))
+                                            csv_builder.write("\"{}\"".format(cell))
                                         else:
-                                            csv_builder.write(",\"{}\"".format(to_bytes(item)))
+                                            csv_builder.write(",\"{}\"".format(cell))
                                         # print to_bytes(item)
                                         # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
                                 else:
                                     index = name_index[value['@name']]
                                     if data != '@name':
-
+                                        cell = to_bytes(value[data])
+                                        if cell is None:
+                                            cell = ""
                                         # matrix[row][index] = to_bytes(value[data])
                                         if index == 0:
-                                            csv_builder.write("\"{}\"".format(to_bytes(value[data])))
+                                            csv_builder.write("\"{}\"".format(cell))
                                         else:
-                                            csv_builder.write(",\"{}\"".format(to_bytes(value[data])))
+                                            csv_builder.write(",\"{}\"".format(cell))
                                         # print "data:", data, value[data], name_index[value['@name']]
 
                             # END OF THE ROW
@@ -956,7 +972,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
 
             # print "DONE"
             # print "out with: {}".format(matrix)
-            print "\nCSV BUILDER:\n", csv_builder.getvalue()
+            # print "\nCSV BUILDER:\n", csv_builder.getvalue()
             return {St.message: "OK", St.result: csv_builder}
 
         # except Exception as err:
@@ -969,7 +985,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
         # print response[St.message]
         return {St.message: "NO RESPONSE", St.result: response}
 
-sparql_xml_to_csv()
+# sparql_xml_to_csv()
 
 def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
 
