@@ -1255,15 +1255,29 @@ def delete_view_rq(rq_uri, view_uri):
 
 def update_view_label_rq(rq_uri, view_uri, view_label):
     query = PREFIX + """
+    DELETE
+    {{
+         GRAPH <{0}>
+         {{
+            <{1}>  skos:prefLabel ?value .
+        }}
+    }}
+    WHERE
+    {{
+      GRAPH <{0}>
+      {{
+        <{1}>   skos:prefLabel  ?value.
+      }}
+    }} ;
     INSERT DATA
     {{
-      GRAPH <{}>
+      GRAPH <{0}>
       {{
-        <{}>   skos:prefLabel 		    "{}".
+        <{1}>   skos:prefLabel  "{2}".
       }}   
     }}
     """.format(rq_uri, view_uri, view_label)
-    # print query
+    print query
     return query
 
 
