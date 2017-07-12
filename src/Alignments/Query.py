@@ -943,7 +943,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                                 else:
                                     index = name_index[value['@name']]
                                     if data != '@name':
-                                        
+
                                         # matrix[row][index] = to_bytes(value[data])
                                         if index == 0:
                                             csv_builder.write("\"{}\"".format(to_bytes(value[data])))
