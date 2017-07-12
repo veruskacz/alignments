@@ -917,7 +917,7 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
 
 # TODO: this seams to not work for property path
-def get_linkset_corresp_sample_details_old(linkset, limit=1):
+def get_linkset_corresp_sample_details_old0(linkset, limit=1):
 
     query = PREFIX + """
     ### LINKSET DETAILS WITH SAMPLE OF ALIGNED PREDICATES
@@ -979,7 +979,7 @@ def get_linkset_corresp_sample_details_old(linkset, limit=1):
     return query
 
 
-def get_linkset_corresp_sample_details_old(linkset, limit=1):
+def get_linkset_corresp_sample_details_old1(linkset, limit=1):
 
     query = PREFIX + """
     SELECT DISTINCT
