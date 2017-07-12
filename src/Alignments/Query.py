@@ -1,6 +1,4 @@
-
 # encoding=utf-8
-
 
 import re
 import time
@@ -549,8 +547,8 @@ def sparql_xml_to_matrix(query):
 
                             elif type(value) is collections.OrderedDict:
                                 index = name_index[value['@name']]
-                                if value.items()[i][0] != '@name':
-                                    item = value.items()[i][1]
+                                if value.items()[1][0] != '@name':
+                                    item = value.items()[1][1]
                                     # print "Collection:", value.items()[i][0]
                                 else:
                                     item = ""
@@ -660,7 +658,7 @@ def sparql_xml_to_matrix(query):
         return {St.message: "NO RESPONSE", St.result: response}
 
 
-def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIMIT 1"):
+def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100"):
 
     name_index = dict()
     csv_builder = StringIO()
@@ -727,6 +725,7 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
 
             """ >>> SINGLE RESULT """
             if type(results) is collections.OrderedDict:
+
                 print "SINGLE RESULT"
                 # Creates a list containing h lists, each of w items, all set to 0
                 # INITIALIZING THE MATRIX
@@ -738,6 +737,7 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
                 # print matrix
                 col = -1
 
+                # SINGLE RESULT
                 if variables_size == 1:
 
                     print "\tSINGLE VARIABLE"
@@ -746,11 +746,11 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
                         # HEADER
                         col += 1
                         # print variable
-                        matrix[0][col] = variable
+                        # matrix[0][col] = variable
                         # print matrix
 
                         if col == 0:
-                            csv_builder.write(variable)
+                            csv_builder.write("\"{}\"".format(variable))
                         else:
                             csv_builder.write("\"{}\",".format(variable))
 
@@ -765,33 +765,41 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
 
                             if "#text" in item_value:
                                 # print to_bytes(item_value["#text"])
-                                matrix[1][0] = to_bytes(item_value["#text"])
-                                csv_builder.write("{}\r\n".format(to_bytes(item_value["#text"])))
+                                # matrix[1][0] = to_bytes(item_value["#text"])
+                                csv_builder.write("\"{}\"\r\n".format(to_bytes(item_value["#text"])))
                             else:
                                 # matrix[1][0] = to_bytes(item_value)
-                                csv_builder.write("{}\r\n".format(to_bytes(item_value)))
+                                csv_builder.write("\"{}\"\r\n".format(to_bytes(item_value)))
                         else:
                             # matrix[1][0] = value.items()[1][1]
-                            csv_builder.write("{}\r\n".format(to_bytes(value.items()[1][1])))
+                            csv_builder.write("\"{}\"\r\n".format(to_bytes(value.items()[1][1])))
 
+                # SINGLE RESULT WITH MORE THAN ONE VARIABLES
                 else:
-                    # print "Variable greater than 1"
+                    print "\tSINGLE RESULT WITH MORE THAN ONE VARIABLES"
                     # HEADER
                     for variable in variables_list:
                         for key, value in variable.items():
                             col += 1
-                            matrix[0][col] = value
+                            # matrix[0][col] = value
+                            if col == 0:
+                                csv_builder.write("\"{}\"".format(to_bytes(value)))
+                            else:
+                                csv_builder.write(",\"{}\"".format(to_bytes(value)))
                             name_index[to_bytes(value)] = col
                             # print "{} was inserted".format(value)
                             # print matrix
-
+                    # END OF THE HEADER
+                    csv_builder.write("\r\n")
                     # RECORDS
                     # print results.items()
                     for key, value in results.items():
                         # COLUMNS
                         # print "Key: ", key
                         # print "Value: ", value
+                        count = -1
                         for data in value:
+                            count += 1
                             # print "value Items: ", value.items()[i][1]
                             # print "Length:", len(value.items())
                             if type(value) is list:
@@ -806,12 +814,12 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
                                 index = name_index[data['@name']]
                                 item = data.items()[1][1]
                                 # print data['@name'], name_index[data['@name']]
-                                matrix[1][index] = item
+                                # matrix[1][index] = item
 
                             elif type(value) is collections.OrderedDict:
                                 index = name_index[value['@name']]
-                                if value.items()[i][0] != '@name':
-                                    item = value.items()[i][1]
+                                if value.items()[1][0] != '@name':
+                                    item = value.items()[1][1]
                                     # print "Collection:", value.items()[i][0]
                                 else:
                                     item = ""
@@ -819,12 +827,20 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
                             if type(item) is collections.OrderedDict:
                                 # print "Data is a collection"
                                 # print "{} was inserted".format(data.items()[1][1])
-                                matrix[1][index] = item.items()[1][1]
-                            else:
+                                # matrix[1][index] = item.items()[1][1]
+                                item = item.items()[1][1]
+                            # else:
                                 # print "data is regular"
                                 # print "{} was inserted".format(data)
-                                matrix[1][index] = item
+                                # matrix[1][index] = item
                                 # print matrix
+
+                            if count == 0:
+                                csv_builder.write("\"{}\"".format(to_bytes(item)))
+                            elif count == len(value):
+                                csv_builder.write(",\"{}\"\r\n".format(to_bytes(item)))
+                            else:
+                                csv_builder.write(",\"{}\"".format(to_bytes(item)))
 
                     # print "The matrix is: {}".format(matrix)
 
@@ -850,14 +866,28 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
                             columns += 1
                             # print "COLUMN: ", columns, value
                             # print value
-                            matrix[0][columns] = to_bytes(value)
+                            # matrix[0][columns] = to_bytes(value)
+
+                            if columns == 0:
+                                csv_builder.write("\"{}\"".format(to_bytes(value)))
+                            else:
+                                csv_builder.write(",\"{}\"".format(to_bytes(value)))
+
                             name_index[to_bytes(value)] = columns
                     else:
+                        # ONE VARIABLE AND SEVERAL ROWS
                         # print "TYPE", type(variables_list)
                         # print "value:", variables_list.items()[0][1]
                         columns += 1
                         # print "COLUMN: ", columns
-                        matrix[0][columns] = to_bytes(variables_list.items()[0][1])
+                        # matrix[0][columns] = to_bytes(variables_list.items()[0][1])
+                        if columns == 0:
+                            csv_builder.write("\"{}\"".format(to_bytes(variables_list.items()[0][1])))
+                        else:
+                            csv_builder.write(",\"{}\"".format(to_bytes(variables_list.items()[0][1])))
+
+                # END OF THE HEADER
+                csv_builder.write("\r\n")
 
                 # RECORDS
                 # print "UPDATING MATRIX WITH VARIABLES' VALUES"
@@ -869,7 +899,8 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
                             for c in range(variables_size):
                                 # print value.items()[1][1]
                                 item = value.items()[1][1]
-                                matrix[row][0] = item
+                                # matrix[row][0] = item
+                                csv_builder.write("\"{}\"\n".format(to_bytes(item)))
                     else:
                         for key, value in result.items():
                             # COLUMNS
@@ -892,24 +923,41 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
                                     # print index, item
                                     if type(item) is collections.OrderedDict:
                                         item_value = item.items()[1][1]
-                                        matrix[row][index] = to_bytes(item_value)
+                                        # matrix[row][index] = to_bytes(item_value)
+
+                                        if index == 0:
+                                            csv_builder.write("\"{}\"".format(to_bytes(item_value)))
+                                        else:
+                                            csv_builder.write(",\"{}\"".format(to_bytes(item_value)))
                                         # print to_bytes(item_value)
                                         # print item.items()
                                         # print "r{} c{} v{}".format(row, c, data.items()[1][1])
                                     else:
-                                        matrix[row][index] = to_bytes(item)
+                                        # matrix[row][index] = to_bytes(item)
+                                        if index == 0:
+                                            csv_builder.write("\"{}\"".format(to_bytes(item)))
+                                        else:
+                                            csv_builder.write(",\"{}\"".format(to_bytes(item)))
                                         # print to_bytes(item)
                                         # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
                                 else:
                                     index = name_index[value['@name']]
                                     if data != '@name':
-                                        matrix[row][index] = to_bytes(value[data])
+                                        
+                                        # matrix[row][index] = to_bytes(value[data])
+                                        if index == 0:
+                                            csv_builder.write("\"{}\"".format(to_bytes(value[data])))
+                                        else:
+                                            csv_builder.write(",\"{}\"".format(to_bytes(value[data])))
                                         # print "data:", data, value[data], name_index[value['@name']]
+
+                            # END OF THE ROW
+                            csv_builder.write("\r\n")
 
             # print "DONE"
             # print "out with: {}".format(matrix)
-            print "CSV BUILDER:\n", csv_builder.getvalue()
-            return {St.message: "OK", St.result: matrix}
+            print "\nCSV BUILDER:\n", csv_builder.getvalue()
+            return {St.message: "OK", St.result: csv_builder}
 
         # except Exception as err:
         #     message = "\nUNACCEPTED ERROR IN THE RESPONSE."
@@ -921,7 +969,7 @@ def sparql_xml_to_csv(query="SELECT ?subject {?subject ?p ?o FILTER(?o = 0)} LIM
         # print response[St.message]
         return {St.message: "NO RESPONSE", St.result: response}
 
-print sparql_xml_to_csv()
+sparql_xml_to_csv()
 
 def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
 
