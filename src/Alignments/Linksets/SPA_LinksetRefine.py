@@ -1,12 +1,14 @@
-import Linkset as Ls
-import Alignments.ErrorCodes as Ec
-import Alignments.GenericMetadata as Gn
-import Alignments.Lenses.Lens_Difference as Df
-import Alignments.NameSpace as Ns
+
 import Alignments.Query as Qry
 import Alignments.Settings as St
-from Alignments.UserActivities.UserRQ import register_alignment_mapping
+import Alignments.NameSpace as Ns
+import Alignments.ErrorCodes as Ec
+import Alignments.GenericMetadata as Gn
+import Alignments.Linksets.Linkset as Ls
+import Alignments.Lenses.Lens_Difference as Df
 from Alignments.Utility import write_to_file, update_specification
+from Alignments.UserActivities.UserRQ import register_alignment_mapping
+
 
 import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Refined_dir]

@@ -1,18 +1,20 @@
+import os
 import codecs
 from os import listdir
-from os.path import isfile, isdir, join
-import os
+from os.path import isfile, join
 from kitchen.text.converters import to_bytes, to_unicode
+
+
 inputPath1 = "C:\Users\Al\Documents\\tests\\1960a.sec01.txt"
 folder = "C:\Users\Al\Dropbox\@VU\Ve\BOM"
 
-def bom_copy (folder, extension_condition=".txt"):
+
+def bom_copy(directory, extension_condition=".txt"):
 
     check = ""
     try:
-    # if True:
         # LIST OF FILES IN THE FOLDER
-        files = [f for f in listdir(folder) if isfile(join(folder, f))]
+        files = [f for f in listdir(directory) if isfile(join(directory, f))]
         print "\nThis folder contains {} files out of which:\n".format(len(files))
 
         for i in range(len(files)):
@@ -28,12 +30,12 @@ def bom_copy (folder, extension_condition=".txt"):
                 # FILES THAT SATISFY THE FILE EXTENSION CONDITION
                 if extension.lower() == extension_condition.lower():
 
-                    cur_path = join(folder, files[i])
+                    cur_path = join(directory, files[i])
                     copy_name = "{}_copy{}".format(file_name, extension)
-                    copy_path = join(folder, "copied", copy_name)
+                    copy_path = join(directory, "copied", copy_name)
 
-                    if not os.path.exists(join(folder, "copied")):
-                        os.makedirs(join(folder, "copied"))
+                    if not os.path.exists(join(directory, "copied")):
+                        os.makedirs(join(directory, "copied"))
                         # os.chmod(join(folder, "copied"), 0o777)
 
                     # READ FILE FROM DISK
@@ -41,7 +43,6 @@ def bom_copy (folder, extension_condition=".txt"):
 
                     # READ THE FIRST LINE
                     first_line = to_bytes(read_file.readline())
-
 
                     if first_line.startswith(to_bytes(codecs.BOM_UTF8)):
                         # print "FIRST LINE:", first_line

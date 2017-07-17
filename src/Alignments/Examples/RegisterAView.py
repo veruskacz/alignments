@@ -1,6 +1,6 @@
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
-from Alignments.Query import display_result
+# from Alignments.Query import display_result
 from Alignments.UserActivities.View import view
 
 # THIS ASSUMES THAT THE RESEARCH QUESTION, THE VIEW_LENS, T

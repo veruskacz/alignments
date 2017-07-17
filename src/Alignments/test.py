@@ -1,10 +1,10 @@
-import NameSpace as Ns
-import Settings as St
-import Utility as Ut
-import os
-import codecs
-import cStringIO
-from kitchen.text.converters import to_bytes, to_unicode
+import Alignments.NameSpace as Ns
+import Alignments.Settings as St
+# import Utility as Ut
+# import os
+# import codecs
+# import cStringIO
+# from kitchen.text.converters import to_bytes, to_unicode
 
 
 mechanism_1 = "exactStrSim"

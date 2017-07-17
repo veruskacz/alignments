@@ -1,9 +1,9 @@
 
+import logging
 import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 from Alignments.Utility import intersect, write_to_file, get_uri_local_name
-import logging
 
 
 logger = logging.getLogger(__name__)

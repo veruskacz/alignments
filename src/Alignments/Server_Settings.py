@@ -1,5 +1,5 @@
 import os
-import Settings as St
+import Alignments.Settings as St
 
 # UPLOAD_FOLDER = os.getcwd()
 SEP = os.path.sep

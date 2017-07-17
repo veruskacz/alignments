@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # coding=utf-8
+
+import os
 import rdflib
 import logging
-import os
+import datetime
 import cStringIO
 from os import listdir
 from os.path import isfile, isdir, join
-import datetime
+
 
 logging.basicConfig()
 _format = "%a %b %d %H:%M:%S %Y"
@@ -85,6 +87,7 @@ def check_rdf_in_dir(dir_path):
                 builder.write("{}\n".format(report))
                 print report
             except Exception as err:
+                print err.message
                 builder.write("    {} is not a valid .{} file \n".format(rdf_file, extension))
         count += 1
     return builder.getvalue()

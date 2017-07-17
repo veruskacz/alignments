@@ -8,9 +8,9 @@ import platform
 import cStringIO
 import xmltodict
 import subprocess
-import Query as Qry
-import Settings as St
 from os import listdir
+import Alignments.Query as Qry
+import Alignments.Settings as St
 from os.path import isfile, join
 from kitchen.text.converters import to_bytes, to_unicode
 # write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"

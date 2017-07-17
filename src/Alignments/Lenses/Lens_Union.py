@@ -2,7 +2,7 @@
 # linkset = load("Linkset", "C:\Users\Al\PycharmProjects\Linkset\Linksets\Linkset.py")
 
 import logging
-import LensUtility as Lu
+import Alignments.Lenses.LensUtility as Lu
 import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
@@ -74,7 +74,6 @@ def run_checks(specs, query):
         print " CHECK 2: PROBLEM CONNECTING WITH THE SERVER"
         print Ec.ERROR_CODE_1
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: specs[St.lens]}
-
 
     if ask == "true":
         print " CHECK 2: THE LINKSET ALREADY EXISTS"
@@ -229,7 +228,7 @@ def union(specs, activated=False):
 
 
 def union_insert_q(lens, source, label):
-
+    lens_name = label
     query = """
     PREFIX prov:<{0}>
     PREFIX tmpgraph:<{1}>
@@ -275,6 +274,7 @@ def union_insert_q(lens, source, label):
 
     INSERT
     {{
+        ### {6}
         GRAPH <{4}>
         {{
             ?sCorr			?singPre 					?oCorr .
@@ -300,6 +300,5 @@ def union_insert_q(lens, source, label):
     DROP SILENT GRAPH tmpgraph:load00 ;
     DROP SILENT GRAPH tmpgraph:load01 ;
     DROP SILENT GRAPH tmpgraph:load02
-    """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens, Ns.tmpvocab  )
+    """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens, Ns.tmpvocab, lens_name)
     return query
-

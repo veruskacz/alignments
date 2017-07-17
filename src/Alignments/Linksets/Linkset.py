@@ -9,20 +9,19 @@
 # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
 # url = b"http://{}/annex/{}/sparql/query?".format("stardog.risis.d2s.labs.vu.nl", "risis")
 
-import codecs
-import datetime
-import logging
-
-from kitchen.text.converters import to_unicode
 import os
 import re
-import Alignments.Server_Settings as Ss
-import Alignments.ErrorCodes as Ec
-import Alignments.Lenses.LensUtility as Lu
-import Alignments.NameSpace as Ns
+import codecs
+import logging
+import datetime
 import Alignments.Query as Qry
 import Alignments.Settings as St
+import Alignments.NameSpace as Ns
+import Alignments.ErrorCodes as Ec
+import Alignments.Server_Settings as Ss
+import Alignments.Lenses.LensUtility as Lu
 import Alignments.UserActivities.UserRQ as Ura
+from kitchen.text.converters import to_unicode
 from Alignments.CheckRDFFile import check_rdf_file
 
 logger = logging.getLogger(__name__)

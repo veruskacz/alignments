@@ -1,11 +1,10 @@
 import logging
-
-import Linkset as Ls
-import Alignments.ErrorCodes as Ec
-import Alignments.GenericMetadata as Gn
-import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
 import Alignments.Settings as St
+import Alignments.NameSpace as Ns
+import Alignments.ErrorCodes as Ec
+import Alignments.GenericMetadata as Gn
+import Alignments.Linksets.Linkset as Ls
 import Alignments.UserActivities.UserRQ as Urq
 from Alignments.Utility import write_to_file, update_specification
 
@@ -156,9 +155,10 @@ def spa_subset_insert(specs):
         BIND(iri(?pre) as ?singPre)
     }}
     """.format(Ns.rdf, Ns.singletons, Ns.alivocab,
-               specs[St.linkset], specs[St.linkset_name], specs[St.sameAsCount], specs[St.source][St.graph_name],
-               specs[St.source][St.graph], specs[St.source][St.entity_datatype] ,src_aligns, Ns.alivocab, specs[St.mechanism],
-               specs[St.sameAsCount])
+               specs[St.linkset], specs[St.linkset_name], specs[St.sameAsCount],
+               specs[St.source][St.graph_name], specs[St.source][St.graph],
+               specs[St.source][St.entity_datatype], src_aligns, Ns.alivocab,
+               specs[St.mechanism], specs[St.sameAsCount])
     # print insert_query
     return insert_query
 

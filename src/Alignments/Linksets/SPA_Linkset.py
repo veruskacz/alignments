@@ -1,15 +1,15 @@
 import logging
-import Linkset as Ls
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
-from Linkset import writelinkset
 import Alignments.NameSpace as Ns
 import Alignments.ErrorCodes as Ec
 import Alignments.Server_Settings as Ss
 import Alignments.GenericMetadata as Gn
+import Alignments.Linksets.Linkset as Ls
 import Alignments.UserActivities.UserRQ as Urq
 from Alignments.Utility import update_specification
+from Alignments.Linksets.Linkset import writelinkset
 
 DIRECTORY = Ss.settings[St.linkset_Exact_dir]
 logger = logging.getLogger(__name__)
