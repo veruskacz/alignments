@@ -636,6 +636,19 @@ def spa_linkset_intermediate_query(specs):
     source = specs[St.source]
     target = specs[St.target]
 
+    # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
+    if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
+        src_rdf_pred = source[St.rdf_predicate] \
+            if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
+    else:
+        src_rdf_pred = "a"
+
+    if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
+        trg_rdf_pred = target[St.rdf_predicate] \
+            if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
+    else:
+        trg_rdf_pred = "a"
+
     # FORMATTING THE ALIGNS PROPERTY
     src_aligns = source[St.aligns] \
         if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
@@ -693,6 +706,7 @@ def spa_linkset_intermediate_query(specs):
         graph <{6}>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1} {10} <{12}> .
             ?{1} {2} ?value_1 .
             bind (lcase(str(?value_1)) as ?src_value)
         }}
@@ -700,6 +714,7 @@ def spa_linkset_intermediate_query(specs):
         graph <{7}>
         {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3} {11} <{13}> .
             ?{3} {4} ?value_2 .
             bind (lcase(str(?value_2)) as ?trg_value)
         }}
@@ -739,7 +754,9 @@ def spa_linkset_intermediate_query(specs):
         # 0          1         2           3         4
         Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
         # 5                6        7        8            9
-        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph]
+        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
+        # 10          11            12                          13
+        src_rdf_pred, trg_rdf_pred, source[St.entity_datatype], target[St.entity_datatype]
     )
 
     query03 = prefix + """

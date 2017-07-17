@@ -371,9 +371,9 @@ def prefixed_inverted_index(specs, theta):
     """
 
     link = "alivocab:approxStrSim"
-    prefix = "@PREFIX alivocab:\t<{}> .\n" \
-             "@PREFIX linkset:\t<{}> .\n" \
-             "@PREFIX singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
+    prefix = "@prefix alivocab:\t<{}> .\n" \
+             "@prefix linkset:\t<{}> .\n" \
+             "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
 
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
     Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
@@ -381,7 +381,7 @@ def prefixed_inverted_index(specs, theta):
     for key, writer in writers.items():
         # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
         if type(writer) is not str:
-            if key is not St.batch_writer:
+            if key is not St.batch_writer and key is not St.meta_writer:
                 writer.write(prefix)
             if key is St.crpdce_writer:
                 writer.write("\nlinkset:{}\n{{\n".format(specs[St.linkset_name]))
@@ -394,15 +394,19 @@ def prefixed_inverted_index(specs, theta):
 
     # HELPER FOR EXTRACTING SPA VALUES FROM A GRAPH
     def get_table(dataset_specs):
+        aligns = dataset_specs[St.aligns] if Ut.is_nt_format(dataset_specs[St.aligns]) \
+            else "<{}>".format(dataset_specs[St.aligns])
         query = """
         SELECT *
         {{
-            GRAPH <{}>
+            GRAPH <{0}>
             {{
-                ?subject    <{}>    ?object .
+                ?subject
+                    a       <{1}> ;
+                    {2}    ?object .
             }}
-        }} {}
-        """.format(dataset_specs[St.graph], dataset_specs[St.aligns], LIMIT)
+        }} {3}
+        """.format(dataset_specs[St.graph], dataset_specs[St.entity_datatype], aligns, LIMIT)
         table_matrix = Qry.sparql_xml_to_matrix(query)
         # Qry.display_matrix(table_matrix, is_activated=True)
         # print table_matrix
@@ -466,14 +470,18 @@ def prefixed_inverted_index(specs, theta):
 
             # GET THE TOKENS
             in_tokens = value.split(" ")
+
             # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
             included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
+
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
             for i in range(len(in_tokens)):
                 # print value + " | +" + tokens[i]
                 in_tokens[i] = [in_tokens[i], tf[in_tokens[i]]]
+
             # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
             in_tokens = sorted(in_tokens, key=itemgetter(1))
+            # print "{} {}".format(in_row, in_tokens)
 
             # INSERTING included TOKENS IN THE INVERTED INDEX
             for t in in_tokens[:included]:
@@ -501,6 +509,7 @@ def prefixed_inverted_index(specs, theta):
         # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
         included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1) \
             if int(threshold * len(in_tokens)) > 1 else len(in_tokens)
+        # included = len(in_tokens)
 
         # UPDATE THE TOKENS WITH THEIR FREQUENCY
         for i in range(len(in_tokens)):
@@ -579,8 +588,8 @@ def prefixed_inverted_index(specs, theta):
     print "3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
     src_tf = get_tf(src_dataset)
     trg_tf = get_tf(trg_dataset)
-    print "\t\tTHE SOURCES DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf)-1)
-    print "\t\tTHE TARGET DATASET CONTAINS {} POTENTIAL.".format(len(trg_dataset) - 1)
+    print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf)-1)
+    print "\t\tTHE TARGET DATASET CONTAINS {} POTENTIAL CANDIDATES.".format(len(trg_dataset) - 1)
     t_tf = time()
     print "\t\t>>> In {}.\n\t\t>>> Elapse time: {}".format(t_tf - t_load, t_load - start)
     # print src_tf
@@ -645,16 +654,16 @@ def prefixed_inverted_index(specs, theta):
         (t_sim - t_inv_ind)/60, (t_sim - start)/60)
     print "\t\t>>> {} match found".format(count)
 
-    metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
-    writers[St.meta_writer].write(to_unicode(metadata))
+    # metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
+    # writers[St.meta_writer].write(to_unicode(metadata))
 
     load = """
     echo "Loading data"
-    stardog data add risis "{}" "{}" "{}"
+    stardog data add risis "{}" "{}"
     """.format(
         writers[St.crpdce_writer_path],
-        writers[St.meta_writer_path],
         writers[St.singletons_writer_path]
+        # writers[St.meta_writer_path],
     )
 
     # GENERATE THE BATCH FILE
@@ -666,7 +675,8 @@ def prefixed_inverted_index(specs, theta):
                 writer.write("}")
             elif key is St.singletons_writer:
                 writer.write("}")
-            writer.close()
+            if key is not St.meta_writer:
+                writer.close()
 
     print "\n>>> STARTED ON {}".format(ctime(start))
     print ">>> FINISHED ON {}".format(ctime(t_sim))
@@ -681,6 +691,13 @@ def prefixed_inverted_index(specs, theta):
 
         os.system(writers[St.batch_output_path])
         # inserted = Qry.insert_size(specs[St.linkset], isdistinct=False)
+
+        metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
+        writers[St.meta_writer].write(to_unicode(metadata))
+
+        if int(specs[St.triples]) > 0:
+            Qry.boolean_endpoint_response(metadata)
+        writers[St.meta_writer].close()
 
         # REGISTER THE ALIGNMENT
         if check[St.result].__contains__("ALREADY EXISTS"):

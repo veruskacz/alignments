@@ -181,10 +181,6 @@ def view_data(view_specs, view_filter, display=False):
                 # [DESCRIPTION] ADDING THE FILTERS BELONGING TO THE VIEW
                 main_buffer.write(has_filter)
 
-
-
-
-
                 # ADDING THE DATATYPE IF ANY
                 if St.entity_datatype in dictionary:
                     string_buffer.write("\n\t\t\t\tvoid:hasDatatype\t\t\t<{}> ;".format(dictionary[St.entity_datatype]))
@@ -234,10 +230,11 @@ def view_data(view_specs, view_filter, display=False):
         main_buffer.write("\n\t\t\t\talivocab:selected\t\t\t<{}> {}".format(linkset_lens, append_ls))
         count_ls += 1
 
+    main_triples = main_buffer.getvalue()
     triples = string_buffer.getvalue()
 
     # HASH THE STRING
-    hash_value = hash(string_buffer.getvalue())
+    hash_value = hash(main_triples + triples)
 
     # CHANGE THE "-" NEGATIVE VALUE TO "N" AND POSITIVE TO "p"
     hash_value = str(hash_value).replace('-', "N") if str(hash_value).__contains__('-') else "P" + str(hash_value)
@@ -251,7 +248,7 @@ def view_data(view_specs, view_filter, display=False):
         GRAPH <{}>
         {{
         {}{}\t\t}}\n\t}}
-    """.format(question_uri, main_buffer.getvalue().replace("@URI", uri), triples).replace("@", hash_value)
+    """.format(question_uri, main_triples.replace("@URI", uri), triples).replace("@", hash_value)
 
     message = "\nThe metadata was generated"
     print "VIEW INSERT QUERY:", query
@@ -291,6 +288,7 @@ def view(view_specs, view_filter, save=False, limit=10):
         # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
         # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
         view_metadata = view_data(view_specs, view_filter)
+        print view_metadata
         print view_filter
 
         # CHECK FOR POTENTIAL SPARQL TIMEOUT
@@ -341,7 +339,7 @@ def view(view_specs, view_filter, save=False, limit=10):
             ds_ns_name = Ut.get_uri_ns_local_name(graph_uri)
 
             # shortening prefix length
-            short_name = ds_ns_name[1][:6]
+            short_name = ds_ns_name[1]
 
             # HOLDING INFORMATION ABOUT THIS GRAPH (FOR EACH ENTITY DATATYPE, THE PROPERTIES SELECTED)
             graph_data = graph["data"]
@@ -365,10 +363,10 @@ def view(view_specs, view_filter, save=False, limit=10):
                 type_triple = ""
                 if e_type_uri == "no_type":
                     e_type = ""
-                    print "!!!!!!!!!!!!!!!!!!!!!!!!!! NO TYPE"
+                    # print "!!!!!!!!!!!!!!!!!!!!!!!!!! NO TYPE"
                 else:
                     e_type = Ut.get_uri_local_name(e_type_uri)
-                    print "!!!!!!!!!!!!!!!!!!!!!!!!!!e_type", e_type
+                    # print "!!!!!!!!!!!!!!!!!!!!!!!!!!e_type", e_type
                     if e_type:
                         e_type = "_{}".format(e_type[short:])
 

@@ -658,7 +658,7 @@ def sparql_xml_to_matrix(query):
         return {St.message: "NO RESPONSE", St.result: response}
 
 
-def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100"):
+def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
 
     name_index = dict()
     csv_builder = StringIO()
@@ -846,7 +846,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
 
             # >>> MORE THAN ONE RESULT
             if type(results) is list:
-                # print "THE LIST CONTAINS MORE THAN ONE RESULTS"
+                print "THE LIST CONTAINS MORE THAN ONE RESULTS"
                 row = 0
                 columns = -1
                 row_size = len(results)
@@ -900,6 +900,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                 # print "UPDATING MATRIX WITH VARIABLES' VALUES"
                 for result in results:
                     # ROWS
+                    row_array = [str(x*0).replace("0", "") for x in range(w)]
                     if variables_size == 1:
                         for key, value in result.items():
                             row += 1
@@ -935,23 +936,25 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                                         if cell is None:
                                             cell = ""
                                         # matrix[row][index] = to_bytes(item_value)
-
-                                        if index == 0:
-                                            csv_builder.write("\"{}\"".format(cell))
-                                        else:
-                                            csv_builder.write(",\"{}\"".format(cell))
+                                        row_array[index] = cell
+                                        # if index == 0:
+                                        #     csv_builder.write("\"{}\"".format(cell))
+                                        # else:
+                                        #     csv_builder.write(",\"{}\"".format(cell))
                                         # print to_bytes(item_value)
                                         # print item.items()
                                         # print "r{} c{} v{}".format(row, c, data.items()[1][1])
                                     else:
                                         # matrix[row][index] = to_bytes(item)
+
                                         cell = to_bytes(item)
                                         if cell is None:
                                             cell = ""
-                                        if index == 0:
-                                            csv_builder.write("\"{}\"".format(cell))
-                                        else:
-                                            csv_builder.write(",\"{}\"".format(cell))
+                                        row_array[index] = cell
+                                        # if index == 0:
+                                        #     csv_builder.write("\"{}\"".format(cell))
+                                        # else:
+                                        #     csv_builder.write(",\"{}\"".format(cell))
                                         # print to_bytes(item)
                                         # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
                                 else:
@@ -960,19 +963,22 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 100")
                                         cell = to_bytes(value[data])
                                         if cell is None:
                                             cell = ""
+                                        row_array[index] = cell
                                         # matrix[row][index] = to_bytes(value[data])
-                                        if index == 0:
-                                            csv_builder.write("\"{}\"".format(cell))
-                                        else:
-                                            csv_builder.write(",\"{}\"".format(cell))
+
                                         # print "data:", data, value[data], name_index[value['@name']]
 
                             # END OF THE ROW
+                            for i in range(len(row_array)):
+                                if i == 0:
+                                    csv_builder.write("\"{}\"".format(row_array[i]))
+                                else:
+                                    csv_builder.write(",\"{}\"".format(row_array[i]))
                             csv_builder.write("\r\n")
 
             # print "DONE"
             # print "out with: {}".format(matrix)
-            # print "\nCSV BUILDER:\n", csv_builder.getvalue()
+            print "\nCSV BUILDER:\n", csv_builder.getvalue()
             return {St.message: "OK", St.result: csv_builder}
 
         # except Exception as err:
