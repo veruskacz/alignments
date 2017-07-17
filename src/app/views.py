@@ -45,13 +45,15 @@ if CREATION_ACTIVE:
     from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
     from Alignments.Query import sparql_xml_to_csv as sparql2csv
 
+    import Alignments.Server_Settings as Svr
+
 else:
     from app import app
 
-DATABASE = "risis"
-HOST = "localhost:5820"
-ENDPOINT_URL = 'http://localhost:5820/risis/query'
-UPDATE_URL = 'http://localhost:5820/risis/update'
+DATABASE = Svr.DATABASE
+HOST = Svr.settings[St.stardog_host_name]
+ENDPOINT_URL = 'http://{}/{}/query'.format(HOST, DATABASE)
+UPDATE_URL = 'http://{}/{}/update'.format(HOST, DATABASE)
 PATH_DS_FILES= '/Users/veruskacz/PyWebApp/alignments/src/data/'
 REASONING_TYPE = 'SL'
 if os.getcwd().endswith("src"):
@@ -146,6 +148,7 @@ def upload():
 
     # return jsonify({"success":True})
 
+
 @app.route('/getupload')
 def getupload():
 
@@ -180,6 +183,7 @@ def getupload():
         return jsonify({"success": True, 'selectlist': select_list, 'original': original})
 
     return ""
+
 
 @app.route('/userLinksetImport')
 def userLinksetImport():
@@ -1740,6 +1744,7 @@ def viewSampleFile():
     size = request.args.get('size', '10')
     return json.dumps(CSV.CSV.view_file(filePath, int(size)))
 
+
 @app.route('/viewSampleRDFFile')
 def viewSampleRDFFile():
     filePath = request.args.get('file', '')
@@ -1772,6 +1777,7 @@ def allowed_file(filename):
 ## ENDPOINT
 # ######################################################################
 
+
 def sparql_update(query, endpoint_url = UPDATE_URL):
 
     # log.debug(query)
@@ -1780,6 +1786,7 @@ def sparql_update(query, endpoint_url = UPDATE_URL):
         params={'reasoning': REASONING_TYPE}, data=query, headers=UPDATE_HEADERS)
 
     return result.content
+
 
 
 def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
@@ -1804,7 +1811,6 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
             return result_dict['results']['bindings']
         elif "boolean" in result_dict:
             return result_dict['boolean']
-
 
 
 def strip_dict(result_dict):
@@ -2354,4 +2360,3 @@ def get_URI_local_name(uri):
             index = uri.rindex(last_char)
             name = uri[index + 1:]
             return name
-

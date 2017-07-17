@@ -82,6 +82,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             # print insertqueries[0], '\n', insertqueries[1], '\n', insertqueries[2], '\n', insertqueries[3]
 
             # print time.time()
+            drop_start = time.time()
             ########################################################################
             print """ 1. SAFETY GRAPH DROPS                                      """
             ########################################################################

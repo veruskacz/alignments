@@ -10,6 +10,7 @@ import collections
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.ErrorCodes as Ec
+import Alignments.Server_Settings as Svr
 from cStringIO import StringIO
 from kitchen.text.converters import to_bytes # to_unicode
 
@@ -18,11 +19,11 @@ logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
-DATABASE = "risis"
-HOST = "localhost:5820"
+DATABASE = Svr.DATABASE
+HOST = Svr.settings[St.stardog_host_name]
 
 ERROR = "No connection could be made because the target machine actively refused it"
-
+ERROR_2 = 'The query was successfully executed but no feedback was returned'
 
 def linkset_evidence(linkset, display=False):
 
@@ -277,7 +278,7 @@ def endpoint(query):
     """
 
     q = to_bytes(query)
-    # print q
+    # print query
     # Content-Type: application/json
     # b"Accept": b"text/json"
     # 'output': 'application/sparql-results+json'
@@ -307,6 +308,8 @@ def endpoint(query):
         response = urllib2.urlopen(request)
         result = response.read()
         # print result
+        # print "NONE", result is None
+        # print "EMPTY", len(result)
         return {St.message: "OK", St.result: result}
 
     except urllib2.HTTPError, err:
@@ -346,6 +349,8 @@ def boolean_endpoint_response(query, display=False):
     drop_end = time.time()
     result = None
     if response[St.result] is not None:
+        if len(response[St.result]) == 0:
+            return ERROR_2
         drops_doc = xmltodict.parse(response[St.result])
         result = drops_doc['sparql']['boolean']
         if display is True:

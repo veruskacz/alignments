@@ -6,10 +6,16 @@ SEP = os.path.sep
 DIR = "{0}{1}{1}Alignments{1}{1}Data".format(os.getcwd(), SEP)
 UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(), SEP)
 UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
+# "http://stardog.risis.d2s.labs.vu.nl/annex/risis/sparql/query"
+DATABASE = "risis"
+TEST_SERVER = "localhost:5820"
+PRODUCTION_SERVER = "stardog.risis.d2s.labs.vu.nl"
+
 settings = {
 
     # STARDOG LOCAL HOST NAME
-    St.stardog_host_name: "localhost:5820",
+    # St.stardog_host_name: TEST_SERVER,
+    St.stardog_host_name: PRODUCTION_SERVER,
 
     # MAIN DATA FOLDER
     St.data_dir: DIR,

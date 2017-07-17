@@ -4,6 +4,8 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 from Alignments.Query import endpoint
 
+error = 'The query was successfully executed but no feedback was returned'
+
 PREFIX ="""
     ################################################################
     PREFIX bdb:         <{6}>
@@ -108,6 +110,8 @@ def drop_linksets(display=False, activated=True):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -211,6 +215,8 @@ def drop_subsets(display=False, activated=True):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -298,6 +304,8 @@ def drop_lenses(display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -382,6 +390,8 @@ def drop_a_lens(lens, display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -469,6 +479,8 @@ def drop_unions(display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -565,6 +577,8 @@ def drop_linkset(graph, display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -711,6 +725,8 @@ def drop_all_research_questions(display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -721,7 +737,7 @@ def drop_all_research_questions(display=False, activated=False):
 
 def drop_a_research_question(graph, display=False, activated=False):
 
-    query = """ DROP SILENT GRAPH <{}> """.format(graph)
+    query = """DROP SILENT GRAPH <{}>""".format(graph)
 
     if activated is True:
         print "{}{}{}".format(
@@ -740,11 +756,14 @@ def drop_a_research_question(graph, display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return 'The query was successfully executed but no feedback was returned'
+            # print "drops_response", drops_response[St.result]
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
             if display is True:
-                print ">>> Query details  : {}\n".format(query)
+                print "\t>>> Query details  : {}\n".format(query)
             print ""
             return 'The query was successfully executed'
         else:
@@ -783,6 +802,8 @@ def drop_research_question_lenses(research_uri, display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -825,6 +846,8 @@ def delete_aligned_linkset(research_uri, alignment_uri, display=False, activated
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -870,6 +893,8 @@ def delete_aligned_linksets(research_uri, display=False, activated=False):
         drop_end = time.time()
 
         if drops_response[St.result] is not None:
+            if len(drops_response[St.result]) == 0:
+                return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
             print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
