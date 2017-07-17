@@ -7,9 +7,9 @@ import urllib2
 import logging
 import xmltodict
 import collections
-import Settings as St
-import NameSpace as Ns
-import ErrorCodes as Ec
+import Alignments.Settings as St
+import Alignments.NameSpace as Ns
+import Alignments.ErrorCodes as Ec
 from cStringIO import StringIO
 from kitchen.text.converters import to_bytes # to_unicode
 

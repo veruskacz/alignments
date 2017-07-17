@@ -1,7 +1,7 @@
-import NameSpace as Ns
-import Settings as St
-import Query as Qry
-import Linksets.Linkset as Ls
+import Alignments.NameSpace as Ns
+import Alignments.Settings as St
+import Alignments.Query as Qry
+import Alignments.Linksets.Linkset as Ls
 
 
 def linkset_metadata(specs, display=False):
