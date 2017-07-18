@@ -13,6 +13,10 @@ PRODUCTION_SERVER = "stardog.risis.d2s.labs.vu.nl"
 
 settings = {
 
+    # TRUE MEANS THE PYTHON SERVER AND THE STARDOG
+    # SERVER ARE NOT ON THE SAME LOCAL HOST
+    St.split_sys: True,
+
     # STARDOG LOCAL HOST NAME
     # St.stardog_host_name: TEST_SERVER,
     St.stardog_host_name: PRODUCTION_SERVER,

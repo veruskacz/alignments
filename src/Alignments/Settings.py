@@ -3,6 +3,7 @@
 """ DICTIONANY VARIABLES                                                         """
 #####################################################################################
 
+split_sys = "split_sys"
 data = "data"
 rdf_predicate = "rdf_predicate"
 

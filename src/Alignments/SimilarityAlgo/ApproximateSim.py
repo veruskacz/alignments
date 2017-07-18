@@ -14,6 +14,7 @@ import Alignments.Linksets.Linkset as Ls
 import Alignments.UserActivities.UserRQ as Urq
 from kitchen.text.converters import to_unicode
 from Alignments.CheckRDFFile import check_rdf_file
+import Alignments.Server_Settings as Svr
 
 import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
@@ -667,7 +668,11 @@ def prefixed_inverted_index(specs, theta):
     )
 
     # GENERATE THE BATCH FILE
-    writers[St.batch_writer].write(to_unicode(load))
+    if Svr.settings[St.split_sys]:
+        print "THE DATA IS BEING LOADED OVER HTTP POST."
+    else:
+        print "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
+        writers[St.batch_writer].write(to_unicode(load))
 
     for key, writer in writers.items():
         if type(writer) is not str:

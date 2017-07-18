@@ -30,6 +30,9 @@ MESSAGE_4 = "Y0UR RESEARCH QUESTION WAS SUCCESSFULLY REGISTERED" \
             "\nBUT, DUE TO SOME INTERNAL ERROR, THE URI COULD NOT BE RETRIEVED AT THIS POINT IN TIME." \
             "\nPLEASE, RESUBMIT AT A LATER TIME."
 
+
+STARDOG_BOOLEAN_BUG_MESSAGE = "The query was successfully executed but no feedback was returned"
+
 # RESEARCH QUESTIONS ARE INSERTED IN THIS GRAPH
 # GRAPH = "{}researchQ".format(Ns.dataset)
 
@@ -49,6 +52,7 @@ def register_research_question(question):
         existence_query = check_rq_existence(question)
         check = Qry.boolean_endpoint_response(existence_query)
 
+        # LOOK FOR A RESEARCH QUESTION OF THE SAME NAMES GRAPH
         find_query = find_rq(question)
 
         # AN INTERNAL PROBLEM OCCURRED
@@ -75,13 +79,16 @@ def register_research_question(question):
             ins_rq = research_question(question)
             # print ins_rq
             inserted = Qry.boolean_endpoint_response(ins_rq)
+            print "INSERTED RESULT:", inserted
 
             #  THE REGISTRATION WAS NOT SUCCESSFUL
             if inserted is None:
+                print "THE RESEARCH QUESTION WAS REGISTERED"
                 print MESSAGE_3
 
             # THE REGISTRATION WAS SUCCESSFUL. RETRIEVE THE URI
-            if inserted == "true":
+            if inserted == "true" or inserted == STARDOG_BOOLEAN_BUG_MESSAGE:
+                print "THE RESEARCH QUESTION IS REGISTERED"
                 find = Qry.sparql_xml_to_matrix(find_query)
                 if find:
                     if find[St.result]:
