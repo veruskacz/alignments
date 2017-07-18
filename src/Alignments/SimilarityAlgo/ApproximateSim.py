@@ -425,7 +425,7 @@ def prefixed_inverted_index(specs, theta):
         # GENERATE SINGLETONS METADATA
         singleton = "\n\t### Instance [{8}]\n\t{1}_{2}_{3}\n\t\t" \
                     "alivocab:hasStrength \t\t{5} ;" \
-                    "\n\t\talivocab:hasEvidence  \t\t\"[{6}] was compared to [{7}]\" .\n".\
+                    "\n\t\talivocab:hasEvidence  \t\t\"\"\"[{6}] was compared to [{7}]\"\"\" .\n".\
             format(description[St.src_resource], description[St.link], description[St.row],
                    description[St.inv_index], description[St.trg_resource], description[St.sim],
                    description[St.src_value], description[St.trg_value], counter)
