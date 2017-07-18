@@ -11,7 +11,7 @@ import requests
 import xmltodict
 import collections
 import Queries as Qry
-from kitchen.text.converters import to_bytes
+from kitchen.text.converters import to_bytes, to_unicode
 from flask import render_template, request, redirect,   jsonify  # url_for, make_response, g
 
 logger = logging.getLogger(__name__)
@@ -636,7 +636,8 @@ def detailsLens():
 
         # print 'BEFORE: ',pred_values
         for d in pred_values:
-            d['value'] = d['value'].decode('utf-8') if str(d['value']) else d['value']
+            # d['value'] = d['value'].decode('utf-8') if str(d['value']) else d['value']
+            d['value'] = to_unicode(d['value'])# if str(d['value']) else d['value']
         # print 'AFTER: ',pred_values
 
 

@@ -626,8 +626,8 @@ def prefixed_inverted_index(specs, theta):
         for idx in curr_index:
 
             # COMPARE THE CURRENT TO OTHERS THAT IS NOT YOURSELF
-            sim_val_1 = remove_info_in_bracket(to_unicode(src_dataset[row][1]))
-            sim_val_2 = remove_info_in_bracket(to_unicode(trg_dataset[idx][1]))
+            sim_val_1 = str(remove_info_in_bracket(to_unicode(src_dataset[row][1]))).lower()
+            sim_val_2 = str(remove_info_in_bracket(to_unicode(trg_dataset[idx][1]))).lower()
             sim = edit_distance(sim_val_1, sim_val_2)
 
             # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
