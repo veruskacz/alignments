@@ -1,4 +1,5 @@
 import logging
+import time
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -81,8 +82,6 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             specs[St.insert_query] = "{}\n{}\n{}".format(insertqueries[1], insertqueries[2], insertqueries[3])
             # print insertqueries[0], '\n', insertqueries[1], '\n', insertqueries[2], '\n', insertqueries[3]
 
-            # print time.time()
-            drop_start = time.time()
             ########################################################################
             print """ 1. SAFETY GRAPH DROPS                                      """
             ########################################################################
@@ -91,6 +90,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             ########################################################################
             print """ 2. TEMPORARY GRAPHS                                        """
             ########################################################################
+            ls_start = time.time()
             Qry.boolean_endpoint_response(insertqueries[1])
 
             ########################################################################
@@ -108,6 +108,9 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             ########################################################################
             metadata = Gn.linkset_metadata(specs)
             # print metadata
+            ls_end = time.time()
+            diff = ls_end - ls_start
+            print ">>> Executed in    : {:<14} minute(s) []".format(str(diff/ 60), diff)
 
             # NO POINT TO CREATE ANY FILE WHEN NO TRIPLE WAS INSERTED
             if int(specs[St.triples]) > 0:

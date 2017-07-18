@@ -1611,7 +1611,8 @@ def deleteLinkset():
             print ">>>> TO DELETE:"
             query = adm.delete_linkset_rq(rq_uri, linkset_uri)
             print "CONDITIONAL DELETE QUERY:", query
-            result = sparql(query, strip=False)
+            result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+            # result = sparql(query)
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
 
@@ -1648,9 +1649,9 @@ def deleteLens():
             print ">>>> TO DELETE:"
             # query = adm.delete_lens_rq(rq_uri, lens_uri)
             # print "CONDITIONAL DELETE QUERY:", query
-            # result = sparql(query, strip=False)
+            # result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
             # print ">>>> DELETION RESULT:", result
-            return json.dumps({'message': 'Lens successfully deleted', 'result': 'OK'})
+            # return json.dumps({'message': 'Lens successfully deleted', 'result': 'OK'})
 
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
@@ -1671,7 +1672,7 @@ def deleteView():
             print ">>>> TO DELETE:"
             query = Qry.delete_view_rq(rq_uri, view_uri)
             print query
-            result = sparql(query, strip=False)
+            result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'View successfully deleted', 'result': 'OK'})
 
@@ -1793,6 +1794,7 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
 
     """This method replaces the SPARQLWrapper SPARQL interface, since SPARQLWrapper
     cannot handle the Stardog-style query headers needed for inferencing"""
+    # print "ENDPOINT_URL", ENDPOINT_URL
 
     result = requests.post(endpoint_url,
         data={'query': query, 'reasoning': REASONING_TYPE}, headers=QUERY_HEADERS)
@@ -1811,6 +1813,8 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
             return result_dict['results']['bindings']
         elif "boolean" in result_dict:
             return result_dict['boolean']
+        else:
+            return "NO RESPONSE FROM THE SERVER"
 
 
 def strip_dict(result_dict):
