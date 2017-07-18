@@ -668,11 +668,7 @@ def prefixed_inverted_index(specs, theta):
     )
 
     # GENERATE THE BATCH FILE
-    if Svr.settings[St.split_sys]:
-        print "THE DATA IS BEING LOADED OVER HTTP POST."
-    else:
-        print "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
-        writers[St.batch_writer].write(to_unicode(load))
+    writers[St.batch_writer].write(to_unicode(load))
 
     for key, writer in writers.items():
         if type(writer) is not str:
@@ -691,10 +687,14 @@ def prefixed_inverted_index(specs, theta):
     # if int(inserted[1]) > 0:
     if count > 0:
 
-        print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THEW TRIPLE STORE\n\t\t{}", writers[
+        print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THE TRIPLE STORE\n\t\t{}", writers[
             St.batch_output_path]
 
-        os.system(writers[St.batch_output_path])
+        if Svr.settings[St.split_sys] is True:
+            print "THE DATA IS BEING LOADED OVER HTTP POST."
+        else:
+            print "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
+            os.system(writers[St.batch_output_path])
         # inserted = Qry.insert_size(specs[St.linkset], isdistinct=False)
 
         metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
