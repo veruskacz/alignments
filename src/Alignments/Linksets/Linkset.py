@@ -80,7 +80,7 @@ def set_linkset_name(specs, inverse=False):
         h_name = specs[St.mechanism] + \
                  specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
                  specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
-                 specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype] + "1"
+                 specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype]
 
         hashed = hash(h_name)
 

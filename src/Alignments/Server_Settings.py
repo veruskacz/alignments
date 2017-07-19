@@ -15,7 +15,8 @@ settings = {
 
     # TRUE MEANS THE PYTHON SERVER AND THE STARDOG
     # SERVER ARE NOT ON THE SAME LOCAL HOST
-    St.split_sys: True,
+    # St.split_sys: True,
+    St.split_sys: False,
 
     # STARDOG LOCAL HOST NAME
     # St.stardog_host_name: TEST_SERVER,

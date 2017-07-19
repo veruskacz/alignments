@@ -242,8 +242,13 @@ def insert_exact_query(specs):
         {{
             ?newSingletons
                 rdf:singletonPropertyOf     alivocab:{}{} ;
+                ## THIS IS THE TRAIL
                 prov:wasDerivedFrom         ?singleton ;
+                ## BUT THIS IS ADDED FOR QUERY SIMPLICITY AND EFFICIENCY
+                ?sP ?sO ;
+                ## THIS IS ITS OWN EVIDENCE
                 alivocab:hasEvidence        ?label .
+
         }}
     }}
     WHERE
@@ -264,14 +269,18 @@ def insert_exact_query(specs):
         ### SOURCE DATASET
         GRAPH <{}>
         {{
-            ?subject   {} 	?s_label ;
+            ?subject
+                a   <{}> ;
+                {} 	?s_label .
             BIND(lcase(str(?s_label)) as ?label)
         }}
 
         ### TARGET DATASET
         GRAPH <{}>
         {{
-          ?object      {} 	?o_label ;
+            ?object
+                a   <{}> ;
+                {} 	?o_label .
             BIND(lcase(str(?o_label)) as ?label)
         }}
     }}
@@ -279,8 +288,8 @@ def insert_exact_query(specs):
                specs[St.refined], Ns.singletons, specs[St.refined_name], specs[St.mechanism], specs[St.sameAsCount],
                specs[St.linkset], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
                specs[St.singletonGraph],
-               source[St.graph], src_aligns,
-               target[St.graph], trg_aligns)
+               source[St.graph], source[St.entity_datatype], src_aligns,
+               target[St.graph], target[St.entity_datatype],trg_aligns)
     # print insert_query
     return insert_query
 

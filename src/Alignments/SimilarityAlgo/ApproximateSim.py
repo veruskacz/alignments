@@ -12,7 +12,7 @@ from time import time, ctime, gmtime
 import Alignments.GenericMetadata as Gn
 import Alignments.Linksets.Linkset as Ls
 import Alignments.UserActivities.UserRQ as Urq
-from kitchen.text.converters import to_unicode
+from kitchen.text.converters import to_unicode, to_bytes
 from Alignments.CheckRDFFile import check_rdf_file
 import Alignments.Server_Settings as Svr
 
@@ -20,8 +20,9 @@ import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 
 
-# LIMIT 2000
+
 LIMIT = ""
+# LIMIT = "LIMIT 2000"
 
 # /***************************************************************************************************************
 # * INDEXING TECHNIQUES (1)
@@ -242,6 +243,7 @@ def inverted_index(specs, theta):
 def edit_distance(token_x, token_y):
     ln_y = len(token_y) + 1
     ln_x = len(token_x) + 1
+    # https://leojiang.com/experiments/levenshtein/
 
     """
     ***SEQUENCE-BASED SIMILARITY MEASURES **********************************************************************
@@ -281,6 +283,7 @@ def edit_distance(token_x, token_y):
         matrix[row][0] = row
     for col in range(1, ln_x):
         matrix[0][col] = col
+    # print matrix
 
     """
     Filling in the matrix by comparing each element from the strings, character by character
@@ -293,14 +296,25 @@ def edit_distance(token_x, token_y):
                 matrix[row][col] = matrix[row - 1][col - 1]
 
             # If the match fails, take the minimal value of 3 cells surrounding the current cell
-            # [ cell on the left, cell in the diagonal and cll on the top] and add 1 to it
+            # [ cell on the left, cell in the diagonal and cell on the top] and add 1 to it
             else:
-                matrix[row][col] = maxint
+                # matrix[row][col] = maxint
                 # Left cell to the current cell
                 matrix[row][col] = min([matrix[row][col - 1], matrix[row-1][col - 1], matrix[row-1][col]]) + 1
 
+    # print matrix
+    # print "EDIT DISTANCE:", matrix[ln_y - 1][ln_x - 1]
+    # print "DENOMINATOR", float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
+    # print "SIMILARITY [0 1]", 1 - matrix[ln_y - 1][ln_x - 1] / float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
+
     return 1 - matrix[ln_y - 1][ln_x - 1] / float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
+
     # return  matrix[ln_y - 1][ln_x - 1]
+
+
+# edit_distance("vu university medical center", "leiden university medical center")
+# edit_distance("vu center", "leiden center")
+# edit_distance("landspitali, iceland", "australian national")
 
 
 def prefixed_inverted_index(specs, theta):
@@ -454,6 +468,29 @@ def prefixed_inverted_index(specs, theta):
 
         return term_frequency
 
+    def get_tf_2(matrix_src, matrix_trg):
+        # Qry.display_matrix(matrix, is_activated=True)
+        # print matrix
+        datasets = [matrix_src, matrix_trg]
+        term_frequency = dict()
+        for matrix in datasets:
+            # print "DATASETS:", matrix
+            for r in range(1, len(matrix)):
+                # print "matrix[row]:", matrix[row]
+
+                # REMOVE DATA IN BRACKETS
+                in_tokens = remove_info_in_bracket(to_unicode(matrix[r][1])).lower()
+                in_tokens = in_tokens.split(" ")
+
+                # COMPUTE FREQUENCY
+                for t in in_tokens:
+                    if t not in term_frequency:
+                        term_frequency[t] = 1
+                    else:
+                        term_frequency[t] += 1
+
+        return term_frequency
+
     def get_inverted_index(matrix, tf, threshold):
 
         # INVERTED INDEX DICTIONARY
@@ -462,7 +499,7 @@ def prefixed_inverted_index(specs, theta):
         for in_row in range(1, len(matrix)):
 
             # GET THE VALUE
-            value = to_unicode(matrix[in_row][1])
+            value = to_unicode(matrix[in_row][1]).lower()
 
             # REMOVE DATA IN BRACKETS
             value = remove_info_in_bracket(value)
@@ -497,7 +534,7 @@ def prefixed_inverted_index(specs, theta):
     def get_tokens_to_include(string, threshold, tf):
 
         # GET THE TOKENS
-        stg = to_unicode(string)
+        stg = to_unicode(string).lower()
         # print stg
 
         # REMOVE DATA IN BRACKETS
@@ -562,6 +599,7 @@ def prefixed_inverted_index(specs, theta):
     # CREATING THE  INVERTED INDEX
     #################################################################
 
+    debug = False
     src_dataset = get_table(source)
     trg_dataset = get_table(target)
     Ut.update_specification(specs)
@@ -583,20 +621,22 @@ def prefixed_inverted_index(specs, theta):
         Qry.display_matrix(src_dataset, is_activated=False)
         Qry.display_matrix(trg_dataset, is_activated=False)
 
-    print "\t\tTHE SOURCES DATASET CONTAINS {} INSTANCES.".format(len(src_dataset)-1)
+    print "\t\tTHE SOURCES DATASET CONTAINS {} INSTANCES.".format(len(src_dataset) - 1)
     print "\t\tTHE TARGET DATASET CONTAINS {} INSTANCES.".format(len(trg_dataset) - 1)
 
     print "3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
     src_tf = get_tf(src_dataset)
     trg_tf = get_tf(trg_dataset)
-    print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf)-1)
+    universe_tf = get_tf_2(src_dataset, trg_dataset)
+    print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf) - 1)
+    print "\t\tTHE UNIVERSE OF TOKENS CONTAINS {} POTENTIAL TERMS.".format(len(universe_tf) - 1)
     print "\t\tTHE TARGET DATASET CONTAINS {} POTENTIAL CANDIDATES.".format(len(trg_dataset) - 1)
     t_tf = time()
     print "\t\t>>> In {}.\n\t\t>>> Elapse time: {}".format(t_tf - t_load, t_load - start)
     # print src_tf
 
     print "4. GENERATE THE INVERTED INDEX OF THE TARGET DATASET USING THE FILTERED PREFIX APPROACH"
-    trg_inv_index = get_inverted_index(trg_dataset, trg_tf, theta)
+    trg_inv_index = get_inverted_index(trg_dataset, universe_tf, theta)
     t_inv_ind = time()
     print "\t\t>>> In {}.\n\t\t>>> Elapse time: {}".format(t_inv_ind - t_tf, t_inv_ind - start)
 
@@ -608,10 +648,10 @@ def prefixed_inverted_index(specs, theta):
 
     # ITERATE THROUGH THE SOURCE DATASET
     for row in range(1, len(src_dataset)):
-
+        # print row
         # TOKENS IN THE CURRENT PREDICATE VALUE
         curr_index = set()
-        tokens = get_tokens_to_include(str(src_dataset[row][1]), theta, src_tf)
+        tokens = get_tokens_to_include(str(src_dataset[row][1]), theta, universe_tf)
         # print tokens
 
         # GET THE INDEX WHERE A TOKEN IN THE CURRENT INSTANCE CAN BE FOUND
@@ -628,27 +668,139 @@ def prefixed_inverted_index(specs, theta):
             # COMPARE THE CURRENT TO OTHERS THAT IS NOT YOURSELF
             sim_val_1 = (remove_info_in_bracket(to_unicode(src_dataset[row][1]))).lower()
             sim_val_2 = (remove_info_in_bracket(to_unicode(trg_dataset[idx][1]))).lower()
-            sim = edit_distance(sim_val_1, sim_val_2)
 
-            # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
-            # if sim >= theta and sim < 1:
-            if sim >= theta:
-                count += 1
-                crpdce = dict()
-                crpdce[St.sim] = sim
-                crpdce[St.src_value] = src_dataset[row][1]
-                crpdce[St.trg_value] = trg_dataset[idx][1]
-                crpdce[St.src_resource] = src_dataset[row][0]
-                crpdce[St.trg_resource] = trg_dataset[idx][0]
-                crpdce[St.link] = link
-                crpdce[St.row] = row
-                crpdce[St.inv_index] = idx
+            # print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
+            # print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
 
-                # if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
-                if gmtime(time()).tm_min % 10 == 0:
-                    print correspondence(crpdce, writers, count)
+
+            # TOKENIZE
+            tokens_src = sim_val_1.split(" ")
+            tokens_trg = sim_val_2.split(" ")
+
+            # small
+            if len(tokens_src) < len(tokens_trg):
+                tokens_1 = tokens_src
+                tokens_2 = tokens_trg
+                # TOKEN TO INCLUDE
+                token2include = get_tokens_to_include(sim_val_1, theta, universe_tf)
+            else:
+                tokens_1 = tokens_trg
+                tokens_2 = tokens_src
+                # TOKEN TO INCLUDE
+                token2include = get_tokens_to_include(sim_val_2, theta, universe_tf)
+            # print u"TOKEN TO INCLUDE  :", token2include
+
+        # SORT
+            # UPDATE THE TOKENS WITH THEIR FREQUENCY
+            token2tf = ["" for i in range(len(tokens_2))]
+            for i in range(len(tokens_2)):
+                token2tf[i] = [tokens_2[i], universe_tf[tokens_2[i]]]
+
+            token1tf = ["" for i in range(len(tokens_1))]
+            for i in range(len(tokens_1)):
+                token1tf[i] = [tokens_1[i], universe_tf[tokens_1[i]]]
+
+            # print u"BIGGEST           :", tokens_2
+
+            # for i in range(len(tokens_2)):
+            #     tokens_2[i] = [tokens_2[i], universe_tf[tokens_2[i]]]
+
+            # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
+            tokens_1_sorted = sorted(token1tf, key=itemgetter(1))
+            tokens_2_sorted = sorted(token2tf, key=itemgetter(1))
+            # print u"BIGGEST SORTED    :", tokens_2_sorted
+
+
+            # COMPUTE SIM OF THE IMPORTANT TOKENS (TOKENS TO INCLUDE)
+            value_1 = " - "
+            value_2 = " - "
+            for i in range(len(token2include)):
+                # print token2include[i], token2include[i] in tokens_2
+                to_use = tokens_2_sorted[:len(token2include)]
+                # if token2include[i][0] in tokens_2:
+                if token2include[i] in to_use:
+                    "DO NOTHING"
                 else:
-                    correspondence(crpdce, writers, count)
+                    value_1 += token2include[i][0] + " "
+                    # if token2include[i] in tokens_2:
+                    #     value_2 += token2include[i][0] + " "
+                    # else:
+                    value_2 += to_use[i][0] + " "
+
+            value_1 = value_1.replace(" - ", "") if value_1 != " - " else value_1
+            value_2 = value_2.replace(" - ", "") if value_2 != " - " else value_2
+
+            # TODO THINK OF WHAT TO REMOVE FROM A TOKEN LIKE . - ' ,
+            # TODO MAKE IT EFFICENT BY MAKING THESE CHANGES AT AN EARLY STAGE
+            # TODO DO NOT FORGET TO INCLUDE IT WHEN COMPUTING THE FREQUENCY
+            value_1 = value_1.replace(".", "")
+            value_2 = value_2.replace(".", "")
+
+            sim = edit_distance(value_1.strip(), value_2.strip())
+            # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
+
+            # if row == 560000:
+            #     print u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
+            #     print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
+            #
+            #     print u"BIGGEST           :", tokens_2
+            #     print u"TOKEN TO INCLUDE  :", token2include
+            #     print u"BIGGEST SORTED    :", tokens_2_sorted
+            #     print u"COMPARING         :", "{} and {} outputted: {}".format(
+            #         to_bytes(value_1), to_bytes(value_2), sim)
+
+
+            if sim >= theta:
+
+                if debug is True:
+                    print row
+                    print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
+                    print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
+                    print u"BIGGEST           :", tokens_2
+                    print u"TOKEN TO INCLUDE  :", token2include
+                    print u"BIGGEST SORTED    :", tokens_2_sorted
+                    print u"COMPARING         :", "{} and {} outputted: {}".format(
+                        to_bytes(value_1), to_bytes(value_2), sim)
+
+
+                # IF IMPORTANT BIGGER THAN THRESHOLD
+                # CONTINUE
+                sim_val_1 = ""
+                sim_val_2 = ""
+                for i in range(len(tokens_1_sorted)):
+                    sim_val_1 += tokens_1_sorted[i][0] if i == 0 else u" {}".format(tokens_1_sorted[i][0] )
+
+                for i in range(len(tokens_2_sorted)):
+                    sim_val_2 += tokens_2_sorted[i][0] if i == 0 else u" {}".format(tokens_2_sorted[i][0] )
+
+                sim = edit_distance(sim_val_1, sim_val_2)
+                if debug is True:
+                    print u"> FINAL COMPARING :", u"{} and {} outputted: {}".format(sim_val_1, sim_val_2, sim)
+
+
+                # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
+                # if sim >= theta and sim < 1:
+                if sim >= theta:
+                    if debug is True:
+                        print "!!!!!!!!!!!WINNER"
+                    count += 1
+                    crpdce = dict()
+                    crpdce[St.sim] = sim
+                    crpdce[St.src_value] = src_dataset[row][1]
+                    crpdce[St.trg_value] = trg_dataset[idx][1]
+                    crpdce[St.src_resource] = src_dataset[row][0]
+                    crpdce[St.trg_resource] = trg_dataset[idx][0]
+                    crpdce[St.link] = link
+                    crpdce[St.row] = row
+                    crpdce[St.inv_index] = idx
+
+                    # if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
+                    if gmtime(time()).tm_min % 10 == 0:
+                        print correspondence(crpdce, writers, count)
+                    else:
+                        correspondence(crpdce, writers, count)
+                if debug is True:
+                    print ""
 
     t_sim = time()
     print "\t\t>>> in {} MINUTE(S).\n\t\t>>> Elapse time: {} MINUTE(S)".format(

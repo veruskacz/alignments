@@ -64,11 +64,11 @@ def register_correspondence_filter(research_uri, linkset_uri, method, greater_eq
 
     if method == "threshold":
         if greater_eq is not None:
-            c_filter = """\n\t\t\t\tFILTER (STRDT(str(?o), xsd:integer) {}  {}) """.format(
+            c_filter = """\n\t\t\t\tFILTER (STRDT(str(?o), xsd:decimal) {}  {}) """.format(
                 greater_eq["operator"], greater_eq["value"])
 
         if smaller_eq is not None:
-            c_filter += """\n\t\t\t\tFILTER (STRDT(str(?o), xsd:integer) {}  {})""".format(
+            c_filter += """\n\t\t\t\tFILTER (STRDT(str(?o), xsd:decimal) {}  {})""".format(
                 smaller_eq["operator"], smaller_eq["value"])
 
     elif method == "accept":

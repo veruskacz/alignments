@@ -712,6 +712,7 @@ def evidence():
 
     query = Qry.get_evidences(graph_uri, singleton_uri, predicate=None)
     evidences = sparql(query, strip=True)
+    # print "evidences!!!!!!!!!!!!!!!!", evidences
     if PRINT_RESULTS:
         print "\n\nEVIDENCES:", evidences
 
@@ -1079,7 +1080,7 @@ def refineLinkset():
 
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
-            linkset_result = refine.refine(specs, exact=True)
+            linkset_result = refine.refine(specs, exact=True, activated=True)
 
         elif specs['mechanism'] == 'identity':
             linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
@@ -1612,7 +1613,7 @@ def deleteLinkset():
             print ">>>> TO DELETE:"
             query = adm.delete_linkset_rq(rq_uri, linkset_uri)
             print "CONDITIONAL DELETE QUERY:", query
-            result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+            result = sparql(query, strip=False)
             # result = sparql(query)
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
@@ -1837,7 +1838,12 @@ def strip_dict(result_dict):
             elif not k+'_label' in r.keys():
                 new_result[k+'_label'] = {}
                 new_result[k+'_label']['type'] = 'literal'
-                new_result[k+'_label']['value'] =  Ut.pipe_split(v['value'], sep=" / ")
+                # print "!!!!!!!!!!!!", v['type'], k, v
+                # if 'datatype' in v:
+                if ('datatype' in v) and (v['datatype'] != "http://www.w3.org/2001/XMLSchema#decimal"):
+                    new_result[k+'_label']['value'] =  Ut.pipe_split(v['value'], sep=" / ")
+                else:
+                    new_result[k + '_label']['value'] =v['value']
 
             # print new_result[k + '_label']['value']
             new_result[k+'_stripped'] = {}
