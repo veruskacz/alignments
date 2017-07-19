@@ -2,7 +2,7 @@
 
 import os
 import re
-from sys import maxint
+# from sys import maxint
 import Alignments.Query as Qry
 from operator import itemgetter
 import Alignments.Utility as Ut
@@ -15,10 +15,8 @@ import Alignments.UserActivities.UserRQ as Urq
 from kitchen.text.converters import to_unicode, to_bytes
 from Alignments.CheckRDFFile import check_rdf_file
 import Alignments.Server_Settings as Svr
-
 import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
-
 
 
 LIMIT = ""
@@ -377,6 +375,12 @@ def prefixed_inverted_index(specs, theta):
         character
         2. All cells in attributes are of type string
         3. The inverted list use the pipe character '|' as document ID separator
+
+    UPDATE FOR COMPUTING APPROXIMATE SIMILARITY
+        use a universe of tokens: source and target datasets
+        sim-1 that computes similarity of the most rare tokens (tokens to include based of a threshold)
+        Sim-2 that computes similarity of ordered (based on utf) tokens if sim_1 is greater or equal to a threshold
+
     """
 
     """ Converts each string y ∈ Y into a document and then builds an inverted index over these document. """
@@ -448,25 +452,25 @@ def prefixed_inverted_index(specs, theta):
         # WRITE SINGLETON EVIDENCE TO FILE
         return in_crpdce + singleton
 
-    def get_tf(matrix):
-        # Qry.display_matrix(matrix, is_activated=True)
-        # print matrix
-        term_frequency = dict()
-        for r in range(1, len(matrix)):
-            # print "matrix[row]:", matrix[row]
-
-            # REMOVE DATA IN BRACKETS
-            in_tokens = remove_info_in_bracket(to_unicode(matrix[r][1]))
-            in_tokens = in_tokens.split(" ")
-
-            # COMPUTE FREQUENCY
-            for t in in_tokens:
-                if t not in term_frequency:
-                    term_frequency[t] = 1
-                else:
-                    term_frequency[t] += 1
-
-        return term_frequency
+    # def get_tf(matrix):
+    #     # Qry.display_matrix(matrix, is_activated=True)
+    #     # print matrix
+    #     term_frequency = dict()
+    #     for r in range(1, len(matrix)):
+    #         # print "matrix[row]:", matrix[row]
+    #
+    #         # REMOVE DATA IN BRACKETS
+    #         in_tokens = remove_info_in_bracket(to_unicode(matrix[r][1]))
+    #         in_tokens = in_tokens.split(" ")
+    #
+    #         # COMPUTE FREQUENCY
+    #         for t in in_tokens:
+    #             if t not in term_frequency:
+    #                 term_frequency[t] = 1
+    #             else:
+    #                 term_frequency[t] += 1
+    #
+    #     return term_frequency
 
     def get_tf_2(matrix_src, matrix_trg):
         # Qry.display_matrix(matrix, is_activated=True)
@@ -513,9 +517,9 @@ def prefixed_inverted_index(specs, theta):
             included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
 
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
-            for i in range(len(in_tokens)):
+            for n in range(len(in_tokens)):
                 # print value + " | +" + tokens[i]
-                in_tokens[i] = [in_tokens[i], tf[in_tokens[i]]]
+                in_tokens[n] = [in_tokens[n], tf[in_tokens[n]]]
 
             # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
             in_tokens = sorted(in_tokens, key=itemgetter(1))
@@ -550,8 +554,8 @@ def prefixed_inverted_index(specs, theta):
         # included = len(in_tokens)
 
         # UPDATE THE TOKENS WITH THEIR FREQUENCY
-        for i in range(len(in_tokens)):
-            in_tokens[i] = [in_tokens[i], tf[in_tokens[i]]]
+        for k in range(len(in_tokens)):
+            in_tokens[k] = [in_tokens[k], tf[in_tokens[k]]]
 
         # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
         in_tokens = sorted(in_tokens, key=itemgetter(1))
@@ -625,10 +629,10 @@ def prefixed_inverted_index(specs, theta):
     print "\t\tTHE TARGET DATASET CONTAINS {} INSTANCES.".format(len(trg_dataset) - 1)
 
     print "3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
-    src_tf = get_tf(src_dataset)
-    trg_tf = get_tf(trg_dataset)
+    # src_tf = get_tf(src_dataset)
+    # trg_tf = get_tf(trg_dataset)
     universe_tf = get_tf_2(src_dataset, trg_dataset)
-    print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf) - 1)
+    # print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf) - 1)
     print "\t\tTHE UNIVERSE OF TOKENS CONTAINS {} POTENTIAL TERMS.".format(len(universe_tf) - 1)
     print "\t\tTHE TARGET DATASET CONTAINS {} POTENTIAL CANDIDATES.".format(len(trg_dataset) - 1)
     t_tf = time()
@@ -672,7 +676,6 @@ def prefixed_inverted_index(specs, theta):
             # print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
             # print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
 
-
             # TOKENIZE
             tokens_src = sim_val_1.split(" ")
             tokens_trg = sim_val_2.split(" ")
@@ -692,13 +695,15 @@ def prefixed_inverted_index(specs, theta):
 
         # SORT
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
-            token2tf = ["" for i in range(len(tokens_2))]
+            # token2tf = [i for i in range(len(tokens_2))]
+            token2tf = []
             for i in range(len(tokens_2)):
-                token2tf[i] = [tokens_2[i], universe_tf[tokens_2[i]]]
+                token2tf += [[tokens_2[i], universe_tf[tokens_2[i]]]]
 
-            token1tf = ["" for i in range(len(tokens_1))]
+            # token1tf = [i for i in range(len(tokens_1))]
+            token1tf = []
             for i in range(len(tokens_1)):
-                token1tf[i] = [tokens_1[i], universe_tf[tokens_1[i]]]
+                token1tf += [[tokens_1[i], universe_tf[tokens_1[i]]]]
 
             # print u"BIGGEST           :", tokens_2
 
@@ -709,7 +714,6 @@ def prefixed_inverted_index(specs, theta):
             tokens_1_sorted = sorted(token1tf, key=itemgetter(1))
             tokens_2_sorted = sorted(token2tf, key=itemgetter(1))
             # print u"BIGGEST SORTED    :", tokens_2_sorted
-
 
             # COMPUTE SIM OF THE IMPORTANT TOKENS (TOKENS TO INCLUDE)
             value_1 = " - "
@@ -749,7 +753,6 @@ def prefixed_inverted_index(specs, theta):
             #     print u"COMPARING         :", "{} and {} outputted: {}".format(
             #         to_bytes(value_1), to_bytes(value_2), sim)
 
-
             if sim >= theta:
 
                 if debug is True:
@@ -762,21 +765,19 @@ def prefixed_inverted_index(specs, theta):
                     print u"COMPARING         :", "{} and {} outputted: {}".format(
                         to_bytes(value_1), to_bytes(value_2), sim)
 
-
                 # IF IMPORTANT BIGGER THAN THRESHOLD
                 # CONTINUE
                 sim_val_1 = ""
                 sim_val_2 = ""
                 for i in range(len(tokens_1_sorted)):
-                    sim_val_1 += tokens_1_sorted[i][0] if i == 0 else u" {}".format(tokens_1_sorted[i][0] )
+                    sim_val_1 += tokens_1_sorted[i][0] if i == 0 else u" {}".format(tokens_1_sorted[i][0])
 
                 for i in range(len(tokens_2_sorted)):
-                    sim_val_2 += tokens_2_sorted[i][0] if i == 0 else u" {}".format(tokens_2_sorted[i][0] )
+                    sim_val_2 += tokens_2_sorted[i][0] if i == 0 else u" {}".format(tokens_2_sorted[i][0])
 
                 sim = edit_distance(sim_val_1, sim_val_2)
                 if debug is True:
                     print u"> FINAL COMPARING :", u"{} and {} outputted: {}".format(sim_val_1, sim_val_2, sim)
-
 
                 # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
                 # if sim >= theta and sim < 1:
@@ -794,8 +795,8 @@ def prefixed_inverted_index(specs, theta):
                     crpdce[St.row] = row
                     crpdce[St.inv_index] = idx
 
-                    # if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
-                    if gmtime(time()).tm_min % 10 == 0:
+                    if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
+                    # if gmtime(time()).tm_min % 10 == 0:
                         print correspondence(crpdce, writers, count)
                     else:
                         correspondence(crpdce, writers, count)
@@ -878,3 +879,9 @@ def prefixed_inverted_index(specs, theta):
         print message
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
+
+# token2tf = []
+# for i in range(10):
+#     token2tf += [[i, i]]
+#
+# print token2tf
