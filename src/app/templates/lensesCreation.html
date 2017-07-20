@@ -123,9 +123,14 @@
                <tr align="right">
                    <td align="right"><div id="lens_creation_message_col"></div></td>
                    <td valign="center"><div class="loading"></div></td>
-                   <td align="right"><button type="button" id="createLensButton"
-                    class="btn btn-success btn btn-primary"
-                               onclick="createLensClick()">Create Lens</button></td>
+                   <!--<td><span class="badge alert-info chronotime">0:00:00:00</span></td>-->
+                   <td align="right">
+                        <button type="button" id="createLensButton"
+                         class="btn btn-success btn btn-primary"
+                         onclick="createLensClick()" style="vertical-align: middle">
+                            Create Lens
+                            <span class="badge alert-info chronotime">0:00:00:00</span>
+                         </button></td>
            </table>
        </div>
      </div>
@@ -150,7 +155,9 @@
                        onclick="editLensClick()">Edit Lens</button>
                    <button type="button" id="deleteLensButton"
                        class="btn btn-success btn btn-primary"
-                       onclick="deleteLensClick()">Delete Lens</button>
+                       onclick="deleteLensClick()">Delete Lens
+                   <span class="badge alert-info chronotime">0:00:00:00</span>
+                   </button>
                    </td>
            </table>
        </div>

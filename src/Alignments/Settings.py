@@ -139,6 +139,9 @@ intermediate_graph = "intermediate_graph"
 
 
 stardog_host_name = "stardog_host_name"
+stardog_path = 'stardog_path'
+
+
 data_dir = "data_dir"
 linkset_dir = "linkset_dir"
 lens_dir = "lens_dir"

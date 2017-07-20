@@ -11,6 +11,7 @@ import subprocess
 from os import listdir
 import Alignments.Query as Qry
 import Alignments.Settings as St
+import Alignments.Server_Settings as Svr
 from os.path import isfile, join
 from kitchen.text.converters import to_bytes, to_unicode
 # write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
@@ -230,8 +231,7 @@ def win_bat(file_directory, file_name):
 
     # if OPE_SYS.__contains__(mac_weird_name):
     else:
-        # stardog_path = '/Applications/stardog-4.2.3/bin/'
-        stardog_path = '/scratch/risis/data/stardog/stardog-5.0-beta/bin/'
+        stardog_path = Svr.settings[St.stardog_path]
         load_builder.write("\n\t{}stardog data add risis".format(stardog_path))
 
     # LOAD ONLY .TRIG OR .TTL FILES
@@ -509,6 +509,22 @@ def insertgraphs(dataset_name, dir_path):
 #################################################################
 """
     ABOUT WRITING TO FILE
+
+    REMINDER 1:
+    FOR MAC/LINUX REMEMBER TO CHANGE THE FILE PERMISSIONS FOR EXECUTING THE BATCH FILE
+        SET: chmod -R 777 Data/
+        CHECK: ls -l
+
+    REMINDER 2:
+    THE ENVIRONMENT VARIABLES HAVE TO BE SETTLED
+        MAKE SURE THE TERMINAL IS RESTARTED AFTER SETTING THE VARIABLES
+            in mac
+                open ~/.bash_profile
+                add to file
+                    export STARDOG_HOME=/Users/YOURUSERNAME/Documents/stardog-4.1.3/data
+                    export PATH=$PATH:/Users/YOURUSERNAME/Documents/stardog-4.1.3/bin
+
+        TEST THE COMMAND 'STARDOG DATA ADD ...' TO BE SURE
 """
 #################################################################
 
@@ -586,9 +602,9 @@ def get_writers(graph_name, directory):
     """ 2. FILE NAME SETTINGS """
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
     dir_name = directory  # write_to_path  # os.path.dirname(f_path)
-    batch_file = "{}_batch)_{}.bat".format(graph_name, date)
+    batch_file = "{}_batch_{}{}".format(graph_name, date, batch_extension())
     linkset_file = "{}(Linksets)-{}.trig".format(graph_name, date)
-    metadata_file = "{}(Metadata)-{}.trig".format(graph_name, date)
+    metadata_file = "{}(Metadata)-{}.sparql".format(graph_name, date)
     singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(graph_name, date)
     dir_name = dir_name.replace("\\", "/")
 
