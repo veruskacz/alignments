@@ -2,6 +2,7 @@
 
 import os
 import re
+import cStringIO as Buffer
 # from sys import maxint
 import Alignments.Query as Qry
 from operator import itemgetter
@@ -317,6 +318,7 @@ def edit_distance(token_x, token_y):
 
 def prefixed_inverted_index(specs, theta):
 
+    debug = True
     start = time()
     print "\nStarted at {}".format(ctime(start))
     count = 0
@@ -416,7 +418,7 @@ def prefixed_inverted_index(specs, theta):
         aligns = dataset_specs[St.aligns] if Ut.is_nt_format(dataset_specs[St.aligns]) \
             else "<{}>".format(dataset_specs[St.aligns])
         query = """
-        SELECT *
+        SELECT DISTINCT *
         {{
             GRAPH <{0}>
             {{
@@ -429,6 +431,7 @@ def prefixed_inverted_index(specs, theta):
         table_matrix = Qry.sparql_xml_to_matrix(query)
         # Qry.display_matrix(table_matrix, is_activated=True)
         # print table_matrix
+        # print query
         return table_matrix[St.result]
 
     # HELPER FOR CREATING A CORRESPONDENCE
@@ -538,7 +541,7 @@ def prefixed_inverted_index(specs, theta):
     def get_tokens_to_include(string, threshold, tf):
 
         # GET THE TOKENS
-        stg = to_unicode(string).lower()
+        stg = to_bytes(string).lower()
         # print stg
 
         # REMOVE DATA IN BRACKETS
@@ -565,7 +568,7 @@ def prefixed_inverted_index(specs, theta):
 
         # text = "(Germany) 3M (United Kingdom) (Israel) in  (Canada) (France)"
 
-        temp = text
+        temp = to_bytes(text)
 
         if temp:
 
@@ -576,26 +579,26 @@ def prefixed_inverted_index(specs, theta):
                 # print temp
 
                 if item.endswith(" ") and item.startswith(" "):
-                    temp = unicode(temp).replace(item, " ", 1)
+                    temp = (temp).replace(item, " ", 1)
                     # print "both sides"
                     # print text
 
                 elif item.startswith(" ") is not True and item.endswith(" "):
-                    temp = unicode(temp).replace(item, "", 1)
+                    temp = (temp).replace(item, "", 1)
                     # print "right side"
                     # print text
 
                 elif item.startswith(" ") is True and item.endswith(" ") is not True:
-                    temp = unicode(temp).replace(item, "", 1)
+                    temp = (temp).replace(item, "", 1)
                     # print "left side"
                     # print text
 
                 else:
-                    temp = unicode(temp).replace(item, "", 1)
+                    temp = (temp).replace(item, "", 1)
                     # print "None"
                     # print text
 
-            temp = unicode(temp).strip()
+            temp = (temp).strip()
 
         return temp
 
@@ -603,7 +606,7 @@ def prefixed_inverted_index(specs, theta):
     # CREATING THE  INVERTED INDEX
     #################################################################
 
-    debug = False
+    writer = Buffer.StringIO()
     src_dataset = get_table(source)
     trg_dataset = get_table(target)
     Ut.update_specification(specs)
@@ -670,8 +673,8 @@ def prefixed_inverted_index(specs, theta):
         for idx in curr_index:
 
             # COMPARE THE CURRENT TO OTHERS THAT IS NOT YOURSELF
-            sim_val_1 = (remove_info_in_bracket(to_unicode(src_dataset[row][1]))).lower()
-            sim_val_2 = (remove_info_in_bracket(to_unicode(trg_dataset[idx][1]))).lower()
+            sim_val_1 = (remove_info_in_bracket(to_bytes(src_dataset[row][1]))).lower()
+            sim_val_2 = (remove_info_in_bracket(to_bytes(trg_dataset[idx][1]))).lower()
 
             # print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
             # print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
@@ -756,14 +759,16 @@ def prefixed_inverted_index(specs, theta):
             if sim >= theta:
 
                 if debug is True:
-                    print row
-                    print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
-                    print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
-                    print u"BIGGEST           :", tokens_2
-                    print u"TOKEN TO INCLUDE  :", token2include
-                    print u"BIGGEST SORTED    :", tokens_2_sorted
-                    print u"COMPARING         :", "{} and {} outputted: {}".format(
-                        to_bytes(value_1), to_bytes(value_2), sim)
+                    writer.write("\nSOURCE:{} TARGET:{}".format(str(row), str(idx)))
+                    writer.write(u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
+                        to_unicode(src_dataset[row][1]), sim_val_1))
+                    writer.write(u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
+                        to_unicode(to_bytes(trg_dataset[idx][1])), sim_val_2))
+                    writer.write(u"BIGGEST           : {}\n".format(tokens_2))
+                    writer.write(u"TOKEN TO INCLUDE  : {}\n".format(token2include))
+                    writer.write(u"BIGGEST SORTED    : {}\n".format(tokens_2_sorted))
+                    writer.write(u"COMPARING         : {} and {} ==> {}\n".format(
+                        to_bytes(value_1), to_bytes(value_2), sim))
 
                 # IF IMPORTANT BIGGER THAN THRESHOLD
                 # CONTINUE
@@ -777,13 +782,13 @@ def prefixed_inverted_index(specs, theta):
 
                 sim = edit_distance(sim_val_1, sim_val_2)
                 if debug is True:
-                    print u"> FINAL COMPARING :", u"{} and {} outputted: {}".format(sim_val_1, sim_val_2, sim)
+                    writer.write(u"> FINAL COMPARING : {} and {} ==> {}\n".format(sim_val_1, sim_val_2, sim))
 
                 # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
                 # if sim >= theta and sim < 1:
                 if sim >= theta:
                     if debug is True:
-                        print "!!!!!!!!!!!WINNER"
+                        writer.write(u"                   WINNER!!!!!!!!!!!")
                     count += 1
                     crpdce = dict()
                     crpdce[St.sim] = sim
@@ -801,7 +806,9 @@ def prefixed_inverted_index(specs, theta):
                     else:
                         correspondence(crpdce, writers, count)
                 if debug is True:
-                    print ""
+                    writer.write(u"\n")
+                    print writer.getvalue()
+                    writer.flush()
 
     t_sim = time()
     print "\t\t>>> in {} MINUTE(S).\n\t\t>>> Elapse time: {} MINUTE(S)".format(
