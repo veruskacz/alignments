@@ -407,9 +407,9 @@ def linksetdetails():
         if details:
             d = details[0]
             # print "!!!!!!!! D", d
-            s_property_list = d['s_property_label']['value']
-            o_property_list = d['o_property_label']['value']
-            mechanism_list = d['mechanism_label']['value']
+            s_property_list = d['s_property_stripped']['value']
+            o_property_list = d['o_property_stripped']['value']
+            mechanism_list = d['mechanism_stripped']['value']
         # list1 = d['s_property']['value'].split("|")
         # list2 = d['o_property']['value'].split("|")
         # list3 = d['mechanism']['value'].split("|")
@@ -1840,10 +1840,11 @@ def strip_dict(result_dict):
                 new_result[k+'_label']['type'] = 'literal'
                 # print "!!!!!!!!!!!!", v['type'], k, v
                 # if 'datatype' in v:
-                if ('datatype' in v) and (v['datatype'] != "http://www.w3.org/2001/XMLSchema#decimal"):
-                    new_result[k+'_label']['value'] =  Ut.pipe_split(v['value'], sep=" / ")
-                else:
+                if ('datatype' in v) and (v['datatype'] == "http://www.w3.org/2001/XMLSchema#decimal"):
                     new_result[k + '_label']['value'] =v['value']
+                else:
+                    new_result[k+'_label']['value'] =  Ut.pipe_split(v['value'], sep=" / ")
+
 
             # print new_result[k + '_label']['value']
             new_result[k+'_stripped'] = {}

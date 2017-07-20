@@ -521,12 +521,15 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?uri ?mode
+    SELECT DISTINCT ?uri ?mode ?label
     WHERE
     {{
 
         # GRAPH-TYPE FILTER
         {0}
+        OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
+        BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
+
 
         # GRAPH-TYPE CONDITION
         {1}
@@ -1057,7 +1060,7 @@ def get_linkset_corresp_sample_details_old1(linkset, limit=1):
     source += source_bind
     target += target_bind
     query = str(query).replace("###SOURCE SLOT", source).replace("###TARGET SLOT", target)
-    print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
+    # print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
     print query
     return query
 
@@ -1065,6 +1068,8 @@ def get_linkset_corresp_sample_details_old1(linkset, limit=1):
 def get_linkset_corresp_sample_details(linkset, limit=1):
 
     query = PREFIX + """
+    #### CORRESPONDENCE DETAIL SAMPLE
+
     SELECT DISTINCT
     (GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
     (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
