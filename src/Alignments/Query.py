@@ -983,7 +983,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
 
             # print "DONE"
             # print "out with: {}".format(matrix)
-            print "\nCSV BUILDER:\n", csv_builder.getvalue()
+            # print "\nCSV BUILDER:\n", csv_builder.getvalue()
             return {St.message: "OK", St.result: csv_builder}
 
         # except Exception as err:
