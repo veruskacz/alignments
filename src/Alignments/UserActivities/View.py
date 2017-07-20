@@ -250,7 +250,7 @@ def view_data(view_specs, view_filter, display=False):
         {}{}\t\t}}\n\t}}
     """.format(question_uri, main_triples.replace("@URI", uri), triples).replace("@", hash_value)
 
-    message = "\nThe metadata was generated"
+    message = "\nThe metadata was generated as: {}".format(uri)
     print "VIEW INSERT QUERY:", query
     print message
     if display:
@@ -311,7 +311,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                 print "We are in save mode!"
                 is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
                 print is_metadata_inserted
-                message = "The insertion metadata was successfully inserted." \
+                message = "The insertion metadata was successfully inserted as: ()".format(view_metadata[St.result]) \
                     if is_metadata_inserted == "true" else "The metadata could not be inserted."
                 print message
                 view_metadata[St.message] = message
