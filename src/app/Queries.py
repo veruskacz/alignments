@@ -1287,6 +1287,34 @@ def update_view_label_rq(rq_uri, view_uri, view_label):
 
 
 
+def update_label_rq(rq_uri, graph_uri, label):
+    query = PREFIX + """
+    DELETE
+    {{
+         GRAPH <{0}>
+         {{
+            <{1}>  skos:prefLabel ?value .
+        }}
+    }}
+    WHERE
+    {{
+      GRAPH <{0}>
+      {{
+        <{1}>   skos:prefLabel  ?value.
+      }}
+    }} ;
+    INSERT DATA
+    {{
+      GRAPH <{0}>
+      {{
+        <{1}>   skos:prefLabel  "{2}".
+      }}
+    }}
+    """.format(rq_uri, graph_uri, label)
+    print query
+    return query
+
+
 def get_lens_corresp_details(lens, limit=1):
 
     query = PREFIX + """

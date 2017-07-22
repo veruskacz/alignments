@@ -313,7 +313,7 @@ function inspect_linkset_activate(mode)
      $('#creation_linkset_row').hide();
      refresh_create_linkset();
 
-     $('#inspect_linkset_linkset_selection_col').html('Loading...');
+     $('#inspect_linkset_selection_col').html('Loading...');
      $.get('/getgraphsperrqtype',
                   data={'rq_uri': rq_uri,
                         'mode': mode,
@@ -321,12 +321,12 @@ function inspect_linkset_activate(mode)
                         'template': 'list_group.html'},
                   function(data)
      {
-       $('#inspect_linkset_linkset_selection_col').html(data);
+       $('#inspect_linkset_selection_col').html(data);
 
        // set actions after clicking a graph in the list
-       $('#inspect_linkset_linkset_selection_col a').on('click',function(e)
+       $('#inspect_linkset_selection_col a').on('click',function(e)
         {
-          if (selectListItemUnique(this, 'inspect_linkset_linkset_selection_col'))
+          if (selectListItemUnique(this, 'inspect_linkset_selection_col'))
           {
             var linkset_uri = $(this).attr('uri');
 
@@ -635,7 +635,7 @@ function refineLinksetClick()
   }
 
   var linkset = '';
-  var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
+  var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
   if (elems.length > 0) // it should have only one selected
   {
     linkset = $(elems[0]).attr('uri');
@@ -690,7 +690,7 @@ function importLinksetClick()
 {
     var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
 
-    var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
+    var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
     var i;
     var graphs = []
     for (i = 0; i < elems.length; i++) {
@@ -718,6 +718,32 @@ function importLinksetClick()
     }
 }
 
+function editLabelLinksetClick(elem)
+{
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    var view = '';
+    var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        uri = $(elems[0]).attr('uri');  // it should have only one selected
+
+        var label = $("#labelLinksetModal #linksetLabel").val().trim();
+        if (label)
+        {
+            //        alert(test);
+            $.get('/updateLabel', data={'rq_uri':rq_uri, 'graph_uri':uri, 'label':label}, function(data)
+            {
+                var obj = JSON.parse(data);
+                if (obj.result == 'OK')
+                {   $('#editLinksetButton').click();
+                    $('#linkset_edit_message_col').html(addNote(obj.message,cl='info')); }
+                else
+                {   $('#linkset_edit_message_col').html(addNote(obj.message)); }
+            });
+        }
+    }
+    $(elem).dialog("close");
+}
 
 $('#linkset_filter_property').change(function() {
     $("#linkset_filter_value1").val('');
@@ -743,7 +769,7 @@ function deleteLinksetClick()
 {
     var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
     var linkset = '';
-    var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
+    var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
     if (elems.length > 0) // if any element is selected
     {
         linkset = $(elems[0]).attr('uri');  // it should have only one selected
@@ -802,7 +828,7 @@ function addFilterLinksetClick()
     var property = '';
     var value_1 = {};
     var value_2 = {};
-    var elems = selectedElemsInGroupList('inspect_linkset_linkset_selection_col');
+    var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
     if (elems.length > 0) // it should have only one selected
     {
         linkset = $(elems[0]).attr('uri');
@@ -863,7 +889,7 @@ function applyFilterLinksetClick()
 {
     var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
     var linkset_uri = ''
-    var elems = selectedElemsInDiv("inspect_linkset_linkset_selection_col");
+    var elems = selectedElemsInDiv("inspect_linkset_selection_col");
        if (elems.length > 0)
        {    linkset_uri = $(elems[0]).attr('uri');
        }
@@ -1203,6 +1229,7 @@ function create_views_activate()
     $('#view_creation_message_col').html('');
     $('#view_creation_save_message_col').html('');
     $('#creation_view_results_row').hide();
+    chronoReset();
 
     var rq_uri = $('#creation_view_selected_RQ').attr('uri');
 
@@ -1362,6 +1389,7 @@ function view_load_linkesets_lenses(rq_uri, view_lens=null)
 function inspect_views_activate(mode="inspect")
 {
   var rq_uri = $('#creation_view_selected_RQ').attr('uri');
+  chronoReset();
 
   if (rq_uri)
   {
@@ -1494,6 +1522,7 @@ function createViewClick(mode)
                   'view_lens[]': view_lens,
                   'view_filter[]': view_filter};
 
+     chronoReset();
      $('#'+message_col).html(addNote('The proposed view is being processed',cl='warning'));
      loadingGif(document.getElementById(message_col), 2);
 
@@ -1508,14 +1537,15 @@ function createViewClick(mode)
          {   var message = 'We cannot run the query because at least one non-optional property is required for each dataset in the select clause.'
              $('#'+message_col).html(addNote(message,cl='warning'));
              enableButton('view_run_button', enable=false);
+             loadingGif(document.getElementById(message_col), 2, show = false);
          }
          else
-         {   runViewClick();
-             enableButton('view_run_button');
+         {   enableButton('view_run_button');
              $('#'+message_col).html(addNote(obj.metadata.message,cl='info'));
+             loadingGif(document.getElementById(message_col), 2, show = false);
+             runViewClick();
          }
 
-         loadingGif(document.getElementById(message_col), 2, show = false);
      });
     }
     else {
@@ -1524,32 +1554,7 @@ function createViewClick(mode)
 }
 
 
-function editLabelViewClick(elem)
-{
-    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
-    var view = '';
-    var elems = selectedElemsInGroupList('inspect_views_selection_col');
-    if (elems.length > 0) // if any element is selected
-    {
-        view = $(elems[0]).attr('uri');  // it should have only one selected
-
-        var label = $("#myModal #viewLabel").val().trim();
-        if (label)
-        {
-            //        alert(test);
-            $.get('/updateViewLabel', data={'rq_uri':rq_uri, 'view_uri':view, 'view_label':label}, function(data)
-            {
-                var obj = JSON.parse(data);
-                if (obj.result == 'OK')
-                {   $('#btn_edit_view').click();
-                    $('#view_edit_message_col').html(addNote(obj.message,cl='info')); }
-                else
-                {    $('#view_edit_message_col').html(addNote(obj.message)); }
-            });
-        }
-    }
-    $(elem).dialog("close");
-}
+c
 
 
 function deleteViewClick()
@@ -1591,8 +1596,10 @@ function runViewClick()
   //$('#view_creation_message_col').html("");
   var query = $('#queryView').val();
   $('#views-results').html("");
+
   $('#view_run_message_col').html(addNote('The query is running.',cl='warning'));
   loadingGif(document.getElementById('view_run_message_col'), 2);
+
   $.get('/sparql',data={'query': query}, function(data)
   {
     var obj = JSON.parse(data);
@@ -2070,6 +2077,7 @@ function methodClick(th)
 ///////////////////////////////////////////////////////////////////////////////
 function refresh_create_linkset(mode='all')
 {
+    chronoReset();
     var elem = Object;
     $('#linkset_creation_message_col').html("");
     $('#linkset_import_message_col').html("");
@@ -2208,6 +2216,7 @@ function refresh_create_lens(mode='all')
     $('#creation_lens_correspondence_row').hide();
     $('#creation_lens_correspondence_col').html('');
     $('#inspect_lens_lens_details_col').html('');
+    chronoReset();
 }
 
 
@@ -2238,6 +2247,7 @@ function refresh_create_view(mode='all')
         $('#views-results').html("");
         $('#queryView').val("");
 //    }
+    chronoReset();
 }
 
 
@@ -2246,11 +2256,32 @@ function refresh_import(mode='all')
     if (mode == 'all')
     { $('#dropbox').html('<span class="message"><strong><font size="6">Drop here your files to upload.</font></strong></span>');
     }
-    $('#upload_sample').val('NO DATASET FILE SELECTED');
+
     $('#ds_files_list').html(select_file);
+    $('#upload_sample').val('NO DATASET FILE SELECTED');
+
+    $('#dataset_header').val('NO DATASET FILE SELECTED');
+    $('#ds_separator').val('');
+    $('#ds_name').val('');
+    $('#ds_entity_type_name').val('');
+    $('#ds_subject_id').html('');
+    $('#ds_type_list').html('');
+
+    $('#schema_sample').val('NO DATASET FILE SELECTED');
+    $('#dataset_sample').val('NO DATASET FILE SELECTED');
+
     $('#dataset_upload_message_col').html('');
-    enableButton('importAlignmentButton', enable=false);
-//    $('#dataset_upload_message_col').html('');
+    $('#dataset_convertion_message_col').html('');
+    $('#dataset_schema_message_col').html('');
+    $('#converted_sample_message_col').html('');
+
+    $('#dataset_load').val('NO DATASET FILE SELECTED');
+    $('#import_alignment').val('NO DATASET FILE SELECTED');
+
+    $('#dataset_creation_message_col').html('');
+    $('#import_alignment_message_col').html('');
+
+    chronoReset();
 }
 
 
@@ -2334,6 +2365,7 @@ function convertDatasetClick()
     var dataset = document.getElementById('ds_name');
     var entity_type = document.getElementById('ds_entity_type_name');
 
+    console.log(files);
     if ((files.length > 0) && (dataset.value) && (entity_type.value) )
     {
         var indexes_1 = []
@@ -2359,6 +2391,7 @@ function convertDatasetClick()
         }
 
 //        alert("Subject ID: " + subject_id + " | Types" + rdftype);
+        loadingGif(document.getElementById('dataset_convertion_message_col'), 2);
 
         $('#dataset_convertion_message_col').html(addNote("Your file is being converted!",cl='warning'));
 
@@ -2371,7 +2404,9 @@ function convertDatasetClick()
                     'subject_id': subject_id},
               function(data)
         {
-//            alert(data);
+
+            loadingGif(document.getElementById('dataset_convertion_message_col'), 2, show=false);
+
             var obj = data
 //            console.log(obj);
             if (Object.keys(obj).length)
@@ -2409,7 +2444,7 @@ function viewSampleFileClick()
 
     var files = getSelectValues(document.getElementById('ds_files_list'));
 
-    if (files.length > 0)
+    if ((files.length > 0) && (files[0] != '-- Select a file to view a sample --'))
     {
         $.get('/viewSampleFile',
               data={'file':  files[0]}, //input.value},
@@ -2513,11 +2548,14 @@ function loadGraphClick()
     //alert($('#createDatasetButton').attr('batchFile'));
     if ($('#createDatasetButton').attr('batchFile'))
     {
+
+        loadingGif(document.getElementById('dataset_creation_message_col'), 2);
         $('#dataset_creation_message_col').html(addNote(loading_dataset,cl='warning'));
         $.get('/loadGraph',
               data={'batch_file': $('#createDatasetButton').attr('batchFile')},
               function(data)
             {
+                loadingGif(document.getElementById('dataset_creation_message_col'), 2, show=false);
                   var obj = JSON.parse(data);
 //                  console.log(obj);
                   $('#dataset_load').val(obj);

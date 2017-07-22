@@ -506,7 +506,7 @@ def prefixed_inverted_index(specs, theta):
         for in_row in range(1, len(matrix)):
 
             # GET THE VALUE
-            value = to_unicode(matrix[in_row][1]).lower()
+            value = to_bytes(matrix[in_row][1]).lower()
 
             # REMOVE DATA IN BRACKETS
             value = remove_info_in_bracket(value)
@@ -760,14 +760,14 @@ def prefixed_inverted_index(specs, theta):
 
                 if debug is True:
                     writer.write("\nSOURCE:{} TARGET:{}".format(str(row), str(idx)))
-                    writer.write(u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
-                        to_unicode(src_dataset[row][1]), sim_val_1))
-                    writer.write(u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
-                        to_unicode(to_bytes(trg_dataset[idx][1])), sim_val_2))
+                    writer.write("\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
+                        to_bytes(src_dataset[row][1]), sim_val_1))
+                    writer.write("TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
+                        to_bytes(to_bytes(trg_dataset[idx][1])), sim_val_2))
                     writer.write(u"BIGGEST           : {}\n".format(tokens_2))
                     writer.write(u"TOKEN TO INCLUDE  : {}\n".format(token2include))
                     writer.write(u"BIGGEST SORTED    : {}\n".format(tokens_2_sorted))
-                    writer.write(u"COMPARING         : {} and {} ==> {}\n".format(
+                    writer.write("COMPARING         : {} and {} ==> {}\n".format(
                         to_bytes(value_1), to_bytes(value_2), sim))
 
                 # IF IMPORTANT BIGGER THAN THRESHOLD
@@ -775,20 +775,20 @@ def prefixed_inverted_index(specs, theta):
                 sim_val_1 = ""
                 sim_val_2 = ""
                 for i in range(len(tokens_1_sorted)):
-                    sim_val_1 += tokens_1_sorted[i][0] if i == 0 else u" {}".format(tokens_1_sorted[i][0])
+                    sim_val_1 += tokens_1_sorted[i][0] if i == 0 else " {}".format(tokens_1_sorted[i][0])
 
                 for i in range(len(tokens_2_sorted)):
-                    sim_val_2 += tokens_2_sorted[i][0] if i == 0 else u" {}".format(tokens_2_sorted[i][0])
+                    sim_val_2 += tokens_2_sorted[i][0] if i == 0 else " {}".format(tokens_2_sorted[i][0])
 
                 sim = edit_distance(sim_val_1, sim_val_2)
                 if debug is True:
-                    writer.write(u"> FINAL COMPARING : {} and {} ==> {}\n".format(sim_val_1, sim_val_2, sim))
+                    writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(sim_val_1, sim_val_2, sim))
 
                 # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
                 # if sim >= theta and sim < 1:
                 if sim >= theta:
                     if debug is True:
-                        writer.write(u"                   WINNER!!!!!!!!!!!")
+                        writer.write("                   WINNER!!!!!!!!!!!")
                     count += 1
                     crpdce = dict()
                     crpdce[St.sim] = sim
@@ -818,10 +818,15 @@ def prefixed_inverted_index(specs, theta):
     # metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")
     # writers[St.meta_writer].write(to_unicode(metadata))
 
+    if Ut.OPE_SYS == "windows":
+        path = ''
+    else:
+        path = Svr.settings[St.stardog_path]
+
     load = """
     echo "Loading data"
-    stardog data add risis "{}" "{}"
-    """.format(
+    {}stardog data add risis "{}" "{}"
+    """.format(path,
         writers[St.crpdce_writer_path],
         writers[St.singletons_writer_path]
         # writers[St.meta_writer_path],
@@ -838,6 +843,12 @@ def prefixed_inverted_index(specs, theta):
                 writer.write("}")
             if key is not St.meta_writer:
                 writer.close()
+
+    # print OPE_SYS
+    if Ut.OPE_SYS != 'windows':
+        print "MAC BATCH: {}".format(writers[St.batch_output_path])
+        os.chmod(writers[St.batch_output_path], 0o777)
+
 
     print "\n>>> STARTED ON {}".format(ctime(start))
     print ">>> FINISHED ON {}".format(ctime(t_sim))

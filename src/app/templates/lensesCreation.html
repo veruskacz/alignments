@@ -72,10 +72,13 @@
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="lens_import_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="btn_import_lens"
                             class="btn btn-primary btn btn-success"
                             onclick='importLensClick()'
-                            >Import</button></td>
+                            >Import
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
                </table>
           </div>
          </div>
@@ -123,13 +126,12 @@
                <tr align="right">
                    <td align="right"><div id="lens_creation_message_col"></div></td>
                    <td valign="center"><div class="loading"></div></td>
-                   <!--<td><span class="badge alert-info chronotime">0:00:00:00</span></td>-->
                    <td align="right">
                         <button type="button" id="createLensButton"
                          class="btn btn-success btn btn-primary"
                          onclick="createLensClick()" style="vertical-align: middle">
                             Create Lens
-                            <span class="badge alert-info chronotime">0:00:00:00</span>
+                            <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                          </button></td>
            </table>
        </div>
@@ -156,7 +158,7 @@
                    <button type="button" id="deleteLensButton"
                        class="btn btn-success btn btn-primary"
                        onclick="deleteLensClick()">Delete Lens
-                   <span class="badge alert-info chronotime">0:00:00:00</span>
+                   <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                    </button>
                    </td>
            </table>

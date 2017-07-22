@@ -257,7 +257,8 @@ def win_bat(file_directory, file_name):
     writer.close()
 
     # print OPE_SYS
-    if OPE_SYS.__contains__(mac_weird_name):
+    # if OPE_SYS.__contains__(mac_weird_name):
+    if OPE_SYS != 'windows':
         os.chmod(bat_path, 0o777)
         print "MAC"
 
@@ -340,9 +341,12 @@ def sh_load(bat_path):
     try:
 
         if isfile(bat_path) and bat_path.endswith(batch_extension()):
+            print "Executing the batch file from non-windows machine"
             # os.system returns 0 if it all went OK and 1 otherwise.
             # BUT IT DOES NOT TELL HOW MANY TRIPLES WHERE ADDED
-            output = os.system("{}".format(bat_path))
+            # output = os.system("{}".format(bat_path))
+
+            output = subprocess.check_output(bat_path, shell=True)
 
             print "---------------------{}---------------------".format(output)
             return output

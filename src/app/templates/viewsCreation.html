@@ -83,7 +83,9 @@
                            >Edit Label</button>
                        <button type="button" id="deleteViewButton"
                            class="btn btn-success btn btn-primary disabled"
-                           onclick="deleteViewClick()">Delete View</button>
+                           onclick="deleteViewClick()">Delete View
+                            <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button>
                        </td>
                </table>
            </div>
@@ -110,7 +112,7 @@
               </div>
             </div>
           </div>
-        <!-- Modal -->
+          <!-- Modal -->
           <div class="modal fade" id="myModal" role="dialog">
             <div class="modal-dialog">  <!--modal-sm">-->
               <div class="modal-content">
@@ -214,7 +216,9 @@
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="createViewButton" class="btn btn-success"
                           data-toggle="button" onclick = 'createViewClick(mode="check")' >
-                            Check View</button></td>
+                            Check View
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
                </table>
               </div>
           </div>
@@ -395,7 +399,9 @@
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" class="btn btn-primary"
                         onclick = 'createViewClick(mode="save")'
-                        >Save View</button></td>
+                        >Save View
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
                </table>
               </div>
              </div>
@@ -423,7 +429,9 @@
                                    <td valign="center"><div class="loading"></div></td>
                                    <td align="right"><button type="button" id='view_run_button' class="btn btn-primary"
                                         onclick='runViewClick();'
-                                    >Run Query</button></td>
+                                    >Run Query
+                                   <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                                   </button></td>
                             </table>
                         </div>
                     </div>
@@ -462,8 +470,9 @@
                                         </button></a>
                                         <!--<h5><a href="#" id="downloadResultQuery">-->
                                         <button type="button" class="btn btn-primary"
-                                        onclick='download("export.csv", $("#queryView").val())'
+                                        onclick='download(this, "export.csv", $("#queryView").val())'
                                         >Download Complete Result
+                                        <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                                         </button>
                                         <!--</a></h5>-->
                                    </td>

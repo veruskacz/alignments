@@ -262,7 +262,6 @@ function loadingGif(sourceElem, nLevel, show=true)
         {    $(loadDiv).show();
              start = new Date();
              chrono($(sourceElem).attr('id'), nLevel);
-//            chrono();
         } else
         {   $(loadDiv).hide();
             clearTimeout(timerID);
@@ -527,6 +526,7 @@ $("#downloadResultTable").on('click', function (event) {
 
 function exportResultToCSV($query, filename) {
 
+//    $('#downloadResultTable').html('<button type="button" class="btn btn-primary"> Download Table <span class="badge alert-info chronotime">0:00:00:00</span> </button> ');
     loadingGif(document.getElementById('view_download_message_col'), 2);
     $('#view_download_message_col').html(addNote('Loading...',cl='warning'));
 
@@ -578,8 +578,9 @@ $("#downloadResultQuery").on('click', function (event) {
 });
 
 
-function download(filename, query) {
+function download(th, filename, query) {
 
+//    $(th).html('Download Table <span class="badge alert-info chronotime">0:00:00:00</span>');
     loadingGif(document.getElementById('view_download_message_col'), 2);
     $('#view_download_message_col').html(addNote('Loading...',cl='warning'));
 
@@ -651,9 +652,14 @@ function chrono(elemID, nLevel){
     if (chronos.length > 0)
     {
         chrono_elem = chronos[0];
+        $(chrono_elem).show();
         chrono_elem.innerHTML = hr + ":" + min + ":" + sec + ":" + msec
         timerID = setTimeout('chrono("'+elemID+'", '+nLevel+')', 10)
     }
+}
+
+function chronoReset(){
+	$('.chronotime').hide();
 }
 
 

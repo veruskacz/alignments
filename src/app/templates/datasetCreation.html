@@ -76,14 +76,17 @@
                    <td align="right">
                        <div id="dataset_upload_message_col"></div>
                    </td>
+                   <td valign="center"><div class="loading"></div></td>
                    <td align="right">
                        <button type="button" id="viewDatasetButton" class="btn btn-success"
                                style="display:none"
                           data-toggle="button" onclick = "viewSampleFileClick();"> VIEW DATASET FILE
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                        </button>
                        <button type="button" id="viewAlignmentButton" class="btn btn-success"
                                style="display:none" file_path=""
                           data-toggle="button" onclick = "viewSampleAlignFileClick();"> VIEW ALIGMENT FILE
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                        </button>
                    </td>
            </table>
@@ -95,16 +98,6 @@
     <div id="collapse_dataset_convert" class="panel-collapse collapse in" target="link_collapse_dataset_convert">
     <div class="panel-body">
       <div class="row">
-
-
-        <!--<div class="col-md-10" >-->
-            <!--<br/>INPUT FILE PATH-->
-             <!--<input type="text" class="form-control" id="dataset_file_path_2"-->
-                   <!--value="C:\Users\Al\PycharmProjects\Linkset\Data_uploaded\Panel composition 2014 Mark.txt">-->
-        <!--</div>-->
-
-
-
 
       </div>
       <div class="row">
@@ -148,11 +141,12 @@
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="dataset_convertion_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
                        <td align="right">
                        <button type="button" id="convertDatasetButton" class="btn btn-success disabled"
                               data-toggle="button" onclick = "convertDatasetClick();"> CONVERT TO RDF
+                           <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                            </button>
-
                        </td>
                </table>
           </div>
@@ -175,23 +169,20 @@
             <div class="col-md-1 text-center" >
                 <br/> SEPARATOR
                 <input  type="text" class="form-control" id="ds_separator"
-                       style='font-size: 25pt;' onkeyup="getHeaderColumns();"
-                       value="	">
+                       style='font-size: 25pt;' onkeyup="getHeaderColumns();">
+                       <!--value="	">-->
             </div>
           </div>
           <div class="row" target = 'creation_dataset'>
             <div class="col-md-3">
                 <br/> DATASET NAME (<strong>*</strong>)
-                <input type="text" class="form-control" id="ds_name"
-                       value="Panel_">
-
-
-
+                <input type="text" class="form-control" id="ds_name">
+                       <!--value="Panel_">-->
             </div>
             <div class="col-md-4">
                  <br/> ENTITY TYPE (<strong>*</strong>)
-                <input type="text" class="form-control" id="ds_entity_type_name"
-                       value="Panel">
+                <input type="text" class="form-control" id="ds_entity_type_name">
+                       <!--value="Panel">-->
 
                 <br/> SUBJECT IDENTIFIER
                 <!--<input type="text" class="form-control" id="ds_subject_id"-->
@@ -236,10 +227,13 @@
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="dataset_schema_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="schemaDatasetButton" class="btn btn-success disabled"
                               data-toggle="button" onclick = "viewSampleRDFFile(this);" file=""
                               target_message="dataset_schema_message_col" target_result="schema_sample">
-                       VIEW SCHEMA SAMPLE</button></td>
+                       VIEW SCHEMA SAMPLE
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
                </table>
           </div>
          </div>
@@ -261,10 +255,7 @@
      </div>
 
 
-
-
-
-     <div class="row creation" id="inspect_dataset_row">
+     <div class="row creation" id="convert_dataset_row">
       <div class="col-md-12" >
         <div class="panel panel-default">
         <div class="panel-heading" >
@@ -282,10 +273,13 @@
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="converted_sample_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="converted_sampleDatasetButton" class="btn btn-success disabled"
                               data-toggle="button" onclick = "viewSampleRDFFile(this);" file=""
                               target_message="converted_sample_message_col" target_result="dataset_sample">
-                          VIEW DATASET SAMPLE</button></td>
+                          VIEW DATASET SAMPLE
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
                </table>
           </div>
          </div>
@@ -326,9 +320,12 @@
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="dataset_creation_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="createDatasetButton" class="btn btn-success disabled"
                               data-toggle="button" onclick = "loadGraphClick();" batchFile="">
-                          LOAD RDF SCHEMA AND DATASET</button></td>
+                          LOAD RDF SCHEMA AND DATASET
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
                </table>
           </div>
          </div>
@@ -369,9 +366,12 @@
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="import_alignment_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="importAlignmentButton" class="btn btn-success disabled"
                               data-toggle="button" onclick = "importAlignmentClick();" batchFile="">
-                          IMPORT ALIGNMENT</button></td>
+                          IMPORT ALIGNMENT
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
                </table>
           </div>
          </div>

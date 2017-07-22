@@ -1674,7 +1674,13 @@ def deleteView():
             print ">>>> TO DELETE:"
             query = Qry.delete_view_rq(rq_uri, view_uri)
             print query
+
+            # endpoint_url=UPDATE_URL works for stardog 5
             result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+            # for stardog 4it works without endpoint_url=UPDATE_URL
+            if (result != None) or (str(result) == ''):
+                result = sparql(query, strip=False)
+
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'View successfully deleted', 'result': 'OK'})
 
@@ -1698,6 +1704,24 @@ def updateViewLabel():
         result = sparql(query, strip=False)
         print ">>>> RESULT:", result
         return json.dumps({'message': 'View successfully updated', 'result': 'OK'})
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        return json.dumps({'message':str(error.message), 'result':None})
+
+
+@app.route('/updateLabel')
+def updateLabel():
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    label = request.args.get('label', '')
+
+    try:
+        query = Qry.update_label_rq(rq_uri, graph_uri, label)
+        print query
+        result = sparql(query, strip=False)
+        print ">>>> RESULT:", result
+        return json.dumps({'message': 'Label successfully updated', 'result': 'OK'})
 
     except Exception as error:
         print "AN ERROR OCCURRED: ", error
