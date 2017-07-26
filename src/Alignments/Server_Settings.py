@@ -11,7 +11,7 @@ DATABASE = "risis"
 TEST_SERVER = "localhost:5820"
 PRODUCTION_SERVER = "stardog.risis.d2s.labs.vu.nl"
 
-STARDOG_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0-beta/bin/'
+STARDOG_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
 STARDOG_PATH_TEST_V = '/Applications/stardog-4.2.3/bin/'
 STARDOG_PATH_TEST_A = '...'
 
@@ -23,14 +23,13 @@ settings = {
     St.split_sys: False,
 
     # STARDOG LOCAL HOST NAME
-    St.stardog_host_name: TEST_SERVER,
+    St.stardog_host_name: PRODUCTION_SERVER,
     # St.stardog_host_name: PRODUCTION_SERVER,
 
     # STARDOG PATH
     # St.stardog_path: STARDOG_PATH_PRODUCTION,
-    St.stardog_path: STARDOG_PATH_TEST_V,
+    St.stardog_path: STARDOG_PATH_PRODUCTION,
     # St.stardog_path: STARDOG_PATH_TEST_A,
-
 
     # MAIN DATA FOLDER
     St.data_dir: DIR,
