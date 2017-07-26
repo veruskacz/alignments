@@ -333,6 +333,7 @@ function inspect_linkset_activate(mode)
             // load the panel describing the linkset sample
             $('#inspect_linkset_linkset_details_col').show();
             $('#inspect_linkset_linkset_details_col').html('Loading...');
+//            alert('loading linkset');
             $.get('/getlinksetdetails',data={'linkset': linkset_uri},function(data)
             {
                 var obj = JSON.parse(data);
@@ -894,21 +895,23 @@ function applyFilterLinksetClick()
        {    linkset_uri = $(elems[0]).attr('uri');
        }
 
+    var filter_uri = '';
+    elems = selectedElemsInDiv("linkset_filter_col");
+    if (elems.length > 0)
+        { filter_uri = $(elems[0]).attr('uri'); }
+    var filter_term =  $('#linkset_filter_text').val();
+    if (filter_term == "-- Type a term for search & filter --")
+        { filter_term = ''; }
+
     $.get('/getlinksetdetails',data={'linkset': linkset_uri,
-                                       'template': 'none'},function(data)
+                                      'template': 'none',
+                                      'rq_uri': rq_uri,
+                                      'filter_uri': filter_uri},function(data)
     {
        var obj = JSON.parse(data);
 
        $('#creation_linkset_filter_row').show();
        $('#creation_linkset_correspondence_row').show();
-       var filter_uri = '';
-       elems = selectedElemsInDiv("linkset_filter_col");
-       if (elems.length > 0)
-       {    filter_uri = $(elems[0]).attr('uri');
-       }
-       var filter_term =  $('#linkset_filter_text').val();
-       if (filter_term == "-- Type a term for search & filter --")
-            { filter_term = ''; }
        showDetails(rq_uri, linkset_uri, obj, filter_uri, filter_term);
     });
 }

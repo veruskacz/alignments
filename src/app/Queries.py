@@ -557,51 +557,52 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     return query
 
 
-def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=80):
-
+def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term=''):
     # ADD FILTER CONDITIONS
     filter_condition = ""
     filter_count = ""
     filter_count_aux = ""
-    result = get_linkset_filter(rq_uri, graph_uri, filter_uri)
-    print result
-    if result["result"]:
-        method = result["result"][1][1]
-        if method == "threshold":
-            filter_condition = result["result"][1][0]
-            # somehow this HAVING is needed to avoid return with empty sub pred obj
-            #filter_condition += "BIND(count(distinct ?pred) as ?strength)"
-            #filter_count = 'HAVING (?strength > 0)'
-        else:
-            filter_count = " GROUP BY ?sub ?pred ?obj "
-            filter_count += result["result"][1][0]
-            if method == "accept":
-                filter_count_aux = """
-                OPTIONAL {{ ?pred <http://risis.eu/alignment/predicate/hasValidation> ?accept.
-                            ?accept rdf:type <http://www.w3.org/ns/prov#Accept> .
-                         }}"""
-            # TODO: CHANGE RISIS PREDICATE TO RISIS CLASS FOR REJECT
-            elif method == "reject":
-                filter_count_aux = """
-            	OPTIONAL {{?pred <http://risis.eu/alignment/predicate/hasValidation> ?reject.
-                            ?reject rdf:type <http://risis.eu/alignment/predicate/Reject> .
-                         }}"""
+
+    if (rq_uri != '') and (graph_uri != ''):
+        result = get_linkset_filter(rq_uri, graph_uri, filter_uri)
+        print result
+        if result["result"]:
+            method = result["result"][1][1]
+            if method == "threshold":
+                filter_condition = result["result"][1][0]
+                # somehow this HAVING is needed to avoid return with empty sub pred obj
+                #filter_condition += "BIND(count(distinct ?pred) as ?strength)"
+                #filter_count = 'HAVING (?strength > 0)'
+            else:
+                filter_count = " GROUP BY ?sub ?pred ?obj "
+                filter_count += result["result"][1][0]
+                if method == "accept":
+                    filter_count_aux = """
+                    OPTIONAL {{ ?pred <http://risis.eu/alignment/predicate/hasValidation> ?accept.
+                                ?accept rdf:type <http://www.w3.org/ns/prov#Accept> .
+                             }}"""
+                # TODO: CHANGE RISIS PREDICATE TO RISIS CLASS FOR REJECT
+                elif method == "reject":
+                    filter_count_aux = """
+                    OPTIONAL {{?pred <http://risis.eu/alignment/predicate/hasValidation> ?reject.
+                                ?reject rdf:type <http://risis.eu/alignment/predicate/Reject> .
+                             }}"""
 
     # ADD FILTER TERM MATCH
     filter_term_match = ''
-    if filter_term != '':
+    if (filter_term != '') and (graph_uri != ''):
         filter_term_match = """
-        
+
         ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
         <{0}>
                 prov:wasDerivedFrom*        ?graph_uri .
-                
+
         ### GET METADATA IN THE DEFAULT GRAPH
         ?graph_uri  void:subjectsTarget 			?subjectsTarget ;
                void:objectsTarget  			?objectsTarget ;
                alivocab:alignsSubjects      ?alignsSubjects ;
                alivocab:alignsObjects    ?alignsObjects .
-        
+
         {{
         ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
         GRAPH ?subjectsTarget
@@ -620,6 +621,18 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
             }}
         }}
         """.format(graph_uri, filter_term)
+
+    return {'filter_condition': filter_condition,
+            'filter_count': filter_count,
+            'filter_count_aux': filter_count_aux,
+            'filter_term_match': filter_term_match}
+
+
+
+def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=80):
+
+    filters = get_filter_conditions(rq_uri, graph_uri, filter_uri, filter_term)
+    # print 'FILTERS:', filters
 
     query = PREFIX + """
     ### GET CORRESPONDENCES
@@ -641,7 +654,9 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
     # FILTER BY COUNT
     {3}
     limit {0}
-    """.format(limit, graph_uri, filter_condition, filter_count, filter_count_aux, filter_term_match)
+    """.format(limit, graph_uri, filters['filter_condition'],
+               filters['filter_count'], filters['filter_count_aux'],
+               filters['filter_term_match'])
     if DETAIL:
         print query
     return query
@@ -1168,7 +1183,71 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     return query
 
 
-def get_linkset_corresp_details(linkset, limit=1):
+def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
+
+    filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
+    # print 'FILTERS:', filters
+
+    count_query = """
+    SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
+    {{
+        GRAPH <{0}> {{ ?sub ?pred ?obj }}
+        GRAPH ?g {{ ?pred ?p ?o .
+            # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+            {3}
+        }}
+
+        # FILTER BY CONDITION
+        {1}
+
+        # FILTER BY TERM MATCH
+        {4}
+
+    }}
+    # FILTER BY COUNT
+    {2}
+    """.format(linkset, filters['filter_condition'],
+               filters['filter_count'], filters['filter_count_aux'],
+               filters['filter_term_match'])
+
+    query = PREFIX + """
+    ### LINKSET DETAILS
+
+    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property
+    ?objTarget ?o_datatype ?o_property  ?triples ?operator
+        WHERE
+        {{
+
+            ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
+            <{0}>
+                prov:wasDerivedFrom*        ?linkset .
+
+            ### RETRIEVING LINKSET METADATA
+            ?linkset
+                alivocab:alignsMechanism    ?mechanism ;
+                void:subjectsTarget         ?subTarget ;
+                bdb:subjectsDatatype        ?s_datatype ;
+                alivocab:alignsSubjects     ?s_property;
+                void:objectsTarget          ?objTarget ;
+                bdb:objectsDatatype         ?o_datatype ;
+                alivocab:alignsObjects      ?o_property .
+                #void:triples                ?triples .
+
+            BIND ("" AS ?operator)
+
+            # COUNT TRIPLES ACCORDING TO FILTER
+            {{ {2} }}
+
+        }}
+    # LIMIT {1}
+    """.format(linkset, limit, count_query)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_linkset_corresp_details_old(linkset, limit=1):
 
     query = PREFIX + """
     ### LINKSET DETAILS
@@ -1197,6 +1276,7 @@ def get_linkset_corresp_details(linkset, limit=1):
         }}
     # LIMIT {1}
     """.format(linkset, limit)
+
     if DETAIL:
         print query
     return query

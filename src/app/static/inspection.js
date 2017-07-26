@@ -220,7 +220,7 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
   $('#'+div).html('Loading...');
 
   // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
-  $.get('/getcorrespondences',data={'rq_uri': rq_uri,
+  $.get('/getcorrespondences2',data={'rq_uri': rq_uri,
                                     'graph_uri': graph_uri,
                                     'filter_uri': filter_uri,
                                     'filter_term': filter_term,
