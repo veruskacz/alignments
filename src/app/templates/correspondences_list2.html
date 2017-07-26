@@ -1,0 +1,59 @@
+<div class="row">
+    <div class="col-md-4" style='border-right: 1px solid grey; height: 73em;'>
+
+      <div class="panel panel-primary">
+
+        <div class="panel-heading" style='scroll: both; overflow: auto;'>
+            <h3><strong>Correspondences</strong></h3>
+          <span class="badge alert-primary"> {{ graph_label }} </span> contains
+          <span id='triples_span' class="badge alert-success">{{ graph_triples }}</span> triples
+            {% if graph_menu == 'linkset'%}
+          , aligned using the <span class="badge alert-info"> {{ alignsMechanism|upper }}</span> mechanism.
+            {%endif%}
+
+            {% if graph_menu == 'lens'%}
+           generated using the <span class="badge alert-info"> {{ operator|upper }}</span> operator.
+            {%endif%}
+        </div>
+
+        <div class="panel-body" style='scroll: both; overflow: auto; height: 64em;'>
+          <div class="list-group" id="corresp_list_group" uri="{{graph_uri}}"
+               target="" style='scroll: both; overflow: auto;'>
+            {% for c in correspondences|sort(attribute='sub') %}
+            <a href="javascript:void();" class="list-group-item" uri='{{c.pred.value}}'
+                  id = 'LGI{{c.pred.value}}'
+                  sub_uri='{{c.sub.value }}'
+                  obj_uri='{{c.obj.value }}'>
+                <span class="list-group-item-heading">{{ c.sub.value }}<br/>
+                    <small><span class="badge alert-primary">linked to</span></small><br/>
+                </span>
+                <span class="list-group-item-heading">{{ c.obj.value }}<br/>
+                </span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    {% if graph_menu == 'linkset'%}
+    <div class="col-md-8" id="details_list_col">
+    </div>
+
+    <div class="col-md-8 evidence_col" id="evidence_list_col" type="linkset">
+    </div>
+    {%endif%}
+
+    {% if graph_menu == 'lens'%}
+    <div class="col-md-8" id="lens_details_list_col">
+    </div>
+
+    <div class="col-md-8 evidence_col" id="lens_evidence_list_col" type="lens">
+    </div>
+    {%endif%}
+
+
+</div>

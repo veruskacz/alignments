@@ -271,8 +271,58 @@ def datasets():
     return render_template(template, list = datasets, btn_name = 'datasets', function = function)
 
 
+
+@app.route('/getcorrespheader', methods=['GET'])
+def correspondencesHeader():
+
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    filter_uri = request.args.get('filter_uri', '')
+    filter_term = request.args.get('filter_term', '')
+
+    query = Qry.get_correspondHeader(rq_uri, graph_uri, filter_uri, filter_term)
+    data = sparql(query, strip=True)
+
+    header_template = """<h3><strong>Correspondences</strong></h3>
+                          <span class="badge alert-primary"> {{ graph_label }} </span> contains
+                          <span id='triples_span' class="badge alert-success">{{ graph_triples }}</span> triples
+                            {% if alignsMechanism != ''%}
+                          , aligned using the <span class="badge alert-info"> {{ alignsMechanism|upper }}</span> mechanism.
+                            {%endif%}
+                            {% if operator != ''%}
+                           generated using the <span class="badge alert-info"> {{ operator|upper }}</span> operator.
+                            {%endif%}"""
+
+    return render_template(header_template, data)
+
+
 @app.route('/getcorrespondences', methods=['GET'])
 def correspondences():
+    """
+    This function is called due to request /getcorrespondences
+    It queries the dataset for both all the correspondences in a certain graph URI
+    Expected Input: uri, label (for the graph)
+    The results, ...,
+        are passed as parameters to the template correspondences_list.html
+    """
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    filter_uri = request.args.get('filter_uri', '')
+    filter_term = request.args.get('filter_term', '')
+
+    query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
+    correspondences = sparql(query, strip=True)
+
+    if PRINT_RESULTS:
+        print "\n\nCORRESPONDENCES:", correspondences
+
+    return render_template('correspondences_list.html',
+                            graph_uri = graph_uri,
+                            correspondences = correspondences)
+
+
+@app.route('/getcorrespondences2', methods=['GET'])
+def correspondences2():
     """
     This function is called due to request /getcorrespondences
     It queries the dataset for both all the correspondences in a certain graph URI
@@ -296,7 +346,7 @@ def correspondences():
     if PRINT_RESULTS:
         print "\n\nCORRESPONDENCES:", correspondences
 
-    return render_template('correspondences_list.html',
+    return render_template('correspondences_list2.html',
                             operator = operator,
                             graph_menu = graph_menu,
                             correspondences = correspondences,
@@ -380,8 +430,10 @@ def linksetdetails():
     # RETRIEVE VARIABLES
     linkset = request.args.get('linkset', '')
     template = request.args.get('template', 'linksetDetails_list.html')
+    rq_uri = request.args.get('rq_uri', '')
+    filter_uri = request.args.get('filter_uri', '')
 
-    query = Qry.get_linkset_corresp_details(linkset, limit=10)
+    query = Qry.get_linkset_corresp_details(linkset, limit=10, rq_uri = rq_uri, filter_uri = filter_uri )
     metadata = sparql(query, strip=True)
 
     if metadata:
@@ -410,25 +462,6 @@ def linksetdetails():
             s_property_list = d['s_property_stripped']['value']
             o_property_list = d['o_property_stripped']['value']
             mechanism_list = d['mechanism_stripped']['value']
-        # list1 = d['s_property']['value'].split("|")
-        # list2 = d['o_property']['value'].split("|")
-        # list3 = d['mechanism']['value'].split("|")
-        #
-        #     for i in range(len(list1)):
-        #
-        #         # print "list1", i, list1
-        #
-        #         if len(list1[i]) > 0:
-        #             s_property_list += get_URI_local_name(list1[i]) + ' | ' \
-        #                 if i < len(list1) - 1 else get_URI_local_name(list1[i])
-        #
-        #         if len(list2[i]) > 0:
-        #             o_property_list += get_URI_local_name(list2[i]) + ' | ' \
-        #                 if i < len(list1) - 1 else get_URI_local_name(list2[i])
-        #
-        #         if len(list3[i]) > 0:
-        #             mechanism_list += get_URI_local_name(list3[i]) + ' | ' \
-        #                 if i < len(list1) - 1 else get_URI_local_name(list3[i])
 
         if PRINT_RESULTS:
             print "\n\nDETAILS:", details
