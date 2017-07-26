@@ -31,6 +31,8 @@ if CREATION_ACTIVE:
     import Alignments.Utility as Ut
     import Alignments.Settings as St
     import Alignments.ToRDF.CSV as CSV
+    import Alignments.ErrorCodes as Ec
+    import Alignments.Linksets.Linkset as Ls
     import Alignments.Manage.AdminGraphs as adm
     from Alignments.Lenses.Lens_Union import union
     import Alignments.UserActivities.UserRQ as Urq
@@ -1027,7 +1029,6 @@ def datasetpredicatevalues():
 
 @app.route('/createLinkset')
 def spa_linkset():
-
     rq_uri = request.args.get('rq_uri', '')
     specs = {
         'researchQ_URI': rq_uri,
@@ -1049,40 +1050,63 @@ def spa_linkset():
 
         St.intermediate_graph: request.args.get('intermediate_graph', '')
     }
+    check_type = "linkset"
+    id = False
+    try:
 
-    if CREATION_ACTIVE:
 
-        # print "\n\n\nSPECS: ", specs
+        if CREATION_ACTIVE:
 
-        if specs['mechanism'] == 'exactStrSim':
-            linkset_result = spa_linkset2.specs_2_linkset(specs=specs, display=False, activated=FUNCTION_ACTIVATED)
+            # print "\n\n\nSPECS: ", specs
 
-        elif specs['mechanism'] == 'embededAlignment':
-            del specs['target']['aligns']
-            linkset_result = spa_subset.specification_2_linkset_subset(specs, activated=FUNCTION_ACTIVATED)
+            if specs['mechanism'] == 'exactStrSim':
+                linkset_result = spa_linkset2.specs_2_linkset(specs=specs, display=False, activated=FUNCTION_ACTIVATED)
 
-        elif specs['mechanism'] == 'identity':
-            linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
+            elif specs['mechanism'] == 'embededAlignment':
+                del specs['target']['aligns']
+                check_type = "subset"
+                linkset_result = spa_subset.specification_2_linkset_subset(specs, activated=FUNCTION_ACTIVATED)
 
-        elif specs['mechanism'] == 'approxStrSim':
-            linkset_result = prefixed_inverted_index(specs, 0.8)
+            elif specs['mechanism'] == 'identity':
+                id = True
+                linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
 
-        elif specs[St.mechanism] == "intermediate":
-            linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
+            elif specs['mechanism'] == 'approxStrSim':
+                linkset_result = prefixed_inverted_index(specs, 0.8)
 
-        elif specs['mechanism'] == 'geoSim':
-            linkset_result = None
+            elif specs[St.mechanism] == "intermediate":
+                linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
 
+            elif specs['mechanism'] == 'geoSim':
+                linkset_result = None
+
+            else:
+                linkset_result = None
         else:
-            linkset_result = None
-    else:
-        linkset_result = {'message': 'Linkset creation is inactive!', 'error_code': -1, St.result: None}
+            linkset_result = {'message': 'Linkset creation is inactive!', 'error_code': -1, St.result: None}
 
-    # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
+        # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
 
 
-    # print "\n\n\n{}".format(linkset_result['message'])
-    return json.dumps(linkset_result)
+        # print "\n\n\n{}".format(linkset_result['message'])
+        return json.dumps(linkset_result)
+
+    except Exception as err:
+
+        if id == True:
+            check = Ls.run_checks_id(specs)
+        else:
+            check = Ls.run_checks(specs, check_type=check_type)
+            
+        if check[St.result] != "GOOD TO GO":
+            # THE LINKSET WAS CREATED
+            linkset_result = {'message': Ec.ERROR_CODE_22.replace('#', check[St.result]),
+                              'error_code': 0, St.result: check[St.result]}
+        else:
+            linkset_result = {'message': str(err.message), 'error_code': -1, St.result: None}
+
+        return json.dumps(linkset_result)
+
 
 
 @app.route('/refineLinkset')
