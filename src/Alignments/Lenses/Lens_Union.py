@@ -185,7 +185,7 @@ def union(specs, activated=False):
             if contains_duplicated is True:
                 # logger.warning("THE LENS CONTAINS DUPLICATES.")
                 print "THE LENS CONTAINS DUPLICATES."
-                Qry.remove_duplicates(lens)
+                Qry.remove_duplicates(lens, specs[St.lens_name])
                 # logger.warning("THE DUPLICATES ARE NOW REMOVED.")
                 print "THE DUPLICATES ARE NOW REMOVED."
 
