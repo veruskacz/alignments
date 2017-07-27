@@ -618,7 +618,7 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         FILTER NOT EXISTS
         {{
             ?lens 	a 			?type;
-                    void:target ?linkset.
+                    void:target|void:subjectsTarget|void:objectsTarget  ?linkset.
 
             GRAPH <{0}>
             {{
@@ -627,7 +627,7 @@ def delete_linkset_rq(rq_uri, linkset_uri):
        }}
     }}
      ;
-    # 2-A DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    # 2-A DELETE THE SINGLETON GRAPH IF IT'S NOT USED IN ANY RQ
     DELETE
     {{
         GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
@@ -644,9 +644,14 @@ def delete_linkset_rq(rq_uri, linkset_uri):
                 ?sg ?pg ?linkset.
             }}
         }}
+        FILTER NOT EXISTS
+        {{
+            ?lens 	a 			?type;
+                    void:target|void:subjectsTarget|void:objectsTarget  ?linkset.
+        }}
     }}
     ;
-    # 2-A DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    # 2-B DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
     DELETE
     {{
         ?linkset ?p ?o .
@@ -669,7 +674,7 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         }}
     }}
     ;
-    # 2-B DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
+    # 2-C DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
     DELETE
     {{
         GRAPH   ?linkset    {{ ?sub ?pred ?obj . }}
@@ -691,6 +696,120 @@ def delete_linkset_rq(rq_uri, linkset_uri):
     }}
 
     """.format(rq_uri, linkset_uri)
+    # print query
+    return query
+
+
+def delete_lens_rq(rq_uri, lens_uri):
+
+    query = PREFIX + """
+    # 1 DISCONNECT THE LENS
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
+             ?s ?p ?lens.
+        }}
+    }}
+    WHERE
+    {{
+
+        BIND(<{1}> AS ?lens) .
+        GRAPH <{0}>
+        {{
+            ?s alivocab:created|prov:used ?lens.
+            ?s ?p ?lens .
+        }}
+
+        FILTER NOT EXISTS
+        {{
+            GRAPH <{0}>
+            {{
+                ?view_lens alivocab:selected ?lens.
+            }}
+        }}
+
+        FILTER NOT EXISTS
+        {{
+            ?anotherLens 	a 			?type;
+                    void:target|void:subjectsTarget|void:objectsTarget ?lens.
+
+            GRAPH <{0}>
+            {{
+               ?s3 alivocab:created|prov:used ?anotherLens.
+            }}
+       }}
+    }}
+     ;
+    # 2-A DELETE THE SINGLETON GRAPH IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
+    }}
+    WHERE
+    {{
+        BIND(<{1}> AS ?lens) .
+        ?lens    alivocab:singletonGraph 		?singletonGraph .
+        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?lens.
+            }}
+        }}
+         FILTER NOT EXISTS
+        {{
+            ?anotherLens 	a 			?type;
+                    void:target|void:subjectsTarget|void:objectsTarget ?lens.
+        }}
+    }}
+    ;
+    # 2-B DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        ?lens ?p ?o .
+        ?object ?pred ?obj .
+    }}
+    WHERE
+    {{
+        BIND(<{1}> AS ?lens) .
+
+        ?lens    bdb:assertionMethod|bdb:linksetJustification    ?object .
+        ?object  ?pred                                           ?obj .
+        ?lens    ?p                                              ?o .
+
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?lens.
+            }}
+        }}
+    }}
+    ;
+    # 2-C DELETE THE LENS COMPLETELY IF IT'S NOT USED IN ANY RQ
+    DELETE
+    {{
+        GRAPH   ?lens    {{ ?sub ?pred ?obj . }}
+    }}
+    WHERE
+    {{
+        BIND(<{1}> AS ?lens) .
+        GRAPH ?lens
+        {{
+            ?sub    ?pred   ?obj .
+        }}
+        FILTER NOT EXISTS
+        {{
+            GRAPH ?rqg
+            {{
+                ?sg ?pg ?lens.
+            }}
+        }}
+    }}
+
+    """.format(rq_uri, lens_uri)
     # print query
     return query
 

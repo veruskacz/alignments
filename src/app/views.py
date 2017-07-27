@@ -1710,11 +1710,14 @@ def deleteLens():
 
         elif mode == 'delete':
             print ">>>> TO DELETE:"
-            # query = adm.delete_lens_rq(rq_uri, lens_uri)
-            # print "CONDITIONAL DELETE QUERY:", query
-            # result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
-            # print ">>>> DELETION RESULT:", result
-            # return json.dumps({'message': 'Lens successfully deleted', 'result': 'OK'})
+            query = adm.delete_lens_rq(rq_uri, lens_uri)
+            print "CONDITIONAL DELETE QUERY:", query
+            if Svr.settings[St.stardog_version] == "COMPATIBLE":
+                result = sparql(query, strip=False)
+            else:
+                result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+            print ">>>> DELETION RESULT:", result
+            return json.dumps({'message': 'Lens successfully deleted', 'result': 'OK'})
 
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})

@@ -1193,7 +1193,7 @@ function deleteLensClick()
                     {
                         var obj = JSON.parse(data);
                         if (obj.result == 'OK')
-                        {   $('#btn_edit_ens').click();
+                        {   $('#btn_edit_lens').click();
                             $('#lens_edit_message_col').html(addNote(obj.message,cl='info')); }
                         else
                         {    $('#lens_edit_message_col').html(addNote(obj.message)); }
