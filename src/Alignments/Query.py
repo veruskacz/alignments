@@ -1152,31 +1152,40 @@ def contains_duplicates(graph):
     return response
 
 
-def remove_duplicates(graph):
+def remove_duplicates(graph, grap_name):
 
     query = """
+    PREFIX specific:    <{1}>
 
     INSERT
     {{
           graph  <{0}>
           {{
             ?s  ?p1         ?o .
+          }}
+
+          graph  specific:{1}
+          {{
             ?p1 ?predicate  ?object .
           }}
     }}
 
     WHERE
     {{
-          graph  <{0}>
-          {{
+        graph  <{0}>
+        {{
             ?s ?p1 ?o .
             ?o ?p2 ?s .
-            OPTIONAl
+        }}
+
+        OPTIONAl
+        {{
+            graph  specific:{1}
             {{
                 ?p2 ?predicate ?object .
             }}
-          }}
-          FILTER (str(?s) > str(?o) )
+        }}
+        FILTER (str(?s) > str(?o) )
     }} ;
 
 
@@ -1185,23 +1194,32 @@ def remove_duplicates(graph):
           graph  <{0}>
           {{
             ?o  ?p2         ?s .
+          }}
+
+          graph  specific:{1}
+          {{
             ?p2 ?predicate  ?object .
           }}
     }}
 
     WHERE
     {{
-          graph  <{0}>
-          {{
+        graph  <{0}>
+        {{
             ?s ?p1 ?o .
             ?o ?p2 ?s .
-            OPTIONAl
+        }}
+
+        OPTIONAl
+        {{
+            graph  specific:{1}
             {{
                 ?p2 ?predicate ?object .
             }}
-          }}
-          FILTER (str(?s) > str(?o) )
-    }}""".format(graph)
+        }}
+
+        FILTER (str(?s) > str(?o) )
+    }}""".format(graph, Ns.singletons)
     # print query
     response = boolean_endpoint_response(query)
     response = True if response == "true" else False
