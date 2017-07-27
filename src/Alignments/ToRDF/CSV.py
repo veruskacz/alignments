@@ -333,6 +333,7 @@ class CSV(RDF):
         if temp != "":
             attributes.append(temp)
 
+        print "EXTRACTOR RETURNED: {}".format(attributes)
         return attributes
 
     @staticmethod
