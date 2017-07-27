@@ -31,8 +31,11 @@ if CREATION_ACTIVE:
     import Alignments.Utility as Ut
     import Alignments.Settings as St
     import Alignments.ToRDF.CSV as CSV
+    import Alignments.ErrorCodes as Ec
+    import Alignments.Linksets.Linkset as Ls
     import Alignments.Manage.AdminGraphs as adm
     from Alignments.Lenses.Lens_Union import union
+    from Alignments.Lenses.Lens_Difference import difference as diff
     import Alignments.UserActivities.UserRQ as Urq
     import Alignments.UserActivities.View as mod_view
     import Alignments.Linksets.SPA_Linkset as spa_linkset2
@@ -129,7 +132,7 @@ def upload():
     file = request.files['file']
     if file and allowed_file(file.filename):
 
-        dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(), os.path.sep)
+        dir = "{0}{1}{1}".format(UPLOAD_FOLDER, os.path.sep)
         print "\nWe will upload: {}".format(file.filename)
         print "Directory: {}".format(dir)
         print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
@@ -214,7 +217,7 @@ def index():
 
         if file and allowed_file(file.filename):
             # filename = secure_filename(file.filename)
-            dir = "{}\\UploadedFiles".format(os.getcwd())
+            dir = "{}\\UploadedFiles".format(UPLOAD_FOLDER)
             print "\nWe will upload: {}".format(file.filename)
             print "Directory: {}".format(dir)
             print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
@@ -1027,7 +1030,6 @@ def datasetpredicatevalues():
 
 @app.route('/createLinkset')
 def spa_linkset():
-
     rq_uri = request.args.get('rq_uri', '')
     specs = {
         'researchQ_URI': rq_uri,
@@ -1049,40 +1051,63 @@ def spa_linkset():
 
         St.intermediate_graph: request.args.get('intermediate_graph', '')
     }
+    check_type = "linkset"
+    id = False
+    try:
 
-    if CREATION_ACTIVE:
 
-        # print "\n\n\nSPECS: ", specs
+        if CREATION_ACTIVE:
 
-        if specs['mechanism'] == 'exactStrSim':
-            linkset_result = spa_linkset2.specs_2_linkset(specs=specs, display=False, activated=FUNCTION_ACTIVATED)
+            # print "\n\n\nSPECS: ", specs
 
-        elif specs['mechanism'] == 'embededAlignment':
-            del specs['target']['aligns']
-            linkset_result = spa_subset.specification_2_linkset_subset(specs, activated=FUNCTION_ACTIVATED)
+            if specs['mechanism'] == 'exactStrSim':
+                linkset_result = spa_linkset2.specs_2_linkset(specs=specs, display=False, activated=FUNCTION_ACTIVATED)
 
-        elif specs['mechanism'] == 'identity':
-            linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
+            elif specs['mechanism'] == 'embededAlignment':
+                del specs['target']['aligns']
+                check_type = "subset"
+                linkset_result = spa_subset.specification_2_linkset_subset(specs, activated=FUNCTION_ACTIVATED)
 
-        elif specs['mechanism'] == 'approxStrSim':
-            linkset_result = prefixed_inverted_index(specs, 0.8)
+            elif specs['mechanism'] == 'identity':
+                id = True
+                linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
 
-        elif specs[St.mechanism] == "intermediate":
-            linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
+            elif specs['mechanism'] == 'approxStrSim':
+                linkset_result = prefixed_inverted_index(specs, 0.8)
 
-        elif specs['mechanism'] == 'geoSim':
-            linkset_result = None
+            elif specs[St.mechanism] == "intermediate":
+                linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
 
+            elif specs['mechanism'] == 'geoSim':
+                linkset_result = None
+
+            else:
+                linkset_result = None
         else:
-            linkset_result = None
-    else:
-        linkset_result = {'message': 'Linkset creation is inactive!', 'error_code': -1, St.result: None}
+            linkset_result = {'message': 'Linkset creation is inactive!', 'error_code': -1, St.result: None}
 
-    # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
+        # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
 
 
-    # print "\n\n\n{}".format(linkset_result['message'])
-    return json.dumps(linkset_result)
+        # print "\n\n\n{}".format(linkset_result['message'])
+        return json.dumps(linkset_result)
+
+    except Exception as err:
+
+        if id == True:
+            check = Ls.run_checks_id(specs)
+        else:
+            check = Ls.run_checks(specs, check_type=check_type)
+
+        if check[St.result] != "GOOD TO GO":
+            # THE LINKSET WAS CREATED
+            linkset_result = {'message': Ec.ERROR_CODE_22.replace('#', check[St.result]),
+                              'error_code': 0, St.result: check[St.result]}
+        else:
+            linkset_result = {'message': str(err.message), 'error_code': -1, St.result: None}
+
+        return json.dumps(linkset_result)
+
 
 
 @app.route('/refineLinkset')
@@ -1168,23 +1193,32 @@ def importLinkset():
 
 @app.route('/createLens')
 def spa_lens():
-    rq_uri = request.args.get('rq_uri')
-    graphs = request.args.getlist('graphs[]')
-    operator = request.args.get('operator', '')
 
-    specs = {
-        St.researchQ_URI: rq_uri,
-        'datasets': graphs,
-        'lens_operation': operator
-    };
+    rq_uri = request.args.get('rq_uri')
+    operator = request.args.get('operator', '')
 
     # print "\n\n\nSPECS: ", specs
 
     if CREATION_ACTIVE:
-        if operator == "union":
+
+        if str(operator).lower()  == "union":
+            graphs = request.args.getlist('graphs[]')
+            specs = {
+                St.researchQ_URI: rq_uri,
+                St.datasets: graphs,
+                St.lens_operation: operator }
             lens_result = union(specs, activated=True)
+
+        elif str(operator).lower() == "difference":
+            specs = {
+                St.researchQ_URI: rq_uri,
+                St.subjectsTarget: request.args.get('subjects_target'),
+                St.objectsTarget: request.args.get('objects_target'),
+                St.lens_operation: operator }
+            lens_result = diff(specs, activated=True)
+
         else:
-            lens_result = {'message': 'Operation no implemented!',
+            lens_result = {'message': 'Operation not implemented!',
                            'error_code': -1,
                            St.result: None}
     else:
@@ -1629,6 +1663,7 @@ def deleteLinkset():
 
     try:
         if mode == 'check':
+
             query = Qry.check_graph_dependencies_rq(rq_uri, linkset_uri)
             result = sparql(query, strip=True)
             print ">>>> CHECKED: ", result, len(result) #, len(result[0])
@@ -1646,7 +1681,10 @@ def deleteLinkset():
             print ">>>> TO DELETE:"
             query = adm.delete_linkset_rq(rq_uri, linkset_uri)
             print "CONDITIONAL DELETE QUERY:", query
-            result = sparql(query, strip=False)
+            if Svr.settings[St.stardog_version] == "COMPATIBLE":
+                result = sparql(query, strip=False)
+            else:
+                result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
             # result = sparql(query)
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
@@ -1682,11 +1720,14 @@ def deleteLens():
 
         elif mode == 'delete':
             print ">>>> TO DELETE:"
-            # query = adm.delete_lens_rq(rq_uri, lens_uri)
-            # print "CONDITIONAL DELETE QUERY:", query
-            # result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
-            # print ">>>> DELETION RESULT:", result
-            # return json.dumps({'message': 'Lens successfully deleted', 'result': 'OK'})
+            query = adm.delete_lens_rq(rq_uri, lens_uri)
+            print "CONDITIONAL DELETE QUERY:", query
+            if Svr.settings[St.stardog_version] == "COMPATIBLE":
+                result = sparql(query, strip=False)
+            else:
+                result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+            print ">>>> DELETION RESULT:", result
+            return json.dumps({'message': 'Lens successfully deleted', 'result': 'OK'})
 
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
@@ -1800,6 +1841,7 @@ def importConvertedDataset():
 
 @app.route('/viewSampleFile')
 def viewSampleFile():
+    print "VIEW SAMPLE FILE"
     filePath = request.args.get('file', '')
     size = request.args.get('size', '10')
     return json.dumps(CSV.CSV.view_file(filePath, int(size)))
@@ -1807,14 +1849,17 @@ def viewSampleFile():
 
 @app.route('/viewSampleRDFFile')
 def viewSampleRDFFile():
+    print "VIEW RDF SAMPLE FILE"
     filePath = request.args.get('file', '')
     return json.dumps(CSV.CSV.view_data(filePath))
 
 
-@app.route('/headerExtractor')
+@app.route('/headerExtractor', methods=['POST'])
 def headerExtractor():
-    header_line = request.args.get('header_line', '')
-    separator = request.args.get('separator', '')
+    print "HEADER EXTRACTOR"
+    header_line = request.form['header_line']
+    separator = request.form['separator']
+    # print "HEADER:[{}]\nSEPARATOR: [{}]".format(header_line, separator)
     header_list = CSV.CSV.extractor(header_line, separator)
     header = ""
     for i in range(len(header_list)):
@@ -1873,7 +1918,8 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
         elif "boolean" in result_dict:
             return result_dict['boolean']
         else:
-            return "NO RESPONSE FROM THE SERVER"
+            print "NO RESPONSE FROM THE SERVER"
+            return "true"
 
 
 def strip_dict(result_dict):

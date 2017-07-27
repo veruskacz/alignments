@@ -208,13 +208,15 @@ def union(specs, activated=False):
             write_to_file(
                 graph_name=specs[St.lens_name], metadata=None, correspondences=construct_response, directory=DIRECTORY)
         print "\tLens created as : ", specs[St.lens]
-        print "\t*** JOB DONE! ***"
+
 
         # REGISTER THE LINKSET
         Urq.register_lens(specs, is_created=True)
 
         # return specs[St.lens]
         message = "THE LENS WAS CREATED!<br/>URI = {}".format(specs[St.lens])
+
+        print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: specs[St.lens]}
 
     except Exception as err:
@@ -231,6 +233,7 @@ def union_insert_q(lens, source, label):
     lens_name = label
     query = """
     PREFIX prov:<{0}>
+    PREFIX specific:<{7}>
     PREFIX tmpgraph:<{1}>
     PREFIX tmpvocab:<{5}>
     ###### CREATING THE INTERSECTION CORRESPONDENCES
@@ -278,6 +281,10 @@ def union_insert_q(lens, source, label):
         GRAPH <{4}>
         {{
             ?sCorr			?singPre 					?oCorr .
+        }}
+
+        GRAPH specific:{6}
+        {{
             ?singPre		prov:wasDerivedFrom 	    ?singCorr .
             ?singCorr		?singCorrPr 				?singCorrobj .
         }}
@@ -291,7 +298,7 @@ def union_insert_q(lens, source, label):
 
         graph <{2}>
         {{
-            ?sCorr				?singCorr 				?oCorr  .
+            ?sCorr			?singCorr 				    ?oCorr  .
             OPTIONAL {{ ?singCorr			?singCorrPr 			?singCorrobj .  }}
             FILTER NOT EXISTS {{ ?x ?sCorr ?z }}
         }}
@@ -300,5 +307,5 @@ def union_insert_q(lens, source, label):
     DROP SILENT GRAPH tmpgraph:load00 ;
     DROP SILENT GRAPH tmpgraph:load01 ;
     DROP SILENT GRAPH tmpgraph:load02
-    """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens, Ns.tmpvocab, lens_name)
+    """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens, Ns.tmpvocab, lens_name, Ns.singletons)
     return query

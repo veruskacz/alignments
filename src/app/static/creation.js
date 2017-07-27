@@ -1114,7 +1114,7 @@ function createLensClick()
         {
             var obj = JSON.parse(data);
             $('#lens_creation_message_col').html(addNote(obj.message, cl='info'));
-              loadingGif(document.getElementById('lens_creation_message_col'), 2, show=false);
+            loadingGif(document.getElementById('lens_creation_message_col'), 2, show=false);
 
             $('#creation_lens_lens_selection_col').html('Loading...');
                $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
@@ -1193,7 +1193,7 @@ function deleteLensClick()
                     {
                         var obj = JSON.parse(data);
                         if (obj.result == 'OK')
-                        {   $('#btn_edit_ens').click();
+                        {   $('#btn_edit_lens').click();
                             $('#lens_edit_message_col').html(addNote(obj.message,cl='info')); }
                         else
                         {    $('#lens_edit_message_col').html(addNote(obj.message)); }
@@ -2551,15 +2551,14 @@ function getHeaderColumns() {
     {
         var input = document.getElementById('dataset_header');
         var separator = document.getElementById('ds_separator');
-        $.get('/headerExtractor',
-          data={'header_line': input.value,
-                'separator': separator.value},
+        $.post('/headerExtractor',
+          data={'header_line': input.value, 'separator': separator.value},
           function(data)
-        {
+          {
             $('#ds_subject_id').html("<option>-- Select --</option>"+data);
             $('#ds_type_list').html(data);
 
-        });
+          });
         enableButton('convertDatasetButton');
 
     }

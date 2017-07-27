@@ -12,7 +12,17 @@ DIRECTORY = Ss.settings[St.lens_Diff_dir]
 
 
 
-def difference(specs):
+def difference(specs, activated=False):
+
+    # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
+    if activated is False:
+        print "THE FUNCTION IS NOT ACTIVATED" \
+              "\n======================================================" \
+              "========================================================"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
+    else:
+        print "THE FUNCTION IS ACTIVATED"
+
 
     Lu.diff_lens_name(specs)
 

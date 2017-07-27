@@ -209,6 +209,7 @@ def union_meta(specs):
     PREFIX void:        <{3}>
     PREFIX bdb:         <{4}>
     PREFIX lensOp:      <{5}>
+    PREFIX specific:    <{13}>
 
     INSERT DATA
     {{
@@ -220,14 +221,15 @@ def union_meta(specs):
             void:triples                        {7} ;
             alivocab:expectedCorrespondences    {8} ;
             alivocab:removedDuplicates          {9} ;
+            alivocab:singletonGraph             specific:{11} ;
             bdb:assertionMethod                 <{10}{11}> .
         ### ASSERTION METHOD"
-        <{12}{13}>
-            alivocab:sparql           \"\"\"{14}\"\"\" .
+        <{10}{11}>
+            alivocab:sparql           \"\"\"{12}\"\"\" .
     }}""".format(specs[St.lens], Ns.rdfs, Ns.alivocab, Ns.void, Ns.bdb, Ns.lensOp,
                  specs[St.lens_target_triples], specs[St.triples], specs[St.expectedTriples],
                  specs[St.removedDuplicates], Ns.method, specs[St.lens_name],
-                 Ns.method, specs[St.lens_name], specs[St.insert_query])
+                 specs[St.insert_query], Ns.singletons)
 
     # print metadata
     return metadata
@@ -260,6 +262,7 @@ def diff_meta(specs):
     PREFIX void:        <{3}>
     PREFIX bdb:         <{4}>
     PREFIX lensOp:      <{5}>
+    PREFIX specific:    <{12}>
 
     INSERT DATA
     {{
@@ -271,6 +274,7 @@ def diff_meta(specs):
             void:triples                        {6} ;
             void:subjectsTarget                 <{7}> ;
             void:objectsTarget                  <{8}> ;
+            alivocab:singletonGraph             specific:{10} ;
             bdb:assertionMethod                 <{9}{10}> .
 
         ### ASSERTION METHOD"
@@ -278,7 +282,7 @@ def diff_meta(specs):
             alivocab:sparql           \"\"\"{11}\"\"\" .
     }}""".format(specs[St.lens], Ns.rdfs, Ns.alivocab, Ns.void, Ns.bdb, Ns.lensOp,
                  specs[St.triples], specs[St.subjectsTarget], specs[St.objectsTarget],
-                 Ns.method, specs[St.lens_name], specs[St.insert_query])
+                 Ns.method, specs[St.lens_name], specs[St.insert_query], Ns.singletons)
 
     # print metadata
     return metadata

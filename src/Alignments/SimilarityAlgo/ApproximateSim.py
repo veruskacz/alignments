@@ -318,7 +318,7 @@ def edit_distance(token_x, token_y):
 
 def prefixed_inverted_index(specs, theta):
 
-    debug = True
+    debug = False
     start = time()
     print "\nStarted at {}".format(ctime(start))
     count = 0
