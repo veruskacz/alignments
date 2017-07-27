@@ -40,7 +40,7 @@ def extract_predicates(file_path):
 
     pred_list = []
 
-    """ EXTRACTING THE PREDICATE USED IN THIS ALIGNMENT USING THE ORIGINAL TRIG FILE """
+    print """ EXTRACTING THE PREDICATE USED IN THIS ALIGNMENT USING THE ORIGINAL TRIG FILE """
     _file = open(file_path, 'rb')
 
     while True:
@@ -80,6 +80,7 @@ def save_original_file(uploaded_file, upload_folder):
     # SAVE THE ORIGINAL FILE TO THE UPLOADED FOLDER
     new_path = os.path.join(upload_folder, uploaded_file.filename)
     uploaded_file.save(new_path)
+    print "FILE SAVED AT: {}".format(new_path)
     return new_path
 
 
@@ -424,6 +425,7 @@ def import_graph(file_path, upload_folder, upload_archive, parent_predicate_inde
     """.format(arguments["graph"], meta_graph, arguments["predicate"][parent_predicate_index])
     print "Done!!!"
     return {"message": message}
+
 
 file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
          "eter_eter_gadm_stat_identity_N307462801(Linksets)-20170526.trig"

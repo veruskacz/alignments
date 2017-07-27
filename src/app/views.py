@@ -216,7 +216,7 @@ def index():
 
         if file and allowed_file(file.filename):
             # filename = secure_filename(file.filename)
-            dir = "{}\\UploadedFiles".format(os.getcwd())
+            dir = "{}\\UploadedFiles".format(UPLOAD_FOLDER)
             print "\nWe will upload: {}".format(file.filename)
             print "Directory: {}".format(dir)
             print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
@@ -1097,7 +1097,7 @@ def spa_linkset():
             check = Ls.run_checks_id(specs)
         else:
             check = Ls.run_checks(specs, check_type=check_type)
-            
+
         if check[St.result] != "GOOD TO GO":
             # THE LINKSET WAS CREATED
             linkset_result = {'message': Ec.ERROR_CODE_22.replace('#', check[St.result]),
@@ -1824,6 +1824,7 @@ def importConvertedDataset():
 
 @app.route('/viewSampleFile')
 def viewSampleFile():
+    print "VIEW SAMPLE FILE"
     filePath = request.args.get('file', '')
     size = request.args.get('size', '10')
     return json.dumps(CSV.CSV.view_file(filePath, int(size)))
@@ -1831,12 +1832,14 @@ def viewSampleFile():
 
 @app.route('/viewSampleRDFFile')
 def viewSampleRDFFile():
+    print "VIEW RDF SAMPLE FILE"
     filePath = request.args.get('file', '')
     return json.dumps(CSV.CSV.view_data(filePath))
 
 
 @app.route('/headerExtractor')
 def headerExtractor():
+    print "HEADER EXTRACTOR"
     header_line = request.args.get('header_line', '')
     separator = request.args.get('separator', '')
     header_list = CSV.CSV.extractor(header_line, separator)
@@ -1897,7 +1900,8 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
         elif "boolean" in result_dict:
             return result_dict['boolean']
         else:
-            return "NO RESPONSE FROM THE SERVER"
+            print "NO RESPONSE FROM THE SERVER"
+            return "true"
 
 
 def strip_dict(result_dict):
