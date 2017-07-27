@@ -1657,9 +1657,9 @@ def deleteLinkset():
             query = Qry.check_graph_dependencies_rq(rq_uri, linkset_uri)
 
             if Svr.settings[St.stardog_version] == "COMPATIBLE":
-                result = sparql(query, strip=True)
+                result = sparql(query, strip=False)
             else:
-                result = sparql(query, strip=True, endpoint_url=UPDATE_URL)
+                result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
 
             print ">>>> CHECKED: ", result, len(result) #, len(result[0])
             if (len(result) > 0) and (len(result[0]) > 0): #result is not empty [{}]
@@ -1846,8 +1846,8 @@ def viewSampleRDFFile():
 @app.route('/headerExtractor', methods=['POST'])
 def headerExtractor():
     print "HEADER EXTRACTOR"
-    header_line = request.args.get('header_line', '')
-    separator = request.args.get('separator', '')
+    header_line = request.form['header_line']
+    separator = request.form['separator']
     print "HEADER:[{}]\nSEPARATOR: [{}]".format(header_line, separator)
     header_list = CSV.CSV.extractor(header_line, separator)
     header = ""
