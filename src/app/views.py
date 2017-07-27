@@ -1653,8 +1653,14 @@ def deleteLinkset():
 
     try:
         if mode == 'check':
+
             query = Qry.check_graph_dependencies_rq(rq_uri, linkset_uri)
-            result = sparql(query, strip=True)
+
+            if Svr.settings[St.stardog_version] == "COMPATIBLE":
+                result = sparql(query, strip=True)
+            else:
+                result = sparql(query, strip=True, endpoint_url=UPDATE_URL)
+
             print ">>>> CHECKED: ", result, len(result) #, len(result[0])
             if (len(result) > 0) and (len(result[0]) > 0): #result is not empty [{}]
                 dependencies = 'The following dependencies need to be deleted first:</br>'
@@ -1670,7 +1676,7 @@ def deleteLinkset():
             print ">>>> TO DELETE:"
             query = adm.delete_linkset_rq(rq_uri, linkset_uri)
             print "CONDITIONAL DELETE QUERY:", query
-            result = sparql(query, strip=False)
+            result = sparql(query, strip=False, )
             # result = sparql(query)
             print ">>>> DELETION RESULT:", result
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
@@ -1837,12 +1843,12 @@ def viewSampleRDFFile():
     return json.dumps(CSV.CSV.view_data(filePath))
 
 
-@app.route('/headerExtractor')
+@app.route('/headerExtractor', methods=['POST'])
 def headerExtractor():
     print "HEADER EXTRACTOR"
     header_line = request.args.get('header_line', '')
     separator = request.args.get('separator', '')
-    print "HEADER:{}\nSEPARATOR: [{}]".format(header_line, separator)
+    print "HEADER:[{}]\nSEPARATOR: [{}]".format(header_line, separator)
     header_list = CSV.CSV.extractor(header_line, separator)
     header = ""
     for i in range(len(header_list)):

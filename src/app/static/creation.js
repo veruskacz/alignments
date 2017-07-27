@@ -2525,15 +2525,14 @@ function getHeaderColumns() {
     {
         var input = document.getElementById('dataset_header');
         var separator = document.getElementById('ds_separator');
-        $.get('/headerExtractor',
-          data={'header_line': input.value,
-                'separator': separator.value},
+        $.post('/headerExtractor',
+          data={'header_line': input.value, 'separator': separator.value},
           function(data)
-        {
+          {
             $('#ds_subject_id').html("<option>-- Select --</option>"+data);
             $('#ds_type_list').html(data);
 
-        });
+          });
         enableButton('convertDatasetButton');
 
     }

@@ -23,13 +23,16 @@ settings = {
     St.split_sys: False,
 
     # STARDOG LOCAL HOST NAME
+    # St.stardog_host_name: TEST_SERVER,
     St.stardog_host_name: PRODUCTION_SERVER,
-    # St.stardog_host_name: PRODUCTION_SERVER,
 
     # STARDOG PATH
-    # St.stardog_path: STARDOG_PATH_PRODUCTION,
     St.stardog_path: STARDOG_PATH_PRODUCTION,
+    # St.stardog_path: STARDOG_PATH_TEST_V,
     # St.stardog_path: STARDOG_PATH_TEST_A,
+
+    # St.stardog_version: "COMPATIBLE",
+    St.stardog_version: "NOT COMPATIBLE",
 
     # MAIN DATA FOLDER
     St.data_dir: DIR,
