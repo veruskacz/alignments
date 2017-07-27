@@ -131,7 +131,7 @@ def upload():
     file = request.files['file']
     if file and allowed_file(file.filename):
 
-        dir = "{0}{1}{1}UploadedFiles".format(os.getcwd(), os.path.sep)
+        dir = "{0}{1}{1}UploadedFiles".format(UPLOAD_FOLDER)
         print "\nWe will upload: {}".format(file.filename)
         print "Directory: {}".format(dir)
         print "Path: {}".format(os.path.join(UPLOAD_FOLDER, file.filename))
