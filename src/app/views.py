@@ -35,6 +35,7 @@ if CREATION_ACTIVE:
     import Alignments.Linksets.Linkset as Ls
     import Alignments.Manage.AdminGraphs as adm
     from Alignments.Lenses.Lens_Union import union
+    from Alignments.Lenses.Lens_Difference import difference as diff
     import Alignments.UserActivities.UserRQ as Urq
     import Alignments.UserActivities.View as mod_view
     import Alignments.Linksets.SPA_Linkset as spa_linkset2
@@ -1192,23 +1193,32 @@ def importLinkset():
 
 @app.route('/createLens')
 def spa_lens():
-    rq_uri = request.args.get('rq_uri')
-    graphs = request.args.getlist('graphs[]')
-    operator = request.args.get('operator', '')
 
-    specs = {
-        St.researchQ_URI: rq_uri,
-        'datasets': graphs,
-        'lens_operation': operator
-    };
+    rq_uri = request.args.get('rq_uri')
+    operator = request.args.get('operator', '')
 
     # print "\n\n\nSPECS: ", specs
 
     if CREATION_ACTIVE:
-        if operator == "union":
+
+        if str(operator).lower()  == "union":
+            graphs = request.args.getlist('graphs[]')
+            specs = {
+                St.researchQ_URI: rq_uri,
+                St.datasets: graphs,
+                St.lens_operation: operator }
             lens_result = union(specs, activated=True)
+
+        elif str(operator).lower() == "difference":
+            specs = {
+                St.researchQ_URI: rq_uri,
+                St.subjectsTarget: request.args.get('subjects_target'),
+                St.objectsTarget: request.args.get('objects_target'),
+                St.lens_operation: operator }
+            lens_result = diff(specs, activated=True)
+
         else:
-            lens_result = {'message': 'Operation no implemented!',
+            lens_result = {'message': 'Operation not implemented!',
                            'error_code': -1,
                            St.result: None}
     else:

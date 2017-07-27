@@ -1114,7 +1114,7 @@ function createLensClick()
         {
             var obj = JSON.parse(data);
             $('#lens_creation_message_col').html(addNote(obj.message, cl='info'));
-              loadingGif(document.getElementById('lens_creation_message_col'), 2, show=false);
+            loadingGif(document.getElementById('lens_creation_message_col'), 2, show=false);
 
             $('#creation_lens_lens_selection_col').html('Loading...');
                $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,

@@ -60,11 +60,11 @@ def refine(specs, exact=False, exact_intermediate=False, activated=False):
 
         if insert_code == 1:
             print "REFINING WITH EXACT"
-            result = refining(specs, insert_query)
+            result = refining(specs, insert_query, activated=activated)
 
         elif insert_code == 2:
             print "REFINING WITH INTERMEDIATE"
-            result = refining(specs, insert_query)
+            result = refining(specs, insert_query, activated=activated)
 
         return result
 
@@ -75,7 +75,7 @@ def refine(specs, exact=False, exact_intermediate=False, activated=False):
         return {'refined': refined, 'difference': diff}
 
 
-def refining(specs, insert_query):
+def refining(specs, insert_query, activated=False):
 
     refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
     diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
@@ -195,7 +195,7 @@ def refining(specs, insert_query):
                 St.subjectsTarget: specs[St.linkset],
                 St.objectsTarget: specs[St.refined]
             }
-            diff = Df.difference(diff_lens_specs)
+            diff = Df.difference(diff_lens_specs, activated=activated)
             message_2 = "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
             print message_2
 
