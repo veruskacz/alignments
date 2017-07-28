@@ -11,7 +11,6 @@ import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.lens_Diff_dir]
 
 
-
 def difference(specs, activated=False):
 
     # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
