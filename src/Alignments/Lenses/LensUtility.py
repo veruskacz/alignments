@@ -23,6 +23,14 @@ def diff_lens_name(specs):
     update_specification(specs)
 
 
+def composition_lens_name(specs):
+    specs[St.lens_operation] = Ns.lensOpt
+    src_name = get_uri_local_name(specs[St.subjectsTarget])
+    trg_name = get_uri_local_name(specs[St.objectsTarget])
+    specs[St.lens] = "{}comp_{}_{}".format(Ns.lens, src_name, trg_name)
+    update_specification(specs)
+
+
 def lens_targets_unique(unique_list, graph):
 
     def get_targets(graph_uri):

@@ -1409,7 +1409,7 @@ def get_lens_corresp_details(lens, limit=1):
     {{
 
         <{0}>
-             void:target+|void:subjectsTarget|void:objectsTarget ?x .
+             (void:target|void:subjectsTarget|void:objectsTarget)* ?x .
         ?x
 
             void:subjectsTarget            ?subTarget ;

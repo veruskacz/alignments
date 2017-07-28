@@ -1,9 +1,11 @@
 
 import logging
+import Alignments.Lenses.LensUtility as Lu
 import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Ss
+import Alignments.UserActivities.UserRQ as Urq
 from Alignments.Utility import intersect, write_to_file, get_uri_local_name
 DIRECTORY = Ss.settings[St.lens_transitive__dir]
 
@@ -16,8 +18,11 @@ logger.addHandler(handler)
 def lens_transitive(specs, activated=False):
 
     # CHECK BOTH DATASETS FOR SAME MECHANISM
+    print "GENERATE THE LENS NAME"
+    Lu.composition_lens_name(specs)
 
-    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+    print "GET THE SAME AS COUNT"
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.lens_operation])
     # print same_as_count
 
     # GENERATE THE INSERT QUERY FOR TRANSITIVITY
@@ -28,46 +33,66 @@ def lens_transitive(specs, activated=False):
     # print insert_query
     # exit(0)
     # specs['is_transitive_by'] = transitive_analyses[0]
-    ln = specs[St.lens_name]
-    sg = specs[St.source]
-    tg = specs[St.target]
+    ln = get_uri_local_name(specs[St.lens])
+    sg = specs[St.subjectsTarget]
+    tg = specs[St.objectsTarget]
     ssg = "{}{}".format(Ns.singletons, get_uri_local_name(sg))
     tsg = "{}{}".format(Ns.singletons, get_uri_local_name(tg))
+
+    print "SOURCE: {}".format(sg)
+    print "TARGET: {}".format(tg)
+    print "1. GENERATING THE INSERT QUERY"
     specs[St.insert_query] = transitive_insert_query(ln, sg, tg, ssg, tsg)
 
     if activated is True:
 
         # RUN THE QUERY AT THE END POINT
+        print "2. RUNNING THE INSERT QUERY"
         Qry.boolean_endpoint_response(specs[St.insert_query])
 
         # GET THE SIZE OF THE LENS JUST CREATED ABOVE
+        print "3. ETTING THE SIZE OF THE LENS JUST INSERTED"
         size = Qry.get_namedgraph_size(specs[St.lens], isdistinct=False)
-
-        # GENERATE THE METADATA ABOUT THE LENS JUST CREATED
-        metadata = transitive_metadata(specs, size)
-
-        print metadata
 
         # IF ACTIVATED, INSERT THE METADATA
         if size > 0:
+
+            # GENERATE THE METADATA ABOUT THE LENS JUST CREATED
+            print "4. SOME {} TRANSITIVE TRIPLES WERE FOUND".format(size)
+            metadata = transitive_metadata(specs, size)
+            # print metadata
+
+            print "5. INSERTING THE METADATA"
             Qry.boolean_endpoint_response(metadata)
 
-        # RUN A CORRESPONDENCE CONSTRUCT QUERY FOR BACKING UP THE DATA TO DISC
-        construct_correspondence = Qry.endpointconstruct(Qry.construct_namedgraph(specs[St.lens]))
+            print "6. REGISTER THE LENS"
+            Urq.register_lens(specs, is_created=True)
 
-        if construct_correspondence is not None:
-            construct_correspondence = construct_correspondence.replace('{', "<{}>\n{{".format(specs[St.lens]), 1)
+            # RUN A CORRESPONDENCE CONSTRUCT QUERY FOR BACKING UP THE DATA TO DISC
+            print "7. GENERATE THE CONSTRUCT FOR FILE DUMP"
+            construct_correspondence = Qry.endpointconstruct(Qry.construct_namedgraph(specs[St.lens]))
 
-        # RUN A SINGLETON METADATA CONSTRUCT QUERY FOR BACKING UP THE DATA TO DISC
-        construct_singletons = Qry.endpointconstruct(Qry.construct_namedgraph(specs['singleton_graph']))
+            if construct_correspondence is not None:
+                construct_correspondence = construct_correspondence.replace('{', "<{}>\n{{".format(specs[St.lens]), 1)
 
-        if construct_singletons is not None:
-            construct_singletons = construct_singletons. \
-                replace('{', "<{}>\n{{".format(specs['singleton_graph']), 1)
+            # RUN A SINGLETON METADATA CONSTRUCT QUERY FOR BACKING UP THE DATA TO DISC
+            construct_singletons = Qry.endpointconstruct(Qry.construct_namedgraph(
+                "{}{}".format(Ns.singletons, specs[St.lens_name])))
 
-        # WRITE TO FILE
-        write_to_file(graph_name=specs['link_label'], metadata=metadata, directory=DIRECTORY,
-                      correspondences=construct_correspondence, singletons=construct_singletons)
+            if construct_singletons is not None:
+                construct_singletons = construct_singletons. \
+                    replace('{', "<{}{}>\n{{".format(Ns.singletons, specs[St.lens_name]), 1)
+
+            # WRITE TO FILE
+            print "WRITING TO FILE"
+            write_to_file(graph_name=ln, metadata=metadata, directory=DIRECTORY,
+                          correspondences=construct_correspondence, singletons=construct_singletons)
+
+            # return specs[St.lens]
+            message = "THE LENS WAS CREATED!<br/>URI = {}".format(specs[St.lens])
+            print message
+            print "\t*** JOB DONE! ***"
+            return {St.message: message, St.error_code: 0, St.result: specs[St.lens]}
 
     if activated is False:
         logger.warning("THE FUNCTION IS NOT ACTIVATED BUT THE METADATA THAT IS "
@@ -496,11 +521,11 @@ def transitive_metadata(spec, size):
     assertion_method = "{}{}".format(Ns.method, spec[St.lens_name])
     lens_justification_uri = "{}{}".format(Ns.justification, spec[St.lens_name])
     justification = "Whenever two correspondences share a common identifier"
-    link_predicate = "{}{}".format(Ns.alivocab, spec[St.mechanism])
-    link_label = spec[St.link_name]
+    link_predicate = "{}{}".format(Ns.alivocab, spec[St.lens_operation])
+    # link_label = spec[St.link_name]
     link_comment = "The linktype <{}> reflects the assumptions we described in <{}>".format(
-        "{}{}".format(Ns.alivocab, spec[St.mechanism]), "{}{}".format(Ns.justification, spec[St.lens_name]))
-    link_subpropertyof = "{}{}".format(Ns.alivocab, spec[St.mechanism])
+        "{}{}".format(Ns.alivocab, spec[St.lens_operation]), "{}{}".format(Ns.justification, spec[St.lens_name]))
+    link_subpropertyof = "{}{}".format(Ns.alivocab, spec[St.lens_operation])
     singleton_graph = "{}{}".format(Ns.singletons, spec[St.lens_name])
 
     metadata = "\n{}\n{}\n{}\n{}" \
@@ -526,11 +551,11 @@ def transitive_metadata(spec, size):
                "        a                           bdb:Lens ;",
                "        alivocab:operator           lensOp:transitivity ;",
                "        void:triples                {} ;".format(size),
-               "        alivocab:alignsMechanism    <{}{}> ;".format(Ns.mechanism, spec[St.mechanism]),
+               "        alivocab:alignsMechanism    <{}> ;".format(Ns.lensOpt),
                "        alivocab:sameAsCount        {} ;".format(spec[St.sameAsCount]),
                "        void:linkPredicate          <{}{}> ;".format(link_predicate, spec[St.sameAsCount]),
-               "        void:subjectsTarget         <{}> ;".format(spec[St.source]),
-               "        void:objectsTarget          <{}> ;".format(spec[St.target]),
+               "        void:subjectsTarget         <{}> ;".format(spec[St.subjectsTarget]),
+               "        void:objectsTarget          <{}> ;".format(spec[St.objectsTarget]),
                # "        alivocab:isTransitiveBy     <{}> ;".format(data['is_transitive_by']),
                "        alivocab:singletonGraph     <{}> ;".format(singleton_graph),
                "        bdb:linksetJustification    <{}> ;".format(lens_justification_uri),
@@ -540,7 +565,7 @@ def transitive_metadata(spec, size):
                "\n    ### METADATA ABOUT THE LINKTYPE",
                "    <{}{}>".format(link_predicate, spec[St.sameAsCount]),
                "        rdfs:comment                \"\"\"{}\"\"\" ;".format(link_comment),
-               "        rdfs:label                  \"{}\" ;".format(link_label),
+               "        rdfs:label                  \"{}\" ;".format(spec[St.sameAsCount]),
                "        rdfs:subPropertyOf          <{}> .".format(link_subpropertyof),
 
                "\n    ### METADATA ABOUT THE LINKSET JUSTIFICATION",
@@ -564,6 +589,11 @@ def transitive_insert_query(lens_name, src_graph, trg_graph, src_specific_graph,
     PREFIX specific:<{2}>
     PREFIX tmpgraph:<{3}>
     PREFIX tmpvocab:<{4}>
+
+    DROP SILENT  GRAPH tmpgraph:load01 ;
+    DROP SILENT  GRAPH tmpgraph:load02 ;
+    DROP SILENT  GRAPH lens:{9} ;
+    DROP SILENT  GRAPH specific:{9} ;
 
     INSERT
     {{
@@ -618,11 +648,7 @@ def transitive_insert_query(lens_name, src_graph, trg_graph, src_specific_graph,
 
         GRAPH specific:{9}
         {{
-            ?newSingleton
-                prov:wasDerivedFrom		?srcSingleton ;
-                prov:wasDerivedFrom 	?trgSingleton ;
-                ?srcSingPred			?srcSingObject ;
-                ?trgSingPred			?trgSingObject .
+            ?newSingleton   ?pred       ?obj .
         }}
     }}
     WHERE
@@ -635,13 +661,12 @@ def transitive_insert_query(lens_name, src_graph, trg_graph, src_specific_graph,
 
         GRAPH tmpgraph:load02
         {{
-            ?singleton
-                prov:wasDerivedFrom		?srcSingleton ;
-                prov:wasDerivedFrom 	?trgSingleton ;
-                ?srcSingPred			?srcSingObject ;
-                ?trgSingPred			?trgSingObject .
+            ?singleton ?pred ?obj .
         }}
-    }}
+    }} ;
+
+    DROP SILENT  GRAPH tmpgraph:load01 ;
+    DROP SILENT  GRAPH tmpgraph:load02
 
     """.format(
         # PREFIXES 0 - 4
