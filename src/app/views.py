@@ -36,6 +36,7 @@ if CREATION_ACTIVE:
     import Alignments.Manage.AdminGraphs as adm
     from Alignments.Lenses.Lens_Union import union
     from Alignments.Lenses.Lens_Difference import difference as diff
+    from Alignments.Lenses.Lens_transitive import lens_transitive as trans
     import Alignments.UserActivities.UserRQ as Urq
     import Alignments.UserActivities.View as mod_view
     import Alignments.Linksets.SPA_Linkset as spa_linkset2
@@ -1201,6 +1202,8 @@ def spa_lens():
 
     if CREATION_ACTIVE:
 
+        print "#####", request.args.get('subjects_target'), request.args.get('objects_target')
+
         if str(operator).lower()  == "union":
             graphs = request.args.getlist('graphs[]')
             specs = {
@@ -1216,6 +1219,14 @@ def spa_lens():
                 St.objectsTarget: request.args.get('objects_target'),
                 St.lens_operation: operator }
             lens_result = diff(specs, activated=True)
+
+        elif str(operator).lower() == "transitive":
+            specs = {
+                St.researchQ_URI: rq_uri,
+                St.subjectsTarget: request.args.get('subjects_target'),
+                St.objectsTarget: request.args.get('objects_target'),
+                St.lens_operation: operator }
+            lens_result = trans(specs, activated=True)
 
         else:
             lens_result = {'message': 'Operation not implemented!',

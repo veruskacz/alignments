@@ -720,6 +720,9 @@ def get_evidences(graph_name, singleton, predicate=None):
     else:
         pred = predicate
 
+    singleton_graph = "{}{}".format(Ns.singletons, Ut.get_uri_local_name(graph_name))
+    # singleton_graph = str(graph_name).replace('lens','singletons')
+
     query = PREFIX + """
     ### GET EVIDENCES FOR SINGLETON
     SELECT DISTINCT {0} ?obj 
@@ -729,7 +732,7 @@ def get_evidences(graph_name, singleton, predicate=None):
             <{1}>   <http://www.w3.org/ns/prov#wasDerivedFrom>*   ?x
         }}
         {{
-           GRAPH <{3}>
+           GRAPH <{4}>
            {{
                 ?x {2} ?obj .
                 MINUS 
@@ -751,7 +754,7 @@ def get_evidences(graph_name, singleton, predicate=None):
             }}
         }}
     }}
-    """.format(variable, singleton, pred, graph_name)
+    """.format(variable, singleton, pred, graph_name, singleton_graph)
     if DETAIL:
         print query
     return query
@@ -1420,13 +1423,13 @@ def get_lens_corresp_details(lens, limit=1):
         #    void:triples                   ?triples .
 
         {{
-            select (count (?sub) as ?triples )
+            select (count (?sing) as ?triples )
             where
             {{
                 GRAPH <{0}>
                 {{
                   ?sub ?sing ?obj .
-                  ?sing ?pred ?sObj .
+                  #?sing ?pred ?sObj .
                 }}
             }}
         }}

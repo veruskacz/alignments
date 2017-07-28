@@ -180,6 +180,23 @@ function selectListItemUnique(item, grouplist_name)
   return true
 }
 
+function selectListItemUniqueDeselect(item, grouplist_name)
+{
+    // check if there are selected elements in the group list
+    var elems = selectedElemsInGroupList(grouplist_name);
+    var i;
+    var was_selected = ($(item).attr('class') != 'list-group-item');
+    for (i = 0; i < elems.length; i++) {
+     // remove the selection
+      $(elems[i]).removeClass('list-group-item-warning');
+    }
+    if (!was_selected)
+    {    $(item).addClass('list-group-item-warning'); }
+  // }
+  // set the indicated element as selected
+  return true
+}
+
 function selectListItem(item)
 {
   if ($(item).attr('class') == 'list-group-item') {

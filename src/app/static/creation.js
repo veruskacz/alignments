@@ -1017,8 +1017,11 @@ function create_lens_activate()
 {
    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
 
-
     $('#creation_linkset_correspondence_row').html('');
+    $('#lens_creation_linkset_col').hide();
+    $('#lens_creation_lens_col').hide();
+    $('#lens_creation_linkset_col_diff').hide();
+    $('#lens_creation_lens_col_diff').hide();
 
     //   $('#lens_creation_message_col').html('');
     refresh_create_lens();
@@ -1034,6 +1037,18 @@ function create_lens_activate()
      // set actions after clicking a graph in the list
      $('#creation_lens_linkset_selection_col a').on('click',function()
       { selectListItem(this); });
+
+    // Fill in source and target
+     $('#creation_lens_linkset_selection_source_col').html(data);
+     // set actions after clicking a graph in the list
+     $('#creation_lens_linkset_selection_source_col a').on('click',function()
+      { selectListItemUniqueDeselect(this, 'creation_lens_linkset_selection_source_col') });
+
+     $('#creation_lens_linkset_selection_target_col').html(data);
+     // set actions after clicking a graph in the list
+     $('#creation_lens_linkset_selection_target_col a').on('click',function()
+      { selectListItemUniqueDeselect(this, 'creation_lens_linkset_selection_target_col') });
+
    });
 
    $('#creation_lens_lens_selection_col').html('Loading...');
@@ -1046,6 +1061,18 @@ function create_lens_activate()
      // set actions after clicking a graph in the list
      $('#creation_lens_lens_selection_col a').on('click',function()
       { selectListItem(this); });
+
+    // Fill in source and target
+     $('#creation_lens_lens_selection_source_col').html(data);
+     // set actions after clicking a graph in the list
+     $('#creation_lens_lens_selection_source_col a').on('click',function()
+      { selectListItemUniqueDeselect(this, 'creation_lens_lens_selection_source_col') });
+
+     $('#creation_lens_lens_selection_target_col').html(data);
+     // set actions after clicking a graph in the list
+     $('#creation_lens_lens_selection_target_col a').on('click',function()
+      { selectListItemUniqueDeselect(this, 'creation_lens_lens_selection_target_col') });
+
    });
 }
 
@@ -1060,6 +1087,11 @@ function operatorClick(th)
   elem.setAttribute("label", operator_label);
   $('#selected_operator').html(operator_label);
 
+  $('#lens_creation_linkset_col_diff').hide();
+  $('#lens_creation_linkset_col').show();
+  $('#lens_creation_lens_col_diff').hide();
+  $('#lens_creation_lens_col').show();
+
   var description = '';
   if (operator_label == 'union')
   {
@@ -1071,37 +1103,74 @@ function operatorClick(th)
   }
   else if (operator_label == 'transitive')
   {
-      description = 'The operator TRANSITIVE ';
+      description = 'The operator TRANSITIVE requires a source and a target alignments as its arguments, then calculates correspondences between entities in the first and the latter that are linked through a common entity.';
+      $('#lens_creation_linkset_col_diff').show();
+      $('#lens_creation_linkset_col').hide();
+      $('#lens_creation_lens_col_diff').show();
+      $('#lens_creation_lens_col').hide();
   }
   else if (operator_label == 'difference')
   {
-      description = 'The operator DIFFERENCE evaluates alignments as its arguments, then calculates correspondences that exists in the left-hand side but not in the right-hand side.';
+      description = 'The operator DIFFERENCE requires a source and a target alignments as its arguments, then calculates correspondences that exists in the first but not in the latter.';
+      $('#lens_creation_linkset_col_diff').show();
+      $('#lens_creation_linkset_col').hide();
+      $('#lens_creation_lens_col_diff').show();
+      $('#lens_creation_lens_col').hide();
   }
   $('#selected_operator_desc').html(description);
+
 }
 
 
 function createLensClick()
 {
     var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+    var operator = $('#selected_operator').attr('label');
+    var graphs = [];
+    var source = '';
+    var target = '';
 
-    var elems = selectedElemsInGroupList('creation_lens_linkset_selection_col');
-    var i;
-    var graphs = []
-    for (i = 0; i < elems.length; i++) {
-      graphs.push($(elems[i]).attr('uri'));
+    if ((operator == 'difference') || (operator == 'transitive'))
+    {
+        var elems_linkset = selectedElemsInGroupList('creation_lens_linkset_selection_source_col');
+        var elems_lens = selectedElemsInGroupList('creation_lens_lens_selection_source_col');
+        if ((elems_linkset.length > 0) && (elems_lens.length == 0))
+        {  source = $(elems_linkset[0]).attr('uri');
+        }
+        else if ((elems_linkset.length == 0) && (elems_lens.length > 0))
+        {  source = $(elems_lens[0]).attr('uri');
+        }
+        var elems_linkset = selectedElemsInGroupList('creation_lens_linkset_selection_target_col');
+        var elems_lens = selectedElemsInGroupList('creation_lens_lens_selection_target_col');
+        if ((elems_linkset.length > 0) && (elems_lens.length == 0))
+        {  target = $(elems_linkset[0]).attr('uri');
+        }
+        else if ((elems_linkset.length == 0) && (elems_lens.length > 0))
+        {  target = $(elems_lens[0]).attr('uri');
+        }
     }
-    elems = selectedElemsInGroupList('creation_lens_lens_selection_col');
-    var i;
-    for (i = 0; i < elems.length; i++) {
-      graphs.push($(elems[i]).attr('uri'));
+    else
+    {
+        var elems = selectedElemsInGroupList('creation_lens_linkset_selection_col');
+        var i;
+        for (i = 0; i < elems.length; i++) {
+          graphs.push($(elems[i]).attr('uri'));
+        }
+        elems = selectedElemsInGroupList('creation_lens_lens_selection_col');
+        var i;
+        for (i = 0; i < elems.length; i++) {
+          graphs.push($(elems[i]).attr('uri'));
+        }
     }
 
-    if ((graphs.length > 0) &&
-        ($('#selected_operator').attr('label')))
+    if ( ( ( !((operator == 'difference') || (operator == 'transitive')) && (graphs.length > 0) ) ||
+           ( ((operator == 'difference') || (operator == 'transitive')) && (source != '') && (target != '')) ) &&
+         ($('#selected_operator').attr('label')))
     {
         var specs = {'rq_uri': rq_uri,
                     'graphs[]': graphs,
+                    'subjects_target': source,
+                    'objects_target': target,
                     'operator': $('#selected_operator').attr('label')};
 
         var message = "EXECUTING YOUR LENS SPECS.<br/>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";

@@ -3,7 +3,7 @@
 
       <div class="panel panel-primary">
 
-        <div class="panel-heading" style='scroll: both; overflow: auto;'>
+        <div class="panel-heading" style='scroll: both; overflow: auto; ; width=100%'>
             <h3><strong>Correspondences</strong></h3>
           <span class="badge alert-primary"> {{ graph_label }} </span> contains
           <span id='triples_span' class="badge alert-success">{{ graph_triples }}</span> triples
@@ -16,20 +16,23 @@
             {%endif%}
         </div>
 
-        <div class="panel-body" style='scroll: both; overflow: auto; height: 64em;'>
+        <div class="panel-body" style='scroll: both; overflow: auto; height: 64em; width=100%'>
           <div class="list-group" id="corresp_list_group" uri="{{graph_uri}}"
                target="" style='scroll: both; overflow: auto;'>
+            {% set i = 1 %}
             {% for c in correspondences|sort(attribute='sub') %}
             <a href="javascript:void();" class="list-group-item" uri='{{c.pred.value}}'
                   id = 'LGI{{c.pred.value}}'
                   sub_uri='{{c.sub.value }}'
                   obj_uri='{{c.obj.value }}'>
-                <span class="list-group-item-heading">{{ c.sub.value }}<br/>
+                <span class="list-group-item-heading" style="padding-left:26px;">{{ c.sub.value }}<br/>
+                    <span class="badge alert-primary">{{i}}</span>
                     <small><span class="badge alert-primary">linked to</span></small><br/>
                 </span>
-                <span class="list-group-item-heading">{{ c.obj.value }}<br/>
+                <span class="list-group-item-heading" style="padding-left:26px;">{{ c.obj.value }}<br/>
                 </span>
             </a>
+            {% set i = i + 1 %}
             {% endfor %}
           </div>
         </div>
