@@ -74,6 +74,9 @@ datasets = "datasets"
 predicates = "predicates"
 
 alignments = "alignments"
+
+# the alignment used to reduce another graph (dataset)
+reducer = "reducer"
 elements = "elements"
 
 research_Q = "research_Q"

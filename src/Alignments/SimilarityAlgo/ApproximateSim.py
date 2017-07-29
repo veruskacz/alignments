@@ -414,7 +414,14 @@ def prefixed_inverted_index(specs, theta):
     #################################################################
 
     # HELPER FOR EXTRACTING SPA VALUES FROM A GRAPH
-    def get_table(dataset_specs):
+    def get_table(dataset_specs, reducer=None):
+        # ADD THE REDUCER IF SET
+        if reducer is None:
+            reducer_comment = "#"
+            reducer = ""
+        else:
+            reducer_comment = ""
+            reducer = reducer
         aligns = dataset_specs[St.aligns] if Ut.is_nt_format(dataset_specs[St.aligns]) \
             else "<{}>".format(dataset_specs[St.aligns])
         query = """
@@ -426,8 +433,19 @@ def prefixed_inverted_index(specs, theta):
                     a       <{1}> ;
                     {2}    ?object .
             }}
-        }} {3}
-        """.format(dataset_specs[St.graph], dataset_specs[St.entity_datatype], aligns, LIMIT)
+            {4}FILTER NOT EXISTS
+            {4}{{
+            {4}    GRAPH <{3}>
+            {4}    {{
+            {4}        {{ ?subject   ?pred   ?obj . }}
+            {4}        UNION
+            {4}        {{ ?obj   ?pred   ?subject. }}
+            {4}    }}
+            {4}}}
+        }} {5}
+        """.format(
+            dataset_specs[St.graph], dataset_specs[St.entity_datatype], aligns,
+            reducer, reducer_comment, LIMIT)
         table_matrix = Qry.sparql_xml_to_matrix(query)
         # Qry.display_matrix(table_matrix, is_activated=True)
         # print table_matrix
@@ -607,8 +625,8 @@ def prefixed_inverted_index(specs, theta):
     #################################################################
 
     writer = Buffer.StringIO()
-    src_dataset = get_table(source)
-    trg_dataset = get_table(target)
+    src_dataset = get_table(source) if St.reducer not in source else get_table(source, reducer=source[St.reducer])
+    trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=source[St.reducer])
     Ut.update_specification(specs)
 
     t_load = time()

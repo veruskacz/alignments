@@ -873,6 +873,7 @@ def graphsperrqtype():
     """
     # GET QUERY
     rq_uri = request.args.get('rq_uri', '')
+    function = request.args.get('function', '')
     type = request.args.get('type', 'dataset')
     mode = request.args.get('mode', 'inspect')
     btn_name = request.args.get('btn_name', type)
@@ -886,7 +887,7 @@ def graphsperrqtype():
     if PRINT_RESULTS:
         print "\n\nGRAPHS:", graphs
     # SEND BAK RESULTS
-    return render_template(template, list = graphs, btn_name = btn_name, function = '')
+    return render_template(template, list = graphs, btn_name = btn_name, function = function)
 
 
 @app.route('/getdatasetsperrq')
@@ -1039,19 +1040,24 @@ def spa_linkset():
             'graph': request.args.get('src_graph', ''),
             St.link_old: request.args.get('src_aligns', ''),
             'aligns': request.args.get('src_aligns', ''),
-            'entity_datatype': request.args.get('src_entity_datatye', '')
+            'entity_datatype': request.args.get('src_entity_datatype', '')
         },
 
         'target': {
             'graph': request.args.get('trg_graph', ''),
             'aligns': request.args.get('trg_aligns', ''),
-            'entity_datatype': request.args.get('trg_entity_datatye', '')
+            'entity_datatype': request.args.get('trg_entity_datatype', '')
         },
 
         'mechanism': request.args.get('mechanism', ''),
 
         St.intermediate_graph: request.args.get('intermediate_graph', '')
     }
+    if len(request.args.get('src_reducer', '')) > 0:
+        specs[St.source][St.reducer] = request.args.get('src_reducer', '')
+    if len(request.args.get('trg_reducer', '')) > 0:
+        specs[St.target][St.reducer] = request.args.get('trg_reducer', '')
+
     check_type = "linkset"
     id = False
     try:
