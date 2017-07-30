@@ -1827,6 +1827,22 @@ function rqClick(th, mode)
   }
 }
 
+function intRedGraphClick(th)
+{
+    list = findAncestor(th,'graph-list');
+
+    // get the graph uri and label from the clicked dataset
+    var graph_uri = $(th).attr('uri');
+    var graph_label = $(th).attr('label');
+
+    // Attribute the uri of the selected graph to the div
+    // where the name/label is displayed
+    var targetTxt = $(list).attr('targetTxt');
+    setAttr(targetTxt,'uri',graph_uri);
+    $('#'+targetTxt).html(graph_label.toUpperCase());
+    setAttr(targetTxt,'style','background-color:lightblue; scroll: both; overflow: auto');
+    //display: inline-block;');
+}
 
 // Function fired onclick of a dataset from list. It fires the requests
 // /getentitytyperq and /getpredicates the resulting list_dropdown are
@@ -1849,7 +1865,7 @@ function datasetClick(th)
     var targetTxt = $(list).attr('targetTxt');
     setAttr(targetTxt,'uri',graph_uri);
     $('#'+targetTxt).html(graph_label.toUpperCase());
-    setAttr(targetTxt,'style','background-color:lightblue');
+    setAttr(targetTxt,'style','background-color:lightblue;');
 
     var button = $(list).attr('targetBtn');
     if (button)
@@ -2107,8 +2123,8 @@ function methodClick(th)
       $('#src_list_pred_row').hide();
       $('#trg_selected_pred_row').hide();
       $('#trg_list_pred_row').hide();
-      description = `The method IDENTITY aligns the identifier of the source with the identifier of the target.
-                     This imples that both datasets use the same Unified Resource Identifier (URI).`;
+      description = `The method <b>IDENTITY</b> aligns the <b>identifier of the source</b> with the <b>identifier of the target</b>.
+                     This implies that both datasets use the same Unified Resource Identifier (URI).`;
     }
     else if (method == 'embededAlignment')
     {
@@ -2117,8 +2133,8 @@ function methodClick(th)
       $('#src_list_pred_row').show();
       $('#trg_selected_pred_row').hide();
       $('#trg_list_pred_row').hide();
-      description = `The method EMBEDED ALIGNMENT EXTRATION extracts an alignment already provided within the source dataset.
-                     The extraction relies on the value of the linking property, i.e. property of the source that holds the identifier of the target. However, the real mechanism used to create the alignment (at the source) is unknown.`;
+      description = `The method <b>EMBEDED ALIGNMENT EXTRATION</b> extracts an alignment already provided within the <b>source</b> dataset.
+                     The extraction relies on the value of the linking <b>property</b>, i.e. <b>property of the source</b> that holds the <b>identifier of the target</b>. However, the real mechanism used to create the alignment is not explicitly provided by the source.`;
     }
     else if (method == 'loadLinkset')
     {
@@ -2128,7 +2144,7 @@ function methodClick(th)
       $('#trg_selected_pred_row').hide();
       $('#trg_list_pred_row').hide();
       $('#dropbox_linkset_row').show();
-      description = `The method `+ '"' +`LOADS EXISTING LINKSET`+ '"' +` load the alignment provided within an RDF
+      description = `The method `+ '"' +`<b>LOADS EXISTING LINKSET</b>`+ '"' +` load the alignment provided within an RDF
                     file and convert it according to the Lenticular Lens model. Source and target datasets,
                     as well as Entity Type are mandatory. Other metadata can be filled in for documentation purpose.`;
 
@@ -2142,11 +2158,13 @@ function methodClick(th)
         $('#trg_list_pred_row').show();
         if (method == 'exactStrSim')
         {
-          description = 'The method EXACT STRING SIMILARITY is used to align the source and the target by matching the (string) values of the selected properties.';
+          description = 'The method <b>EXACT STRING-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by matching the (string) values of the selected <b>properties<b>.';
         }
         else if (method == 'approxStrSim')
         {
-          description = 'The method APPROXIMATE STRING SIMILARITY is used to align the source and the target by approximating the match of the (string) values of the selected properties according to a threshold.';
+          description = 'The method <b>APPROXIMATE STRING-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (string) values of the selected <b>properties</b> according to a threshold. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, i.e. the resources already aligned will not be included in the new alignment. It allows for more efficient use of approximate similarity.';
+          $('#selected_int_red_graph').html("Select an alingment as reducer");
+          setAttr( 'selected_int_red_graph','style','background-color:none;');
           $('#int_red_graph_row').show();
           $('#button_int_red_graph').html('Loading...');
           rq_elem = document.getElementById('creation_idea_selected_RQ');
@@ -2158,7 +2176,7 @@ function methodClick(th)
                             'template': 'list_dropdown.html',
                             'btn_name': 'Alignment',
                             'type': 'linkset&lens',
-                            'function': 'datasetClick(this);'},
+                            'function': 'intRedGraphClick(this);'},
                       function(data)
               {
                     $('#button_int_red_graph').html(data);
@@ -2167,11 +2185,11 @@ function methodClick(th)
         }
         else if (method == 'geoSim')
         {
-          description = 'The method GEO SIMILARITY is used to align the source and the target by detecting whether the values of the selected properties of source and target appear within the same geographical boundary.';
+          description = 'The method <b>GEO SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by detecting whether the values of the selected <b>properties</b> of source and target appear within the same geographical boundary.';
         }
         else if (method == 'intermediate')
         {
-          description = 'The method MATCH VIA INTERMEDIATE DATASET is used to align the source and the target by using properties that present different descriptions of a same entity, such as country name and country code. This is possible by providing an intermediate dataset that binds the two alternative descriptions to the very same identifier.';
+          description = 'The method <b>MATCH VIA INTERMEDIATE DATASET</b> is used to align the <b>source</b> and the <b>target</b> by using <b>properties</b> that present different descriptions of a same entity, such as country name and country code. This is possible by providing an <b>intermediate dataset</b> that binds the two alternative descriptions to the very same identifier.';
           $('#int_red_graph_row').show();
           $('#button_int_red_graph').html('Loading...');
           $.get('/getdatasets',

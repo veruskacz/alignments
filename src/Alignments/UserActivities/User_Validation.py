@@ -15,6 +15,7 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
     validation_type = "{}Accept".format(Ns.prov) if accepted else "{}Reject".format(Ns.alivocab)
 
     query = """
+    PREFIX prov:<{8}>
     INSERT
     {{
     	GRAPH ?g
@@ -35,19 +36,42 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
     }}
     WHERE
     {{
-        GRAPH ?g
         {{
-            <{0}> ?p ?o
-            FILTER NOT EXISTS
+            GRAPH ?g
             {{
-                <{2}> ?PRE ?OBJ .
+                # THE CURRENT TRIPLE FOR WHICH THE VALIDATION IS BEING CREATED
+                {{ <{0}> ?p ?o . }}
+                UNION
+                # OTHER SINGLETON GRAPHS THAT DERIVED THERE TRIPLE FROM THE CURRENT SINGLETON
+                {{ ?singleton prov:wasDerivedFrom <{0}> . }}
+                FILTER NOT EXISTS
+                {{
+                    <{2}> ?PRE ?OBJ .
+                }}
             }}
         }}
+        UNION
+        {{
+            # OTHER SINGLETON GRAPHS FROM WHICH THE CURRENT SINGLETON WAS DERIVE FROM
+            GRAPH ?gPrime
+            {{
+                <{0}> prov:wasDerivedFrom ?earlierSing .
+            }}
+            GRAPH ?g
+            {{
+                ?earlierSing ?p ?o .
+                FILTER NOT EXISTS
+                {{
+                    <{2}> ?PRE ?OBJ .
+                }}
+            }}
+        }}
+
     }}""".format(
         # 0            1          2               3                4
         singleton_uri, predicate, validation_uri, validation_type, "{}created".format(Ns.alivocab),
-        # 5           6
-        research_uri, Ns.rdfs, message
+        # 5           6        7        8
+        research_uri, Ns.rdfs, message, Ns.prov
     )
     response = None
     response = boolean_endpoint_response(query)

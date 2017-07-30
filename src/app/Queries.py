@@ -628,8 +628,7 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term=''):
             'filter_term_match': filter_term_match}
 
 
-
-def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=80):
+def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=100):
 
     filters = get_filter_conditions(rq_uri, graph_uri, filter_uri, filter_term)
     # print 'FILTERS:', filters
@@ -1092,6 +1091,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     (GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
     (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
     (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
+    (GROUP_CONCAT(?triple; SEPARATOR="|") as ?triples)
     ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
     ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
     WHERE {{
@@ -1105,7 +1105,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
             void:objectsTarget          ?objTarget ;
             bdb:objectsDatatype         ?o_datatype ;
             alivocab:alignsObjects      ?o_prop ;
-            void:triples                ?triples .
+            void:triples                ?triple .
         {{
             SELECT ?sub_uri ?obj_uri
             (GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
@@ -1132,7 +1132,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
         }}
     }}
     GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype
-    ?triples ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
+    ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
     LIMIT {1}""".format(linkset, limit)
 
     source = ""

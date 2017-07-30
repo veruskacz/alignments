@@ -2585,20 +2585,29 @@ def q_copy_graph(insert_linkset, insert_singleton_graph, where_linkset):
         # exit(0)
         insert_singleton_query = """
     ###### MOVE THE SINGLETON METADATA GRAPH TO A NEW UNION SINGLETON GRAPH
+    PREFIX ll:<{2}>
     INSERT
     {{
-        GRAPH <{}>
+        GRAPH <{0}>
         {{
-            ?subject ?predicate	?object .
+            ?subject        ?predicate	                ?object .
+            ?validation     ?vPred                      ?vObj .
+            ?rQuestion      ll:created                  ?validation .
         }}
     }}
     WHERE
     {{
-        GRAPH <{}>
+        GRAPH <{1}>
         {{
             ?subject ?predicate	?object .
+            OPTIONAL
+            {{
+               ?subject		    ll:hasValidation 			?validation .
+               ?validation      ?vPred                      ?vObj .
+               ?rQuestion       ll:created                  ?validation .
+            }}
         }}
-    }}""".format(insert_singleton_graph, singleton_graph[St.result][1][0])
+    }}""".format(insert_singleton_graph, singleton_graph[St.result][1][0], Ns.alivocab)
 
         result = "{} ; \n{}".format(insert_linkset_query, insert_singleton_query)
         return result

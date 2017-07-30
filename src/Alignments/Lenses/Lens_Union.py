@@ -236,8 +236,10 @@ def union_insert_q(lens, source, label):
     PREFIX specific:<{7}>
     PREFIX tmpgraph:<{1}>
     PREFIX tmpvocab:<{5}>
-    ###### CREATING THE INTERSECTION CORRESPONDENCES
-    ###### WITH A TEMPORARY PREDICATE
+    PREFIX ll:<{3}>
+
+    ###### CREATING THE INTERSECTION CORRESPONDENCES WITH A TEMPORARY PREDICATE
+    ###### REMOVE DUPLICATES IN THE SAME DIRECTION
     INSERT
     {{
       GRAPH tmpgraph:load01
@@ -287,6 +289,8 @@ def union_insert_q(lens, source, label):
         {{
             ?singPre		prov:wasDerivedFrom 	    ?singCorr .
             ?singCorr		?singCorrPr 				?singCorrobj .
+            ?validation     ?vPred                      ?vObj .
+            ?rQuestion      ll:created                  ?validation .
         }}
     }}
     WHERE
@@ -299,7 +303,15 @@ def union_insert_q(lens, source, label):
         graph <{2}>
         {{
             ?sCorr			?singCorr 				    ?oCorr  .
+            # THE DIRECT SINGLETONS
             OPTIONAL {{ ?singCorr			?singCorrPr 			?singCorrobj .  }}
+            # THE VALIDATIONS
+            OPTIONAL
+            {{
+               ?singCorr		ll:hasValidation 			?validation .
+               ?validation      ?vPred                      ?vObj .
+               ?rQuestion       ll:created                  ?validation .
+            }}
             FILTER NOT EXISTS {{ ?x ?sCorr ?z }}
         }}
     }} ;
