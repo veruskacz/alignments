@@ -26,6 +26,16 @@ mac_weird_name = "darwin"
 #################################################################
 
 
+def from_alignment2Singleton(alignment):
+
+    if str(alignment).__contains__(Ns.linkset):
+        return str(alignment).replace(Ns.linkset, Ns.singletons)
+    elif str(alignment).__contains__(Ns.lens):
+        return str(alignment).replace(Ns.lens, Ns.singletons)
+    else:
+        return alignment
+
+
 def is_nt_format(resource):
     try:
         temp = str(to_bytes(resource)).strip()
