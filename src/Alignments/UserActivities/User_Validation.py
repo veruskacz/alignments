@@ -74,11 +74,6 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
         research_uri, Ns.rdfs, message, Ns.prov
     )
 
-
-
-
-
-
     query = """
     PREFIX prov:<{8}>
 
@@ -175,14 +170,6 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
         # 5           6        7        8
         research_uri, Ns.rdfs, message, Ns.prov
     )
-
-
-
-
-
-
-
-
 
     response = None
     response = boolean_endpoint_response(query)
