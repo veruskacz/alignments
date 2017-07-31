@@ -1195,8 +1195,8 @@ def check_graph_dependencies_rq(rq_uri, graph_uri):
     {{  
         {{
           ?uri 	a 			    ?type;
-                void:target     <{1}>.
-          
+                prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget     <{1}>.
+
           GRAPH <{0}>
           {{
                 ?s alivocab:created|prov:used ?uri.
