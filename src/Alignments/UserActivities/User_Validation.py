@@ -73,6 +73,117 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
         # 5           6        7        8
         research_uri, Ns.rdfs, message, Ns.prov
     )
+
+
+
+
+
+
+    query = """
+    PREFIX prov:<{8}>
+
+    # 1. THE CURRENT TRIPLE FOR WHICH THE VALIDATION IS BEING CREATED
+    INSERT
+    {{
+    	GRAPH ?g
+    	{{
+    	    ### 1. CREATE A VALIDATION RESOURCE WITH A TYPE AND MESSAGE
+            <{2}>  a  <{3}> ;
+                <{6}comment> \"\"\"{7}.\"\"\" .
+
+            ### 2. LINK THE RESEARCH QUESTION TO THE VALIDATION
+            <{5}>  <{4}>  <{2}> .
+
+            ### LINK THE SINGLETON TO THE VALIDATION RESOURCE
+    	    <{0}>  <{1}>  <{2}> .
+    	}}
+    }}
+    WHERE
+    {{
+        GRAPH ?g
+        {{
+            <{0}> ?p ?o .
+            FILTER NOT EXISTS
+            {{
+                <{2}> ?PRE ?OBJ .
+            }}
+        }}
+    }} ;
+
+    # 2. FORWARD PROPAGATION: SINGLETON GRAPHS THAT DERIVED THERE TRIPLE FROM THE CURRENT SINGLETON
+    INSERT
+    {{
+    	GRAPH ?g
+    	{{
+    	    ### 1. CREATE A VALIDATION RESOURCE WITH A TYPE AND MESSAGE
+            <{2}>  a  <{3}> ;
+                <{6}comment> \"\"\"{7}.\"\"\" .
+
+            ### 2. LINK THE RESEARCH QUESTION TO THE VALIDATION
+            <{5}>  <{4}>  <{2}> .
+
+            ### LINK THE SINGLETON TO THE VALIDATION RESOURCE
+    	    ?singleton  <{1}>  <{2}> .
+    	}}
+    }}
+    WHERE
+    {{
+        GRAPH ?g
+        {{
+            ?singleton prov:wasDerivedFrom <{0}> .
+            FILTER NOT EXISTS
+            {{
+                <{2}> ?PRE ?OBJ .
+            }}
+        }}
+    }} ;
+
+    # 3. BACKWARD PROPAGATION: SINGLETON GRAPHS FROM WHICH THE CURRENT SINGLETON WAS DERIVE FROM
+    INSERT
+    {{
+    	GRAPH ?g
+    	{{
+    	    ### 1. CREATE A VALIDATION RESOURCE WITH A TYPE AND MESSAGE
+            <{2}>  a  <{3}> ;
+                <{6}comment> \"\"\"{7}.\"\"\" .
+
+            ### 2. LINK THE RESEARCH QUESTION TO THE VALIDATION
+            <{5}>  <{4}>  <{2}> .
+
+            ### LINK THE SINGLETON TO THE VALIDATION RESOURCE
+    	    ?earlierSing  <{1}>  <{2}> .
+    	}}
+    }}
+    WHERE
+    {{
+        # OTHER
+        GRAPH ?gPrime
+        {{
+            <{0}> prov:wasDerivedFrom ?earlierSing .
+        }}
+        GRAPH ?g
+        {{
+            ?earlierSing ?p ?o .
+            FILTER NOT EXISTS
+            {{
+                <{2}> ?PRE ?OBJ .
+            }}
+        }}
+    }}""".format(
+        # 0            1          2               3                4
+        singleton_uri, predicate, validation_uri, validation_type, "{}created".format(Ns.alivocab),
+        # 5           6        7        8
+        research_uri, Ns.rdfs, message, Ns.prov
+    )
+
+
+
+
+
+
+
+
+
     response = None
     response = boolean_endpoint_response(query)
     print query
