@@ -125,7 +125,7 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
     {{
         GRAPH ?g
         {{
-            ?singleton prov:wasDerivedFrom <{0}> .
+            ?singleton prov:wasDerivedFrom+ <{0}> .
             FILTER NOT EXISTS
             {{
                 <{2}> ?PRE ?OBJ .
@@ -154,7 +154,7 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
         # OTHER
         GRAPH ?gPrime
         {{
-            <{0}> prov:wasDerivedFrom ?earlierSing .
+            <{0}> prov:wasDerivedFrom+ ?earlierSing .
         }}
         GRAPH ?g
         {{

@@ -978,3 +978,9 @@ def delete_rq():
     if DETAIL:
         print query
     return query
+
+def view_alignment_metadata():
+
+    query = """
+
+    """

@@ -813,7 +813,7 @@ def delete_lens_rq(rq_uri, lens_uri):
     print query
     return query
 
-drop_linkset( "http://risis.eu/linkset/orgref_20170703_grid_20171712_approxStrSim_Org_Name_N440779016", activated=True)
+
 #######################################################################################
 # ABOUT RESEARCH QUESTIONS
 #######################################################################################
