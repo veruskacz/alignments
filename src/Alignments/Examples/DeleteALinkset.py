@@ -132,10 +132,11 @@ def linkset_detail_query(linkset_uri):
         return query
 
 test = linkset_detail_query(
-    "http://risis.eu/linkset/refined_en_nl_exactStrSim_label_P916744941_intermediate_author_name")
+    # "http://risis.eu/linkset/refined_en_nl_exactStrSim_label_P916744941_intermediate_author_name")
 
 # matrix = sparql_matrix(test)["result"]
+# print test
+# display(query=test, limit=10, is_activated=True, spacing=80)
 
-print test
 
-display(query=test, limit=10, is_activated=True, spacing=80)
+drop_linkset("http://risis.eu/linkset/orgref_20170703_grid_20171712_approxStrSim_Org_Name_N440779016", activated=True)
