@@ -9,6 +9,7 @@ import cStringIO
 import xmltodict
 import subprocess
 from os import listdir
+import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.Server_Settings as Svr

@@ -1025,9 +1025,12 @@ function get_filter(rq_uri, graph_uri, filter_uri='', type='linkset')
         var list_col = 'linkset_filter_list';
     else
         var list_col = 'lens_filter_list';
+
+//    alert(list_col);
     $.get('/getfilters',data={'rq_uri': rq_uri, 'graph_uri': graph_uri},function(data)
     {
         $('#'+list_col).html(data);
+//        alert(data);
 
         var item = '<li class="list-group-item list-group-item-warning" uri="none" ' //id="no_filter_linkset" '
                             + '"><span class="list-group-item-heading"> None </span></li>';
@@ -1079,7 +1082,8 @@ function inspect_lens_activate(mode)
 
             // load the panel describing the lens
              $('#inspect_lens_lens_details_col').html('Loading...');
-             $.get('getlensspecs',data={'lens': lens_uri},function(data)
+
+             $.get('/getlensspecs',data={'lens': lens_uri},function(data)
              { $('#inspect_lens_lens_details_col').html(data);
              });
 
@@ -1102,7 +1106,12 @@ function inspect_lens_activate(mode)
                   {
                     var obj = JSON.parse(data);
                     showDetails(rq_uri, lens_uri, obj);
+
                   });
+
+//                 alert(rq_uri);
+                 get_filter(rq_uri, lens_uri, filter_uri='', type='lens');
+
             }
           }
         });
