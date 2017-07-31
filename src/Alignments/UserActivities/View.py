@@ -661,6 +661,7 @@ def retrieve_view(question_uri, view_uri):
 
 
 def activity_overview(question_uri, get_text=True):
+
     idea = ""
     ds_mapping = ""
     alignments_data = ""
@@ -693,22 +694,28 @@ def activity_overview(question_uri, get_text=True):
             ali_description = alignments_mappings_description(question_uri, alignments[i])
             for info in ali_description:
                 pro = Ut.get_uri_local_name(info[0])
+                ls = str(info[1]).replace("http://risis.eu/linkset/", "linkset:")
+
+                # LINKSETS CREATED
                 if pro == "created" or pro == "used":
                     size = get_namedgraph_size(info[1], isdistinct=False)
-                    alignments_data += "\t\t>>> {:13}: \t{} | {} correspondences found\n".format(pro, info[1], size)
+                    alignments_data += "\t\t>>> {:13}: \t{} | {} correspondences found\n".format(pro, ls, size)
+
+                # DESCRIPTION + EVOLUTION
                 elif pro != "type":
-                    alignments_data += "\t\t{:17}:\t{}\n".format(pro, info[1])
+                    # print info
+                    alignments_data += "\t\t{:17}:\t{}\n".format(pro, ls)
             alignments_data += "\n"
 
     """
     4. RESEARCH QUESTION LENSES
     """
-
     used_lenses = created_used_lens(question_uri)
     if used_lenses:
         for lens in used_lenses:
             pro = Ut.get_uri_local_name(lens[0])
-            lenses += "\t\t{:17}:\t{} | {} correspondences\n".format(pro, lens[1], lens[2])
+            les = str(lens[1]).replace("http://risis.eu/lens/", "lens:")
+            lenses += "\t\t{:17}:\t{} | {} correspondences\n".format(pro, les, lens[2])
 
     """
     RESEARCH QUESTION VIEWS
@@ -756,6 +763,7 @@ def activity_overview(question_uri, get_text=True):
     else:
         result = {"idea": idea, "dataset_mappings": ds_mapping, "alignment_mappings": alignments_data,
                   "lenses": lenses, "view_dic": views_data}
+        # print alignments_data
         return result
 
 
@@ -885,7 +893,10 @@ def created_used_lens(question_uri):
             GRAPH ?lens
             {{
                 ?subj ?sing ?pre .
-                ?sing ?sP   ?sO
+            }}
+            GRAPH ?singGraph
+            {{
+                ?sing ?sP   ?sO .
             }}
           }} GROUP BY ?lens
         }}
@@ -1027,8 +1038,8 @@ def filter_data(question_uri, filter_uri):
         GRAPH <{0}>
         {{
              <{1}>
-                void:target			                        ?target ;
-                ?selected_selectedOptional	                ?selected .
+                void:target			                            ?target ;
+                ?selected_selectedOptional  	                ?selected .
                 #alivocab:selected|alivocab:selectedOptional	?selected .
         }}
     }} ORDER BY ?target ?selected

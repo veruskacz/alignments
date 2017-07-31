@@ -660,7 +660,6 @@ def get_evidences(graph_name, singleton, predicate=None):
     return query
 
 
-
 def get_evidences_counters(singleton_uri):
     query = PREFIX + """
     Select distinct ?nGood ?nBad ?nStrength

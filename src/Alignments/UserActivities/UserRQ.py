@@ -510,27 +510,37 @@ def register_evolution(research_question_uri, alignment_uri, evolution_str):
 def linkset_evolution(research_question_uri, refined_linkset_uri):
 
     # BUILD THE SPECIFICATION
-    specs = {St.researchQ_URI: research_question_uri, St.linkset: refined_linkset_uri}
+    specs = {St.researchQ_URI: research_question_uri.strip(), St.linkset: refined_linkset_uri}
+    # print specs
 
     # DOCUMENT THE ALIGNMENT
     document = ""
     metadata = linkset_evolution_composition(alignment_mapping=specs)
+    # print "METADATA:", metadata
 
     if metadata:
-        elements1 = re.findall('\t.*:aligns(.*) <', metadata)
-        elements2 = re.findall('(<.*?>)', metadata, re.S)
+        # 1: GETTING SUBJECT - OBJECT & MECHANISM-
+        elements1 = re.findall('\t.*:aligns(.*) "<{0,1}', metadata)
+        # elements2 = re.findall('(<.*?>)', metadata, re.S)
+        elements2 = re.findall('"(<{0,1}.*?>{0,1})"', metadata, re.S)
+        # print "1: ", elements1
+        # print "2:", elements2
+        # print ""
         if len(elements1) == len(elements2) == 3:
             for i in range(3):
                 append = " | " if i < 2 else ""
-                document += "{}={}{}".format(elements1[i], elements2[i], append)
+                two = elements2[i] if Ut.is_nt_format(elements2[i]) else "<{}>".format(elements2[i])
+                document += "{}={}{}".format(elements1[i], two, append)
             document = "[{}]".format(document)
 
         # FOLLOW DOWN THE PATH
         new_link = linkset_wasderivedfrom(refined_linkset_uri)
         new_document = linkset_evolution(research_question_uri, new_link)
-
+        # print "DONE!!!!"
+        # RECURSIVE CALL
         return document + ";\n" + linkset_evolution(research_question_uri, new_link) if new_document else document
 
+    # print "NO EVOLUTION RESULT"
     return document
 
 
@@ -545,9 +555,9 @@ def linkset_evolution_composition(alignment_mapping):
     {{
         <{1}>
             a						    <http://risis.eu/class/AlignmentMapping> ;
-            alivocab:alignsSubjects	    ?alignsSubjects ;
-            alivocab:alignsObjects	    ?alignsObjects ;
-            alivocab:alignsMechanism	?alignsMechanism .
+            alivocab:alignsSubjects	    ?srcAligns ;
+            alivocab:alignsObjects	    ?trgAligns ;
+            alivocab:alignsMechanism	?mechanism .
     }}
     where
     {{
@@ -556,6 +566,9 @@ def linkset_evolution_composition(alignment_mapping):
             alivocab:alignsSubjects	    ?alignsSubjects ;
             alivocab:alignsObjects	    ?alignsObjects ;
             alivocab:alignsMechanism	?alignsMechanism .
+            bind( str( ?alignsSubjects) as  ?srcAligns )
+            bind( str( ?alignsObjects ) as  ?trgAligns )
+            bind( str( ?alignsMechanism) as ?mechanism )
     }}
     """.format(question_uri, linkset_uri)
     construct = Qry.endpointconstruct(alignment_query)
