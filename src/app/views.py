@@ -314,9 +314,22 @@ def correspondences():
     filter_uri = request.args.get('filter_uri', '')
     filter_term = request.args.get('filter_term', '')
 
-    query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
-    correspondences = sparql(query, strip=True)
-
+    # Try first to query using stardog approximate search.
+    # If this does not work, then try exact string match
+    try:
+        query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
+        correspondences = sparql(query, strip=True)
+        print ">>>> Results corr", correspondences, type(correspondences)
+        if (str(correspondences).find('com.complexible.stardog.plan.eval.ExecutionException') >= 0):
+            # print 'TEST'
+            raise Exception(correspondences)
+    except:
+        try:
+            query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=False)
+            correspondences = sparql(query, strip=True)
+        except:
+            correspondences = []
+            
     if PRINT_RESULTS:
         print "\n\nCORRESPONDENCES:", correspondences
 
@@ -344,8 +357,21 @@ def correspondences2():
     alignsMechanism = request.args.get('alignsMechanism', '')
     operator = request.args.get('operator', '')
 
-    corresp_query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
-    correspondences = sparql(corresp_query, strip=True)
+    # Try first to query using stardog approximate search.
+    # If this does not work, then try exact string match
+    try:
+        query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
+        correspondences = sparql(query, strip=True)
+        print ">>>> Results corr", correspondences, type(correspondences)
+        if (str(correspondences).find('com.complexible.stardog.plan.eval.ExecutionException') >= 0):
+            # print 'TEST'
+            raise Exception(correspondences)
+    except:
+        try:
+            query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=False)
+            correspondences = sparql(query, strip=True)
+        except:
+            correspondences = []
 
     if PRINT_RESULTS:
         print "\n\nCORRESPONDENCES:", correspondences

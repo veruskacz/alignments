@@ -557,7 +557,7 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     return query
 
 
-def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term=''):
+def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True):
     # ADD FILTER CONDITIONS
     filter_condition = ""
     filter_count = ""
@@ -602,13 +602,16 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term=''):
                void:objectsTarget  			?objectsTarget ;
                alivocab:alignsSubjects      ?alignsSubjects ;
                alivocab:alignsObjects    ?alignsObjects .
+        """.format(graph_uri)
 
+        if useStardogApprox:
+            filter_term_match += """
         {{
         ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
         GRAPH ?subjectsTarget
             {{
                 ?sub    ?alignsSubjects     ?Svalue .
-                (?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
+                (?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
             }}
         }}
         UNION
@@ -617,10 +620,28 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term=''):
         GRAPH ?objectsTarget
             {{
                 ?obj    ?alignsObjects     ?Ovalue .
-                (?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{1}\"\"\".
+                (?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
             }}
         }}
-        """.format(graph_uri, filter_term)
+        """.format(filter_term)
+        else:
+            filter_term_match += """
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
+        GRAPH ?subjectsTarget
+            {{
+                ?sub    ?alignsSubjects     \"\"\"{0}\"\"\".
+            }}
+        }}
+        UNION
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE OBJECT-DATASET
+        GRAPH ?objectsTarget
+            {{
+                ?obj    ?alignsObjects     \"\"\"{0}\"\"\".
+            }}
+        }}
+        """.format(filter_term)
 
     return {'filter_condition': filter_condition,
             'filter_count': filter_count,
@@ -628,9 +649,9 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term=''):
             'filter_term_match': filter_term_match}
 
 
-def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=100):
+def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=100, useStardogApprox=True):
 
-    filters = get_filter_conditions(rq_uri, graph_uri, filter_uri, filter_term)
+    filters = get_filter_conditions(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=useStardogApprox)
     # print 'FILTERS:', filters
 
     query = PREFIX + """
@@ -726,37 +747,32 @@ def get_evidences(graph_name, singleton, predicate=None):
     ### GET EVIDENCES FOR SINGLETON
     SELECT DISTINCT {0} ?obj 
     {{
-        GRAPH ?graph
+        GRAPH <{3}>
         {{
             <{1}>   <http://www.w3.org/ns/prov#wasDerivedFrom>*   ?x
-        }}
-        {{
-           GRAPH <{4}>
-           {{
-                ?x {2} ?obj .
-                MINUS 
-                {{
-                    ?x <http://risis.eu/alignment/predicate/hasValidation> ?obj
-                }}
-           }}
-        }}
-        UNION
-        {{
-            GRAPH <{3}>
             {{
-                ?x <http://risis.eu/alignment/predicate/hasValidation> ?obj_2 .
-                ?obj_2 rdf:type 	?type ;
-                	   rdfs:comment ?comment .
-              	BIND (concat((strafter(str(?type),"/prov#")),(strafter(str(?type),"predicate/"))) as ?strType)
-                BIND (concat( ?strType, ': ', ?comment) as ?obj)
-                BIND (<http://risis.eu/alignment/predicate/hasValidation> as ?pred)
+                    ?x {2} ?obj .
+                    MINUS
+                    {{
+                        ?x <http://risis.eu/alignment/predicate/hasValidation> ?obj
+                    }}
+            }}
+            UNION
+            {{
+                    ?x <http://risis.eu/alignment/predicate/hasValidation> ?obj_2 .
+                    ?obj_2 rdf:type 	?type ;
+                           rdfs:comment ?comment .
+                    BIND (concat((strafter(str(?type),"/prov#")),(strafter(str(?type),"predicate/"))) as ?strType)
+                    BIND (concat( ?strType, ': ', ?comment) as ?obj)
+                    BIND (<http://risis.eu/alignment/predicate/hasValidation> as ?pred)
             }}
         }}
     }}
-    """.format(variable, singleton, pred, graph_name, singleton_graph)
+    """.format(variable, singleton, pred, singleton_graph)
     if DETAIL:
         print query
     return query
+
 
 
 def get_evidences_counters(singleton_uri):
