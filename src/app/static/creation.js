@@ -356,6 +356,7 @@ function inspect_linkset_activate(mode)
                 else if (mode == 'inspect')
                 {
                    $('#creation_linkset_filter_row').show();
+                   $('#creation_linkset_search_row').show();
                    $('#creation_linkset_correspondence_row').show();
                    showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
                 }
@@ -880,19 +881,83 @@ function addFilterLinksetClick()
     if ((rq_uri != '') && (linkset != '') && (property!='--Select a Property--') &&
         ((value_1 != {}) || (value_2 != {})) )
     {
-        $.get('/setlinkesetfilter',
+        $.get('/setfilter',
                   data={'rq_uri': rq_uri,
-                        'linkset_uri': linkset,
+                        'graph_uri': linkset,
                         'property': property,
                         'value_1': JSON.stringify(value_1),
                         'value_2': JSON.stringify(value_2)},
                   function(data)
         {
-            get_filter(rq_uri, linkset);
+            var obj = JSON.parse(data);
+            get_filter(rq_uri, linkset, obj.result, type='linkset');
         });
     }
 }
 
+function addFilterLensClick()
+{
+    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+    var lens = '';
+    var property = '';
+    var value_1 = {};
+    var value_2 = {};
+    var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+    if (elems.length > 0) // it should have only one selected
+    {
+        lens = $(elems[0]).attr('uri');
+        property = $('#lens_filter_property').find("option:selected").text();
+        var operator = '';
+        if ($('#lens_filter_value1').val())
+        {
+            if ($('#lens_value1_greater').is(':checked'))
+            {
+                operator += $('#lens_value1_greater').val();
+            }
+            if ($('#lens_value1_equal').is(':checked'))
+            {
+                operator += $('#lens_value1_equal').val();
+            }
+            if (operator)
+            {
+                value_1 = {'value': $('#lens_filter_value1').val(),
+                           'operator': operator }
+            }
+        }
+        operator = '';
+        if ($('#lens_filter_value2').val())
+        {
+            if ($('#lens_value2_smaller').is(':checked'))
+            {
+                operator += $('#lens_value2_smaller').val();
+            }
+            if ($('#lens_value2_equal').is(':checked'))
+            {
+                operator += $('#lens_value2_equal').val();
+            }
+            if (operator)
+            {
+                value_2 = {'value': $('#lens_filter_value2').val(),
+                           'operator': operator }
+            }
+        }
+    }
+    if ((rq_uri != '') && (lens != '') && (property!='--Select a Property--') &&
+        ((value_1 != {}) || (value_2 != {})) )
+    {
+        $.get('/setfilter',
+                  data={'rq_uri': rq_uri,
+                        'graph_uri': lens,
+                        'property': property,
+                        'value_1': JSON.stringify(value_1),
+                        'value_2': JSON.stringify(value_2)},
+                  function(data)
+        {
+            var obj = JSON.parse(data);
+            get_filter(rq_uri, lens, obj.result, type='lens');
+        });
+    }
+}
 
 function applyFilterLinksetClick()
 {
@@ -919,26 +984,62 @@ function applyFilterLinksetClick()
        var obj = JSON.parse(data);
 
        $('#creation_linkset_filter_row').show();
+       $('#creation_linkset_search_row').show();
        $('#creation_linkset_correspondence_row').show();
        showDetails(rq_uri, linkset_uri, obj, filter_uri, filter_term);
     });
 }
 
-
-function get_filter(rq_uri, linkset)
+function applyFilterLensClick()
 {
-    $.get('/getfilters',data={'rq_uri': rq_uri, 'graph_uri': linkset},function(data)
+    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+    var lens_uri = ''
+    var elems = selectedElemsInDiv("inspect_lens_lens_selection_col");
+       if (elems.length > 0)
+       {    lens_uri = $(elems[0]).attr('uri');
+       }
+
+    var filter_uri = '';
+    elems = selectedElemsInDiv("lens_filter_col");
+    if (elems.length > 0)
+        { filter_uri = $(elems[0]).attr('uri'); }
+    var filter_term =  $('#lens_filter_text').val();
+    if (filter_term == "-- Type a term --")
+        { filter_term = ''; }
+
+    $.get('/getlensdetails',data={'lens': lens_uri,
+                                                'template': 'none'},function(data)
     {
-        $('#linkset_filter_list').html(data);
+       var obj = JSON.parse(data);
 
-        var item = '<li class="list-group-item list-group-item-warning" uri="none" id="no_filter_linkset" '
+       $('#creation_lens_filter_row').show();
+       $('#creation_lens_search_row').show();
+       $('#creation_lens_correspondence_row').show();
+       showDetails(rq_uri, lens_uri, obj, filter_uri, filter_term);
+    });
+}
+
+function get_filter(rq_uri, graph_uri, filter_uri='', type='linkset')
+{
+    if (type == 'linkset')
+        var list_col = 'linkset_filter_list';
+    else
+        var list_col = 'lens_filter_list';
+    $.get('/getfilters',data={'rq_uri': rq_uri, 'graph_uri': graph_uri},function(data)
+    {
+        $('#'+list_col).html(data);
+
+        var item = '<li class="list-group-item list-group-item-warning" uri="none" ' //id="no_filter_linkset" '
                             + '"><span class="list-group-item-heading"> None </span></li>';
-        $('#linkset_filter_list').prepend(item);
+        $('#'+list_col).prepend(item);
 
-        $('#linkset_filter_list li').on('click',function()
-        {   selectListItemUnique(this, 'linkset_filter_list')
-            //selectListItem(this);
+//        if (filter_uri != '')
+//            selectListItemUnique(this, list_col)
+
+        $('#' + list_col + ' li').on('click',function()
+        {   selectListItemUnique(this, list_col)
         });
+
 
     });
 }
@@ -991,6 +1092,7 @@ function inspect_lens_activate(mode)
             {
                 // load the panel for filter
                   $('#creation_lens_filter_row').show();
+                  $('#creation_lens_search_row').show();
 
                 // load the panel for correspondences details
                   $('#creation_lens_correspondence_row').show();
@@ -1009,6 +1111,7 @@ function inspect_lens_activate(mode)
     if (mode == 'edit') {
       $('#lens_inspect_panel_body').hide();
       $('#creation_lens_filter_row').hide();
+      $('#creation_lens_search_row').hide();
       $('#creation_lens_correspondence_row').hide();
       $('#creation_lens_row').show();
       $('#edit_lens_heading').show();
@@ -2222,6 +2325,8 @@ function refresh_create_linkset(mode='all')
     var elem = Object;
     $('#linkset_creation_message_col').html("");
     $('#linkset_import_message_col').html("");
+    $('#linkset_edit_message_col').html("");
+
     if (mode == 'all')
     {
       $('#button-src-entity-type-col').show();
@@ -2247,6 +2352,7 @@ function refresh_create_linkset(mode='all')
 
       $('#inspect_linkset_linkset_details_col').html("");
       $('#creation_linkset_filter_row').hide();
+      $('#creation_linkset_search_row').hide();
       $('#creation_linkset_correspondence_row').hide();
       $('#creation_linkset_correspondence_col').html('');
 
@@ -2348,6 +2454,7 @@ function refresh_create_lens(mode='all')
     var elem = Object;
     $('#lens_creation_message_col').html("");
     $('#lens_import_message_col').html("");
+    $('#lens_edit_message_col').html("");
     $('#lens_add_filter_message_col').html("");
     $('#lens_add_filter_message_col').html("");
     $('#selected_operator').html("Select a Operator");
@@ -2531,7 +2638,6 @@ function convertDatasetClick()
             var subject_id = null;
         }
 
-//        alert("Subject ID: " + subject_id + " | Types" + rdftype);
         loadingGif(document.getElementById('dataset_convertion_message_col'), 2);
 
         $('#dataset_convertion_message_col').html(addNote("Your file is being converted!",cl='warning'));

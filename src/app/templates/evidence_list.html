@@ -27,15 +27,21 @@
 <div class="panel panel-default">
   <div class="panel-heading">
      <div class="row">
-         <div class="col-md-4"><h4><strong>Validation</strong></h4></div>
-          <!--<small>(When rejecting, select in 'Details' the pair of properties that justify the rejection)</small></h4></div>-->
-      <h5><div class="col-md-5 text-right" style="color:red" id="evidence_message_col"> </div></h5>
-      <div class="col-md-3 text-right">
-          <button type="button" id="ValidationSave_btn"
-                class="btn btn-primary"
-                onclick="validationSaveOnClick(this);"
-                >Save Validation</button>
-      </div>
+        <div class="col-md-4"><h4><strong>Validation</strong></h4></div>
+        <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="evidence_message_col"> </div></td>
+                   <td valign="center"><div class="loading"></div></td>
+                   <td align="right">
+                     <button type="button" id="ValidationSave_btn"
+                        class="btn btn-primary"
+                        onclick="validationSaveOnClick(this);">Save Validation
+                        <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
+                     </button>
+                   </td>
+           </table>
+        </div>
      </div>
   </div>
 

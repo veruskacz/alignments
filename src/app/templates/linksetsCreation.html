@@ -693,11 +693,11 @@
                     </table>
                 </div>
               </div>
-              <div class="row">
-                <div class="col-md-6">
-                    <input type="text" class="form-control" id="linkset_filter_text" value="-- Type a term for search & filter --">
-                </div>
-              </div>
+              <!--<div class="row">-->
+                <!--<div class="col-md-6">-->
+                    <!--<input type="text" class="form-control" id="linkset_filter_text" value="&#45;&#45; Type a term for search & filter &#45;&#45;">-->
+                <!--</div>-->
+              <!--</div>-->
             </div>
             <div class="col-md-6" id="linkset_filter_col">
                 <div class="list-group" id="linkset_filter_list" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
@@ -707,6 +707,43 @@
             </div>
           </div>
         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+     <div class="row creation" id="creation_linkset_search_row" style='display:none'>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+        <div class="panel-heading" id="linkset_search_heading_panel">
+         <div class="row">
+          <div class="col-md-5">
+              <h4 class="panel-title">
+                  <span class="badge alert-info"><strong>-</strong></span>
+                  Search Linkset Correspondences
+              </h4>
+          </div>
+          <!--<h5><div class="col-md-4 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>-->
+          <div class="col-md-7 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="linkset_add_search_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right">
+                           <input type="text" class="form-control" id="linkset_filter_text" value="-- Type a term for search & filter --">
+                       </td>
+                       <td align="right"> &nbsp; </td>
+                       <td align="right">
+                          <button type="button" id="btn_apply_search_linkset"
+                                class="btn btn-primary"
+                                onclick='applyFilterLinksetClick()'
+                                >Search
+                          <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                          </button>
+                        </td>
+               </table>
+              </div>
+         </div>
         </div>
        </div>
       </div>

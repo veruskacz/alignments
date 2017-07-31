@@ -319,9 +319,9 @@ def correspondences():
     try:
         query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
         correspondences = sparql(query, strip=True)
-        print ">>>> Results corr", correspondences, type(correspondences)
+        # print ">>>> Results corr", correspondences, type(correspondences)
         if (str(correspondences).find('com.complexible.stardog.plan.eval.ExecutionException') >= 0):
-            # print 'TEST'
+            print ">>>>", correspondences
             raise Exception(correspondences)
     except:
         try:
@@ -329,7 +329,7 @@ def correspondences():
             correspondences = sparql(query, strip=True)
         except:
             correspondences = []
-            
+
     if PRINT_RESULTS:
         print "\n\nCORRESPONDENCES:", correspondences
 
@@ -404,8 +404,27 @@ def setlinkesetfilter():
                         value_2 if value_2 != {} else None)
 
     # print result
-    return ''
+    return json.dumps(result)
 
+@app.route('/setfilter', methods=['GET'])
+def setFilter():
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    property = request.args.get('property', '')
+    json_item = request.args.get('value_1', '')
+    value_1 = ast.literal_eval(json_item)
+    json_item = request.args.get('value_2', '')
+    value_2 = ast.literal_eval(json_item)
+
+    # print ">>>>>>>", rq_uri, graph_uri, property.lower(), value_1, value_2
+    if property:
+        result = UVld.register_correspondence_filter(
+                        rq_uri, graph_uri, property.lower(),
+                        value_1 if value_1 != {} else None,
+                        value_2 if value_2 != {} else None)
+
+    # print result
+    return json.dumps(result)
 
 @app.route('/getlinkesetfilter', methods=['GET'])
 def getlinkesetfilter():

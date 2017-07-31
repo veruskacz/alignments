@@ -192,10 +192,12 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
     return response
 
 
-def register_correspondence_filter(research_uri, linkset_uri, method, greater_eq=None, smaller_eq=None):
+def register_correspondence_filter(research_uri, graph_uri, method, greater_eq=None, smaller_eq=None):
+
+    # print research_uri, graph_uri, method, greater_eq, smaller_eq
 
     c_filter = ""
-    query = ""
+    filter_uri = ''
 
     if method == "threshold":
         if greater_eq is not None:
@@ -225,10 +227,11 @@ def register_correspondence_filter(research_uri, linkset_uri, method, greater_eq
         c_filter += "HAVING ({})".format(condition) if condition != "" else ""
 
     if c_filter != "":
-        hash_code = hash(research_uri + linkset_uri + c_filter)
+        hash_code = hash(research_uri + graph_uri + c_filter)
         hash_code = str(hash_code).replace("-", "N") if str(hash_code).__contains__("-") else "P{}".format(hash_code)
         filter_uri = "{}c_filter_{}".format(Ns.risis, hash_code)
 
+    if filter_uri != '':
         query = """
     INSERT
     {{
@@ -259,18 +262,48 @@ def register_correspondence_filter(research_uri, linkset_uri, method, greater_eq
     }}
     """.format(
             # 0           1            2           3           4            5        6         7
-            research_uri, Ns.alivocab, filter_uri, Ns.riclass, linkset_uri, Ns.rdfs, c_filter, method)
+            research_uri, Ns.alivocab, filter_uri, Ns.riclass, graph_uri, Ns.rdfs, c_filter, method)
+        print query
 
-    print query
+        # REGISTER IT
+        response = boolean_endpoint_response(query)
 
-    # REGISTER IT
-    response = boolean_endpoint_response(query)
+    print 'Filter insertion ', response, filter_uri
 
-    print response
-    # return query
+    if response:
+        return {'result': filter_uri}
+    else:
+        return {'result': None}
 
+# replaced by get_graph_filter
+# def get_linkset_filter(research_uri, graph_uri, filter_uri=''):
+#
+#     if filter_uri == '':
+#         filter_uri = '?filter'
+#     else:
+#         filter_uri = '<'+filter_uri+'>'
+#
+#     query = """
+#     SELECT ?comment ?method
+#     {{
+#         GRAPH <{0}>
+#         {{
+#             {4}
+#                 a <{1}Filter> ;
+#                 <{2}appliesTo>  <{3}> ;
+#                 rdfs:comment ?comment ;
+#                 <{2}method>  ?method .
+#         }}
+#     }}
+#     """.format(research_uri, Ns.riclass, Ns.alivocab, graph_uri, filter_uri)
+#
+#     print query
+#
+#     result = sparql_xml_to_matrix(query)
+#
+#     return result
 
-def get_linkset_filter(research_uri, linkset_uri, filter_uri=''):
+def get_graph_filter(research_uri, graph_uri, filter_uri=''):
 
     if filter_uri == '':
         filter_uri = '?filter'
@@ -289,7 +322,7 @@ def get_linkset_filter(research_uri, linkset_uri, filter_uri=''):
                 <{2}method>  ?method .
         }}
     }}
-    """.format(research_uri, Ns.riclass, Ns.alivocab, linkset_uri, filter_uri)
+    """.format(research_uri, Ns.riclass, Ns.alivocab, graph_uri, filter_uri)
 
     print query
 
