@@ -282,7 +282,7 @@ def correspondencesHeader():
     rq_uri = request.args.get('rq_uri', '')
     graph_uri = request.args.get('graph_uri', '')
     filter_uri = request.args.get('filter_uri', '')
-    filter_term = request.args.get('filter_term', '')
+    filter_term = request.args.get('filter_term', '').replace('\"','').replace('\'','')
 
     query = Qry.get_correspondHeader(rq_uri, graph_uri, filter_uri, filter_term)
     data = sparql(query, strip=True)

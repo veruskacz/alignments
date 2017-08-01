@@ -4,3 +4,7 @@ lib/*
 *.pyc
 include/*
 pip-self*
+.idea/*
+*.trig
+*.sparql
+*.sh

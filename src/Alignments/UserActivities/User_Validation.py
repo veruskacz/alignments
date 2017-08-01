@@ -181,7 +181,7 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
 
 def register_correspondence_filter(research_uri, graph_uri, method, greater_eq=None, smaller_eq=None):
 
-    # print research_uri, graph_uri, method, greater_eq, smaller_eq
+    print research_uri, graph_uri, method, greater_eq, smaller_eq
 
     c_filter = ""
     filter_uri = ''
@@ -255,12 +255,12 @@ def register_correspondence_filter(research_uri, graph_uri, method, greater_eq=N
         # REGISTER IT
         response = boolean_endpoint_response(query)
 
-    print 'Filter insertion ', response, filter_uri
+        print 'Filter insertion ', response
 
-    if response:
-        return {'result': filter_uri}
-    else:
-        return {'result': None}
+        if response:
+            return {'result': filter_uri}
+
+    return {'result': None}
 
 # replaced by get_graph_filter
 # def get_linkset_filter(research_uri, graph_uri, filter_uri=''):
