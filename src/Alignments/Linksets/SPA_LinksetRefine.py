@@ -157,7 +157,7 @@ def refining(specs, insert_query, activated=False):
     print ">>> RUN SUCCESSFULLY:", is_run
 
     # NO INSERTION HAPPENED
-    if is_run == "true":
+    if is_run == "true" or is_run == Ec.ERROR_STARDOG_1:
 
         # GENERATE THE
         #   (1) LINKSET METADATA
