@@ -6,6 +6,7 @@ import Alignments.NameSpace as Ns
 def export_flat_alignment(alignment):
 
     alignment = str(alignment).strip()
+    row_alignment = alignment
     alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
     # CONSTRUCT QUERY
     query = """
@@ -26,7 +27,8 @@ def export_flat_alignment(alignment):
     triples = len(re.findall('ll:mySameAs', alignment_construct))
     alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
     result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
-    message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(alignment, triples)
+    message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
+        row_alignment, triples)
     return {'result': result, 'message':message}
 
 # text = export_flat_alignment("http://risis.eu/linkset/orgreg_2017_grid_20171712_approxStrSim_Organisation_Char_legal_name_P147291413")
