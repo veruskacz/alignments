@@ -1024,8 +1024,9 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
         message = """
         ####################################################################################
         TABLE OF {} Row(S) AND {} Columns {}
+        LIMIT IS SET TO {} BUT COULD BE CHANGED WITH THE LIMIT PARAMETER.
         ####################################################################################
-         """.format(len(res_matrix) - 1, len(res_matrix[0]), info)
+         """.format(len(res_matrix) - 1, len(res_matrix[0]), info, limit)
 
         print message
 

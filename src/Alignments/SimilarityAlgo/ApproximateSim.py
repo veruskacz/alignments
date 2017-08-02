@@ -314,9 +314,18 @@ def edit_distance(token_x, token_y):
 # edit_distance("vu university medical center", "leiden university medical center")
 # edit_distance("vu center", "leiden center")
 # edit_distance("landspitali, iceland", "australian national")
-
+# stop_symbols_string = "\.\-\,\+'\?"
+# test = "Al.in,the-market+veruska-albert'elle?linda"
+# pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
+# print "pattern;", pattern
+# temp = re.sub(pattern, " ", test)
+# print "temp2", temp
 
 def prefixed_inverted_index(specs, theta):
+
+    stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES"
+    # stop_words_string = None
+    stop_symbols_string = "\.\-\,\+'\?"
 
     debug = False
     start = time()
@@ -334,6 +343,15 @@ def prefixed_inverted_index(specs, theta):
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
     specs[St.insert_query] = "The generated triple file was uploaded to the server."
     specs[St.threshold] = theta
+
+    # STOP WORD DICTIONARY
+    stop_word = dict()
+    stop_words_string = stop_words_string.lower()
+    if stop_words_string is not None and len(stop_words_string) > 0:
+        stw_split = str(stop_words_string).split(' ')
+        for stop in stw_split:
+            if stop not in stop_word:
+                stop_word[stop] = stop
 
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
     check = Ls.run_checks(specs, check_type="linkset")
@@ -504,7 +522,12 @@ def prefixed_inverted_index(specs, theta):
                 # print "matrix[row]:", matrix[row]
 
                 # REMOVE DATA IN BRACKETS
-                in_tokens = remove_info_in_bracket(to_unicode(matrix[r][1])).lower()
+                # in_tokens = remove_info_in_bracket(to_unicode(matrix[r][1])).lower()
+
+                # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+                in_tokens = process_input((matrix[r][1]))
+
+                # TOKENIZE
                 in_tokens = in_tokens.split(" ")
 
                 # COMPUTE FREQUENCY
@@ -524,12 +547,14 @@ def prefixed_inverted_index(specs, theta):
         for in_row in range(1, len(matrix)):
 
             # GET THE VALUE
-            value = to_bytes(matrix[in_row][1]).lower()
+            value = str(matrix[in_row][1])
 
             # REMOVE DATA IN BRACKETS
-            value = remove_info_in_bracket(value)
-
             # REMOVE (....) FROM THE VALUE
+            # value = remove_info_in_bracket(value)
+
+            # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+            value = process_input(value)
 
             # GET THE TOKENS
             in_tokens = value.split(" ")
@@ -538,6 +563,7 @@ def prefixed_inverted_index(specs, theta):
             included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
 
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
+            # print "1", in_tokens
             for n in range(len(in_tokens)):
                 # print value + " | +" + tokens[i]
                 in_tokens[n] = [in_tokens[n], tf[in_tokens[n]]]
@@ -545,6 +571,7 @@ def prefixed_inverted_index(specs, theta):
             # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
             in_tokens = sorted(in_tokens, key=itemgetter(1))
             # print "{} {}".format(in_row, in_tokens)
+            # print "2", in_tokens
 
             # INSERTING included TOKENS IN THE INVERTED INDEX
             for t in in_tokens[:included]:
@@ -554,16 +581,20 @@ def prefixed_inverted_index(specs, theta):
                 elif in_row not in inv_index[t[0]]:
                     # UPDATE THE INDEX ARRAY AND INCREMENT THE TERM FREQUENCY
                     inv_index[t[0]] += [in_row]
+
         return inv_index
 
     def get_tokens_to_include(string, threshold, tf):
 
         # GET THE TOKENS
-        stg = to_bytes(string).lower()
+        stg = str(string).lower()
         # print stg
 
         # REMOVE DATA IN BRACKETS
-        stg = remove_info_in_bracket(stg)
+        # stg = remove_info_in_bracket(stg)
+
+        # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+        stg = process_input(stg)
 
         # if stg != to_unicode(string):
         #     print stg + "!!!!!!!!!"
@@ -586,7 +617,7 @@ def prefixed_inverted_index(specs, theta):
 
         # text = "(Germany) 3M (United Kingdom) (Israel) in  (Canada) (France)"
 
-        temp = to_bytes(text)
+        temp = str(text)
 
         if temp:
 
@@ -597,28 +628,70 @@ def prefixed_inverted_index(specs, theta):
                 # print temp
 
                 if item.endswith(" ") and item.startswith(" "):
-                    temp = (temp).replace(item, " ", 1)
+                    temp = str(temp).replace(item, " ", 1)
                     # print "both sides"
                     # print text
 
                 elif item.startswith(" ") is not True and item.endswith(" "):
-                    temp = (temp).replace(item, "", 1)
+                    temp = str(temp).replace(item, "", 1)
                     # print "right side"
                     # print text
 
                 elif item.startswith(" ") is True and item.endswith(" ") is not True:
-                    temp = (temp).replace(item, "", 1)
+                    temp = str(temp).replace(item, "", 1)
                     # print "left side"
                     # print text
 
                 else:
-                    temp = (temp).replace(item, "", 1)
+                    temp = str(temp).replace(item, "", 1)
                     # print "None"
                     # print text
 
-            temp = (temp).strip()
+            temp = str(temp).strip()
 
         return temp
+
+    def remove_stop_words(text):
+        # print text
+        if len(stop_word) > 0:
+            for stop_key, value in stop_word.items():
+                two = " {}".format(stop_key)
+                one = "{} ".format(stop_key)
+                three = " {} ".format(stop_key)
+                if str(text).startswith(one):
+                    text = str(text).replace(one, "")
+                elif str(text).endswith(two):
+                    text = str(text).replace(two, "")
+                text = str(text).replace(three, " ")
+            # print text
+            return text
+
+    def process_input(text):
+
+        try:
+            temp = to_bytes(text.lower())
+
+            # temp = str(temp).decode(encoding="utf-8")
+
+            # REMOVE DATA IN BRACKETS
+            # REMOVE (....) FROM THE VALUE
+            temp = remove_info_in_bracket(temp)
+
+            # REMOVE STOP WORLD
+            if len(stop_word) > 0:
+                temp = remove_stop_words(temp)
+
+            # REMOVE SYMBOLS OR CHARACTER
+            if stop_symbols_string is not None and len(stop_symbols_string) > 0:
+                pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
+                temp = re.sub(pattern, "", temp)
+
+            return temp
+
+        except Exception as error:
+            print "!!!!!!!!!!!!! PROBLEM !!!!!!!!!!!!!!!!!!!"
+            print str(error.message)
+            return text
 
     #################################################################
     # CREATING THE  INVERTED INDEX
@@ -630,9 +703,9 @@ def prefixed_inverted_index(specs, theta):
     Ut.update_specification(specs)
 
     t_load = time()
-    print "1. DATASETS LOADED.\n\t\t>>> IN {}".format(t_load - start)
+    print "\n1. DATASETS LOADED.\n\t>>> IN {}".format(t_load - start)
 
-    print "2. VALIDATING THE TABLES"
+    print "\n2. VALIDATING THE TABLES"
     if (src_dataset is not None) and (trg_dataset is None):
         print "WE COULD NOT EXTRACT PREDICATE VALUES FROM THE TARGET DATASET"
         return None
@@ -646,37 +719,42 @@ def prefixed_inverted_index(specs, theta):
         Qry.display_matrix(src_dataset, is_activated=False)
         Qry.display_matrix(trg_dataset, is_activated=False)
 
-    print "\t\tTHE SOURCES DATASET CONTAINS {} INSTANCES.".format(len(src_dataset) - 1)
-    print "\t\tTHE TARGET DATASET CONTAINS {} INSTANCES.".format(len(trg_dataset) - 1)
+    print "\tTHE SOURCES DATASET CONTAINS {} INSTANCES.".format(len(src_dataset) - 1)
+    print "\tTHE TARGET DATASET CONTAINS {} INSTANCES.".format(len(trg_dataset) - 1)
+    print "\tNUMBER OF STOP WORDS: {}".format(len(stop_word) - 1)
 
-    print "3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
+    print "\n3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
     # src_tf = get_tf(src_dataset)
     # trg_tf = get_tf(trg_dataset)
     universe_tf = get_tf_2(src_dataset, trg_dataset)
     # print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf) - 1)
-    print "\t\tTHE UNIVERSE OF TOKENS CONTAINS {} POTENTIAL TERMS.".format(len(universe_tf) - 1)
-    print "\t\tTHE TARGET DATASET CONTAINS {} POTENTIAL CANDIDATES.".format(len(trg_dataset) - 1)
+    print "\tTHE UNIVERSE OF TOKENS CONTAINS {} POTENTIAL TERMS.".format(len(universe_tf) - 1)
+    print "\tTHE TARGET DATASET CONTAINS {} POTENTIAL CANDIDATES.".format(len(trg_dataset) - 1)
     t_tf = time()
-    print "\t\t>>> In {}.\n\t\t>>> Elapse time: {}".format(t_tf - t_load, t_load - start)
+    print "\t>>> In {}.\n\t>>> Elapse time: {}".format(t_tf - t_load, t_load - start)
     # print src_tf
 
-    print "4. GENERATE THE INVERTED INDEX OF THE TARGET DATASET USING THE FILTERED PREFIX APPROACH"
+    print "\n4. GENERATE THE INVERTED INDEX OF THE TARGET DATASET USING THE FILTERED PREFIX APPROACH"
     trg_inv_index = get_inverted_index(trg_dataset, universe_tf, theta)
     t_inv_ind = time()
-    print "\t\t>>> In {}.\n\t\t>>> Elapse time: {}".format(t_inv_ind - t_tf, t_inv_ind - start)
+    print "\t>>> In {}.\n\t>>> Elapse time: {}".format(t_inv_ind - t_tf, t_inv_ind - start)
 
     #################################################################
     # GENERATING CORRESPONDENCES USING THE SIMILARITY
     #################################################################
 
-    print "5. COMPUTE THE SIMILARITY BASED ON THE INVERTED INDEX"
+    print "\n5. COMPUTE THE SIMILARITY BASED ON THE INVERTED INDEX"
 
     # ITERATE THROUGH THE SOURCE DATASET
     for row in range(1, len(src_dataset)):
+
+        src_input = str(src_dataset[row][1])
+        src_input = process_input(src_input)
+
         # print row
         # TOKENS IN THE CURRENT PREDICATE VALUE
         curr_index = set()
-        tokens = get_tokens_to_include(str(src_dataset[row][1]), theta, universe_tf)
+        tokens = get_tokens_to_include(src_input, theta, universe_tf)
         # print tokens
 
         # GET THE INDEX WHERE A TOKEN IN THE CURRENT INSTANCE CAN BE FOUND
@@ -691,27 +769,35 @@ def prefixed_inverted_index(specs, theta):
         for idx in curr_index:
 
             # COMPARE THE CURRENT TO OTHERS THAT IS NOT YOURSELF
-            sim_val_1 = (remove_info_in_bracket(to_bytes(src_dataset[row][1]))).lower()
-            sim_val_2 = (remove_info_in_bracket(to_bytes(trg_dataset[idx][1]))).lower()
+            # sim_val_1 = (remove_info_in_bracket(to_bytes(src_dataset[row][1]))).lower()
+            # sim_val_2 = (remove_info_in_bracket(to_bytes(trg_dataset[idx][1]))).lower()
+
+            # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+            # sim_val_1 = process_input(to_bytes(src_dataset[row][1]))
+            trg_input = process_input(trg_dataset[idx][1])
+
+            # sim_val_1 = str(sim_val_1).decode(encoding="utf-8")
+            # print "1", src_input
+            # print "2", trg_input
 
             # print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
             # print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
 
             # TOKENIZE
-            tokens_src = sim_val_1.split(" ")
-            tokens_trg = sim_val_2.split(" ")
+            tokens_src = src_input.split(" ")
+            tokens_trg = trg_input.split(" ")
 
             # small
             if len(tokens_src) < len(tokens_trg):
                 tokens_1 = tokens_src
                 tokens_2 = tokens_trg
                 # TOKEN TO INCLUDE
-                token2include = get_tokens_to_include(sim_val_1, theta, universe_tf)
+                token2include = get_tokens_to_include(src_input, theta, universe_tf)
             else:
                 tokens_1 = tokens_trg
                 tokens_2 = tokens_src
                 # TOKEN TO INCLUDE
-                token2include = get_tokens_to_include(sim_val_2, theta, universe_tf)
+                token2include = get_tokens_to_include(trg_input, theta, universe_tf)
             # print u"TOKEN TO INCLUDE  :", token2include
 
         # SORT
@@ -758,8 +844,8 @@ def prefixed_inverted_index(specs, theta):
             # TODO THINK OF WHAT TO REMOVE FROM A TOKEN LIKE . - ' ,
             # TODO MAKE IT EFFICENT BY MAKING THESE CHANGES AT AN EARLY STAGE
             # TODO DO NOT FORGET TO INCLUDE IT WHEN COMPUTING THE FREQUENCY
-            value_1 = value_1.replace(".", "")
-            value_2 = value_2.replace(".", "")
+            # value_1 = value_1.replace(".", "")
+            # value_2 = value_2.replace(".", "")
 
             sim = edit_distance(value_1.strip(), value_2.strip())
             # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
@@ -779,9 +865,9 @@ def prefixed_inverted_index(specs, theta):
                 if debug is True:
                     writer.write("\nSOURCE:{} TARGET:{}".format(str(row), str(idx)))
                     writer.write("\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
-                        to_bytes(src_dataset[row][1]), sim_val_1))
+                        to_bytes(src_dataset[row][1]), src_input))
                     writer.write("TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]\n".format(
-                        to_bytes(to_bytes(trg_dataset[idx][1])), sim_val_2))
+                        to_bytes(to_bytes(trg_dataset[idx][1])), trg_input))
                     writer.write(u"BIGGEST           : {}\n".format(tokens_2))
                     writer.write(u"TOKEN TO INCLUDE  : {}\n".format(token2include))
                     writer.write(u"BIGGEST SORTED    : {}\n".format(tokens_2_sorted))
@@ -808,6 +894,7 @@ def prefixed_inverted_index(specs, theta):
                     if debug is True:
                         writer.write("                   WINNER!!!!!!!!!!!")
                     count += 1
+                    print count
                     crpdce = dict()
                     crpdce[St.sim] = sim
                     crpdce[St.src_value] = src_dataset[row][1]
@@ -818,8 +905,8 @@ def prefixed_inverted_index(specs, theta):
                     crpdce[St.row] = row
                     crpdce[St.inv_index] = idx
 
-                    if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
                     # if gmtime(time()).tm_min % 10 == 0:
+                    if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
                         print correspondence(crpdce, writers, count)
                     else:
                         correspondence(crpdce, writers, count)
@@ -844,8 +931,8 @@ def prefixed_inverted_index(specs, theta):
     load = """
     echo "Loading data"
     {}stardog data add risis "{}" "{}"
-    """.format(path,
-        writers[St.crpdce_writer_path],
+    """.format(
+        path, writers[St.crpdce_writer_path],
         writers[St.singletons_writer_path]
         # writers[St.meta_writer_path],
     )
@@ -866,7 +953,6 @@ def prefixed_inverted_index(specs, theta):
     if Ut.OPE_SYS != 'windows':
         print "MAC BATCH: {}".format(writers[St.batch_output_path])
         os.chmod(writers[St.batch_output_path], 0o777)
-
 
     print "\n>>> STARTED ON {}".format(ctime(start))
     print ">>> FINISHED ON {}".format(ctime(t_sim))

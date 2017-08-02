@@ -288,7 +288,7 @@ def run_checks(specs, check_type):
         print "ASK 3: IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
         set_refined_name(specs)
 
-    print "\n>>> GOOD TO GO !!!"
+    print ">>> GOOD TO GO !!!"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 

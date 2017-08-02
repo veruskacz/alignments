@@ -282,7 +282,7 @@ def win_bat(file_directory, file_name):
 
 def batch_extension():
 
-    print "\n\nOPERATING SYSTEM ", OPE_SYS
+    print ">>> OPERATING SYSTEM:", OPE_SYS
     # bat_ext = ""
 
     if OPE_SYS == "windows":

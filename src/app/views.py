@@ -406,6 +406,7 @@ def setlinkesetfilter():
     # print result
     return json.dumps(result)
 
+
 @app.route('/setfilter', methods=['GET'])
 def setFilter():
     rq_uri = request.args.get('rq_uri', '')
@@ -425,6 +426,7 @@ def setFilter():
 
     # print result
     return json.dumps(result)
+
 
 @app.route('/getlinkesetfilter', methods=['GET'])
 def getlinkesetfilter():
@@ -1145,6 +1147,8 @@ def spa_linkset():
         return json.dumps(linkset_result)
 
     except Exception as err:
+
+        print "SECOND CHECK AFTER SERVER ERROR"
 
         if id == True:
             check = Ls.run_checks_id(specs)
@@ -1962,8 +1966,8 @@ def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
     cannot handle the Stardog-style query headers needed for inferencing"""
     # print "ENDPOINT_URL", ENDPOINT_URL
 
-    result = requests.post(endpoint_url,
-        data={'query': query, 'reasoning': REASONING_TYPE}, headers=QUERY_HEADERS)
+    result = requests.post(endpoint_url, data={'query': query, 'reasoning': REASONING_TYPE}, headers=QUERY_HEADERS,
+                           timeout=None)
     try :
         result_dict = json.loads(result.content)
     except Exception as e:

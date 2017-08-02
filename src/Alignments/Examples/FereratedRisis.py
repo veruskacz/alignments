@@ -1,4 +1,5 @@
-"""
+
+query = """
     ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
     INSERT
     {
