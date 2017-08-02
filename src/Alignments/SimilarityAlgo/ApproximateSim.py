@@ -321,11 +321,10 @@ def edit_distance(token_x, token_y):
 # temp = re.sub(pattern, " ", test)
 # print "temp2", temp
 
-def prefixed_inverted_index(specs, theta):
+def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_string=None):
 
-    stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES"
-    # stop_words_string = None
-    stop_symbols_string = "\.\-\,\+'\?"
+    # stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES"
+    # stop_symbols_string = "\.\-\,\+'\?"
 
     debug = False
     start = time()
