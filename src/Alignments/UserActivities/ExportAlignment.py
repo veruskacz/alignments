@@ -89,7 +89,7 @@ def enrich():
     f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph.ttl"
     b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph{}".format(Ut.batch_extension())
 
-    print "1. GETTING THE TOTAL NUMBER "
+    print "0. GETTING THE TOTAL NUMBER "
     count = """
     PREFIX ll: <{}>
     PREFIX pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
@@ -112,68 +112,69 @@ def enrich():
        FILTER(bif:st_intersects (?geo, bif:st_point (?long, ?lat), 0.1))
     }}
     """.format(Ns.alivocab, "http://xmlns.com/foaf/0.1/Organization")
-    print count
+    # print count
     # count_res = Qry.virtuoso(count)
     total = 363101
     limit = 20000
     iteration = total / limit if total % limit == 0 else total / limit + 1
     print "ITERATIONS:", iteration
-    for i in range(1, iteration):
-        print "ROUND: {}".format(i)
-        offset = i * 20000 + 1
+    for i in range(0, iteration):
 
-        # print "1. GENERATING THE ENRICHMENT QUERY"
-        # virtuoso = """
-        # PREFIX ll: <{}>
-        # PREFIX pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-        # PREFIX gadm: <http://geo.risis.eu/vocabulary/gadm/>
-        # CONSTRUCT
-        # {{
-        #     ?dataset  a <{}> .
-        #     ?dataset  ll:intersects ?gadm .
-        #     #?gadm     gadm:level    ?level .
-        # }}
-        # WHERE
-        # {{
-        #    GRAPH <http://grid.ac/20170712>
-        #    {{
-        #         ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:long ?long .
-        #         ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:lat  ?lat .
-        #         FILTER(contains(str(?long), ".") && contains(str(?lat), "."))
-        #    }}
-        #    GRAPH <http://geo.risis.eu/gadm>
-        #    {{
-        #         ?gadm geo:geometry ?geo .
-        #         ?gadm gadm:level   ?level .
-        #         FILTER(?level = 2)
-        #    }}
-        #    FILTER(bif:st_intersects (?geo, bif:st_point (?long, ?lat), 0.1))
-        # }}
-        # LIMIT {}
-        # OFFSET {}
-        # """.format(Ns.alivocab, "http://xmlns.com/foaf/0.1/Organization", limit, offset)
-        # print virtuoso
-        # exit(0)
-        # # print Qry.virtuoso(virtuoso)["result"]
-        #
-        # print "2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
-        # writer = codecs.open(f_path, "wb", "utf-8")
-        # batch_writer = codecs.open(b_path, "wb", "utf-8")
-        # writer.write(Qry.virtuoso(virtuoso)["result"])
-        # writer.close()
-        #
-        # print "3. GENERATING THE BATCH FILE TEXT"
-        # stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
-        # load_text = """echo "Loading data"
-        # {}stardog data add risis -g http://risis.eu/dataset/{}_enriched "{}"
-        # """.format(stardog_path, "grid", f_path)
-        # batch_writer.write(to_unicode(load_text))
-        # batch_writer.close()
-        #
-        # print "4. RUNNING THE BATCH FILE"
-        # print "THE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
-        #     else "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
-        # os.system(b_path)
+        offset = i * 20000 + 1
+        print "ROUND: {} OFFSET: {}".format(i, offset)
+
+        print "1. GENERATING THE ENRICHMENT QUERY"
+        virtuoso = """
+        PREFIX ll: <{}>
+        PREFIX pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+        PREFIX gadm: <http://geo.risis.eu/vocabulary/gadm/>
+        CONSTRUCT
+        {{
+            ?dataset  a <{}> .
+            ?dataset  ll:intersects ?gadm .
+            #?gadm     gadm:level    ?level .
+        }}
+        WHERE
+        {{
+           GRAPH <http://grid.ac/20170712>
+           {{
+                ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:long ?long .
+                ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:lat  ?lat .
+                FILTER(contains(str(?long), ".") && contains(str(?lat), "."))
+           }}
+           GRAPH <http://geo.risis.eu/gadm>
+           {{
+                ?gadm geo:geometry ?geo .
+                ?gadm gadm:level   ?level .
+                FILTER(?level = 2)
+           }}
+           FILTER(bif:st_intersects (?geo, bif:st_point (?long, ?lat), 0.1))
+        }}
+        LIMIT {}
+        OFFSET {}
+        """.format(Ns.alivocab, "http://xmlns.com/foaf/0.1/Organization", limit, offset)
+        print virtuoso
+
+        # print Qry.virtuoso(virtuoso)["result"]
+
+        print "2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
+        writer = codecs.open(f_path, "wb", "utf-8")
+        batch_writer = codecs.open(b_path, "wb", "utf-8")
+        writer.write(Qry.virtuoso(virtuoso)["result"])
+        writer.close()
+
+        print "3. GENERATING THE BATCH FILE TEXT"
+        stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+        load_text = """echo "Loading data"
+        {}stardog data add risis -g http://risis.eu/dataset/{}_enriched "{}"
+        """.format(stardog_path, "grid", f_path)
+        batch_writer.write(to_unicode(load_text))
+        batch_writer.close()
+
+        print "4. RUNNING THE BATCH FILE"
+        print "THE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
+            else "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
+        os.system(b_path)
 
     print "JOB DONE...!!!!!!"
 
