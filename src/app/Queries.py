@@ -334,21 +334,41 @@ def get_graphs_per_rq_type(rq_uri, type=None):
 
 
 def get_datasets():
+    # query = PREFIX + """
+    # ### GET DISTINCT DATASETS
+    # SELECT DISTINCT ?uri ?mode
+    # WHERE
+    # {
+  	# 	?uri   rdf:type	 _:type
+    #     GRAPH ?uri {_:s  ?p  _:o}
+    #
+    #     ### FILTER THE TYPE OF GRAPH
+    #     FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
+    #     UNION {?uri   rdf:type	bdb:Lens}
+    #     UNION {?uri   rdf:type	void:View}
+    #     UNION {?uri   rdf:type	<http://risis.eu/class/ResearchQuestion>}
+    #     }
+    #
+    #   BIND("no-mode" as ?mode)
+    # }
+    # """
     query = PREFIX + """
     ### GET DISTINCT DATASETS
     SELECT DISTINCT ?uri ?mode
     WHERE
     {
-  		?uri   rdf:type	 _:type
-        GRAPH ?uri {_:s  ?p  _:o}
+        GRAPH ?uri {_:s  a  ?EntityType .
+           FILTER NOT EXISTS { ?uri a <http://risis.eu/class/ResearchQuestion> }
+        }
 
-        ### FILTER THE TYPE OF GRAPH
-        FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
-        UNION {?uri   rdf:type	bdb:Lens}
-        UNION {?uri   rdf:type	void:View}
-        UNION {?uri   rdf:type	<http://risis.eu/class/ResearchQuestion>}
-        } 
-        
+        ### AND THE ENTITY-TYPES DESCRIBED MUST NOT BE ONE OF THE STANDARD VOCABULARIES
+        FILTER (?EntityType != <http://www.w3.org/2000/01/rdf-schema#Class>)
+        FILTER (?EntityType != <http://www.w3.org/2002/07/owl#Class>)
+        FILTER (?EntityType != <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>)
+        FILTER (?EntityType != <http://risis.eu/risis/ontology/class/Neutral>)
+        FILTER (?EntityType != <http://www.w3.org/ns/prov#Accept>)
+        FILTER (?EntityType != <http://risis.eu/alignment/predicate/Reject>)
+
       BIND("no-mode" as ?mode)
     }
     """
