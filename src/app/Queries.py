@@ -85,6 +85,8 @@ def get_types_per_graph(rq_uri, mode):
     query = PREFIX + """
     ## SELECT THE DATASETS/GRAPHS, ENTITY TYPE AND NUMBER OR ENTITYS OF THAT TYPE
     select distinct ?Dataset ?EntityType (count(distinct ?x) as ?EntityCount)
+            (CONCAT( REPLACE(str(?Dataset), '^(.*[/])', '' )  , ' | ',
+                     REPLACE(str(?EntityType), '^(.*[/])', '' )) as ?descr)
     {{
         {0}
 
@@ -96,10 +98,12 @@ def get_types_per_graph(rq_uri, mode):
            FILTER NOT EXISTS {{ ?Dataset a <http://risis.eu/class/ResearchQuestion> }}
         }}
         ### AND THE ENTITY-TYPES DESCRIBED MUST NOT BE ONE OF THE STANDARD VOCABULARIES
-        FILTER ((str(?EntityType) != "http://www.w3.org/2000/01/rdf-schema#Class") )
-        FILTER ((str(?EntityType) != "http://www.w3.org/2002/07/owl#Class"))
-        FILTER ((str(?EntityType) != "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"))
-        FILTER ((str(?EntityType) != "http://risis.eu/risis/ontology/class/Neutral"))
+        FILTER (?EntityType != <http://www.w3.org/2000/01/rdf-schema#Class>)
+        FILTER (?EntityType != <http://www.w3.org/2002/07/owl#Class>)
+        FILTER (?EntityType != <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>)
+        FILTER (?EntityType != <http://risis.eu/risis/ontology/class/Neutral>)
+        FILTER (?EntityType != <http://www.w3.org/ns/prov#Accept>)
+        FILTER (?EntityType != <http://risis.eu/alignment/predicate/Reject>)
 
     }} GROUP by ?Dataset ?EntityType ORDER BY ?Dataset
     """.format(filter)
@@ -107,18 +111,6 @@ def get_types_per_graph(rq_uri, mode):
     if DETAIL:
         print query
     return query
-
-
-# def get_graph_type(graph):
-#     query = """
-#     SELECT *
-#     {{
-#         <{}> a ?type .
-#     }}
-#     """.format(graph)
-#     if DETAIL:
-#         print query
-#     return query
 
 
 def get_entity_type_rq(rq_uri, graph_uri):
@@ -574,7 +566,7 @@ def get_target_datasets(graph_uri=''):
     ### GET TARGET DATASETS
     ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
     {}
-    SELECT DISTINCT ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism
+    SELECT DISTINCT ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism ?sub ?obj
     where
     {{
             ### Retrieves the lens 
@@ -1214,6 +1206,61 @@ def check_graph_dependencies_rq(rq_uri, graph_uri):
     return query
 
 
+def get_delete_filter(rq_uri, filter_uri):
+    query = PREFIX + """
+    # DELETE THE FILTER
+    DELETE
+    {{
+      GRAPH ?rq
+      {{
+            ?rq       alivocab:created    ?filter .
+            ?filter     ?pred                ?obj .
+      }}
+    }}
+    WHERE
+    {{
+      BIND(<{0}> AS ?rq) .
+      BIND(<{1}> AS ?filter) .
+      GRAPH ?rq
+      {{
+            ?rq       alivocab:created    ?filter .
+            ?filter     ?pred                ?obj .
+      }}
+    }}
+    """.format(rq_uri, filter_uri)
+    print query
+    return query
+
+
+def get_delete_validation(rq_uri, graph_uri, singleton_uri):
+    ## there should be only one validation per rq
+    query = PREFIX + """
+    DELETE
+    {{
+      GRAPH ?singleton_graph
+      {{
+        ?rq	                <{3}> 	            ?validation .
+        ?singleton_uri	    <{4}> 	            ?validation .
+        ?validation        ?pre 		        ?obj .
+      }}
+    }}
+    WHERE
+    {{
+      BIND(<{0}> AS ?rq_uri) .
+      BIND(<{1}> AS ?singleton_graph) .
+      BIND(<{2}> AS ?singleton_uri) .
+      GRAPH ?singleton_graph
+      {{
+        ?rq	                <{3}> 	            ?validation .
+        ?singleton_uri	    <{4}> 	            ?validation .
+        ?validation        ?pre 		        ?obj .
+      }}
+    }}
+    """.format(rq_uri, Ut.from_alignment2Singleton(graph_uri), singleton_uri,
+               "{}created".format(Ns.alivocab), "{}hasValidation".format(Ns.alivocab))
+    print query
+    return query
+
 
 def delete_view_rq(rq_uri, view_uri):
     query = PREFIX + """
@@ -1224,7 +1271,7 @@ def delete_view_rq(rq_uri, view_uri):
         ?rq	    alivocab:created 	?view .
         ?view   ?pre 		        ?obj .
         ?obj 	?predicate 	        ?object .
-      }}   
+      }}
     }}
     WHERE
     {{
@@ -1235,11 +1282,11 @@ def delete_view_rq(rq_uri, view_uri):
         ?rq     alivocab:created 	?view .
         ?view   ?pre                ?obj .
         OPTIONAL {{ ?obj ?predicate ?object }}
-               
+
       }}
     }}
     """.format(rq_uri, view_uri)
-    # print query
+    print query
     return query
 
 
