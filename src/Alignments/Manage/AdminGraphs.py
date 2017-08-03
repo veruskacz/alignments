@@ -589,14 +589,32 @@ def drop_linkset(graph, display=False, activated=False):
 
 def delete_linkset_rq(rq_uri, linkset_uri):
     query = PREFIX + """
+    # DELETE THE FILTERS
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>       alivocab:created    ?filter .
+            ?filter     ?pred                ?obj .
+        }}
+    }}
+    WHERE
+    {{
+        GRAPH <{0}>
+        {{
+            BIND(<{1}> AS ?linkset)
+            <{0}>       alivocab:created    ?filter .
+            ?filter     alivocab:appliesTo  ?linkset .
+            ?filter     ?pred                ?obj .
+        }}
+    }};
+
     # 1 DISCONNECT THE LINKSET
     DELETE
     {{
         GRAPH <{0}>
         {{
              ?s         ?p                  ?linkset .
-             <{0}>      alivocab:created    ?filter .
-             ?filter    ?p3                 ?o .
         }}
     }}
     WHERE
@@ -607,11 +625,6 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         {{
             ?s alivocab:created|prov:used ?linkset.
             ?s ?p ?linkset .
-            OPTIONAL {{
-                ?filter alivocab:appliesTo  ?linkset .
-                <{0}>      alivocab:created    ?filter .
-                ?filter ?p3                 ?o .
-            }}
         }}
 
         FILTER NOT EXISTS
@@ -648,6 +661,7 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         {{
             GRAPH ?rqg
             {{
+                ?rqg a <http://risis.eu/class/ResearchQuestion> .
                 ?sg ?pg ?linkset.
             }}
         }}
@@ -676,6 +690,7 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         {{
             GRAPH ?rqg
             {{
+                ?rqg a <http://risis.eu/class/ResearchQuestion> .
                 ?sg ?pg ?linkset.
             }}
         }}
@@ -697,6 +712,7 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         {{
             GRAPH ?rqg
             {{
+                ?rqg a <http://risis.eu/class/ResearchQuestion> .
                 ?sg ?pg ?linkset.
             }}
         }}
@@ -710,14 +726,32 @@ def delete_linkset_rq(rq_uri, linkset_uri):
 def delete_lens_rq(rq_uri, lens_uri):
 
     query = PREFIX + """
+    # DELETE THE FILTERS
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
+            <{0}>       alivocab:created    ?filter .
+            ?filter     ?pred                ?obj .
+        }}
+    }}
+    WHERE
+    {{
+        GRAPH <{0}>
+        {{
+            BIND(<{1}> AS ?lens)
+            <{0}>       alivocab:created    ?filter .
+            ?filter     alivocab:appliesTo  ?lens .
+            ?filter     ?pred                ?obj .
+        }}
+    }};
+
     # 1 DISCONNECT THE LENS
     DELETE
     {{
         GRAPH <{0}>
         {{
              ?s         ?p                  ?lens.
-             <{0}>      alivocab:created    ?filter .
-             ?filter    ?p3                 ?o .
         }}
     }}
     WHERE
@@ -728,11 +762,6 @@ def delete_lens_rq(rq_uri, lens_uri):
         {{
             ?s alivocab:created|prov:used ?lens.
             ?s ?p ?lens .
-            OPTIONAL {{
-                ?filter     alivocab:appliesTo  ?lens .
-                <{0}>       alivocab:created    ?filter .
-                ?filter     ?p3                 ?o .
-            }}
         }}
 
         FILTER NOT EXISTS
@@ -769,6 +798,7 @@ def delete_lens_rq(rq_uri, lens_uri):
         {{
             GRAPH ?rqg
             {{
+                ?rqg a <http://risis.eu/class/ResearchQuestion> .
                 ?sg ?pg ?lens.
             }}
         }}
@@ -797,6 +827,7 @@ def delete_lens_rq(rq_uri, lens_uri):
         {{
             GRAPH ?rqg
             {{
+                ?rqg a <http://risis.eu/class/ResearchQuestion> .
                 ?sg ?pg ?lens.
             }}
         }}
@@ -818,6 +849,7 @@ def delete_lens_rq(rq_uri, lens_uri):
         {{
             GRAPH ?rqg
             {{
+                ?rqg a <http://risis.eu/class/ResearchQuestion> .
                 ?sg ?pg ?lens.
             }}
         }}

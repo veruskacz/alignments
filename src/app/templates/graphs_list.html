@@ -2,7 +2,7 @@
     <button class="btn btn-primary dropdown-toggle" type="button" id="linksetsDropdown"
             data-toggle='dropdown'>Linksets<span class="caret"></span></button>
     <ul class="dropdown-menu" role="menu" aria-labelledby="linksetsDropdown">
-        {% for linkset in linksets %}
+        {% for linkset in linksets|sort(attribute='Dataset_stripped') %}
         <li role="presentation">
             <a href="#" role="menuitem" tabindex="-1"
                graph_menu='linkset'

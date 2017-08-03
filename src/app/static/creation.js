@@ -300,6 +300,21 @@ function createIdeaClick()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Functions for Dataset Inspection
+///////////////////////////////////////////////////////////////////////////////
+function inspect_dataset_activate()
+{
+   $('#select_dataset_col').html('Loading...');
+          $.get('/getdatasets',
+                  data={'template': 'list_dropdown.html',
+                        'function': 'selectionClick(this, "graph-list");'},
+          function(data)
+   {  // hide the loading message
+      // load the resultant rendered template into source and target buttons
+      $('#select_dataset_col').html(data);
+   });
+}
+///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in linksetsCreation.html
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -347,11 +362,12 @@ function inspect_linkset_activate(mode)
             //{
                 //var obj = JSON.parse(data);
 
-                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine')
+                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
                 {
                    $('#creation_linkset_row').show();
                    loadEditPanel(obj.metadata, mode);
                    enableButton('deleteLinksetButton');
+                   enableButton('exportLinksetButton');
                 }
                 else if (mode == 'inspect')
                 {
@@ -384,6 +400,12 @@ function inspect_linkset_activate(mode)
       $('#creation_linkset_row').show();
       $('#edit_linkset_heading').show();
       enableButton('deleteLinksetButton', enable=false);
+    }
+    else if (mode == 'export') {
+      $('#inspect_panel_body').hide();
+      $('#creation_linkset_row').show();
+      $('#export_linkset_heading').show();
+      enableButton('exportLinksetButton', enable=false);
     }
     else
     {
@@ -597,7 +619,12 @@ function createLinksetClick()
 
           'mechanism': $('#selected_meth').attr('uri'),
 
-          'intermediate_graph': $('#selected_int_red_graph').attr('uri')
+          'intermediate_graph': $('#selected_int_red_graph').attr('uri'),
+
+          'stop_words': $('#linkset_approx_stop_words').val(),
+          'stop_symbols': $('#linkset_approx_symbols').val(),
+          'threshold': $('#linkset_approx_threshold').val()
+
         }
 
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
@@ -695,6 +722,79 @@ function refineLinksetClick()
   }
 }
 
+
+function exportLinksetClick(filename)
+{
+    var linkset = '';
+    var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        linkset = $(elems[0]).attr('uri');  // it should have only one selected
+        //alert(linkset);
+        var message = "Exporting Linkset";
+        $('#linkset_export_message_col').html(addNote(message,cl='warning'));
+        loadingGif(document.getElementById('linkset_export_message_col'), 2);
+
+        // call function that creates the linkset
+        $.get('/exportAlignment', data={'graph_uri':linkset}, function(data)
+        {
+
+            var obj = JSON.parse(data);
+            loadingGif(document.getElementById('linkset_export_message_col'), 2, show=false);
+
+            $('#linkset_export_message_col').html(addNote(obj.message,cl='info'));
+            csv = obj.result;
+
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+            element.setAttribute('download', filename);
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        });
+    }
+}
+
+function exportLensClick(filename)
+{
+    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+    var lens = '';
+    var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        lens = $(elems[0]).attr('uri');  // it should have only one selected
+        //alert(linkset);
+        var message = "Exporting Lens";
+        $('#lens_export_message_col').html(addNote(message,cl='warning'));
+        loadingGif(document.getElementById('lens_export_message_col'), 2);
+
+        // call function that creates the linkset
+        $.get('/exportAlignment', data={'graph_uri':lens}, function(data)
+        {
+
+            var obj = JSON.parse(data);
+            loadingGif(document.getElementById('lens_export_message_col'), 2, show=false);
+
+            $('#lens_export_message_col').html(addNote(obj.message,cl='info'));
+            csv = obj.result;
+
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+            element.setAttribute('download', filename);
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        });
+    }
+}
 
 function importLinksetClick()
 {
@@ -990,6 +1090,68 @@ function applyFilterLinksetClick()
     });
 }
 
+function deleteFilterLinksetClick()
+{
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    var linkset_uri = ''
+    var elems = selectedElemsInDiv("inspect_linkset_selection_col");
+    if (elems.length > 0)
+    {    linkset_uri = $(elems[0]).attr('uri');
+    }
+
+    var filter_uri = '';
+    elems = selectedElemsInDiv("linkset_filter_col");
+    if (elems.length > 0)
+    {   filter_uri = $(elems[0]).attr('uri');
+
+        var test = confirm("Delete the filter?");
+        if (test)
+        {
+            var message = "Deleting Filter";
+            $('#linkset_add_filter_message_col').html(addNote(message,cl='warning'));
+
+            $.get('/deleteFilter',data={'rq_uri': rq_uri,
+                                        'filter_uri': filter_uri},function(data)
+            {
+               var obj = JSON.parse(data);
+               $('#linkset_add_filter_message_col').html(addNote(obj.message,cl='warning'));
+               get_filter(rq_uri, linkset_uri, '', type='linkset');
+            });
+        }
+    }
+}
+
+function deleteFilterLensClick()
+{
+    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+    var lens_uri = ''
+    var elems = selectedElemsInDiv("inspect_lens_lens_selection_col");
+    if (elems.length > 0)
+    {    lens_uri = $(elems[0]).attr('uri');
+    }
+
+    var filter_uri = '';
+    elems = selectedElemsInDiv("lens_filter_col");
+    if (elems.length > 0)
+    {   filter_uri = $(elems[0]).attr('uri');
+
+        var test = confirm("Delete the filter?");
+        if (test)
+        {
+            var message = "Deleting Filter";
+            $('#lens_add_filter_message_col').html(addNote(message,cl='warning'));
+
+            $.get('/deleteFilter',data={'rq_uri': rq_uri,
+                                        'filter_uri': filter_uri},function(data)
+            {
+               var obj = JSON.parse(data);
+               $('#lens_add_filter_message_col').html(addNote(obj.message,cl='warning'));
+               get_filter(rq_uri, lens_uri, '', type='lens');
+            });
+        }
+    }
+}
+
 function applyFilterLensClick()
 {
     var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
@@ -1092,6 +1254,11 @@ function inspect_lens_activate(mode)
                 $('#creation_lens_row').show();
                 enableButton('deleteLensButton');
             }
+            else if (mode == 'export')
+            {
+                $('#creation_lens_row').show();
+                enableButton('exportLensButton');
+            }
             else
             {
                 // load the panel for filter
@@ -1125,6 +1292,15 @@ function inspect_lens_activate(mode)
       $('#creation_lens_row').show();
       $('#edit_lens_heading').show();
       enableButton('deleteLensButton', enable=false);
+    }
+    else if (mode == 'export') {
+      $('#lens_inspect_panel_body').hide();
+      $('#creation_lens_filter_row').hide();
+      $('#creation_lens_search_row').hide();
+      $('#creation_lens_correspondence_row').hide();
+      $('#creation_lens_row').show();
+      $('#export_lens_heading').show();
+      enableButton('exportLensButton', enable=false);
     }
     else
     { $('#lens_inspect_panel_body').show(); }
@@ -1976,6 +2152,7 @@ function datasetClick(th)
     // where the name/label is displayed
     var targetTxt = $(list).attr('targetTxt');
     setAttr(targetTxt,'uri',graph_uri);
+    setAttr(targetTxt,'graph_uri',graph_uri);
     $('#'+targetTxt).html(graph_label.toUpperCase());
     setAttr(targetTxt,'style','background-color:lightblue;');
 
@@ -2138,7 +2315,21 @@ function selectionClick(th, ancestorType)
 
             // get the distinct predicates and example values of a graph into a list group
             $('#'+listCol).html('Loading...');
-            $.get('/getpredicates', data={'dataset_uri': graph_uri, 'type': $(th).attr('uri'), 'total': $(th).attr('total'),
+//            alert('before')
+
+            //TODO: workaround to use it for dataset inspection => no entity type
+            //IMPROVE IT
+            var total = $(th).attr('total');
+            if (!total)
+                total = ''
+            var type = $(th).attr('uri');
+            if (graph_uri == '')
+            {
+                graph_uri = $(th).attr('uri');
+                type = ''
+            }
+
+            $.get('/getpredicates', data={'dataset_uri': graph_uri, 'type': type, 'total': total,
                                           'function': 'selectionClick(this, "pred-list");'},
                                     function(data)
             {  // load the rendered template into the column target list col
@@ -2228,6 +2419,8 @@ function methodClick(th)
     var method = $(th).attr('uri');
     var meth_label = $(th).attr('label');
     $('#int_red_graph_row').hide();
+    $('#aprox_settings_row').hide();
+
     if (method == 'identity')
     {
       //refresh_create_linkset(mode='pred');
@@ -2278,6 +2471,7 @@ function methodClick(th)
           $('#selected_int_red_graph').html("Select an alingment as reducer");
           setAttr( 'selected_int_red_graph','style','background-color:none;');
           $('#int_red_graph_row').show();
+          $('#aprox_settings_row').show();
           $('#button_int_red_graph').html('Loading...');
           rq_elem = document.getElementById('creation_idea_selected_RQ');
           rq_uri = $(rq_elem).attr('uri');
@@ -2366,6 +2560,7 @@ function refresh_create_linkset(mode='all')
       $('#creation_linkset_correspondence_col').html('');
 
       $('#int_red_graph_row').hide();
+      $('#aprox_settings_row').hide();
       elem = document.getElementById('selected_int_red_graph');
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');

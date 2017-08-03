@@ -614,16 +614,16 @@ function download(th, filename, query) {
             $('#view_download_message_col').html(addNote(message,cl='info'));
             csv = obj.result;
 
-              var element = document.createElement('a');
-              element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
-              element.setAttribute('download', filename);
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+            element.setAttribute('download', filename);
 
-              element.style.display = 'none';
-              document.body.appendChild(element);
+            element.style.display = 'none';
+            document.body.appendChild(element);
 
-              element.click();
+            element.click();
 
-              document.body.removeChild(element);
+            document.body.removeChild(element);
 
         }
         else
