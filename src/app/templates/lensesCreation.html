@@ -22,6 +22,12 @@
             activateTargetDiv(targetId="edit_lens_heading",cl="panel-heading");
             inspect_lens_activate(mode="edit")'
             >Edit</button>
+    <button type="button" class="btn btn-primary disabled" id="btn_export_lens"
+            onclick='newSelectButton(this);
+            activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");
+            activateTargetDiv(targetId="export_lens_heading",cl="panel-heading");
+            inspect_lens_activate(mode="export")'
+            >Export</button>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");
@@ -167,9 +173,40 @@
        </div>
      </div>
    </div>
+
+    <div class="panel-heading" id="export_lens_heading" style='display:none'>
+     <div class="row">
+       <div class="col-md-4">
+          <h4 class="panel-title">
+            <a id="link_collapse_lens_export"
+                 data-toggle="collapse" href="#collapse_lens_create">
+                <span class="badge alert-info"><strong>-</strong></span></a>
+            Export Lens
+          </h4>
+       </div>
+       <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="lens_export_message_col"></div></td>
+                   <td valign="center"><div class="loading"></div></td>
+                   <td align="right">
+                     <button type="button" id="exportLensButton"
+                       class="btn btn-success btn btn-primary"
+                       onclick='exportLensClick("export.csv")'>
+                         Export Lens
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                     </button>
+                   </td>
+           </table>
+       </div>
+     </div>
+   </div>
+
+
    <div id="collapse_lens_create" class="panel-collapse collapse in"
         target="link_collapse_lens_create"
-        target2="link_collapse_lens_edit">
+        target2="link_collapse_lens_edit"
+        target3="link_collapse_lens_export">
    <div class="panel-body" id="lens_inspect_panel_body">
     <div class="row">
       <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_operation_col">
@@ -326,7 +363,14 @@
                        <button type="button" id="btn_apply_filter_lens"
                         class="btn btn-primary"
                         onclick='applyFilterLensClick()'
-                        >Apply Filter(s)</button></td>
+                        >Apply Filter(s)</button>
+                        <button type="button" id="btn_delete_filter_lens"
+                                class="btn btn-primary"
+                                onclick='deleteFilterLensClick()'
+                                >Delete Filter(s)
+                          <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                        </button>
+                   </td>
            </table>
           </div>
      </div>
@@ -407,7 +451,10 @@
                        <td align="right"><div id="lens_add_search_message_col"></div></td>
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right">
-                           <input type="text" class="form-control" id="lens_filter_text" value="-- Type a term --">
+                           <input type="text" class="form-control" id="lens_filter_text"
+                                  onfocus='if ($(this).val() == "-- Type a term --") {$(this).val("")}'
+                                  onblur='if ($(this).val() == "") {$(this).val("-- Type a term --")}'
+                                  value="-- Type a term --">
                        </td>
                        <td align="right"> &nbsp; </td>
                        <td align="right">

@@ -371,3 +371,56 @@ function validationSaveOnClick(th)
   }
 }
 
+
+function deleteValidationClick(th)
+{
+
+    var listCol = findAncestor(th,'evidence_col');
+    var type = $(listCol).attr('type');
+
+    if (type == 'lens')
+    {
+        var srcDetails = 'srcDetailsLS'
+        var trgDetails = 'trgDetailsLS'
+    }
+    else
+    {
+        var srcDetails = 'srcDetails'
+        var trgDetails = 'trgDetails'
+    }
+
+    // retrieve the uri of the selected singleton
+    var lg = document.getElementById('corresp_list_group');
+    var graph_uri = $(lg).attr("uri");
+    var target = $(lg).attr("target");
+    var elem = document.getElementById(target);
+    var singleton_uri = $(elem).attr("uri");
+
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    if (!rq_uri)
+    {   var rq_uri = $('#creation_lens_selected_RQ').attr('uri'); }
+
+    if (rq_uri && graph_uri && singleton_uri ) {
+       // retrieve the selected properties, if any
+
+       $.get('/deleteValidation',data={'rq_uri': rq_uri,
+                                       'graph_uri': graph_uri,
+                                       'singleton_uri': singleton_uri},
+                                       function(data)
+       {
+
+            var obj = JSON.parse(data);
+
+            $('#linkset_add_filter_message_col').html(addNote(obj.message,cl='warning'));
+
+            $.get('/getevidence',data={'singleton_uri': singleton_uri, 'graph_uri': graph_uri},function(data)
+            {
+                  $('#evidence_list_col').html(data);
+            });
+
+       });
+
+    }
+
+
+}

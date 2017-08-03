@@ -61,8 +61,13 @@
             targetText="creation_view_selected_RQ">
             {% include 'viewsCreation.html' %}
           </div>
+          <div class="col-md-20" id="inspection_dataset_col" style='display:none'
+            mode="dataset" targetButton="button_rq_inspection_dataset_col"
+            targetText="dataset_view_selected_RQ">
+            {% include 'datasetInspection.html' %}
+          </div>
           <div class="col-md-20" id="creation_dataset_col" style='display:none'
-            mode="dataset" targetButton="button_creation_dataset_RQ_col"
+            mode="import" targetButton="button_creation_dataset_RQ_col"
             targetText="creation_dataset_selected_RQ">
             {% include 'datasetCreation.html' %}
           </div>

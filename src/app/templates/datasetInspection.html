@@ -1,0 +1,107 @@
+<div class="panel panel-info">
+<div class="panel-heading">
+   <div class="row">
+    <div id="import_title" class="col-md-9"><h3></h3></div>
+    <div class="col-md-3 text-right" id="creation_dataset_buttons_col">
+      <!--<h4>-->
+      <!--<button type="button" id="btn_import_dataset"-->
+              <!--class="btn btn-primary"-->
+              <!--onclick='newSelectButton(this);import_dataset_button(this);'-->
+              <!--&gt;Dataset</button>-->
+      <!--<button type="button" id="btn_import_alignment"-->
+              <!--class="btn btn-primary"-->
+              <!--onclick='newSelectButton(this);import_alignent_button(this);'-->
+              <!--&gt;Alignment</button>-->
+      <!--</h4>-->
+    </div>
+   </div>
+</div>
+
+<div class="panel-body">
+  <div class="row" id="dataset_inspect_row" >
+    <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_dataset_inspection"
+                     data-toggle="collapse" href="#collapse_dataset_inspection">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Dataset Inspection
+              </h4>
+          </div>
+
+         </div>
+        </div>
+        <div id="collapse_dataset_inspection" class="panel-collapse collapse in" target="link_collapse_dataset_inspection">
+            <div class="panel-body">
+              <div class="row">
+                  <div class="col-md-4">
+
+                    <div class="row" id="select_dataset_row">
+                      <div class="col-md-4 graph-list" id="select_dataset_col"
+                            graph_uri=""
+                            targetTxt="selected_dataset"
+                            targetList="dataset_predicates_col">
+                          <!-- will be rendered via server -->
+                      </div>
+                      <div class="col-md-8">
+                          <div class="well well-sm" id="selected_dataset" uri="">Select a Dataset</div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+
+              <div class="row">
+                  <div class="col-md-4">
+                        <div class="row" id = "dataset_selected_pred_row">
+                         <div class="col-md-12">
+                             <div class="well well-sm" id="dataset_selected_pred" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                        </div>
+                          <div class="row" id = "dataset_list_pred_row">
+                            <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"dataset_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                             <div class="row">
+                                 <div class="col-md-7">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="dts_enable_prop_path"
+                                            onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-12 pred-list" id="dataset_predicates_col"
+                                      targetList="dataset_predicates_col"
+                                      targetTxt="dataset_selected_pred"
+                                      propPathCheckBok="dts_enable_prop_path"
+                                      propPath="enabled"> </div>
+                             </div>
+                            </div>
+                            </div>
+
+                  </div>
+
+              </div>
+
+
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
+</div>

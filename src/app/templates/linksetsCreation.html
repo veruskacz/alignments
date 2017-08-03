@@ -1,8 +1,8 @@
 <div class="panel panel-info">
   <div class="panel-heading">
      <div class="row">
-      <div class="col-md-8"><h3>Linkset</h3></div>
-      <div class="col-md-4 text-right" id="creation_linkset_buttons_col">
+      <div class="col-md-7"><h3>Linkset</h3></div>
+      <div class="col-md-5 text-right" id="creation_linkset_buttons_col">
         <h4><button type="button" id="btn_inspect_linkset"
                 class="btn btn-primary btn btn-success disabled"
                 onclick='newSelectButton(this);
@@ -29,6 +29,12 @@
                 activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
                 inspect_linkset_activate(mode="refine")'
                 >Refine</button>
+        <button type="button" id="btn_export_linkset" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+                activateTargetDiv(targetId="export_linkset_heading",cl="panel-heading");
+                inspect_linkset_activate(mode="export")'
+                >Export</button>
         <button type="button" class="btn btn-primary disabled"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
@@ -112,6 +118,7 @@
       </div>
       </div>
      </div>
+
 
      <div class="row creation" id="creation_linkset_row" style='display:none'>
       <div class="col-md-12">
@@ -201,12 +208,43 @@
              </div>
            </div>
 
+           <div class="panel-heading" id="export_linkset_heading" style='display:none'>
+             <div class="row">
+               <div class="col-md-4">
+                  <h4 class="panel-title">
+                    <a id="link_collapse_linkset_export"
+                         data-toggle="collapse" href="#collapse_linkset_create">
+                        <span class="badge alert-info"><strong>-</strong></span></a>
+                    Export Linkset
+                  </h4>
+               </div>
+               <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_edit_message_col"></div></h5>-->
+               <div class="col-md-8 text-right">
+                   <table align="right">
+                       <tr align="right">
+                           <td align="right"><div id="linkset_export_message_col"></div></td>
+                           <td valign="center"><div class="loading"></div></td>
+                           <td align="right">
+                           <button type="button" id="exportLinksetButton"
+                               class="btn btn-success btn btn-primary"
+                               onclick='exportLinksetClick("export.csv")'>
+                               Export Linkset
+                                <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </button>
+                           </td>
+                   </table>
+               </div>
+             </div>
+           </div>
+
            <div id="collapse_linkset_create" class="panel-collapse collapse in"
              target="link_collapse_linkset_create"
              target2="link_collapse_linkset_edit"
-             target3="link_collapse_linkset_refine">
+             target3="link_collapse_linkset_refine"
+             target4="link_collapse_linkset_export">
 
                <div class="panel-body" id="inspect_panel_body">
+
                 <div class="row">
 
                   <!-- SOURCE OPTIONS -->
@@ -235,14 +273,14 @@
                     <div class="row">
                      <div class="col-md-12">
                         <div class="panel panel-default">
-                          <div class="panel-heading">
+                          <!--<div class="panel-heading"> Testing1-->
                               <!--<h4 class="panel-title"> Testing2-->
-                                  <!--<a data-toggle="collapse" href="#collapse_entity_type">-->
-                                      <!--Additional Entity Type-->
-                                  <!--</a>-->
+                                  <!--&lt;!&ndash;<a data-toggle="collapse" href="#collapse_entity_type">&ndash;&gt;-->
+                                      <!--&lt;!&ndash;Additional Entity Type&ndash;&gt;-->
+                                  <!--&lt;!&ndash;</a>&ndash;&gt;-->
                               <!--</h4>-->
-                          </div>
-                          <!--<div id="collapse_entity_type" class="panel-collapse collapse">-->
+                          <!--</div>-->
+                          <!--<div id="collapse_entity_type" class="panel-collapse collapse in">-->
                           <div class="panel-body">
                                <div class="row">
                                       <div class="col-md-12">
@@ -270,7 +308,7 @@
                                 <!--</div>-->
                                 </div>
 
-                           <!--</div>-->
+                          <!--</div>-->
 
                                <div class="row">
                                       <div class="col-md-12">
@@ -304,21 +342,21 @@
 
                           </div>
                           <!--</div>-->
+                          <!--</div>-->
                         </div>
-                     <!--</div>-->
                      </div>
                     </div>
 
                    <div class="row">
                     <div class="col-md-12">
                       <div class="panel panel-default">
-                      <div class="panel-heading">
+                      <!--<div class="panel-heading">-->
                               <!--<h4 class="panel-title"> Testing2-->
                                   <!--<a data-toggle="collapse" href="#collapse_entity_type">-->
                                       <!--Additional Entity Type-->
                                   <!--</a>-->
                               <!--</h4>-->
-                      </div>
+                      <!--</div>-->
                           <!--<div id="collapse_entity_type" class="panel-collapse collapse">-->
                       <div class="panel-body">
                         <div class="row">
@@ -573,6 +611,42 @@
                            <div class="well well-sm" id="selected_method_desc" label="">Method Description</div>
                         </div>
                     </div>
+                    <div class="row" id="aprox_settings_row" style='display:none'>
+                        <div class="col-md-12">
+                          <div class="panel panel-default">
+                          <div class="panel-heading"></div>
+                          <div class="panel-body">
+                            <div class="row">
+                                  <div class="col-md-3">
+                                      <h5>Threshold</h5>
+                                  </div>
+                               <div class="col-md-9">
+                                    <input type="text" class="form-control" id="linkset_approx_threshold" value="0.8" readonly>
+                               </div>
+                             </div>
+                            <div class="row">
+                                  <div class="col-md-3">
+                                      <h5>Symbols</h5>
+                                  </div>
+                               <div class="col-md-9">
+                                    <input type="text" class="form-control" id="linkset_approx_symbols" value="\.\-\,\+'\?" readonly>
+                               </div>
+                             </div>
+                            <div class="row">
+                                  <div class="col-md-3" style="padding-right: 0px;">
+                                      <h5>Stop-words</h5>
+                                  </div>
+                               <div class="col-md-9"  >
+                                    <input type="text" class="form-control" id="linkset_approx_stop_words" value="THE FOR IN THAT AND OF ON DE LA LES">
+                               </div>
+                             </div>
+
+
+
+                          </div>   <!-- Panel body-->
+                          </div>   <!-- Panel -->
+                      </div>
+                    </div>
                     <div class="row" id="int_red_graph_row">
                         <div class="col-md-4 graph-list" id="button_int_red_graph"
                               targetTxt="selected_int_red_graph" targetBtn="" targetList="">
@@ -626,7 +700,7 @@
         <div class="panel panel-default">
         <div class="panel-heading" id="linkset_filter_heading_panel">
          <div class="row">
-          <div class="col-md-5">
+          <div class="col-md-4">
               <h4 class="panel-title">
                   <a id="link_collapse_linkset_filter"
                      data-toggle="collapse" href="#collapse_linkset_filter">
@@ -634,8 +708,7 @@
                   Filter Linkset Correspondences
               </h4>
           </div>
-          <!--<h5><div class="col-md-4 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>-->
-          <div class="col-md-7 text-right">
+          <div class="col-md-8 text-right">
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="linkset_add_filter_message_col"></div></td>
@@ -649,7 +722,14 @@
                                 onclick='applyFilterLinksetClick()'
                                 >Apply Filter(s)
                           <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
-                          </button></td>
+                          </button>
+                          <button type="button" id="btn_delete_filter_linkset"
+                                class="btn btn-primary"
+                                onclick='deleteFilterLinksetClick()'
+                                >Delete Filter(s)
+                          <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                          </button>
+                       </td>
                </table>
               </div>
          </div>
@@ -723,14 +803,16 @@
                   Search Linkset Correspondences
               </h4>
           </div>
-          <!--<h5><div class="col-md-4 text-right" style="color:red" id="linkset_add_filter_message_col"></div></h5>-->
           <div class="col-md-7 text-right">
                <table align="right">
                    <tr align="right">
                        <td align="right"><div id="linkset_add_search_message_col"></div></td>
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right">
-                           <input type="text" class="form-control" id="linkset_filter_text" value="-- Type a term for search & filter --">
+                           <input type="text" class="form-control" id="linkset_filter_text"
+                                  onfocus='if ($(this).val() == "-- Type a term --") {$(this).val("")}'
+                                  onblur='if ($(this).val() == "") {$(this).val("-- Type a term --")}'
+                                  value="-- Type a term --">
                        </td>
                        <td align="right"> &nbsp; </td>
                        <td align="right">

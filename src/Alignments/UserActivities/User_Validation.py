@@ -14,65 +14,65 @@ def update_evidence(singleton_uri, message, research_uri, accepted=True):
     validation_uri = "{}validation_{}".format(Ns.risis, hash_val)
     validation_type = "{}Accept".format(Ns.prov) if accepted else "{}Reject".format(Ns.alivocab)
 
-    query = """
-    PREFIX prov:<{8}>
-    INSERT
-    {{
-    	GRAPH ?g
-    	{{
-    	    ### 1. CREATE A VALIDATION RESOURCE WITH A TYPE AND MESSAGE
-            <{2}>
-                a   <{3}> ;
-                <{6}comment> \"\"\"{7}.\"\"\" .
-
-            ### 2. LINK THE RESEARCH QUESTION TO THE VALIDATION
-            <{5}>
-                <{4}>   <{2}> .
-
-            ### LINK THE SINGLETON TO THE VALIDATION RESOURCE
-    	    <{0}>
-                <{1}>   <{2}> .
-    	}}
-    }}
-    WHERE
-    {{
-        {{
-            GRAPH ?g
-            {{
-                # THE CURRENT TRIPLE FOR WHICH THE VALIDATION IS BEING CREATED
-                {{ <{0}> ?p ?o . }}
-                UNION
-                # OTHER SINGLETON GRAPHS THAT DERIVED THERE TRIPLE FROM THE CURRENT SINGLETON
-                {{ ?singleton prov:wasDerivedFrom <{0}> . }}
-                FILTER NOT EXISTS
-                {{
-                    <{2}> ?PRE ?OBJ .
-                }}
-            }}
-        }}
-        UNION
-        {{
-            # OTHER SINGLETON GRAPHS FROM WHICH THE CURRENT SINGLETON WAS DERIVE FROM
-            GRAPH ?gPrime
-            {{
-                <{0}> prov:wasDerivedFrom ?earlierSing .
-            }}
-            GRAPH ?g
-            {{
-                ?earlierSing ?p ?o .
-                FILTER NOT EXISTS
-                {{
-                    <{2}> ?PRE ?OBJ .
-                }}
-            }}
-        }}
-
-    }}""".format(
-        # 0            1          2               3                4
-        singleton_uri, predicate, validation_uri, validation_type, "{}created".format(Ns.alivocab),
-        # 5           6        7        8
-        research_uri, Ns.rdfs, message, Ns.prov
-    )
+    # query = """
+    # PREFIX prov:<{8}>
+    # INSERT
+    # {{
+    # 	GRAPH ?g
+    # 	{{
+    # 	    ### 1. CREATE A VALIDATION RESOURCE WITH A TYPE AND MESSAGE
+    #         <{2}>
+    #             a   <{3}> ;
+    #             <{6}comment> \"\"\"{7}.\"\"\" .
+    #
+    #         ### 2. LINK THE RESEARCH QUESTION TO THE VALIDATION
+    #         <{5}>
+    #             <{4}>   <{2}> .
+    #
+    #         ### LINK THE SINGLETON TO THE VALIDATION RESOURCE
+    # 	    <{0}>
+    #             <{1}>   <{2}> .
+    # 	}}
+    # }}
+    # WHERE
+    # {{
+    #     {{
+    #         GRAPH ?g
+    #         {{
+    #             # THE CURRENT TRIPLE FOR WHICH THE VALIDATION IS BEING CREATED
+    #             {{ <{0}> ?p ?o . }}
+    #             UNION
+    #             # OTHER SINGLETON GRAPHS THAT DERIVED THERE TRIPLE FROM THE CURRENT SINGLETON
+    #             {{ ?singleton prov:wasDerivedFrom <{0}> . }}
+    #             FILTER NOT EXISTS
+    #             {{
+    #                 <{2}> ?PRE ?OBJ .
+    #             }}
+    #         }}
+    #     }}
+    #     UNION
+    #     {{
+    #         # OTHER SINGLETON GRAPHS FROM WHICH THE CURRENT SINGLETON WAS DERIVE FROM
+    #         GRAPH ?gPrime
+    #         {{
+    #             <{0}> prov:wasDerivedFrom ?earlierSing .
+    #         }}
+    #         GRAPH ?g
+    #         {{
+    #             ?earlierSing ?p ?o .
+    #             FILTER NOT EXISTS
+    #             {{
+    #                 <{2}> ?PRE ?OBJ .
+    #             }}
+    #         }}
+    #     }}
+    #
+    # }}""".format(
+    #     # 0            1          2               3                4
+    #     singleton_uri, predicate, validation_uri, validation_type, "{}created".format(Ns.alivocab),
+    #     # 5           6        7        8
+    #     research_uri, Ns.rdfs, message, Ns.prov
+    # )
 
     query = """
     PREFIX prov:<{8}>

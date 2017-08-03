@@ -48,6 +48,7 @@ if CREATION_ACTIVE:
     from Alignments.Manage.DatasetStats import stats_optimised as stats
     from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
     from Alignments.Query import sparql_xml_to_csv as sparql2csv
+    import Alignments.UserActivities.ExportAlignment as Ex
 
     import Alignments.Server_Settings as Svr
 
@@ -363,7 +364,9 @@ def correspondences2():
         query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
         correspondences = sparql(query, strip=True)
         print ">>>> Results corr", correspondences, type(correspondences)
-        if (str(correspondences).find('com.complexible.stardog.plan.eval.ExecutionException') >= 0):
+        if correspondences == [{}]:
+            correspondences = []
+        elif (str(correspondences).find('com.complexible.stardog.plan.eval.ExecutionException') >= 0):
             # print 'TEST'
             raise Exception(correspondences)
     except:
@@ -1105,10 +1108,16 @@ def spa_linkset():
     if len(request.args.get('trg_reducer', '')) > 0:
         specs[St.target][St.reducer] = request.args.get('trg_reducer', '')
 
+
     check_type = "linkset"
     id = False
     try:
 
+        threshold = request.args.get('threshold', '0.8')
+        threshold = float(threshold.strip())
+        print threshold
+        stop_words = request.args.get('stop_words', '')
+        stop_symbols = request.args.get('stop_symbols', '')
 
         if CREATION_ACTIVE:
 
@@ -1127,7 +1136,7 @@ def spa_linkset():
                 linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
 
             elif specs['mechanism'] == 'approxStrSim':
-                linkset_result = prefixed_inverted_index(specs, 0.8)
+                linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
             elif specs[St.mechanism] == "intermediate":
                 linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
@@ -1721,6 +1730,21 @@ def adminDel():
     return 'done'
 
 
+@app.route('/exportAlignment')
+def exportAlignment():
+    graph_uri = request.args.get('graph_uri', '')
+    try:
+        print "\n before:", graph_uri
+        result = Ex.export_flat_alignment(graph_uri)
+        print "\n after:", result
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        result = json.dumps({'message':str(error.message), 'result':None})
+
+    return json.dumps(result)
+
+
 @app.route('/deleteLinkset')
 def deleteLinkset():
     rq_uri = request.args.get('rq_uri', '')
@@ -1801,6 +1825,51 @@ def deleteLens():
     except Exception as error:
         print "AN ERROR OCCURRED: ", error
         return json.dumps({'message':str(error.message), 'result':None})
+
+
+
+@app.route('/deleteFilter')
+def deleteFilter():
+    rq_uri = request.args.get('rq_uri', '')
+    filter_uri = request.args.get('filter_uri', '')
+    try:
+        query = Qry.get_delete_filter(rq_uri, filter_uri)
+
+        if Svr.settings[St.stardog_version] == "COMPATIBLE":
+            result = sparql(query, strip=False)
+        else:
+            result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+
+        print ">>>> DELETION RESULT:", result
+        return json.dumps({'message': 'Filter successfully deleted', 'result': 'OK'})
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        return json.dumps({'message':str(error.message), 'result':None})
+
+
+@app.route('/deleteValidation')
+def deleteValidation():
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    singleton_uri = request.args.get('singleton_uri', '')
+
+    try:
+        query = Qry.get_delete_validation(rq_uri, graph_uri, singleton_uri)
+
+        if Svr.settings[St.stardog_version] == "COMPATIBLE":
+            result = sparql(query, strip=False)
+        else:
+            result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+
+        print ">>>> DELETION RESULT:", result
+        return json.dumps({'message': 'Validation successfully deleted', 'result': 'OK'})
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        return json.dumps({'message':str(error.message), 'result':None})
+
+
 
 
 @app.route('/deleteView')

@@ -1,4 +1,4 @@
-        {% for e in data|sort(attribute='Dataset_stripped') %}
+        {% for e in data|sort(attribute='descr') %}
             <li class="list-group-item" id ='{{e.Dataset.value}}+{{e.EntityType.value}}'
                 onclick = "{{ function }}" style = "{{ style }}"
                 uri='{{e.Dataset.value }}' type_uri = '{{e.EntityType.value}}'
