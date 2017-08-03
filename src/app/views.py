@@ -1157,7 +1157,7 @@ def spa_linkset():
 
     except Exception as err:
 
-        print "SECOND CHECK AFTER SERVER ERROR"
+        print "\nSECOND CHECK AFTER SERVER ERROR"
 
         if id == True:
             check = Ls.run_checks_id(specs)
