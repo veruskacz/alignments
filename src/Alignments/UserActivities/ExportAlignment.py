@@ -37,7 +37,61 @@ def export_flat_alignment(alignment):
         row_alignment, triples)
     return {'result': result, 'message':message}
 
+
 def export_flat_alignment_and_metadata(alignment):
+
+    alignment = str(alignment).strip()
+    row_alignment = alignment
+    alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
+    # CONSTRUCT QUERY
+    query = """
+    PREFIX ll: <{0}>
+    PREFIX linkset: <{1}>
+    PREFIX lens: <{2}>
+    PREFIX singletons: <{3}>
+    CONSTRUCT
+    {{
+        ?srcCorr  ll:mySameAs ?trgCorr .
+        ?trgCorr  ll:mySameAs ?srcCorr .
+    }}
+    WHERE
+    {{
+        BIND( {4} as ?alignment )
+        # THE ALIGNMENT GRAPH WITH EXPLICIT SYMMETRY
+        GRAPH ?alignment
+        {{
+            ?srcCorr ?singleton ?trgCorr .
+        }}
+    }} ;
+
+    CONSTRUCT
+    {{
+        ?alignment ?pred  ?obj .
+        ?obj  ?predicate ?object .
+    }}
+    WHERE
+    {{
+        # THE METADATA
+        BIND( {4} as ?alignment )
+        ?alignment  ?pred  ?obj .
+        OPTIONAL {{ ?obj  ?predicate ?object . }}
+    }}
+
+    """.format(Ns.alivocab, Ns.linkset, Ns.lens, Ns.singletons, alignment, )
+    print query
+    exit(0)
+    # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
+    alignment_construct = Qry.endpointconstruct(query)
+    # REMOVE EMPTY LINES
+    triples = len(re.findall('ll:mySameAs', alignment_construct))
+    alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
+    result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
+    message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
+        row_alignment, triples)
+    return {'result': result, 'message':message}
+
+
+def export_flat_alignment_service(alignment):
 
     alignment = str(alignment).strip()
     row_alignment = alignment
@@ -182,6 +236,7 @@ def enrich(specs):
 
     total = 0
     limit = 20000
+    enriched_graph = None
     f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph.ttl"
     b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph{}".format(Ut.batch_extension())
 
@@ -225,10 +280,11 @@ def enrich(specs):
         writer.close()
 
         print "3. GENERATING THE BATCH FILE TEXT"
+        enriched_graph = "{}{}_enriched".format(Ns.dataset, specs[St.graph])
         stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
         load_text = """echo "Loading data"
-        {}stardog data add risis -g http://risis.eu/dataset/{}_enriched "{}"
-        """.format(stardog_path, "grid", f_path)
+        {}stardog data add risis -g {} "{}"
+        """.format(stardog_path, enriched_graph, f_path)
         batch_writer.write(to_unicode(load_text))
         batch_writer.close()
 
@@ -238,6 +294,9 @@ def enrich(specs):
         os.system(b_path)
 
     print "JOB DONE...!!!!!!"
+
+    return {St.message: "The select dataset was enriched with the GADM boundary as {}".format(enriched_graph),
+            St.result: enriched_graph}
 
 specs = {
     St.graph: "http://grid.ac/20170712",
@@ -259,5 +318,5 @@ specs = {
 #     print int(object)
 #
 
-# export_flat_alignment_and_metadata("http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676")
+export_flat_alignment_and_metadata("http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218")
 # print Qry.virtuoso(virtuoso)["result"]
