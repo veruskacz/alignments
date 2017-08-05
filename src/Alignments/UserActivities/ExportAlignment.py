@@ -1,6 +1,7 @@
 import re
 import os
 import codecs
+import rdflib
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -36,9 +37,38 @@ def export_flat_alignment(alignment):
         row_alignment, triples)
     return {'result': result, 'message':message}
 
+def export_flat_alignment_and_metadata(alignment):
+
+    alignment = str(alignment).strip()
+    row_alignment = alignment
+    alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
+    # CONSTRUCT QUERY
+    query = """
+    PREFIX ll: <{}>
+    CONSTRUCT {{ ?x ll:mySameAs ?z }}
+    WHERE
+    {{
+        GRAPH {}
+        {{
+            ?x ?y ?z
+        }}
+    }}
+    """.format(Ns.alivocab, alignment)
+    # print query
+    # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
+    alignment_construct = Qry.endpointconstruct(query)
+    # REMOVE EMPTY LINES
+    triples = len(re.findall('ll:mySameAs', alignment_construct))
+    alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
+    result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
+    message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
+        row_alignment, triples)
+    return {'result': result, 'message':message}
+
 # text = export_flat_alignment("http://risis.eu/linkset/orgreg_2017_grid_20171712_approxStrSim_Organisation_Char_legal_name_P147291413")
 # text = export_flat_alignment("http://risis.eu/lens/union_Orgreg_2017_Grid_20171712_N1952841170")
 # print text
+# http://stardog.risis.d2s.labs.vu.nl/annex/risis/sparql/query
 
 
 def federate():
@@ -83,24 +113,31 @@ select distinct ?subject ?level where
    }
 }
 """
+def enrich_query(specs, limit=0, offset=0, isCount=True):
 
-def enrich():
+    if isCount is True:
+        count_comment = ""
+        get_comment = "#"
+    else:
+        count_comment = "#"
+        get_comment = ""
 
-    f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph.ttl"
-    b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph{}".format(Ut.batch_extension())
-
-    print "0. GETTING THE TOTAL NUMBER "
-    count = """
-    PREFIX ll: <{}>
-    PREFIX pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    virtuoso = """
+    PREFIX ll: <{0}>
     PREFIX gadm: <http://geo.risis.eu/vocabulary/gadm/>
-    SELECT (count(?dataset) as ?TOTAL)
+    {1}SELECT (count(?dataset) as ?TOTAL)
+    {2}CONSTRUCT
+    {2}{{
+    {2}    ?dataset  a <{3}> .
+    {2}    ?dataset  ll:intersects ?gadm .
+    {2}    #?gadm     gadm:level    ?level .
+    {2}}}
     WHERE
     {{
-       GRAPH <http://grid.ac/20170712>
+       GRAPH <{4}>
        {{
-            ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:long ?long .
-            ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:lat  ?lat .
+            ?dataset {5} ?long .
+            ?dataset {6} ?lat .
             FILTER(contains(str(?long), ".") && contains(str(?lat), "."))
        }}
        GRAPH <http://geo.risis.eu/gadm>
@@ -109,52 +146,52 @@ def enrich():
             ?gadm gadm:level   ?level .
             FILTER(?level = 2)
        }}
-       FILTER(bif:st_intersects (?geo, bif:st_point (?long, ?lat), 0.1))
+       FILTER(bif:st_intersects (?geo, bif:st_point (?long, ?lat)))
     }}
-    """.format(Ns.alivocab, "http://xmlns.com/foaf/0.1/Organization")
-    # print count
-    # count_res = Qry.virtuoso(count)
-    total = 363101
+    {2}LIMIT {7}
+    {2}OFFSET {8}
+    """.format(Ns.alivocab, count_comment, get_comment, specs[St.entity_datatype], specs[St.graph],
+               specs['long_predicate'], specs['lat_predicate'], limit, offset)
+    return virtuoso
+
+def enrich(specs):
+
+    total = 0
     limit = 20000
-    iteration = total / limit if total % limit == 0 else total / limit + 1
-    print "ITERATIONS:", iteration
-    for i in range(0, iteration):
+    f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph.ttl"
+    b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph{}".format(Ut.batch_extension())
+
+    print "0. GETTING THE TOTAL NUMBER OF TRIPLES."
+    count = enrich_query(specs, limit=0, offset=0, isCount=True)
+    print count
+    count_res = Qry.virtuoso(count)
+    result = count_res['result']
+
+    # GET THE TOTAL NUMBER OF TRIPLES
+    if result is None:
+        print "NO RESULT FOR THIS ENRICHMENT."
+        return count_res
+
+    g = rdflib.Graph()
+    g.parse(data=result, format="turtle")
+    property = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
+    for subject, predicate, object in g.triples((None, property, None)):
+        total = int(object)
+
+    # NUMBER OF REQUEST NEEDED
+    iterations = total / limit if total % limit == 0 else total / limit + 1
+    print "TOTAL TRIPLES TO RETREIVE  : {} \nTOTAL NUMBER OF ITERATIONS : {}\n".format(total, iterations)
+
+    # RUN THE ITERATIONS
+    for i in range(0, iterations):
 
         offset = i * 20000 + 1
         print "ROUND: {} OFFSET: {}".format(i, offset)
 
         print "1. GENERATING THE ENRICHMENT QUERY"
-        virtuoso = """
-        PREFIX ll: <{}>
-        PREFIX pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-        PREFIX gadm: <http://geo.risis.eu/vocabulary/gadm/>
-        CONSTRUCT
-        {{
-            ?dataset  a <{}> .
-            ?dataset  ll:intersects ?gadm .
-            #?gadm     gadm:level    ?level .
-        }}
-        WHERE
-        {{
-           GRAPH <http://grid.ac/20170712>
-           {{
-                ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:long ?long .
-                ?dataset <http://www.grid.ac/ontology/hasAddress>/pos:lat  ?lat .
-                FILTER(contains(str(?long), ".") && contains(str(?lat), "."))
-           }}
-           GRAPH <http://geo.risis.eu/gadm>
-           {{
-                ?gadm geo:geometry ?geo .
-                ?gadm gadm:level   ?level .
-                FILTER(?level = 2)
-           }}
-           FILTER(bif:st_intersects (?geo, bif:st_point (?long, ?lat), 0.1))
-        }}
-        LIMIT {}
-        OFFSET {}
-        """.format(Ns.alivocab, "http://xmlns.com/foaf/0.1/Organization", limit, offset)
+        virtuoso = enrich_query(specs, limit=limit, offset=offset, isCount=False)
         print virtuoso
-
+        exit(0)
         # print Qry.virtuoso(virtuoso)["result"]
 
         print "2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
@@ -178,9 +215,25 @@ def enrich():
 
     print "JOB DONE...!!!!!!"
 
-enrich()
+specs = {
+    St.graph: "http://grid.ac/20170712",
+    St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
+    'long_predicate': "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
+    'lat_predicate': "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"
+}
+# enrich(specs)
 # federate()
 # X = {'message': 'OK', 'result': '@prefix res: <http://www.w3.org/2005/sparql-results#> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n_:_ a res:ResultSet .\n_:_ res:resultVariable "TOTAL" .\n_:_ res:solution [\n      res:binding [ res:variable "TOTAL" ; res:value 363101 ] ] .\n'}
 # print X['result']
+# g = rdflib.Graph()
+# g.parse(data=None, format="turtle")
+# print len(g)
+# print str(g)
+# print list(g[rdflib.URIRef('_:_ ')])
+# property = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
+# for subject, predicate, object in g.triples((None, property, None)):
+#     print int(object)
+#
+
 
 # print Qry.virtuoso(virtuoso)["result"]

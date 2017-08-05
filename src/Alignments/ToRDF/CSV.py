@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
 # coding=utf-8
 
 from Alignments.ToRDF.RDF import *
 from Alignments.Utility import win_bat as bat
+from kitchen.text.converters import to_bytes, to_unicode
 
 
 __name__ = """CSV"""
@@ -28,6 +30,7 @@ class CSV(RDF):
         bom = ''
         _file = ""
         print
+        self.errorCount = 0
         self.rdftype = rdftype
         self.inputPath = file_to_convert  # -> string   The out file path
         self.pvFormat = u""  # -> string   Representing RDF triple format to use for formatting Predicate_Value
@@ -164,6 +167,7 @@ class CSV(RDF):
         bom = ''
         _file = ""
 
+        self.errorCount = 0
         self.rdftype = rdftype
         self.subjectID = subject_id         # -> int      The index of the attribute to use as identification
         self.inputPath = file_to_convert    # -> string   The out file path
@@ -186,7 +190,7 @@ class CSV(RDF):
             exit(1)
 
         """ About BYTE ORDER MARK (BOM) """
-        self.first_line = _file.readline()
+        self.first_line = _file.readline().strip()
         if self.first_line.startswith(to_bytes(codecs.BOM_UTF8)):
             for i in range(len(to_bytes(codecs.BOM_UTF8))):
                 bom += self.first_line[i]
@@ -194,7 +198,7 @@ class CSV(RDF):
             print u"[" + os.path.basename(self.inputPath) + u"]", u"contains BOM."
 
         # get the first line
-        self.first_line = self.first_line.strip(u'\r\n')
+        # self.first_line = self.first_line.strip(u'\r\n')
         print "\n\tThis is the header: ", self.first_line
 
         # Get the attribute headers
@@ -256,7 +260,13 @@ class CSV(RDF):
             line = to_unicode(_file.readline())
 
             if not line:
-                """ Closing the named-graph by closing the turtle writer
+
+                # WRITE THE BAT FILE
+                print self.dirName
+                self.bat_file = bat(self.dirName, self.database)
+
+                """ Closing the named-graph by closing the turtle writer.
+                    CAN POSSIBLY THROUGH AND EXCEPTION BY RDFLIB AFTER CHECKING THE FILE
                 """
                 if self.isClosed is not True:
                     self.close_writer()
@@ -265,9 +275,6 @@ class CSV(RDF):
                 print 'Done with converting [' + file_to_convert + '] to RDF!!!'
                 _file.close()
 
-                # WRITE THE BAT FILE
-                print self.dirName
-                self.bat_file = bat(self.dirName, self.database)
                 break
 
             # if n <= 5:
@@ -333,7 +340,7 @@ class CSV(RDF):
         if temp != "":
             attributes.append(temp)
 
-        print "EXTRACTOR RETURNED: {}".format(attributes)
+        # print "EXTRACTOR RETURNED: {}".format(attributes)
         return attributes
 
     @staticmethod
@@ -446,6 +453,9 @@ class CSV(RDF):
         if field_metadata is not None:
             array_sep = field_metadata["array_sep"]
 
+        if len(record) != len(self.csvHeader):
+            return ""
+
         # ITERATE THROUGH THE HEADER
         for i in range(0, len(self.csvHeader)):
 
@@ -547,11 +557,19 @@ class CSV(RDF):
         # Replace unwanted characters -> \r\n
         # line = line.rstrip(u'\r\n')
         record = self.extractor(line, separator)
+
+        if len(record) != len(self.csvHeader):
+            self.errorCount += 1
+            print "{:5} Record encoding error. Header: {} columns while Record: {} columns".format(
+                self.errorCount, len(self.csvHeader), len(record))
+            print "\t\t{:8}".format(record)
+            return ""
+
         size = len(record) - 1
         record[size] = record[size].rstrip(u'\r\n')
         # print str(record[size]).__contains__(u'\r\n')
         # print record
-        subject_resource = record[self.subjectID]
+        subject_resource = record[self.subjectID].strip()
 
         if subject_resource is not None:
             subject_resource = subject_resource.strip()
@@ -613,44 +631,45 @@ class CSV(RDF):
         # print record
 
     def write_predicate_value(self, index, value):
+
+        val = value.strip()
         # The last column has a value so, end the triple with a dot
-        if index == self.lastColumn and value != "":
+        if index == self.lastColumn and val != "":
             self.write_line(
                 self.pvFormat.format(
-                    "", vocabulary_prefix + self.csvHeader[index], self.triple_value(value)) + " .")
+                    "", vocabulary_prefix + self.csvHeader[index], self.triple_value(val)) + " .")
             self.write_line("")
 
         # The last column does not have a value => No triple but end of the subject.
-        elif index == self.lastColumn and value == "":
+        elif index == self.lastColumn and val == "":
             self.write_line("{0:>6}".format("."))
             self.write_line("")
 
         # Normal RDF business
-        elif value != b"":
+        elif val != b"":
             # print("\n" + "[" + str(i) + "]" + self.csvHeader[i] + ": " + cur_value)
             self.write_line(self.pvFormat.format(u"", u"{0}{1}".format(
-                vocabulary_prefix, self.csvHeader[index]),
-                                                 self.triple_value(value)) + u" ;")
+                vocabulary_prefix, self.csvHeader[index]), self.triple_value(val)) + u" ;")
 
     def write_rdftype_value(self, index, value):
 
-        value = value.replace(' ', '_')
-        value = re.sub(self.pattern, u"", value.replace('&', "_and_"))
+        val = str(value.replace(' ', '_')).strip()
+        val = re.sub(self.pattern, u"", val.replace('&', "_and_"))
         # The last column has a value so, end the triple with a dot
-        if index == self.lastColumn and value != "":
-            self.write_line(self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, value)) + u" .")
+        if index == self.lastColumn and val != "":
+            self.write_line(self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, val)) + u" .")
             self.write_line("")
 
         # The last column does not have a value => No triple but end of the subject.
-        elif index == self.lastColumn and value == "":
+        elif index == self.lastColumn and val == "":
             self.write_line("{0:>6}".format("."))
             self.write_line("")
 
         # Normal RDF business
-        elif value != b"":
+        elif val != b"":
             # print("\n" + "[" + str(i) + "]" + self.csvHeader[i] + ": " + cur_value)
             self.write_line(
-                self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, to_unicode(value))) + u" ;")
+                self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, to_unicode(val))) + u" ;")
 
 # print CSV.extractor("""\"Name","Country","State?","Level",
 # "Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID\"""", ",")

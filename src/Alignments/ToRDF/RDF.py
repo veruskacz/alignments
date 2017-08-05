@@ -702,8 +702,14 @@ class RDF(object):
         self.turtleWriter.close()
         self.isClosed = True
 
-        self.check_rdf_file(self.outputPath)
-        self.check_rdf_file(self.outputMetaPath)
+        try:
+            self.check_rdf_file(self.outputPath)
+        except Exception as exception:
+            print "\n", exception
+        try:
+            self.check_rdf_file(self.outputMetaPath)
+        except Exception as exception:
+            print "\n", exception
 
     def refresh(self):
         """ This function makes sure that a new file is created whenever self.fileSplitSize is reached """
