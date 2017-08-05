@@ -163,3 +163,6 @@ lens_Diff_dir = "lens_Diff_dir"
 lens_transitive__dir = "lens_transitive__dir"
 lens_Union__dir = "lens_Union__dir"
 
+long_predicate = "long_predicate"
+lat_predicate = "lat_predicate"
+

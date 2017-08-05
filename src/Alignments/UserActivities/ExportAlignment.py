@@ -44,17 +44,41 @@ def export_flat_alignment_and_metadata(alignment):
     alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
     # CONSTRUCT QUERY
     query = """
-    PREFIX ll: <{}>
-    CONSTRUCT {{ ?x ll:mySameAs ?z }}
+    PREFIX ll: <{0}>
+    PREFIX linkset: <{1}>
+    PREFIX lens: <{2}>
+    PREFIX singletons: <{3}>
+    CONSTRUCT
+    {{
+        ?srcCorr  ll:mySameAs ?trgCorr .
+        ?trgCorr  ll:mySameAs ?srcCorr .
+    }}
     WHERE
     {{
-        GRAPH {}
+        BIND( {4} as ?alignment )
+        # THE ALIGNMENT GRAPH WITH EXPLICIT SYMMETRY
+        GRAPH ?alignment
         {{
-            ?x ?y ?z
+            ?srcCorr ?singleton ?trgCorr .
         }}
+    }} ;
+
+    CONSTRUCT
+    {{
+        ?alignment ?pred  ?obj .
+        ?obj  ?predicate ?object .
     }}
-    """.format(Ns.alivocab, alignment)
-    # print query
+    WHERE
+    {{
+        # THE METADATA
+        BIND( {4} as ?alignment )
+        ?alignment  ?pred  ?obj .
+        OPTIONAL {{ ?obj  ?predicate ?object . }}
+    }}
+
+    """.format(Ns.alivocab, Ns.linkset, Ns.lens, Ns.singletons, alignment, )
+    print query
+    exit(0)
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
     alignment_construct = Qry.endpointconstruct(query)
     # REMOVE EMPTY LINES
@@ -218,8 +242,8 @@ def enrich(specs):
 specs = {
     St.graph: "http://grid.ac/20170712",
     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
-    'long_predicate': "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
-    'lat_predicate': "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"
+    St.long_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
+    St.lat_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"
 }
 # enrich(specs)
 # federate()
@@ -235,5 +259,5 @@ specs = {
 #     print int(object)
 #
 
-
+# export_flat_alignment_and_metadata("http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676")
 # print Qry.virtuoso(virtuoso)["result"]
