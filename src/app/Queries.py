@@ -114,11 +114,12 @@ def get_types_per_graph(rq_uri, mode):
 
 
 def get_entity_type_rq(rq_uri, graph_uri):
-    query = PREFIX + """
-    ### GET ENTITYTYPE PER DATASET IN THE SCOPE OF THE RESEARCH QUESTION
-    SELECT DISTINCT ?uri (COUNT(?s) AS ?count)
-    {{
-    	GRAPH <{0}>
+
+    query_rq = ""
+    print rq_uri, type(rq_uri)
+    if rq_uri:
+        query_rq = """
+        GRAPH <{0}>
 	    {{
           	<{0}> a <http://risis.eu/class/ResearchQuestion> ;
           	     alivocab:selected  <{1}> .
@@ -126,12 +127,19 @@ def get_entity_type_rq(rq_uri, graph_uri):
           	<{1}>
           	    alivocab:hasDatatype  ?uri .
         }}
+        """.format(rq_uri, graph_uri)
+
+    query = PREFIX + """
+    ### GET ENTITYTYPE PER DATASET IN THE SCOPE OF THE RESEARCH QUESTION
+    SELECT DISTINCT ?uri (COUNT(?s) AS ?count)
+    {{
+    	{0}
         
         GRAPH <{1}>
         {{
            ?s a ?uri .
         }}
-    }} GROUP BY ?uri """.format(rq_uri, graph_uri)
+    }} GROUP BY ?uri """.format(query_rq, graph_uri)
     if DETAIL:
         print query
     return query

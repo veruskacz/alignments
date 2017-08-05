@@ -20,6 +20,69 @@
 <div class="panel-body">
   <div class="row" id="dataset_inspect_row" >
     <div class="col-md-12">
+
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_dataset_selection"
+                     data-toggle="collapse" href="#collapse_dataset_selection">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Dataset & Entity Type Selection
+              </h4>
+          </div>
+
+         </div>
+        </div>
+        <div id="collapse_dataset_selection" class="panel-collapse collapse in" target="link_collapse_dataset_selection">
+            <div class="panel-body">
+              <div class="row">
+
+                  <div class="col-md-4">
+
+                    <div class="row" id="select_dataset_row">
+                      <div class="col-md-4 graph-list" id="select_dataset_col"
+                            graph_uri=""
+                            targetHidden="hidden_dts_div"
+                            targetTxt="selected_dataset"
+                            targetBtn="button-dts-entity-type-col">
+                            <div id="hidden_dts_div" style='display:none' uri="" label="" ></div>
+                          <!-- will be rendered via server -->
+                      </div>
+                      <div class="col-md-8">
+                          <div class="well well-sm" id="selected_dataset" uri="">Select a Dataset</div>
+                      </div>
+                    </div>
+
+                  </div>
+                  <div class="col-md-4">
+
+                    <div class="row" id="dts_entitytype_row">
+                      <div class="col-md-4 entity-list" id="button-dts-entity-type-col"
+                            graph_uri=""
+                            targetTxt="dts_selected_entity-type"
+                            targetList="dataset_predicates_col"
+                            targetList2="lat_predicates_col"
+                            targetList3="long_predicates_col"
+                            hiddenDiv="hidden_dts_entType_div">
+                        <!-- will be rendered via server -->
+                        <div class="hiddenDiv" id="hidden_dts_entType_div" style='display:none' uri="" label="" ></div>
+                        <button class="btn btn-primary btn-round dropdown-toggle" type="button"
+                                data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
+                      </div>
+                      <div class="col-md-8">
+                         <div class="well well-sm" id="dts_selected_entity-type" uri="">Select an Entity Type</div>
+                      </div>
+                    </div>
+
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+
       <div class="panel panel-default">
         <div class="panel-heading">
          <div class="row">
@@ -34,24 +97,8 @@
 
          </div>
         </div>
-        <div id="collapse_dataset_inspection" class="panel-collapse collapse in" target="link_collapse_dataset_inspection">
+        <div id="collapse_dataset_inspection" class="panel-collapse collapse" target="link_collapse_dataset_inspection">
             <div class="panel-body">
-              <div class="row">
-                  <div class="col-md-4">
-
-                    <div class="row" id="select_dataset_row">
-                      <div class="col-md-4 graph-list" id="select_dataset_col"
-                            graph_uri=""
-                            targetTxt="selected_dataset"
-                            targetList="dataset_predicates_col">
-                          <!-- will be rendered via server -->
-                      </div>
-                      <div class="col-md-8">
-                          <div class="well well-sm" id="selected_dataset" uri="">Select a Dataset</div>
-                      </div>
-                    </div>
-                </div>
-              </div>
 
               <div class="row">
                   <div class="col-md-4">
@@ -78,7 +125,7 @@
                                  </div>
                                  <div class="col-md-5" align="right">
                                      <small><div class="checkbox-inline" ><label><input type="checkbox" id="dts_enable_prop_path"
-                                            onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                                            onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
                                  </div>
                              </div>
                              <div class="row">
@@ -99,6 +146,156 @@
             </div>
         </div>
       </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_dataset_geoenrichment"
+                     data-toggle="collapse" href="#collapse_dataset_geoenrichment">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Dataset Enrichment Geodata
+              </h4>
+          </div>
+
+          <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right" >
+                       <td align="right" valign="center" ><div id="geoenrichment_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right" valign="center"><button type="button" id="geoEnrichmentButton"
+                       class="btn btn-success btn btn-primary"
+                       onclick="geoEnrichmentClick()">Geo-Enrich Dataset
+                           <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
+               </table>
+          </div>
+
+         </div>
+        </div>
+        <div id="collapse_dataset_geoenrichment" class="panel-collapse collapse in" target="link_collapse_dataset_geoenrichment">
+            <div class="panel-body">
+              <div class="row">
+                  <div class="col-md-4">
+
+                       <div class="panel-group">
+
+
+                        <div class="panel panel-default">
+                          <div class="panel-body" style="padding-bottom: 0px;">
+
+                        <div class="row" id = "lat_selected_pred_row">
+                         <div class="col-md-11" style="padding-right: 1px;">
+                             <div class="well well-sm" id="lat_selected_pred" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                         <div class="col-md-1" style="padding-left: 0px;">
+                             <span class="glyphicon glyphicon-remove-circle"
+                                   onclick='resetDivEnrichmentDts("button-dts-entity-type-col","targetList2")'></span>
+                         </div>
+                        </div>
+                        <div class="row" id = "lat_list_pred_row">
+                            <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"lat_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                             <div class="row">
+                                 <div class="col-md-7">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="lat_enable_prop_path"
+                                            checked="checked">
+                                            <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                                         Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-12 pred-list" id="lat_predicates_col"
+                                      targetList="lat_predicates_col"
+                                      targetTxt="lat_selected_pred"
+                                      propPathCheckBok="lat_enable_prop_path"
+                                      propPath="enabled"> </div>
+                             </div>
+                            </div>
+                            </div>
+
+
+                          </div>
+                        </div>
+                       </div>
+                  </div>
+
+                  <div class="col-md-4">
+
+                       <div class="panel-group">
+
+
+                        <div class="panel panel-default">
+                          <div class="panel-body" style="padding-bottom: 0px;">
+
+                        <div class="row" id = "long_selected_pred_row">
+                         <div class="col-md-11" style="padding-right: 1px;">
+                             <div class="well well-sm" id="long_selected_pred" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                         <div class="col-md-1" style="padding-left: 0px;">
+                             <span class="glyphicon glyphicon-remove-circle"
+                                   onclick='resetDivEnrichmentDts("button-dts-entity-type-col","targetList3")'></span>
+                         </div>
+                        </div>
+                        <div class="row" id = "long_list_pred_row">
+                            <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"long_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                             <div class="row">
+                                 <div class="col-md-7">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" style='display:none' ><label><input type="checkbox" id="long_enable_prop_path"
+                                            checked="checked">
+                                            <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList3")' >-->
+                                         Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-12 pred-list" id="long_predicates_col"
+                                      targetList="long_predicates_col"
+                                      targetTxt="long_selected_pred"
+                                      propPathCheckBok="long_enable_prop_path"
+                                      propPath="enabled"> </div>
+                             </div>
+                            </div>
+                            </div>
+
+
+                          </div>
+                        </div>
+                       </div>
+                  </div>
+
+              </div>
+
+
+            </div>
+        </div>
+      </div>
+
     </div>
   </div>
 

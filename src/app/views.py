@@ -277,6 +277,28 @@ def datasets():
 
 
 
+@app.route('/enrichdataset')
+def enrichdataset():
+    """
+        ...
+    """
+
+    specs = {
+        St.graph: request.args.get('graph', ''),
+        St.entity_datatype: request.args.get('entity_datatype', ''),
+        St.long_predicate: request.args.get('long_predicate', ''),
+        St.lat_predicate: request.args.get('lat_predicate', '')
+    }
+
+    print specs
+    result = {}
+    # result = Ex.enrich(specs)
+
+    # SEND BAK RESULTS
+    return json.dumps(result)
+
+
+
 @app.route('/getcorrespheader', methods=['GET'])
 def correspondencesHeader():
 

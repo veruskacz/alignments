@@ -300,20 +300,57 @@ function createIdeaClick()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Functions for Dataset Inspection
+// Functions for Dataset Inspection & Enrichment
 ///////////////////////////////////////////////////////////////////////////////
 function inspect_dataset_activate()
 {
    $('#select_dataset_col').html('Loading...');
           $.get('/getdatasets',
                   data={'template': 'list_dropdown.html',
-                        'function': 'selectionClick(this, "graph-list");'},
+                        'function': 'datasetClick(this)'},
           function(data)
    {  // hide the loading message
       // load the resultant rendered template into source and target buttons
       $('#select_dataset_col').html(data);
    });
 }
+
+function geoEnrichmentClick()
+{
+
+    var graph = $('#selected_dataset').attr('uri');
+    var entity_datatype = $('#dts_selected_entity-type').attr('uri');
+    var long_predicate = $('#long_selected_pred').attr('uri');
+    var lat_predicate = $('#lat_selected_pred').attr('uri');
+
+    if ((graph) && (entity_datatype) && (long_predicate) && (lat_predicate))
+    {
+       var message = "Executing the dataset geo-enrichement";
+       $('#geoenrichment_message_col').html(addNote(message,cl='warning'));
+       loadingGif(document.getElementById('geoenrichment_message_col'), 2);
+       $.get('/enrichdataset',
+                      data={'graph': graph,
+                            'entity_datatype': entity_datatype,
+                            'long_predicate': long_predicate,
+                            'lat_predicate': lat_predicate
+                            },
+              function(data)
+       {
+          loadingGif(document.getElementById('geoenrichment_message_col'), 2, show=false);
+          var obj = JSON.parse(data);
+          $('#geoenrichment_message_col').html(addNote(obj.message,cl='info'));
+       });
+
+    }
+    else {
+      $('#geoenrichment_message_col').html(addNote(missing_feature));
+    }
+
+}
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in linksetsCreation.html
 ///////////////////////////////////////////////////////////////////////////////
@@ -521,8 +558,7 @@ function create_linkset_activate()
                   'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
                   'function': 'datasetClick(this);'},
           function(data)
-   {  // hide the loading message
-      //$('#loading').hide();
+   {
       $('#src_datasets_row').show();
       $('#src_entitytype_row').show();
       $('#trg_datasets_row').show();
@@ -530,6 +566,18 @@ function create_linkset_activate()
       // load the resultant rendered template into source and target buttons
       $('#button-src-col').html(data);
       $('#button-trg-col').html(data);
+   });
+   //TODO: Find a more efficient way to re-settle the function for the items onclick
+   $('#button-src-enriched-col').html('Loading...');
+   $('#button-trg-enriched-col').html('Loading...');
+   $.get('/getdatasetsperrq',
+          data = {'template': 'list_dropdown.html',
+                  'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
+                  'function': 'selectionClick(this, "graph-list");'},
+          function(data)
+   {
+      $('#button-src-enriched-col').html(data);
+      $('#button-trg-enriched-col').html(data);
    });
 }
 
@@ -2317,8 +2365,36 @@ function selectionClick(th, ancestorType)
             $('#'+listCol).html('Loading...');
 //            alert('before')
 
-            //TODO: workaround to use it for dataset inspection => no entity type
-            //IMPROVE IT
+            //TODO: Improve... to make it work for dataset inspection and enrichment
+            var listCol2 = $(list).attr('targetList2');
+            var listCol3 = $(list).attr('targetList3');
+            if (listCol2)
+            {
+                setAttr(listCol2,'graph_uri',graph_uri);
+                // clean previously selected entity type
+                targetTxt = $('#'+listCol2).attr('targetTxt');
+
+                setAttr(targetTxt,'uri','');
+                $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+                setAttr(targetTxt,'style','background-color:none');
+
+                // get the distinct predicates and example values of a graph into a list group
+                $('#'+listCol2).html('Loading...');
+            }
+            if (listCol3)
+            {
+                setAttr(listCol3,'graph_uri',graph_uri);
+                // clean previously selected entity type
+                targetTxt = $('#'+listCol3).attr('targetTxt');
+
+                setAttr(targetTxt,'uri','');
+                $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+                setAttr(targetTxt,'style','background-color:none');
+
+                // get the distinct predicates and example values of a graph into a list group
+                $('#'+listCol3).html('Loading...');
+            }
+
             var total = $(th).attr('total');
             if (!total)
                 total = ''
@@ -2335,7 +2411,13 @@ function selectionClick(th, ancestorType)
             {  // load the rendered template into the column target list col
                 var obj = JSON.parse(data);
                 if (obj.message == 'OK')
+                {
                     $('#'+listCol).html(obj.result);
+                    if (listCol2)
+                        $('#'+listCol2).html(obj.result);
+                    if (listCol3)
+                        $('#'+listCol3).html(obj.result);
+                }
                 else
                     $('#'+listCol).html(obj.message);
             });
@@ -2409,6 +2491,22 @@ function resetDivSelectedEntity(button_id,mode)
                 selectionClick(elem, "entity-list");
         }
     }
+}
+
+function resetDivEnrichmentDts(button_id,targetList)
+{
+        var button = document.getElementById(button_id) //button-src-entity-type-col
+        var predList = $(button).attr(targetList);
+
+        setAttr(predList,'propPath','enabled');
+        var selectedPredDiv = $('#'+predList).attr('targetTxt');
+        setAttr(selectedPredDiv,'uri','');
+        $('#'+selectedPredDiv).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+        setAttr(selectedPredDiv,'style','background-color:none');
+
+        // reload the predicates list
+        $('#'+predList).html($('#dataset_predicates_col').html());
+
 }
 
 
@@ -2782,7 +2880,7 @@ function import_alignent_button(th)
 }
 
 
-$(".collapse").on('hidden.bs.collapse', function(){
+$(".panel-collapse").on('hidden.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));
     if (target)
     {$(target).html(' <span class="badge alert-info"><strong>+</strong></span> ');}
@@ -2795,7 +2893,7 @@ $(".collapse").on('hidden.bs.collapse', function(){
 });
 
 
-$(".collapse").on('shown.bs.collapse', function(){
+$(".panel-collapse").on('shown.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));
     if (target)
     {$(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');}
@@ -2806,6 +2904,7 @@ $(".collapse").on('shown.bs.collapse', function(){
     if (target)
     {$(target).html(' <span class="badge alert-info"><strong>-</strong></span> ');}
 });
+
 
 
 function convertDatasetClick()
