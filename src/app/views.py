@@ -1028,8 +1028,10 @@ def predicates():
     total = request.args.get('total', None)
     propPath = request.args.get('propPath', None)
     function = request.args.get('function', '')
+    sub_uri = request.args.get('search_uri', '')
+
     # GET QUERY
-    query = Qry.get_predicates(dataset_uri, type, total, propPath)
+    query = Qry.get_predicates(dataset_uri, type, total, propPath, sub_uri=sub_uri)
 
     # RUN QUERY AGAINST ENDPOINT
     try:
@@ -1085,10 +1087,11 @@ def datasetpredicatevalues():
     """
     graph_uri = request.args.get('graph_uri', '')
     predicate_uri = request.args.get('predicate_uri', '')
+    search_text = request.args.get('search_text', '')
     function = request.args.get('function', '')
     template = request.args.get('template', 'list_dropdown.html')
     # GET QUERY
-    query = Qry.get_dataset_predicate_values(graph_uri, predicate_uri)
+    query = Qry.get_dataset_predicate_values(graph_uri, predicate_uri, search_text=search_text)
 
     # RUN QUERY AGAINST ENDPOINT
     list = sparql(query, strip=True)

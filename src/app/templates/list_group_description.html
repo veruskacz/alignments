@@ -1,5 +1,6 @@
         {% for e in list|sort(attribute='description') %}
             <li class="list-group-item" id ='{{ e.id.value }}' uri='{{ e.uri.value }}'
+                label = '{{ e.description.value }}'
                 onclick = "{{ function }}" style = "{{ style }}">
                 <span class="list-group-item-heading">{{ e.description.value }}
                 </span>

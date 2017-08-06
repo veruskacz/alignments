@@ -305,7 +305,7 @@ function createIdeaClick()
 function inspect_dataset_activate()
 {
    $('#select_dataset_col').html('Loading...');
-          $.get('/getdatasets',
+   $.get('/getdatasets',
                   data={'template': 'list_dropdown.html',
                         'function': 'datasetClick(this)'},
           function(data)
@@ -313,6 +313,206 @@ function inspect_dataset_activate()
       // load the resultant rendered template into source and target buttons
       $('#select_dataset_col').html(data);
    });
+}
+
+function getValuesFilterDatasetClick()
+{
+    var graph_uri = $('#selected_dataset').attr('uri');
+//    var entity_type_uri = $('#dts_selected_entity-type').attr('uri');
+    var predicate_uri = $('#dataset_selected_pred').attr('uri');
+    var search_text = $('#dataset_filter_text').val();
+
+    $.get('/getdatasetpredicatevalues',data={'graph_uri': graph_uri,
+                                      'predicate_uri': predicate_uri,
+                                      'search_text': search_text,
+                                      'function': 'getDatasetPredicateFilteredClick(this, "values-list")',
+                                      'template': 'list_group_description.html'},function(data)
+    {
+       $('#dataset_values_col').html(data);
+       $('#dataset_inspect_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+       setAttr('dataset_inspect_selected_pred','uri','');
+       $('#dataset_inspect_predicates_col').html('');
+    });
+}
+
+function getDatasetPredicateFilteredClick(th, ancestorType)
+{
+    var graph_uri = $('#selected_dataset').attr('uri');
+    var entity_type_uri = $('#dts_selected_entity-type').attr('uri');
+    var predicate_uri = $('#dataset_selected_pred').attr('uri');
+    var sub_uri = $(th).attr('uri');
+
+    list = findAncestor(th, ancestorType);
+    var listCol = $(list).attr('targetList');
+
+    selectListItemUnique(th, $(list).attr('id'));
+
+    $.get('/getpredicates', data={'dataset_uri': graph_uri, 'type': '', 'total': '',
+                                  'search_uri': sub_uri,
+                                  'function': 'selectionClick2(this, "pred-list");'},
+                            function(data)
+    {  // load the rendered template into the column target list col
+        var obj = JSON.parse(data);
+        if (obj.message == 'OK')
+        {
+            $('#'+listCol).html(obj.result);
+            setAttr(listCol,'graph_uri',graph_uri);
+            setAttr(listCol,'sub_uri',sub_uri);
+            $('#dataset_inspect_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+        }
+        else
+            $('#'+listCol).html(obj.message);
+    });
+}
+
+function selectionClick2(th, ancestorType)
+{
+    list = findAncestor(th, ancestorType);
+
+    var targetTxt = $(list).attr('targetTxt');
+    var label = $(th).attr('label');
+    var listCol = $(list).attr('targetList');
+    var checkPropPath = document.getElementById($(list).attr('propPathCheckBok'));
+
+    // Attributes the uri of the selected entity to the
+    // corresponding div where the label is displayed
+    // and changes its background color
+
+    // it is not the list of predicates, then just attribute
+    // the uri and label to the corresponding divs
+    if ((ancestorType != 'pred-list') || !(checkPropPath.checked))
+    {   setAttr(targetTxt,'uri', $(th).attr('uri') );
+        $('#'+targetTxt).html( label );
+//            alert("0");
+    }
+    // however, if the ancestor is list of predicates, we need to consider the
+    // cumulative attribution of values in a property path
+    else
+    {
+        if ( ($('#'+targetTxt).html() == 'Select a Property + <span style="color:blue"><strong> example value </strong></span>') )
+        {
+//            alert("1");
+            setAttr(targetTxt,'uri', $(th).attr('uri') );
+            $('#'+targetTxt).html( label );
+            var propPath = $(th).attr('uri');
+        }
+        else if ($('#'+listCol).attr('propPath')!='disabled')
+        {
+//            alert("2");
+            var new_text = $('#'+targetTxt).html() + ' / ' + label;
+            var propPath = $('#'+targetTxt).attr('uri') + '/' + $(th).attr('uri');
+            setAttr(targetTxt,'uri', propPath );
+            $('#'+targetTxt).html( new_text );
+        }
+        else //replace the last property in the path
+        {
+            var old_text = $('#'+targetTxt).html();
+//            alert(old_text);
+            var old_path = $('#'+targetTxt).attr('uri');
+//            alert(old_path);
+            var index =  old_text.lastIndexOf(" / ");
+            var new_text = old_text.substring(0, index) + ' / ' + label;
+            index =  old_path.lastIndexOf("/<");
+            var propPath = old_path.substring(0, index) + '/' + $(th).attr('uri');
+//            alert(propPath);
+            setAttr(targetTxt,'uri', propPath );
+            $('#'+targetTxt).html( new_text );
+            alert(new_text);
+        }
+    }
+    setAttr(targetTxt,'style', 'background-color:lightblue');
+
+    // If a tag optional is provided, change the color of the label accordingly
+    var optional = $(th).attr('optional');
+    if (optional)
+    {
+        if (optional == 'true')
+        {    label = '<strong><span style="color:red">'+label+'</span></strong>' }
+        else
+        {    label = '<strong><span style="color:blue">'+label+'</span></strong>' }
+    }
+
+    var graph_uri = $(list).attr('graph_uri');
+    var sub_uri = $(list).attr('sub_uri');
+//    alert(listCol);
+//    alert(sub_uri);
+    if (listCol)
+    {
+        //alert($('#'+listCol).attr('propPath'));
+        if (ancestorType != 'pred-list')
+        {
+            setAttr(listCol,'graph_uri',graph_uri);
+            // clean previously selected entity type
+            targetTxt = $('#'+listCol).attr('targetTxt');
+
+            setAttr(targetTxt,'uri','');
+            $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+            setAttr(targetTxt,'style','background-color:none');
+
+            // get the distinct predicates and example values of a graph into a list group
+            $('#'+listCol).html('Loading...');
+
+            var total = $(th).attr('total');
+            if (!total)
+                total = ''
+            var type = $(th).attr('uri');
+            if (graph_uri == '')
+            {
+                graph_uri = $(th).attr('uri');
+                type = ''
+            }
+
+            $.get('/getpredicates', data={'dataset_uri': graph_uri, 'type': type, 'total': total,
+                                          'search_uri': sub_uri,
+                                          'function': 'selectionClick2(this, "pred-list");'},
+                                    function(data)
+            {  // load the rendered template into the column target list col
+                var obj = JSON.parse(data);
+                if (obj.message == 'OK')
+                {
+                    $('#'+listCol).html(obj.result);
+                }
+                else
+                    $('#'+listCol).html(obj.message);
+            });
+        }
+        else if ((checkPropPath.checked) && ($('#'+listCol).attr('propPath')!='disabled'))
+        {
+            // check if the value of the selected property is of type uri
+            if ($(th).attr('obj_type') == 'uri')
+            {    // if the user choose to use property path
+                // then the pred-list will be reloaeded with the predicates
+                // that are available for the objects of the selected property
+                // if (property_path is selected)
+                var previousContentListCol = $('#'+listCol).html();
+                $('#'+listCol).html('Loading...');
+                $.get('/getpredicates', data={'dataset_uri': graph_uri, 'propPath': propPath,
+                                          'search_uri': sub_uri,
+                                          'function': 'selectionClick2(this, "pred-list");'},
+                                    function(data)
+                {  // load the rendered template into the column target list col
+                    var obj = JSON.parse(data);
+                    if (obj.message == 'OK')
+                    {    $('#'+listCol).html(obj.result); }
+                    else
+                    { if (obj.message == 'Empty')
+                        {    // it is a uri but not a valid property path
+                            // restore the preivous content
+                            $('#'+listCol).html(previousContentListCol);
+                            // disable the continuation of property path
+                            setAttr(listCol,'propPath','disabled');
+                        }
+                        else
+                        {    $('#'+listCol).html(obj.message); }
+                    }
+                });
+            }
+            else
+            {
+                setAttr(listCol,'propPath','disabled');
+            }
+        }
+    }
 }
 
 function geoEnrichmentClick()
@@ -347,7 +547,6 @@ function geoEnrichmentClick()
     }
 
 }
-
 
 
 
@@ -1137,6 +1336,7 @@ function applyFilterLinksetClick()
        showDetails(rq_uri, linkset_uri, obj, filter_uri, filter_term);
     });
 }
+
 
 function deleteFilterLinksetClick()
 {
@@ -2459,6 +2659,7 @@ function selectionClick(th, ancestorType)
         }
     }
 }
+
 
 
 function resetDivSelectedEntity(button_id,mode)

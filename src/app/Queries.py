@@ -752,14 +752,14 @@ def get_resource_description(graph, resource, predicate=None):
     return query
 
 
-def get_predicates(graph, type=None, total=None, propPath=None):
+def get_predicates(graph, type=None, total=None, propPath=None, sub_uri='', search_pred='', search_text=''):
 
     if type:
         type_query = '?s a <{}> .'.format(type)
     else:
         type_query = ''
 
-    print "TOTAL:", total
+    # print "TOTAL:", total
     if total:
         opt_query = '(count(distinct ?s)/{} as ?ratio) (((?ratio)-floor(?ratio))>0 as ?optional)'.format(str(total))
     else:
@@ -770,18 +770,44 @@ def get_predicates(graph, type=None, total=None, propPath=None):
     else:
         propPath_query = ''
 
+    if (search_pred) and (search_text):
+        search_query = """
+        ## TEXT SEARCH
+        ?s    <{}>     ?Svalue .
+        (?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{}\"\"\".
+        """.format(search_pred, search_text)
+    else:
+        search_query = ''
+
+    if sub_uri:
+        if propPath:
+            bind_query = """
+            ## BIND
+            BIND (<{}> AS  ?sub )
+            """.format(sub_uri)
+        else:
+            bind_query = """
+            ## BIND
+            BIND (<{}> AS  ?s )
+            """.format(sub_uri)
+    else:
+        bind_query = ''
+
     query = """
     ### GET PREDICATES WITHIN A CERTAIN GRAPH WITH EXAMPLE VALUE
     SELECT ?pred (MAX(?o) AS ?obj) {}
     {{
         GRAPH <{}>
         {{
+            {}
             {}{}
-            ?s ?pred ?o
+            ?s ?pred ?o .
+
+            {}
         }}
         FILTER (lcase(str(?o)) != 'null')
     }} GROUP BY ?pred
-    """.format(opt_query, graph, type_query, propPath_query)
+    """.format(opt_query, graph, bind_query, type_query, propPath_query, search_query)
     if DETAIL:
         print query
     return query
@@ -799,7 +825,7 @@ def get_predicates_list(graph, exclude_rdf_type=False):
     {{
         GRAPH <{}>
         {{
-            ?s ?uri ?o
+            ?s ?uri ?o .
         }}
         {}
     }} 
@@ -809,18 +835,32 @@ def get_predicates_list(graph, exclude_rdf_type=False):
     return query
 
 
-def get_dataset_predicate_values(graph, predicate):
+def get_dataset_predicate_values(graph, predicate, search_text=''):
+
+    if search_text:
+        search_query = """
+        ## TEXT SEARCH
+        (?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{}\"\"\".
+        """.format(search_text)
+        select = 'DISTINCT (?s as ?uri) (?s as ?id) (?value as ?description) '
+    else:
+        search_query = ''
+        select = 'distinct (?value as ?uri) #named uri just for reusing the html template'
+
+    predicate = predicate if Ut.is_nt_format(predicate) else "<{}>".format(predicate)
 
     query = """
     ### GET DISTINCT VALUES OF FOR A PREDICATE WITHIN A CERTAIN GRAPH
-    SELECT distinct (?value as ?uri) #named uri just for reusing the html template 
+    SELECT  {}
     {{
         GRAPH <{}>
         {{
-            ?s <{}> ?value
+            ?s {} ?value .
+
+            {}
         }}
     }} 
-    """.format(graph, predicate)
+    """.format(select, graph, predicate, search_query)
     if DETAIL:
         print query
     return query

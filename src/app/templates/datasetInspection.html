@@ -97,11 +97,19 @@
 
          </div>
         </div>
-        <div id="collapse_dataset_inspection" class="panel-collapse collapse" target="link_collapse_dataset_inspection">
+        <div id="collapse_dataset_inspection" class="panel-collapse collapse in" target="link_collapse_dataset_inspection">
             <div class="panel-body">
 
               <div class="row">
                   <div class="col-md-4">
+                        <div class="row">
+                              <div class="col-md-12">
+                                  <h4>
+                                      Select a Property or a Path
+                                  </h4>
+                              </div>
+                        </div>
+
                         <div class="row" id = "dataset_selected_pred_row">
                          <div class="col-md-12">
                              <div class="well well-sm" id="dataset_selected_pred" uri="" >
@@ -109,15 +117,9 @@
                              </div>
                          </div>
                         </div>
-                          <div class="row" id = "dataset_list_pred_row">
+
+                        <div class="row" id = "dataset_list_pred_row">
                             <div class="col-md-12">
-                                 <div class="row">
-                                     <div class="col-md-12">
-                                    <span class="glyphicon glyphicon glyphicon-search"></span>
-                                   <input type="text" onkeyup='filterListGroup(this,"dataset_predicates_col")' placeholder="Search for names.." style='width: 95%'>
-                                   </div>
-                                 </div>
-                                 <div class="row"> &nbsp </div>
                              <div class="row">
                                  <div class="col-md-7">
                                      <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
@@ -128,6 +130,15 @@
                                             onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
                                  </div>
                              </div>
+                            </div>
+                            <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"dataset_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   </div>
+                                 </div>
+                                 <!--<div class="row"> &nbsp </div>-->
                              <div class="row">
                                  <div class="col-md-12 pred-list" id="dataset_predicates_col"
                                       targetList="dataset_predicates_col"
@@ -136,9 +147,102 @@
                                       propPath="enabled"> </div>
                              </div>
                             </div>
-                            </div>
+                        </div>
 
                   </div>
+
+                  <div class="col-md-4">
+                       <div class="row">
+                              <div class="col-md-12">
+                                  <h4>
+                                      <!--<small>-->
+                                      <!--<a href="#collapse_dataset_search" data-toggle="collapse">-->
+                                          <!--<span class="badge alert-default"><strong>+</strong></span></a>-->
+                                      <!--</small>-->
+                                      Search for a value
+                                      <small>(exact match per term)</small>
+                                  </h4>
+                              </div>
+                       </div>
+                       <!--<div id="collapse_dataset_search" class="div-collapse collapse">-->
+
+                       <div class="row" id = "dataset_selected_value_row">
+                         <div class="col-md-9" style="padding-right: 1px;" >
+                           <input type="text" class="form-control" id="dataset_filter_text"
+                                  onfocus='if ($(this).val() == "-- Type a term --") {$(this).val("")}'
+                                  onblur='if ($(this).val() == "") {$(this).val("-- Type a term --")}'
+                                  value="-- Type a term --">
+                         </div>
+
+                         <div class="col-md-3" style="padding-left: 1px;" >
+                          <button type="button" id="btn_apply_search_dataset"
+                                class="btn btn-primary"
+                                onclick='getValuesFilterDatasetClick()'
+                                >Search
+                          <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                          </button>
+                         </div>
+                        </div>
+
+                         <div class="row">
+                             <div class="col-md-12 values-list" id="dataset_values_col"
+                              targetList = 'dataset_inspect_predicates_col'
+                             style = 'scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                             </div>
+                         </div>
+                       <!--</div>-->
+                  </div>
+
+                  <div class="col-md-4">
+
+                       <div class="row">
+                              <div class="col-md-12">
+                                  <h4>
+                                      Navigate
+                                  </h4>
+                              </div>
+                       </div>
+
+                        <div class="row" id = "dataset_inspect_selected_pred_row">
+                         <div class="col-md-12">
+                             <div class="well well-sm" id="dataset_inspect_selected_pred" uri="" >Select a Property + <span style="color:blue"><strong> example value </strong></span></div>
+                         </div>
+                        </div>
+
+                        <div class="row" id = "dataset_inspect_list_pred_row">
+                            <div class="col-md-12">
+                                 <div class="row">
+                                   <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                    <input type="text" onkeyup='filterListGroup(this,"dataset_inspect_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   </div>
+                                 </div>
+                                 <!--<div class="row"> &nbsp </div>-->
+                             <div class="row" style='display:none'>
+                                 <div class="col-md-7">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span></strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline">
+                                         <label><input type="checkbox" id="dts_inspect_enable_prop_path" checked="checked">
+                                            <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate")' >-->
+                                         Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-12 pred-list" id="dataset_inspect_predicates_col"
+                                      targetTxt = 'dataset_inspect_selected_pred'
+                                      graph_uri = ''
+                                      sub_uri = ''
+                                      targetList="dataset_inspect_predicates_col"
+                                      propPathCheckBok="dts_inspect_enable_prop_path"
+                                      propPath="enabled"> </div>
+                             </div>
+                            </div>
+                        </div>
+
+                  </div>
+
 
               </div>
 
@@ -181,9 +285,14 @@
 
                        <div class="panel-group">
 
-
                         <div class="panel panel-default">
-                          <div class="panel-body" style="padding-bottom: 0px;">
+                          <div class="panel-body" style="padding-bottom: 10px;">
+
+                        <div class="row" >
+                            <div class="col-md-12">
+                                <h4>Latitude</h4>
+                            </div>
+                        </div>
 
                         <div class="row" id = "lat_selected_pred_row">
                          <div class="col-md-11" style="padding-right: 1px;">
@@ -196,12 +305,14 @@
                                    onclick='resetDivEnrichmentDts("button-dts-entity-type-col","targetList2")'></span>
                          </div>
                         </div>
+
+
                         <div class="row" id = "lat_list_pred_row">
                             <div class="col-md-12">
                                  <div class="row">
                                      <div class="col-md-12">
                                     <span class="glyphicon glyphicon glyphicon-search"></span>
-                                   <input type="text" onkeyup='filterListGroup(this,"lat_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   <input type="text" onkeyup='filterListGroup(this,"lat_predicates_col")' placeholder="Search for names.." style='width: 93%'>
                                    </div>
                                  </div>
                                  <div class="row"> &nbsp </div>
@@ -239,7 +350,13 @@
 
 
                         <div class="panel panel-default">
-                          <div class="panel-body" style="padding-bottom: 0px;">
+                          <div class="panel-body" style="padding-bottom: 10px;">
+
+                        <div class="row" >
+                            <div class="col-md-12">
+                                <h4>Longitude</h4>
+                            </div>
+                        </div>
 
                         <div class="row" id = "long_selected_pred_row">
                          <div class="col-md-11" style="padding-right: 1px;">
@@ -257,7 +374,7 @@
                                  <div class="row">
                                      <div class="col-md-12">
                                     <span class="glyphicon glyphicon-search"></span>
-                                   <input type="text" onkeyup='filterListGroup(this,"long_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   <input type="text" onkeyup='filterListGroup(this,"long_predicates_col")' placeholder="Search for names.." style='width: 93%'>
                                    </div>
                                  </div>
                                  <div class="row"> &nbsp </div>
