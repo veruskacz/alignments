@@ -291,8 +291,7 @@ def enrichdataset():
     }
 
     print specs
-    result = {}
-    # result = Ex.enrich(specs)
+    result = Ex.enrich(specs)
 
     # SEND BAK RESULTS
     return json.dumps(result)
