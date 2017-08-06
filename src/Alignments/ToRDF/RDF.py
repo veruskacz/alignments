@@ -769,7 +769,8 @@ class RDF(object):
 
     @staticmethod
     def check_for_uri(attribute):
-        for c in [' ', '/', ',', "\""]:
+        attribute = attribute.strip()
+        for c in [' ', '/', ',', "\"", '\t']:
             attribute = attribute.replace(c, "_")
         attribute = attribute.replace('&', "_and_")
         return attribute

@@ -148,9 +148,10 @@ class CSV(RDF):
             self.write_triples_2(to_unicode(line), separator, row_number=n, field_metadata=self.fieldMetadata)
 
     def __init__(self, database, is_trig, file_to_convert, separator, entity_type,
-                 rdftype=None, subject_id=None, field_metadata=None):
-        print rdftype
-        print subject_id
+                 rdftype=None, subject_id=None, embedded_uri=None, field_metadata=None):
+
+        print "RDF TYPE LIST : {}".format(rdftype)
+        print "SUBJECT ID    : {}".format(subject_id)
         """
             param database: name of the dataset
             param is_trig: A boolean value indicating the format of the RDF file that will be generated.
@@ -159,6 +160,7 @@ class CSV(RDF):
             param subject_id: The index of the column identified to be used as the subject in the RDF file.
             param entity_type: The name of the entity type starting by a capital character.
         """
+        self.embedded_uri = embedded_uri
         self.fieldMetadata = field_metadata
         if subject_id is None:
             self.no_id(database, is_trig, file_to_convert, separator, entity_type, rdftype)
@@ -256,6 +258,7 @@ class CSV(RDF):
         """ Writing the rdf instances of the dataset
         """
         while True:
+
             n += 1
             line = to_unicode(_file.readline())
 
@@ -278,14 +281,11 @@ class CSV(RDF):
                 break
 
             # if n <= 5:
-            #     # print line
+            #     print line
             #     pass
-            # if n == 6:
-            #     self.turtleWriter.close()
-            #     break
-
+            # if n <= 72:
             """ Proceed with the conversion """
-            self.write_triples(to_unicode(line), separator, self.fieldMetadata)
+            self.write_triples(to_unicode(line), separator, embedded_uri, self.fieldMetadata)
 
     @staticmethod
     def extractor(record, separator):
@@ -445,50 +445,6 @@ class CSV(RDF):
         builder.close()
         return sample
 
-    def write_record_values(self, record, field_metadata=None):
-        """ This function takes as an argument a csv record as
-        an array witch represents a csv line in the dataset """
-
-        array_sep = None
-        if field_metadata is not None:
-            array_sep = field_metadata["array_sep"]
-
-        if len(record) != len(self.csvHeader):
-            return ""
-
-        # ITERATE THROUGH THE HEADER
-        for i in range(0, len(self.csvHeader)):
-
-            # GETTING PROPERTY VALUES
-            cur_value = record[i].strip()
-            # print str(i) + " " + self.csvHeader[i] + "\t" + cur_value
-
-            # GETTING THE SEPARATOR FOR THAT HEADER
-            curr_sep = None
-            if array_sep is not None:
-                curr_sep = array_sep[i]
-
-            # SPLITTING THE RECORD USING curr_sep
-            # IN CASE THE VALUE HAS A SPECIFIC FORMAT
-            if curr_sep is not None and len(curr_sep) > 0:
-                values = cur_value.split(curr_sep)
-
-                for value in values:
-                    if self.rdftype is None or i not in self.rdftype:
-                        # print "NOT WORKING IN MORE"
-                        self.write_predicate_value(i, value)
-                    elif i in self.rdftype:
-                        # print "WORKING IN MORE"
-                        self.write_rdftype_value(i, value)
-
-            else:
-                if self.rdftype is None or i not in self.rdftype:
-                    # print "NOT WORKING " + str(self.rdftype)
-                    self.write_predicate_value(i, cur_value)
-                elif i in self.rdftype:
-                    # print "WORKING"
-                    self.write_rdftype_value(i, cur_value)
-
     def get_schema(self, entity_type, field_metadata=None):
         """ This function gets the set of attribute header as the NEUTRAL implicit Orgref RDF schema """
         schema = cStringIO.StringIO()
@@ -540,7 +496,8 @@ class CSV(RDF):
                         "This property was not used to describe the data as it has "
                         "been redefined as an RDF property ") + u" ;\n"))
 
-            schema.write(self.pvFormat.format(b"", b"rdfs:label", self.triple_value(self.csvHeaderLabel[i]) + u" .\n"))
+            schema.write(self.pvFormat.format(
+                b"", b"rdfs:label", self.triple_value(self.csvHeaderLabel[i]) + u" .\n"))
             if i != len(self.csvHeader) - 1:
                 schema.write(b"\n")
 
@@ -550,7 +507,7 @@ class CSV(RDF):
 
         return schema.getvalue()
 
-    def write_triples(self, line, separator, field_metadata=None):
+    def write_triples(self, line, separator, embedded_uri=None, field_metadata=None):
 
         # print line
 
@@ -563,6 +520,11 @@ class CSV(RDF):
             print "{:5} Record encoding error. Header: {} columns while Record: {} columns".format(
                 self.errorCount, len(self.csvHeader), len(record))
             print "\t\t{:8}".format(record)
+            print line
+            for i in range(0, len(record)):
+                print b"\t\t{} - {}".format(i+1, to_bytes(record[i]))
+
+
             return ""
 
         size = len(record) - 1
@@ -591,8 +553,52 @@ class CSV(RDF):
                 entity_type_prefix, self.entityType)))
 
         # Write the values
-        self.write_record_values(record, field_metadata)
+        self.write_record_values(record, embedded_uri, field_metadata)
         # print record
+
+    def write_record_values(self, record, embedded_uri=None, field_metadata=None):
+        """ This function takes as an argument a csv record as
+        an array witch represents a csv line in the dataset """
+
+        array_sep = None
+        if field_metadata is not None:
+            array_sep = field_metadata["array_sep"]
+
+        if len(record) != len(self.csvHeader):
+            return ""
+
+        # ITERATE THROUGH THE HEADER
+        for i in range(0, len(self.csvHeader)):
+
+            # GETTING PROPERTY VALUES
+            cur_value = record[i].strip()
+            # print str(i) + " " + self.csvHeader[i] + "\t" + cur_value
+
+            # GETTING THE SEPARATOR FOR THAT HEADER
+            curr_sep = None
+            if array_sep is not None:
+                curr_sep = array_sep[i]
+
+            # SPLITTING THE RECORD USING curr_sep
+            # IN CASE THE VALUE HAS A SPECIFIC FORMAT
+            if curr_sep is not None and len(curr_sep) > 0:
+                values = cur_value.split(curr_sep)
+
+                for value in values:
+                    if self.rdftype is None or i not in self.rdftype:
+                        # print "NOT WORKING IN MORE"
+                        self.write_predicate_value(i, value, embedded_uri)
+                    elif i in self.rdftype:
+                        # print "WORKING IN MORE"
+                        self.write_rdftype_value(i, value)
+
+            else:
+                if self.rdftype is None or i not in self.rdftype:
+                    # print "NOT WORKING " + str(self.rdftype)
+                    self.write_predicate_value(i, cur_value, embedded_uri)
+                elif i in self.rdftype:
+                    # print "WORKING"
+                    self.write_rdftype_value(i, cur_value)
 
     def write_triples_2(self, line, separator, row_number, field_metadata=None):
 
@@ -630,11 +636,19 @@ class CSV(RDF):
         self.write_record_values(record, field_metadata)
         # print record
 
-    def write_predicate_value(self, index, value):
+    def write_predicate_value(self, index, value, embedded_uri=None):
 
         val = value.strip()
         # The last column has a value so, end the triple with a dot
         if index == self.lastColumn and val != "":
+
+            # A URI VALUE
+            if embedded_uri is not None and index in embedded_uri:
+                self.write_line(
+                    self.pvFormat.format(
+                        u"", vocabulary_prefix + self.csvHeader[index], u"{}:{}".format(
+                            self.data_prefix, self.check_for_uri(val))) + u" .")
+
             self.write_line(
                 self.pvFormat.format(
                     "", vocabulary_prefix + self.csvHeader[index], self.triple_value(val)) + " .")
@@ -648,16 +662,32 @@ class CSV(RDF):
         # Normal RDF business
         elif val != b"":
             # print("\n" + "[" + str(i) + "]" + self.csvHeader[i] + ": " + cur_value)
+
+            # A URI VALUE
+            if embedded_uri is not None and index in embedded_uri:
+                self.write_line(
+                    self.pvFormat.format(
+                        u"", vocabulary_prefix + self.csvHeader[index] + u"_uri", u"{}:{}".format(
+                            self.data_prefix, self.check_for_uri(val))) + u" ;")
+
             self.write_line(self.pvFormat.format(u"", u"{0}{1}".format(
                 vocabulary_prefix, self.csvHeader[index]), self.triple_value(val)) + u" ;")
 
     def write_rdftype_value(self, index, value):
 
-        val = str(value.replace(' ', '_')).strip()
-        val = re.sub(self.pattern, u"", val.replace('&', "_and_"))
+        val = value.strip()
+        # val = str(value.replace(' ', '_')).strip()
+        # val = re.sub(self.pattern, u"", val.replace('&', "_and_"))
+        # print self.triple_value(val)
+
         # The last column has a value so, end the triple with a dot
         if index == self.lastColumn and val != "":
-            self.write_line(self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, val)) + u" .")
+
+            self.write_line(self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(
+                self.data_prefix, self.check_for_uri(val))) + u" ;")
+
+            self.write_line(self.pvFormat.format(
+                u"", vocabulary_prefix + self.csvHeader[index], self.triple_value(val)) + u" .")
             self.write_line("")
 
         # The last column does not have a value => No triple but end of the subject.
@@ -669,7 +699,10 @@ class CSV(RDF):
         elif val != b"":
             # print("\n" + "[" + str(i) + "]" + self.csvHeader[i] + ": " + cur_value)
             self.write_line(
-                self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(self.data_prefix, to_unicode(val))) + u" ;")
+                self.pvFormat.format(u"", u"rdf:type", u"{}:{}".format(
+                    self.data_prefix, to_unicode(self.check_for_uri(val)))) + u" ;")
+            self.write_line(
+                self.pvFormat.format(u"", vocabulary_prefix + self.csvHeader[index], self.triple_value(val)) + u" ;")
 
 # print CSV.extractor("""\"Name","Country","State?","Level",
 # "Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID\"""", ",")
