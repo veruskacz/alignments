@@ -594,7 +594,7 @@ def get_target_datasets(graph_uri=''):
     ### GET TARGET DATASETS
     ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
     {}
-    SELECT DISTINCT ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism ?sub ?obj
+    SELECT DISTINCT ?graph ?subjectsTarget ?objectsTarget ?alignsSubjects ?alignsObjects ?alignsMechanism 
     where
     {{
             ### Retrieves the lens 
