@@ -29,7 +29,6 @@ def refine(specs, exact=False, exact_intermediate=False, activated=False):
     else:
         print "THE FUNCTION IS ACTIVATED"
 
-
     # if True:
     try:
         check_none = 0
@@ -289,7 +288,7 @@ def insert_exact_query(specs):
                specs[St.linkset], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
                specs[St.singletonGraph],
                source[St.graph], source[St.entity_datatype], src_aligns,
-               target[St.graph], target[St.entity_datatype],trg_aligns)
+               target[St.graph], target[St.entity_datatype], trg_aligns)
     # print insert_query
     return insert_query
 

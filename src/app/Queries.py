@@ -582,7 +582,7 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
     limit {0}
     """.format(limit, graph_uri, filters['filter_condition'],
                filters['filter_count'], filters['filter_count_aux'],
-               filters['filter_term_match'], Ut.from_alignment2Singleton(graph_uri))
+               filters['filter_term_match'], Ut.from_alignment2singleton(graph_uri))
     if DETAIL:
         print query
     return query
@@ -1173,7 +1173,7 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
                 {2}
     """.format(linkset, filters['filter_condition'],
                filters['filter_count'], filters['filter_count_aux'],
-               filters['filter_term_match'], Ut.from_alignment2Singleton(linkset))
+               filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
 
     query = PREFIX + """
     ### LINKSET DETAILS
@@ -1324,7 +1324,7 @@ def get_delete_validation(rq_uri, graph_uri, singleton_uri):
         ?validation        ?pre 		        ?obj .
       }}
     }}
-    """.format(rq_uri, Ut.from_alignment2Singleton(graph_uri), singleton_uri,
+    """.format(rq_uri, Ut.from_alignment2singleton(graph_uri), singleton_uri,
                "{}created".format(Ns.alivocab), "{}hasValidation".format(Ns.alivocab))
     print query
     return query

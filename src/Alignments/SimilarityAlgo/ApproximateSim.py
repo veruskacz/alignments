@@ -970,7 +970,8 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
             print "THE DATA IS BEING LOADED OVER HTTP POST."
         else:
             print "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
-            os.system(writers[St.batch_output_path])
+            # os.system(writers[St.batch_output_path])
+            Ut.batch_load(writers[St.batch_output_path])
         # inserted = Qry.insert_size(specs[St.linkset], isdistinct=False)
 
         metadata = Gn.linkset_metadata(specs, display=False).replace("INSERT DATA", "")

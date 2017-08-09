@@ -27,7 +27,7 @@ mac_weird_name = "darwin"
 #################################################################
 
 
-def from_alignment2Singleton(alignment):
+def from_alignment2singleton(alignment):
 
     if str(alignment).__contains__(Ns.linkset):
         return str(alignment).replace(Ns.linkset, Ns.singletons)
@@ -80,7 +80,6 @@ def get_uri_local_name(uri, sep="_"):
                 # print ">>>> name: ", name
         return name
 
-
     else:
         non_alphanumeric_str = re.sub('[ \w]', '', uri)
         if non_alphanumeric_str == "":
@@ -110,7 +109,9 @@ def pipe_split(text, sep="_"):
 
     return altered
 
+
 # print pipe_split("[rembrandt van rijn] aligns with [rembrandt van rijn]")
+
 
 def get_uri_ns_local_name(uri):
     if (uri is None) or (uri == ""):
@@ -627,6 +628,7 @@ def get_writers(graph_name, directory):
     linkset_output = "{}/{}".format(dir_name, linkset_file)
     metadata_output = "{}/{}".format(dir_name, metadata_file)
     singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+
     try:
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
@@ -666,5 +668,57 @@ def normalise_path(file_path):
     return file_path
 
 
-# print get_uri_local_name("<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>/<http://dbpedia.org/ontology/author>")
-# print get_uri_ns_local_name("<http://dbpedia.org/ontology/author>/<http://dbpedia.org/property/name>")
+def load_triple_store(graph_uri, directory, data):
+
+    #  print graph_name
+    """ 2. FILE NAME SETTINGS """
+    graph_name = get_uri_local_name(graph_uri)
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    dir_name = directory
+    np = normalise_path(dir_name)
+    dir_name = os.path.dirname(np) if os.path.isdir(np) is not True else np
+    dir_name = dir_name.replace("\\", "/")
+
+    # FILE NAME
+    batch_file = "{}_batch_{}{}".format(graph_name, date, batch_extension())
+    insert_file = "{}-{}.trig".format(graph_name, date)
+
+    # FILE PATH
+    batch_output = "{}/{}".format(dir_name, batch_file)
+    insert_output = "{}/{}".format(dir_name, insert_file)
+
+    # MAKE SURE THE FOLDER EXISTS
+    try:
+        if not os.path.exists(dir_name):
+            os.makedirs(dir_name)
+    except OSError as err:
+        print "\n\t[utility_LOAD_TRIPLE_STORE:]", err
+        return
+
+    # WRITERS
+    b_writer = codecs.open(insert_output, "wb", "utf-8")
+    i_writer = codecs.open(batch_output, "wb", "utf-8")
+
+    # WRITE DATA TO FILE
+    i_writer.write(data.getvalue)
+    i_writer.close()
+
+    # GENERATE THE BATCH FILE
+    if OPE_SYS == 'windows':
+        b_writer.write("\n\tstardog data add risis {}".format(insert_output))
+    else:
+        stardog_path = Svr.settings[St.stardog_path]
+        b_writer.write("\n\t{}stardog data add risis {}".format(stardog_path, insert_output))
+    b_writer.close()
+
+    # SET ACCESS RIGHT
+    if Ut.OPE_SYS != 'windows':
+        print "MAC BATCH: {}".format(batch_output)
+        os.chmod(batch_output, 0o777)
+
+    # RUN THE BATCH FILE
+    batch_load(batch_output)
+
+    triples = Qry.get_namedgraph_size(graph_uri)
+
+    return {"result": triples, "message": "{} inserted".format(triples)}

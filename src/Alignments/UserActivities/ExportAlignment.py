@@ -86,7 +86,7 @@ def export_flat_alignment_and_metadata(alignment):
     # print query
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
-    alignment_construct = Qry.endpointconstruct(query)
+    alignment_construct = Qry.endpointconstruct(query, clean=False)
 
     # REMOVE EMPTY LINES
     triples = 0
@@ -117,7 +117,8 @@ def export_alignment(alignment):
         {1} ?y ?z
     }} order by ?y
     """.format(Ns.alivocab, alignment)
-    meta_construct = Qry.endpointconstruct(meta)
+
+    meta_construct = Qry.endpointconstruct(meta, clean=False)
     meta_construct = meta_construct.replace("{", "").replace("}", "")
     # print meta_construct
 
@@ -151,7 +152,7 @@ def export_alignment(alignment):
     """.format(Ns.alivocab, alignment)
     # print query
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
-    alignment_construct = Qry.endpointconstruct(query)
+    alignment_construct = Qry.endpointconstruct(query, clean=False)
 
     # REMOVE EMPTY LINES
     # triples = len(re.findall('ll:mySameAs', alignment_construct))
@@ -168,7 +169,7 @@ def export_alignment(alignment):
 
     # result = result
     # print result
-
+    print "Done with graph: {}".format(alignment)
     return {
         'result': result,
         'message': message,
@@ -179,7 +180,12 @@ def export_alignment(alignment):
 
 # ALIGNMENT FOR VISUALISATION: THE MAIN FUNCTION
 def visualise(graphs):
-
+    # uri_10 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
+    uri_20 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
+    uri_30 = "http://risis.eu/linkset/eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458"
+    uri_22 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676_exactStrSim_Country_Code"
+    uri_33 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458_exactStrSim_Country_Code"
+    graphs = [uri_20, uri_22, uri_30, uri_33]
     writer = Buffer.StringIO()
     # file = open("C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\plot.ttl", 'wb')
     g = rdflib.Graph()
@@ -193,8 +199,11 @@ def visualise(graphs):
     triples = 0
     datasets = (None, None)
 
+    code = 0
     for graph in graphs:
         # print graph
+
+        code = +1
 
         links = export_alignment(graph)
         mechanism = links['mechanism']
@@ -212,17 +221,20 @@ def visualise(graphs):
             sg = rdflib.Graph()
             sg.parse(data=links['result'], format="turtle")
             triples += len(sg)
+
             for subject, predicate, obj in sg.triples((None, None, None)):
                 if predicate not in singletons:
-                    singletons[predicate] = [mechanism]
-                elif [mechanism] not in singletons[predicate]:
-                    singletons[predicate] += [mechanism]
+                    mech = "{}_{}".format(mechanism, code)
+                    singletons[predicate] = [mech]
+                elif mech not in singletons[mech]:
+                    singletons[mech] += [mech]
 
     # prefix = """
     # PREFIX link: <http://risis.eu/alignment/link/>
     # PREFIX plot: <http://risis.eu/alignment/plot/>"""
     count = 0
     writer.write("PREFIX ll: <{}>\n".format(Ns.alivocab))
+    writer.write("PREFIX rdf: <{}>\n".format(Ns.rdf))
     writer.write("PREFIX link: <http://risis.eu/alignment/link/>\n")
     writer.write("PREFIX plot: <http://risis.eu/alignment/plot/>\n")
     writer.write("PREFIX mechanism: <{}>\n".format(Ns.mechanism))
@@ -268,7 +280,7 @@ def visualise(graphs):
         writer.write("\t\t\tlink:target_uri <{}> ;\n".format(obj))
         for value in singletons[predicate]:
             writer.write("\t\t\tlink:mechanism  {} ;\n".format(value).replace(Ns.mechanism, "mechanism:"))
-        writer.write("\t\t\tlink:type       link:Link .\n")
+        writer.write("\t\t\trdf:type        link:Link .\n")
         writer.write("")
     writer.write("\t}\n}")
 
@@ -713,11 +725,12 @@ def get_bom_type(file_path):
     return bom_type
 
 
-uri_1 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
-uri_3 = "http://risis.eu/linkset/" \
+
+
+uri_4 = "http://risis.eu/linkset/" \
         "orgreg_20170718_grid_20170712_exactStrSim_University_Entity_current_name_English_P1888721829"
-uri_2 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
-# print visualise([uri_3])
+
+# print visualise([uri_4])
 
 specs = {
     St.graph: "http://grid.ac/20170712",
@@ -771,3 +784,5 @@ path = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_E
 # <http://risis.eu/eter_2014/resource/CZ0060>
 # ll:exactStrSim2_ef65515b-2d92-4143-a58a-6d703e125dff <http://www.grid.ac/institutes/grid.5596.f> .
 # """
+
+print uuid()

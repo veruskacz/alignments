@@ -364,7 +364,7 @@ def boolean_endpoint_response(query, display=False):
     return result
 
 
-def endpointconstruct(query):
+def endpointconstruct(query, clean=True):
 
     q = to_bytes(query)
     # print q
@@ -383,7 +383,7 @@ def endpointconstruct(query):
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
-
+    # print  query
     params = urllib.urlencode({b'query': q})
     request = urllib2.Request(url, data=params, headers=headers)
     request.get_method = lambda: "POST"
@@ -406,10 +406,11 @@ def endpointconstruct(query):
             result = result.replace("<{}>".format(regex_result[i]), "?LINK_{}".format(i))
             bind += "\tBIND( IRI(\"{}\") AS ?LINK_{} )\n".format(regex_result[i].replace("\>", ">"), i)
 
-        # FINAL CLEANING
-        if len(regex_result) > 0:
-            result = result.replace("{", "{{\n{}".format(bind))
-            # print "RESPONSE RESULT ALTERED:", result
+        if clean is True:
+            # FINAL CLEANING
+            if len(regex_result) > 0:
+                result = result.replace("{", "{{\n{}".format(bind))
+                print "RESPONSE RESULT ALTERED:", result
 
         return result
 
