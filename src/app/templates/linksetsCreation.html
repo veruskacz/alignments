@@ -29,12 +29,26 @@
                 activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
                 inspect_linkset_activate(mode="refine")'
                 >Refine</button>
-        <button type="button" id="btn_export_linkset" class="btn btn-primary disabled"
-                onclick='newSelectButton(this);
-                activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+        <!--<button type="button" id="btn_export_linkset" class="btn btn-primary disabled"-->
+                <!--onclick='newSelectButton(this);-->
+                <!--activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");-->
+                <!--activateTargetDiv(targetId="export_linkset_heading",cl="panel-heading");-->
+                <!--inspect_linkset_activate(mode="export")'-->
+                <!--&gt;Export</button>-->
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle disabled" data-toggle="dropdown"
+                id="btn_export_linkset"
+                onclick='newSelectButton(this);'>
+            Export <span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu"
+                onclick='activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
                 activateTargetDiv(targetId="export_linkset_heading",cl="panel-heading");
-                inspect_linkset_activate(mode="export")'
-                >Export</button>
+                inspect_linkset_activate(mode="export");'>
+              <li onclick='setAttr("exportLinksetButton","mode","flat");'><a href="#">Flat</a></li>
+              <li onclick='setAttr("exportLinksetButton","mode","md");'><a href="#">Flat + Metadata</a></li>
+              <li onclick='setAttr("exportLinksetButton","mode","vis");'><a href="#">Plot</a></li>
+            </ul>
+        </div>
         <button type="button" class="btn btn-primary disabled"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
@@ -223,28 +237,15 @@
                    <table align="right">
                        <tr align="right">
                            <td align="right"><div id="linkset_export_message_col"></div></td>
-                           <td valign="center"><div class="loading"></div></td>
+                           <td valign="center"><div class="loading"></div>
+                           <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </td>
                            <td align="right">
                            <button type="button" id="exportLinksetButton"
                                class="btn btn-success btn btn-primary"
-                               onclick='exportLinksetClick("export.ttl",mode="flat")'>
-                               Export Flat
-                                <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
-                           </button>
-                           </td>
-                           <td align="right">
-                           <button type="button" id="exportMDLinksetButton"
-                               class="btn btn-success btn btn-primary"
-                               onclick='exportLinksetClick("export.trig",mode="md")'>
-                                + Metadata
-                                <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
-                           </button>
-                           </td>
-                           <td align="right">
-                           <button type="button" id="exportVisLinksetButton"
-                               class="btn btn-success btn btn-primary"
-                               onclick='exportLinksetClick("export.trig",mode="vis")'>
-                               Visualisation
+                               mode=""
+                               onclick='exportLinksetClick("export.ttl",mode=$(this).attr("mode"))'>
+                               Export
                                 <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                            </button>
                            </td>

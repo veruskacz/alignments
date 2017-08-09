@@ -559,6 +559,8 @@ function inspect_linkset_activate(mode)
 {
 
   var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+//    setAttr("inspect_linkset_selection_col","unique","enabled");
+
   if (rq_uri)
   {
      $('#creation_linkset_row').hide();
@@ -577,26 +579,28 @@ function inspect_linkset_activate(mode)
        // set actions after clicking a graph in the list
        $('#inspect_linkset_selection_col a').on('click',function(e)
         {
-          if (selectListItemUnique(this, 'inspect_linkset_selection_col'))
+          if ((mode == 'export') && ($('#exportLinksetButton').attr('mode')=='vis'))
+          {
+            var selection = selectListItem(this);
+//            alert(selection);
+          }
+          else
+          {
+            var selection = selectListItemUnique(this, 'inspect_linkset_selection_col')
+          }
+          if (selection)
           {
             var linkset_uri = $(this).attr('uri');
 
             // load the panel describing the linkset sample
             $('#inspect_linkset_linkset_details_col').show();
             $('#inspect_linkset_linkset_details_col').html('Loading...');
-//            alert('loading linkset');
             $.get('/getlinksetdetails',data={'linkset': linkset_uri},function(data)
             {
                 var obj = JSON.parse(data);
                 $('#inspect_linkset_linkset_details_col').html(obj.data);
-            //});
 
-            get_filter(rq_uri, linkset_uri);
-
-            //$.get('/getlinksetdetails',data={'linkset': linkset_uri,
-            //                                 'template': 'none'},function(data)
-            //{
-                //var obj = JSON.parse(data);
+                get_filter(rq_uri, linkset_uri);
 
                 if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
                 {
@@ -977,13 +981,23 @@ function exportLinksetClick(filename, mode='flat')
     if (elems.length > 0) // if any element is selected
     {
         linkset = $(elems[0]).attr('uri');  // it should have only one selected
-        //alert(linkset);
+
+        // if plot is requested, a list of graphs is the input
+        var graphs = []
+        if (mode == 'vis')
+        {
+            var i;
+            for (i = 0; i < elems.length; i++) {
+              graphs.push($(elems[i]).attr('uri'));
+            }
+        }
+
         var message = "Exporting Linkset";
         $('#linkset_export_message_col').html(addNote(message,cl='warning'));
         loadingGif(document.getElementById('linkset_export_message_col'), 2);
 
         // call function that creates the linkset
-        $.get('/exportAlignment', data={'graph_uri':linkset, 'mode':mode}, function(data)
+        $.get('/exportAlignment', data={'graph_uri':linkset, 'graphs[]':graphs, 'mode':mode}, function(data)
         {
 
             var obj = JSON.parse(data);

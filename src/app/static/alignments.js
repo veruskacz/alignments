@@ -98,6 +98,14 @@ function newresetButtons(container)
     for (i = 0; i < elems.length; i++) {
       $(elems[i]).removeClass('btn-success');
     }
+    var elems_group = container.getElementsByClassName('btn-group');
+    var j;
+    for (j = 0; j < elems_group.length; j++) {
+        elems = elems_group[j].getElementsByClassName('btn-success');
+        for (i = 0; i < elems.length; i++) {
+          $(elems[i]).removeClass('btn-success');
+        }
+    }
 }
 
 function resetButton(button)
@@ -109,6 +117,10 @@ function resetButton(button)
 function newSelectButton(button)
 {
   container = button.parentNode;
+  if ($(button.parentNode).attr('class') == 'btn-group')
+  {
+       container = container.parentNode;
+  }
   if (container) {
     newresetButtons(container);
     $(button).addClass('btn-success');
@@ -168,16 +180,21 @@ function setAttr(elemId,attr,value) {
 function selectListItemUnique(item, grouplist_name)
 {
     // check if there are selected elements in the group list
-    var elems = selectedElemsInGroupList(grouplist_name);
-    var i;
-    for (i = 0; i < elems.length; i++) {
-     // remove the selection
-      $(elems[i]).removeClass('list-group-item-warning');
-    }
-    $(item).addClass('list-group-item-warning');
-  // }
-  // set the indicated element as selected
-  return true
+//    if ($('#'+grouplist_name).attr('unique') == 'disabled')
+//    {
+//        return selectListItem(item);
+//    }
+//    else
+//    {
+        var elems = selectedElemsInGroupList(grouplist_name);
+        var i;
+        for (i = 0; i < elems.length; i++) {
+         // remove the selection
+          $(elems[i]).removeClass('list-group-item-warning');
+        }
+        $(item).addClass('list-group-item-warning');
+        return true
+//    }
 }
 
 function selectListItemUniqueDeselect(item, grouplist_name)

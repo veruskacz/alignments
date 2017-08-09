@@ -1758,6 +1758,9 @@ def adminDel():
 def exportAlignment():
     graph_uri = request.args.get('graph_uri', '')
     mode = request.args.get('mode', 'flat')
+    graphs = request.args.getlist('graphs[]')
+    print graphs
+
     try:
         # print "\n before:", graph_uri
         if mode == 'flat':
@@ -1765,7 +1768,7 @@ def exportAlignment():
         elif mode == 'md':
             result = Ex.export_flat_alignment_and_metadata(graph_uri)
         elif mode == 'vis':
-            result = Ex.visualise([graph_uri])
+            result = Ex.visualise(graphs)
         # print "\n after:", result
 
     except Exception as error:
