@@ -557,6 +557,7 @@ def sparql_xml_to_matrix(query):
                                 index = name_index[value['@name']]
                                 if value.items()[1][0] != '@name':
                                     item = value.items()[1][1]
+                                    matrix[1][index] = to_bytes(item)
                                     # print "Collection:", value.items()[i][0]
                                 else:
                                     item = ""

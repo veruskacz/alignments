@@ -49,6 +49,7 @@ if CREATION_ACTIVE:
     from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
     from Alignments.Query import sparql_xml_to_csv as sparql2csv
     import Alignments.UserActivities.ExportAlignment as Ex
+    from kitchen.text.converters import to_bytes, to_unicode
 
     import Alignments.Server_Settings as Svr
 
@@ -702,7 +703,7 @@ def detailsLens():
             if values_matrix is None:
                 pred_value = {'pred': get_URI_local_name(src_align_list[i]), 'value': ""}
             else:
-                pred_value = {'pred': get_URI_local_name(src_align_list[i]), 'value':values_matrix[1][i]}
+                pred_value = {'pred': get_URI_local_name(src_align_list[i]), 'value': to_unicode(values_matrix[1][i])}
 
             pred_values_src += [pred_value]
 
@@ -716,7 +717,7 @@ def detailsLens():
             if values_matrix is None:
                 pred_value = {'pred': get_URI_local_name(trg_align_list[i]), 'value': ""}
             else:
-                pred_value = {'pred': get_URI_local_name(trg_align_list[i]), 'value':values_matrix[1][i]}
+                pred_value = {'pred': get_URI_local_name(trg_align_list[i]), 'value': to_unicode(values_matrix[1][i])}
 
             pred_values_trg += [pred_value]
 
