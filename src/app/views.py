@@ -64,9 +64,13 @@ REASONING_TYPE = 'SL'
 if os.getcwd().endswith("src"):
     UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(),os.path.sep)
     UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), os.path.sep)
+    ENRICHED_FOLDER = "{0}{1}{1}EnrichedDatasets".format(os.getcwd(), os.path.sep)
+    PLOTS_FOLDER = "{0}{1}{1}Plots".format(os.getcwd(), os.path.sep)
 else:
     UPLOAD_FOLDER = "{0}{1}{1}src{1}{1}UploadedFiles".format(os.getcwd(), os.path.sep)
     UPLOAD_ARCHIVE = "{0}{1}{1}src{1}{1}UploadedArchive".format(os.getcwd(), os.path.sep)
+    ENRICHED_FOLDER = "{0}{1}{1}src{1}{1}EnrichedDatasets".format(os.getcwd(), os.path.sep)
+    PLOTS_FOLDER = "{0}{1}{1}src{1}{1}Plots".format(os.getcwd(), os.path.sep)
 
 ALLOWED_EXTENSIONS = ['csv', 'txt','ttl','trig']
 
@@ -291,7 +295,7 @@ def enrichdataset():
     }
 
     print specs
-    result = Ex.enrich(specs)
+    result = Ex.enrich(specs, ENRICHED_FOLDER)
 
     # SEND BAK RESULTS
     return json.dumps(result)
@@ -419,6 +423,7 @@ def setlinkesetfilter():
     value_1 = ast.literal_eval(json_item)
     json_item = request.args.get('value_2', '')
     value_2 = ast.literal_eval(json_item)
+    result = None
 
     # print ">>>>>>>", rq_uri, linkset_uri, property.lower(), value_1, value_2
     if property:
@@ -440,6 +445,7 @@ def setFilter():
     value_1 = ast.literal_eval(json_item)
     json_item = request.args.get('value_2', '')
     value_2 = ast.literal_eval(json_item)
+    result = None
 
     # print ">>>>>>>", rq_uri, graph_uri, property.lower(), value_1, value_2
     if property:
@@ -1864,6 +1870,7 @@ def exportAlignment():
     mode = request.args.get('mode', 'flat')
     graphs = request.args.getlist('graphs[]')
     print graphs
+    result = None
 
     try:
         # print "\n before:", graph_uri
@@ -1872,7 +1879,7 @@ def exportAlignment():
         elif mode == 'md':
             result = Ex.export_flat_alignment_and_metadata(graph_uri)
         elif mode == 'vis':
-            result = Ex.visualise(graphs)
+            result = Ex.visualise(graphs, PLOTS_FOLDER)
         # print "\n after:", result
 
     except Exception as error:
