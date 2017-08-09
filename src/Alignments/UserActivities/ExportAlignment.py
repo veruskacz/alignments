@@ -5,6 +5,7 @@ import re
 import os
 import codecs
 import rdflib
+import cStringIO as Buffer
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -13,11 +14,14 @@ import Alignments.Server_Settings as Svr
 from kitchen.text.converters import to_unicode, to_bytes
 
 
+# FLAT ALIGNMENT
 def export_flat_alignment(alignment):
 
+    print "Export for: {}".format(alignment)
     alignment = str(alignment).strip()
     row_alignment = alignment
     alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
+
     # CONSTRUCT QUERY
     query = """
     PREFIX ll: <{}>
@@ -28,21 +32,379 @@ def export_flat_alignment(alignment):
         {{
             ?x ?y ?z
         }}
-    }}
+    }} order by ?x
     """.format(Ns.alivocab, alignment)
     # print query
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
     alignment_construct = Qry.endpointconstruct(query)
+
     # REMOVE EMPTY LINES
     triples = len(re.findall('ll:mySameAs', alignment_construct))
-    alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
+    alignment_construct = "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
+
+    # RESULTS
     result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
-    return {'result': result, 'message':message}
+
+    return {'result': result, 'message': message}
 
 
+# EXPORT ALIGNMENT WITH GENERIC METADATA
 def export_flat_alignment_and_metadata(alignment):
+
+    alignment = str(alignment).strip()
+    row_alignment = alignment
+    alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
+    # CONSTRUCT QUERY
+    query = """
+    PREFIX ll: <{0}>
+    PREFIX linkset: <{1}>
+    PREFIX lens: <{2}>
+    PREFIX singletons: <{3}>
+    CONSTRUCT
+    {{
+        ?srcCorr  ll:mySameAs ?trgCorr .
+        ?trgCorr  ll:mySameAs ?srcCorr .
+        ?alignment ?pred  ?obj .
+        ?obj  ?predicate ?object .
+    }}
+    WHERE
+    {{
+        BIND( {4} as ?alignment )
+        # THE ALIGNMENT GRAPH WITH EXPLICIT SYMMETRY
+        GRAPH ?alignment
+        {{
+            ?srcCorr ?singleton ?trgCorr .
+        }}
+
+         # THE METADATA
+        ?alignment  ?pred  ?obj .
+        OPTIONAL {{ ?obj  ?predicate ?object . }}
+    }} #LIMIT 10
+    """.format(Ns.alivocab, Ns.linkset, Ns.lens, Ns.singletons, alignment, )
+    # print query
+
+    # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
+    alignment_construct = Qry.endpointconstruct(query)
+
+    # REMOVE EMPTY LINES
+    triples = 0
+    # triples = len(re.findall('ll:mySameAs', alignment_construct))
+    alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
+    result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n{}".format(triples, alignment, alignment_construct)
+    message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
+        row_alignment, triples)
+    print result
+    return {'result': result, 'message': message}
+
+
+# ALIGNMENT FOR VISUALISATION
+def export_alignment(alignment):
+    use = alignment
+    alignment = str(alignment).strip()
+    row_alignment = alignment
+    alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
+    src_dataset = None
+    trg_dataset = None
+    mec_dataset = None
+
+    meta = """
+    PREFIX ll: <{0}>
+    CONSTRUCT {{ {1} ?y ?z }}
+    WHERE
+    {{
+        {1} ?y ?z
+    }} order by ?y
+    """.format(Ns.alivocab, alignment)
+    meta_construct = Qry.endpointconstruct(meta)
+    meta_construct = meta_construct.replace("{", "").replace("}", "")
+    # print meta_construct
+
+    sg = rdflib.Graph()
+    sg.parse(data=meta_construct, format="turtle")
+    sbj = rdflib.URIRef(use)
+    source = rdflib.URIRef("http://rdfs.org/ns/void#subjectsTarget")
+    target = rdflib.URIRef("http://rdfs.org/ns/void#objectsTarget")
+    mechanism = rdflib.URIRef("http://risis.eu/alignment/predicate/alignsMechanism")
+
+    for item in sg.objects(sbj, source):
+        src_dataset = item
+
+    for item in sg.objects(sbj, target):
+        trg_dataset = item
+
+    for item in sg.objects(sbj, mechanism):
+        mec_dataset = item
+
+    # CONSTRUCT QUERY
+    query = """
+    PREFIX ll: <{}>
+    CONSTRUCT {{ ?x ?y ?z }}
+    WHERE
+    {{
+        GRAPH {}
+        {{
+            ?x ?y ?z
+        }}
+    }} order by ?x #LIMIT 100
+    """.format(Ns.alivocab, alignment)
+    # print query
+    # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
+    alignment_construct = Qry.endpointconstruct(query)
+
+    # REMOVE EMPTY LINES
+    # triples = len(re.findall('ll:mySameAs', alignment_construct))
+    # alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
+    triples = 0
+    result = None
+    # RESULTS
+
+    if alignment_construct is not None:
+        result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
+        result = result.replace("{", "").replace("}", "")
+    message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
+        row_alignment, triples)
+
+    # result = result
+    # print result
+
+    return {
+        'result': result,
+        'message': message,
+        'source': src_dataset,
+        "target": trg_dataset,
+        'mechanism': mec_dataset}
+
+
+# ALIGNMENT FOR VISUALISATION: THE MAIN FUNCTION
+def visualise(graphs):
+
+    writer = Buffer.StringIO()
+    # file = open("C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\plot.ttl", 'wb')
+    g = rdflib.Graph()
+    source = {}
+    target = {}
+    attribute = {}
+    src_count = 0
+    trg_count = 0
+    prd_count = 0
+    singletons = {}
+    triples = 0
+    datasets = (None, None)
+
+    for graph in graphs:
+        # print graph
+
+        links = export_alignment(graph)
+        mechanism = links['mechanism']
+        # print "mechanism", mechanism
+        if datasets == (None, None):
+            datasets = (links["source"], links['target'])
+        elif datasets != (links["source"], links['target']):
+            print "No visualisation for different set of source-target"
+            return None
+
+        # print links['result']
+        if links['result'] is not None:
+
+            g.parse(data=links['result'], format="turtle")
+            sg = rdflib.Graph()
+            sg.parse(data=links['result'], format="turtle")
+            triples += len(sg)
+            for subject, predicate, obj in sg.triples((None, None, None)):
+                if predicate not in singletons:
+                    singletons[predicate] = [mechanism]
+                elif [mechanism] not in singletons[predicate]:
+                    singletons[predicate] += [mechanism]
+
+    # prefix = """
+    # PREFIX link: <http://risis.eu/alignment/link/>
+    # PREFIX plot: <http://risis.eu/alignment/plot/>"""
+    count = 0
+    writer.write("PREFIX ll: <{}>\n".format(Ns.alivocab))
+    writer.write("PREFIX link: <http://risis.eu/alignment/link/>\n")
+    writer.write("PREFIX plot: <http://risis.eu/alignment/plot/>\n")
+    writer.write("PREFIX mechanism: <{}>\n".format(Ns.mechanism))
+
+    # DROPPING GRAPH IT IT ALREADY EXISTS
+    writer.write(
+        "\nDROP SILENT GRAPH plot:{}_{} ;\n".format(
+            Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
+
+    # INSERT NEW DATA
+    writer.write("INSERT DATA\n{")
+    writer.write("\n\tGRAPH plot:{}_{}\n".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
+    writer.write("\t{")
+    for subject, predicate, obj in g.triples((None, None, None)):
+
+        count += 1
+
+        # print "> ", subject, predicate, obj
+        if subject not in source:
+            src_count += 1
+            source[subject] = src_count
+
+        if obj not in target:
+            trg_count += 1
+            target[obj] = trg_count
+
+        pre_code = "{}_{}".format(source[subject], target[obj])
+        if pre_code not in attribute:
+            prd_count += 1
+            attribute[pre_code] = prd_count
+
+        # print "> ", subject
+        # print "> ", predicate
+        # print "> ", obj
+        # pred = "{}_{}".format(source[subject], target[obj])
+        # print ">>> ", source[subject], attribute[pred], target[obj]
+
+        writer.write("\n\t\t### [ {} ]\n".format(count))
+        writer.write("\t\t{}\n".format(predicate).replace(Ns.alivocab, "ll:"))
+        writer.write("\t\t\tlink:source     {} ;\n".format(source[subject]))
+        writer.write("\t\t\tlink:target     {} ;\n".format(target[obj]))
+        writer.write("\t\t\tlink:source_uri <{}> ;\n".format(subject))
+        writer.write("\t\t\tlink:target_uri <{}> ;\n".format(obj))
+        for value in singletons[predicate]:
+            writer.write("\t\t\tlink:mechanism  {} ;\n".format(value).replace(Ns.mechanism, "mechanism:"))
+        writer.write("\t\t\tlink:type       link:Link .\n")
+        writer.write("")
+    writer.write("\t}\n}")
+
+    Qry.virtuoso_request(writer.getvalue())
+    # print count, triples
+    # file.close()
+
+    return {'result': writer.getvalue(), 'message': "Constructed"}
+
+
+# ENRICHING DATASETS WITH GADM BOUNDARIES: THE QUERY
+def enrich_query(limit=0, offset=0, is_count=True):
+
+    if is_count is True:
+        count_comment = ""
+        get_comment = "#"
+    else:
+        count_comment = "#"
+        get_comment = ""
+
+    virtuoso = """
+    PREFIX ll: <{0}>
+    PREFIX gadm: <http://geo.risis.eu/vocabulary/gadm/>
+    {1}SELECT (count(?dataset) as ?TOTAL)
+    {2}CONSTRUCT
+    {2}{{
+    {2}    ?dataset  a <{3}> .
+    {2}    ?dataset  ll:intersects ?gadm .
+    {2}    #?gadm     gadm:level    ?level .
+    {2}}}
+    WHERE
+    {{
+       GRAPH <{4}>
+       {{
+            ?dataset {5} ?long .
+            ?dataset {6} ?lat .
+            BIND( xsd:double(replace(str(?long), ",", ".")) as ?longitude)
+            BIND( xsd:double(replace(str(?lat), ",", ".")) as ?latitude)
+            FILTER(contains(str(?longitude), ".") && contains(str(?latitude), "."))
+       }}
+       GRAPH <http://geo.risis.eu/gadm>
+       {{
+            ?gadm geo:geometry ?geo .
+            ?gadm gadm:level   ?level .
+            FILTER(?level = 2)
+       }}
+       FILTER(bif:st_intersects (?geo, bif:st_point (?longitude, ?latitude)))
+    }}
+    {2}LIMIT {7}
+    {2}OFFSET {8}
+    """.format(Ns.alivocab, count_comment, get_comment, specs[St.entity_datatype], specs[St.graph],
+               specs['long_predicate'], specs['lat_predicate'], limit, offset)
+    return virtuoso
+
+
+# ENRICHING DATASETS WITH GADM BOUNDARIES: THE MAIN FUNCTION
+def enrich(spec):
+
+    # specs[St.graph] = "http://grid.ac/20170712"
+    print "GRAP:", spec[St.graph]
+    print "ENTITY TYPE:", spec[St.entity_datatype]
+    print "LAT PREDICATE", spec[St.long_predicate]
+    print "LONG PREDICATE", spec[St.lat_predicate]
+    # return {St.message:"OK", St.result: "ok"}
+
+    total = 0
+    limit = 20000
+    # enriched_graph = None
+    f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph.ttl"
+    b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph{}".format(Ut.batch_extension())
+
+    print "0. GETTING THE TOTAL NUMBER OF TRIPLES."
+    count = enrich_query(limit=0, offset=0, is_count=True)
+    print count
+    count_res = Qry.virtuoso_request(count)
+    result = count_res['result']
+
+    # GET THE TOTAL NUMBER OF TRIPLES
+    if result is None:
+        print "NO RESULT FOR THIS ENRICHMENT."
+        return count_res
+
+    g = rdflib.Graph()
+    g.parse(data=result, format="turtle")
+    attribute = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
+    for subject, predicate, obj in g.triples((None, attribute, None)):
+        total = int(obj)
+
+    # NUMBER OF REQUEST NEEDED
+    iterations = total / limit if total % limit == 0 else total / limit + 1
+    print "TOTAL TRIPLES TO RETREIVE  : {} \nTOTAL NUMBER OF ITERATIONS : {}\n".format(total, iterations)
+
+    writer = codecs.open(f_path, "wb", "utf-8")
+    batch_writer = codecs.open(b_path, "wb", "utf-8")
+
+    print "3. GENERATING THE BATCH FILE TEXT"
+    enriched_graph = "{}_enriched".format(specs[St.graph])
+    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+    load_text = """echo "Loading data"
+            {}stardog data add risis -g {} "{}"
+            """.format(stardog_path, enriched_graph, f_path)
+    batch_writer.write(to_unicode(load_text))
+    batch_writer.close()
+
+    # RUN THE ITERATIONS
+    for i in range(0, iterations):
+
+        offset = i * 20000 + 1
+        print "ROUND: {} OFFSET: {}".format(i, offset)
+
+        print "1. GENERATING THE ENRICHMENT QUERY"
+        virtuoso = enrich_query(limit=limit, offset=offset, is_count=False)
+        print virtuoso
+        # exit(0)
+        # print Qry.virtuoso(virtuoso)["result"]
+
+        print "2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
+        writer.write(Qry.virtuoso_request(virtuoso)["result"])
+
+    writer.close()
+    print "4. RUNNING THE BATCH FILE"
+    print "THE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
+        else "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
+    os.system(b_path)
+
+    # TODO 1. REGISTER THE DATASET TO BE ENRICHED IF NOT YET REGISTER
+    # TODO 2. ADD THE ENRICHED DATASET TO THE RESEARCH QUESTION (REGISTER).
+    # TODO 3. MAYBE, CREATE THE LINKSET BETWEEN THE SOURCE AND THE RESULTING
+
+    print "JOB DONE...!!!!!!"
+
+    return {St.message: "The select dataset was enriched with the GADM boundary as {}".format(enriched_graph),
+            St.result: enriched_graph}
+
+
+def export_flat_alignment2(alignment):
 
     alignment = str(alignment).strip()
     row_alignment = alignment
@@ -74,10 +436,11 @@ def export_flat_alignment_and_metadata(alignment):
         OPTIONAL {{ ?obj  ?predicate ?object . }}
     }}
     """.format(Ns.alivocab, Ns.linkset, Ns.lens, Ns.singletons, alignment, )
-    # print query
+    print query
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
-    alignment_construct = Qry.boolean_endpoint_response(query)
+    alignment_construct = Qry.endpointconstruct(query)
+    print alignment_construct
 
     # REMOVE EMPTY LINES
     triples = 0
@@ -86,7 +449,8 @@ def export_flat_alignment_and_metadata(alignment):
     result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
-    return {'result': result, 'message':message}
+
+    return {'result': result, 'message': message}
 
 
 def export_flat_alignment_service(alignment):
@@ -135,11 +499,11 @@ def export_flat_alignment_service(alignment):
     alignment_construct = Qry.endpointconstruct(query)
     # REMOVE EMPTY LINES
     triples = len(re.findall('ll:mySameAs', alignment_construct))
-    alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
+    alignment_construct = "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
     result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
-    return {'result': result, 'message':message}
+    return {'result': result, 'message': message}
 
 
 def federate():
@@ -165,6 +529,7 @@ def federate():
        }
     } limit 1000
     """
+    print query
 
     # construct = Qry.sparql_xml_to_matrix(query)
     # Qry.display_result(query, is_activated=True)
@@ -172,134 +537,9 @@ def federate():
     # print construct
 
 
-def enrich_query(specs, limit=0, offset=0, isCount=True):
+def import_gadm_query(limit=0, offset=0, is_count=False):
 
-    if isCount is True:
-        count_comment = ""
-        get_comment = "#"
-    else:
-        count_comment = "#"
-        get_comment = ""
-
-    virtuoso = """
-    PREFIX ll: <{0}>
-    PREFIX gadm: <http://geo.risis.eu/vocabulary/gadm/>
-    {1}SELECT (count(?dataset) as ?TOTAL)
-    {2}CONSTRUCT
-    {2}{{
-    {2}    ?dataset  a <{3}> .
-    {2}    ?dataset  ll:intersects ?gadm .
-    {2}    #?gadm     gadm:level    ?level .
-    {2}}}
-    WHERE
-    {{
-       GRAPH <{4}>
-       {{
-            ?dataset {5} ?long .
-            ?dataset {6} ?lat .
-            FILTER(contains(str(?long), ".") && contains(str(?lat), "."))
-       }}
-       GRAPH <http://geo.risis.eu/gadm>
-       {{
-            ?gadm geo:geometry ?geo .
-            ?gadm gadm:level   ?level .
-            FILTER(?level = 2)
-       }}
-       FILTER(bif:st_intersects (?geo, bif:st_point (?long, ?lat)))
-    }}
-    {2}LIMIT {7}
-    {2}OFFSET {8}
-    """.format(Ns.alivocab, count_comment, get_comment, specs[St.entity_datatype], specs[St.graph],
-               specs['long_predicate'], specs['lat_predicate'], limit, offset)
-    return virtuoso
-
-
-def enrich(specs):
-
-    specs[St.graph] = "http://grid.ac/20170712"
-    print specs[St.graph]
-    print specs[St.entity_datatype]
-    print specs[St.long_predicate]
-    print specs[St.lat_predicate]
-    # return {St.message:"OK", St.result: "ok"}
-
-
-    total = 0
-    limit = 20000
-    enriched_graph = None
-    f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph.ttl"
-    b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph{}".format(Ut.batch_extension())
-
-    print "0. GETTING THE TOTAL NUMBER OF TRIPLES."
-    count = enrich_query(specs, limit=0, offset=0, isCount=True)
-    print count
-    count_res = Qry.virtuoso(count)
-    result = count_res['result']
-
-    # GET THE TOTAL NUMBER OF TRIPLES
-    if result is None:
-        print "NO RESULT FOR THIS ENRICHMENT."
-        return count_res
-
-    g = rdflib.Graph()
-    g.parse(data=result, format="turtle")
-    property = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
-    for subject, predicate, object in g.triples((None, property, None)):
-        total = int(object)
-
-    # NUMBER OF REQUEST NEEDED
-    iterations = total / limit if total % limit == 0 else total / limit + 1
-    print "TOTAL TRIPLES TO RETREIVE  : {} \nTOTAL NUMBER OF ITERATIONS : {}\n".format(total, iterations)
-
-
-    writer = codecs.open(f_path, "wb", "utf-8")
-    batch_writer = codecs.open(b_path, "wb", "utf-8")
-
-    print "3. GENERATING THE BATCH FILE TEXT"
-    enriched_graph = "{}_enriched".format(specs[St.graph])
-    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
-    load_text = """echo "Loading data"
-            {}stardog data add risis -g {} "{}"
-            """.format(stardog_path, enriched_graph, f_path)
-    batch_writer.write(to_unicode(load_text))
-    batch_writer.close()
-
-
-
-    # RUN THE ITERATIONS
-    for i in range(0, iterations):
-
-        offset = i * 20000 + 1
-        print "ROUND: {} OFFSET: {}".format(i, offset)
-
-        print "1. GENERATING THE ENRICHMENT QUERY"
-        virtuoso = enrich_query(specs, limit=limit, offset=offset, isCount=False)
-        print virtuoso
-        # exit(0)
-        # print Qry.virtuoso(virtuoso)["result"]
-
-        print "2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
-        writer.write(Qry.virtuoso(virtuoso)["result"])
-
-    writer.close()
-    print "4. RUNNING THE BATCH FILE"
-    print "THE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
-        else "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
-    os.system(b_path)
-
-    # TODO 1. REGISTER THE DATASET TO BE ENRICHED IF NOT YET REGISTER
-    # TODO 2. ADD THE ENRICHED DATASET TO THE RESEARCH QUESTION (REGISTER).
-    # TODO 3. MAYBE, CREATE THE LINKSET BETWEEN THE SOURCE AND THE RESULTING
-
-    print "JOB DONE...!!!!!!"
-
-    return {St.message: "The select dataset was enriched with the GADM boundary as {}".format(enriched_graph),
-            St.result: enriched_graph}
-
-
-def import_gadm_query(limit=0, offset=0, isCount=False):
-
-    if isCount is True:
+    if is_count is True:
         count_comment = ""
         get_comment = "#"
     else:
@@ -312,7 +552,8 @@ def import_gadm_query(limit=0, offset=0, isCount=False):
     {1}CONSTRUCT
     {1}{{
     {1}    ?gadm geo:geometry ?geo .
-    {1}    ?gadm gadm:level   ?level .
+    {1}    ?gadm a <{4}Boundary> .
+    {1}    #?gadm gadm:level   ?level .
     {1}}}
     WHERE
     {{
@@ -324,7 +565,7 @@ def import_gadm_query(limit=0, offset=0, isCount=False):
         }}
     }}
     {1}LIMIT {2} OFFSET {3}
-    """.format(count_comment, get_comment, limit, offset)
+    """.format(count_comment, get_comment, limit, offset, Ns.riclass)
     # print query
     return query
 
@@ -332,9 +573,9 @@ def import_gadm_query(limit=0, offset=0, isCount=False):
 def import_gadm():
 
     total = 0
-    limit = 10000
+    limit = 2000
     f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\gadm.ttl"
-    b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\gadm".format(Ut.batch_extension())
+    b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\gadm{}".format(Ut.batch_extension())
 
     # CREATE THE WRITERS
     writer = codecs.open(f_path, "wb", "utf-8")
@@ -350,9 +591,9 @@ def import_gadm():
     batch_writer.close()
 
     print "1. GET THE TOTAL NUMBER OF TRIPLES TO LOAD"
-    count_query = import_gadm_query(isCount=True)
+    count_query = import_gadm_query(is_count=True)
     # print count_query
-    count_res = Qry.virtuoso(count_query)
+    count_res = Qry.virtuoso_request(count_query)
     result = count_res['result']
     if result is None:
         print "NO RESULT FOR THIS ENRICHMENT."
@@ -361,26 +602,29 @@ def import_gadm():
     print "2. PROCESSING THE COUNT RESULT"
     g = rdflib.Graph()
     g.parse(data=result, format="turtle")
-    property = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
-    for subject, predicate, object in g.triples((None, property, None)):
-        total = int(object)
+    attribute = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
+    for subject, predicate, obj in g.triples((None, attribute, None)):
+        total = int(obj)
     iterations = total / limit if total % limit == 0 else total / limit + 1
     print "\tTOTAL TRIPLES TO RETREIVE  : {} \n\tTOTAL NUMBER OF ITERATIONS : {}\n".format(total, iterations)
-
 
     # RUN THE ITERATIONS
     try:
         for i in range(0, iterations):
 
-            offset = i * 20000 + 1
+            offset = i * limit + 1
             print "ROUND: {} OFFSET: {}".format(i, offset)
 
             print "\tRUNNING THE QUERY"
-            import_query = import_gadm_query(limit=limit, offset=offset, isCount=False)
-            response = Qry.virtuoso(import_query)
+            import_query = import_gadm_query(limit=limit, offset=offset, is_count=False)
+            response = Qry.virtuoso_request(import_query)
+
+            print "RESPONSE SIZE: ".format(response["result"])
 
             print "\tWRITING THE RESULT TO FILE"
             writer.write(response["result"])
+
+            break
 
     except Exception as err:
         print str(err.message)
@@ -390,68 +634,17 @@ def import_gadm():
     print "4. RUNNING THE BATCH FILE"
     print "THE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
         else "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
+    print "PATH:", b_path
     os.system(b_path)
+    print "JOB DONE!!!"
 
 
-specs = {
-    St.graph: "http://grid.ac/20170712",
-    St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
-    St.long_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
-    St.lat_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>" }
+def get_bom_type(file_path):
 
-# text = export_flat_alignment("http://risis.eu/linkset/orgreg_2017_grid_20171712_approxStrSim_Organisation_Char_legal_name_P147291413")
-# text = export_flat_alignment("http://risis.eu/lens/union_Orgreg_2017_Grid_20171712_N1952841170")
-# print text
-# http://stardog.risis.d2s.labs.vu.nl/annex/risis/sparql/query
-
-"""
-PREFIX bif: <http://www.openlinksw.com/schemas/bif#>
-select distinct ?subject ?level where
-{
-   GRAPH <http://geo.risis.eu/gadm>
-   {
-     ?subject <http://www.w3.org/2003/01/geo/wgs84_pos#geometry> ?geo ;
-        <http://geo.risis.eu/vocabulary/gadm/level> ?level .
-     #    point(long, lat)
-     Filter(bif:st_intersects (?geo, bif:st_point(117.379737854, 40.226871490479), 0.1))
-   }
-}
-"""
-
-# enrich(specs)
-# federate()
-# X = {'message': 'OK', 'result': '@prefix res: <http://www.w3.org/2005/sparql-results#> .\n@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n_:_ a res:ResultSet .\n_:_ res:resultVariable "TOTAL" .\n_:_ res:solution [\n      res:binding [ res:variable "TOTAL" ; res:value 363101 ] ] .\n'}
-# print X['result']
-# g = rdflib.Graph()
-# g.parse(data=None, format="turtle")
-# print len(g)
-# print str(g)
-# print list(g[rdflib.URIRef('_:_ ')])
-# property = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
-# for subject, predicate, object in g.triples((None, property, None)):
-#     print int(object)
-#
-
-# exp = export_flat_alignment_and_metadata("http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218")
-# print exp[St.result]
-# print Qry.virtuoso(virtuoso)["result"]
-
-# import_gadm()
-
-
-# line = reader.readline()
-# line = reader.readline()
-# print line.startswith(to_bytes(codecs.BOM_UTF8))
-# print reader.readline()
-# print reader.readline()
-# print reader.readline()
-
-
-def get_bom_type(line):
-
-    path = "C:\Users\Al\Google Drive\RISIS-Project-VU\WP 7 - datasets\OrgReg\OrgReg 2017 (new)\ORGREG_20170718__Entities.txt"
-    path2 = "E:\Linking2GRID\Data\OrgReg 20170718\ORGREG_20170718__Entities.txt"
-    reader = open(path2, "rb")
+    # path = "C:\Users\Al\Google Drive\RISIS-Project-VU\WP 7 - " \
+    #        "datasets\OrgReg\OrgReg 2017 (new)\ORGREG_20170718__Entities.txt"
+    # path2 = "E:\Linking2GRID\Data\OrgReg 20170718\ORGREG_20170718__Entities.txt"
+    reader = open(file_path, "rb")
     line = reader.readline()
 
     bom_type = None
@@ -520,65 +713,61 @@ def get_bom_type(line):
     return bom_type
 
 
-def extractor(record, separator):
-    record= """BG0001;South-West University Neofit Rilski;1976;"Data from ETER. Different foudation year on the website;1976";a;;http://www.swu.bg/?lang=en 	 """
-    #record = """﻿Entity ID;Entity current name (English);Entity foundation year;Remarks on foundation year;Entity closure year;Remarks on closure year;Website of entity """
-    separator = ";"
-    td = '"'
-    attributes = []
-    temp = ""
+uri_1 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
+uri_3 = "http://risis.eu/linkset/" \
+        "orgreg_20170718_grid_20170712_exactStrSim_University_Entity_current_name_English_P1888721829"
+uri_2 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
+# print visualise([uri_3])
 
-    # print record
-    i = 0
-    while i < len(record):
+specs = {
+    St.graph: "http://grid.ac/20170712",
+    St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
+    St.long_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
+    St.lat_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"}
 
-        if record[i] == td:
-            j = i + 1
-            while j < len(record):
-                if record[j] != td:
-                    temp += record[j]
-                elif j + 1 < len(record) and record[j + 1] != separator:
-                    if record[j] != td:
-                        temp += record[j]
-                elif j + 1 < len(record) and record[j + 1] == separator:
-                    j += 2
-                    break
-                j += 1
 
-            attributes.append(temp)
-            temp = ""
-            i = j
+"""
+PREFIX bif: <http://www.openlinksw.com/schemas/bif#>
+select distinct ?subject ?level where
+{
+   GRAPH <http://geo.risis.eu/gadm>
+   {
+     ?subject <http://www.w3.org/2003/01/geo/wgs84_pos#geometry> ?geo ;
+        <http://geo.risis.eu/vocabulary/gadm/level> ?level .
+     #    point(long, lat)
+     Filter(bif:st_intersects (?geo, bif:st_point(117.379737854, 40.226871490479), 0.1))
+   }
+}
+"""
 
-        else:
-            while i < len(record):
 
-                # Enqueue if you encounter the separator
-                if record[i] == separator:
-                    attributes.append(temp)
-                    # print "> separator " + temp
-                    temp = ""
+path = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
+# exp = export_flat_alignment_and_metadata(path)
+# print exp[St.result]
+# print Qry.virtuoso(virtuoso)["result"]
 
-                # Append if the current character is not a separator
-                if record[i] != separator:
-                    temp += record[i]
-                    # print "> temp " + temp
+# import_gadm()
 
-                # Not an interesting case. Just get oit :-)
-                else:
-                    i += 1
-                    break
+# line = reader.readline()
+# line = reader.readline()
+# print line.startswith(to_bytes(codecs.BOM_UTF8))
+# print reader.readline()
+# print reader.readline()
+# print reader.readline()
 
-                # Increment the iterator
-                i += 1
-
-    # Append the last attribute
-    if temp != "":
-        attributes.append(temp)
-
-    # print "EXTRACTOR RETURNED: {}".format(attributes)
-    return attributes
-
-# terms = extractor("", "")
-# print len(terms)
-# for i in range(0, len(terms)):
-#     print "{} - {}".format(i+1, terms[i])
+# result = """
+# ### TRIPLE COUNT: 0
+# ### LINKSET: <http://risis.eu/linkset/
+# eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218>
+# @prefix ll: <http://risis.eu/alignment/predicate/> .
+# <http://risis.eu/eter_2014/resource/BE0056>
+# ll:exactStrSim2_66a70877-4af9-4567-8618-5686439a0a3b <http://www.grid.ac/institutes/grid.5596.f> .
+# <http://risis.eu/eter_2014/resource/BG0015>
+# ll:exactStrSim2_39bca57f-ba77-4dc7-a469-717c333e80f6 <http://www.grid.ac/institutes/grid.465937.a> .
+# <http://risis.eu/eter_2014/resource/CZ0058>
+# ll:exactStrSim2_e8f594d4-acf8-4636-bdcc-dd2618cb0610 <http://www.grid.ac/institutes/grid.471548.b> .
+# <http://risis.eu/eter_2014/resource/CZ0060>
+# ll:exactStrSim2_ef65515b-2d92-4143-a58a-6d703e125dff <http://www.grid.ac/institutes/grid.453492.d> .
+# <http://risis.eu/eter_2014/resource/CZ0060>
+# ll:exactStrSim2_ef65515b-2d92-4143-a58a-6d703e125dff <http://www.grid.ac/institutes/grid.5596.f> .
+# """

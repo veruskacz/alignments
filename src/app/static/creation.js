@@ -970,7 +970,7 @@ function refineLinksetClick()
 }
 
 
-function exportLinksetClick(filename)
+function exportLinksetClick(filename, mode='flat')
 {
     var linkset = '';
     var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
@@ -983,7 +983,7 @@ function exportLinksetClick(filename)
         loadingGif(document.getElementById('linkset_export_message_col'), 2);
 
         // call function that creates the linkset
-        $.get('/exportAlignment', data={'graph_uri':linkset}, function(data)
+        $.get('/exportAlignment', data={'graph_uri':linkset, 'mode':mode}, function(data)
         {
 
             var obj = JSON.parse(data);

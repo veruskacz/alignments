@@ -113,7 +113,8 @@ class RDF(object):
         self.isTrig = is_trig           # -> boolean Checks the RDF format of the output file
         self.entityType = entity_type
 
-        self.namespace = namespace.replace(" data: ", u" {0}: ".format(entity_type.lower()))
+        # self.namespace = namespace.replace(" data: ", u" {0}: ".format(entity_type.lower()))
+        self.namespace = namespace.replace(" data: ", u" {0}: ".format("resource"))
         self.schema = schema
         self.refreshCount = 0
         self.instanceCount = 0

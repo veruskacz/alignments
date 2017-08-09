@@ -5,6 +5,7 @@ import time
 import urllib
 import urllib2
 import logging
+import requests
 import xmltodict
 import collections
 import Alignments.Settings as St
@@ -303,7 +304,7 @@ def endpoint(query):
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
     request = urllib2.Request(url, data=params, headers=headers)
-
+    request.get_method = lambda: "POST"
     try:
         response = urllib2.urlopen(request)
         result = response.read()
@@ -385,6 +386,7 @@ def endpointconstruct(query):
 
     params = urllib.urlencode({b'query': q})
     request = urllib2.Request(url, data=params, headers=headers)
+    request.get_method = lambda: "POST"
 
     try:
         response = urllib2.urlopen(request)
@@ -3028,7 +3030,7 @@ def countries_geodata(level=2, display=False, activated=False):
 #                         database_name="risis", host="localhost:5820", level=2, display=True, activated=False)
 
 
-def virtuoso(query):
+def virtuoso_request(query):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
@@ -3072,9 +3074,11 @@ def virtuoso(query):
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
     request = urllib2.Request(url, data=params, headers=headers)
+    request.get_method = lambda: "POST"
 
     try:
         response = urllib2.urlopen(request)
+        print "RESPONSE CODE:", response.code
         result = response.read()
         # print result
         # print "NONE", result is None
@@ -3084,8 +3088,8 @@ def virtuoso(query):
     except urllib2.HTTPError, err:
         message = err.read()
         if len(message) == 0:
-            message = err
-        print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, message)
+            message = str(err)
+        print "\nERROR CODE {}: {}\nUSING THIS QUERY BELOW\n{}".format(err.code, message, query)
         return {St.message: message, St.result: None}
 
     except Exception as err:

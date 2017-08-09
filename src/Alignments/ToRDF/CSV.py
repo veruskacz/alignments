@@ -12,7 +12,11 @@ entity_type_prefix = u"entity"
 
 class CSV(RDF):
 
-    def no_id(self, database, is_trig, file_to_convert, separator, entity_type, rdftype):
+    def no_id(self, database, is_trig, file_to_convert, separator, entity_type, rdftype, activated=False):
+
+        if activated is False:
+            print "The function has not been activated."
+            return
 
         database = database.replace(" ", "_")
 
@@ -148,7 +152,18 @@ class CSV(RDF):
             self.write_triples_2(to_unicode(line), separator, row_number=n, field_metadata=self.fieldMetadata)
 
     def __init__(self, database, is_trig, file_to_convert, separator, entity_type,
-                 rdftype=None, subject_id=None, embedded_uri=None, field_metadata=None):
+                 rdftype=None, subject_id=None, embedded_uri=None, field_metadata=None, activated=False):
+
+        if activated is False:
+            print "The function has not been activated."
+            return
+
+        # embedded_uri is an array of dictionaries.
+        # For each dictionary, We have:
+        #   ID:Integer <- of the column that needs to became a uri
+        #   reverse:Boolean <- to determine whether the URI needs to connect to the subject
+        #   namespace:string e.g. http://risis.eu/ <- the namespace to assign to the new URI
+        #   predicate:string It could be just the property (e.g. CityOf) or the URI (http://risis.eu/resource/CityOf)
 
         print "RDF TYPE LIST : {}".format(rdftype)
         print "SUBJECT ID    : {}".format(subject_id)
@@ -177,7 +192,8 @@ class CSV(RDF):
         self.risisOntNeutral = "riClass:Neutral"  # Prefix for Neutrality
         self.lastColumn = 0  # -> int      The last attribute index
         self.longestHeader = 0  # -> int      The number of characters in the longest attribute
-        self.data_prefix = entity_type.lower().replace(' ', '_')
+        # self.data_prefix = entity_type.lower().replace(' ', '_')
+        self.data_prefix = "resource"
 
         '''Replace unwanted characters -> #;:.-(–)—[']`=’/”{“}^@*+!~\,%'''
         self.pattern = '[?&#;:%!~+`=’*.(\-)–\\—@\['',\\]`{^}“/”]'
@@ -497,7 +513,7 @@ class CSV(RDF):
                         "been redefined as an RDF property ") + u" ;\n"))
 
             schema.write(self.pvFormat.format(
-                b"", b"rdfs:label", self.triple_value(self.csvHeaderLabel[i]) + u" .\n"))
+                b"", b"rdfs:label", self.triple_value(self.csvHeaderLabel[i]) + b" .\n"))
             if i != len(self.csvHeader) - 1:
                 schema.write(b"\n")
 
@@ -515,46 +531,73 @@ class CSV(RDF):
         # line = line.rstrip(u'\r\n')
         record = self.extractor(line, separator)
 
+        # REPORT ERROR IN THE CHARACTER SEPARATED VALUE FORMAT
         if len(record) != len(self.csvHeader):
             self.errorCount += 1
             print "{:5} Record encoding error. Header: {} columns while Record: {} columns".format(
                 self.errorCount, len(self.csvHeader), len(record))
             print "\t\t{:8}".format(record)
-            print line
+            # print line
             for i in range(0, len(record)):
                 print b"\t\t{} - {}".format(i+1, to_bytes(record[i]))
-
-
             return ""
 
         size = len(record) - 1
         record[size] = record[size].rstrip(u'\r\n')
         # print str(record[size]).__contains__(u'\r\n')
         # print record
-        subject_resource = record[self.subjectID].strip()
+        subject_resource = record[self.subjectID]
 
         if subject_resource is not None:
             subject_resource = subject_resource.strip()
 
-        if subject_resource != "":
-            self.refreshCount += 1
-        if self.refreshCount > self.fileSplitSize:
-            self.refreshCount = 0
-            self.refresh()
+        if len(subject_resource) > 0:
 
-        # Write the subject
-        self.instanceCount += 1
-        self.write_line("\t### [ " + str(self.instanceCount) + " ]")
-        # self.write_line(u"\t{0}:".format(self.data_prefix) + subject_resource.replace(" ", "_"))
-        self.write_line(u"\t{0}:".format(self.data_prefix) + self.check_for_uri(subject_resource))
+            if subject_resource != "":
+                self.refreshCount += 1
+            if self.refreshCount > self.fileSplitSize:
+                self.refreshCount = 0
+                self.refresh()
 
-        if self.entityType is not None and self.entityType != "":
-            self.write_line(self.pvFormat.format("", 'rdf:type', u"{0}:{1} ;".format(
-                entity_type_prefix, self.entityType)))
+            # Write the subject
+            self.instanceCount += 1
+            self.write_line("\t### [ " + str(self.instanceCount) + " ]")
+            # self.write_line(u"\t{0}:".format(self.data_prefix) + subject_resource.replace(" ", "_"))
+            resource_uri = u"\t{0}:".format(self.data_prefix) + self.check_for_uri(subject_resource)
 
-        # Write the values
-        self.write_record_values(record, embedded_uri, field_metadata)
-        # print record
+            # WRITE ABOUT THE INVERSE RESOURCE THAT POINTS HTO THE SUBJECT
+            if embedded_uri is not None:
+                for specs in embedded_uri:
+                    if specs['reverse'] is True:
+                        if specs['namespace'] is not None and len(specs['namespace']) > 0:
+                            namespace = specs['namespace'].strip()
+                            subject = u"\t<{0}>".format(namespace + self.check_for_uri(record[specs['id']]))
+                        else:
+                            subject =  u"\t{0}:".format(self.data_prefix) + self.check_for_uri(record[specs['id']])
+
+                        if specs['predicate'] is not None and len(specs['predicate']) > 0:
+                            if specs['predicate'].__contains__("http"):
+                                predicate = "<{}>".format(specs['predicate'].strip())
+                            else:
+                                predicate = vocabulary_prefix + self.check_for_uri(specs['predicate'])
+                        else:
+                            predicate = vocabulary_prefix + self.csvHeader[specs['id']]
+                        self.write_line(subject)
+                        self.write_line( self.pvFormat.format("", predicate, resource_uri) + " .")
+                        self.write_line("")
+
+
+
+            # WRITE ABOUT THE RESOURCE
+            self.write_line(resource_uri)
+
+            if self.entityType is not None and self.entityType != "":
+                self.write_line(self.pvFormat.format("", 'rdf:type', u"{0}:{1} ;".format(
+                    entity_type_prefix, self.entityType)))
+
+            # Write the values
+            self.write_record_values(record, embedded_uri, field_metadata)
+            # print record
 
     def write_record_values(self, record, embedded_uri=None, field_metadata=None):
         """ This function takes as an argument a csv record as
@@ -637,13 +680,22 @@ class CSV(RDF):
         # print record
 
     def write_predicate_value(self, index, value, embedded_uri=None):
-
+        is_embedded = False
         val = value.strip()
+
+        if embedded_uri is not  None:
+            for spec in embedded_uri:
+                # print spec
+                if index == spec['id']:
+                    is_embedded = True
+                    break
+        # print is_embedded, "-->", index
+
         # The last column has a value so, end the triple with a dot
         if index == self.lastColumn and val != "":
 
             # A URI VALUE
-            if embedded_uri is not None and index in embedded_uri:
+            if is_embedded:
                 self.write_line(
                     self.pvFormat.format(
                         u"", vocabulary_prefix + self.csvHeader[index], u"{}:{}".format(
@@ -664,7 +716,7 @@ class CSV(RDF):
             # print("\n" + "[" + str(i) + "]" + self.csvHeader[i] + ": " + cur_value)
 
             # A URI VALUE
-            if embedded_uri is not None and index in embedded_uri:
+            if is_embedded:
                 self.write_line(
                     self.pvFormat.format(
                         u"", vocabulary_prefix + self.csvHeader[index] + u"_uri", u"{}:{}".format(

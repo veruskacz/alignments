@@ -227,8 +227,24 @@
                            <td align="right">
                            <button type="button" id="exportLinksetButton"
                                class="btn btn-success btn btn-primary"
-                               onclick='exportLinksetClick("export.csv")'>
-                               Export Linkset
+                               onclick='exportLinksetClick("export.ttl",mode="flat")'>
+                               Export Flat
+                                <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </button>
+                           </td>
+                           <td align="right">
+                           <button type="button" id="exportMDLinksetButton"
+                               class="btn btn-success btn btn-primary"
+                               onclick='exportLinksetClick("export.trig",mode="md")'>
+                                + Metadata
+                                <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </button>
+                           </td>
+                           <td align="right">
+                           <button type="button" id="exportVisLinksetButton"
+                               class="btn btn-success btn btn-primary"
+                               onclick='exportLinksetClick("export.trig",mode="vis")'>
+                               Visualisation
                                 <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                            </button>
                            </td>
@@ -807,7 +823,7 @@
               <!--</div>-->
             </div>
             <div class="col-md-6" id="linkset_filter_col">
-                <div class="list-group" id="linkset_filter_list" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
+                <div class="list-group" id="linkset_filter_list" style='scroll: horizontal; overflow: auto; height: 10em; width: 100%;'>
                     <li class="list-group-item list-group-item-warning" uri="none" id="no_filter_linkset"><span class="list-group-item-heading"> None </span></li>'
                     <!-- To be loaded by the server -->
                 </div>

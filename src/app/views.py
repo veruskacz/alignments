@@ -1754,13 +1754,19 @@ def adminDel():
     return 'done'
 
 
-@app.route('/exportAlignment')
+@app.route('/exportAlignment', methods=['GET'])
 def exportAlignment():
     graph_uri = request.args.get('graph_uri', '')
+    mode = request.args.get('mode', 'flat')
     try:
-        print "\n before:", graph_uri
-        result = Ex.export_flat_alignment(graph_uri)
-        print "\n after:", result
+        # print "\n before:", graph_uri
+        if mode == 'flat':
+            result = Ex.export_flat_alignment(graph_uri)
+        elif mode == 'md':
+            result = Ex.export_flat_alignment_and_metadata(graph_uri)
+        elif mode == 'vis':
+            result = Ex.visualise([graph_uri])
+        # print "\n after:", result
 
     except Exception as error:
         print "AN ERROR OCCURRED: ", error
