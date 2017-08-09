@@ -796,23 +796,24 @@ def get_resource_description(graph, resource, predicate=None):
         for i in range(len(predicate)):
             if predicate[i] != "resource identifier":
                 pred = predicate[i] if Ut.is_nt_format(predicate[i]) else "<{}>".format(predicate[i])
-                triples += "\n\t   <{}> {} ?obj_{} .".format(resource, pred, i)
+                triples += "\n\tOPTIONAL{{ <{}> {} ?obj_{} . }}".format(resource, pred, i)
         # print "TRIPLES", triples
 
     elif type(predicate) is str:
         if predicate != "resource identifier":
             pred = predicate if Ut.is_nt_format(predicate) else "<{}>".format(predicate)
-            triples += "\n\t   <{}> {} ?obj .".format(resource, pred)
+            triples += "\n\tOPTIONAL{{ <{}> {} ?obj . }}".format(resource, pred)
 
     query = """
     ### GET RESOURCE DESCRIPTION
     SELECT DISTINCT *
     {{
         GRAPH <{}>
-        {{{}
+        {{ <{}> a _:type .
+        {}
         }}
     }}
-    """.format(graph, triples)
+    """.format(graph, resource, triples)
     if DETAIL:
         print query
     return query
