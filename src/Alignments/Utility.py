@@ -718,7 +718,10 @@ def load_triple_store(graph_uri, directory, data):
 
     # RUN THE BATCH FILE
     batch_load(batch_output)
+    if os.path.exists(batch_output) is True:
+        os.remove(batch_output)
 
     triples = Qry.get_namedgraph_size(graph_uri)
+    print triples
 
     return {"result": triples, "message": "{} inserted".format(triples)}

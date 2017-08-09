@@ -32,6 +32,7 @@ lensOpi = "http://risis.eu/lens/operator/intersection"
 lensOpt = "http://risis.eu/lens/operator/transitive"
 lensOpd = "http://risis.eu/lens/operator/difference"
 rsrId = "{}resourceIdentifier".format(alivocab)
+plot = "{}plot/".format(alivocab)
 
 reserchQ = "http://risis.eu/dataset/researchQ"
 view = "http://risis.eu/view/"

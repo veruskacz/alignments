@@ -895,7 +895,7 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
                     if debug is True:
                         writer.write("                   WINNER!!!!!!!!!!!")
                     count += 1
-                    print count
+                    # print count
                     crpdce = dict()
                     crpdce[St.sim] = sim
                     crpdce[St.src_value] = src_dataset[row][1]
@@ -1004,8 +1004,3 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
 
-# token2tf = []
-# for i in range(10):
-#     token2tf += [[i, i]]
-#
-# print token2tf

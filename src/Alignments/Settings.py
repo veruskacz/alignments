@@ -165,4 +165,6 @@ lens_Union__dir = "lens_Union__dir"
 
 long_predicate = "long_predicate"
 lat_predicate = "lat_predicate"
+enriched = "enriched"
+delta = "delta"
 

@@ -369,9 +369,8 @@ def spa_linkset_ess_query(specs):
     return queries
 
 
-# THIS FUNCTION REPLACES spa_linkset_ess_query
-# AS IT ADDS THE POSSIBILITY TO REDUCE THE SOURCE
-# OR TARGET'S NUMBER OF INSTANCE TO BE MATCHED AGAINST
+# THIS FUNCTION REPLACES spa_linkset_ess_query AS IT ADDS THE POSSIBILITY TO
+# REDUCE THE SOURCE OR TARGET'S NUMBER OF INSTANCE TO BE MATCHED AGAINST
 def extract_query(specs, is_source):
 
     # UPDATE THE SPECS OF SOURCE AND TARGETS
@@ -417,7 +416,7 @@ def extract_query(specs, is_source):
     {{
         GRAPH <{1}>
         {{
-            ?{5}  {2}  ?<{7}> .
+            ?{5}  {2}  <{7}> .
             ?{5}  {3}  ?object .
             BIND(lcase(str(?object)) as ?label)
         }}
@@ -437,6 +436,7 @@ def extract_query(specs, is_source):
     return query
 
 
+# THIS COMPUTES TWO QUERIES: MATCHED AND INSERT MATCHED
 def match_query(specs):
 
     match = """
@@ -452,11 +452,11 @@ def match_query(specs):
     {{
         GRAPH tmpgraph:load_1
         {{
-            ?{0} ?hasProperty ?label .
+            ?{0}_1 ?hasProperty ?label .
         }}
         GRAPH tmpgraph:load_2
         {{
-            ?{1} ?hasProperty ?label .
+            ?{1}_2 ?hasProperty ?label .
         }}
     }}
     """.format(specs[St.source][St.graph_name], specs[St.target][St.graph_name])
@@ -1341,14 +1341,11 @@ def insert_query_reduce2(specs):
 
 def insert_query_reduce(specs):
     # UPDATE THE SPECS OF SOURCE AND TARGETS
-
-    update_specification(specs[St.source])
-    update_specification(specs[St.target])
-    Ls.set_linkset_name(specs)
-
-    source = specs[St.source]
-    target = specs[St.target]
-
+    # update_specification(specs[St.source])
+    # update_specification(specs[St.target])
+    # Ls.set_linkset_name(specs)
+    # source = specs[St.source]
+    # target = specs[St.target]
 
     prefix = """
     prefix dataset:    <{}>
@@ -1373,12 +1370,12 @@ def insert_query_reduce(specs):
     DROP SILENT GRAPH <{0}load_3>
     """.format(Ns.tmpgraph)
 
-    if St.reducer not in source:
-        src_reducer_comment = "#"
-        src_reducer = ""
-    else:
-        src_reducer_comment = ""
-        src_reducer = source[St.reducer]
+    # if St.reducer not in source:
+    #     src_reducer_comment = "#"
+    #     src_reducer = ""
+    # else:
+    #     src_reducer_comment = ""
+    #     src_reducer = source[St.reducer]
 
     source_extract = extract_query(specs, is_source=True)
     target_extract = extract_query(specs, is_source=False)
@@ -1395,6 +1392,150 @@ def insert_query_reduce(specs):
     return [query_1, query_2, query_3, query_4]
 
 
+def insert_query_numeric_reduce(specs):
+
+    # UPDATE THE SPECS OF SOURCE AND TARGETS
+    # update_specification(specs[St.source])
+    # update_specification(specs[St.target])
+    # Ls.set_linkset_name(specs)
+    # source = specs[St.source]
+    # target = specs[St.target]
+
+    prefix = """
+    prefix dataset:    <{}>
+    prefix linkset:    <{}>
+    prefix singleton:  <{}>
+    prefix alivocab:   <{}>
+    prefix tmpgraph:   <{}>
+    prefix tmpvocab:   <{}>
+    """.format(Ns.dataset, Ns.linkset, Ns.singletons, Ns.alivocab, Ns.tmpgraph, Ns.tmpvocab)
+
+    drop_q1 = """
+    DROP SILENT GRAPH <{0}load_1> ;
+    DROP SILENT GRAPH <{0}load_2> ;
+    DROP SILENT GRAPH <{0}load_3> ;
+    DROP SILENT GRAPH <{1}> ;
+    DROP SILENT GRAPH <{2}{3}>
+    """.format(Ns.tmpgraph, specs[St.linkset], Ns.singletons, specs[St.linkset_name])
+
+    drop_q2 = """
+    #DROP SILENT GRAPH <{0}load_1> ;
+    #DROP SILENT GRAPH <{0}load_2> ;
+    DROP SILENT GRAPH <{0}load_3>
+    """.format(Ns.tmpgraph)
+
+    # if St.reducer not in source:
+    #     src_reducer_comment = "#"
+    #     src_reducer = ""
+    # else:
+    #     src_reducer_comment = ""
+    #     src_reducer = source[St.reducer]
+
+    source_extract = extract_query(specs, is_source=True)
+    target_extract = extract_query(specs, is_source=False)
+    match = match_numeric_query(specs)
+
+    query_1 = drop_q1
+    query_2 = prefix + source_extract + target_extract + match[0]
+    query_3 = prefix + match[1]
+    query_4 = drop_q2
+    print query_1
+    print query_2
+    print query_3
+    print query_4
+    return [query_1, query_2, query_3, query_4]
+
+
+def approx_numeric(specs):
+    query = """
+    select ?s ?x ?y
+    {
+        # SOURCE
+        graph dataset:leidenRanking_2015
+        {
+          ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/Int_coverage> ?x .
+          ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/MNCS> ?y .
+
+          filter( abs( xsd:decimal(?x) - xsd:decimal(?y) ) <= 0.1)
+
+        }
+    }
+    """
+
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+
+    # UPDATE THE SPECS OF SOURCE AND TARGETS
+    update_specification(specs[St.source])
+    update_specification(specs[St.target])
+
+    # GENERATE THE NAME OF THE LINKSET
+    Ls.set_linkset_name(specs)
+
+    insert_query_numeric_reduce(specs)
+
+
+def match_numeric_query(specs):
+
+    match = """
+    INSERT
+    {{
+        GRAPH tmpgraph:load_3
+        {{
+            ?{0}_1  tmpvocab:exactName  ?{1}_2 .
+            ?{0}_1  tmpvocab:evidence   ?DELTA .
+        }}
+    }}
+    WHERE
+    {{
+        GRAPH tmpgraph:load_1
+        {{
+            ?{0}_1 ?hasProperty ?x .
+        }}
+        GRAPH tmpgraph:load_2
+        {{
+            ?{1}_2 ?hasProperty ?y .
+        }}
+
+        BIND(ABS(xsd:decimal(?x) - xsd:decimal(?x) AS ?DELTA))
+
+        FILTER( ?DELTA <= {2} )
+    }}
+    """.format(specs[St.source][St.graph_name], specs[St.target][St.graph_name], specs[St.delta])
+
+    linkset = """
+    INSERT
+    {{
+        GRAPH linkset:{0}
+        {{
+            ### Correspondence triple
+            ?source ?singPre ?target.
+        }}
+        GRAPH singleton:{0}
+        {{
+            ### Singleton metadata
+            ?singPre rdf:singletonPropertyOf  alivocab:exactStrSim{1} .
+            ?singPre alivocab:hasEvidence     ?label .
+        }}
+    }}
+    WHERE
+    {{
+        ### Selecting from tmpgraph:load_3
+        GRAPH tmpgraph:load_3
+        {{
+            ?source tmpvocab:exactName ?target .
+            ?source tmpvocab:evidence  ?label .
+            ### Create A SINGLETON URI
+            BIND( replace(\"{2}{3}{4}_#\",\"#\", STRAFTER(str(UUID()),\"uuid:\")) as ?pre )
+            BIND(iri(?pre) as ?singPre)
+        }}
+    }} ;
+    """.format(specs[St.linkset_name], specs[St.sameAsCount],
+               Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount])
+
+    query = match + linkset
+    return [match, linkset]
+
+
 grid = {
     St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
     St.graph: "http://risis.eu/dataset/grid",
@@ -1408,13 +1549,34 @@ eter_english = {
    St.aligns: "http://risis.eu/eter/ontology/predicate/english_Institution_Name",
    St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715"}
 
-
 """ DEFINE LINKSET SPECIFICATIONS """
 ls_specs_1 = {
     St.researchQ_URI: "",
     St.source: eter_english,
     St.target: grid,
-    St.mechanism: "mechanism"
+    St.mechanism: "mechanism",
+}
+
+leiden_1 = {
+    St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    St.graph: "http://risis.eu/dataset/leidenRanking_2015",
+    St.entity_datatype: "http://risis.eu/grid/ontology/class/University",
+    St.aligns: "http://risis.eu/leidenRanking_2015/ontology/predicate/Int_coverage"}
+
+leiden_2 = {
+   St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+   St.graph: "http://risis.eu/dataset/leidenRanking_2015",
+   St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
+   St.aligns: "http://risis.eu/leidenRanking_2015/ontology/predicate/MNCS"}
+
+ls_specs_2 = {
+    St.researchQ_URI: "",
+    St.source: leiden_1,
+    St.target: leiden_2,
+    St.mechanism: "approx_numeric",
+    St.delta: 1
 }
 
 # insert_query_reduce(ls_specs_1)
+
+# approx_numeric(ls_specs_2)

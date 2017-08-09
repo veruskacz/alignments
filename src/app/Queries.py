@@ -1470,6 +1470,7 @@ def get_lens_corresp_details(lens, limit=1):
         print query
     return query
 
+
 #TODO: CHECK IF CAN BE REMOVED
 def get_filter(research_uri, graph_uri):
 

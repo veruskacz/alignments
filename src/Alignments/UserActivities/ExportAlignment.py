@@ -5,6 +5,7 @@ import re
 import os
 import codecs
 import rdflib
+import datetime
 import cStringIO as Buffer
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
@@ -91,7 +92,7 @@ def export_flat_alignment_and_metadata(alignment):
     # REMOVE EMPTY LINES
     triples = 0
     # triples = len(re.findall('ll:mySameAs', alignment_construct))
-    alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
+    alignment_construct = "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
     result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n{}".format(triples, alignment, alignment_construct)
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
@@ -179,13 +180,13 @@ def export_alignment(alignment):
 
 
 # ALIGNMENT FOR VISUALISATION: THE MAIN FUNCTION
-def visualise(graphs):
+def visualise(graphs, directory):
     # uri_10 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
-    uri_20 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
-    uri_30 = "http://risis.eu/linkset/eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458"
-    uri_22 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676_exactStrSim_Country_Code"
-    uri_33 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458_exactStrSim_Country_Code"
-    graphs = [uri_20, uri_22, uri_30, uri_33]
+    # uri_20 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
+    # uri_30 = "http://risis.eu/linkset/eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458"
+    # uri_22 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676_exactStrSim_Country_Code"
+    # uri_33 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458_exactStrSim_Country_Code"
+    # graphs = [uri_20, uri_22, uri_30, uri_33]
     writer = Buffer.StringIO()
     # file = open("C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\plot.ttl", 'wb')
     g = rdflib.Graph()
@@ -203,7 +204,7 @@ def visualise(graphs):
     for graph in graphs:
         # print graph
 
-        code = +1
+        code += 1
 
         links = export_alignment(graph)
         mechanism = links['mechanism']
@@ -246,7 +247,8 @@ def visualise(graphs):
 
     # INSERT NEW DATA
     writer.write("INSERT DATA\n{")
-    writer.write("\n\tGRAPH plot:{}_{}\n".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
+    writer.write("\n\tGRAPH plot:{}_{}\n".format(
+        Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
     writer.write("\t{")
     for subject, predicate, obj in g.triples((None, None, None)):
 
@@ -284,7 +286,35 @@ def visualise(graphs):
         writer.write("")
     writer.write("\t}\n}")
 
-    Qry.virtuoso_request(writer.getvalue())
+    name = "{}_{}".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1]))
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    f_path = "{}\{}_plots_{}.ttl".format(directory, name, date)
+    b_path = "{}\{}_plots_{}{}".format(directory, name, date, Ut.batch_extension())
+    print "DIRECTORY:", directory
+
+    # MAKE SURE THE FOLDER EXISTS
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError as err:
+        print "\n\t[utility_LOAD_TRIPLE_STORE:]", err
+        return
+
+    plot_writer = codecs.open(f_path, "wb", "utf-8")
+    batch_writer = codecs.open(b_path, "wb", "utf-8")
+
+    print "3. GENERATING THE BATCH FILE TEXT"
+    enriched_graph = "{}{}_plots".format(Ns.plot, name)
+    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+    load_text = """echo "Loading data"
+    {}stardog data add risis -g {} "{}"
+    """.format(stardog_path, enriched_graph, f_path)
+    batch_writer.write(to_unicode(load_text))
+    batch_writer.close()
+    plot_writer.write(writer.getvalue())
+    plot_writer.close()
+    print "Job Done!!!"
+    # Qry.virtuoso_request(writer.getvalue())
     # print count, triples
     # file.close()
 
@@ -292,7 +322,7 @@ def visualise(graphs):
 
 
 # ENRICHING DATASETS WITH GADM BOUNDARIES: THE QUERY
-def enrich_query(limit=0, offset=0, is_count=True):
+def enrich_query(specs, limit=0, offset=0, is_count=True):
 
     if is_count is True:
         count_comment = ""
@@ -337,23 +367,34 @@ def enrich_query(limit=0, offset=0, is_count=True):
 
 
 # ENRICHING DATASETS WITH GADM BOUNDARIES: THE MAIN FUNCTION
-def enrich(spec):
+def enrich(specs, directory):
+
+    # TODO RUN IT IF THERE IS NOT GRAPH ENRICHED WITH THE SAME NAME
 
     # specs[St.graph] = "http://grid.ac/20170712"
-    print "GRAP:", spec[St.graph]
-    print "ENTITY TYPE:", spec[St.entity_datatype]
-    print "LAT PREDICATE", spec[St.long_predicate]
-    print "LONG PREDICATE", spec[St.lat_predicate]
-    # return {St.message:"OK", St.result: "ok"}
+    print "GRAP:", specs[St.graph]
+    print "ENTITY TYPE:", specs[St.entity_datatype]
+    print "LAT PREDICATE:", specs[St.long_predicate]
+    print "LONG PREDICATE:", specs[St.lat_predicate]
+    print "FILE DIRECTORY:", directory
+    name = Ut.get_uri_local_name(specs[St.graph])
 
     total = 0
     limit = 20000
-    # enriched_graph = None
-    f_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph.ttl"
-    b_path = "C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\enriched_graph{}".format(Ut.batch_extension())
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    f_path = "{}\{}_enriched_{}.ttl".format(directory, name, date)
+    b_path = "{}\{}_enriched_{}{}".format(directory, name, date, Ut.batch_extension())
+
+    # MAKE SURE THE FOLDER EXISTS
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError as err:
+        print "\n\t[utility_LOAD_TRIPLE_STORE:]", err
+        return
 
     print "0. GETTING THE TOTAL NUMBER OF TRIPLES."
-    count = enrich_query(limit=0, offset=0, is_count=True)
+    count = enrich_query(specs, limit=0, offset=0, is_count=True)
     print count
     count_res = Qry.virtuoso_request(count)
     result = count_res['result']
@@ -392,7 +433,7 @@ def enrich(spec):
         print "ROUND: {} OFFSET: {}".format(i, offset)
 
         print "1. GENERATING THE ENRICHMENT QUERY"
-        virtuoso = enrich_query(limit=limit, offset=offset, is_count=False)
+        virtuoso = enrich_query(specs, limit=limit, offset=offset, is_count=False)
         print virtuoso
         # exit(0)
         # print Qry.virtuoso(virtuoso)["result"]
@@ -404,7 +445,12 @@ def enrich(spec):
     print "4. RUNNING THE BATCH FILE"
     print "THE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
         else "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
-    os.system(b_path)
+    # os.system(b_path)
+
+    # RUN THE BATCH FILE
+    Ut.batch_load(b_path)
+    if os.path.exists(b_path) is True:
+        os.remove(b_path)
 
     # TODO 1. REGISTER THE DATASET TO BE ENRICHED IF NOT YET REGISTER
     # TODO 2. ADD THE ENRICHED DATASET TO THE RESEARCH QUESTION (REGISTER).
@@ -725,18 +771,16 @@ def get_bom_type(file_path):
     return bom_type
 
 
-
-
 uri_4 = "http://risis.eu/linkset/" \
         "orgreg_20170718_grid_20170712_exactStrSim_University_Entity_current_name_English_P1888721829"
 
 # print visualise([uri_4])
 
-specs = {
-    St.graph: "http://grid.ac/20170712",
-    St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
-    St.long_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
-    St.lat_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"}
+# specs = {
+#     St.graph: "http://grid.ac/20170712",
+#     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
+#     St.long_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
+#     St.lat_predicate: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"}
 
 
 """
@@ -784,5 +828,3 @@ path = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_E
 # <http://risis.eu/eter_2014/resource/CZ0060>
 # ll:exactStrSim2_ef65515b-2d92-4143-a58a-6d703e125dff <http://www.grid.ac/institutes/grid.5596.f> .
 # """
-
-print uuid()
