@@ -384,7 +384,7 @@ def correspondences2():
     try:
         query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
         correspondences = sparql(query, strip=True)
-        print ">>>> Results corr", correspondences, type(correspondences)
+        # print ">>>> Results corr", correspondences, type(correspondences)
         if correspondences == [{}]:
             correspondences = []
         elif (str(correspondences).find('com.complexible.stardog.plan.eval.ExecutionException') >= 0):
@@ -572,7 +572,7 @@ def lenspecs():
     if details:
         result = """
         <div class="panel panel-primary">
-            <div class="panel-heading" id="inspect_lens_lens_details_col">
+            <div class="panel-heading" id="inspect_lens_lens_details_col" style="scroll: both; overflow: auto; width:100%;">
         """
         result += "This lens applies the " + badge.format(details[0]['operator_stripped']['value']) + " operator to "
         for i in range(len(details)):
@@ -638,6 +638,110 @@ def lensdetails():
 ### TODO: REPLACE
 @app.route('/getLensDetail1', methods=['GET'])
 def detailsLens():
+    """
+    This function is called due to request /getLensDetail
+    It queries the dataset for all the correspondences in a certain graph URI
+    The results, ...,
+        are passed as parameters to the template lensDetails_list.html
+    """
+
+    singleton_uri = request.args.get('uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    sub_uri = request.args.get('sub_uri', '')
+    obj_uri = request.args.get('obj_uri', '')
+    # subjectTarget = request.args.get('subjectTarget', '')
+    # objectTarget = request.args.get('objectTarget', '')
+    # alignsSubjects = request.args.get('alignsSubjects', '')
+    # alignsObjects = request.args.get('alignsObjects', '')
+
+    # print graph_uri, singleton_uri
+    det_query = Qry.get_target_datasets(graph_uri, singleton_uri)
+    details = sparql(det_query, strip=True)
+    # print det_query
+    # print details
+    rows = []
+    src_align_list = []
+    trg_align_list = []
+
+    if len(details) > 0:
+        subjectTarget = details[0]['DatasetsSub']['value']
+        objectTarget = details[0]['DatasetsObj']['value']
+
+        for i in range(len(details)):
+            # ALIGNED PREDICATES
+            try:
+                src_aligns = details[i]['alignsSubjects']['value']
+            except:
+                src_aligns = ''
+
+            try:
+                trg_aligns = details[i]['alignsObjects']['value']
+            except:
+                trg_aligns = ''
+
+            if src_aligns and src_aligns not in src_align_list:
+                src_align_list += [src_aligns]
+            if trg_aligns and trg_aligns not in trg_align_list:
+                trg_align_list += [trg_aligns]
+
+        s = u'http://risis.eu/alignment/predicate/resourceIdentifier'
+        # print "align_list", align_list
+        if s in src_align_list:
+            src_align_list.remove(s)
+        # print "align_list", align_list
+        val_query = Qry.get_resource_description(subjectTarget, sub_uri, src_align_list)
+        values_matrix = sparql_xml_to_matrix(val_query)
+        pred_values_src = []
+        for i in range(len(src_align_list)):
+            if values_matrix is None:
+                pred_value = {'pred': get_URI_local_name(src_align_list[i]), 'value': ""}
+            else:
+                pred_value = {'pred': get_URI_local_name(src_align_list[i]), 'value':values_matrix[1][i]}
+
+            pred_values_src += [pred_value]
+
+        if s in trg_align_list:
+            trg_align_list.remove(s)
+        # print "align_list", align_list
+        val_query = Qry.get_resource_description(objectTarget, obj_uri, trg_align_list)
+        values_matrix = sparql_xml_to_matrix(val_query)
+        pred_values_trg = []
+        for i in range(len(trg_align_list)):
+            if values_matrix is None:
+                pred_value = {'pred': get_URI_local_name(trg_align_list[i]), 'value': ""}
+            else:
+                pred_value = {'pred': get_URI_local_name(trg_align_list[i]), 'value':values_matrix[1][i]}
+
+            pred_values_trg += [pred_value]
+
+        col1 = {'dataset': subjectTarget,
+                'dataset_stripped': get_URI_local_name(subjectTarget),
+                'predicates': pred_values_src}
+
+        if len(objectTarget) > 0:
+            col2 = {'dataset': objectTarget,
+                    'dataset_stripped': get_URI_local_name(objectTarget),
+                    'predicates': pred_values_trg}
+        else:
+            col2 = ""
+        rows += [{'col1': col1, 'col2': col2}]
+
+    query = Qry.get_target_datasets_old(graph_uri)
+    detailHeadings = sparql(query, strip=True)
+
+    return render_template('lensDetails_list1.html',
+                            detailHeadings = detailHeadings,
+                            rows = rows,
+                            sub_uri = sub_uri,
+                            obj_uri = obj_uri,
+                            # sub_datasets = sub_datasets,
+                            # obj_datasets = obj_datasets,
+                            subjectTarget = subjectTarget,
+                            objectTarget = objectTarget,
+                            alignsSubjects = src_align_list,
+                            alignsObjects = trg_align_list)
+
+def detailsLens_old():
     """
     This function is called due to request /getLensDetail
     It queries the dataset for all the correspondences in a certain graph URI

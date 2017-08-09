@@ -290,7 +290,7 @@ def get_graphs_per_rq_type(rq_uri, type=None):
     elif type == "linkset&lens":
         type_filter = """
         { ?uri   rdf:type	void:Linkset } UNION
-        { ?uri   rdf:type	void:Lens } . """
+        { ?uri   rdf:type	bdb:Lens } . """
     elif type == "linkset":
         type_filter = "?uri   rdf:type	void:Linkset ."
     elif type == "lens":
@@ -588,7 +588,73 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
     return query
 
 
-def get_target_datasets(graph_uri=''):
+def get_target_datasets(graph_uri='', singleton_uri=''):
+    query = """
+    ### GET TARGET DATASETS
+    ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
+    {0}
+    SELECT DISTINCT ?DatasetsSub ?DatasetsObj ?alignsSubjects ?alignsObjects ?alignsMechanism 
+    where
+    {{
+            ### Retrieves the lens 
+            <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph1.
+            <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph2.
+
+        {{ ?graph1
+           void:subjectsTarget 			?DatasetsSub ;
+           alivocab:alignsSubjects   	?alignsSub .
+        }} UNION {{
+        ?graph1
+           void:objectsTarget  			?DatasetsSub ;
+        	OPTIONAL {{ ?graph1    alivocab:alignsObjects    ?alignsSub }}
+        }}
+
+      
+        {{ ?graph2
+           void:subjectsTarget 			?DatasetsObj ;
+           alivocab:alignsSubjects   	?alignsObj .
+        }} UNION {{
+        ?graph2
+           void:objectsTarget  			?DatasetsObj ;
+        	OPTIONAL {{ ?graph2    alivocab:alignsObjects    ?alignsObj }}
+        }}
+	    BIND (IF(bound(?alignsSub), ?alignsSub , "resource identifier") AS ?alignsSubjects)
+	    BIND (IF(bound(?alignsObj), ?alignsObj , "resource identifier") AS ?alignsObjects)
+
+        OPTIONAL {{ ?graph1	  alivocab:alignsMechanism  ?alignsMechanism1 }}
+        OPTIONAL {{ ?graph2	  alivocab:alignsMechanism  ?alignsMechanism2 }}
+
+        GRAPH <{1}>
+        {{ ?sub <{2}> ?obj
+        }}
+
+        GRAPH ?DatasetsSub
+        {{
+	        ?sub ?p1 ?o1
+        }}
+
+        GRAPH ?DatasetsObj
+        {{
+	        ?obj ?p2 ?o2
+        }}
+        
+        FILTER NOT EXISTS {{ 
+              {{ ?DatasetsSub  a  void:Linkset }}
+               UNION
+               {{ ?DatasetsSub  a  bdb:Lens }} }}
+        FILTER NOT EXISTS {{ 
+              {{ ?DatasetsObj  a  void:Linkset }}
+               UNION
+               {{ ?DatasetsObj  a  bdb:Lens }} }}
+    }}
+    """.format(PREFIX, graph_uri, singleton_uri)  # union)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_target_datasets_old(graph_uri=''):
 
     query = """
     ### GET TARGET DATASETS
