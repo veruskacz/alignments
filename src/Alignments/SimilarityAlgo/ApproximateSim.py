@@ -995,7 +995,7 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
         print "\tLinkset created as: ", specs[St.linkset_name]
         print "\t*** JOB DONE! ***"
 
-        message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
+        message = "The linkset was created as {} with {} triples.".format(specs[St.linkset], count)
         return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
     else:
@@ -1003,4 +1003,3 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
         print message
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
-
