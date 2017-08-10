@@ -313,6 +313,8 @@ def visualise(graphs, directory):
     batch_writer.close()
     plot_writer.write(writer.getvalue())
     plot_writer.close()
+    print "PLOT: {}".format(f_path)
+    print "BATCH: {}".format(b_path)
     print "Job Done!!!"
     # Qry.virtuoso_request(writer.getvalue())
     # print count, triples
