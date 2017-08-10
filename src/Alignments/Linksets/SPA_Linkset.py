@@ -444,8 +444,8 @@ def match_query(specs):
     {{
         GRAPH tmpgraph:load_3
         {{
-            ?{0}  tmpvocab:exactName  ?{1} .
-            ?{0}  tmpvocab:evidence   ?label .
+            ?{0}_1  tmpvocab:exactName  ?{1}_2 .
+            ?{0}_1  tmpvocab:evidence   ?label .
         }}
     }}
     WHERE
