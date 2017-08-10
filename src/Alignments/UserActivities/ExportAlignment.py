@@ -288,8 +288,8 @@ def visualise(graphs, directory):
 
     name = "{}_{}".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1]))
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    f_path = "{}\{}_plots_{}.ttl".format(directory, name, date)
-    b_path = "{}\{}_plots_{}{}".format(directory, name, date, Ut.batch_extension())
+    f_path = "{0}{1}{1}{2}_plots_{3}.ttl".format(directory, os.path.sep, name, date)
+    b_path = "{0}{1}{1}{2}_plots_{3}{4}".format(directory, os.path.sep, name, date, Ut.batch_extension())
     print "DIRECTORY:", directory
 
     # MAKE SURE THE FOLDER EXISTS
