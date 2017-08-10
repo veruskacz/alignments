@@ -131,6 +131,7 @@ def union(specs, activated=False):
         #   1-SUM UP THE EXPECTED NUMBER OF TRIPLES
         #   2-GENERATE THE TRIPLES REPRESENTATION OF GHE GRAPHS COMPOSING THIS LENS
         #   3-GENERATE THE INSERT QUERY FOR MOVING BOTH LINKSET AND SINGLETON GRAPHS TO THE UNION GRAPH
+        total_size = 0
         for linkset in specs[St.datasets]:
 
             # print "TARGET: ", linkset
@@ -138,6 +139,7 @@ def union(specs, activated=False):
 
             # GET THE TOTAL NUMBER OF CORRESPONDENCE TRIPLES INSERTED
             curr_triples = Qry.get_triples(linkset)
+            total_size += int(curr_triples)
             print "{} Contains {} triples".format(linkset, curr_triples)
 
             # print "Current triples: ", curr_triples
@@ -179,7 +181,7 @@ def union(specs, activated=False):
 
             # CHECK WHETHER THE RESULT CONTAINS DUPLICATES
             contains_duplicated = Qry. contains_duplicates(lens)
-            print "contains_duplicated:", contains_duplicated
+            print "Contains Opposite Direction Duplicated:", contains_duplicated
 
             # IF IT DOES, REMOVE THE DUPLICATES
             if contains_duplicated is True:
@@ -189,8 +191,13 @@ def union(specs, activated=False):
                 # logger.warning("THE DUPLICATES ARE NOW REMOVED.")
                 print "THE DUPLICATES ARE NOW REMOVED."
 
+            print "Number of triples loaded              : {}".format(total_size)
+
             specs[St.triples] = Qry.get_namedgraph_size(lens, isdistinct=False)
             print "\t>>> INSERTED:  {}\n\t>>> INSERTED TRIPLES: {}".format(insert_ans, specs[St.triples])
+
+            print "Inserted : {}".format(specs[St.triples])
+            print "Removed  : {}".format(total_size - int(specs[St.triples]))
 
             # LOAD THE METADATA
             inserted_correspondences = int(Qry.get_union_triples(lens))
@@ -214,7 +221,9 @@ def union(specs, activated=False):
         Urq.register_lens(specs, is_created=True)
 
         # return specs[St.lens]
-        message = "THE LENS WAS CREATED!<br/>URI = {}".format(specs[St.lens])
+        message = "THE LENS WAS CREATED as {}. " \
+                  "With initially {} triples loaded, {} duplicated triples were found and removed.".format(
+            specs[St.lens], total_size, total_size - int(specs[St.triples]))
 
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: specs[St.lens]}
