@@ -132,7 +132,8 @@ def spa_linksets(specs, id=False, display=False, activated=False):
                 linkset_path = DIRECTORY
                 writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata)
                 server_message = "Linksets created as: {}".format(specs[St.linkset])
-                message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
+                message = "The linkset was created as [{}] with {} triples found!".format(
+                    specs[St.linkset], specs[St.triples])
                 print "\t", server_message
                 print "\t*** JOB DONE! ***"
 
