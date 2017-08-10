@@ -181,6 +181,9 @@ def export_alignment(alignment):
 
 # ALIGNMENT FOR VISUALISATION: THE MAIN FUNCTION
 def visualise(graphs, directory):
+
+    production_directory = "/scratch/risis/data/rdf-data/links"
+    directory = production_directory
     # uri_10 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
     # uri_20 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
     # uri_30 = "http://risis.eu/linkset/eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458"
