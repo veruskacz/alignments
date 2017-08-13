@@ -485,7 +485,11 @@ function filterListGroup(input,div_id,counter_div='') {
      var filter, ul, li, a, i;
     //input = document.getElementById('myInput');
     filter = input.value.toUpperCase();
-    ul = document.getElementById(div_id);
+//    ul = document.getElementById(div_id);
+    if (div_id!='')
+    {    ul = document.getElementById(div_id); }
+    else
+    {   ul = input.parentNode; }
     li = ul.getElementsByTagName('li');
     if (li.length == 0)
         li = ul.getElementsByTagName('a');
@@ -503,6 +507,16 @@ function filterListGroup(input,div_id,counter_div='') {
     if (counter_div != '')
     {   num = ('0000' + String(counter)).substr(-4);
         $('#'+counter_div).html(num) }
+    else
+    {
+        cs = ul.getElementsByClassName('badge counter');
+        if (cs.length > 0)
+        {
+            counter_obj = cs[0];
+            num = ('0000' + String(counter)).substr(-4);
+            $(counter_obj).html(num)
+        }
+    }
 }
 
 ///////////////////////////////////
