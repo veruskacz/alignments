@@ -410,7 +410,7 @@ def endpointconstruct(query, clean=True):
             # FINAL CLEANING
             if len(regex_result) > 0:
                 result = result.replace("{", "{{\n{}".format(bind))
-                print "RESPONSE RESULT ALTERED:", result
+                # print "RESPONSE RESULT ALTERED:", result
 
         return result
 
@@ -2524,7 +2524,7 @@ def linkset_aligns_prop(linkset_uri):
 
         ### LINKSET ALIGNED PROPERTIES
 
-        SELECT ?s_prop ?o_prop ?mec
+        SELECT ?s_prop ?o_prop ?mec ?s_dataset ?o_dataset
         {{
             ### RETRIEVING LINKSET METADATA
             <{}>
@@ -2533,10 +2533,12 @@ def linkset_aligns_prop(linkset_uri):
             ?linkset
                 ll:alignsSubjects     ?s_prop ;
                 ll:alignsObjects      ?o_prop ;
-                alivocab:alignsMechanism   ?mec .
+                ll:alignsMechanism    ?mec ;
+                void:subjectsTarget   ?s_dataset ;
+                void:objectsTarget    ?o_dataset .
         }}
     """.format(Ns.alivocab, Ns.prov, Ns.alivocab, linkset_uri)
-    print query
+    # print query
     return query
 
 
