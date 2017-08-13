@@ -1,5 +1,6 @@
 import time
 import xmltodict
+import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 from Alignments.Query import endpoint
@@ -588,7 +589,9 @@ def drop_linkset(graph, display=False, activated=False):
 
 
 def delete_linkset_rq(rq_uri, linkset_uri):
-    query = PREFIX + """
+
+    # print "DELETE THE FILTERS AND DISCONNECT THE LINKSET"
+    query1 = PREFIX + """
     # DELETE THE FILTERS
     DELETE
     {{
@@ -645,33 +648,11 @@ def delete_linkset_rq(rq_uri, linkset_uri):
                ?s3 alivocab:created|prov:used ?lens.
             }}
        }}
-    }}
-     ;
-    # 2-A DELETE THE SINGLETON GRAPH IF IT'S NOT USED IN ANY RQ
-    DELETE
-    {{
-        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
-    }}
-    WHERE
-    {{
-        BIND(<{1}> AS ?linkset) .
-        ?linkset    alivocab:singletonGraph 		?singletonGraph .
-        GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
-        FILTER NOT EXISTS
-        {{
-            GRAPH ?rqg
-            {{
-                ?rqg a <http://risis.eu/class/ResearchQuestion> .
-                ?sg ?pg ?linkset.
-            }}
-        }}
-        FILTER NOT EXISTS
-        {{
-            ?lens 	a 			?type;
-                    void:target|void:subjectsTarget|void:objectsTarget  ?linkset.
-        }}
-    }}
-    ;
+    }}""".format(rq_uri, linkset_uri)
+
+    query2 = """DROP SILENT GRAPH <{0}> ;
+    DROP SILENT GRAPH <{1}> ;
+
     # 2-B DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
     DELETE
     {{
@@ -686,41 +667,100 @@ def delete_linkset_rq(rq_uri, linkset_uri):
         ?object     ?pred                                           ?obj .
         ?linkset    ?p                                              ?o .
 
-        FILTER NOT EXISTS
-        {{
-            GRAPH ?rqg
-            {{
-                ?rqg a <http://risis.eu/class/ResearchQuestion> .
-                ?sg ?pg ?linkset.
-            }}
-        }}
-    }}
-    ;
-    # 2-C DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
-    DELETE
-    {{
-        GRAPH   ?linkset    {{ ?sub ?pred ?obj . }}
-    }}
-    WHERE
-    {{
-        BIND(<{1}> AS ?linkset) .
-        GRAPH ?linkset
-        {{
-            ?sub    ?pred   ?obj .
-        }}
-        FILTER NOT EXISTS
-        {{
-            GRAPH ?rqg
-            {{
-                ?rqg a <http://risis.eu/class/ResearchQuestion> .
-                ?sg ?pg ?linkset.
-            }}
-        }}
+        # FILTER NOT EXISTS
+        # {{
+        #     GRAPH ?rqg
+        #     {{
+        #         ?rqg a <http://risis.eu/class/ResearchQuestion> .
+        #         ?sg ?pg ?linkset.
+        #     }}
+        # }}
     }}
 
-    """.format(rq_uri, linkset_uri)
+    """.format(Ut.from_alignment2singleton(linkset_uri), linkset_uri)
+
+    # print "DELETE THE BOTH METADATA"
+    # query2 = PREFIX + """
+    # # 2-A DELETE THE SINGLETON GRAPH IF IT'S NOT USED IN ANY RQ
+    # DROP SILENT GRAPH <{}>
+    # # DELETE
+    # # {{
+    # #     GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
+    # # }}
+    # # WHERE
+    # # {{
+    # #     BIND(<{1}> AS ?linkset) .
+    # #     ?linkset    alivocab:singletonGraph 		?singletonGraph .
+    # #     GRAPH       ?singletonGraph                 {{ ?x ?y ?z }} .
+    # #     FILTER NOT EXISTS
+    # #     {{
+    # #         GRAPH ?rqg
+    # #         {{
+    # #             ?rqg a <http://risis.eu/class/ResearchQuestion> .
+    # #             ?sg ?pg ?linkset.
+    # #         }}
+    # #     }}
+    # #     FILTER NOT EXISTS
+    # #     {{
+    # #         ?lens 	a 			?type;
+    # #                 void:target|void:subjectsTarget|void:objectsTarget  ?linkset.
+    # #     }}
+    # # }}
+    # ;
+    # # 2-B DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
+    # DELETE
+    # {{
+    #     ?linkset ?p ?o .
+    #     ?object ?pred ?obj .
+    # }}
+    # WHERE
+    # {{
+    #     BIND(<{1}> AS ?linkset) .
+    #
+    #     ?linkset    bdb:assertionMethod|bdb:linksetJustification    ?object .
+    #     ?object     ?pred                                           ?obj .
+    #     ?linkset    ?p                                              ?o .
+    #
+    #     # FILTER NOT EXISTS
+    #     # {{
+    #     #     GRAPH ?rqg
+    #     #     {{
+    #     #         ?rqg a <http://risis.eu/class/ResearchQuestion> .
+    #     #         ?sg ?pg ?linkset.
+    #     #     }}
+    #     # }}
+    # }}
+    # """.format(rq_uri, linkset_uri)
+
+
+
+    # print "DELETING THE LINKSET ITSELF"
+    # query3 = PREFIX + """
+    # # 2-C DELETE THE LINKSET COMPLETELY IF IT'S NOT USED IN ANY RQ
+    # DELETE
+    # {{
+    #     GRAPH   ?linkset    {{ ?sub ?pred ?obj . }}
+    # }}
+    # WHERE
+    # {{
+    #     BIND(<{1}> AS ?linkset) .
+    #     GRAPH ?linkset
+    #     {{
+    #         ?sub    ?pred   ?obj .
+    #     }}
+    #     # FILTER NOT EXISTS
+    #     # {{
+    #     #     GRAPH ?rqg
+    #     #     {{
+    #     #         ?rqg a <http://risis.eu/class/ResearchQuestion> .
+    #     #         ?sg ?pg ?linkset.
+    #     #     }}
+    #     # }}
+    # }}
+    #
+    # """.format(rq_uri, linkset_uri)
     # print query
-    return query
+    return [query1, query2]
 
 
 def delete_lens_rq(rq_uri, lens_uri):
