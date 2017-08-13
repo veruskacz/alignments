@@ -2520,7 +2520,7 @@ def linkset_aligns_prop(linkset_uri):
         ################################################################
         PREFIX ll:    <{}>
         PREFIX prov:  <{}>
-        PREFIX alivocab:  <{}>
+        PREFIX void:  <{}>
 
         ### LINKSET ALIGNED PROPERTIES
 
@@ -2537,7 +2537,7 @@ def linkset_aligns_prop(linkset_uri):
                 void:subjectsTarget   ?s_dataset ;
                 void:objectsTarget    ?o_dataset .
         }}
-    """.format(Ns.alivocab, Ns.prov, Ns.alivocab, linkset_uri)
+    """.format(Ns.alivocab, Ns.prov, Ns.void, linkset_uri)
     # print query
     return query
 
