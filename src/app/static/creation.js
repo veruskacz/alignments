@@ -858,7 +858,7 @@ function createLinksetClick()
         ($('#selected_meth').attr('uri') != 'intermediate' ||
             $('#selected_int_red_graph').attr('uri')) &&
         ($('#selected_meth').attr('uri') != 'approxNbrSim' ||
-            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').val() )
+            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').find("option:selected").text() )
             )
         )
     {
@@ -883,7 +883,9 @@ function createLinksetClick()
           'threshold': $('#linkset_approx_threshold').val(),
 
           'delta': $('#linkset_approx_delta').val() ,
-          'numeric_approx_type': $('#linkset_approx_num_type').val()
+          'numeric_approx_type': $('#linkset_approx_num_type').find("option:selected").text(),
+
+          'multiple_entries': 'yes'
 
         }
 
@@ -2751,6 +2753,7 @@ function methodClick(th)
     var meth_label = $(th).attr('label');
     $('#int_red_graph_row').hide();
     $('#aprox_settings_row').hide();
+    $('#aprox_nbr_settings_row').hide();
 
     if (method == 'identity')
     {
@@ -2823,6 +2826,7 @@ function methodClick(th)
         else if (method == 'approxNbrSim')
         {
           description = 'The method <b>APPROXIMATE NUMBER-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (number/date) values of the selected <b>properties</b> according to a delta. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, i.e. the resources already aligned will not be included in the new alignment. It allows for more efficient use of approximate similarity.';
+          $('#aprox_nbr_settings_row').show();
 //          $('#selected_int_red_graph').html("Select an alingment as reducer");
 //          setAttr( 'selected_int_red_graph','style','background-color:none;');
 //          $('#int_red_graph_row').show();
