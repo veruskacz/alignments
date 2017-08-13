@@ -650,7 +650,7 @@ def delete_linkset_rq(rq_uri, linkset_uri):
        }}
     }}""".format(rq_uri, linkset_uri)
 
-    query2 = """DROP SILENT GRAPH <{0}> ;
+    query2 = PREFIX + """DROP SILENT GRAPH <{0}> ;
     DROP SILENT GRAPH <{1}> ;
 
     # 2-B DELETE THE METADATA COMPLETELY IF IT'S NOT USED IN ANY RQ
