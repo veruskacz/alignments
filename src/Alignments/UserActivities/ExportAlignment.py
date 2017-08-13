@@ -310,8 +310,8 @@ def visualise(graphs, directory):
     enriched_graph = "{}{}_plots".format(Ns.plot, name)
     stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
     load_text = """echo "Loading data"
-    {}stardog data add risis -g {} "{}"
-    """.format(stardog_path, enriched_graph, f_path)
+    {}stardog data add {} -g {} "{}"
+    """.format(stardog_path, Svr.DATABASE, enriched_graph, f_path)
     batch_writer.write(to_unicode(load_text))
     batch_writer.close()
     plot_writer.write(writer.getvalue())
@@ -427,8 +427,8 @@ def enrich(specs, directory):
     enriched_graph = "{}_enriched".format(specs[St.graph])
     stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
     load_text = """echo "Loading data"
-            {}stardog data add risis -g {} "{}"
-            """.format(stardog_path, enriched_graph, f_path)
+            {}stardog data add {} -g {} "{}"
+            """.format(stardog_path, Svr.DATABASE, enriched_graph, f_path)
     batch_writer.write(to_unicode(load_text))
     batch_writer.close()
 
@@ -649,8 +649,8 @@ def import_gadm():
     graph = "{}gadm".format(Ns.dataset)
     stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
     load_text = """echo "Loading data"
-                {}stardog data add risis -g {} "{}"
-                """.format(stardog_path, graph, f_path)
+                {}stardog data add {} -g {} "{}"
+                """.format(stardog_path, Svr.DATABASE, graph, f_path)
     batch_writer.write(to_unicode(load_text))
     batch_writer.close()
 

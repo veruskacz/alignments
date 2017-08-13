@@ -931,9 +931,9 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
 
     load = """
     echo "Loading data"
-    {}stardog data add risis "{}" "{}"
+    {}stardog data add {} "{}" "{}"
     """.format(
-        path, writers[St.crpdce_writer_path],
+        path, Ss.DATABASE, writers[St.crpdce_writer_path],
         writers[St.singletons_writer_path]
         # writers[St.meta_writer_path],
     )
