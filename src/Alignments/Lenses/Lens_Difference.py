@@ -20,8 +20,7 @@ def difference(specs, activated=False):
               "========================================================"
         return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
     else:
-        print "THE FUNCTION IS ACTIVATED"
-
+        print "COMPUTING THE DIFFERENCE BETWEEN:\n\t{}\n\t{}".format(specs[St.subjectsTarget], specs[St.objectsTarget])
 
     Lu.diff_lens_name(specs)
 
@@ -79,11 +78,13 @@ def difference(specs, activated=False):
 
     # RUN THE METADATA
     metadata = Gn.diff_meta(specs)
-    insertion_metadata = Qry.boolean_endpoint_response(metadata)
-    print "\tDIFFERENCE INSERTED METADATA: {}".format(insertion_metadata)
+
     # print metadata
 
     if int(specs[St.triples]) > 0:
+
+        insertion_metadata = Qry.boolean_endpoint_response(metadata)
+        print "\tDIFFERENCE INSERTED METADATA: {}".format(insertion_metadata)
 
         # GENERATE LINKSET CONSTRUCT QUERY
         construct_query = "\n{}\n{}\n{}\n".format(
@@ -100,7 +101,7 @@ def difference(specs, activated=False):
             # print construct_response
 
         # WRITE TO FILE
-        print "\t>>> WRITING TO FILE"
+        print "\t>>> WRITING THE DIFFERENCE TO FILE"
         write_to_file(graph_name=specs[St.lens_name], metadata=metadata.replace("INSERT DATA", ""),
                       correspondences=construct_response, singletons=None, directory=DIRECTORY)
 
