@@ -1236,6 +1236,9 @@ def spa_linkset():
 
         'mechanism': request.args.get('mechanism', ''),
 
+        St.delta: request.args.get('delta', ''),
+        St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
+
         St.intermediate_graph: request.args.get('intermediate_graph', '')
     }
     if len(request.args.get('src_reducer', '')) > 0:
@@ -1272,6 +1275,18 @@ def spa_linkset():
 
             elif specs['mechanism'] == 'approxStrSim':
                 linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+
+            elif specs['mechanism'] == 'approxNbrSim':
+                try:
+                    print "2"
+                    delta = float(specs[St.delta])
+                    specs[St.delta] = delta
+                    print "2"
+                    linkset_result = spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
+                                                                  activated=FUNCTION_ACTIVATED)
+                except:
+                    linkset_result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
+
 
             elif specs[St.mechanism] == "intermediate":
                 linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
@@ -1332,8 +1347,13 @@ def refineLinkset():
         'target': {
             'graph': request.args.get('trg_graph', ''),
             'aligns': request.args.get('trg_aligns', ''),
-            'entity_datatype': request.args.get('trg_entity_datatye', '')
+            'entity_datatype': request.args.get('trg_entity_datatye', ''),
         },
+
+        St.delta: request.args.get('delta', ''),
+
+        St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
+
     }
 
     if CREATION_ACTIVE:
@@ -1353,6 +1373,19 @@ def refineLinkset():
             linkset_result = refine.refine(specs, exact_intermediate=True, activated=True)
             # print linkset_result
             #linkset_result = result['refined']
+
+        elif specs['mechanism'] == 'approxNbrSim':
+            try:
+                print "1", specs[St.delta]
+                delta = float(specs[St.delta])
+                specs[St.delta] = delta
+                print "2"
+                linkset_result = refine.refine(specs, activated=True)
+                    # spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
+                    #                                           activated=FUNCTION_ACTIVATED)
+            except Exception as err:
+                print "Error:", str(err)
+                linkset_result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
 
         else:
             linkset_result = None
@@ -1901,6 +1934,7 @@ def deleteLinkset():
 
             query = Qry.check_graph_dependencies_rq(rq_uri, linkset_uri)
             result = sparql(query, strip=True)
+
             print ">>>> CHECKED: ", result, len(result) #, len(result[0])
             if (len(result) > 0) and (len(result[0]) > 0): #result is not empty [{}]
                 dependencies = 'The following dependencies need to be deleted first:</br>'
@@ -1915,13 +1949,26 @@ def deleteLinkset():
         elif mode == 'delete':
             print ">>>> TO DELETE:"
             query = adm.delete_linkset_rq(rq_uri, linkset_uri)
-            print "CONDITIONAL DELETE QUERY:", query
+            # print "CONDITIONAL DELETE QUERY:", query
+
             if Svr.settings[St.stardog_version] == "COMPATIBLE":
-                result = sparql(query, strip=False)
+
+                print "\nDELETE THE FILTERS AND DISCONNECT THE LINKSET"
+                print query[0]
+                result = sparql(query[0], strip=False)
+
+                print "\nDELETE THE BOTH METADATA AND THE LINKSET"
+                print query[1]
+                result = sparql(query[1], strip=False)
+
+                print "DELETING THE LINKSET ITSELF"
+                # print query[2]
+                # result = sparql(query[2], strip=False)
             else:
                 result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
             # result = sparql(query)
             print ">>>> DELETION RESULT:", result
+
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
 
         else:

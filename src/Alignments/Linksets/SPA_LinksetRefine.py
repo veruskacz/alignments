@@ -31,41 +31,64 @@ def refine(specs, exact=False, exact_intermediate=False, activated=False):
 
     # if True:
     try:
-        check_none = 0
-        check_not_none = 0
-        insert_query = ""
-        insert_code = 0
+        # check_none = 0
+        # check_not_none = 0
+        # insert_query = ""
+        # insert_code = 0
+        #
+        # if exact is False:
+        #     check_none += 1
+        # else:
+        #     check_not_none += 1
+        #     insert_query = insert_exact_query
+        #     insert_code = 1
+        #
+        # if exact_intermediate is False:
+        #     check_none += 1
+        # else:
+        #     check_not_none += 1
+        #     insert_query = refine_intermediate_query
+        #     insert_code = 2
+        insert_query = None
 
-        if exact is False:
-            check_none += 1
-        else:
-            check_not_none += 1
+        if specs[St.mechanism] == 'exactStrSim':
+            print "REFINING WITH EXACT STRING SIMILARITY"
             insert_query = insert_exact_query
-            insert_code = 1
 
-        if exact_intermediate is False:
-            check_none += 1
-        else:
-            check_not_none += 1
+        elif specs[St.mechanism] == 'intermediate':
+            print "REFINING WITH INTERMEDIATE DATASET"
             insert_query = refine_intermediate_query
-            insert_code = 2
+
+        elif specs[St.mechanism] == 'approxNbrSim':
+            print "REFINING WITH NUMERICAL APPROXIMATION "
+            insert_query = refine_numeric_query
 
         refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
         diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
-        result = {'refined': refined, 'difference': diff}
+        # result = {'refined': refined, 'difference': diff}
 
-        if check_none > 1 or check_not_none > 1:
-            print "AT MOST, ONE OF THE ARGUMENTS (exact, exact_intermediate) SHOULD BE SET."
-
-        if insert_code == 1:
-            print "REFINING WITH EXACT"
+        if insert_query is not None:
             result = refining(specs, insert_query, activated=activated)
 
-        elif insert_code == 2:
-            print "REFINING WITH INTERMEDIATE"
-            result = refining(specs, insert_query, activated=activated)
+        # if check_none > 1 or check_not_none > 1:
+        #     print "AT MOST, ONE OF THE ARGUMENTS (exact, exact_intermediate) SHOULD BE SET."
+        #
+        # if insert_code == 1:
+        #     print "REFINING WITH EXACT"
+        #     result = refining(specs, insert_query, activated=activated)
+        #
+        # elif insert_code == 2:
+        #     print "REFINING WITH INTERMEDIATE"
+        #     result = refining(specs, insert_query, activated=activated)
+        #
+        # else:
+        #     print "REFINING WITH INTERMEDIATE"
+        #     result = refining(specs, insert_query, activated=activated)
 
-        return result
+            return result
+
+        else:
+            return {'refined': refined, 'difference': diff}
 
     except Exception as err:
         print err.message
@@ -115,13 +138,14 @@ def refining(specs, insert_query, activated=False):
     print Ls.refined_info(specs, specs[St.sameAsCount])
 
     # POINT TO THE LINKSET THE CURRENT LINKSET WAS DERIVED FROM
+    print "1. wasDerivedFrom {}".format(specs[St.linkset])
     specs[St.derivedfrom] = "\t\tprov:wasDerivedFrom\t\t\t<{}> ;".format(specs[St.linkset])
 
     # print "REFINED NAME:",  specs[St.refined_name]
     # print "REFINED:", specs[St.refined]
     # print "LINKSET TO BE REFINED:", specs[St.linkset]
 
-    # RETRIEVING THE METADATA ABOUT THE GRAPH TO REFINE
+    print "\n2. RETRIEVING THE METADATA ABOUT THE GRAPH TO REFINE"
     metadata_q = Qry.q_linkset_metadata(specs[St.linkset])
 
     # print "QUERY:", metadata_q
@@ -145,15 +169,26 @@ def refining(specs, insert_query, activated=False):
         return {'refined': refined, 'difference': diff}
 
     # GET THE SINGLETON GRAPH OF THE LINKSET TO BE REFINED
+    print "\n3. GETTING THE SINGLETON GRAPH OF THE GRAPH TO REFINE"
     specs[St.singletonGraph] = matrix[St.result][1][0]
     # print matrix[St.result][1][0]
 
-    # RUN INSERT QUERY
     specs[St.insert_query] = insert_query(specs)
 
-    # print specs[St.insert_query]
-    is_run = Qry.boolean_endpoint_response(specs[St.insert_query])
-    print ">>> RUN SUCCESSFULLY:", is_run
+
+    if type(specs[St.insert_query]) == str:
+        is_run = Qry.boolean_endpoint_response(specs[St.insert_query])
+
+    else:
+        print "\n4. RUNNING THE EXTRACTION QUERY"
+        print specs[St.insert_query][0]
+        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][0])
+
+        print "\n5. RUNNING THE FINDING QUERY"
+        print specs[St.insert_query][1]
+        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][1])
+
+    print "\n>>> RUN SUCCESSFULLY:", is_run.upper()
 
     # NO INSERTION HAPPENED
     if is_run == "true" or is_run == Ec.ERROR_STARDOG_1:
@@ -164,7 +199,7 @@ def refining(specs, insert_query, activated=False):
         #   (3) SINGLETON METADATA
         # AND WRITE THEM ALL TO FILE
 
-        # GENERATE THE METADATA
+        print "GENERATING THE METADATA"
         pro_message = refine_metadata(specs)
 
         # SET THE RESULT ASSUMING IT WENT WRONG
@@ -182,21 +217,24 @@ def refining(specs, insert_query, activated=False):
             # UPDATE THE REFINED VARIABLE AS THE INSERTION WAS SUCCESSFUL
             refined = {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
-            # REGISTER THE ALIGNMENT
+            print "REGISTERING THE ALIGNMENT"
             if refined[St.message].__contains__("ALREADY EXISTS"):
                 register_alignment_mapping(specs, created=False)
             else:
                 register_alignment_mapping(specs, created=True)
 
-            # COMPUTE THE DIFFERENCE AND DOCUMENT IT
-            diff_lens_specs = {
-                St.researchQ_URI: specs[St.researchQ_URI],
-                St.subjectsTarget: specs[St.linkset],
-                St.objectsTarget: specs[St.refined]
-            }
-            diff = Df.difference(diff_lens_specs, activated=activated)
-            message_2 = "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
-            print message_2
+            try:
+                print "\nCOMPUTE THE DIFFERENCE AND DOCUMENT IT"
+                diff_lens_specs = {
+                    St.researchQ_URI: specs[St.researchQ_URI],
+                    St.subjectsTarget: specs[St.linkset],
+                    St.objectsTarget: specs[St.refined]
+                }
+                diff = Df.difference(diff_lens_specs, activated=activated)
+                message_2 = "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
+                print message_2
+            except Exception as err:
+                print "THE DIFFERENCE FAILED: ", str(err.message)
 
             print "\tLinkset created as: ", specs[St.refined]
             print "\t*** JOB DONE! ***"
@@ -433,8 +471,8 @@ def refine_intermediate_query(specs):
         }}
     }} ;
 
-    DROP GRAPH <{0}load01> ;
-    DROP GRAPH <{0}load02>
+    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load02>
     """.format(
         # 0          1         2           3         4
         Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
@@ -448,6 +486,145 @@ def refine_intermediate_query(specs):
 
     # print insert
     return insert
+
+
+def refine_numeric_query(specs):
+
+    is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
+    number_of_load = '1' if is_de_duplication is True else "2"
+
+    # PLAIN NUMBER CHECK
+    delta_check = "BIND(ABS(xsd:decimal(?x) - xsd:decimal(?x)) AS ?DELTA)"
+
+    # DATE CHECK
+    if specs[St.numeric_approx_type].lower() == "date":
+        delta_check = "BIND( (YEAR(xsd:datetime(STR(?x))) - YEAR(xsd:datetime(STR(?y))) ) as ?DELTA )"
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns] \
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns] \
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
+    src_name = specs[St.source][St.graph_name]
+    src_uri = specs[St.source][St.graph]
+    # src_aligns = specs[St.source][St.aligns]
+
+    trg_name = specs[St.target][St.graph_name]
+    trg_uri = specs[St.target][St.graph]
+    # trg_aligns = specs[St.target][St.aligns]
+
+    extract = """
+    PREFIX ll:    <{0}>
+    PREFIX prov:  <{1}>
+    PREFIX tempG: <{2}>
+
+    DROP SILENT GRAPH tempG:load01 ;
+    DROP SILENT GRAPH tempG:load02 ;
+    DROP SILENT GRAPH <{3}> ;
+    DROP SILENT GRAPH <{4}{5}> ;
+
+    ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
+    INSERT
+    {{
+        GRAPH tempG:load01
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{8}_1 ll:relatesTo1 ?srcTrimmed .
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{9}_2 ll:relatesTo3 ?trgTrimmed .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{7}>
+        {{
+            ?{8}_1 ?pred  ?{9}_2 .
+        }}
+        ### SOURCE DATASET
+        graph <{10}>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{8}_1 {12} ?value_1 .
+            bind (lcase(str(?value_1)) as ?src_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?srcTrimmed)
+        }}
+        ### TARGET DATASET
+        graph <{11}>
+        {{
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{9}_2 {13} ?value_2 .
+            bind (lcase(str(?value_2)) as ?trg_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trgTrimmed)
+        }}
+    }} """.format(
+        # 0          1         2           3                  4              5
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name],
+        #6           7                  8         9         10       11       12          13
+        Ns.tmpvocab, specs[St.linkset], src_name, trg_name, src_uri, trg_uri, src_aligns, trg_aligns
+    )
+
+    find = """
+    ### 2. FINDING CANDIDATE MATCH BETWEEN THE SOURCE AND TARGET
+    PREFIX ll:    <{0}>
+    PREFIX prov:  <{1}>
+    PREFIX tempG: <{2}>
+    INSERT
+    {{
+        ### MATCH FOUND
+        GRAPH <{10}>
+        {{
+            ?{3}_1 ?newSingletons ?{4}_2 .
+        }}
+        # METADATA OF MATCH FOUND
+        GRAPH <{11}{12}>
+        {{
+            ?newSingletons
+                rdf:singletonPropertyOf     ll:{8}{9} ;
+                prov:wasDerivedFrom         ?pred ;
+                ll:hasEvidence              ?evidence .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{5}>
+        {{
+            ?{3}_1 ?pred  ?{4}_2 .
+            bind( iri(replace("{0}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+        }}
+        ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+        GRAPH tempG:load01
+        {{
+            ?{3}_1 ll:relatesTo1 ?x .
+            ?{4}_2 ll:relatesTo3 ?y .
+        }}
+
+        # DELTA APPROX CHECK
+        {6}
+
+        FILTER( ABS(?DELTA) <= {7} )
+
+        BIND(concat("The DELTA of [", ?x, "] and [", ?y, "] is [", STR(ABS(?DELTA)),
+        "] which passed the threshold of [", STR({7}), "]" ) AS ?evidence)
+    }}""".format(
+        # 0          1        2            3         4         5                  6            7
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, src_name, trg_name, specs[St.linkset], delta_check, specs[St.delta],
+        # 8                  9                      10                 11             12
+        specs[St.mechanism], specs[St.sameAsCount], specs[St.refined], Ns.singletons, specs[St.refined_name])
+
+    return [extract, find]
 
 
 def refine_metadata(specs):
@@ -464,8 +641,8 @@ def refine_metadata(specs):
         # GENERATE LINKSET CONSTRUCT QUERY
         construct_query = "\n{}\n{}\n{}\n{}\n{}\n".format(
             "PREFIX predicate: <{}>".format(Ns.alivocab),
-            "PREFIX {}: <{}>".format(specs[St.source][St.graph_name], specs[St.source][St.graph_ns]),
-            "PREFIX {}: <{}>".format(specs[St.target][St.graph_name], specs[St.target][St.graph_ns]),
+            "PREFIX src{}: <{}>".format(specs[St.source][St.graph_name], specs[St.source][St.graph_ns]),
+            "PREFIX trg{}: <{}>".format(specs[St.target][St.graph_name], specs[St.target][St.graph_ns]),
             "construct { ?x ?y ?z }",
             "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.refined]),
         )
@@ -493,7 +670,7 @@ def refine_metadata(specs):
             construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.refined]), 1)
 
         # WRITE TO FILE
-        print "\t>>> WRITING TO FILE"
+        print "\t>>> WRITING THE METADATA  YO FILE TO FILE"
         write_to_file(graph_name=specs[St.refined_name], metadata=metadata["query"].replace("INSERT DATA", ""),
                       correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
 

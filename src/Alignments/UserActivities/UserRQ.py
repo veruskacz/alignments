@@ -158,7 +158,7 @@ def register_dataset_mapping(question_uri, mapping, activated=True):
 
 def register_alignment_mapping(alignment_mapping, created):
 
-    print "REGISTERING AN [ALIGNMENT-MAPPING]"
+    print "\nREGISTERING AN [ALIGNMENT-MAPPING]"
     question_uri = alignment_mapping[St.researchQ_URI]
 
     # MAKE URE THE WRITE URI IS USED WHEN REGISTERING A REFINED LINKSET

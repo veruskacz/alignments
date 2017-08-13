@@ -167,4 +167,5 @@ long_predicate = "long_predicate"
 lat_predicate = "lat_predicate"
 enriched = "enriched"
 delta = "delta"
+numeric_approx_type = "numeric_approx_type"
 
