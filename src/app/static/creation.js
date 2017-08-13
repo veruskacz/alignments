@@ -1516,7 +1516,8 @@ function inspect_lens_activate(mode)
       $('#inspect_lens_lens_selection_col').html(data);
        var ul = document.getElementById('inspect_lens_lens_selection_col');
        var a = ul.getElementsByTagName('a');
-       $('#lens_counter').html(a.length);
+       var num = ('0000' + String(a.length)).substr(-4);
+       $('#lens_counter').html(num);
 
       // set actions after clicking a graph in the list
       $('#inspect_lens_lens_selection_col a').on('click',function()
