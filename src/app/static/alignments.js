@@ -501,7 +501,8 @@ function filterListGroup(input,div_id,counter_div='') {
         }
     }
     if (counter_div != '')
-    {    $('#'+counter_div).html(counter) }
+    {   num = ('0000' + String(counter)).substr(-4);
+        $('#'+counter_div).html(num) }
 }
 
 ///////////////////////////////////

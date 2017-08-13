@@ -118,7 +118,7 @@
              <div class="row">
                <div class="col-md-12">
                  <span class="glyphicon glyphicon glyphicon-search"></span>
-                 <input type="text" onkeyup='filterListGroup(this,"inspect_linkset_selection_col","linkset_counter")' placeholder="Search for names.." style='width: 87%'>
+                 <input type="text" onkeyup='filterListGroup(this,"inspect_linkset_selection_col","linkset_counter")' placeholder="Search for names.." style='width: 83%'>
                   <span id="linkset_counter" class="badge"></span>
                </div>
              </div>
@@ -631,6 +631,12 @@
                                         label="Exact Match" uri="exactStrSim"
                                         onclick="methodClick(this);">Exact Match</a>
                                     <a href="javascript:void();" role="menuitem" tabindex="-1"
+                                        label="Geo Match" uri="geoSim"
+                                        onclick="methodClick(this);">Geo Match</a>
+                                    <a href="javascript:void();" role="menuitem" tabindex="-1"
+                                        label="Identifier Match" id = "item_identity" uri="identity"
+                                        onclick="methodClick(this);">Identifier Match</a>
+                                    <a href="javascript:void();" role="menuitem" tabindex="-1"
                                         label="Approximate Match" uri="approxStrSim"
                                         onclick="methodClick(this);">Approximate String-based</a>
 
@@ -638,12 +644,6 @@
                                         label="Approximate Number_Match" uri="approxNbrSim"
                                         onclick="methodClick(this);">Approximate Number-based</a>
 
-                                    <a href="javascript:void();" role="menuitem" tabindex="-1"
-                                        label="Geo Match" uri="geoSim"
-                                        onclick="methodClick(this);">Geo Match</a>
-                                    <a href="javascript:void();" role="menuitem" tabindex="-1"
-                                        label="Identifier Match" id = "item_identity" uri="identity"
-                                        onclick="methodClick(this);">Identifier Match</a>
                                     <a href="javascript:void();" role="menuitem" tabindex="-1"
                                         label="Embeded Alignment Extraction" uri="embededAlignment"
                                         onclick="methodClick(this);">Embeded Alignment Extraction</a>

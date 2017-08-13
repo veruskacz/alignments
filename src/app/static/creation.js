@@ -577,7 +577,8 @@ function inspect_linkset_activate(mode)
        $('#inspect_linkset_selection_col').html(data);
        var ul = document.getElementById('inspect_linkset_selection_col');
        var a = ul.getElementsByTagName('a');
-       $('#linkset_counter').html(a.length);
+       var num = ('0000' + String(a.length)).substr(-4);
+       $('#linkset_counter').html(num);
 
        // set actions after clicking a graph in the list
        $('#inspect_linkset_selection_col a').on('click',function(e)
