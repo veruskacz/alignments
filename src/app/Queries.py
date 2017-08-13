@@ -955,7 +955,7 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
                     """ + trg_aligns + """    ?trgPredVal .
             }
         }
-        FILTER((?g_source) != (?g_target))
+        # FILTER((?g_source) != (?g_target))
         BIND (IF(bound(?trgPredVal), ?trgPredVal , "") AS ?trgPredValue)
     }
     """
@@ -1112,9 +1112,18 @@ def get_aligned_predicate_value(source, target, src_aligns, trg_aligns):
 
 def get_linkset_corresp_sample_details(linkset, limit=1):
 
+    source = ""
+    source_bind = ""
+    target = ""
+    target_bind = ""
+    prop_query = linkset_aligns_prop(linkset)
+    prop_matrix = sparql_matrix(prop_query)["result"]
+
+    s_ds = "<{}>".format(prop_matrix[1][3])
+    t_ds = "<{}>".format(prop_matrix[1][4])
+
     query = PREFIX + """
     #### CORRESPONDENCE DETAIL SAMPLE
-
     SELECT DISTINCT
     (GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
     (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
@@ -1124,8 +1133,8 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
     WHERE {{
         <{0}>
-            prov:wasDerivedFrom*        ?linkset .
-        ?linkset
+        #    prov:wasDerivedFrom*        ?linkset .
+        #?linkset
             alivocab:alignsMechanism    ?mec ;
             void:subjectsTarget         ?subTarget ;
             bdb:subjectsDatatype        ?s_datatype ;
@@ -1143,13 +1152,13 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
                 {{
                     ?sub_uri    ?aligns        ?obj_uri
                 }}
-                GRAPH ?subTarget
+                GRAPH {2}
                 {{
                     ###SOURCE SLOT
                 }}
                 OPTIONAL
                 {{
-                    graph ?objTarget
+                    graph {3}
                     {{
                         ###TARGET SLOT
                     }}
@@ -1161,20 +1170,16 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     }}
     GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype
     ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
-    LIMIT {1}""".format(linkset, limit)
+    LIMIT {1}""".format(linkset, limit, s_ds, t_ds)
 
-    source = ""
-    source_bind = ""
-    target = ""
-    target_bind = ""
-    prop_query = linkset_aligns_prop(linkset)
-    prop_matrix = sparql_matrix(prop_query)["result"]
+
     # print "\n\nprop_matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", prop_matrix
     # print "length", len(prop_matrix)
     for i in range(1, len(prop_matrix)):
         # print "matrix!!!!!!!!!!!!!!!!!!!!", prop_matrix[i]
         src = "<{}>".format(prop_matrix[i][0]) if prop_matrix[i][0].__contains__(">/<") is False else prop_matrix[i][0]
         trg = "<{}>".format(prop_matrix[i][1]) if prop_matrix[i][1].__contains__(">/<") is False else prop_matrix[i][1]
+
         mec = prop_matrix[i][2]
         # print prop_matrix
         # print mec

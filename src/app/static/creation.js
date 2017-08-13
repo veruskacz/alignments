@@ -575,6 +575,9 @@ function inspect_linkset_activate(mode)
                   function(data)
      {
        $('#inspect_linkset_selection_col').html(data);
+       var ul = document.getElementById('inspect_linkset_selection_col');
+       var a = ul.getElementsByTagName('a');
+       $('#linkset_counter').html(a.length);
 
        // set actions after clicking a graph in the list
        $('#inspect_linkset_selection_col a').on('click',function(e)
@@ -853,7 +856,10 @@ function createLinksetClick()
         (Object.keys(trgDict).length) &&
         ($('#selected_meth').attr('uri')) &&
         ($('#selected_meth').attr('uri') != 'intermediate' ||
-            $('#selected_int_red_graph').attr('uri'))
+            $('#selected_int_red_graph').attr('uri')) &&
+        ($('#selected_meth').attr('uri') != 'approxNbrSim' ||
+            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').val() )
+            )
         )
     {
         var specs = {
@@ -874,7 +880,10 @@ function createLinksetClick()
 
           'stop_words': $('#linkset_approx_stop_words').val(),
           'stop_symbols': $('#linkset_approx_symbols').val(),
-          'threshold': $('#linkset_approx_threshold').val()
+          'threshold': $('#linkset_approx_threshold').val(),
+
+          'delta': $('#linkset_approx_delta').val() ,
+          'numeric_approx_type': $('#linkset_approx_num_type').val()
 
         }
 
@@ -933,9 +942,13 @@ function refineLinksetClick()
         (Object.keys(trgDict).length) &&
         ($('#selected_meth').attr('uri')) &&
         ($('#selected_meth').attr('uri') != 'intermediate' ||
-            $('#selected_int_red_graph').attr('uri'))&&
-      (linkset))
+            $('#selected_int_red_graph').attr('uri')) &&
+      (linkset) &&
+        ($('#selected_meth').attr('uri') != 'approxNbrSim' ||
+            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').val() ))
+      )
   {
+
       var specs = {
         'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
         'linkset_uri': linkset,
@@ -950,8 +963,10 @@ function refineLinksetClick()
 
         'mechanism': $('#selected_meth').attr('uri'),
 
-        'intermediate_graph': $('#selected_int_red_graph').attr('uri')
+        'intermediate_graph': $('#selected_int_red_graph').attr('uri'),
 
+        'delta': $('#linkset_approx_delta').val() ,
+        'numeric_approx_type': $('#linkset_approx_num_type').val()
       }
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
@@ -1496,6 +1511,9 @@ function inspect_lens_activate(mode)
                   function(data)
     {
       $('#inspect_lens_lens_selection_col').html(data);
+       var ul = document.getElementById('inspect_lens_lens_selection_col');
+       var a = ul.getElementsByTagName('a');
+       $('#lens_counter').html(a.length);
 
       // set actions after clicking a graph in the list
       $('#inspect_lens_lens_selection_col a').on('click',function()
@@ -2372,9 +2390,9 @@ function rqClick(th, mode)
   setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
 
-  if (btn)  //inital button selected
-  {  btn.onclick();
-  }
+//  if (btn)  //inital button selected
+//  {  btn.onclick();
+//  }
 }
 
 function intRedGraphClick(th)
@@ -2801,6 +2819,15 @@ function methodClick(th)
                     $('#button_int_red_graph').html(data);
               });
           }
+        }
+        else if (method == 'approxNbrSim')
+        {
+          description = 'The method <b>APPROXIMATE NUMBER-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (number/date) values of the selected <b>properties</b> according to a delta. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, i.e. the resources already aligned will not be included in the new alignment. It allows for more efficient use of approximate similarity.';
+//          $('#selected_int_red_graph').html("Select an alingment as reducer");
+//          setAttr( 'selected_int_red_graph','style','background-color:none;');
+//          $('#int_red_graph_row').show();
+//          $('#aprox_settings_row').show();
+//          $('#button_int_red_graph').html('Loading...');
         }
         else if (method == 'geoSim')
         {

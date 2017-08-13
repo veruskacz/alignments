@@ -479,7 +479,7 @@ function del_lenses_button()
     }
 }
 
-function filterListGroup(input,div_id) {
+function filterListGroup(input,div_id,counter_div='') {
     // Declare variables
     // var input,
      var filter, ul, li, a, i;
@@ -487,16 +487,21 @@ function filterListGroup(input,div_id) {
     filter = input.value.toUpperCase();
     ul = document.getElementById(div_id);
     li = ul.getElementsByTagName('li');
+    if (li.length == 0)
+        li = ul.getElementsByTagName('a');
 
     // Loop through all list items, and hide those who don't match the search query
-    for (i = 0; i < li.length; i++) {
+    for (i = 0,counter=0; i < li.length; i++) {
         //a = li[i].getElementsByTagName("a")[0];
         if (li[i].innerHTML.toUpperCase().indexOf(filter) > -1) {
             li[i].style.display = "";
+            counter += 1
         } else {
             li[i].style.display = "none";
         }
     }
+    if (counter_div != '')
+    {    $('#'+counter_div).html(counter) }
 }
 
 ///////////////////////////////////

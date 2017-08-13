@@ -319,6 +319,16 @@ def linkset_refined_metadata(specs, display=False):
         specs[St.linkset_comment] = "Linking <{}> to <{}> based on their identical URI using the mechanism: {}". \
             format(source[St.graph], target[St.graph], specs[St.mechanism])
 
+    elif str(specs[St.mechanism]).lower() == "approxnbrsim":
+        specs[St.link_name] = "Approximate Number Similarity"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "This includes entities with an approximate number similarity" \
+                                          " in the interval [0 {}].".format(specs[St.delta])
+        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their approximate number similarity" \
+                                    " using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], specs[St.mechanism])
+
+
     elif str(specs[St.mechanism]).lower() == "approxstrsim":
         specs[St.link_name] = "Approximate String Similarity"
         specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
@@ -349,10 +359,7 @@ def linkset_refined_metadata(specs, display=False):
     message = "{}<br/>{}<br/>{}".format(
         "{} CORRESPONDENCES IN THE SOURCE".format(triples),
         "{} CORRESPONDENCES INSERTED".format(specs[St.triples]),
-        "{} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(
-            str(int(triples) - int(specs[St.triples]))
-        )
-    )
+        "{} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(str(int(triples) - int(specs[St.triples]))))
 
     if int(specs[St.triples] ) > 0:
         derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
@@ -414,9 +421,10 @@ def linkset_refined_metadata(specs, display=False):
                    "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
                    "    BIND(iri({}) AS ?trg_aligns)".format(trg_aligns),
                    "}")
+
         if display is True:
             print query
-
+        print "\t>>> Done generating the metadata"
         return {"query": query, "message": message}
     else:
         return {"query": None, "message": message}
