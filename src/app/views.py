@@ -12,7 +12,7 @@ import xmltodict
 import collections
 import Queries as Qry
 from kitchen.text.converters import to_bytes, to_unicode
-from flask import render_template, request, redirect,   jsonify  # url_for, make_response, g
+from flask import render_template, request, redirect, jsonify, session  # url_for, make_response, g
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -204,8 +204,12 @@ def userLinksetImport():
     return result["message"]
 
 
+app.secret_key = os.urandom(24)
 @app.route("/", methods=['GET'])
 def index():
+
+
+    session.permanent = True
 
     if request.method == 'POST':
 
@@ -281,7 +285,6 @@ def datasets():
     return render_template(template, list = datasets, btn_name = 'datasets', function = function)
 
 
-
 @app.route('/enrichdataset')
 def enrichdataset():
     """
@@ -295,12 +298,11 @@ def enrichdataset():
         St.lat_predicate: request.args.get('lat_predicate', '')
     }
 
-    print specs
+    # print specs
     result = Ex.enrich(specs, ENRICHED_FOLDER)
 
     # SEND BAK RESULTS
     return json.dumps(result)
-
 
 
 @app.route('/getcorrespheader', methods=['GET'])
@@ -1277,6 +1279,7 @@ def spa_linkset():
                 linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
             elif specs['mechanism'] == 'approxNbrSim':
+
                 try:
                     print "2"
                     delta = float(specs[St.delta])
@@ -1300,7 +1303,6 @@ def spa_linkset():
             linkset_result = {'message': 'Linkset creation is inactive!', 'error_code': -1, St.result: None}
 
         # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
-
 
         # print "\n\n\n{}".format(linkset_result['message'])
         return json.dumps(linkset_result)
@@ -2019,7 +2021,6 @@ def deleteLens():
         return json.dumps({'message':str(error.message), 'result':None})
 
 
-
 @app.route('/deleteFilter')
 def deleteFilter():
     rq_uri = request.args.get('rq_uri', '')
@@ -2060,8 +2061,6 @@ def deleteValidation():
     except Exception as error:
         print "AN ERROR OCCURRED: ", error
         return json.dumps({'message':str(error.message), 'result':None})
-
-
 
 
 @app.route('/deleteView')
@@ -2210,7 +2209,7 @@ def allowed_file(filename):
 # ######################################################################
 
 
-def sparql_update(query, endpoint_url = UPDATE_URL):
+def sparql_update(query, endpoint_url=UPDATE_URL):
 
     # log.debug(query)
 
@@ -2221,7 +2220,7 @@ def sparql_update(query, endpoint_url = UPDATE_URL):
 
 
 
-def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
+def sparql(query, strip=False, endpoint_url=ENDPOINT_URL):
 
     """This method replaces the SPARQLWrapper SPARQL interface, since SPARQLWrapper
     cannot handle the Stardog-style query headers needed for inferencing"""

@@ -378,7 +378,7 @@ def enrich(specs, directory):
     # TODO RUN IT IF THERE IS NOT GRAPH ENRICHED WITH THE SAME NAME
 
     # specs[St.graph] = "http://grid.ac/20170712"
-    print "GRAP:", specs[St.graph]
+    print "GRAPH:", specs[St.graph]
     print "ENTITY TYPE:", specs[St.entity_datatype]
     print "LAT PREDICATE:", specs[St.long_predicate]
     print "LONG PREDICATE:", specs[St.lat_predicate]
@@ -388,8 +388,8 @@ def enrich(specs, directory):
     total = 0
     limit = 20000
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    f_path = "{}\{}_enriched_{}.ttl".format(directory, name, date)
-    b_path = "{}\{}_enriched_{}{}".format(directory, name, date, Ut.batch_extension())
+    f_path = "{0}{1}{1}{2}_enriched_{3}.ttl".format(directory, os.path.sep, name, date)
+    b_path = "{0}{1}{1}{2}_enriched_{3}{4}".format(directory, os.path.sep, name, date, Ut.batch_extension())
 
     # MAKE SURE THE FOLDER EXISTS
     try:
@@ -399,10 +399,9 @@ def enrich(specs, directory):
         print "\n\t[utility_LOAD_TRIPLE_STORE:]", err
         return
 
-    print "0. GETTING THE TOTAL NUMBER OF TRIPLES."
-    count = enrich_query(specs, limit=0, offset=0, is_count=True)
-    print count
-    count_res = Qry.virtuoso_request(count)
+    print "\n1. GETTING THE TOTAL NUMBER OF TRIPLES."
+    count_query = enrich_query(specs, limit=0, offset=0, is_count=True)
+    count_res = Qry.virtuoso_request(count_query)
     result = count_res['result']
 
     # GET THE TOTAL NUMBER OF TRIPLES
@@ -418,7 +417,7 @@ def enrich(specs, directory):
 
     # NUMBER OF REQUEST NEEDED
     iterations = total / limit if total % limit == 0 else total / limit + 1
-    print "TOTAL TRIPLES TO RETREIVE  : {} \nTOTAL NUMBER OF ITERATIONS : {}\n".format(total, iterations)
+    print "\n2. TOTAL TRIPLES TO RETREIVE  : {} \n\tTOTAL NUMBER OF ITERATIONS : {}\n".format(total, iterations)
 
     writer = codecs.open(f_path, "wb", "utf-8")
     batch_writer = codecs.open(b_path, "wb", "utf-8")
@@ -436,24 +435,27 @@ def enrich(specs, directory):
     for i in range(0, iterations):
 
         offset = i * 20000 + 1
-        print "ROUND: {} OFFSET: {}".format(i, offset)
+        print "\tROUND: {} OFFSET: {}".format(i, offset)
 
-        print "1. GENERATING THE ENRICHMENT QUERY"
+        print "\t\t1. GENERATING THE ENRICHMENT QUERY"
         virtuoso = enrich_query(specs, limit=limit, offset=offset, is_count=False)
-        print virtuoso
+        # print virtuoso
         # exit(0)
         # print Qry.virtuoso(virtuoso)["result"]
 
-        print "2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
+        print "\t\t2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
         writer.write(Qry.virtuoso_request(virtuoso)["result"])
 
     writer.close()
-    print "4. RUNNING THE BATCH FILE"
-    print "THE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
-        else "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
+    print "\n4. RUNNING THE BATCH FILE"
+    print "\tTHE DATA IS BEING LOADED OVER HTTP POST." if Svr.settings[St.split_sys] is True \
+        else "\tTHE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
     # os.system(b_path)
 
     # RUN THE BATCH FILE
+    print "\tFILE: {}".format(f_path)
+    print "\tBATCH: {}\n".format(b_path)
+    os.chmod(b_path, 0o777)
     Ut.batch_load(b_path)
     if os.path.exists(b_path) is True:
         os.remove(b_path)
@@ -462,10 +464,12 @@ def enrich(specs, directory):
     # TODO 2. ADD THE ENRICHED DATASET TO THE RESEARCH QUESTION (REGISTER).
     # TODO 3. MAYBE, CREATE THE LINKSET BETWEEN THE SOURCE AND THE RESULTING
 
+    size = Qry.get_namedgraph_size(enriched_graph)
+
     print "JOB DONE...!!!!!!"
 
-    return {St.message: "The select dataset was enriched with the GADM boundary as {}".format(enriched_graph),
-            St.result: enriched_graph}
+    return {St.message: "The select dataset was enriched with the GADM boundary as {}. "
+                        "{} triples were created.".format(enriched_graph, size), St.result: enriched_graph}
 
 
 def export_flat_alignment2(alignment):

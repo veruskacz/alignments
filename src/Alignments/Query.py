@@ -3082,12 +3082,12 @@ def virtuoso_request(query):
 
     try:
         response = urllib2.urlopen(request)
-        print "RESPONSE CODE:", response.code
+        # print "RESPONSE CODE:", response.code
         result = response.read()
         # print result
         # print "NONE", result is None
         # print "EMPTY", len(result)
-        return {St.message: "OK", St.result: result}
+        return {St.message: "OK", St.result: result, "response_code": response.code}
 
     except urllib2.HTTPError, err:
         message = err.read()
