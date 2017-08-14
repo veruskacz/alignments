@@ -1611,7 +1611,7 @@ def viewdetails():
     # badge = "<span class='badge alert-primary'><strong>{}</strong></span>";
     details = """
     <div class="panel panel-primary">
-        <div class="panel-heading" id="inspect_lens_lens_details_col">
+        <div class="panel-heading" id="inspect_views_details_col">
     """
     details += "<div class='row'><div class='col-md-6'>"
 
@@ -1961,7 +1961,7 @@ def deleteLinkset():
                 print query[1]
                 result = sparql(query[1], strip=False)
 
-                print "DELETING THE LINKSET ITSELF"
+                # print "DELETING THE LINKSET ITSELF"
                 # print query[2]
                 # result = sparql(query[2], strip=False)
             else:

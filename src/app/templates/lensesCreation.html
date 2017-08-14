@@ -254,63 +254,100 @@
 
       <div class="col-md-4" style='border-right: 1px solid grey;' id="lens_creation_linkset_col" >
           <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
               <h3>Linksets</h3></div>
           </div>
-          <!--<div class="row">-->
-            <!--<div class="col-md-10">Select the graphs in the list:</div>-->
-          <!--</div>-->
           <div class="row">
-            <div class="col-md-10" id="creation_lens_linkset_selection_col"></div>
+           <div class="col-md-12">
+             <span class="glyphicon glyphicon glyphicon-search"></span>
+             <input type="text" onkeyup='filterListGroup(this,"creation_lens_linkset_selection_col","lens_lkst_counter")' placeholder="Search for names.." style='width: 83%'>
+              <span id="lens_lkst_counter" class="badge"></span>
+           </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12" id="creation_lens_linkset_selection_col"></div>
           </div>
       </div>
 
       <div class="col-md-4" id="lens_creation_linkset_col_diff" style='border-right: 1px solid grey; display:none' >
           <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
               <h3>Linksets</h3></div>
           </div>
           <!--<div class="row">-->
             <!--<div class="col-md-10">Select the graphs in the list:</div>-->
           <!--</div>-->
+
           <h4>Source:</h4>
           <div class="row">
-            <div class="col-md-10" id="creation_lens_linkset_selection_source_col"></div>
+           <div class="col-md-12">
+             <span class="glyphicon glyphicon glyphicon-search"></span>
+             <input type="text" onkeyup='filterListGroup(this,"creation_lens_linkset_selection_source_col","lens_lkst_src_counter")' placeholder="Search for names.." style='width: 83%'>
+              <span id="lens_lkst_src_counter" class="badge"></span>
+           </div>
           </div>
+          <div class="row">
+            <div class="col-md-12" id="creation_lens_linkset_selection_source_col"></div>
+          </div>
+
           <h4>Target:</h4>
           <div class="row">
-            <div class="col-md-10" id="creation_lens_linkset_selection_target_col" ></div>
+           <div class="col-md-12">
+             <span class="glyphicon glyphicon glyphicon-search"></span>
+             <input type="text" onkeyup='filterListGroup(this,"creation_lens_linkset_selection_target_col","lens_lkst_trg_counter")' placeholder="Search for names.." style='width: 83%'>
+              <span id="lens_lkst_trg_counter" class="badge"></span>
+           </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12" id="creation_lens_linkset_selection_target_col" ></div>
           </div>
       </div>
 
       <div class="col-md-4" id="lens_creation_lens_col" >
           <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
               <h3>Lenses</h3></div>
             </div>
-          <!--<div class="row">-->
-            <!--<div class="col-md-10">Select the graphs in the list:</div>-->
-          <!--</div>-->
           <div class="row">
-            <div class="col-md-10" id="creation_lens_lens_selection_col"></div>
+           <div class="col-md-12">
+             <span class="glyphicon glyphicon glyphicon-search"></span>
+             <input type="text" onkeyup='filterListGroup(this,"creation_lens_lens_selection_col","lens_lens_counter")' placeholder="Search for names.." style='width: 83%'>
+              <span id="lens_lens_counter" class="badge"></span>
+           </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12" id="creation_lens_lens_selection_col"></div>
           </div>
       </div>
 
       <div class="col-md-4" id="lens_creation_lens_col_diff" >
           <div class="row">
-            <div class="col-md-10">
+            <div class="col-md-12">
               <h3>Lenses</h3></div>
             </div>
-          <!--<div class="row">-->
-            <!--<div class="col-md-10">Select the graphs in the list:</div>-->
-          <!--</div>-->
+
           <h4>Source:</h4>
           <div class="row">
-            <div class="col-md-10" id="creation_lens_lens_selection_source_col"></div>
+           <div class="col-md-12">
+             <span class="glyphicon glyphicon glyphicon-search"></span>
+             <input type="text" onkeyup='filterListGroup(this,"creation_lens_lens_selection_source_col","lens_lens_src_counter")' placeholder="Search for names.." style='width: 83%'>
+              <span id="lens_lens_src_counter" class="badge"></span>
+           </div>
           </div>
+          <div class="row">
+            <div class="col-md-12" id="creation_lens_lens_selection_source_col"></div>
+          </div>
+
           <h4>Target:</h4>
           <div class="row">
-            <div class="col-md-10" id="creation_lens_lens_selection_target_col"></div>
+           <div class="col-md-12">
+             <span class="glyphicon glyphicon glyphicon-search"></span>
+             <input type="text" onkeyup='filterListGroup(this,"creation_lens_lens_selection_target_col","lens_lens_trg_counter")' placeholder="Search for names.." style='width: 83%'>
+              <span id="lens_lens_trg_counter" class="badge"></span>
+           </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12" id="creation_lens_lens_selection_target_col"></div>
           </div>
       </div>
 
@@ -345,6 +382,8 @@
   </div>
   </div>
  </div>
+
+
 
  <div class="row creation" id="creation_lens_filter_row" style='display:none'>
   <div class="col-md-12">
