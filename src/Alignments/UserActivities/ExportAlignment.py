@@ -455,6 +455,7 @@ def enrich(specs, directory):
     # RUN THE BATCH FILE
     print "\tFILE: {}".format(f_path)
     print "\tBATCH: {}\n".format(b_path)
+    os.chmod(b_path, 0o777)
     Ut.batch_load(b_path)
     if os.path.exists(b_path) is True:
         os.remove(b_path)
