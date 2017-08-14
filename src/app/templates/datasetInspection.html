@@ -184,6 +184,16 @@
                          </div>
                         </div>
 
+                         <div class="row"> &nbsp </div>
+                         <div class="row"> &nbsp </div>
+                        <div class="row">
+                           <div class="col-md-12">
+                            <span class="glyphicon glyphicon glyphicon-search"></span>
+                            <input type="text" onkeyup='filterListGroup(this,"dataset_values_col")' placeholder="Search for names.." style='width: 95%'>
+                           </div>
+                         </div>
+                         <div class="row"> &nbsp </div>
+
                          <div class="row">
                              <div class="col-md-12 values-list" id="dataset_values_col"
                               targetList = 'dataset_inspect_predicates_col'
@@ -211,14 +221,15 @@
 
                         <div class="row" id = "dataset_inspect_list_pred_row">
                             <div class="col-md-12">
+                                 <div class="row"> &nbsp </div>
                                  <div class="row">
                                    <div class="col-md-12">
                                     <span class="glyphicon glyphicon glyphicon-search"></span>
                                     <input type="text" onkeyup='filterListGroup(this,"dataset_inspect_predicates_col")' placeholder="Search for names.." style='width: 95%'>
                                    </div>
                                  </div>
-                                 <div class="row"> &nbsp </div>
-                             <div class="row" style='display:none'>
+
+                              <div class="row" style='display:none'>
                                  <div class="col-md-7">
                                      <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span></strong></small>
                                  </div>
