@@ -1613,6 +1613,10 @@ function create_lens_activate()
                           'template': 'list_group.html'},function(data)
    {
      $('#creation_lens_linkset_selection_col').html(data);
+       var ul = document.getElementById('creation_lens_linkset_selection_col');
+       var a = ul.getElementsByTagName('a');
+       var num = ('0000' + String(a.length)).substr(-4);
+       $('#lens_lkst_counter').html(num);
 
      // set actions after clicking a graph in the list
      $('#creation_lens_linkset_selection_col a').on('click',function()
@@ -1620,11 +1624,13 @@ function create_lens_activate()
 
     // Fill in source and target
      $('#creation_lens_linkset_selection_source_col').html(data);
+       $('#lens_lkst_src_counter').html(num);
      // set actions after clicking a graph in the list
      $('#creation_lens_linkset_selection_source_col a').on('click',function()
       { selectListItemUniqueDeselect(this, 'creation_lens_linkset_selection_source_col') });
 
      $('#creation_lens_linkset_selection_target_col').html(data);
+       $('#lens_lkst_trg_counter').html(num);
      // set actions after clicking a graph in the list
      $('#creation_lens_linkset_selection_target_col a').on('click',function()
       { selectListItemUniqueDeselect(this, 'creation_lens_linkset_selection_target_col') });
@@ -1637,6 +1643,10 @@ function create_lens_activate()
                           'template': 'list_group.html'},function(data)
    {
      $('#creation_lens_lens_selection_col').html(data);
+       var ul = document.getElementById('creation_lens_lens_selection_col');
+       var a = ul.getElementsByTagName('a');
+       var num = ('0000' + String(a.length)).substr(-4);
+       $('#lens_lens_counter').html(num);
 
      // set actions after clicking a graph in the list
      $('#creation_lens_lens_selection_col a').on('click',function()
@@ -1644,11 +1654,13 @@ function create_lens_activate()
 
     // Fill in source and target
      $('#creation_lens_lens_selection_source_col').html(data);
+       $('#lens_lens_src_counter').html(num);
      // set actions after clicking a graph in the list
      $('#creation_lens_lens_selection_source_col a').on('click',function()
       { selectListItemUniqueDeselect(this, 'creation_lens_lens_selection_source_col') });
 
      $('#creation_lens_lens_selection_target_col').html(data);
+       $('#lens_lens_trg_counter').html(num);
      // set actions after clicking a graph in the list
      $('#creation_lens_lens_selection_target_col a').on('click',function()
       { selectListItemUniqueDeselect(this, 'creation_lens_lens_selection_target_col') });
