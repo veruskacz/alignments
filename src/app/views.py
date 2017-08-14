@@ -207,6 +207,8 @@ def userLinksetImport():
 @app.route("/", methods=['GET'])
 def index():
 
+    app.session.permanent = True
+
     if request.method == 'POST':
 
         # check if the post request has the file part
@@ -220,7 +222,7 @@ def index():
         # submit a empty part without filename
         if file.filename == '':
             # flash('No selected file')
-            return redirect(request.url)
+            return redirect(request.url)sour
 
         if file and allowed_file(file.filename):
             # filename = secure_filename(file.filename)
@@ -281,7 +283,6 @@ def datasets():
     return render_template(template, list = datasets, btn_name = 'datasets', function = function)
 
 
-
 @app.route('/enrichdataset')
 def enrichdataset():
     """
@@ -300,7 +301,6 @@ def enrichdataset():
 
     # SEND BAK RESULTS
     return json.dumps(result)
-
 
 
 @app.route('/getcorrespheader', methods=['GET'])
@@ -1277,6 +1277,7 @@ def spa_linkset():
                 linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
             elif specs['mechanism'] == 'approxNbrSim':
+
                 try:
                     print "2"
                     delta = float(specs[St.delta])
@@ -1300,7 +1301,6 @@ def spa_linkset():
             linkset_result = {'message': 'Linkset creation is inactive!', 'error_code': -1, St.result: None}
 
         # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
-
 
         # print "\n\n\n{}".format(linkset_result['message'])
         return json.dumps(linkset_result)
@@ -2019,7 +2019,6 @@ def deleteLens():
         return json.dumps({'message':str(error.message), 'result':None})
 
 
-
 @app.route('/deleteFilter')
 def deleteFilter():
     rq_uri = request.args.get('rq_uri', '')
@@ -2060,8 +2059,6 @@ def deleteValidation():
     except Exception as error:
         print "AN ERROR OCCURRED: ", error
         return json.dumps({'message':str(error.message), 'result':None})
-
-
 
 
 @app.route('/deleteView')
@@ -2210,7 +2207,7 @@ def allowed_file(filename):
 # ######################################################################
 
 
-def sparql_update(query, endpoint_url = UPDATE_URL):
+def sparql_update(query, endpoint_url=UPDATE_URL):
 
     # log.debug(query)
 
@@ -2221,7 +2218,7 @@ def sparql_update(query, endpoint_url = UPDATE_URL):
 
 
 
-def sparql(query, strip=False, endpoint_url = ENDPOINT_URL):
+def sparql(query, strip=False, endpoint_url=ENDPOINT_URL):
 
     """This method replaces the SPARQLWrapper SPARQL interface, since SPARQLWrapper
     cannot handle the Stardog-style query headers needed for inferencing"""
