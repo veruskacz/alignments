@@ -464,10 +464,12 @@ def enrich(specs, directory):
     # TODO 2. ADD THE ENRICHED DATASET TO THE RESEARCH QUESTION (REGISTER).
     # TODO 3. MAYBE, CREATE THE LINKSET BETWEEN THE SOURCE AND THE RESULTING
 
+    size = Qry.get_namedgraph_size(enriched_graph)
+
     print "JOB DONE...!!!!!!"
 
-    return {St.message: "The select dataset was enriched with the GADM boundary as {}".format(enriched_graph),
-            St.result: enriched_graph}
+    return {St.message: "The select dataset was enriched with the GADM boundary as {}. "
+                        "{} triples were created.".format(enriched_graph, size), St.result: enriched_graph}
 
 
 def export_flat_alignment2(alignment):
