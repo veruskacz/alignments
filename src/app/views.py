@@ -295,7 +295,7 @@ def enrichdataset():
         St.lat_predicate: request.args.get('lat_predicate', '')
     }
 
-    print specs
+    # print specs
     result = Ex.enrich(specs, ENRICHED_FOLDER)
 
     # SEND BAK RESULTS
