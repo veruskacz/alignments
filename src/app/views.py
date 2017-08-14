@@ -12,7 +12,7 @@ import xmltodict
 import collections
 import Queries as Qry
 from kitchen.text.converters import to_bytes, to_unicode
-from flask import render_template, request, redirect, jsonify, session  # url_for, make_response, g
+from flask import render_template, request, redirect, jsonify # url_for, make_response, g
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -204,12 +204,8 @@ def userLinksetImport():
     return result["message"]
 
 
-app.secret_key = os.urandom(24)
 @app.route("/", methods=['GET'])
 def index():
-
-
-    session.permanent = True
 
     if request.method == 'POST':
 

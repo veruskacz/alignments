@@ -503,10 +503,10 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
                 (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*        ?graph_uri .
 
         ### GET METADATA IN THE DEFAULT GRAPH
-        ?graph_uri  void:subjectsTarget 			?subjectsTarget ;
+        ?graph_uri  void:subjectsTarget 	?subjectsTarget ;
                void:objectsTarget  			?objectsTarget ;
                alivocab:alignsSubjects      ?alignsSubjects ;
-               alivocab:alignsObjects    ?alignsObjects .
+               alivocab:alignsObjects       ?alignsObjects .
         """.format(graph_uri)
 
         if useStardogApprox:
@@ -516,7 +516,8 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
         GRAPH ?subjectsTarget
             {{
                 ?sub    ?alignsSubjects     ?Svalue .
-                (?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
+                #(?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
+                FILTER REGEX (?Svalue, ".*{0}.*", "i" )
             }}
         }}
         UNION
@@ -525,7 +526,8 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
         GRAPH ?objectsTarget
             {{
                 ?obj    ?alignsObjects     ?Ovalue .
-                (?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
+                #(?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
+                FILTER REGEX (?Ovalue, ".*{0}.*", "i" )
             }}
         }}
         """.format(filter_term)
@@ -907,7 +909,7 @@ def get_dataset_predicate_values(graph, predicate, search_text=''):
     if search_text:
         search_query = """
         ## TEXT SEARCH
-        (?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{}\"\"\".
+        ## (?value ?score) <tag:stardog:api:property:textMatch> \"\"\"{}\"\"\".
         """.format(search_text)
         select = 'DISTINCT (?s as ?uri) (?s as ?id) (?value as ?description) '
     else:
@@ -924,10 +926,11 @@ def get_dataset_predicate_values(graph, predicate, search_text=''):
         {{
             ?s {} ?value .
 
-            {}
+            #{}
+            FILTER REGEX (?value, ".*{}.*", "i" )
         }}
     }} 
-    """.format(select, graph, predicate, search_query)
+    """.format(select, graph, predicate, search_query, search_text)
     if DETAIL:
         print query
     return query

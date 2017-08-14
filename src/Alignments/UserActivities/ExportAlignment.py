@@ -435,15 +435,15 @@ def enrich(specs, directory):
     for i in range(0, iterations):
 
         offset = i * 20000 + 1
-        print "\tROUND: {} OFFSET: {}".format(i, offset)
+        print "\tROUND: {} OFFSET: {}".format(i + 1, offset)
 
-        print "\t\t1. GENERATING THE ENRICHMENT QUERY"
+        # print "\t\t1. GENERATING THE ENRICHMENT QUERY"
         virtuoso = enrich_query(specs, limit=limit, offset=offset, is_count=False)
         # print virtuoso
         # exit(0)
         # print Qry.virtuoso(virtuoso)["result"]
 
-        print "\t\t2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
+        # print "\t\t2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
         writer.write(Qry.virtuoso_request(virtuoso)["result"])
 
     writer.close()
