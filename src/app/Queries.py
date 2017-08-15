@@ -517,7 +517,7 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
             {{
                 ?sub    ?alignsSubjects     ?Svalue .
                 #(?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
-                FILTER REGEX (?Svalue, ".*{0}.*", "i" )
+                FILTER REGEX (?Svalue, "{0}", "i" )
             }}
         }}
         UNION
@@ -527,7 +527,7 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
             {{
                 ?obj    ?alignsObjects     ?Ovalue .
                 #(?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
-                FILTER REGEX (?Ovalue, ".*{0}.*", "i" )
+                FILTER REGEX (?Ovalue, "{0}", "i" )
             }}
         }}
         """.format(filter_term)
