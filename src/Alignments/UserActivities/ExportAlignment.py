@@ -66,7 +66,7 @@ def export_flat_alignment_and_metadata(alignment):
     CONSTRUCT
     {{
         ?srcCorr  ll:mySameAs ?trgCorr .
-        ?trgCorr  ll:mySameAs ?srcCorr .
+        #?trgCorr  ll:mySameAs ?srcCorr .
         ?alignment ?pred  ?obj .
         ?obj  ?predicate ?object .
     }}
@@ -102,6 +102,10 @@ def export_flat_alignment_and_metadata(alignment):
 
 # ALIGNMENT FOR VISUALISATION
 def export_alignment(alignment):
+
+    # This function returns all the links + some metadata about the alignment.
+    # METADATA: source dataset, target dataset and mechanism
+
     use = alignment
     alignment = str(alignment).strip()
     row_alignment = alignment
@@ -110,6 +114,7 @@ def export_alignment(alignment):
     trg_dataset = None
     mec_dataset = None
 
+    # GET THE METADATA OF THE ALIGNMENT: THE QUERY
     meta = """
     PREFIX ll: <{0}>
     CONSTRUCT {{ {1} ?y ?z }}
@@ -119,27 +124,33 @@ def export_alignment(alignment):
     }} order by ?y
     """.format(Ns.alivocab, alignment)
 
+    # GET THE METADATA OF THE ALIGNMENT: RUN THE QUERY
     meta_construct = Qry.endpointconstruct(meta, clean=False)
     meta_construct = meta_construct.replace("{", "").replace("}", "")
-    # print meta_construct
 
+    # LOAD THE METADATA USING RDFLIB
     sg = rdflib.Graph()
     sg.parse(data=meta_construct, format="turtle")
+
+    # EXTRACT FROM THE RESPONSE: THE SOURCE AND TARGET DATASETS AND THE ALIGNMENT
     sbj = rdflib.URIRef(use)
     source = rdflib.URIRef("http://rdfs.org/ns/void#subjectsTarget")
     target = rdflib.URIRef("http://rdfs.org/ns/void#objectsTarget")
     mechanism = rdflib.URIRef("http://risis.eu/alignment/predicate/alignsMechanism")
 
+    # EXTRACT THE SOURCE DATASET
     for item in sg.objects(sbj, source):
         src_dataset = item
 
+    # EXTRACT THE TARGET DATASET
     for item in sg.objects(sbj, target):
         trg_dataset = item
 
+    # EXTRACT THE MECHANISM USED FOR THIS ALIGNMENT
     for item in sg.objects(sbj, mechanism):
         mec_dataset = item
 
-    # CONSTRUCT QUERY
+    # CONSTRUCT QUERY FOR EXTRACTING HE CORRESPONDENCES
     query = """
     PREFIX ll: <{}>
     CONSTRUCT {{ ?x ?y ?z }}
@@ -152,19 +163,17 @@ def export_alignment(alignment):
     }} order by ?x #LIMIT 100
     """.format(Ns.alivocab, alignment)
     # print query
-    # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
+
+    # FIRE THE CONSTRUCT FOR CORRESPONDENCES AGAINST THE TRIPLE STORE
     alignment_construct = Qry.endpointconstruct(query, clean=False)
 
-    # REMOVE EMPTY LINES
-    # triples = len(re.findall('ll:mySameAs', alignment_construct))
-    # alignment_construct = "\n".join([line for line in  alignment_construct.splitlines() if line.strip()])
     triples = 0
-    result = None
+    links = None
     # RESULTS
 
     if alignment_construct is not None:
-        result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
-        result = result.replace("{", "").replace("}", "")
+        links = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
+        links = links.replace("{", "").replace("}", "")
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
 
@@ -172,7 +181,7 @@ def export_alignment(alignment):
     # print result
     print "Done with graph: {}".format(alignment)
     return {
-        'result': result,
+        'result': links,
         'message': message,
         'source': src_dataset,
         "target": trg_dataset,
@@ -180,18 +189,12 @@ def export_alignment(alignment):
 
 
 # ALIGNMENT FOR VISUALISATION: THE MAIN FUNCTION
-def visualise(graphs, directory):
+def visualise(graphs, directory, credential):
 
     # production_directory = "/scratch/risis/data/rdf-data/links"
     # directory = production_directory
-    # uri_10 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
-    # uri_20 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
-    # uri_30 = "http://risis.eu/linkset/eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458"
-    # uri_22 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676_exactStrSim_Country_Code"
-    # uri_33 = "http://risis.eu/linkset/refined_eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458_exactStrSim_Country_Code"
-    # graphs = [uri_20, uri_22, uri_30, uri_33]
+
     writer = Buffer.StringIO()
-    # file = open("C:\Users\Al\PycharmProjects\AlignmentUI\src\UploadedFiles\plot.ttl", 'wb')
     g = rdflib.Graph()
     source = {}
     target = {}
@@ -202,18 +205,23 @@ def visualise(graphs, directory):
     singletons = {}
     triples = 0
     datasets = (None, None)
-
     code = 0
+
     for graph in graphs:
         # print graph
 
         code += 1
-
         links = export_alignment(graph)
+
+        # THE MECHANISM USED
         mechanism = links['mechanism']
         # print "mechanism", mechanism
+
+        # THE SOURCE AND DATASET DATASETS
         if datasets == (None, None):
             datasets = (links["source"], links['target'])
+
+        # MAKE SURE THAT FOR ALL ALIGNMENT, THE SOURCE DATASET AND TARGET DATASET AND THE SAME
         elif datasets != (links["source"], links['target']):
             print "No visualisation for different set of source-target"
             return None
@@ -221,11 +229,13 @@ def visualise(graphs, directory):
         # print links['result']
         if links['result'] is not None:
 
+            # LOAD THE CORRESPONDENCES TO THE MAIN GRAPH
             g.parse(data=links['result'], format="turtle")
+
+            # INDEX THE CORRESPONDENCES USING THE SINGLETON PROPERTY
             sg = rdflib.Graph()
             sg.parse(data=links['result'], format="turtle")
             triples += len(sg)
-
             for subject, predicate, obj in sg.triples((None, None, None)):
                 if predicate not in singletons:
                     mech = "{}_{}".format(mechanism, code)
@@ -233,9 +243,8 @@ def visualise(graphs, directory):
                 elif mech not in singletons[mech]:
                     singletons[mech] += [mech]
 
-    # prefix = """
-    # PREFIX link: <http://risis.eu/alignment/link/>
-    # PREFIX plot: <http://risis.eu/alignment/plot/>"""
+
+    # WRITING THE FILE
     count = 0
     writer.write("PREFIX ll: <{}>\n".format(Ns.alivocab))
     writer.write("PREFIX rdf: <{}>\n".format(Ns.rdf))
@@ -243,7 +252,7 @@ def visualise(graphs, directory):
     writer.write("PREFIX plot: <http://risis.eu/alignment/plot/>\n")
     writer.write("PREFIX mechanism: <{}>\n".format(Ns.mechanism))
 
-    # DROPPING GRAPH IT IT ALREADY EXISTS
+    # DROPPING GRAPH IF IT ALREADY EXISTS
     writer.write(
         "\n#DROP SILENT GRAPH plot:{}_{} ;\n".format(
             Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
@@ -253,30 +262,29 @@ def visualise(graphs, directory):
     writer.write("\n\tplot:{}_{}\n".format(
         Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
     writer.write("\t{")
+
+    # GOING THROUGH ALL CORRESPONDENCES OF HE MAIN GRAPH (MERGED)
     for subject, predicate, obj in g.triples((None, None, None)):
 
         count += 1
 
-        # print "> ", subject, predicate, obj
+        # INDEX THE SOURCE CORRESPONDENCE
         if subject not in source:
             src_count += 1
             source[subject] = src_count
 
+        # INDEX THE TARGET CORRESPONDENCE
         if obj not in target:
             trg_count += 1
             target[obj] = trg_count
 
+        # INDEX THE PAIR
         pre_code = "{}_{}".format(source[subject], target[obj])
         if pre_code not in attribute:
             prd_count += 1
             attribute[pre_code] = prd_count
 
-        # print "> ", subject
-        # print "> ", predicate
-        # print "> ", obj
-        # pred = "{}_{}".format(source[subject], target[obj])
-        # print ">>> ", source[subject], attribute[pred], target[obj]
-
+        # WRITE THE PLOT COORDINATE AND ITS METADATA
         writer.write("\n\t\t### [ {} ]\n".format(count))
         writer.write("\t\t{}\n".format(predicate).replace(Ns.alivocab, "ll:"))
         writer.write("\t\t\tlink:source     {} ;\n".format(source[subject]))
@@ -289,6 +297,7 @@ def visualise(graphs, directory):
         writer.write("")
     writer.write("\t}\n#}")
 
+    # THE PATH OF THE OUTPUT FILES
     name = "{}_{}".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1]))
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
     f_path = "{0}{1}{1}{2}_plots_{3}.trig".format(directory, os.path.sep, name, date)
@@ -303,6 +312,7 @@ def visualise(graphs, directory):
         print "\n\t[utility_LOAD_TRIPLE_STORE:]", err
         return
 
+    # CREATE THE FILES
     plot_writer = codecs.open(f_path, "wb", "utf-8")
     batch_writer = codecs.open(b_path, "wb", "utf-8")
 
@@ -314,18 +324,27 @@ def visualise(graphs, directory):
     # {}stardog data add {} -g {} "{}"
     # """.format(stardog_path, Svr.DATABASE, enriched_graph, f_path)
 
-    user = ""
-    password = ""
+    # GENERATE THE BATCH FILE FOR AUTOMATIC LOAD
+    user = "..."
+    password = "..."
+    if credential is not None:
+        if "user" in credential:
+            user = credential["user"]
+        if "password" in credential:
+            password = credential["password"]
+
     load_text = "echo \"Loading data\"\n" \
                 "/usr/local/virtuoso-opensource/bin/isql 1112 {} {} exec=\"DB.DBA.TTLP_MT (file_to_string_output" \
                 "('/scratch/risis/data/rdf-data/links/Plots/{}_plots{}.trig'), '', 'http://risis.eu/converted', " \
                 "256);\"".format(user, password, name, date)
-
     batch_writer.write(to_unicode(load_text))
     batch_writer.close()
+    os.chmod(b_path, 0o777)
+
+    # WRITE THE CORRESPONDENCES TO FILE
     plot_writer.write(writer.getvalue())
     plot_writer.close()
-    os.chmod(b_path, 0o777)
+
     print "PLOT: {}".format(f_path)
     print "BATCH: {}".format(b_path)
     print "Job Done!!!"

@@ -1461,7 +1461,6 @@ def update_view_label_rq(rq_uri, view_uri, view_label):
     return query
 
 
-
 def update_label_rq(rq_uri, graph_uri, label):
     query = PREFIX + """
     DELETE
