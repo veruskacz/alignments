@@ -896,12 +896,30 @@ function createLinksetClick()
 
         // call function that creates the linkset
         // HERE!!!!
-        $.get('/createLinkset', specs, function(data)
+        $.ajax(
+
         {
-              loadingGif(document.getElementById('linkset_creation_message_col'), 2, show=false);
-              var obj = JSON.parse(data);
-              $('#linkset_creation_message_col').html(addNote(obj.message,cl='info'));
-        });
+            url: '/createLinkset',
+            data: specs,
+            type: "GET",
+            timeout: 0,
+            success: function(data){
+                loadingGif(document.getElementById('linkset_creation_message_col'), 2, show=false);
+                var obj = JSON.parse(data);
+                $('#linkset_creation_message_col').html(addNote(obj.message,cl='info'));
+            }
+        }
+
+//        '/createLinkset', specs, function(data, status)
+//        }
+//        {
+//              console.log(status)
+//              loadingGif(document.getElementById('linkset_creation_message_col'), 2, show=false);
+//              var obj = JSON.parse(data);
+//              $('#linkset_creation_message_col').html(addNote(obj.message,cl='info'));
+//        }
+
+        );
     }
     else {
       $('#linkset_creation_message_col').html(addNote(missing_feature));
