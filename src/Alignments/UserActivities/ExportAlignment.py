@@ -182,8 +182,8 @@ def export_alignment(alignment):
 # ALIGNMENT FOR VISUALISATION: THE MAIN FUNCTION
 def visualise(graphs, directory):
 
-    production_directory = "/scratch/risis/data/rdf-data/links"
-    directory = production_directory
+    # production_directory = "/scratch/risis/data/rdf-data/links"
+    # directory = production_directory
     # uri_10 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_P1141790218"
     # uri_20 = "http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_English_Institution_Name_N622708676"
     # uri_30 = "http://risis.eu/linkset/eter_2014_grid_20170712_approxStrSim_University_English_Institution_Name_N81752458"
@@ -309,9 +309,18 @@ def visualise(graphs, directory):
     print "3. GENERATING THE BATCH FILE TEXT"
     enriched_graph = "{}{}_plots".format(Ns.plot, name)
     stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
-    load_text = """echo "Loading data"
-    {}stardog data add {} -g {} "{}"
-    """.format(stardog_path, Svr.DATABASE, enriched_graph, f_path)
+
+    # load_text = """echo "Loading data"
+    # {}stardog data add {} -g {} "{}"
+    # """.format(stardog_path, Svr.DATABASE, enriched_graph, f_path)
+
+    user = ""
+    password = ""
+    load_text = "echo \"Loading data\"\n" \
+                "/usr/local/virtuoso-opensource/bin/isql {} dba {} exec=\"DB.DBA.TTLP_MT (file_to_string_output" \
+                "('/scratch/risis/data/rdf-data/links/Plots/{}_enriched_{}.trig'), '', 'http://risis.eu/converted', " \
+                "256);".format(user, password, name, date)
+
     batch_writer.write(to_unicode(load_text))
     batch_writer.close()
     plot_writer.write(writer.getvalue())
@@ -388,7 +397,7 @@ def enrich(specs, directory):
     total = 0
     limit = 20000
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    f_path = "{0}{1}{1}{2}_enriched_{3}.ttl".format(directory, os.path.sep, name, date)
+    f_path = "{0}{1}{1}{2}_enriched_{3}.trig".format(directory, os.path.sep, name, date)
     b_path = "{0}{1}{1}{2}_enriched_{3}{4}".format(directory, os.path.sep, name, date, Ut.batch_extension())
 
     # MAKE SURE THE FOLDER EXISTS
@@ -425,9 +434,11 @@ def enrich(specs, directory):
     print "3. GENERATING THE BATCH FILE TEXT"
     enriched_graph = "{}_enriched".format(specs[St.graph])
     stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+
     load_text = """echo "Loading data"
             {}stardog data add {} -g {} "{}"
             """.format(stardog_path, Svr.DATABASE, enriched_graph, f_path)
+
     batch_writer.write(to_unicode(load_text))
     batch_writer.close()
 
