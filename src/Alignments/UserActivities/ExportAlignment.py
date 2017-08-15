@@ -317,9 +317,9 @@ def visualise(graphs, directory):
     user = ""
     password = ""
     load_text = "echo \"Loading data\"\n" \
-                "/usr/local/virtuoso-opensource/bin/isql {} dba {} exec=\"DB.DBA.TTLP_MT (file_to_string_output" \
-                "('/scratch/risis/data/rdf-data/links/Plots/{}_enriched_{}.trig'), '', 'http://risis.eu/converted', " \
-                "256);".format(user, password, name, date)
+                "/usr/local/virtuoso-opensource/bin/isql 1112 {} {} exec=\"DB.DBA.TTLP_MT (file_to_string_output" \
+                "('/scratch/risis/data/rdf-data/links/Plots/{}_plots{}.trig'), '', 'http://risis.eu/converted', " \
+                "256);\"".format(user, password, name, date)
 
     batch_writer.write(to_unicode(load_text))
     batch_writer.close()
