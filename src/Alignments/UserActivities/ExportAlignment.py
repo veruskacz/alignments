@@ -245,12 +245,12 @@ def visualise(graphs, directory):
 
     # DROPPING GRAPH IT IT ALREADY EXISTS
     writer.write(
-        "\nDROP SILENT GRAPH plot:{}_{} ;\n".format(
+        "\n#DROP SILENT GRAPH plot:{}_{} ;\n".format(
             Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
 
     # INSERT NEW DATA
-    writer.write("INSERT DATA\n{")
-    writer.write("\n\tGRAPH plot:{}_{}\n".format(
+    writer.write("#INSERT DATA\n#{")
+    writer.write("\n\tplot:{}_{}\n".format(
         Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
     writer.write("\t{")
     for subject, predicate, obj in g.triples((None, None, None)):
@@ -287,11 +287,11 @@ def visualise(graphs, directory):
             writer.write("\t\t\tlink:mechanism  {} ;\n".format(value).replace(Ns.mechanism, "mechanism:"))
         writer.write("\t\t\trdf:type        link:Link .\n")
         writer.write("")
-    writer.write("\t}\n}")
+    writer.write("\t}\n#}")
 
     name = "{}_{}".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1]))
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    f_path = "{0}{1}{1}{2}_plots_{3}.ttl".format(directory, os.path.sep, name, date)
+    f_path = "{0}{1}{1}{2}_plots_{3}.trig".format(directory, os.path.sep, name, date)
     b_path = "{0}{1}{1}{2}_plots_{3}{4}".format(directory, os.path.sep, name, date, Ut.batch_extension())
     print "DIRECTORY:", directory
 
@@ -397,7 +397,7 @@ def enrich(specs, directory):
     total = 0
     limit = 20000
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    f_path = "{0}{1}{1}{2}_enriched_{3}.trig".format(directory, os.path.sep, name, date)
+    f_path = "{0}{1}{1}{2}_enriched_{3}.ttl".format(directory, os.path.sep, name, date)
     b_path = "{0}{1}{1}{2}_enriched_{3}{4}".format(directory, os.path.sep, name, date, Ut.batch_extension())
 
     # MAKE SURE THE FOLDER EXISTS
