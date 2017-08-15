@@ -1901,7 +1901,8 @@ def exportAlignment():
     graph_uri = request.args.get('graph_uri', '')
     mode = request.args.get('mode', 'flat')
     graphs = request.args.getlist('graphs[]')
-    print graphs
+    user = request.args.get('name', '')
+    psswd = request.args.get('code', '')
     result = None
 
     try:
@@ -1911,7 +1912,7 @@ def exportAlignment():
         elif mode == 'md':
             result = Ex.export_flat_alignment_and_metadata(graph_uri)
         elif mode == 'vis':
-            result = Ex.visualise(graphs, PLOTS_FOLDER)
+            result = Ex.visualise(graphs, PLOTS_FOLDER, {'user': user, 'password': psswd })
         # print "\n after:", result
 
     except Exception as error:

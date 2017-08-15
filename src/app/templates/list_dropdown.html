@@ -3,7 +3,7 @@
           data-toggle='dropdown'> {{btn_name}} <span class="caret"></span></button>
   <ul class="dropdown-menu" role="menu" id="{{btn_name}}">
      <span class="glyphicon glyphicon glyphicon-search"></span>
-                 <input type="text" onkeyup='filterListGroup(this,"{{btn_name}}")' placeholder="Press Tab to enter search for names.." style='width: 87%'>
+                 <input type="text" onkeyup='filterListGroup(this,"{{btn_name}}")' placeholder="Press Tab to enter your search terms.." style='width: 87%'>
                   <span class="badge counter"></span>
       {% for l in list|sort(attribute='uri_label') %}
       <li role="presentation"> 

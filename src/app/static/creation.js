@@ -612,6 +612,7 @@ function inspect_linkset_activate(mode)
                    loadEditPanel(obj.metadata, mode);
                    enableButton('deleteLinksetButton');
                    enableButton('exportLinksetButton');
+                   enableButton('exportPlotLinksetButton');
                 }
                 else if (mode == 'inspect')
                 {
@@ -650,6 +651,7 @@ function inspect_linkset_activate(mode)
       $('#creation_linkset_row').show();
       $('#export_linkset_heading').show();
       enableButton('exportLinksetButton', enable=false);
+      enableButton('exportPlotLinksetButton', enable=false);
     }
     else
     {
@@ -1009,8 +1011,15 @@ function refineLinksetClick()
   }
 }
 
+function exportPlotLinksetClick(elem)
+{
+    var credentials = { 'user': $("#modalPlotPass #usrname").val().trim(),
+                        'password': $("#modalPlotPass #pssw").val().trim()}
+    exportLinksetClick("export.ttl",mode="vis", user= $("#modalPlotPass #usrname").val().trim(), psswd=$("#modalPlotPass #pssw").val().trim() );
+//    $(elem).dialog("close");
+}
 
-function exportLinksetClick(filename, mode='flat')
+function exportLinksetClick(filename, mode='flat', user='', psswd='')
 {
     var linkset = '';
     var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
@@ -1033,7 +1042,11 @@ function exportLinksetClick(filename, mode='flat')
         loadingGif(document.getElementById('linkset_export_message_col'), 2);
 
         // call function that creates the linkset
-        $.get('/exportAlignment', data={'graph_uri':linkset, 'graphs[]':graphs, 'mode':mode}, function(data)
+        $.get('/exportAlignment', data={'graph_uri':linkset,
+                                        'graphs[]':graphs,
+                                        'name': user,
+                                        'code': psswd,
+                                        'mode':mode}, function(data)
         {
 
             var obj = JSON.parse(data);
@@ -1151,6 +1164,7 @@ function editLabelLinksetClick(elem)
     }
     $(elem).dialog("close");
 }
+
 
 $('#linkset_filter_property').change(function() {
     $("#linkset_filter_value1").val('');
