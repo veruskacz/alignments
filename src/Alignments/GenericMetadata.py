@@ -5,6 +5,18 @@ import Alignments.Linksets.Linkset as Ls
 
 
 def linkset_metadata(specs, display=False):
+
+
+    extra = ""
+    if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
+        extra += "\n        alivocab:subjectsReducer    <{}> ;".format(specs[St.source][St.reducer])
+
+    if St.reducer in specs[St.target] and len(specs[St.target][St.reducer]) > 0:
+        extra += "\n        alivocab:objectsReducer     <{}> ;".format(specs[St.target][St.reducer])
+
+    if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
+        extra += "\n        alivocab:intermediate       <{}> ;".format(specs[St.intermediate_graph])
+
     source = specs[St.source]
     target = specs[St.target]
 
@@ -89,7 +101,7 @@ def linkset_metadata(specs, display=False):
                "        bdb:objectsDatatype         <{}> ;".format(target[St.entity_datatype]),
                "        alivocab:singletonGraph     <{}> ;".format(specs[St.singleton]),
                "        bdb:assertionMethod         <{}> ;".format(specs[St.assertion_method]),
-               "        bdb:linksetJustification    <{}> ;".format(specs[St.justification]),
+               "        bdb:linksetJustification    <{}> ;{}".format(specs[St.justification], extra),
                "        alivocab:alignsSubjects     ?src_aligns ;",
                "        alivocab:alignsObjects      ?trg_aligns ;",
                "        rdfs:comment                \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
@@ -290,6 +302,16 @@ def diff_meta(specs):
 
 def linkset_refined_metadata(specs, display=False):
 
+    extra = ""
+    if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
+        extra += "\n        alivocab:subjectsReducer     <{}> ;".format(specs[St.source][St.reducer])
+
+    if St.reducer in specs[St.target] and len(specs[St.target][St.reducer]) > 0:
+        extra += "\n        alivocab:objectsReducer     <{}> ;".format(specs[St.target][St.reducer])
+
+    if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
+        extra += "\n        alivocab:intermediate       <{}> ;".format(specs[St.intermediate_graph])
+
     source = specs[St.source]
     target = specs[St.target]
     src_aligns = Ls.format_aligns(source[St.aligns])
@@ -396,7 +418,7 @@ def linkset_refined_metadata(specs, display=False):
                    "        bdb:objectsDatatype             <{}> ;".format(target[St.entity_datatype]),
                    "        alivocab:singletonGraph         <{}> ;".format(specs[St.singleton]),
                    "        bdb:assertionMethod             <{}> ;".format(specs[St.assertion_method]),
-                   "        bdb:linksetJustification        <{}> ;".format(specs[St.justification]),
+                   "        bdb:linksetJustification        <{}> ;{}".format(specs[St.justification], extra),
                    "        alivocab:alignsSubjects         ?src_aligns ;",
                    "        alivocab:alignsObjects          ?trg_aligns ;",
                    "        rdfs:comment                    \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),

@@ -1236,11 +1236,14 @@ def spa_linkset():
 
         St.delta: request.args.get('delta', ''),
         St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
-
-        St.intermediate_graph: request.args.get('intermediate_graph', '')
     }
+
+    if len(request.args.get('intermediate_graph', '')) > 0:
+        specs[St.intermediate_graph] = request.args.get('intermediate_graph', '')
+
     if len(request.args.get('src_reducer', '')) > 0:
         specs[St.source][St.reducer] = request.args.get('src_reducer', '')
+
     if len(request.args.get('trg_reducer', '')) > 0:
         specs[St.target][St.reducer] = request.args.get('trg_reducer', '')
 

@@ -1610,9 +1610,6 @@ def approx_numeric(specs):
     insert_query_numeric_reduce(specs)
 
 
-
-
-
 grid = {
     St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
     St.graph: "http://risis.eu/dataset/grid",

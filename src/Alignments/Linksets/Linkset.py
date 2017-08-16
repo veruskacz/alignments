@@ -75,12 +75,25 @@ def format_aligns(resource):
 
 def set_linkset_name(specs, inverse=False):
 
+    reducer = ""
+    intermediate = ""
+
+    if St.reducer in specs[St.source]:
+        reducer += specs[St.source][St.reducer]
+
+    if St.reducer in specs[St.target]:
+        reducer += specs[St.target][St.reducer]
+
+    if St.intermediate_graph in specs:
+        intermediate = specs[St.intermediate_graph]
+
     if inverse is False:
 
         h_name = specs[St.mechanism] + \
                  specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
                  specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
-                 specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype] + "2"
+                 specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype] + "2" +\
+                 reducer + intermediate
 
         hashed = hash(h_name)
 
@@ -99,7 +112,8 @@ def set_linkset_name(specs, inverse=False):
         h_name = specs[St.mechanism] + \
                  specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
                  specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
-                 specs[St.target][St.entity_datatype] + specs[St.source][St.entity_datatype] + "2"
+                 specs[St.target][St.entity_datatype] + specs[St.source][St.entity_datatype] + "2" +\
+                 reducer  + intermediate
 
         hashed = hash(h_name)
 
@@ -176,8 +190,25 @@ def set_subset_name(specs, inverse=False):
 
 
 def set_refined_name(specs):
-    specs[St.refined_name] = "refined_{}_{}_{}".format(
-        specs[St.linkset_name], specs[St.mechanism], specs[St.source][St.aligns_name])
+
+    reducer = ""
+    intermediate = ""
+
+    if St.reducer in specs[St.source]:
+        reducer += specs[St.source][St.reducer]
+
+    if St.reducer in specs[St.target]:
+        reducer += specs[St.target][St.reducer]
+
+    if St.intermediate_graph in specs:
+        intermediate = specs[St.intermediate_graph]
+
+    hashed = hash(reducer + intermediate)
+
+    append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
+
+    specs[St.refined_name] = "refined_{}_{}_{}_()".format(
+        specs[St.linkset_name], specs[St.mechanism], specs[St.source][St.aligns_name], append)
     specs[St.refined] = specs[St.linkset].replace(specs[St.linkset_name], specs[St.refined_name])
 
 
@@ -526,4 +557,3 @@ def linkset_wasderivedfrom(refined_linkset_uri):
         if dictionary_result[St.result]:
             return dictionary_result[St.result][1][0]
     return None
-
