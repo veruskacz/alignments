@@ -12,7 +12,7 @@ import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 
 # LIMIT = ""
-LIMIT = "LIMIT 130000"
+LIMIT = "LIMIT 100"
 
 
 def get_tf(specs, is_token=True,
@@ -22,7 +22,7 @@ def get_tf(specs, is_token=True,
 
     # DISPLAY SPECS
     print "\n1. SPECS\n\tGRAPH     : {}\n\tTRIPLES   : {}\n\tPREDICATE : {}\n\tIS TOKEN  : {}".format(
-        spec[St.graph], spec[St.entity_datatype], spec[St.aligns], str(is_token).upper())
+        specs[St.graph], specs[St.entity_datatype], specs[St.aligns], str(is_token).upper())
 
     # LOADING DATA
     print "\n2. LOADING THE DATA..."
@@ -219,11 +219,11 @@ def remove_info_in_bracket(text):
 
     return temp
 
-spec = {
-    St.graph: "http:risis.eu/dataset/openAire_20170816",
-    St.entity_datatype: "{}".format(Ns.foaf),
-    St.aligns: "{}prefLabel".format(Ns.skos)
-}
+# spec = {
+#     St.graph: "http:risis.eu/dataset/openAire_20170816",
+#     St.entity_datatype: "{}".format(Ns.foaf),
+#     St.aligns: "{}prefLabel".format(Ns.skos)
+# }
 
 # result = get_tf(spec, is_token=True)
 
