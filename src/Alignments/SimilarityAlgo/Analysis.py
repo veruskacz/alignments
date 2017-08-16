@@ -156,7 +156,7 @@ def process_input(text, stop_word, stop_symbols_string):
             pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
             temp = re.sub(pattern, "", temp)
 
-        return temp
+        return to_unicode(temp)
 
     except Exception as error:
         print "!!!!!!!!!!!!! PROBLEM !!!!!!!!!!!!!!!!!!!"
