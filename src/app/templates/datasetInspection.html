@@ -66,6 +66,7 @@
                             targetList="dataset_predicates_col"
                             targetList2="lat_predicates_col"
                             targetList3="long_predicates_col"
+                            targetList4="dataset_stat_predicates_col"
                             hiddenDiv="hidden_dts_entType_div">
                         <!-- will be rendered via server -->
                         <div class="hiddenDiv" id="hidden_dts_entType_div" style='display:none' uri="" label="" ></div>
@@ -82,6 +83,7 @@
             </div>
         </div>
       </div>
+
 
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -262,6 +264,116 @@
             </div>
         </div>
       </div>
+
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_dataset_statistics"
+                     data-toggle="collapse" href="#collapse_dataset_statistics">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Dataset - Term & Value Frequency
+              </h4>
+          </div>
+
+         </div>
+        </div>
+        <div id="collapse_dataset_statistics" class="panel-collapse collapse in" target="link_collapse_dataset_statistics">
+            <div class="panel-body">
+
+              <div class="row">
+                  <div class="col-md-4">
+                        <div class="row">
+                              <div class="col-md-12">
+                                  <h4>
+                                      Select a Property or a Path
+                                  </h4>
+                              </div>
+                        </div>
+
+                        <div class="row" id = "dataset_stat_selected_pred_row">
+                         <div class="col-md-12">
+                             <div class="well well-sm" id="dataset_stat_selected_pred" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                        </div>
+
+                        <div class="row" id = "dataset_stat_list_pred_row">
+                            <div class="col-md-12">
+                             <div class="row">
+                                 <div class="col-md-7">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="dts_stat_enable_prop_path"
+                                            onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                            </div>
+                            <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"dataset_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                             <div class="row">
+                                 <div class="col-md-12 pred-list" id="dataset_stat_predicates_col"
+                                      targetList="dataset_stat_predicates_col"
+                                      targetTxt="dataset_stat_selected_pred"
+                                      propPathCheckBok="dts_stat_enable_prop_path"
+                                      propPath="enabled"> </div>
+                             </div>
+                            </div>
+                        </div>
+
+                  </div>
+
+                  <div class="col-md-4">
+
+                    <div class="container">
+                      <div class="btn-group btn-toggle" id="btn_freq_type">
+                            <button class="btn btn-xs btn-default" type="term">Term Freq.</button>
+                            <button class="btn btn-xs btn-primary active" type="value">Value Freq.</button>
+                        </div>
+                      <button class="btn btn-success" onclick="calculateFreqClick();">Calculate</button>
+                    </div>
+
+                       <div class="row"> &nbsp </div>
+
+                        <div class="row">
+                           <div class="col-md-12">
+                            <span class="glyphicon glyphicon glyphicon-search"></span>
+                            <input type="text" onkeyup='filterListGroup(this,"dataset_stats_values_col")' placeholder="Search for names.." style='width: 95%'>
+                           </div>
+                         </div>
+                         <div class="row"> &nbsp </div>
+
+                         <div class="row">
+                             <div class="col-md-12 values-list" id="dataset_stats_values_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                                 <!--<li class="list-group-item" style="width: 100%">-->
+                                        <!--<table style="table-layout: fixed; width: 100%">-->
+                                            <!--<tr>-->
+                                                <!--<td style="word-wrap: break-word; width: 85%">-->
+                                                    <!--<div style="word-wrap: break-word;">Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaacccccc</div></td>-->
+                                                <!--<td align="right">BBB</td>-->
+                                            <!--</tr>-->
+                                        <!--</table>-->
+                                <!--</li>-->
+                             </div>
+                         </div>
+
+                  </div>
+              </div>
+            </div>
+        </div>
+      </div>
+
 
       <div class="panel panel-default">
         <div class="panel-heading">

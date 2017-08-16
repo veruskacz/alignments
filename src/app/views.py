@@ -11,18 +11,12 @@ import requests
 import xmltodict
 import collections
 import Queries as Qry
-from kitchen.text.converters import to_bytes, to_unicode
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
-
-# import cgi
-# from os import listdir
-# from os.path import isfile, isdir, join
-
 
 CREATION_ACTIVE = True
 FUNCTION_ACTIVATED = True
@@ -45,6 +39,7 @@ if CREATION_ACTIVE:
     from Alignments.UserActivities import Import_Data as Ipt
     import Alignments.Linksets.SPA_LinksetSubset as spa_subset
     from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
+    from Alignments.SimilarityAlgo.Analysis import get_tf
     from Alignments.Manage.DatasetStats import stats_optimised as stats
     from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
     from Alignments.Query import sparql_xml_to_csv as sparql2csv
@@ -1771,6 +1766,35 @@ def getfilters():
                             style = style,
                             list = data)
 
+@app.route('/calculateFreq')
+def calculateFreq():
+    specs = { St.graph: request.args.get('dataset', ''),
+            St.entity_datatype: request.args.get('entityType', ''),
+            St.aligns: request.args.get('property', '')}
+    type = request.args.get('type', '')
+
+    print '>>>>>', type, specs
+
+#     data = [{'text': 'ebl naturkost ek', 'freq': 1},
+# {'text': 'inphotech sp zoo', 'freq': 1},
+# {'text': 'agencia portuguesa do ambiente', 'freq': 2},
+# {'text': 'knowles  uk  limited', 'freq': 1},
+# {'text': 'bionanonet forschungsgesellschaft mbh', 'freq': 2},
+# {'text': 'econda gmbh', 'freq': 1},
+# {'text': 'lietuvos agrarines ekonomikos institutas', 'freq': 1},
+# {'text': 'tierra tech sl', 'freq': 1},
+# {'text': 'sociedad espanola arqueologia virtual', 'freq': 1},
+# {'text': 'storvik aqua as', 'freq': 1},
+# {'text': 'cad susteemide ou', 'freq': 1},
+# {'text': 'centro regionale di assistenza perla cooperazione artigiana sc', 'freq': 1},
+# {'text': 'kist europe korea institute science technology europe forschungsgesellschaft mbh', 'freq': 1}]
+    if CREATION_ACTIVE:
+        data = get_tf(specs, is_token=(type=='term'))
+        return render_template('list_group_2col.html',
+                            list = data)
+    else:
+        return ''
+
 
 # TODO: REMOVE
 @app.route('/insertrq', methods=['GET'])
@@ -2100,7 +2124,7 @@ def updateViewLabel():
 
     try:
         query = Qry.update_view_label_rq(rq_uri, view_uri, view_label)
-        print query
+        # print query
         result = sparql(query, strip=False)
         print ">>>> RESULT:", result
         return json.dumps({'message': 'View successfully updated', 'result': 'OK'})
@@ -2118,7 +2142,6 @@ def updateLabel():
 
     try:
         query = Qry.update_label_rq(rq_uri, graph_uri, label)
-        print query
         result = sparql(query, strip=False)
         print ">>>> RESULT:", result
         return json.dumps({'message': 'Label successfully updated', 'result': 'OK'})

@@ -985,12 +985,12 @@ function refineLinksetClick()
         'src_graph': $('#src_selected_graph').attr('uri'),
         'src_aligns': $('#src_selected_pred').attr('uri'),
         'src_entity_datatye': $('#src_selected_entity-type').attr('uri'),
-          'src_reducer': reducer,
+        'src_reducer': reducer,
 
         'trg_graph': $('#trg_selected_graph').attr('uri'),
         'trg_aligns': $('#trg_selected_pred').attr('uri'),
         'trg_entity_datatye': $('#trg_selected_entity-type').attr('uri'),
-          'trg_reducer': reducer,
+        'trg_reducer': reducer,
 
         'mechanism': $('#selected_meth').attr('uri'),
 
@@ -1146,33 +1146,36 @@ function importLinksetClick()
     }
 }
 
-function editLabelLinksetClick(elem)
-{
-    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
-    var view = '';
-    var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
+function editLabelClick(label, type='linkset') {
+    if (type == 'linkset') {
+        var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+        var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
+        var msg_col = 'linkset_edit_message_col';
+        var refresh_btn = 'btn_edit_linkset'}
+    else {
+        var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
+        var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+        var msg_col = 'lens_edit_message_col';
+        var refresh_btn = 'btn_edit_lens'}
     if (elems.length > 0) // if any element is selected
     {
         uri = $(elems[0]).attr('uri');  // it should have only one selected
 
-        var label = $("#labelLinksetModal #linksetLabel").val().trim();
+        //var label = $("#labelLinksetModal #linksetLabel").val().trim();
         if (label)
         {
-            //        alert(test);
             $.get('/updateLabel', data={'rq_uri':rq_uri, 'graph_uri':uri, 'label':label}, function(data)
             {
                 var obj = JSON.parse(data);
                 if (obj.result == 'OK')
-                {   $('#editLinksetButton').click();
-                    $('#linkset_edit_message_col').html(addNote(obj.message,cl='info')); }
+                {   $('#'+refresh_btn).click();
+                    $('#'+msg_col).html(addNote(obj.message,cl='info')); }
                 else
-                {   $('#linkset_edit_message_col').html(addNote(obj.message)); }
+                {   $('#'+msg_col).html(addNote(obj.message)); }
             });
         }
     }
-    $(elem).dialog("close");
 }
-
 
 $('#linkset_filter_property').change(function() {
     $("#linkset_filter_value1").val('');
@@ -2656,6 +2659,7 @@ function selectionClick(th, ancestorType)
             //TODO: Improve... to make it work for dataset inspection and enrichment
             var listCol2 = $(list).attr('targetList2');
             var listCol3 = $(list).attr('targetList3');
+            var listCol4 = $(list).attr('targetList4');
             if (listCol2)
             {
                 setAttr(listCol2,'graph_uri',graph_uri);
@@ -2682,6 +2686,19 @@ function selectionClick(th, ancestorType)
                 // get the distinct predicates and example values of a graph into a list group
                 $('#'+listCol3).html('Loading...');
             }
+            if (listCol4)
+            {
+                setAttr(listCol4,'graph_uri',graph_uri);
+                // clean previously selected entity type
+                targetTxt = $('#'+listCol4).attr('targetTxt');
+
+                setAttr(targetTxt,'uri','');
+                $('#'+targetTxt).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+                setAttr(targetTxt,'style','background-color:none');
+
+                // get the distinct predicates and example values of a graph into a list group
+                $('#'+listCol4).html('Loading...');
+            }
 
             var total = $(th).attr('total');
             if (!total)
@@ -2705,6 +2722,8 @@ function selectionClick(th, ancestorType)
                         $('#'+listCol2).html(obj.result);
                     if (listCol3)
                         $('#'+listCol3).html(obj.result);
+                    if (listCol4)
+                        $('#'+listCol4).html(obj.result);
                 }
                 else
                     $('#'+listCol).html(obj.message);
@@ -3464,6 +3483,45 @@ function importAlignmentClick()
 //        {
 //            var rdftype = [];
 //        }
+}
+
+
+$('.btn-toggle').click(function() {
+    $(this).find('.btn').toggleClass('active');
+
+    if ($(this).find('.btn-primary').size()>0) {
+    	$(this).find('.btn').toggleClass('btn-primary');
+    }
+    if ($(this).find('.btn-danger').size()>0) {
+    	$(this).find('.btn').toggleClass('btn-danger');
+    }
+    if ($(this).find('.btn-success').size()>0) {
+    	$(this).find('.btn').toggleClass('btn-success');
+    }
+    if ($(this).find('.btn-info').size()>0) {
+    	$(this).find('.btn').toggleClass('btn-info');
+    }
+
+    $(this).find('.btn').toggleClass('btn-default');
+
+});
+
+function calculateFreqClick(){
+    var btn = document.getElementById('btn_freq_type');
+    var elems = btn.getElementsByClassName('active');
+    alert($(elems[0]).attr('type'))
+    if (elems.length > 0) {
+        $.get('/calculateFreq',
+              data={'dataset': $('#selected_dataset').attr('uri'),
+                    'entityType': $('#dts_selected_entity-type').attr('uri'),
+                    'property': $('#dataset_stat_selected_pred').attr('uri'),
+                    'freqType': $(elems[0]).attr('type') },
+              function(data)
+            {
+                  $('#dataset_stats_values_col').html(data);
+    //                  $('#dataset_creation_message_col').html(addNote(loaded_dataset,cl='success'));
+            });
+    }
 }
 
 //$('#submit_file_button').addEventListener("click", myScript);

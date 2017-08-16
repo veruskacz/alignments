@@ -1,0 +1,11 @@
+        {% for e in list|sort(attribute='freq', reverse=true) %}
+            <li class="list-group-item" style="width: 100%">
+            <table style="table-layout: fixed; width: 100%">
+                <tr>
+                    <td style="word-wrap: break-word; width: 85%">
+                        <div style="word-wrap: break-word;">{{e.text}}</div></td>
+                    <td align="right">{{ e.freq}}</td>
+                </tr>
+            </table>
+            </li>
+        {% endfor %}
