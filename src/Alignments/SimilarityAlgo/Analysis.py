@@ -11,8 +11,8 @@ from kitchen.text.converters import to_bytes, to_unicode
 import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 
-# LIMIT = ""
-LIMIT = "LIMIT 100"
+LIMIT = ""
+# LIMIT = "LIMIT 100"
 
 
 def get_tf(specs, is_token=True,
