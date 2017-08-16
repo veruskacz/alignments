@@ -7,7 +7,7 @@ import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
-from kitchen.text.converters import to_bytes
+from kitchen.text.converters import to_bytes, to_unicode
 import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 
@@ -21,8 +21,8 @@ def get_tf(specs, is_token=True,
     term_frequency = dict()
 
     # DISPLAY SPECS
-    print "\n1. SPECS\n\tGRAPH     : {}\n\tDATA TYPE : {}\n\tPREDICATE : {}".format(
-        spec[St.graph], spec[St.entity_datatype], spec[St.aligns])
+    print "\n1. SPECS\n\tGRAPH     : {}\n\tTRIPLES   : {}\n\tPREDICATE : {}\n\tIS TOKEN  : {}".format(
+        spec[St.graph], spec[St.entity_datatype], spec[St.aligns], str(is_token).upper())
 
     # LOADING DATA
     print "\n2. LOADING THE DATA..."
@@ -83,7 +83,7 @@ def get_tf(specs, is_token=True,
             list += [{"text":token, "freq": frequency}]
             count += 1
             if count < 11:
-                print "\t{}".format(str({"text": token, "freq": frequency}))
+                print "\t{}".format(str({"text": to_unicode(token), "freq": frequency}))
 
     t_load = time()
 
@@ -225,10 +225,5 @@ spec = {
     St.aligns: "{}prefLabel".format(Ns.skos)
 }
 
-# result = get_tf(spec, is_token=False)
+# result = get_tf(spec, is_token=True)
 
-# if result:
-    # for token, frewuency in result.items():
-    #     print token, frewuency
-    # for data in result:
-    #     print data
