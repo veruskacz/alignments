@@ -3509,7 +3509,7 @@ $('.btn-toggle').click(function() {
 function calculateFreqClick(){
     var btn = document.getElementById('btn_freq_type');
     var elems = btn.getElementsByClassName('active');
-    alert($(elems[0]).attr('type'))
+//    alert($(elems[0]).attr('type'))
     if (elems.length > 0) {
         $.get('/calculateFreq',
               data={'dataset': $('#selected_dataset').attr('uri'),

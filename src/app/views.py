@@ -1773,7 +1773,7 @@ def calculateFreq():
             St.aligns: request.args.get('property', '')}
     type = request.args.get('type', '')
 
-    print '>>>>>', type, specs
+    # print '>>>>>', type, specs
 
 #     data = [{'text': 'ebl naturkost ek', 'freq': 1},
 # {'text': 'inphotech sp zoo', 'freq': 1},
