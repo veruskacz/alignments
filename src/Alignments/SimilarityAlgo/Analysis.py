@@ -225,7 +225,7 @@ spec = {
     St.aligns: "{}prefLabel".format(Ns.skos)
 }
 
-result = get_tf(spec, is_token=True)
+# result = get_tf(spec, is_token=False)
 
 # if result:
     # for token, frewuency in result.items():
