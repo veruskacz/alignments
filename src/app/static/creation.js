@@ -798,9 +798,11 @@ function createLinksetClick()
 {
     $('#linkset_creation_message_col').html("");
 
-    var reducer = '';
+    var reducer = ''; intermediate = '';
     if ($('#selected_meth').attr('uri') != 'intermediate')
      {   reducer = $('#selected_int_red_graph').attr('uri'); }
+    else
+     {   intermediate = $('#selected_int_red_graph').attr('uri'); }
 
     var srcDict = {};
     if (($('#src_selected_graph').attr('uri')) &&
@@ -858,8 +860,7 @@ function createLinksetClick()
     if ((Object.keys(srcDict).length) &&
         (Object.keys(trgDict).length) &&
         ($('#selected_meth').attr('uri')) &&
-        ($('#selected_meth').attr('uri') != 'intermediate' ||
-            $('#selected_int_red_graph').attr('uri')) &&
+        ($('#selected_meth').attr('uri') != 'intermediate' || intermediate) &&
         ($('#selected_meth').attr('uri') != 'approxNbrSim' ||
             ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').find("option:selected").text() )
             )
@@ -879,7 +880,7 @@ function createLinksetClick()
 
           'mechanism': $('#selected_meth').attr('uri'),
 
-          'intermediate_graph': $('#selected_int_red_graph').attr('uri'),
+          'intermediate_graph': intermediate,
 
           'stop_words': $('#linkset_approx_stop_words').val(),
           'stop_symbols': $('#linkset_approx_symbols').val(),
@@ -889,7 +890,6 @@ function createLinksetClick()
           'numeric_approx_type': $('#linkset_approx_num_type').find("option:selected").text(),
 
           'multiple_entries': 'yes'
-
         }
 
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
@@ -931,6 +931,13 @@ function createLinksetClick()
 
 function refineLinksetClick()
 {
+
+    var reducer = ''; intermediate = '';
+    if ($('#selected_meth').attr('uri') != 'intermediate')
+     {   reducer = $('#selected_int_red_graph').attr('uri'); }
+    else
+     {   intermediate = $('#selected_int_red_graph').attr('uri'); }
+
   $('#linkset_refine_message_col').html("");
 
   var srcDict = {};
@@ -964,8 +971,7 @@ function refineLinksetClick()
  if ((Object.keys(srcDict).length) &&
         (Object.keys(trgDict).length) &&
         ($('#selected_meth').attr('uri')) &&
-        ($('#selected_meth').attr('uri') != 'intermediate' ||
-            $('#selected_int_red_graph').attr('uri')) &&
+        ($('#selected_meth').attr('uri') != 'intermediate' || intermediate) &&
       (linkset) &&
         ($('#selected_meth').attr('uri') != 'approxNbrSim' ||
             ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').val() ))
@@ -979,14 +985,16 @@ function refineLinksetClick()
         'src_graph': $('#src_selected_graph').attr('uri'),
         'src_aligns': $('#src_selected_pred').attr('uri'),
         'src_entity_datatye': $('#src_selected_entity-type').attr('uri'),
+          'src_reducer': reducer,
 
         'trg_graph': $('#trg_selected_graph').attr('uri'),
         'trg_aligns': $('#trg_selected_pred').attr('uri'),
         'trg_entity_datatye': $('#trg_selected_entity-type').attr('uri'),
+          'trg_reducer': reducer,
 
         'mechanism': $('#selected_meth').attr('uri'),
 
-        'intermediate_graph': $('#selected_int_red_graph').attr('uri'),
+        'intermediate_graph': intermediate,
 
         'delta': $('#linkset_approx_delta').val() ,
         'numeric_approx_type': $('#linkset_approx_num_type').val()
