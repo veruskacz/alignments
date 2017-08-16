@@ -3112,3 +3112,88 @@ def virtuoso_request(query):
         message = "\nOR MAYBE THERE IS AN ERROR IN THIS QUERY"
         print message + "\n" + query
         return {St.message: err, St.result: None}
+
+
+
+def remote_endpoint_request(query, endpoint):
+
+    """
+        param query         : The query that is to be run against the SPARQL endpoint
+        param database_name : The name of the database () in with the named-graph resides
+        param host          : the host (server) name
+        return              : returns the result of the query in the default format of the endpoint.
+                            In the case of STARDOG, the sever returns an XML result.
+    """
+
+    q = to_bytes(query)
+    # print query
+    # Content-Type: application/json
+    # b"Accept": b"text/json"
+    # 'output': 'application/sparql-results+json'
+    # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
+    # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
+    #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
+
+    "http://sparql.sms.risis.eu/?" \
+    "default-graph-uri=" \
+    "&query=PREFIX+ll%3A+%3Chttp%3…A%7D%0D%0Alimit+100" \
+    "&should-sponge=" \
+    "&format=text%2Fturtle" \
+    "&timeout=0" \
+    "&debug=on"
+
+    url = endpoint
+    # print url
+    params = urllib.urlencode(
+        {b'query': q, b'default-graph-uri':'', b'format': b'text/turtle',
+         b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
+    headers = {b"Content-Type": b"application/x-www-form-urlencoded"}
+
+    """
+        Authentication
+    """
+    user = "admin"
+    password = "adminT314a"
+    # password = "admin"
+    passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    passman.add_password(None, url, user, password)
+    urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
+    request = urllib2.Request(url, data=params, headers=headers)
+    request.get_method = lambda: "POST"
+
+    try:
+        response = urllib2.urlopen(request)
+        # print "RESPONSE CODE:", response.code
+        result = response.read()
+        # print result
+        # print "NONE", result is None
+        # print "EMPTY", len(result)
+        return {St.message: "OK", St.result: result, "response_code": response.code}
+
+    except urllib2.HTTPError, err:
+        message = err.read()
+        if len(message) == 0:
+            message = str(err)
+        print "\nERROR CODE {}: {}\nUSING THIS QUERY BELOW\n{}".format(err.code, message, query)
+        return {St.message: message, St.result: None}
+
+    except Exception as err:
+
+        if str(err).__contains__("No connection") is True:
+            # logger.warning(err)
+            # print ERROR
+            return {St.message: ERROR, St.result: None}
+
+        elif str(err.message).__contains__("timeout") is True:
+            print "Query execution cancelled: Execution time exceeded query timeout"
+            return {St.message: "Query execution cancelled: Execution time exceeded query timeout.",
+                    St.result: None}
+
+        logger.warning(err)
+        message = "\nOR MAYBE THERE IS AN ERROR IN THIS QUERY"
+        print message + "\n" + query
+        return {St.message: err, St.result: None}
+
+
+
+# print response[St.result]

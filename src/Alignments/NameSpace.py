@@ -8,6 +8,7 @@ bdb = "http://vocabularies.bridgedb.org/ops#"
 sdg = 'tag:stardog:api:property:'
 prov = "http://www.w3.org/ns/prov#"
 skos = "http://www.w3.org/2004/02/skos/core#"
+foaf = "http://xmlns.com/foaf/0.1/Organization"
 
 orgref = "http://risis.eu/orgref/resource/"
 grid = "http://www.grid.ac/institutes/"

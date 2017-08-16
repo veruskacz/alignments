@@ -492,23 +492,31 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
         # WRITE SINGLETON EVIDENCE TO FILE
         return in_crpdce + singleton
 
-    # def get_tf(matrix):
-    #     # Qry.display_matrix(matrix, is_activated=True)
-    #     # print matrix
+    # def get_tf(matrix, is_token=True):
+    #
     #     term_frequency = dict()
     #     for r in range(1, len(matrix)):
-    #         # print "matrix[row]:", matrix[row]
     #
     #         # REMOVE DATA IN BRACKETS
-    #         in_tokens = remove_info_in_bracket(to_unicode(matrix[r][1]))
-    #         in_tokens = in_tokens.split(" ")
+    #         in_tokens = process_input((matrix[r][1]))
     #
-    #         # COMPUTE FREQUENCY
-    #         for t in in_tokens:
-    #             if t not in term_frequency:
-    #                 term_frequency[t] = 1
+    #         if is_token is True:
+    #
+    #             # TOKENIZE
+    #             in_tokens = in_tokens.split(" ")
+    #
+    #             # COMPUTE FREQUENCY
+    #             for t in in_tokens:
+    #                 if t not in term_frequency:
+    #                     term_frequency[t] = 1
+    #                 else:
+    #                     term_frequency[t] += 1
+    #
+    #         else:
+    #             if in_tokens not in term_frequency:
+    #                 term_frequency[in_tokens] = 1
     #             else:
-    #                 term_frequency[t] += 1
+    #                 term_frequency[in_tokens] += 1
     #
     #     return term_frequency
 

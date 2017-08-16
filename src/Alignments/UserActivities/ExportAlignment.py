@@ -814,6 +814,100 @@ def get_bom_type(file_path):
 uri_4 = "http://risis.eu/linkset/" \
         "orgreg_20170718_grid_20170712_exactStrSim_University_Entity_current_name_English_P1888721829"
 
+"""?sub a foaf:Organization ;
+  	?pred ?object """
+
+def download_data(endpoint, graph, directory,  limit, main_query=None, count_query=None):
+
+    triples = 0
+
+    # MAKE SURE THE FOLDER EXISTS
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError as err:
+        print "\n\t[download_data:]", err
+        return
+
+    # COUNT TRIPLES
+    count_res = Qry.remote_endpoint_request(count_query, endpoint=endpoint)
+    result = count_res['result']
+    Qry.remote_endpoint_request(count_query, endpoint)
+
+    # GET THE TOTAL NUMBER OF TRIPLES
+    if result is None:
+        print "NO RESULT FOR THIS ENRICHMENT."
+        return count_res
+
+    # LOAD THE RESULT AND EXTRACT THE COUNT
+    g = rdflib.Graph()
+    g.parse(data=result, format="turtle")
+    attribute = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
+    for subject, predicate, obj in g.triples((None, attribute, None)):
+        triples = int(obj)
+
+    # NUMBER OF REQUEST NEEDED
+    iterations = triples / limit if triples % limit == 0 else triples / limit + 1
+    print "\n\tTOTAL TRIPLES TO RETREIVE  : {}\n\tTOTAL NUMBER OF ITERATIONS : {}\n".format(triples, iterations)
+
+    # ITERATIONS
+    for i in range(0, iterations):
+
+        offset = i * limit + 1
+        print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
+
+        #  CREATE THE FILE
+        f_path = "{}/organization_{}.ttl".format(directory, str(i+1))
+        f_writer = open(f_path, "wb")
+        current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
+        # print current_q
+        response = Qry.remote_endpoint_request(current_q, endpoint=endpoint)
+
+        # GET THE TOTAL NUMBER OF TRIPLES
+        if response[St.result] is None:
+            print "NO RESULT FOR THIS ENRICHMENT."
+            return count_res
+
+        if response["response_code"] == 200:
+            f_writer.write(response[St.result])
+            f_writer.close()
+
+        # if i == 1:
+        #     break
+
+    print ""
+    # GENERATE THE BATCH FILE AND LOAD THE DATA
+    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+    b_file = "{}/organization{}".format(directory, Ut.batch_extension())
+    b_writer = open(b_file, "wb")
+    load_text = """echo "Loading data"
+    {}stardog data add {} -g {} "{}/"*.ttl
+    """.format(stardog_path, Svr.DATABASE, graph, directory)
+    b_writer.write(load_text)
+    b_writer.close()
+    os.chmod(b_file, 0o777)
+    Ut.batch_load(b_file)
+
+    print "DIRECTORY: {}".format(directory)
+    print "\n\tJOB DONE!!!"
+
+directory = "D:/datasets/OpenAire"
+
+graph = "http:risis.eu/dataset/openAire_20170816"
+
+count_query = """
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    SELECT (COUNT (?subj) as ?triples)
+    WHERE {?subj a foaf:Organization ; ?pred ?object }"""
+
+main_query = """
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    CONSTRUCT {?subj ?pred ?object }
+    WHERE {?subj a foaf:Organization ; ?pred ?object }"""
+
+# download_data(endpoint="http://lod.openaire.eu/sparql", graph=graph,
+#               directory=directory, limit=10000, main_query=main_query, count_query=count_query)
+
 # print visualise([uri_4])
 
 # specs = {
