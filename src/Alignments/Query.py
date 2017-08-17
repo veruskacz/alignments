@@ -3143,7 +3143,7 @@ def remote_endpoint_request(query, endpoint):
     "&debug=on"
 
     url = endpoint
-    # print url
+
     params = urllib.urlencode(
         {b'query': q, b'default-graph-uri':'', b'format': b'text/turtle',
          b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})

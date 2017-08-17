@@ -2,11 +2,15 @@ import re
 import os
 import codecs
 import shutil
+import rdflib
 import cStringIO
 import Alignments.Query as Qr
+import Alignments.Query as Qry
 import Alignments.Utility as Ut
+import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Ss
+import Alignments.Server_Settings as Svr
 from kitchen.text.converters import to_bytes  # , to_unicode
 
 # THE PROCESS OF IMPORTING AN ALIGNMENT
@@ -425,6 +429,95 @@ def import_graph(file_path, upload_folder, upload_archive, parent_predicate_inde
     """.format(arguments["graph"], meta_graph, arguments["predicate"][parent_predicate_index])
     print "Done!!!"
     return {"message": message}
+
+
+def download_data(endpoint, entity_type, graph, directory,  limit, main_query=None, count_query=None, activated=False):
+
+    if activated is False:
+        print "\nTHE FUNCTION IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
+
+    triples = 0
+    print "\n\tENDPOINT  : {}\n\tDIRECTORY : {}".format(endpoint, directory)
+
+    # MAKE SURE THE FOLDER EXISTS
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError as err:
+        print "\n\t[download_data:]", err
+        return
+
+    # COUNT TRIPLES
+    count_res = Qry.remote_endpoint_request(count_query, endpoint=endpoint)
+    result = count_res['result']
+    Qry.remote_endpoint_request(count_query, endpoint=endpoint)
+
+    # GET THE TOTAL NUMBER OF TRIPLES
+    if result is None:
+        print "NO RESULT FOR THIS ENRICHMENT."
+        return count_res
+
+    # LOAD THE RESULT AND EXTRACT THE COUNT
+    g = rdflib.Graph()
+    g.parse(data=result, format="turtle")
+    attribute = rdflib.URIRef("http://www.w3.org/2005/sparql-results#value")
+    for subject, predicate, obj in g.triples((None, attribute, None)):
+        triples = int(obj)
+
+    # NUMBER OF REQUEST NEEDED
+    iterations = triples / limit if triples % limit == 0 else triples / limit + 1
+    print "\n\tTOTAL TRIPLES TO RETREIVE  : {}\n\tTOTAL NUMBER OF ITERATIONS : {}\n".format(triples, iterations)
+
+    # ITERATIONS
+    for i in range(0, iterations):
+
+        offset = i * limit + 1
+        print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
+
+        #  CREATE THE FILE
+        f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i+1))
+        f_writer = open(f_path, "wb")
+        current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
+        # print current_q
+        response = Qry.remote_endpoint_request(current_q, endpoint=endpoint)
+
+        # GET THE TOTAL NUMBER OF TRIPLES
+        if response[St.result] is None:
+            print "NO RESULT FOR THIS ENRICHMENT."
+            return count_res
+
+        if response["response_code"] == 200:
+            f_writer.write(response[St.result])
+            f_writer.close()
+
+        # if i == 1:
+        #     break
+
+    print ""
+    # GENERATE THE BATCH FILE AND LOAD THE DATA
+    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+    b_file = "{}/{}{}".format(directory, entity_type, Ut.batch_extension())
+    b_writer = open(b_file, "wb")
+    load_text = """echo "Loading data"
+    {}stardog data add {} -g {} "{}/"*.ttl
+    """.format(stardog_path, Svr.DATABASE, graph, directory)
+    b_writer.write(load_text)
+    b_writer.close()
+    os.chmod(b_file, 0o777)
+    Ut.batch_load(b_file)
+
+    message = "You have just successfully downloaded [{}] triples.\n" \
+              "{} files where created in the folder [{}] and loaded into the [{}] dataset. ".format(
+        triples, iterations, directory, Svr.DATABASE)
+
+    print "\n\t{}".format(message)
+
+    print "\n\tJOB DONE!!!"
+
+
+
+    return {St.message: message, St.result: True}
 
 
 file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
