@@ -1049,13 +1049,15 @@ function exportLinksetClick(filename, mode='flat', user='', psswd='')
         $('#linkset_export_message_col').html(addNote(message,cl='warning'));
         loadingGif(document.getElementById('linkset_export_message_col'), 2);
 
-        // call function that creates the linkset
-        $.get('/exportAlignment', data={'graph_uri':linkset,
-                                        'graphs[]':graphs,
-                                        'name': user,
-                                        'code': psswd,
-                                        'mode':mode}, function(data)
-        {
+        $.ajax({
+            url: "/exportAlignment",
+            data: {'graph_uri':linkset,
+                                                'graphs[]':graphs,
+                                                'name': user,
+                                                'code': psswd,
+                                                'mode':mode},
+            dataType: "text",
+            success: function(data){
 
             var obj = JSON.parse(data);
             loadingGif(document.getElementById('linkset_export_message_col'), 2, show=false);
@@ -1063,17 +1065,46 @@ function exportLinksetClick(filename, mode='flat', user='', psswd='')
             $('#linkset_export_message_col').html(addNote(obj.message,cl='info'));
             csv = obj.result;
 
-            var element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
-            element.setAttribute('download', filename);
+             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                        var link = document.createElement("a");
+                        if (link.download !== undefined) { // feature detection
+                            // Browsers that support HTML5 download attribute
+                            var url = URL.createObjectURL(blob);
+                            link.setAttribute("href", url);
+                            link.setAttribute("download", filename);
+                            link.style.visibility = 'hidden';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
 
-            element.style.display = 'none';
-            document.body.appendChild(element);
-
-            element.click();
-
-            document.body.removeChild(element);
+            }
         });
+        // call function that creates the linkset
+//        $.post('/exportAlignment', data={'graph_uri':linkset,
+//                                        'graphs[]':graphs,
+//                                        'name': user,
+//                                        'code': psswd,
+//                                        'mode':mode}, function(data)
+//        {
+//
+//            var obj = JSON.parse(data);
+//            loadingGif(document.getElementById('linkset_export_message_col'), 2, show=false);
+//
+//            $('#linkset_export_message_col').html(addNote(obj.message,cl='info'));
+//            csv = obj.result;
+//
+//            var element = document.createElement('a');
+//            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+//            element.setAttribute('download', filename);
+//
+//            element.style.display = 'none';
+//            document.body.appendChild(element);
+//
+//            element.click();
+//
+//            document.body.removeChild(element);
+//        });
     }
 }
 
