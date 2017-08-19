@@ -472,7 +472,11 @@ def download_data(endpoint, entity_type, graph, directory,  limit, main_query=No
     # ITERATIONS
     for i in range(0, iterations):
 
-        offset = i * limit + 1
+        if i == 0:
+            offset = 0
+        else:
+            offset = i * limit + 1
+
         print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
 
         #  CREATE THE FILE
@@ -505,7 +509,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, main_query=No
     b_writer.write(load_text)
     b_writer.close()
     os.chmod(b_file, 0o777)
-    Ut.batch_load(b_file)
+    # Ut.batch_load(b_file)
 
     message = "You have just successfully downloaded [{}] triples.\n" \
               "{} files where created in the folder [{}] and loaded into the [{}] dataset. ".format(

@@ -741,6 +741,7 @@ def detailsLens():
                             alignsSubjects = src_align_list,
                             alignsObjects = trg_align_list)
 
+
 def detailsLens_old():
     """
     This function is called due to request /getLensDetail
@@ -1925,6 +1926,7 @@ def adminDel():
 
 @app.route('/exportAlignment', methods=['GET'])
 def exportAlignment():
+
     graph_uri = request.args.get('graph_uri', '')
     mode = request.args.get('mode', 'flat')
     graphs = request.args.getlist('graphs[]')
@@ -1936,8 +1938,10 @@ def exportAlignment():
         # print "\n before:", graph_uri
         if mode == 'flat':
             result = Ex.export_flat_alignment(graph_uri)
+
         elif mode == 'md':
             result = Ex.export_flat_alignment_and_metadata(graph_uri)
+
         elif mode == 'vis':
             result = Ex.visualise(graphs, PLOTS_FOLDER, {'user': user, 'password': psswd })
         # print "\n after:", result

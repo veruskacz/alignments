@@ -495,7 +495,7 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
 
     # ADD FILTER TERM MATCH
     filter_term_match = ''
-    if (filter_term != '') and (graph_uri != ''):
+    if (filter_term != '') and (graph_uri != '') and (filter_term.__contains__("Type a term ") is False):
         filter_term_match = """
 
         ### GETTING THE LINKSET TARGETS AND FOR BOTH LINKSET AND LENS
