@@ -207,7 +207,7 @@ def set_refined_name(specs):
 
     append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-    specs[St.refined_name] = "refined_{}_{}_{}_()".format(
+    specs[St.refined_name] = "refined_{}_{}_{}_{}".format(
         specs[St.linkset_name], specs[St.mechanism], specs[St.source][St.aligns_name], append)
     specs[St.refined] = specs[St.linkset].replace(specs[St.linkset_name], specs[St.refined_name])
 
