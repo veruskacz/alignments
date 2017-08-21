@@ -674,37 +674,73 @@ function download(th, filename, query) {
     loadingGif(document.getElementById('view_download_message_col'), 2);
     $('#view_download_message_col').html(addNote('Loading...',cl='warning'));
 
-    $.get('/sparqlToCSV',
-          data = {'query': query},
-          function(data)
-    {
+    $.ajax({
+        url: "/sparqlToCSV",
+        data: {'query': query},
+        dataType: "text",
+        success: function(data){
+
         var obj = JSON.parse(data);
         loadingGif(document.getElementById('view_download_message_col'), 2, show=false);
 
         if (obj.message == 'OK')
         {
-            message = 'Have a look at the downloaded file';
-            $('#view_download_message_col').html(addNote(message,cl='info'));
-            csv = obj.result;
+            var message = 'Have a look at the downloaded file';
+            $('#view_download_message_col').html(message,cl='info');
+            var csv = obj.result;
 
-            var element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
-            element.setAttribute('download', filename);
-
-            element.style.display = 'none';
-            document.body.appendChild(element);
-
-            element.click();
-
-            document.body.removeChild(element);
+             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    var link = document.createElement("a");
+                    if (link.download !== undefined) { // feature detection
+                        // Browsers that support HTML5 download attribute
+                        var url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", filename);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
 
         }
         else
         {
             $('#view_download_message_col').html(addNote(obj.message));
         }
-
+        }
     });
+
+//    $.get('/sparqlToCSV',
+//          data = {'query': query},
+//          function(data)
+//    {
+//        var obj = JSON.parse(data);
+//        loadingGif(document.getElementById('view_download_message_col'), 2, show=false);
+//
+//        if (obj.message == 'OK')
+//        {
+//            message = 'Have a look at the downloaded file';
+//            $('#view_download_message_col').html(addNote(message,cl='info'));
+//            csv = obj.result;
+//
+//            var element = document.createElement('a');
+//            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
+//            element.setAttribute('download', filename);
+//
+//            element.style.display = 'none';
+//            document.body.appendChild(element);
+//
+//            element.click();
+//
+//            document.body.removeChild(element);
+//
+//        }
+//        else
+//        {
+//            $('#view_download_message_col').html(addNote(obj.message));
+//        }
+//
+//    });
 }
 
 var startTime = 0
