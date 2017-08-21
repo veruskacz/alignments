@@ -2152,7 +2152,12 @@ def updateLabel():
 
     try:
         query = Qry.update_label_rq(rq_uri, graph_uri, label)
-        result = sparql(query, strip=False)
+
+        if Svr.settings[St.stardog_version] == "COMPATIBLE":
+            result = sparql(query, strip=False)
+        else:
+            result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
+
         print ">>>> RESULT:", result
         return json.dumps({'message': 'Label successfully updated', 'result': 'OK'})
 

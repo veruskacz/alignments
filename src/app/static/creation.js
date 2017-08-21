@@ -1177,17 +1177,51 @@ function importLinksetClick()
     }
 }
 
+//
+//function editLabelViewClick(elem)
+//{
+//    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
+//    var view = '';
+//    var elems = selectedElemsInGroupList('inspect_views_selection_col');
+//    if (elems.length > 0) // if any element is selected
+//    {
+//        view = $(elems[0]).attr('uri');  // it should have only one selected
+//
+//        var label = $("#myModal #viewLabel").val().trim();
+//        if (label)
+//        {
+//            //        alert(test);
+//            $.get('/updateViewLabel', data={'rq_uri':rq_uri, 'view_uri':view, 'view_label':label}, function(data)
+//            {
+//                var obj = JSON.parse(data);
+//                if (obj.result == 'OK')
+//                {   $('#btn_edit_view').click();
+//                    $('#view_edit_message_col').html(addNote(obj.message,cl='info')); }
+//                else
+//                {    $('#view_edit_message_col').html(addNote(obj.message)); }
+//            });
+//        }
+//    }
+//    $(elem).dialog("close");
+//}
+
 function editLabelClick(label, type='linkset') {
     if (type == 'linkset') {
         var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
         var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
         var msg_col = 'linkset_edit_message_col';
         var refresh_btn = 'btn_edit_linkset'}
-    else {
+    else if (type == 'lens') {
         var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
         var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
         var msg_col = 'lens_edit_message_col';
         var refresh_btn = 'btn_edit_lens'}
+    else { // if (type == 'view') {
+        var rq_uri = $('#creation_view_selected_RQ').attr('uri');
+        var elems = selectedElemsInGroupList('inspect_views_selection_col');
+        var msg_col = 'view_edit_message_col';
+        var refresh_btn = 'btn_edit_view'
+    }
     if (elems.length > 0) // if any element is selected
     {
         uri = $(elems[0]).attr('uri');  // it should have only one selected
@@ -2293,32 +2327,6 @@ function createViewClick(mode)
 
 
 
-function editLabelViewClick(elem)
-{
-    var rq_uri = $('#creation_view_selected_RQ').attr('uri');
-    var view = '';
-    var elems = selectedElemsInGroupList('inspect_views_selection_col');
-    if (elems.length > 0) // if any element is selected
-    {
-        view = $(elems[0]).attr('uri');  // it should have only one selected
-
-        var label = $("#myModal #viewLabel").val().trim();
-        if (label)
-        {
-            //        alert(test);
-            $.get('/updateViewLabel', data={'rq_uri':rq_uri, 'view_uri':view, 'view_label':label}, function(data)
-            {
-                var obj = JSON.parse(data);
-                if (obj.result == 'OK')
-                {   $('#btn_edit_view').click();
-                    $('#view_edit_message_col').html(addNote(obj.message,cl='info')); }
-                else
-                {    $('#view_edit_message_col').html(addNote(obj.message)); }
-            });
-        }
-    }
-    $(elem).dialog("close");
-}
 
 
 function deleteViewClick()
