@@ -113,7 +113,9 @@ def spa_linkset_subset(specs, activated=False):
         print "\tLinkset created as [SUBSET]: ", specs[St.linkset]
         print "\t*** JOB DONE! ***"
 
-        message = "The linkset was created!<br/>URI = {}".format(specs[St.linkset])
+        message = "The linkset was created as [{}] with {} triples found!".format(
+            specs[St.linkset], specs[St.triples])
+
 
         return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
