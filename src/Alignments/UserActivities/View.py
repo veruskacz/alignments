@@ -126,6 +126,7 @@ def view_data(view_specs, view_filter, display=False):
     # SORT THE LIST BASED ON THE GRAPH NAME OF EACH DICTIONARY
     # SORTING THE LIST OF FILTERS BASED ON THE DATASET NAME
     sorted_datasets = sorted(view_filter, key=get_key)
+    print sorted_datasets
 
     # [DESCRIPTION] RESEARCH QUESTION X
     main_buffer.write("\t### THE VIEW\n".format(question_uri))
@@ -146,13 +147,13 @@ def view_data(view_specs, view_filter, display=False):
 
     # SORT THE PROPERTIES IN EACH DICTIONARY
     count_ds = 0
-
+    print "check!!!!!", len(sorted_datasets)
     for filter in sorted_datasets:
-        append_ds = ";" if count_ds < len(sorted_datasets) - 1 else ".\n"
         count_ds += 1
+        # append_ds = ";" if count_ds < len(sorted_datasets) -1  else ".\n"
 
-        # APPEND THE GRAPH
-        string_buffer.write("\n\t\t\t### FILTER {}".format(count_ds))
+
+
         if St.graph in filter:
 
             # [DESCRIPTION] THAT HAS A NUMBER OF FILTERS
@@ -166,6 +167,10 @@ def view_data(view_specs, view_filter, display=False):
                 count_sub_filter += 1
                 ent_type = dictionary["entity_datatype"]
                 pro_list = dictionary["properties"]
+
+                # APPEND THE GRAPH
+                string_buffer.write("\n\t\t\t### FILTER {}".format(count_sub_filter))
+                append_ds = ";" if count_sub_filter < len(data)  else ".\n"
 
                 if St.entity_datatype in filter:
                     entity_type_name = Ut.get_uri_local_name(filter[St.entity_datatype])
@@ -251,7 +256,7 @@ def view_data(view_specs, view_filter, display=False):
     """.format(question_uri, main_triples.replace("@URI", uri), triples).replace("@", hash_value)
 
     message = "\nThe metadata was generated as: {}".format(uri)
-    print "VIEW INSERT QUERY:", query
+    print "\nVIEW INSERT QUERY:", query
     print message
     if display:
         print "VIEW INSERT QUERY:", query
