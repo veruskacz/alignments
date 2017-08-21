@@ -1021,8 +1021,14 @@ def sparqlToCSV():
             result = dic_response[St.result].getvalue()
         else:
             result = ''
+
         if len(result) > 1:
             message = "OK"
+            d_file = "{}/table.csv".format(UPLOAD_FOLDER)
+            writer = open(d_file, "wb")
+            writer.write(result)
+            writer.close()
+
         else:
             message = "The query was successfully run with no result to show. " \
                       "<br/>Probably the selected properties need some revising."
