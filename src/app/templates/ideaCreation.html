@@ -12,6 +12,9 @@
               class="btn btn-primary"
               onclick='create_idea_button(this);'
               >Create</button>
+      <!--<button type="button" class="btn btn-primary" id="btn_edit_idea"-->
+                <!--onclick='edit_idea_button(this);'-->
+                <!--&gt;Edit</button>-->
       <button type="button" id="btn_overview_idea"
               class="btn btn-primary"
               onclick='selectMultiButton(this);
@@ -258,7 +261,8 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
              <div class="row">
                  <div class="col-md-12">
                 <span class="glyphicon glyphicon glyphicon-search"></span>
-               <input type="text" onkeyup='filterListGroup(this,"creation_idea_graphtype_list")' placeholder="Search for names.." style='width: 95%'>
+               <input type="text" onkeyup='filterListGroup(this,"creation_idea_graphtype_list","idea_dataset_counter")' placeholder="Search for names.." style='width: 87%'>
+                  <span id="idea_dataset_counter" class="badge"></span>
                </div>
              </div>
              <div class="row"> &nbsp </div>
@@ -272,6 +276,15 @@ Can we predict the LeidenRanking scores from characteristics of the university?<
               <div class="row">
                 <div> <h4><strong>Selected: Dataset | Entity Type | Count </strong> </h4> </div>
               </div>
+                <div class="row"> &nbsp </div>
+             <div class="row">
+                 <div class="col-md-12">
+                <span class="glyphicon glyphicon glyphicon-search"></span>
+               <input type="text" onkeyup='filterListGroup(this,"creation_idea_registered_graphtype_list","idea_dataset_sel_counter")' placeholder="Search for names.." style='width: 87%'>
+                  <span id="idea_dataset_sel_counter" class="badge"></span>
+               </div>
+             </div>
+             <div class="row"> &nbsp </div>
               <div class="row">
                 <div class="list-group" id="creation_idea_registered_graphtype_list"
                      target = "creation_idea_graphtype_list"
