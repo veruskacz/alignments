@@ -171,7 +171,16 @@
                       <div class="col-md-10">Select from the list:
                       </div>
                     </div>
-                    <!-- <div id="loading4"> Loading... </div> -->
+                     <div class="row"> &nbsp </div>
+                     <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"creation_view_linkset_col","view_linkset_counter")'
+                              placeholder="Search for names.." style='width: 75%'>
+                          <span id="view_linkset_counter" class="badge"></span>
+                       </div>
+                     </div>
+                     <div class="row"> &nbsp </div>
                     <div class="row">
                       <div class="col-md-10" id="creation_view_linkset_col">
 
@@ -187,7 +196,16 @@
                       <div class="col-md-10">Select from the list:
                       </div>
                     </div>
-                    <!--<div id="loading4"> Loading... </div>-->
+                     <div class="row"> &nbsp </div>
+                     <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"creation_view_lens_col","view_lens_counter")'
+                              placeholder="Search for names.." style='width: 75%'>
+                          <span id="view_lens_counter" class="badge"></span>
+                       </div>
+                     </div>
+                     <div class="row"> &nbsp </div>
                     <div class="row">
                       <div class="col-md-10" id="creation_view_lens_col">
 
@@ -240,8 +258,9 @@
                 </div>
                 <div id="loading3" style='display:none'> Loading... </div>
                 <div class="row">
-                  <div class="col-md-12" id="creation_view_dataset_col">
-
+                  <div class="col-md-12" >
+                    <div class="list-group" id="creation_view_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
                   </div>
                 </div>
             </div>
@@ -261,7 +280,9 @@
              <div class="row">
                  <div class="col-md-12">
                 <span class="glyphicon glyphicon glyphicon-search"></span>
-               <input type="text" onkeyup='filterListGroup(this,"creation_view_predicates_col")' placeholder="Search for names.." style='width: 95%'>
+               <input type="text" onkeyup='filterListGroup(this,"creation_view_predicates_col","view_pred_counter")'
+                      placeholder="Search for names.." style='width: 83%'>
+                  <span id="view_pred_counter" class="badge"></span>
                </div>
              </div>
              <div class="row"> &nbsp </div>

@@ -191,6 +191,10 @@ function update_idea_enable(rq_uri)
                                    function(data)
     {
        $('#creation_idea_graphtype_list').html(data);
+       var ul = document.getElementById('creation_idea_graphtype_list');
+       var li = ul.getElementsByTagName('li');
+       var num = ('0000' + String(li.length)).substr(-4);
+       $('#idea_dataset_counter').html(num);
     });
 
     $('#creation_idea_registered_graphtype_list').html('Loading...');
@@ -201,6 +205,10 @@ function update_idea_enable(rq_uri)
                                    function(data)
     {
        $('#creation_idea_registered_graphtype_list').html(data);
+       var ul = document.getElementById('creation_idea_registered_graphtype_list');
+       var li = ul.getElementsByTagName('li');
+       var num = ('0000' + String(li.length)).substr(-4);
+       $('#idea_dataset_sel_counter').html(num);
     });
 }
 
@@ -329,6 +337,10 @@ function getValuesFilterDatasetClick()
                                       'template': 'list_group_description.html'},function(data)
     {
        $('#dataset_values_col').html(data);
+       var ul = document.getElementById('dataset_values_col');
+       var li = ul.getElementsByTagName('li');
+       var num = ('0000' + String(li.length)).substr(-4);
+       $('#dataset_values_counter').html(num);
        $('#dataset_inspect_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
        setAttr('dataset_inspect_selected_pred','uri','');
        $('#dataset_inspect_predicates_col').html('');
@@ -356,6 +368,11 @@ function getDatasetPredicateFilteredClick(th, ancestorType)
         if (obj.message == 'OK')
         {
             $('#'+listCol).html(obj.result);
+            var badge_counter = $('#'+listCol).attr('badge_counter');
+            var ul = document.getElementById(listCol);
+            var li = ul.getElementsByTagName('li');
+            var num = ('0000' + String(li.length)).substr(-4);
+            $('#'+badge_counter).html(num);
             setAttr(listCol,'graph_uri',graph_uri);
             setAttr(listCol,'sub_uri',sub_uri);
             $('#dataset_inspect_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
@@ -471,6 +488,14 @@ function selectionClick2(th, ancestorType)
                 if (obj.message == 'OK')
                 {
                     $('#'+listCol).html(obj.result);
+                    if ($('#'+listCol).attr('badge_counter')) {
+                       var badge_counter = $('#'+listCol).attr('badge_counter');
+                       var ul = document.getElementById(listCol);
+                       var li = ul.getElementsByTagName('li');
+                       var num = ('0000' + String(li.length)).substr(-4);
+                       $('#'+badge_counter).html(num);
+                    }
+
                 }
                 else
                     $('#'+listCol).html(obj.message);
@@ -493,7 +518,15 @@ function selectionClick2(th, ancestorType)
                 {  // load the rendered template into the column target list col
                     var obj = JSON.parse(data);
                     if (obj.message == 'OK')
-                    {    $('#'+listCol).html(obj.result); }
+                    {    $('#'+listCol).html(obj.result);
+                        if ($('#'+listCol).attr('badge_counter')) {
+                           var badge_counter = $('#'+listCol).attr('badge_counter');
+                           var ul = document.getElementById(listCol);
+                           var li = ul.getElementsByTagName('li');
+                           var num = ('0000' + String(li.length)).substr(-4);
+                           $('#'+badge_counter).html(num);
+                        }
+                    }
                     else
                     { if (obj.message == 'Empty')
                         {    // it is a uri but not a valid property path
@@ -2038,8 +2071,13 @@ function view_load_datasets_predicates(rq_uri, view_filters=null)
               {
                   // load the rendered template into the column #creation_view_predicates_col
                   var obj = JSON.parse(data);
-                  if (obj.message == 'OK')
-                        $('#creation_view_predicates_col').html(obj.result);
+                  if (obj.message == 'OK') {
+                       $('#creation_view_predicates_col').html(obj.result);
+                       var ul = document.getElementById('creation_view_predicates_col');
+                       var li = ul.getElementsByTagName('li');
+                       var num = ('0000' + String(li.length)).substr(-4);
+                       $('#view_pred_counter').html(num);
+                  }
                   else
                         $('#creation_view_predicates_col').html(obj.message);
 
@@ -2098,6 +2136,10 @@ function view_load_linkesets_lenses(rq_uri, view_lens=null)
                             'template': 'list_group.html'},function(data)
      {
        $('#creation_view_linkset_col').html(data);
+       var ul = document.getElementById('creation_view_linkset_col');
+       var a = ul.getElementsByTagName('a');
+       var num = ('0000' + String(a.length)).substr(-4);
+       $('#view_linkset_counter').html(num);
 
         if ((view_lens) && (view_lens.length > 0))
         {
@@ -2131,6 +2173,10 @@ function view_load_linkesets_lenses(rq_uri, view_lens=null)
                             'template': 'list_group.html'},function(data)
      {
        $('#creation_view_lens_col').html(data);
+       var ul = document.getElementById('creation_view_lens_col');
+       var a = ul.getElementsByTagName('a');
+       var num = ('0000' + String(a.length)).substr(-4);
+       $('#view_lens_counter').html(num);
 
        if ((view_lens) && (view_lens.length > 0))
        {
@@ -2757,12 +2803,43 @@ function selectionClick(th, ancestorType)
                 if (obj.message == 'OK')
                 {
                     $('#'+listCol).html(obj.result);
-                    if (listCol2)
+                    if ($('#'+listCol).attr('badge_counter')) {
+                       var badge_counter = $('#'+listCol).attr('badge_counter');
+                       var ul = document.getElementById(listCol);
+                       var li = ul.getElementsByTagName('li');
+                       var num = ('0000' + String(li.length)).substr(-4);
+                       $('#'+badge_counter).html(num);
+                    }
+                    if (listCol2) {
                         $('#'+listCol2).html(obj.result);
-                    if (listCol3)
+                        if ($('#'+listCol2).attr('badge_counter')) {
+                           var badge_counter = $('#'+listCol2).attr('badge_counter');
+                           var ul = document.getElementById(listCol2);
+                           var li = ul.getElementsByTagName('li');
+                           var num = ('0000' + String(li.length)).substr(-4);
+                           $('#'+badge_counter).html(num);
+                        }
+                    }
+                    if (listCol3) {
                         $('#'+listCol3).html(obj.result);
-                    if (listCol4)
+                        if ($('#'+listCol3).attr('badge_counter')) {
+                           var badge_counter = $('#'+listCol3).attr('badge_counter');
+                           var ul = document.getElementById(listCol3);
+                           var li = ul.getElementsByTagName('li');
+                           var num = ('0000' + String(li.length)).substr(-4);
+                           $('#'+badge_counter).html(num);
+                        }
+                    }
+                    if (listCol4) {
                         $('#'+listCol4).html(obj.result);
+                        if ($('#'+listCol4).attr('badge_counter')) {
+                           var badge_counter = $('#'+listCol4).attr('badge_counter');
+                           var ul = document.getElementById(listCol4);
+                           var li = ul.getElementsByTagName('li');
+                           var num = ('0000' + String(li.length)).substr(-4);
+                           $('#'+badge_counter).html(num);
+                        }
+                    }
                 }
                 else
                     $('#'+listCol).html(obj.message);
@@ -2784,7 +2861,15 @@ function selectionClick(th, ancestorType)
                 {  // load the rendered template into the column target list col
                     var obj = JSON.parse(data);
                     if (obj.message == 'OK')
-                    {    $('#'+listCol).html(obj.result); }
+                    {    $('#'+listCol).html(obj.result);
+                        if ($('#'+listCol).attr('badge_counter')) {
+                           var badge_counter = $('#'+listCol).attr('badge_counter');
+                           var ul = document.getElementById(listCol);
+                           var li = ul.getElementsByTagName('li');
+                           var num = ('0000' + String(li.length)).substr(-4);
+                           $('#'+badge_counter).html(num);
+                        }
+                    }
                     else
                     { if (obj.message == 'Empty')
                         {    // it is a uri but not a valid property path
@@ -3558,6 +3643,10 @@ function calculateFreqClick(){
               function(data)
             {
                   $('#dataset_stats_values_col').html(data);
+                   var ul = document.getElementById('dataset_stats_values_col');
+                   var li = ul.getElementsByTagName('li');
+                   var num = ('0000' + String(li.length)).substr(-4);
+                   $('#dataset_stat_values_counter').html(num);
     //                  $('#dataset_creation_message_col').html(addNote(loaded_dataset,cl='success'));
             });
     }
