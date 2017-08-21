@@ -311,7 +311,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                 print "We are in save mode!"
                 is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
                 print is_metadata_inserted
-                message = "The insertion metadata was successfully inserted as: ()".format(view_metadata[St.result]) \
+                message = "The insertion metadata was successfully inserted as: {}".format(view_metadata[St.result]) \
                     if is_metadata_inserted == "true" else "The metadata could not be inserted."
                 print message
                 view_metadata[St.message] = message
