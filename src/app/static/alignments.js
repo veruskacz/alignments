@@ -586,41 +586,77 @@ function exportResultToCSV($query, filename) {
 
     var query = $query.val();
 
-    $.get('/sparqlToCSV',
-          data = {'query': query},
-          function(data)
-    {
+    $.ajax({
+        url: "/sparqlToCSV",
+        data: {'query': query},
+        dataType: "text",
+        success: function(data){
+
         var obj = JSON.parse(data);
         loadingGif(document.getElementById('view_download_message_col'), 2, show=false);
 
         if (obj.message == 'OK')
         {
-            message = 'Have a look at the downloaded file';
-            $('#view_download_message_col').html(addNote(message,cl='info'));
-            csv = obj.result;
+            var message = 'Have a look at the downloaded file';
+            $('#view_download_message_col').html(message,cl='info');
+            var csv = obj.result;
 
-            // Data URI
-            csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    var link = document.createElement("a");
+                    if (link.download !== undefined) { // feature detection
+                        // Browsers that support HTML5 download attribute
+                        var url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", filename);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
 
-//            console.log(csvData);
-
-            if (window.navigator.msSaveBlob) { // IE 10+
-                alert('IE' + csv);
-                window.navigator.msSaveOrOpenBlob(new Blob([csv], {type: "text/plain;charset=utf-8;"}), "csvname.csv")
-            }
-            else {
-//                alert('chrom' + csvData);
-                $(this).attr({ 'download': filename, 'href': csvData, 'target': '_blank' });
-                console.log(this);
-            }
         }
         else
         {
             $('#view_download_message_col').html(addNote(obj.message));
         }
-
+        }
     });
 }
+//    $.get('/sparqlToCSV',
+//          data = {'query': query},
+//          function(data)
+//    {
+//        var obj = JSON.parse(data);
+//        loadingGif(document.getElementById('view_download_message_col'), 2, show=false);
+//
+//        if (obj.message == 'OK')
+//        {
+//            message = 'Have a look at the downloaded file';
+//            $('#view_download_message_col').html(addNote(message,cl='info'));
+//            csv = obj.result;
+//
+//            // Data URI
+//            csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+//
+////            console.log(csvData);
+//
+//            if (window.navigator.msSaveBlob) { // IE 10+
+//                alert('IE' + csv);
+//                window.navigator.msSaveOrOpenBlob(new Blob([csv], {type: "text/plain;charset=utf-8;"}), "csvname.csv")
+//            }
+//            else {
+////                alert('chrom' + csvData);
+//                $(this).attr({ 'download': filename, 'href': csvData, 'target': '_blank' });
+//                console.log(this);
+//            }
+//        }
+//        else
+//        {
+//            $('#view_download_message_col').html(addNote(obj.message));
+//        }
+//
+//    });
+//}
 
 // This must be a hyperlink
 $("#downloadResultQuery").on('click', function (event) {
@@ -715,5 +751,4 @@ function chrono(elemID, nLevel){
 function chronoReset(){
 	$('.chronotime').hide();
 }
-
 
