@@ -40,7 +40,7 @@ def get_tf(specs, is_token=True,
             if stop not in stop_word:
                 stop_word[stop] = stop
 
-
+    # COMPUTING THE FREQUENCIES
     for r in range(1, len(matrix)):
 
         # REMOVE DATA IN BRACKETS
@@ -77,11 +77,16 @@ def get_tf(specs, is_token=True,
     start = time()
     if term_frequency:
         for token, frequency in term_frequency.items():
+
+            count += 1
+
             if frequency > biggest:
                 biggest = frequency
                 term = token
-            list += [{"text":token, "freq": frequency}]
-            count += 1
+
+            if frequency > 1:
+                list += [{"text":token, "freq": frequency}]
+
             if count < 11:
                 print "\t{}".format(str({"text": to_unicode(token), "freq": frequency}))
 
