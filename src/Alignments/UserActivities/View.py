@@ -150,9 +150,7 @@ def view_data(view_specs, view_filter, display=False):
 
     for filter in sorted_datasets:
         count_ds += 1
-        # append_ds = ";" if count_ds < len(sorted_datasets) -1  else ".\n"
-
-
+        append_ds = ";" if count_ds < len(sorted_datasets) -1  else ".\n"
 
         if St.graph in filter:
 
@@ -169,7 +167,8 @@ def view_data(view_specs, view_filter, display=False):
                 pro_list = dictionary["properties"]
 
                 # APPEND THE GRAPH
-                string_buffer.write("\n\t\t\t### FILTER {}_{}".format(count_ds, count_sub_filter))
+                if len(data) > 1:
+                    string_buffer.write("\n\t\t\t### FILTER {}_{}".format(count_ds, count_sub_filter))
                 append_ds = ";" if count_sub_filter < len(data)  else ".\n"
 
                 if St.entity_datatype in filter:
