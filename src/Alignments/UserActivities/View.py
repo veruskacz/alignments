@@ -167,9 +167,10 @@ def view_data(view_specs, view_filter, display=False):
                 pro_list = dictionary["properties"]
 
                 # APPEND THE GRAPH
+                string_buffer.write("\n\t\t\t### FILTER {}_{}".format(count_ds, count_sub_filter))
+
                 if len(data) > 1:
-                    string_buffer.write("\n\t\t\t### FILTER {}_{}".format(count_ds, count_sub_filter))
-                append_ds = ";" if count_sub_filter < len(data)  else ".\n"
+                    append_ds = ";" if count_sub_filter < len(data)  else ".\n"
 
                 if St.entity_datatype in filter:
                     entity_type_name = Ut.get_uri_local_name(filter[St.entity_datatype])
