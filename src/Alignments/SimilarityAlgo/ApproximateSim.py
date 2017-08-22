@@ -821,9 +821,8 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
             # WHEN THE DATASETS ARE THE SAME & HAVE THE SAME DATATYPE,
             # DO NOT COMPUTE SIMILARITY IF THE RESOURCES ARE THE SAME
             # AND KEEP DIRECTION CONSISTENCY (ALWAYS A TO B, nEVER B TO A)
-            if is_equal_inputs is True:
-                if src_dataset[row][0].strip() >= trg_dataset[row][0].strip():
-                    continue
+            if is_equal_inputs is True and src_uri >= trg_uri:
+                continue
 
             # IN THE EVENT THAT THE DATASETS ARE THE SAME AND THE DATA TYPES ARE DIFFERENT, THEN NO
             # NEED TO COMPUTE A SIMILARITY OF A RESOURCE THAT HAPPEN TO BE OF DIFFERENT ENTITY TYPES
