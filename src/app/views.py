@@ -967,12 +967,12 @@ def sparqlDirect():
     header = []
     query = str(request.args.get('query', None))
 
-    print "RUNNING SPARQL QUERY:{}".format(query)
+    print "\nRUNNING SPARQL QUERY:{}".format(query)
     dic_response = sparql2matrix(query)
     # print dic_response
     # print St.message in dic_response
 
-    print "PROCESSING THE RESULT..."
+    print "\nPROCESSING THE RESULT..."
     if dic_response[St.message] == "OK":
 
         # response = sparql_xml_to_matrix(query)
@@ -1495,10 +1495,10 @@ def importLens():
 @app.route('/createView')
 def createView():
 
-    rq_uri = request.args.get('rq_uri');
-    mode = request.args.get('mode', 'save');
-    view_lens = request.args.getlist('view_lens[]');
-    view_filter_js = request.args.getlist('view_filter[]');
+    rq_uri = request.args.get('rq_uri')
+    mode = request.args.get('mode', 'save')
+    view_lens = request.args.getlist('view_lens[]')
+    view_filter_js = request.args.getlist('view_filter[]')
 
     view_specs = {
         St.researchQ_URI: rq_uri,
@@ -1508,7 +1508,9 @@ def createView():
     dict_stats = {}
 
     view_filter = []
+
     for json_item in view_filter_js:
+
         filter_row = ast.literal_eval(json_item)
         # exists_dataset = False
         dict_graph = None
@@ -1528,10 +1530,10 @@ def createView():
                         # if a valid entity type is provided
                         if (filter_row['type'] != 'no_type'):
                             uri = filter_row['att'].replace("<", "").replace(">", "")
-                            print "\nURI", uri
-                            print "TYPE:", filter_row['type']
-                            print "OPTIONAL CODE:", dict_stats[filter_row['ds']][filter_row['type']]
-                            print "STATS:", dict_stats
+                            # print "\nURI", uri
+                            # print "TYPE:", filter_row['type']
+                            # print "OPTIONAL CODE:", dict_stats[filter_row['ds']][filter_row['type']]
+                            # print "STATS:", dict_stats
 
                             optional = dict_stats[filter_row['ds']][filter_row['type']][uri]
                             tuple_data = (filter_row['att'], optional)
@@ -1544,7 +1546,7 @@ def createView():
                             exists_dataset_entityType = True
                             break
 
-        # if the above loop finished wihtout finding the desired dictionary, then it will be registerd
+        # if the above loop finished without finding the desired dictionary, then it will be registered
         if not exists_dataset_entityType:
 
             # this means the entry for the dataset does not exists
@@ -1556,8 +1558,8 @@ def createView():
                 if filter_row['ds'] not in dict_stats:
                     # calculate the stats per dataset, if it hasn't been done yet
                     dict_stats[filter_row['ds']] =  stats(filter_row['ds'], display_table=False, display_text=False)
-                    print "DATASET:", filter_row['ds']
-                    print "STATS:", dict_stats
+                    # print "DATASET:", filter_row['ds']
+                    # print "STATS:", dict_stats
 
             if (filter_row['type'] != 'no_type'):
                 uri = filter_row['att'].replace("<", "").replace(">", "")
@@ -1579,8 +1581,8 @@ def createView():
 
             data = {'entity_datatype': filter_row['type'], 'properties': properties}
 
-            print "data", data
-            print "dict_graph", dict_graph
+            # print "data", data
+            # print "dict_graph", dict_graph
 
             dict_graph['data'].append(data)
 
@@ -1589,11 +1591,11 @@ def createView():
     # print "\n\nVIEW DESIGN:", view_filter
 
     # CREATION_ACTIVE = False
-    print view_filter
+    # print view_filter
 
     if CREATION_ACTIVE:
         save = (mode == 'save')
-        print "FILTER:", view_filter
+        # print "FILTER:", view_filter
         result = mod_view.view(view_specs, view_filter, save=save, limit=100)
         # print result
     else:

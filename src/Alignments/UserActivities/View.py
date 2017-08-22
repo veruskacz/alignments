@@ -126,7 +126,7 @@ def view_data(view_specs, view_filter, display=False):
     # SORT THE LIST BASED ON THE GRAPH NAME OF EACH DICTIONARY
     # SORTING THE LIST OF FILTERS BASED ON THE DATASET NAME
     sorted_datasets = sorted(view_filter, key=get_key)
-    print sorted_datasets
+    # print sorted_datasets
 
     # [DESCRIPTION] RESEARCH QUESTION X
     main_buffer.write("\t### THE VIEW\n".format(question_uri))
@@ -147,7 +147,7 @@ def view_data(view_specs, view_filter, display=False):
 
     # SORT THE PROPERTIES IN EACH DICTIONARY
     count_ds = 0
-    print "check!!!!!", len(sorted_datasets)
+
     for filter in sorted_datasets:
         count_ds += 1
         # append_ds = ";" if count_ds < len(sorted_datasets) -1  else ".\n"
@@ -256,10 +256,13 @@ def view_data(view_specs, view_filter, display=False):
     """.format(question_uri, main_triples.replace("@URI", uri), triples).replace("@", hash_value)
 
     message = "\nThe metadata was generated as: {}".format(uri)
-    print "\nVIEW INSERT QUERY:", query
     print message
+    print "\nVIEW INSERT QUERY:", query
+
+
     if display:
-        print "VIEW INSERT QUERY:", query
+        print "\nVIEW INSERT QUERY:", query
+
     # return {St.message: message, St.insert_query: query, St.result: uri}
     return {St.message: message, St.insert_query: query, St.result: uri, "sparql_issue": dataset_opt}
 
@@ -293,8 +296,8 @@ def view(view_specs, view_filter, save=False, limit=10):
         # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
         # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
         view_metadata = view_data(view_specs, view_filter)
-        print view_metadata
-        print view_filter
+        # print view_metadata
+        # print view_filter
 
         # CHECK FOR POTENTIAL SPARQL TIMEOUT
         opt_list = view_metadata["sparql_issue"]
@@ -578,11 +581,12 @@ def view(view_specs, view_filter, save=False, limit=10):
 
         query = "{}\n\nSELECT DISTINCT {}\n{{{}{}\n}} {}".format(
             namespace_str, my_list + view_select, inter, view_where, lmt)
-        print "VIEW TABLE:", query
+
+        # print "\nVIEW QUERY FOR GENERATING TABLE:", query
 
         # table = sparql_xml_to_matrix(query)
         # display_matrix(table, spacing=80, limit=limit, is_activated=False)
-        print "DONE GENERATING THE VIEW"
+        print "\nDONE GENERATING THE VIEW"
         # return {"metadata": view_metadata, "query": query, "table": table}
         return {"metadata": view_metadata, "query": query, "sparql_issue": is_problematic}
 

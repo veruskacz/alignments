@@ -23,8 +23,9 @@ def stats(graph, display_table=False, display_text=False):
     """.format(graph)
     types_matrix = sparql_xml_to_matrix(qry_types)
     # print types_matrix
-    # if display_table:
-    display_matrix(types_matrix, spacing=70, limit=100, is_activated=True)
+
+    if display_table:
+        display_matrix(types_matrix, spacing=70, limit=100, is_activated=True)
 
     # 2. OR EACH TYPES GET ALL PROPERTIES
     if types_matrix["result"] is not None:
@@ -53,6 +54,7 @@ def stats(graph, display_table=False, display_text=False):
 
                 columns = 4
                 rows = len(properties_matrix["result"])
+
                 if display_table:
                     print "\nPROPERTY COUNT:", len(properties_matrix["result"]) - 1
                     display_matrix(properties_matrix, spacing=70, limit=100, is_activated=False)
@@ -101,6 +103,7 @@ def stats(graph, display_table=False, display_text=False):
                         # matrix = properties_matrix["result"]  + matrix
                 # print matrix
                 to_display = {"message": "OK", "result": matrix}
+
                 if display_table:
                     display_matrix(to_display, spacing=50, limit=100, is_activated=True)
                 stat[type_name] = matrix
@@ -118,12 +121,15 @@ def stats(graph, display_table=False, display_text=False):
                 text.write("\n\t\t{:100}{}".format("{} ***".format(pro), opt))
             else:
                 text.write("\n\t\t{:100}{}".format(pro, opt))
+
     if display_text:
         print text.getvalue()
+
     return optional
 
 
 def stats_optimised(graph, display_table=False, display_text=False):
+
     optional = dict()
     stat = {}
     text = buffer()
@@ -142,7 +148,7 @@ def stats_optimised(graph, display_table=False, display_text=False):
     types_matrix = sparql_xml_to_matrix(qry_types)
     # print types_matrix
     # if display_table:
-    display_matrix(types_matrix, spacing=70, limit=100, is_activated=True)
+    display_matrix(types_matrix, spacing=70, limit=100, is_activated=display_table)
 
     # 2. FOR EACH TYPES GET ALL PROPERTIES
     if types_matrix["result"] is not None:
@@ -164,9 +170,9 @@ def stats_optimised(graph, display_table=False, display_text=False):
             }}
             """.format(type_name, graph, curr_type)
             properties_matrix = sparql_xml_to_matrix(qry_properties)
-            if display_table:
-                # print "\nPROPERTY COUNT:", len(properties_matrix["result"]) - 1
-                display_matrix(properties_matrix, spacing=70, limit=100, is_activated=False)
+            # if display_table:
+            # print "\nPROPERTY COUNT:", len(properties_matrix["result"]) - 1
+            display_matrix(properties_matrix, spacing=70, limit=100, is_activated=display_table)
 
             # PROPERTY OCCURENCE COUNT
             pro_text = buffer()
@@ -188,8 +194,8 @@ def stats_optimised(graph, display_table=False, display_text=False):
                 qry_property_stats = pro_text.getvalue()
                 # print qry_property_stats
                 Occurrences_matrix = sparql_xml_to_matrix(qry_property_stats)
-                if display_table:
-                    display_matrix(Occurrences_matrix, spacing=70, limit=100, is_activated=True)
+                # if display_table:
+                display_matrix(Occurrences_matrix, spacing=70, limit=100, is_activated=display_table)
                 if Occurrences_matrix["result"] != None:
                     Occurrences = Occurrences_matrix["result"]
                     for i in range(1, len(Occurrences)):
