@@ -794,7 +794,6 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
     for row in range(1, len(src_dataset)):
 
         src_uri = src_dataset[row][0].strip()
-        trg_uri = trg_dataset[row][0].strip()
         src_input = str(src_dataset[row][1])
         src_input = process_input(src_input)
 
@@ -817,6 +816,8 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
         # COMPUTE THE SIMILARITY FOR THESE OCCURRENCES
         # print dataset[row][1], curr_index
         for idx in curr_index:
+
+            trg_uri = trg_dataset[idx][0].strip()
 
             # WHEN THE DATASETS ARE THE SAME & HAVE THE SAME DATATYPE,
             # DO NOT COMPUTE SIMILARITY IF THE RESOURCES ARE THE SAME
