@@ -150,7 +150,7 @@ def view_data(view_specs, view_filter, display=False):
 
     for filter in sorted_datasets:
         count_ds += 1
-        append_ds = ";" if count_ds < len(sorted_datasets) -1  else ".\n"
+        append_ds = ";" if count_ds < len(sorted_datasets)  else ".\n"
 
         if St.graph in filter:
 
