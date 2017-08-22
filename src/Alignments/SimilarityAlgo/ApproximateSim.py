@@ -740,7 +740,7 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
     if is_equal_inputs:
         trg_dataset = src_dataset
     else:
-        trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=source[St.reducer])
+        trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=target[St.reducer])
 
     Ut.update_specification(specs)
 
