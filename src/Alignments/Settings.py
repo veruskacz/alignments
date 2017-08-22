@@ -168,4 +168,5 @@ lat_predicate = "lat_predicate"
 enriched = "enriched"
 delta = "delta"
 numeric_approx_type = "numeric_approx_type"
+corr_reducer = "corr_reducer"
 

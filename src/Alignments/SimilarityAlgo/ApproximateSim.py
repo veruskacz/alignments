@@ -311,54 +311,13 @@ def edit_distance(token_x, token_y):
     # return  matrix[ln_y - 1][ln_x - 1]
 
 
-# edit_distance("vu university medical center", "leiden university medical center")
-# edit_distance("vu center", "leiden center")
-# edit_distance("landspitali, iceland", "australian national")
-# stop_symbols_string = "\.\-\,\+'\?"
-# test = "Al.in,the-market+veruska-albert'elle?linda"
-# pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
-# print "pattern;", pattern
-# temp = re.sub(pattern, " ", test)
-# print "temp2", temp
+def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, stop_symbols_string=None):
 
-def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_string=None):
-    specs["specs"] = theta
-    specs["stop_words_string"] = stop_words_string
-    specs["stop_symbols_string"] = stop_symbols_string
-    # stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES"
-    # stop_symbols_string = "\.\-\,\+'\?"
 
-    debug = False
-    start = time()
-    print "\nStarted at {}".format(ctime(start))
-    count = 0
+    #################################################################
+    # BACKGROUND
+    #################################################################
 
-    source = specs[St.source]
-    target = specs[St.target]
-    Ut.update_specification(source)
-    Ut.update_specification(target)
-    Ls.set_linkset_name(specs)
-    print "LINKSET: {}".format(specs[St.linkset_name])
-
-    specs[St.graph] = specs[St.linkset]
-    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
-    specs[St.insert_query] = "The generated triple file was uploaded to the server."
-    specs[St.threshold] = theta
-
-    # STOP WORD DICTIONARY
-    stop_word = dict()
-    stop_words_string = stop_words_string.lower()
-    if stop_words_string is not None and len(stop_words_string) > 0:
-        stw_split = str(stop_words_string).split(' ')
-        for stop in stw_split:
-            if stop not in stop_word:
-                stop_word[stop] = stop
-
-    # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
-    check = Ls.run_checks(specs, check_type="linkset")
-    if check[St.result] != "GOOD TO GO":
-        return check
-    # print "LINKSET: {}".format(specs[St.linkset_name])
     """
     BACKGROUND
 
@@ -402,31 +361,7 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
         sim-1 that computes similarity of the most rare tokens (tokens to include based of a threshold)
         Sim-2 that computes similarity of ordered (based on utf) tokens if sim_1 is greater or equal to a threshold
 
-    """
-
-    """ Converts each string y ∈ Y into a document and then builds an inverted index over these document. """
-
-    """
-    SETTINGS PRIOR TO COMPUTE THE SIMILARITY BASED ON THE INVERTED INDEX
-    """
-
-    link = "alivocab:approxStrSim"
-    prefix = "@prefix alivocab:\t<{}> .\n" \
-             "@prefix linkset:\t<{}> .\n" \
-             "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
-
-    # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
-    Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
-    writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY)
-    for key, writer in writers.items():
-        # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
-        if type(writer) is not str:
-            if key is not St.batch_writer and key is not St.meta_writer:
-                writer.write(prefix)
-            if key is St.crpdce_writer:
-                writer.write("\nlinkset:{}\n{{\n".format(specs[St.linkset_name]))
-            elif key is St.singletons_writer:
-                writer.write("\nsingletons:{}\n{{".format(specs[St.linkset_name]))
+     Converts each string y ∈ Y into a document and then builds an inverted index over these document. """
 
     #################################################################
     # HELPER FUNCTIONS
@@ -434,7 +369,10 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
 
     # HELPER FOR EXTRACTING SPA VALUES FROM A GRAPH
     def get_table(dataset_specs, reducer=None):
-        # ADD THE REDUCER IF SET
+
+        # ADD THE REDUCER IF SET. THE REDUCER OR (DATASET REDUCER) HELPS ELIMINATING
+        # THE COMPUTATION OF SIMILARITY FOR INSTANCES THAT WHERE ALREADY MATCHED
+
         if reducer is None:
             reducer_comment = "#"
             reducer = ""
@@ -492,38 +430,11 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
         # WRITE SINGLETON EVIDENCE TO FILE
         return in_crpdce + singleton
 
-    # def get_tf(matrix, is_token=True):
-    #
-    #     term_frequency = dict()
-    #     for r in range(1, len(matrix)):
-    #
-    #         # REMOVE DATA IN BRACKETS
-    #         in_tokens = process_input((matrix[r][1]))
-    #
-    #         if is_token is True:
-    #
-    #             # TOKENIZE
-    #             in_tokens = in_tokens.split(" ")
-    #
-    #             # COMPUTE FREQUENCY
-    #             for t in in_tokens:
-    #                 if t not in term_frequency:
-    #                     term_frequency[t] = 1
-    #                 else:
-    #                     term_frequency[t] += 1
-    #
-    #         else:
-    #             if in_tokens not in term_frequency:
-    #                 term_frequency[in_tokens] = 1
-    #             else:
-    #                 term_frequency[in_tokens] += 1
-    #
-    #     return term_frequency
+    def get_tf_2(datasets):
 
-    def get_tf_2(matrix_src, matrix_trg):
         # Qry.display_matrix(matrix, is_activated=True)
         # print matrix
-        datasets = [matrix_src, matrix_trg]
+        # datasets = [matrix_src, matrix_trg]
         term_frequency = dict()
         for matrix in datasets:
             # print "DATASETS:", matrix
@@ -702,13 +613,135 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
             print str(error.message)
             return text
 
+    def get_corr_reducer(graph):
+        query = """
+        SELECT ?uri1 ?uri2
+        {{
+            GRAPH <{}>
+            {{
+                ?uri1    ?p    ?uri2 .
+            }}
+        }}""".format(graph)
+        alignment = Qry.sparql_xml_to_matrix(query)
+        table_matrix = alignment[St.result]
+        reducer_dict = {}
+        if len(table_matrix) > 0:
+            for row in table_matrix[1:]:
+                src_uri = row[0].strip()
+                trg_uri = row[1].strip()
+                if len(row) == 2 and (src_uri, trg_uri) not in reducer_dict:
+                    reducer_dict[(src_uri, trg_uri)] = 1
+        return reducer_dict
+
     #################################################################
-    # CREATING THE  INVERTED INDEX
+    # VARIABLE SETTINGS
     #################################################################
+
+    # stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES"
+    # stop_symbols_string = "\.\-\,\+'\?"
+
+    specs["specs"] = theta
+    specs["stop_words_string"] = stop_words_string
+    specs["stop_symbols_string"] = stop_symbols_string
+
+    debug = False
+    start = time()
+    print "\nStarted at {}".format(ctime(start))
+    count = 0
+
+    source = specs[St.source]
+    target = specs[St.target]
+    Ut.update_specification(source)
+    Ut.update_specification(target)
+    Ls.set_linkset_name(specs)
+    print "LINKSET: {}".format(specs[St.linkset_name])
+
+    specs[St.graph] = specs[St.linkset]
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+    specs[St.insert_query] = "The generated triple file was uploaded to the server."
+    specs[St.threshold] = theta
+
+    # STOP WORD DICTIONARY
+    stop_word = dict()
+    stop_words_string = stop_words_string.lower()
+    if stop_words_string is not None and len(stop_words_string) > 0:
+        stw_split = str(stop_words_string).split(' ')
+        for stop in stw_split:
+            if stop not in stop_word:
+                stop_word[stop] = stop
+
+    # GENERATE THE ALIGNMENT REDUCER IF PROVIDED. IT WILL HELP IN
+    # REDUCING TIME COMPLEXITY BY AVOIDING REESTABLISHING EQUIVALENCE
+    if St.corr_reducer in specs:
+        corr_reducer = get_corr_reducer(specs[St.corr_reducer])
+    else:
+        corr_reducer = None
+
+    # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
+    check = Ls.run_checks(specs, check_type="linkset")
+    if check[St.result] != "GOOD TO GO":
+        return check
+    # print "LINKSET: {}".format(specs[St.linkset_name])
+
+    link = "alivocab:approxStrSim"
+    prefix = "@prefix alivocab:\t<{}> .\n" \
+             "@prefix linkset:\t<{}> .\n" \
+             "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
+
+    # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
+    Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
+    writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY)
+    for key, writer in writers.items():
+        # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
+        if type(writer) is not str:
+            if key is not St.batch_writer and key is not St.meta_writer:
+                writer.write(prefix)
+            if key is St.crpdce_writer:
+                writer.write("\nlinkset:{}\n{{\n".format(specs[St.linkset_name]))
+            elif key is St.singletons_writer:
+                writer.write("\nsingletons:{}\n{{".format(specs[St.linkset_name]))
+# def get_tf(matrix, is_token=True):
+#
+#     term_frequency = dict()
+#     for r in range(1, len(matrix)):
+#
+#         # REMOVE DATA IN BRACKETS
+#         in_tokens = process_input((matrix[r][1]))
+#
+#         if is_token is True:
+#
+#             # TOKENIZE
+#             in_tokens = in_tokens.split(" ")
+#
+#             # COMPUTE FREQUENCY
+#             for t in in_tokens:
+#                 if t not in term_frequency:
+#                     term_frequency[t] = 1
+#                 else:
+#                     term_frequency[t] += 1
+#
+#         else:
+#             if in_tokens not in term_frequency:
+#                 term_frequency[in_tokens] = 1
+#             else:
+#                 term_frequency[in_tokens] += 1
+#
+#     return term_frequency
+
+#################################################################
+# CREATING THE  INVERTED INDEX
+#################################################################
+    is_equal_inputs = source[St.graph] == target[St.graph] and source[St.entity_datatype] == target[St.entity_datatype]
 
     writer = Buffer.StringIO()
     src_dataset = get_table(source) if St.reducer not in source else get_table(source, reducer=source[St.reducer])
-    trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=source[St.reducer])
+
+    # >>> SAME SOURCE AND TARGET DATASETS
+    if is_equal_inputs:
+        trg_dataset = src_dataset
+    else:
+        trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=source[St.reducer])
+
     Ut.update_specification(specs)
 
     t_load = time()
@@ -733,9 +766,12 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
     print "\tNUMBER OF STOP WORDS: {}".format(len(stop_word) - 1)
 
     print "\n3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
-    # src_tf = get_tf(src_dataset)
-    # trg_tf = get_tf(trg_dataset)
-    universe_tf = get_tf_2(src_dataset, trg_dataset)
+    # >>> SAME SOURCE AND TARGET DATASETS
+    if is_equal_inputs:
+        universe_tf = get_tf_2([src_dataset])
+    else:
+        universe_tf = get_tf_2([src_dataset, trg_dataset])
+
     # print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf) - 1)
     print "\tTHE UNIVERSE OF TOKENS CONTAINS {} POTENTIAL TERMS.".format(len(universe_tf) - 1)
     print "\tTHE TARGET DATASET CONTAINS {} POTENTIAL CANDIDATES.".format(len(trg_dataset) - 1)
@@ -757,8 +793,13 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
     # ITERATE THROUGH THE SOURCE DATASET
     for row in range(1, len(src_dataset)):
 
+        src_uri = src_dataset[row][0].strip()
+        trg_uri = trg_dataset[row][0].strip()
         src_input = str(src_dataset[row][1])
         src_input = process_input(src_input)
+
+        # TOKENIZE SOURCE INPUT
+        tokens_src = src_input.split(" ")
 
         # print row
         # TOKENS IN THE CURRENT PREDICATE VALUE
@@ -777,26 +818,33 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
         # print dataset[row][1], curr_index
         for idx in curr_index:
 
-            # COMPARE THE CURRENT TO OTHERS THAT IS NOT YOURSELF
-            # sim_val_1 = (remove_info_in_bracket(to_bytes(src_dataset[row][1]))).lower()
-            # sim_val_2 = (remove_info_in_bracket(to_bytes(trg_dataset[idx][1]))).lower()
+            # WHEN THE DATASETS ARE THE SAME & HAVE THE SAME DATATYPE,
+            # DO NOT COMPUTE SIMILARITY IF THE RESOURCES ARE THE SAME
+            # AND KEEP DIRECTION CONSISTENCY (ALWAYS A TO B, nEVER B TO A)
+            if is_equal_inputs is True:
+                if src_dataset[row][0].strip() >= trg_dataset[row][0].strip():
+                    continue
 
-            # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
-            # sim_val_1 = process_input(to_bytes(src_dataset[row][1]))
+            # IN THE EVENT THAT THE DATASETS ARE THE SAME AND THE DATA TYPES ARE DIFFERENT, THEN NO
+            # NEED TO COMPUTE A SIMILARITY OF A RESOURCE THAT HAPPEN TO BE OF DIFFERENT ENTITY TYPES
+            elif source[St.graph] == target[St.graph] and src_uri == trg_uri:
+                continue
+
+            # USE AN ALIGNMENT REDUCER IF GIVEN TO AVOID REESTABLISHING EXISTING EQUIVALENCE
+            # BETWEEN RESOURCES AS IT HAS BEEN PROVIDED IN THE ALIGNMENT GIVEN AS A REDUCER
+            if corr_reducer is not None and (src_uri, trg_uri) in corr_reducer:
+                continue
+
+            # TOKENIZE TARGET INPUT AND PROCESS IT ACCORDINGLY
             trg_input = process_input(trg_dataset[idx][1])
-
-            # sim_val_1 = str(sim_val_1).decode(encoding="utf-8")
+            tokens_trg = trg_input.split(" ")
             # print "1", src_input
             # print "2", trg_input
-
             # print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
             # print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
 
-            # TOKENIZE
-            tokens_src = src_input.split(" ")
-            tokens_trg = trg_input.split(" ")
-
-            # small
+            # SMALL: COMPUTE THE TOKEN TO INCLUDE FOR
+            # THE INPUT WITH THE SMALLEST NUMBER OF TOKEN
             if len(tokens_src) < len(tokens_trg):
                 tokens_1 = tokens_src
                 tokens_2 = tokens_trg
@@ -807,28 +855,24 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
                 tokens_2 = tokens_src
                 # TOKEN TO INCLUDE
                 token2include = get_tokens_to_include(trg_input, theta, universe_tf)
-            # print u"TOKEN TO INCLUDE  :", token2include
 
-        # SORT
-            # UPDATE THE TOKENS WITH THEIR FREQUENCY
-            # token2tf = [i for i in range(len(tokens_2))]
+            # UPDATE THE TOKENS WITH THEIR FREQUENCY IN ORDER TO SORT THEM
             token2tf = []
             for i in range(len(tokens_2)):
                 token2tf += [[tokens_2[i], universe_tf[tokens_2[i]]]]
 
-            # token1tf = [i for i in range(len(tokens_1))]
             token1tf = []
             for i in range(len(tokens_1)):
                 token1tf += [[tokens_1[i], universe_tf[tokens_1[i]]]]
 
-            # print u"BIGGEST           :", tokens_2
-
-            # for i in range(len(tokens_2)):
-            #     tokens_2[i] = [tokens_2[i], universe_tf[tokens_2[i]]]
-
             # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
+            # THIS SORTING WILL HELP COMPUTE THE SIMILARITY OF A
+            # REORDERED STRING INSTEAD OF USING THE ORIGINAL STRING
             tokens_1_sorted = sorted(token1tf, key=itemgetter(1))
             tokens_2_sorted = sorted(token2tf, key=itemgetter(1))
+
+            # print u"TOKEN TO INCLUDE  :", token2include
+            # print u"BIGGEST           :", tokens_2
             # print u"BIGGEST SORTED    :", tokens_2_sorted
 
             # COMPUTE SIM OF THE IMPORTANT TOKENS (TOKENS TO INCLUDE)
@@ -837,28 +881,16 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
             for i in range(len(token2include)):
                 # print token2include[i], token2include[i] in tokens_2
                 to_use = tokens_2_sorted[:len(token2include)]
-                # if token2include[i][0] in tokens_2:
                 if token2include[i] in to_use:
                     "DO NOTHING"
                 else:
                     value_1 += token2include[i][0] + " "
-                    # if token2include[i] in tokens_2:
-                    #     value_2 += token2include[i][0] + " "
-                    # else:
                     value_2 += to_use[i][0] + " "
 
             value_1 = value_1.replace(" - ", "") if value_1 != " - " else value_1
             value_2 = value_2.replace(" - ", "") if value_2 != " - " else value_2
-
-            # TODO THINK OF WHAT TO REMOVE FROM A TOKEN LIKE . - ' ,
-            # TODO MAKE IT EFFICENT BY MAKING THESE CHANGES AT AN EARLY STAGE
-            # TODO DO NOT FORGET TO INCLUDE IT WHEN COMPUTING THE FREQUENCY
-            # value_1 = value_1.replace(".", "")
-            # value_2 = value_2.replace(".", "")
-
             sim = edit_distance(value_1.strip(), value_2.strip())
             # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
-
             # if row == 560000:
             #     print u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
             #     print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
@@ -869,6 +901,7 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
             #     print u"COMPARING         :", "{} and {} outputted: {}".format(
             #         to_bytes(value_1), to_bytes(value_2), sim)
 
+            # IF IMPORTANT BIGGER THAN THRESHOLD CONTINUE
             if sim >= theta:
 
                 if debug is True:
@@ -883,27 +916,32 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
                     writer.write("COMPARING         : {} and {} ==> {}\n".format(
                         to_bytes(value_1), to_bytes(value_2), sim))
 
-                # IF IMPORTANT BIGGER THAN THRESHOLD
-                # CONTINUE
-                sim_val_1 = ""
-                sim_val_2 = ""
-                for i in range(len(tokens_1_sorted)):
-                    sim_val_1 += tokens_1_sorted[i][0] if i == 0 else " {}".format(tokens_1_sorted[i][0])
+                # REORDERING THE STRINGS TO MATCH BASED ON THEIR OCCURRENCES FREQUENCY
+                if reorder is True:
+                    sim_val_1 = ""
+                    sim_val_2 = ""
+                    for i in range(len(tokens_1_sorted)):
+                        sim_val_1 += tokens_1_sorted[i][0] if i == 0 else " {}".format(tokens_1_sorted[i][0])
 
-                for i in range(len(tokens_2_sorted)):
-                    sim_val_2 += tokens_2_sorted[i][0] if i == 0 else " {}".format(tokens_2_sorted[i][0])
+                    for i in range(len(tokens_2_sorted)):
+                        sim_val_2 += tokens_2_sorted[i][0] if i == 0 else " {}".format(tokens_2_sorted[i][0])
 
-                sim = edit_distance(sim_val_1, sim_val_2)
-                if debug is True:
-                    writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(sim_val_1, sim_val_2, sim))
+                    sim = edit_distance(sim_val_1, sim_val_2)
+
+                    if debug is True:
+                        writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(sim_val_1, sim_val_2, sim))
+
+                else:
+                    sim = edit_distance(src_input, trg_input)
+
+                    if debug is True:
+                        writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(src_input, trg_input, sim))
 
                 # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
-                # if sim >= theta and sim < 1:
                 if sim >= theta:
                     if debug is True:
                         writer.write("                   WINNER!!!!!!!!!!!")
                     count += 1
-                    # print count
                     crpdce = dict()
                     crpdce[St.sim] = sim
                     crpdce[St.src_value] = src_dataset[row][1]
@@ -914,7 +952,6 @@ def prefixed_inverted_index(specs, theta, stop_words_string=None, stop_symbols_s
                     crpdce[St.row] = row
                     crpdce[St.inv_index] = idx
 
-                    # if gmtime(time()).tm_min % 10 == 0:
                     if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
                         print correspondence(crpdce, writers, count)
                     else:

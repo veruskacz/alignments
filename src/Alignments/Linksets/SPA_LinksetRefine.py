@@ -206,8 +206,8 @@ def refining(specs, insert_query, activated=False):
         refined = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
         diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
 
-        server_message = "Linksets created as: {}".format(specs[St.refined])
-        message = "The linkset was created!<br/>URI = {}. <br/>{}".format(specs[St.linkset], pro_message)
+        server_message = "Linksets created as: [{}]".format(specs[St.refined])
+        message = "The linkset was created as [{}]. <br/>{}".format(specs[St.refined], pro_message)
 
         # MESSAGE ABOUT THE INSERTION STATISTICS
         print "\t", server_message
