@@ -287,7 +287,7 @@ def ds_stats(dataset, datatype, display = True):
         }}
     }}
     GROUP BY ?linkset ?subTotal ?dataset ?alignsMechanism having (?subTotal > 0)
-    ORDER BY ?dataset ?alignsMechanism  
+    ORDER BY ?dataset ?alignsMechanism
     """.format(dataset, datatype, Ns.skos)
     # print query
     if display == True:

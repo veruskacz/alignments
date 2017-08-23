@@ -904,12 +904,12 @@ function createLinksetClick()
           'src_graph': $('#src_selected_graph').attr('uri'),
           'src_aligns': $('#src_selected_pred').attr('uri'),
           'src_entity_datatype': $('#src_selected_entity-type').attr('uri'),
-          'src_reducer': reducer,
+          //'src_reducer': reducer,
 
           'trg_graph': $('#trg_selected_graph').attr('uri'),
           'trg_aligns': $('#trg_selected_pred').attr('uri'),
           'trg_entity_datatype': $('#trg_selected_entity-type').attr('uri'),
-          'trg_reducer': reducer,
+          //'trg_reducer': reducer,
 
           'mechanism': $('#selected_meth').attr('uri'),
 
@@ -922,8 +922,15 @@ function createLinksetClick()
           'delta': $('#linkset_approx_delta').val() ,
           'numeric_approx_type': $('#linkset_approx_num_type').find("option:selected").text(),
 
-          'multiple_entries': 'yes'
+          //'corrsp_reducer': reducer
         }
+
+        multiple_entries = 'yes'
+        if (multiple_entries == 'yes')
+            specs['corrsp_reducer'] = reducer
+        else {
+            specs['src_reducer'] = reducer
+            specs['trg_reducer'] = reducer }
 
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
         $('#linkset_creation_message_col').html(addNote(message,cl='warning'));
@@ -3650,6 +3657,22 @@ function calculateFreqClick(){
     //                  $('#dataset_creation_message_col').html(addNote(loaded_dataset,cl='success'));
             });
     }
+}
+
+function calculateDatasetStats()
+{
+  $('#dataset_linking_stats_message_col').html(addNote('The query is running.',cl='warning'));
+  loadingGif(document.getElementById('view_run_message_col'), 2);
+
+  $.get('/getDatasetLinkingStats',data={'dataset': $('#selected_dataset').attr('uri'),
+                                 'entityType': $('#dts_selected_entity-type').attr('uri')}, function(data)
+  {
+    var obj = JSON.parse(data);
+    $('#dataset_linking_stats_results').html(obj.result);
+    $('#dataset_linking_stats_message_col').html(addNote(obj.message,cl='info'));
+    loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
+  });
+  $("#collapse_dataset_linking_stats").collapse("show");
 }
 
 //$('#submit_file_button').addEventListener("click", myScript);
