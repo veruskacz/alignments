@@ -1780,7 +1780,7 @@ def calculateFreq():
     specs = { St.graph: request.args.get('dataset', ''),
             St.entity_datatype: request.args.get('entityType', ''),
             St.aligns: request.args.get('property', '')}
-    type = request.args.get('type', '')
+    type = request.args.get('freqType', '')
 
     # print '>>>>>', type, specs
 

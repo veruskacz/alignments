@@ -447,9 +447,10 @@ def extract_query(specs, is_source):
 def match_query(specs):
 
     is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
+    operator = "<" if specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype] else "!="
+
     comment = "" if is_de_duplication is True else "#"
     number_of_load = '1' if is_de_duplication is True else "2"
-
 
     match = """
     INSERT
@@ -472,9 +473,9 @@ def match_query(specs):
         }}
 
         # DO NOT INCLUDE SAME URIs AND INVERSE DIRECTION DUPLICATES
-        {2}FILTER( STR(?{0}_1) < STR(?{0}_2) )
+        {2}FILTER( STR(?{0}_1) {4} STR(?{0}_2) )
     }}
-    """.format(specs[St.source][St.graph_name], specs[St.target][St.graph_name], comment, number_of_load)
+    """.format(specs[St.source][St.graph_name], specs[St.target][St.graph_name], comment, number_of_load, operator)
 
     linkset = """
     INSERT
@@ -488,6 +489,7 @@ def match_query(specs):
         {{
             ### Singleton metadata
             ?singPre rdf:singletonPropertyOf     alivocab:exactStrSim{1} .
+            ?singPre alivocab:hasStrength        1 .
             ?singPre alivocab:hasEvidence        ?label .
         }}
     }}
@@ -514,7 +516,8 @@ def match_query(specs):
 def match_numeric_query(specs):
 
 
-    is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
+    is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph] \
+                        and specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype]
     number_of_load = '1' if is_de_duplication is True else "2"
 
     # PLAIN NUMBER CHECK
@@ -1015,12 +1018,12 @@ def spa_linkset_intermediate_query(specs):
         GRAPH <{0}load00>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} <{8}relatesTo1> ?src_value .
+            ?{1}_1 <{8}relatesTo1> ?src_value .
         }}
         GRAPH <{0}load01>
         {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} <{8}relatesTo3> ?trg_value .
+            ?{3}_2 <{8}relatesTo3> ?trg_value .
         }}
     }}
     WHERE
@@ -1029,16 +1032,16 @@ def spa_linkset_intermediate_query(specs):
         graph <{6}>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} {10} <{12}> .
-            ?{1} {2} ?value_1 .
+            ?{1}_1 {10} <{12}> .
+            ?{1}_1 {2} ?value_1 .
             bind (lcase(str(?value_1)) as ?src_value)
         }}
         ### TARGET DATASET
         graph <{7}>
         {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} {11} <{13}> .
-            ?{3} {4} ?value_2 .
+            ?{3}_2 {11} <{13}> .
+            ?{3}_2 {4} ?value_2 .
             bind (lcase(str(?value_2)) as ?trg_value)
         }}
     }} ;
@@ -1049,7 +1052,7 @@ def spa_linkset_intermediate_query(specs):
         ### MATCH FOUND
         GRAPH <{0}load02>
         {{
-            ?{1} <{8}relatesTo> ?{3} .
+            ?{1}_1 <{8}relatesTo> ?{3}_2 .
         }}
     }}
     WHERE
@@ -1057,11 +1060,11 @@ def spa_linkset_intermediate_query(specs):
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
         GRAPH <{0}load00>
         {{
-            ?{1} <{8}relatesTo1> ?src_value .
+            ?{1}_1 <{8}relatesTo1> ?src_value .
         }}
         GRAPH <{0}load01>
         {{
-            ?{3} <{8}relatesTo3> ?trg_value .
+            ?{3}_2 <{8}relatesTo3> ?trg_value .
         }}
         ### INTERMEDIATE DATASET VIA URI
         graph <{9}>
@@ -1088,13 +1091,14 @@ def spa_linkset_intermediate_query(specs):
     {{
         GRAPH <{5}>
         {{
-            ?{1} ?newSingletons  ?{3} .
+            ?{1}_1 ?newSingletons  ?{3}_2 .
         }}
         ### SINGLETONS' METADATA
         GRAPH <{10}{11}>
         {{
             ?newSingletons
                 rdf:singletonPropertyOf     alivocab:{8}{9} ;
+                alivocab:hasStrength        1 ;
                 alivocab:hasEvidence        ?evidence .
         }}
     }}
@@ -1103,20 +1107,20 @@ def spa_linkset_intermediate_query(specs):
         ### MATCH FOUND
         GRAPH <{0}load02>
         {{
-            ?{1} <{6}relatesTo> ?{3} .
+            ?{1}_1 <{6}relatesTo> ?{3}_2 .
              bind( iri(replace("{7}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
         }}
         {{
-            SELECT ?{1} ?{3} ?evidence
+            SELECT ?{1}_1 ?{3}_2 ?evidence
             {{
                 ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
                 GRAPH <{0}load00>
                 {{
-                    ?{1} <{6}relatesTo1> ?src_value .
+                    ?{1}_1 <{6}relatesTo1> ?src_value .
                 }}
                 GRAPH <{0}load01>
                 {{
-                    ?{3} <{6}relatesTo3> ?trg_value .
+                    ?{3}_2 <{6}relatesTo3> ?trg_value .
                 }}
                 BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
             }}
