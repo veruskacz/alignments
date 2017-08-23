@@ -1249,6 +1249,10 @@ def spa_linkset():
     if len(request.args.get('trg_reducer', '')) > 0:
         specs[St.target][St.reducer] = request.args.get('trg_reducer', '')
 
+    if len(request.args.get('corrsp_reducer', '')) > 0:
+        specs[St.corr_reducer] = request.args.get('corrsp_reducer', '')
+
+    # print specs
 
     check_type = "linkset"
     id = False
@@ -1256,7 +1260,7 @@ def spa_linkset():
 
         threshold = request.args.get('threshold', '0.8')
         threshold = float(threshold.strip())
-        print threshold
+        # print threshold
         stop_words = request.args.get('stop_words', '')
         stop_symbols = request.args.get('stop_symbols', '')
 
@@ -2003,9 +2007,15 @@ def deleteLinkset():
                 # print query[2]
                 # result = sparql(query[2], strip=False)
             else:
-                result = sparql(query, strip=False, endpoint_url=UPDATE_URL)
-            # result = sparql(query)
-            print ">>>> DELETION RESULT:", result
+                print "\nDELETE THE FILTERS AND DISCONNECT THE LINKSET"
+                print query[0]
+                result = sparql(query[0], strip=False, endpoint_url=UPDATE_URL)
+
+                print "\nDELETE THE BOTH METADATA AND THE LINKSET"
+                print query[1]
+                result = sparql(query[1], strip=False, endpoint_url=UPDATE_URL)
+
+            # print ">>>> DELETION RESULT:", result
 
             return json.dumps({'message': 'Linkset successfully deleted', 'result': 'OK'})
 
