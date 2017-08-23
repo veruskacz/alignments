@@ -89,6 +89,48 @@
         <div class="panel-heading">
          <div class="row">
           <div class="col-md-4">
+                  <h4 class="panel-title">
+                      <a id="link_collapse_dataset_linking_stats"
+                         data-toggle="collapse" href="#collapse_dataset_linking_stats">
+                      <span class="badge alert-info"><strong>-</strong></span></a>
+                      Dataset & Entity Type Linking Stats
+                  </h4>
+          </div>
+          <div class="col-md-8 text-right">
+                    <table align="right">
+                       <tr align="right">
+                           <td align="right"><div id="dataset_linking_stats_message_col"></div></td>
+                           <td valign="center"><div class="loading"></div></td>
+                           <td align="right">
+                                <button type="button" class="btn btn-primary"
+                                onclick='calculateDatasetStats()'
+                                >Calculate
+                                <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                                </button>
+                           </td>
+                    </table>
+          </div>
+          </div>
+        </div>
+        <div id="collapse_dataset_linking_stats" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats">
+            <div class="panel-body">
+
+            <div class="row" id="dataset_linking_stats_row">
+            <div class="col-md-12">
+              <h4></h4>
+              <div id="dataset_linking_stats_results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
+            </div>
+            </div>
+
+            </div>
+        </div>
+      </div>
+
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+         <div class="row">
+          <div class="col-md-4">
               <h4 class="panel-title">
                   <a id="link_collapse_dataset_inspection"
                      data-toggle="collapse" href="#collapse_dataset_inspection">
@@ -99,7 +141,7 @@
 
          </div>
         </div>
-        <div id="collapse_dataset_inspection" class="panel-collapse collapse in" target="link_collapse_dataset_inspection">
+        <div id="collapse_dataset_inspection" class="panel-collapse collapse" target="link_collapse_dataset_inspection">
             <div class="panel-body">
 
               <div class="row">
@@ -285,7 +327,7 @@
 
          </div>
         </div>
-        <div id="collapse_dataset_statistics" class="panel-collapse collapse in" target="link_collapse_dataset_statistics">
+        <div id="collapse_dataset_statistics" class="panel-collapse collapse" target="link_collapse_dataset_statistics">
             <div class="panel-body">
 
               <div class="row">
@@ -354,7 +396,7 @@
                       <button class="btn btn-success" onclick="calculateFreqClick();">Calculate</button>
                     </div>
 
-                                 <div class="row"> &nbsp </div>
+                       <div class="row"> &nbsp </div>
                        <div class="row"> &nbsp </div>
 
                         <div class="row">
@@ -414,7 +456,7 @@
 
          </div>
         </div>
-        <div id="collapse_dataset_geoenrichment" class="panel-collapse collapse in" target="link_collapse_dataset_geoenrichment">
+        <div id="collapse_dataset_geoenrichment" class="panel-collapse collapse" target="link_collapse_dataset_geoenrichment">
             <div class="panel-body">
               <div class="row">
                   <div class="col-md-4">

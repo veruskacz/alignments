@@ -44,6 +44,7 @@ if CREATION_ACTIVE:
     from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
     from Alignments.Query import sparql_xml_to_csv as sparql2csv
     import Alignments.UserActivities.ExportAlignment as Ex
+    from Alignments.SimilarityAlgo.Analysis import ds_stats
     from kitchen.text.converters import to_bytes, to_unicode
 
     import Alignments.Server_Settings as Svr
@@ -1807,6 +1808,56 @@ def calculateFreq():
                             list = data)
     else:
         return ''
+
+
+@app.route('/getDatasetLinkingStats')
+def datasetLinkingStats():
+    dataset = request.args.get('dataset', '')
+    entityType = request.args.get('entityType', '')
+
+    header = []
+    query = ds_stats(dataset, entityType, display=False)
+
+    # print "\nRUNNING SPARQL QUERY:{}".format(query)
+    dic_response = sparql2matrix(query)
+    print dic_response
+    print St.message in dic_response
+
+    print "\nPROCESSING THE RESULT..."
+    if dic_response[St.message] == "OK":
+
+        # response = sparql_xml_to_matrix(query)
+        response = dic_response[St.result]
+        results = []
+        if (response):
+            header = response[0]
+            results_x = response[1:]
+
+            # results = []
+            decode = lambda x: x.decode('utf-8') if str(x) else x
+            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")) if x.startswith("http://") else x
+            for r in results_x:
+              results += [map(decode, map(local_name, r))]
+
+        # print '\n\n', results
+        if len(response) > 1:
+            message = "Have a look at the result in the table below"
+        else:
+            message = "The query was successfully run with no result to show. " \
+                      "<br/>Probably the selected properties need some revising."
+
+        return json.dumps({'message': message, 'result':
+            render_template('viewsDetails_list.html', header = header, results = results)})
+
+    elif dic_response[St.message] == "NO RESPONSE":
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': "NO RESPONSE", 'result': None})
+
+    else:
+        message = dic_response[St.message]
+        return json.dumps({'message': message, 'result': None})
+    # return json.dumps({'message': '', 'result': None})
+
 
 
 # TODO: REMOVE
