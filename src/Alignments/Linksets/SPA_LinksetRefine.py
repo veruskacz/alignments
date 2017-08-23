@@ -8,9 +8,9 @@ import Alignments.Linksets.Linkset as Ls
 import Alignments.Lenses.Lens_Difference as Df
 from Alignments.Utility import write_to_file, update_specification
 from Alignments.UserActivities.UserRQ import register_alignment_mapping
-
-
 import Alignments.Server_Settings as Ss
+
+
 DIRECTORY = Ss.settings[St.linkset_Refined_dir]
 
 
@@ -675,3 +675,33 @@ def refine_metadata(specs):
                       correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
 
     return metadata["message"]
+
+
+def is_refinable(graph):
+    x = "http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579"
+
+    query = """
+    PREFIX bdb:         <{}>
+    PREFIX void:        <{}>
+    SELECT DISTINCT ?subjectsTarget  ?objectsTarget ?subjectsDatatype ?objectsDatatype
+    {{
+        <{}>
+            void:target|void:subjectsTarget|void:objectsTarget ?linkset .
+
+        ?linkset
+            void:objectsTarget		?objectsTarget ;
+            void:subjectsTarget		?subjectsTarget ;
+            bdb:objectsDatatype		?objectsDatatype ;
+            bdb:subjectsDatatype	?subjectsDatatype .
+    }}""".format(Ns.bdb, Ns.void, graph)
+
+    response = Qry.sparql_xml_to_matrix(query)
+
+    if response:
+        result = response[St.result]
+        if len(result) == 2:
+            return {St.message: True, St.result: result}
+        return {St.message: False, St.result: result}
+
+
+is_refinable("http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579")

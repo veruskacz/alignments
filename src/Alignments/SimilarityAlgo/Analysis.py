@@ -16,7 +16,7 @@ LIMIT = ""
 
 
 def get_tf(specs, is_token=True,
-           stop_words_string="THE FOR IN THAT AND OF ON DE LA LES ltd", stop_symbols_string = "\.\-\,\+'\?"):
+           stop_words_string="THE FOR IN THAT AND OF ON DE LA LES ltd inc", stop_symbols_string = "\.\-\,\+'\?"):
 
     term_frequency = dict()
 
@@ -223,6 +223,111 @@ def remove_info_in_bracket(text):
         temp = str(temp).strip()
 
     return temp
+
+
+def ds_stats(dataset, datatype):
+
+    query = """
+    PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
+    PREFIX dataset: <http://risis.eu/dataset/>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX ll: <http://risis.eu/alignment/predicate/>
+
+    SELECT DISTINCT ?linkset ?dataset ?alignsMechanism
+    (COUNT(DISTINCT ?RESOURCE) as ?total) ?subTotal
+    (ROUND((?subTotal / COUNT(DISTINCT ?RESOURCE) ) *10000)/100 as ?percentage)
+    {{
+        graph <{0}>
+        {{
+            ?RESOURCE a <{1}> .
+        }}
+	    {{
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset ?dataset ?alignsMechanism
+            {{
+                ?linkset
+                    bdb:subjectsDatatype 	<{1}>  ;
+                    void:subjectsTarget		<{0}> ;
+                    void:objectsTarget		?dataset ;
+                    ll:alignsMechanism ?alignsMechanism .
+
+                graph ?linkset
+                {{
+                    ?RESOURCE ?SING ?oResource.
+                }}
+            }} GROUP BY ?linkset ?dataset ?alignsMechanism
+        }}
+        UNION
+        {{
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset ?dataset ?alignsMechanism
+            {{
+                ?linkset
+                    bdb:objectsDatatype 	<{1}>  ;
+                    void:objectsTarget		<{0}> ;
+                    void:subjectsTarget		?dataset ;
+                    ll:alignsMechanism ?alignsMechanism .
+
+                graph ?linkset
+                {{
+                    ?oResource ?SING ?RESOURCE .
+                }}
+            }} GROUP BY ?linkset ?dataset ?alignsMechanism
+        }}
+    }}
+    GROUP BY ?linkset ?subTotal ?dataset ?alignsMechanism having (?subTotal > 0)
+    """.format(dataset, datatype)
+    print query
+    Qry.display_result(query=query, spacing=100, is_activated=True)
+
+
+def linkset_stats(linkset):
+
+    query = """
+    PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
+    PREFIX ll: <http://risis.eu/alignment/predicate/>
+    SELECT DISTINCT ?dataset ?datatype ?alignsMechanism ?total
+    (COUNT (DISTINCT ?RESOURCE) as ?subtotal)
+    (ROUND((COUNT(DISTINCT ?RESOURCE) / ?total)*10000)  /100 as ?percentage)
+    {{
+        <{0}> ll:alignsMechanism ?alignsMechanism .
+        {{
+            <{0}>
+                bdb:subjectsDatatype 	?datatype ;
+                void:subjectsTarget		?dataset .
+
+            graph <{0}>
+            {{
+                ?RESOURCE ?p ?o .
+            }}
+        }}
+        UNION
+        {{
+            <{0}>
+                bdb:objectsDatatype 	?datatype ;
+                void:objectsTarget		?dataset .
+
+            graph <{0}>
+            {{
+                ?o ?p ?RESOURCE .
+            }}
+        }}
+
+        {{
+            SELECT (COUNT(DISTINCT ?RESOURCE) as ?total) ?dataset  ?datatype
+            {{
+                graph ?dataset
+                {{
+                    ?RESOURCE a ?datatype .
+                }}
+            }} GROUP BY ?dataset ?datatype
+        }}
+    }} GROUP BY ?dataset ?datatype ?total ?alignsMechanism
+    """.format(linkset)
+    Qry.display_result(query=query, spacing=60, is_activated=True)
+
+# ds_stats("http://risis.eu/dataset/h2020", "http://xmlns.com/foaf/0.1/Organization")
+linkset_stats("http://risis.eu/linkset/h2020_grid_20170712_exactStrSim_Organization_name_N1178738974")
 
 # spec = {
 #     St.graph: "http:risis.eu/dataset/openAire_20170816",
