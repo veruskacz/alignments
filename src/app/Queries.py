@@ -120,12 +120,12 @@ def get_entity_type_rq(rq_uri, graph_uri):
     if rq_uri:
         query_rq = """
         GRAPH <{0}>
-	    {{
-          	<{0}> a <http://risis.eu/class/ResearchQuestion> ;
-          	     alivocab:selected  <{1}> .
+        {{
+            <{0}> a <http://risis.eu/class/ResearchQuestion> ;
+                 alivocab:selected  <{1}> .
 
-          	<{1}>
-          	    alivocab:hasDatatype  ?uri .
+            <{1}>
+                alivocab:hasDatatype  ?uri .
         }}
         """.format(rq_uri, graph_uri)
 
@@ -133,8 +133,8 @@ def get_entity_type_rq(rq_uri, graph_uri):
     ### GET ENTITYTYPE PER DATASET IN THE SCOPE OF THE RESEARCH QUESTION
     SELECT DISTINCT ?uri (COUNT(?s) AS ?count)
     {{
-    	{0}
-        
+        {0}
+
         GRAPH <{1}>
         {{
            ?s a ?uri .
@@ -234,7 +234,7 @@ def get_graph_linkset():
 #     return query
 
 
-## Ve test
+# Ve test
 # def get_targets(graph_uri):
 #     query = PREFIX + """
 #     ### GET LINKSET METADATA
@@ -347,7 +347,7 @@ def get_datasets():
     # SELECT DISTINCT ?uri ?mode
     # WHERE
     # {
-  	# 	?uri   rdf:type	 _:type
+    # 	?uri   rdf:type	 _:type
     #     GRAPH ?uri {_:s  ?p  _:o}
     #
     #     ### FILTER THE TYPE OF GRAPH
@@ -422,7 +422,7 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
                 <{0}>  alivocab:selected ?dataset  .
             }}
         }}
-   	}} """.format(rq_uri)
+    }} """.format(rq_uri)
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
@@ -598,9 +598,9 @@ def get_target_datasets(graph_uri='', singleton_uri=''):
     SELECT DISTINCT ?DatasetsSub ?DatasetsObj ?alignsSubjects ?alignsObjects ?alignsMechanism 
     where
     {{
-            ### Retrieves the lens 
-            <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph1.
-            <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph2.
+        ### Retrieves the lens
+        <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph1.
+        <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph2.
 
         {{ ?graph1
            void:subjectsTarget 			?DatasetsSub ;
@@ -608,7 +608,7 @@ def get_target_datasets(graph_uri='', singleton_uri=''):
         }} UNION {{
         ?graph1
            void:objectsTarget  			?DatasetsSub ;
-        	OPTIONAL {{ ?graph1    alivocab:alignsObjects    ?alignsSub }}
+            OPTIONAL {{ ?graph1    alivocab:alignsObjects    ?alignsSub }}
         }}
 
       
@@ -618,10 +618,10 @@ def get_target_datasets(graph_uri='', singleton_uri=''):
         }} UNION {{
         ?graph2
            void:objectsTarget  			?DatasetsObj ;
-        	OPTIONAL {{ ?graph2    alivocab:alignsObjects    ?alignsObj }}
+            OPTIONAL {{ ?graph2    alivocab:alignsObjects    ?alignsObj }}
         }}
-	    BIND (IF(bound(?alignsSub), ?alignsSub , "resource identifier") AS ?alignsSubjects)
-	    BIND (IF(bound(?alignsObj), ?alignsObj , "resource identifier") AS ?alignsObjects)
+        BIND (IF(bound(?alignsSub), ?alignsSub , "resource identifier") AS ?alignsSubjects)
+        BIND (IF(bound(?alignsObj), ?alignsObj , "resource identifier") AS ?alignsObjects)
 
         OPTIONAL {{ ?graph1	  alivocab:alignsMechanism  ?alignsMechanism1 }}
         OPTIONAL {{ ?graph2	  alivocab:alignsMechanism  ?alignsMechanism2 }}
@@ -632,19 +632,19 @@ def get_target_datasets(graph_uri='', singleton_uri=''):
 
         GRAPH ?DatasetsSub
         {{
-	        ?sub ?p1 ?o1
+            ?sub ?p1 ?o1
         }}
 
         GRAPH ?DatasetsObj
         {{
-	        ?obj ?p2 ?o2
+            ?obj ?p2 ?o2
         }}
-        
-        FILTER NOT EXISTS {{ 
+
+        FILTER NOT EXISTS {{
               {{ ?DatasetsSub  a  void:Linkset }}
                UNION
                {{ ?DatasetsSub  a  bdb:Lens }} }}
-        FILTER NOT EXISTS {{ 
+        FILTER NOT EXISTS {{
               {{ ?DatasetsObj  a  void:Linkset }}
                UNION
                {{ ?DatasetsObj  a  bdb:Lens }} }}
@@ -697,7 +697,7 @@ def get_target_datasets_old(graph_uri=''):
         # }}
         BIND (IF(bound(?alignsObjS), ?alignsObjS , "resource identifier") AS ?alignsObjects)
     }}
-    """.format(PREFIX, graph_uri) #union)
+    """.format(PREFIX, graph_uri)
 
     if DETAIL:
         print query
@@ -707,7 +707,7 @@ def get_target_datasets_old(graph_uri=''):
 def get_evidences(graph_name, singleton, predicate=None):
 
     variable = ""
-    pred = ""
+    # pred = ""
     if predicate is None:
         variable = "?pred"
         pred = "?pred"
@@ -752,22 +752,22 @@ def get_evidences_counters(singleton_uri):
     query = PREFIX + """
     Select distinct ?nGood ?nBad ?nStrength
     {
-    	{
+        {
          Select (count(distinct ?accepted) AS ?nGood)
          {
           GRAPH ?graph
-      	   { <""" + singleton_uri + """> alivocab:hasValidation ?accepted .
-      	    ?accepted rdf:type prov:Accept
+           { <""" + singleton_uri + """> alivocab:hasValidation ?accepted .
+            ?accepted rdf:type prov:Accept
            }
          }
         }
 
-    	{
+        {
          Select (count(distinct ?rejected) AS ?nBad)
          {
           GRAPH ?graph
-      	   { <""" + singleton_uri + """> alivocab:hasValidation ?rejected .
-      	    ?rejected rdf:type alivocab:Reject
+           { <""" + singleton_uri + """> alivocab:hasValidation ?rejected .
+            ?rejected rdf:type alivocab:Reject
            }
          }
         }
@@ -776,7 +776,7 @@ def get_evidences_counters(singleton_uri):
          Select (count(?derivedFrom) AS ?nStrength)
          {
           GRAPH ?graph
-      	   { <""" + singleton_uri + """> prov:wasDerivedFrom ?derivedFrom
+           { <""" + singleton_uri + """> prov:wasDerivedFrom ?derivedFrom
            }
          }
         }
@@ -1175,7 +1175,6 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
     LIMIT {1}""".format(linkset, limit, s_ds, t_ds)
 
-
     # print "\n\nprop_matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", prop_matrix
     # print "length", len(prop_matrix)
     for i in range(1, len(prop_matrix)):
@@ -1376,7 +1375,7 @@ def get_delete_filter(rq_uri, filter_uri):
 
 
 def get_delete_validation(rq_uri, graph_uri, singleton_uri):
-    ## there should be only one validation per rq
+    # there should be only one validation per rq
     query = PREFIX + """
     DELETE
     {{
@@ -1545,7 +1544,7 @@ def get_lens_corresp_details(lens, limit=1):
     return query
 
 
-#TODO: CHECK IF CAN BE REMOVED
+# TODO: CHECK IF CAN BE REMOVED
 def get_filter(research_uri, graph_uri):
 
     query = """

@@ -311,8 +311,6 @@ def edit_distance(token_x, token_y):
     # return  matrix[ln_y - 1][ln_x - 1]
 
 
-# print edit_distance("University Medical Center Utrecht", "UNIVERSITAIR MEDISCH CENTRUM UTRECHT")
-
 def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, stop_symbols_string=None):
 
 

@@ -327,7 +327,7 @@ def linkset_stats(linkset):
     Qry.display_result(query=query, spacing=60, is_activated=True)
 
 # ds_stats("http://risis.eu/dataset/h2020", "http://xmlns.com/foaf/0.1/Organization")
-linkset_stats("http://risis.eu/linkset/h2020_grid_20170712_exactStrSim_Organization_name_N1178738974")
+# linkset_stats("http://risis.eu/linkset/h2020_grid_20170712_exactStrSim_Organization_name_N1178738974")
 
 # spec = {
 #     St.graph: "http:risis.eu/dataset/openAire_20170816",

@@ -21,7 +21,6 @@ download(endpoint=endpoint, entity_type=entity_type, graph=graph, directory=dire
          limit=10000, main_query=main_query, count_query=count_query, activated=False)
 
 
-
 entity_type ="project"
 directory = "D:/datasets/OpenAireProject"
 endpoint="http://lod.openaire.eu/sparql"
@@ -39,12 +38,10 @@ main_query = """
 
 
 download(endpoint=endpoint, entity_type=entity_type, graph=graph, directory=directory,
-         limit=10000, main_query=main_query, count_query=count_query, activated=True)
+         limit=10000, main_query=main_query, count_query=count_query, activated=False)
 
 
-
-
-# dDOWNLOAD BIND(LCASE(?label2) as ?name2)
+# dDOWNLOAD BIND(LCASE(?lab326el2) as ?name2)
 
 entity_type = "location"
 directory = "D:/datasets/Countries"
@@ -64,3 +61,13 @@ main_query = """
 
 download(endpoint=endpoint, entity_type=entity_type, graph=graph, directory=directory,
          limit=10000, main_query=main_query, count_query=count_query, activated=False)
+
+# DOWNLOADING DBPEDIA ORGANIZATION
+entity_type = "organization"
+directory = "D:/datasets/dbpedia/organisation"
+endpoint= "http://dbpedia.org/sparql"
+graph = "{}dbpedia_organisation_20170823".format(Ns.dataset)
+count_q = "SELECT (COUNT(?subj) as ?total) WHERE {?subj a <http://xmlns.com/foaf/0.1/Organization> ; ?pred ?object .}"
+main_q = "CONSTRUCT { ?subj ?pred ?object } WHERE {?subj a <http://xmlns.com/foaf/0.1/Organization> ; ?pred ?object .}"
+download(endpoint=endpoint, entity_type=entity_type, graph=graph, directory=directory,
+         limit=10000, main_query=main_q, count_query=count_q, activated=False)
