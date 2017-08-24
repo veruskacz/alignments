@@ -70,4 +70,4 @@ graph = "{}dbpedia_organisation_20170823".format(Ns.dataset)
 count_q = "SELECT (COUNT(?subj) as ?total) WHERE {?subj a <http://xmlns.com/foaf/0.1/Organization> ; ?pred ?object .}"
 main_q = "CONSTRUCT { ?subj ?pred ?object } WHERE {?subj a <http://xmlns.com/foaf/0.1/Organization> ; ?pred ?object .}"
 download(endpoint=endpoint, entity_type=entity_type, graph=graph, directory=directory,
-         limit=10000, main_query=main_q, count_query=count_q, activated=False)
+         limit=10000, main_query=main_q, count_query=count_q, activated=True)

@@ -310,6 +310,10 @@ def edit_distance(token_x, token_y):
 
     # return  matrix[ln_y - 1][ln_x - 1]
 
+# pattern = str("[{}]".format(str("\.\-\,\+'\?;()").strip())).replace(" ", "")
+# temp = re.sub(pattern, "", "aL. KOUDOUSS-KAR; INE, (LE+VOILA?ICI)")
+# print temp
+
 
 def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, stop_symbols_string=None):
 
@@ -606,7 +610,7 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
                 pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
                 temp = re.sub(pattern, "", temp)
 
-            return temp
+            return temp.strip()
 
         except Exception as error:
             print "!!!!!!!!!!!!! PROBLEM !!!!!!!!!!!!!!!!!!!"
@@ -637,8 +641,8 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
     # VARIABLE SETTINGS
     #################################################################
 
-    # stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES"
-    # stop_symbols_string = "\.\-\,\+'\?"
+    # stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES INC"
+    # stop_symbols_string = "\.\-\,\+'\?;()"
 
     specs["specs"] = theta
     specs["stop_words_string"] = stop_words_string
@@ -689,7 +693,8 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
              "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
 
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
-    Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
+    # Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
+    # Ut.write_to_path = DIRECTORY
     writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY)
     for key, writer in writers.items():
         # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH

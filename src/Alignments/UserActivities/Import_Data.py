@@ -11,7 +11,7 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Ss
 import Alignments.Server_Settings as Svr
-from kitchen.text.converters import to_bytes  # , to_unicode
+from kitchen.text.converters import to_bytes , to_unicode
 
 # THE PROCESS OF IMPORTING AN ALIGNMENT
 #   1. SAVE THE TRIG FILE
@@ -478,10 +478,6 @@ def download_data(endpoint, entity_type, graph, directory,  limit, main_query=No
             offset = i * limit + 1
 
         print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
-
-        #  CREATE THE FILE
-        f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i+1))
-        f_writer = open(f_path, "wb")
         current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
         # print current_q
         response = Qry.remote_endpoint_request(current_q, endpoint=endpoint)
@@ -492,6 +488,9 @@ def download_data(endpoint, entity_type, graph, directory,  limit, main_query=No
             return count_res
 
         if response["response_code"] == 200:
+            #  CREATE THE FILE
+            f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i + 1))
+            f_writer = open(f_path, "wb")
             f_writer.write(response[St.result])
             f_writer.close()
 
