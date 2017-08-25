@@ -243,7 +243,6 @@ def visualise(graphs, directory, credential):
                 elif mech not in singletons[mech]:
                     singletons[mech] += [mech]
 
-
     # WRITING THE FILE
     count = 0
     writer.write("PREFIX ll: <{}>\n".format(Ns.alivocab))
@@ -316,9 +315,9 @@ def visualise(graphs, directory, credential):
     plot_writer = codecs.open(f_path, "wb", "utf-8")
     batch_writer = codecs.open(b_path, "wb", "utf-8")
 
-    print "3. GENERATING THE BATCH FILE TEXT"
-    enriched_graph = "{}{}_plots".format(Ns.plot, name)
-    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+    # print "3. GENERATING THE BATCH FILE TEXT"
+    # enriched_graph = "{}{}_plots".format(Ns.plot, name)
+    # stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
 
     # load_text = """echo "Loading data"
     # {}stardog data add {} -g {} "{}"
@@ -814,8 +813,7 @@ def get_bom_type(file_path):
 uri_4 = "http://risis.eu/linkset/" \
         "orgreg_20170718_grid_20170712_exactStrSim_University_Entity_current_name_English_P1888721829"
 
-"""?sub a foaf:Organization ;
-  	?pred ?object """
+"""?sub a foaf:Organization ; ?pred ?object """
 
 # print visualise([uri_4])
 

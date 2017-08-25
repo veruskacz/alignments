@@ -3202,7 +3202,7 @@ def remote_endpoint_request(query, endpoint):
 # print response[St.result]
 
 
-def remote_stardog(query):
+def remote_stardog(query, host):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
