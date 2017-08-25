@@ -3662,15 +3662,36 @@ function calculateFreqClick(){
 function calculateDatasetStats()
 {
   $('#dataset_linking_stats_message_col').html(addNote('The query is running.',cl='warning'));
-  loadingGif(document.getElementById('view_run_message_col'), 2);
+  loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2);
+
+    var checkOptionalLabel = document.getElementById('optionalLabelCheckBok');
+    if (checkOptionalLabel.checked)
+        var optionalLabel = 'yes';
+    else
+        var optionalLabel = 'no';
+
+    var checkComputerCluster = document.getElementById('computeClusterCheckBok');
+    if (checkComputerCluster.checked)
+        var computeCluster = 'yes';
+    else
+        var computeCluster = 'no';
 
   $.get('/getDatasetLinkingStats',data={'dataset': $('#selected_dataset').attr('uri'),
-                                 'entityType': $('#dts_selected_entity-type').attr('uri')}, function(data)
+                                 'entityType': $('#dts_selected_entity-type').attr('uri'),
+                                 'optionalLabel': optionalLabel,
+                                 'computeCluster': computeCluster}, function(data)
   {
     var obj = JSON.parse(data);
     $('#dataset_linking_stats_results').html(obj.result);
     $('#dataset_linking_stats_message_col').html(addNote(obj.message,cl='info'));
     loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
+
+    if (checkComputerCluster.checked)
+        plotDatasetLinkingStats4(obj.plotdata);
+    else
+        plotDatasetLinkingStats3(obj.plotdata);
+
+
   });
   $("#collapse_dataset_linking_stats").collapse("show");
 }
@@ -3710,3 +3731,169 @@ function calculateDatasetStats()
 //        alert("Data: " + data + "\nStatus: " + status);
 //    });
 //});
+
+
+
+function plotDatasetLinkingStats3(data){
+var margin = {top: 20, right: 30, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+//    .ticks(10, "%");
+
+var chart = d3.select(".chart")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  x.domain(data.map(function(d) { return d.name; }));
+  y.domain([0, d3.max(data, function(d) { return d.freq; })]);
+
+  chart.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .selectAll(".tick text")
+      .call(wrap, x.rangeBand());
+
+  chart.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+     .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", ".71em")
+        .style("text-anchor", "end")
+        .text("Frequency %");
+
+  chart.selectAll(".bar")
+      .data(data)
+    .enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return x(d.name); })
+      .attr("y", function(d) { return y(d.freq); })
+      .attr("height", function(d) { return height - y(d.freq); })
+      .attr("width", x.rangeBand());
+
+}
+
+
+function plotDatasetLinkingStats4(data){
+
+var margin = {top: 20, right: 30, bottom: 30, left: 40},
+    width = 900 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .1);
+var y0 = d3.scale.linear().range([height, 0]),
+y1 = d3.scale.linear().range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+// create left yAxis
+var yAxisLeft = d3.svg.axis().scale(y0).ticks(4).orient("left");
+// create right yAxis
+var yAxisRight = d3.svg.axis().scale(y1).ticks(6).orient("right");
+
+var svg = d3.select(".chart")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("class", "graph")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  x.domain(data.map(function(d) { return d.name; }));
+  y0.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust);})]);
+  y1.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust); })]);
+
+//  x.domain(data.map(function(d) { return d.year; }));
+//  y0.domain([0, d3.max(data, function(d) { return d.money; })]);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .selectAll(".tick text")
+      .call(wrap, x.rangeBand());
+
+  svg.append("g")
+	  .attr("class", "y axis axisLeft")
+	  .attr("transform", "translate(0,0)")
+	  .call(yAxisLeft)
+	.append("text")
+      .attr("transform", "rotate(-90)")
+	  .attr("y", 6)
+      .attr("dy", ".9em")
+	  .attr("dx", "2em")
+	  .style("text-anchor", "end")
+	  .style("text-anchor", "end")
+	  .text("Frequency %");
+
+  svg.append("g")
+	  .attr("class", "y axis axisRight")
+	  .attr("transform", "translate(" + (width) + ",0)")
+	  .call(yAxisRight)
+	.append("text")
+      .attr("transform", "rotate(-90)")
+	  .attr("y", 6)
+	  .attr("dy", "-2em")
+	  .attr("dx", "2em")
+	  .style("text-anchor", "end")
+	  .text("Clusters %");
+
+  bars = svg.selectAll(".bar").data(data).enter();
+  bars.append("rect")
+      .attr("class", "bar1")
+      .attr("x", function(d) { return x(d.name); })
+      .attr("width", x.rangeBand()/2)
+      .attr("y", function(d) { return y0(d.freq); })
+	  .attr("height", function(d,i,j) { return height - y0(d.freq); });
+  bars.append("rect")
+      .attr("class", "bar2")
+      .attr("x", function(d) { return x(d.name) + x.rangeBand()/2; })
+      .attr("width", x.rangeBand() / 2)
+      .attr("y", function(d) { return y1(d.clust); })
+	  .attr("height", function(d,i,j) { return height - y1(d.clust); });
+}
+
+
+function wrap(text, width) {
+  text.each(function() {
+    var text = d3.select(this),
+        words = text.text().split(/\s+/).reverse(),
+        word,
+        line = [],
+        lineNumber = 0,
+        lineHeight = 1.1, // ems
+        y = text.attr("y"),
+        dy = parseFloat(text.attr("dy")),
+        tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+      }
+    }
+  });
+}
+

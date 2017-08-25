@@ -38,7 +38,6 @@
             <!-- to be loaded by the server -->
           </div>
           <div class="col-md-20" id="investigation_view_col" style='display:none'>
-          {% include 'views.html' %}
           </div>
         </div>
         <!-- CREATION MODE -->
@@ -92,6 +91,12 @@
 <script src="{{url_for('.static', filename='creation.js')}}"></script>
 <script src="/static/upload/js/jquery.filedrop.js"></script>
 <script src="/static/upload/js/upload.js"></script>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+
+
+<!--<script class="include" type="text/javascript" src="/static/plot/jquery.min.js"></script>-->
+
 {% endblock %}
 
 {% block styles %}
@@ -99,6 +104,7 @@
 <link href="/static/upload/css/styles.css" rel="stylesheet" media="screen">
 <link rel="stylesheet"
       href="{{url_for('.static', filename='bootstrap.min.css')}}">
+<link rel="stylesheet" type="text/css" href="{{url_for('.static', filename='plot.css')}}">
 
 <style>
 .danger {

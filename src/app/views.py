@@ -46,6 +46,7 @@ if CREATION_ACTIVE:
     import Alignments.UserActivities.ExportAlignment as Ex
     from Alignments.SimilarityAlgo.Analysis import ds_stats
     from kitchen.text.converters import to_bytes, to_unicode
+    import Alignments.UserActivities.Clustering as Clt
 
     import Alignments.Server_Settings as Svr
 
@@ -1814,9 +1815,11 @@ def calculateFreq():
 def datasetLinkingStats():
     dataset = request.args.get('dataset', '')
     entityType = request.args.get('entityType', '')
+    optionalLabel = request.args.get('optionalLabel', 'yes') == 'yes'
+    computeCluster = request.args.get('computeCluster', 'yes') == 'yes'
 
     header = []
-    query = ds_stats(dataset, entityType, display=False)
+    query = ds_stats(dataset, entityType, display=False, optionalLabel=optionalLabel)
 
     # print "\nRUNNING SPARQL QUERY:{}".format(query)
     dic_response = sparql2matrix(query)
@@ -1829,15 +1832,31 @@ def datasetLinkingStats():
         # response = sparql_xml_to_matrix(query)
         response = dic_response[St.result]
         results = []
+        plotdata = []
         if (response):
-            header = response[0]
+            if computeCluster:
+                header = response[0][:-2] + ['clusters','percentage'] + [response[0][-2]]
+            else:
+                header = response[0][:-1]
             results_x = response[1:]
 
-            # results = []
-            decode = lambda x: x.decode('utf-8') if str(x) else x
-            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")) if x.startswith("http://") else x
-            for r in results_x:
-              results += [map(decode, map(local_name, r))]
+            # decode = lambda x: x.decode('utf-8') if str(x) else x
+            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") if x.startswith("http://") else x
+            for row in results_x:
+                temp = map(local_name, row[:-1])
+                if computeCluster:
+                    uri = row[-1]
+                    total = float(row[2])
+                    # print total
+                    clusters = Clt.cluster_triples(uri)
+                    # results += [map(decode, temp)]
+                      # if temp[5][0] != '0':
+                    results += [temp[:-1] + [len(clusters), round(len(clusters)/total*100,2)] + temp[-1:]]
+                    plotdata += [{'name': temp[5], 'freq': float(temp[4]), 'clust': round(len(clusters)/total*100,2) } if len(row)>=5 else {}]
+                else:
+                    results += [temp]
+                    plotdata += [{'name': temp[5], 'freq': float(temp[4]), 'clust': 0 } if len(row)>=5 else {}]
+            print plotdata
 
         # print '\n\n', results
         if len(response) > 1:
@@ -1846,8 +1865,9 @@ def datasetLinkingStats():
             message = "The query was successfully run with no result to show. " \
                       "<br/>Probably the selected properties need some revising."
 
-        return json.dumps({'message': message, 'result':
-            render_template('viewsDetails_list.html', header = header, results = results)})
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results),
+                           'plotdata': plotdata})
 
     elif dic_response[St.message] == "NO RESPONSE":
         print "NO RESULT FOR THIS QUERY..."

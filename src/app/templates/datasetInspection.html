@@ -103,26 +103,78 @@
                            <td valign="center"><div class="loading"></div></td>
                            <td align="right">
                                 <button type="button" class="btn btn-primary"
-                                onclick='calculateDatasetStats()'
-                                >Calculate
+                                onclick='calculateDatasetStats();'
+                                >Compute Stats
                                 <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                                 </button>
+                               <br/>
+                                <div class="checkbox-inline" ><label>
+                                    <input type="checkbox" id="optionalLabelCheckBok" checked="checked">
+                                    Optional Label &nbsp &nbsp </label>
+
+                                <div class="checkbox-inline" ><label>
+                                    <input type="checkbox" id="computeClusterCheckBok" checked="checked">
+                                    Computer Cluster</label>
                            </td>
                     </table>
           </div>
           </div>
         </div>
         <div id="collapse_dataset_linking_stats" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats">
+
             <div class="panel-body">
 
-            <div class="row" id="dataset_linking_stats_row">
-            <div class="col-md-12">
-              <h4></h4>
-              <div id="dataset_linking_stats_results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
-            </div>
-            </div>
+                <div class="row" id="dataset_linking_stats_row">
+                <div class="col-md-12">
+                  <h4></h4>
+                  <div id="dataset_linking_stats_results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
+                </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+
+                        <style>
+
+                        .bar {
+                          fill: steelblue;
+                        }
+
+                        .bar2 {
+                          fill: orange;
+                        }
+
+                        .axis text {
+                          font: 10px sans-serif;
+                        }
+
+                        .y.axisRight text {
+                            fill: orange;
+                        }
+                        .y.axisLeft text {
+                            fill: steelblue;
+                        }
+                        .axis path,
+                        .axis line {
+                          fill: none;
+                          stroke: #000;
+                          shape-rendering: crispEdges;
+                        }
+
+                        .x.axis path {
+                          display: none;
+                        }
+
+                        </style>
+                        <svg class="chart">
+
+                        </svg>
+                    </div>
+                </div>
 
             </div>
+
+
         </div>
       </div>
 

@@ -225,8 +225,9 @@ def remove_info_in_bracket(text):
     return temp
 
 
-def ds_stats(dataset, datatype, display = True):
+def ds_stats(dataset, datatype, display = True, optionalLabel=True):
 
+    commentOptLbl = '' if optionalLabel else '#'
     query = """
     PREFIX void: <http://rdfs.org/ns/void#>
     PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
@@ -237,7 +238,7 @@ def ds_stats(dataset, datatype, display = True):
 
     SELECT DISTINCT ?dataset ?alignsMechanism
     (COUNT(DISTINCT ?RESOURCE) as ?total) ?subTotal
-    (ROUND((?subTotal / COUNT(DISTINCT ?RESOURCE) ) *10000)/100 as ?percentage) ?linkset
+    (ROUND((?subTotal / COUNT(DISTINCT ?RESOURCE) ) *10000)/100 as ?percentage) ?linkset ?linkset_uri
     {{
         graph <{0}>
         {{
@@ -247,7 +248,8 @@ def ds_stats(dataset, datatype, display = True):
         ?linkset_uri
              void:subjectsTarget|void:objectsTarget 	<{0}>  ;
              bdb:subjectsDatatype|bdb:objectsDatatype		<{1}> .
-        OPTIONAL {{ graph ?rq
+        {3}OPTIONAL
+        {{ graph ?rq
             {{
                 ?linkset_uri skos:prefLabel ?lkst_label
             }}
@@ -261,12 +263,32 @@ def ds_stats(dataset, datatype, display = True):
                     bdb:subjectsDatatype 	<{1}>  ;
                     void:subjectsTarget		<{0}> ;
                     void:objectsTarget		?dataset ;
-                    ll:alignsMechanism ?alignsMechanism .
+                    ll:alignsMechanism      ?alignsMechanism .
+
+                graph ?linkset_uri
+                {{
+                    {{ ?RESOURCE ?SING ?oResource. }}
+                    UNION
+                    {{ ?oResource ?SING ?RESOURCE . }}
+                }}
+                FILTER (<{0}> = ?dataset)
+            }} GROUP BY ?linkset_uri ?dataset ?alignsMechanism
+	    }}
+	    UNION
+	    {{
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset_uri ?dataset ?alignsMechanism
+            {{
+                ?linkset_uri
+                    bdb:subjectsDatatype 	<{1}>  ;
+                    void:subjectsTarget		<{0}> ;
+                    void:objectsTarget		?dataset ;
+                    ll:alignsMechanism      ?alignsMechanism .
 
                 graph ?linkset_uri
                 {{
                     ?RESOURCE ?SING ?oResource.
                 }}
+                FILTER (<{0}> != ?dataset)
             }} GROUP BY ?linkset_uri ?dataset ?alignsMechanism
         }}
         UNION
@@ -283,12 +305,13 @@ def ds_stats(dataset, datatype, display = True):
                 {{
                     ?oResource ?SING ?RESOURCE .
                 }}
+                FILTER (<{0}> != ?dataset)
             }} GROUP BY ?linkset_uri ?dataset ?alignsMechanism
         }}
     }}
-    GROUP BY ?linkset ?subTotal ?dataset ?alignsMechanism having (?subTotal > 0)
+    GROUP BY ?linkset ?subTotal ?dataset ?alignsMechanism ?linkset_uri having (?subTotal > 0)
     ORDER BY ?dataset ?alignsMechanism
-    """.format(dataset, datatype, Ns.skos)
+    """.format(dataset, datatype, Ns.skos, commentOptLbl)
     # print query
     if display == True:
         Qry.display_result(query=query, spacing=100, is_activated=True)
