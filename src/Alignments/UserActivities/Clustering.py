@@ -369,10 +369,10 @@ def cluster_values(cluster, properties, display=False):
 #                        "embededAlignment_Organization_sameAs_P541043043")
 
 
-groups = cluster_dataset("http://risis.eu/dataset/grid_20170712", "http://xmlns.com/foaf/0.1/Organization")
-properties = ["http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
-for key, value in groups.items():
-    if len(value) > 15:
-        print "\n{:10}\t{:3}".format(key, len(value))
-        response = cluster_values(value, properties)
-        exit(0)
+# groups = cluster_dataset("http://risis.eu/dataset/grid_20170712", "http://xmlns.com/foaf/0.1/Organization")
+# properties = ["http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+# for key, value in groups.items():
+#     if len(value) > 15:
+#         print "\n{:10}\t{:3}".format(key, len(value))
+#         response = cluster_values(value, properties)
+#         exit(0)
