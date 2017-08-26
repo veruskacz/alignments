@@ -225,7 +225,10 @@ def remove_info_in_bracket(text):
     return temp
 
 
+# QUERY THAT COMPUTES STATISTICS OVER THE ALIGNMENTS INVOLVING A PARTICULAR DATASET
 def ds_stats(dataset, datatype, display = True, optionalLabel=True):
+
+    # QUERY THAT COMPUTES STATISTICS OVER THE ALIGNMENTS INVOLVING A PARTICULAR DATASET
 
     commentOptLbl = '' if optionalLabel else '#'
     query = """
@@ -374,4 +377,6 @@ def linkset_stats(linkset):
 # }
 
 # result = get_tf(spec, is_token=True)
+
+# print ds_stats("http://risis.eu/dataset/grid_20170712", datatype="http://xmlns.com/foaf/0.1/Organization")
 

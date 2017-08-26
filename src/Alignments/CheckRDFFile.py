@@ -54,7 +54,7 @@ def check_rdf_in_dir(dir_path):
     builder = cStringIO.StringIO()
     files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
 
-    print "{:>104}\n".format(datetime.datetime.today().strftime(_format))
+    print "\n{:>80}\n".format(datetime.datetime.today().strftime(_format))
     builder.write("\n--------------------------------------------------------"
                   "----------------------------------------------------------\n")
     builder.write("    Syntactic check of RDF files in:\n\t\t{}\n".format(dir_path))
@@ -82,12 +82,12 @@ def check_rdf_in_dir(dir_path):
             try:
                 g = rdflib.Dataset()
                 g.load(source=path, format=graph_format)
-                report = "    [{:*>5}]\t{} is a valid .{} file with a RDF graph of length: {}".\
+                report = "    [{:0>5}]\t{} is a valid .{} file with a RDF graph of length: {}".\
                     format(count, rdf_file, extension, str(len(g)))
                 builder.write("{}\n".format(report))
                 print report
             except Exception as err:
-                print err.message
+                print "    ERROR >>> [{:0>5}]\t{} .".format(count, err.message)
                 builder.write("    {} is not a valid .{} file \n".format(rdf_file, extension))
         count += 1
     return builder.getvalue()
@@ -125,4 +125,4 @@ def check_converted_folder(converted_folder):
 #     check_rdf_file(main)
 
 
-# check_rdf_file("C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\en_nl_intermediate_author_label_P1605654795(Metadata)-20170702.trig")
+# check_rdf_in_dir("D:/datasets/dbpedia/organisation/")
