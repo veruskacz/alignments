@@ -359,9 +359,6 @@ def cluster_values(cluster, properties, display=False):
     Qry.display_matrix(response, spacing=100, is_activated=True)
     return response
 
-groups = cluster_dataset("http://risis.eu/dataset/grid_20170712", "http://xmlns.com/foaf/0.1/Organization")
-
-
 # test = [('x','y'), ('x','B'), ('w','B'), ('x','w'), ('e','d'), ('e','y'),
 # ('s', 'w'),('a','b'),('h','j'),('k','h'),('k','s'),('s','a')]
 # clus= cluster(test)
@@ -371,6 +368,8 @@ groups = cluster_dataset("http://risis.eu/dataset/grid_20170712", "http://xmlns.
 # test = cluster_triples("http://risis.eu/linkset/subset_openAire_20170816_openAire_20170816_"
 #                        "embededAlignment_Organization_sameAs_P541043043")
 
+
+groups = cluster_dataset("http://risis.eu/dataset/grid_20170712", "http://xmlns.com/foaf/0.1/Organization")
 properties = ["http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
 for key, value in groups.items():
     if len(value) > 15:
