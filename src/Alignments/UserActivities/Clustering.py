@@ -185,6 +185,119 @@ def cluster_triples(graph):
     return clusters
 
 
+def cluster_triples2(graph, limit=0):
+
+    count = 0
+    clusters = dict()
+    root = dict()
+
+    # DOWNLOAD THE GRAPH
+    print "\n0. DOWNLOADING THE GRAPH"
+    response = Exp.export_alignment(graph)
+    links = response['result']
+    # print links
+
+    # LOAD THE GRAPH
+    print "1. LOADING THE GRAPH"
+    g = rdflib.Graph()
+    g.parse(data=links, format="turtle")
+
+    print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(g))
+    for subject, predicate, obj in g:
+
+        count += 1
+        child_1 = subject
+        child_2 = obj
+        parent = ""
+
+        # DATE CREATION
+        date = "{}".format(datetime.datetime.today().strftime(_format))
+
+        # CHECK WHETHER A CHILD HAS A PARENT
+        has_parent_1 = True if child_1 in root else False
+        has_parent_2 = True if child_2 in root else False
+
+        # print "{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
+
+        if has_parent_1 is False and has_parent_2 is False:
+
+            if limit != 0 and len(clusters) > limit:
+                continue ## Do not add new clusters
+            # GENERATE THE PARENT
+            hash_value = hash(date + str(count))
+            parent = "_{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
+                else "_P{}".format(hash_value)
+
+            # ASSIGN A PARENT TO BOTH CHILD
+            root[child_1] = parent
+            root[child_2] = parent
+
+            # CREATE A CLUSTER
+            if parent not in clusters:
+                clusters[parent] = [child_1, child_2]
+
+        elif has_parent_1 is True and has_parent_2 is True:
+
+            # IF BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+            if clusters[root[child_1]] == clusters[root[child_2]]:
+                # print "CLUSTER SIZE IS {} BUT THERE IS NOTHING TO DO\n".format(len(clusters))
+                continue
+
+            # THE PARENT WITH THE MOST CHILD GET THE CHILD OF THE OTHER PARENT
+            if len(clusters[root[child_1]]) >= len(clusters[root[child_2]]):
+                parent = root[child_1]
+                pop_parent = root[child_2]
+                root[child_2] = parent
+
+            else:
+                parent = root[child_2]
+                pop_parent = root[child_1]
+                root[child_1] = parent
+
+            # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+            for child in clusters[pop_parent]:
+                root[child] = parent
+                clusters[parent] += [child]
+
+            # POP THE PARENT WITH THE LESSER CHILD
+            clusters.pop(pop_parent)
+
+        elif has_parent_1 is True:
+
+            # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+            parent = root[child_1]
+            root[child_2] = parent
+            clusters[parent] += [child_2]
+
+        elif has_parent_2 is True:
+
+            # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+            parent = root[child_2]
+            root[child_1] = parent
+            clusters[parent] += [child_1]
+
+        # print "{} Clusters but the current is: {}\n".format(len(clusters), clusters[parent])
+    print "3. NUMBER OF CLUSTER FOND: {}".format(len(clusters))
+
+    result = []
+    for parent, cluster in clusters.items():
+        query = Qry.linkset_aligns_prop(graph)
+        response = sparql2matrix(query)
+        # print response
+        # get one value per cluster in order to exemplify it
+        sample = ''
+        if response['result'] and len(response['result']) >= 2: #header and one line
+            # print response['result']
+            properties = response['result'][1][:2]
+            sample_response = cluster_values2(cluster, properties, limit_resources=1)
+            if sample_response['result'] and len(sample_response['result']) >= 2: #header and one line
+                # print sample_response['result']
+                sample = sample_response['result'][1][0]
+        result += [{'parent': parent, 'cluster':cluster, 'sample': sample}]
+
+    return result
+
+
 def cluster_dataset(dataset_uri, datatype_uri):
 
     query = """
@@ -359,6 +472,61 @@ def cluster_values(cluster, properties, display=False):
     Qry.display_matrix(response, spacing=100, is_activated=True)
     return response
 
+
+def cluster_values2(cluster, properties, distinct_values=True, display=False, limit_resources=100):
+
+    """
+    :param cluster: A LIST OF CLUSTERED RESOURCES
+    :param properties: A LIST OF PROPERTIES OF INTEREST
+    :return: A DICTIONARY WHERE THE RESULT OF THE QUERY IS OBTAINED USING THE KEY: result
+    """
+    prop = ""
+    union = ""
+
+    for uri in properties:
+        prop += " <{}>".format(uri.strip())
+
+    for i in range(0, len(cluster)):
+        if limit_resources != 0 and i > limit_resources:
+            break
+        if i > 0:
+            append = "UNION"
+        else:
+            append = ""
+        union += """ {}
+        {{
+            bind(<{}> as ?resource)
+            graph ?input_dataset {{ ?resource ?property ?obj . }}
+        }}""".format(append, cluster[i])
+
+    if distinct_values is True:
+        select = '?obj (count(distinct ?resource) as ?count)'
+        group_by = 'group by ?obj order by desc(?count)'
+    else:
+        select = '*'
+        group_by = ''
+
+    query = """
+    PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
+    PREFIX dataset: <http://risis.eu/dataset/>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX ll: <http://risis.eu/alignment/predicate/>
+    PREFIX skos:        <http://www.w3.org/2004/02/skos/core#>
+
+    SELECT DISTINCT {}
+    {{
+        values ?property {{{} }}
+        {}
+    }} {} """.format(select, prop, union, group_by)
+
+    # print query
+    response = sparql2matrix(query)
+    if display is True:
+        Qry.display_matrix(response, spacing=50, is_activated=True)
+    return response
+
+
 # test = [('x','y'), ('x','B'), ('w','B'), ('x','w'), ('e','d'), ('e','y'),
 # ('s', 'w'),('a','b'),('h','j'),('k','h'),('k','s'),('s','a')]
 # clus= cluster(test)
@@ -376,3 +544,24 @@ def cluster_values(cluster, properties, display=False):
 #         print "\n{:10}\t{:3}".format(key, len(value))
 #         response = cluster_values(value, properties)
 #         exit(0)
+
+
+# groups = cluster_dataset("http://goldenagents.org/datasets/Ecartico", "http://ecartico.org/ontology/Person")
+# # print groups
+# properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name"]
+# counter = 0
+# for key, value in groups.items():
+#     if len(value) > 15:
+#         print "\n{:10}\t{:3}".format(key, len(value))
+#         response = cluster_values(value, properties, display=True)
+#         if counter > 5:
+#             exit(0)
+#         counter +=1
+
+
+#
+# groups = cluster_triples2("http://risis.eu/linkset/refined_003MarriageRegistries_Ecartico_exactStrSim_Person_full_name_N3531703432838097870_approxNbrSim_isInRecord_registration_date_P0")
+# counter = 0
+# for item in groups:
+#     if len(item['cluster']) > 1:
+#         print "\n{:10}\t{:3}\t{}".format(item['parent'], len(item['cluster']), item['sample'])

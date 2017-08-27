@@ -3661,8 +3661,12 @@ function calculateFreqClick(){
 
 function calculateDatasetStats()
 {
-  $('#dataset_linking_stats_message_col').html(addNote('The query is running.',cl='warning'));
-  loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2);
+    $('#dataset_linking_stats_message_col').html(addNote('The query is running.',cl='warning'));
+    loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2);
+
+    d3.selectAll("svg > *").remove();
+    $('#chart_dataset_linking_stats').html('');
+    $('#dataset_linking_stats_results').html('');
 
     var checkOptionalLabel = document.getElementById('optionalLabelCheckBok');
     if (checkOptionalLabel.checked)
@@ -3676,6 +3680,8 @@ function calculateDatasetStats()
     else
         var computeCluster = 'no';
 
+  $("#collapse_dataset_linking_stats").collapse("show");
+
   $.get('/getDatasetLinkingStats',data={'dataset': $('#selected_dataset').attr('uri'),
                                  'entityType': $('#dts_selected_entity-type').attr('uri'),
                                  'optionalLabel': optionalLabel,
@@ -3683,6 +3689,7 @@ function calculateDatasetStats()
   {
     var obj = JSON.parse(data);
     $('#dataset_linking_stats_results').html(obj.result);
+    $("#collapse_dataset_linking_stats_table").collapse("show");
     $('#dataset_linking_stats_message_col').html(addNote(obj.message,cl='info'));
     loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
 
@@ -3690,10 +3697,11 @@ function calculateDatasetStats()
         plotDatasetLinkingStats4(obj.plotdata);
     else
         plotDatasetLinkingStats3(obj.plotdata);
+    $("#collapse_dataset_linking_stats_graphic").collapse("show");
+
 
 
   });
-  $("#collapse_dataset_linking_stats").collapse("show");
 }
 
 //$('#submit_file_button').addEventListener("click", myScript);
@@ -3795,7 +3803,7 @@ var chart = d3.select(".chart")
 function plotDatasetLinkingStats4(data){
 
 var margin = {top: 20, right: 30, bottom: 30, left: 40},
-    width = 900 - margin.left - margin.right,
+    width = 1080 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 var x = d3.scale.ordinal()
@@ -3819,8 +3827,9 @@ var svg = d3.select(".chart")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   x.domain(data.map(function(d) { return d.name; }));
-  y0.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust);})]);
-  y1.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust); })]);
+  y0.domain([0, 100]);
+  y1.domain([0, 100]);
+//y1.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust); })]);
 
 //  x.domain(data.map(function(d) { return d.year; }));
 //  y0.domain([0, d3.max(data, function(d) { return d.money; })]);
@@ -3842,7 +3851,6 @@ var svg = d3.select(".chart")
       .attr("dy", ".9em")
 	  .attr("dx", "2em")
 	  .style("text-anchor", "end")
-	  .style("text-anchor", "end")
 	  .text("Frequency %");
 
   svg.append("g")
@@ -3863,13 +3871,31 @@ var svg = d3.select(".chart")
       .attr("x", function(d) { return x(d.name); })
       .attr("width", x.rangeBand()/2)
       .attr("y", function(d) { return y0(d.freq); })
-	  .attr("height", function(d,i,j) { return height - y0(d.freq); });
+	  .attr("height", function(d,i,j) { return height - y0(d.freq); })
+	  .on("click",function(d){
+
+        if (active_link === "0") { //nothing selected, turn on this selection
+          d3.select(this)
+            .style("stroke", "black")
+            .style("stroke-width", 2);
+
+            active_link = this.id.split("id").pop();
+            plotSingle(this);
+       });
   bars.append("rect")
       .attr("class", "bar2")
       .attr("x", function(d) { return x(d.name) + x.rangeBand()/2; })
       .attr("width", x.rangeBand() / 2)
       .attr("y", function(d) { return y1(d.clust); })
 	  .attr("height", function(d,i,j) { return height - y1(d.clust); });
+
+//  bars = svg.selectAll(".bar1").data(data)
+//    .append("text")
+//      .attr("x", x(d.name) / 2 )
+//      .attr("y", function(d) { return y0(d.freq) + 3; })
+//      .attr("dy", ".75em")
+//      .text(function(d) { return d.freq; });
+
 }
 
 

@@ -125,14 +125,28 @@
             <div class="panel-body">
 
                 <div class="row" id="dataset_linking_stats_row">
-                <div class="col-md-12">
-                  <h4></h4>
-                  <div id="dataset_linking_stats_results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
-                </div>
+                  <div class="col-md-12">
+                  <div class="panel panel-default">
+                    <div class="panel-heading"><a id="link_collapse_dataset_linking_stats_table"
+                     data-toggle="collapse" href="#collapse_dataset_linking_stats_table">
+                      <span class="badge alert-info"><strong>-</strong></span></a>Summary</div>
+                    <div id="collapse_dataset_linking_stats_table" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats_table">
+                    <div class="panel-body">
+                      <div id="dataset_linking_stats_results" style='height: 20em; width:100%, scroll: both; overflow: auto;'> </div>
+                    </div>
+                    </div>
+                  </div>
+                  </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-12">
+                      <div class="panel panel-default">
+                        <div class="panel-heading"><a id="link_collapse_dataset_linking_stats_graphic"
+                         data-toggle="collapse" href="#collapse_dataset_linking_stats_graphic">
+                          <span class="badge alert-info"><strong>-</strong></span></a>Graph</div>
+                        <div id="collapse_dataset_linking_stats_graphic" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats_graphic">
+                        <div class="panel-body">
 
                         <style>
 
@@ -166,10 +180,28 @@
                         }
 
                         </style>
-                        <svg class="chart">
+                        <svg class="chart" id="chart_dataset_linking_stats">
 
                         </svg>
+                        </div>
+                        </div>
+                      </div>
                     </div>
+                </div>
+
+                <div class="row" id="dataset_linking_stats_cluster">
+                  <div class="col-md-12">
+                  <div class="panel panel-default">
+                    <div class="panel-heading"><a id="link_collapse_dataset_linking_stats_cluster"
+                     data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster">
+                      <span class="badge alert-info"><strong>-</strong></span></a>Clusters</div>
+                    <div id="collapse_dataset_linking_stats_cluster" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats_cluster">
+                    <div class="panel-body">
+                      <div id="dataset_linking_stats_cluster_results" style='height: 20em; width:100%, scroll: both; overflow: auto;'> </div>
+                    </div>
+                    </div>
+                  </div>
+                  </div>
                 </div>
 
             </div>
