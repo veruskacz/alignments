@@ -24,6 +24,7 @@ if CREATION_ACTIVE:
     from app import app
     import Alignments.Utility as Ut
     import Alignments.Settings as St
+    import Alignments.NameSpace as Ns
     import Alignments.ToRDF.CSV as CSV
     import Alignments.ErrorCodes as Ec
     import Alignments.Linksets.Linkset as Ls
@@ -1828,21 +1829,21 @@ def datasetLinkingStats():
 
     print "\nPROCESSING THE RESULT..."
     if dic_response[St.message] == "OK":
-
         # response = sparql_xml_to_matrix(query)
         response = dic_response[St.result]
         results = []
         plotdata = []
         if (response):
             if computeCluster:
-                header = response[0][:-2] + ['clusters','percentage'] + [response[0][-2]]
+                header = ['id'] + response[0][:-2] + ['clusters','percentage'] + [response[0][-2]]
             else:
-                header = response[0][:-1]
+                header = ['id'] + response[0][:-1]
             results_x = response[1:]
 
             # decode = lambda x: x.decode('utf-8') if str(x) else x
             local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") if x.startswith("http://") else x
-            for row in results_x:
+            for i in range(len(results_x)):
+                row = results_x[i]
                 temp = map(local_name, row[:-1])
                 if computeCluster:
                     uri = row[-1]
@@ -1851,11 +1852,11 @@ def datasetLinkingStats():
                     clusters = Clt.cluster_triples(uri)
                     # results += [map(decode, temp)]
                       # if temp[5][0] != '0':
-                    results += [temp[:-1] + [len(clusters), round(len(clusters)/total*100,2)] + temp[-1:]]
-                    plotdata += [{'name': temp[5], 'freq': float(temp[4]), 'clust': round(len(clusters)/total*100,2) } if len(row)>=5 else {}]
+                    results += [['A'+str(i+1)] + temp[:-1] + [len(clusters), round(len(clusters)/total*100,2)] + temp[-1:]]
+                    plotdata += [{'name': 'A'+str(i+1), 'label': temp[5], 'freq': float(temp[4]), 'clust': round(len(clusters)/total*100,2) } if len(row)>=5 else {}]
                 else:
                     results += [temp]
-                    plotdata += [{'name': temp[5], 'freq': float(temp[4]), 'clust': 0 } if len(row)>=5 else {}]
+                    plotdata += [{'name': 'A'+str(i+1), 'label': temp[5], 'freq': float(temp[4]), 'clust': 0 } if len(row)>=5 else {}]
             print plotdata
 
         # print '\n\n', results
@@ -1878,6 +1879,39 @@ def datasetLinkingStats():
         return json.dumps({'message': message, 'result': None})
     # return json.dumps({'message': '', 'result': None})
 
+
+@app.route('/getDatasetLinkingClusters')
+def datasetLinkingClusters():
+    dataset = request.args.get('dataset', '')
+    entityType = request.args.get('entityType', '')
+
+    print "\nPROCESSING THE RESULT..."
+    clusters = Clt.cluster_dataset(dataset, entityType)
+
+    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name", "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+    counter = 0
+    header = ['id', 'size', 'prop', 'sample']
+    results = []
+    for parent, cluster in clusters.items():
+        if len(cluster) > 15:
+            # print "\n{:10}\t{:3}".format(key, len(value))
+            response = Clt.cluster_values2(cluster, properties, distinct_values=False, display=False)
+            if counter > 50:
+                break
+            counter +=1
+            if response['result'] and len(response['result']) > 1:
+                # print response['result']
+                results += [[str(counter), str(len(cluster)), response['result'][1][0], response['result'][1][3]]]
+
+    if len(results) > 1:
+        message = "Have a look at the result in the table below"
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results)})
+    else:
+        message = "The query was successfully run with no result to show. " \
+                  "<br/>Probably the selected properties need some revising."
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': message, 'result': None})
 
 
 # TODO: REMOVE

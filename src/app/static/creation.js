@@ -3667,12 +3667,13 @@ function calculateDatasetStats()
     d3.selectAll("svg > *").remove();
     $('#chart_dataset_linking_stats').html('');
     $('#dataset_linking_stats_results').html('');
+    $('#dataset_linking_stats_cluster_results').html('');
 
     var checkOptionalLabel = document.getElementById('optionalLabelCheckBok');
     if (checkOptionalLabel.checked)
-        var optionalLabel = 'yes';
-    else
         var optionalLabel = 'no';
+    else
+        var optionalLabel = 'yes';
 
     var checkComputerCluster = document.getElementById('computeClusterCheckBok');
     if (checkComputerCluster.checked)
@@ -3691,7 +3692,6 @@ function calculateDatasetStats()
     $('#dataset_linking_stats_results').html(obj.result);
     $("#collapse_dataset_linking_stats_table").collapse("show");
     $('#dataset_linking_stats_message_col').html(addNote(obj.message,cl='info'));
-    loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
 
     if (checkComputerCluster.checked)
         plotDatasetLinkingStats4(obj.plotdata);
@@ -3700,7 +3700,15 @@ function calculateDatasetStats()
     $("#collapse_dataset_linking_stats_graphic").collapse("show");
 
 
+      $.get('/getDatasetLinkingClusters',data={'dataset': $('#selected_dataset').attr('uri'),
+                                     'entityType': $('#dts_selected_entity-type').attr('uri')}, function(data)
+      {
+        var obj = JSON.parse(data);
+        $('#dataset_linking_stats_cluster_results').html(obj.result);
+        $("#collapse_dataset_linking_stats_cluster").collapse("show");
 
+        loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
+      });
   });
 }
 
@@ -3827,8 +3835,8 @@ var svg = d3.select(".chart")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   x.domain(data.map(function(d) { return d.name; }));
-  y0.domain([0, 100]);
-  y1.domain([0, 100]);
+  y0.domain([0, d3.max(data, function(d) { return Math.min(Math.max(2*d.freq, 2*d.clust), 100); })]);
+  y1.domain([0, d3.max(data, function(d) { return Math.min(Math.max(2*d.freq, 2*d.clust), 100); })]);
 //y1.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust); })]);
 
 //  x.domain(data.map(function(d) { return d.year; }));
@@ -3871,17 +3879,11 @@ var svg = d3.select(".chart")
       .attr("x", function(d) { return x(d.name); })
       .attr("width", x.rangeBand()/2)
       .attr("y", function(d) { return y0(d.freq); })
-	  .attr("height", function(d,i,j) { return height - y0(d.freq); });
-//	  .on("click",function(d){
-//
-//        if (active_link === "0") { //nothing selected, turn on this selection
-//          d3.select(this)
-//            .style("stroke", "black")
-//            .style("stroke-width", 2);
-//
-//            active_link = this.id.split("id").pop();
-//            plotSingle(this);
-//       });
+	  .attr("height", function(d,i,j) { return height - y0(d.freq); })
+	  .on("click",function(d){
+	    alert(d.freq)
+       });
+
   bars.append("rect")
       .attr("class", "bar2")
       .attr("x", function(d) { return x(d.name) + x.rangeBand()/2; })
