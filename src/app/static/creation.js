@@ -3871,17 +3871,17 @@ var svg = d3.select(".chart")
       .attr("x", function(d) { return x(d.name); })
       .attr("width", x.rangeBand()/2)
       .attr("y", function(d) { return y0(d.freq); })
-	  .attr("height", function(d,i,j) { return height - y0(d.freq); })
-	  .on("click",function(d){
-
-        if (active_link === "0") { //nothing selected, turn on this selection
-          d3.select(this)
-            .style("stroke", "black")
-            .style("stroke-width", 2);
-
-            active_link = this.id.split("id").pop();
-            plotSingle(this);
-       });
+	  .attr("height", function(d,i,j) { return height - y0(d.freq); });
+//	  .on("click",function(d){
+//
+//        if (active_link === "0") { //nothing selected, turn on this selection
+//          d3.select(this)
+//            .style("stroke", "black")
+//            .style("stroke-width", 2);
+//
+//            active_link = this.id.split("id").pop();
+//            plotSingle(this);
+//       });
   bars.append("rect")
       .attr("class", "bar2")
       .attr("x", function(d) { return x(d.name) + x.rangeBand()/2; })
