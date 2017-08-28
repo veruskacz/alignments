@@ -520,7 +520,7 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
         {}
     }} {} """.format(select, prop, union, group_by)
 
-    # print query
+    print query
     response = sparql2matrix(query)
     if display is True:
         Qry.display_matrix(response, spacing=50, is_activated=True)

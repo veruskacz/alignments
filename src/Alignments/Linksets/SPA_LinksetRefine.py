@@ -704,4 +704,4 @@ def is_refinable(graph):
         return {St.message: False, St.result: result}
 
 
-is_refinable("http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579")
+# print is_refinable("http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579")
