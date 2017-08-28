@@ -3668,6 +3668,12 @@ function calculateDatasetStats()
     $('#chart_dataset_linking_stats').html('');
     $('#dataset_linking_stats_results').html('');
     $('#dataset_linking_stats_cluster_results').html('');
+    $('#dataset_linking_stats_cluster_results_details').html('');
+    $("#collapse_dataset_linking_stats_table").collapse("hide");
+    $("#collapse_dataset_linking_stats_graphic").collapse("hide");
+    $("#collapse_dataset_linking_stats_cluster").collapse("hide");
+    $("#collapse_dataset_linking_stats_cluster_details").collapse("hide");
+
 
     var checkOptionalLabel = document.getElementById('optionalLabelCheckBok');
     if (checkOptionalLabel.checked)
@@ -3708,6 +3714,19 @@ function calculateDatasetStats()
         $("#collapse_dataset_linking_stats_cluster").collapse("show");
 
         loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
+
+       // set actions after clicking a graph in the list
+       $('#dataset_linking_stats_cluster_results TR').on('click',function(e){
+            $.get('/getDatasetLinkingClusterDetails',data={'cluster': $(this).attr('cluster')}, function(data)
+            {
+            var obj = JSON.parse(data);
+            $('#dataset_linking_stats_cluster_results_details').html(obj.result);
+            $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
+              //alert($(this).attr('cluster'));
+//        //  x.append(
+//        //  "<div><table><TR><TD>" + String(x.rowIndex) + "</TD></table></div>"
+            });
+        });
       });
   });
 }
@@ -3924,4 +3943,5 @@ function wrap(text, width) {
     }
   });
 }
+
 

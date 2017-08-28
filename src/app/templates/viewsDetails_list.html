@@ -7,9 +7,11 @@
  </thead>
  <tbody>
  {% for row in results %}
- <TR>
+ <TR {% if (clustersList) %}
+         cluster="{{ clustersList[loop.index0] }}"
+    {% endif %} >
     {% for col in row %}
-    <TD>{{ col }}</TD>
+    <TD >{{ col }}</TD>
     {% endfor %}
  {% endfor %}
  </tbody>

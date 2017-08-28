@@ -1892,18 +1892,44 @@ def datasetLinkingClusters():
     counter = 0
     header = ['id', 'size', 'prop', 'sample']
     results = []
+    clustersList = []
     for parent, cluster in clusters.items():
         if len(cluster) > 15:
             # print "\n{:10}\t{:3}".format(key, len(value))
-            response = Clt.cluster_values2(cluster, properties, distinct_values=False, display=False)
-            if counter > 50:
-                break
+            clustersList += [cluster]
+            response = Clt.cluster_values2([cluster[0]], properties, distinct_values=False, display=False)
+            # if counter > 50:
+            #     break
             counter +=1
             if response['result'] and len(response['result']) > 1:
                 # print response['result']
                 results += [[str(counter), str(len(cluster)), response['result'][1][0], response['result'][1][3].decode('utf-8')]]
 
     if len(results) > 1:
+        message = "Have a look at the result in the table below"
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
+    else:
+        message = "The query was successfully run with no result to show. " \
+                  "<br/>Probably the selected properties need some revising."
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': message, 'result': None})
+
+
+@app.route('/getDatasetLinkingClusterDetails')
+def datasetLinkingClusterDetails():
+    clusterStr = request.args.get('cluster')
+
+    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name", "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+
+    cluster = clusterStr[1:-1].replace('rdflib.term.URIRef(u\'','').replace('\')','').split(', ')
+    print cluster[0]
+    results = []
+    response = Clt.cluster_values2(cluster, properties, distinct_values=True, limit_resources=0)
+    if response['result'] and len(response['result']) > 1:
+        print response['result']
+        header = response['result'][0]
+        results = response['result'][1:]
         message = "Have a look at the result in the table below"
         return json.dumps({'message': message,
                            'result': render_template('viewsDetails_list.html', header = header, results = results)})
