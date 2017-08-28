@@ -1901,7 +1901,7 @@ def datasetLinkingClusters():
             counter +=1
             if response['result'] and len(response['result']) > 1:
                 # print response['result']
-                results += [[str(counter), str(len(cluster)), response['result'][1][0], response['result'][1][3]]]
+                results += [[str(counter), str(len(cluster)), response['result'][1][0], response['result'][1][3].decode('utf-8')]]
 
     if len(results) > 1:
         message = "Have a look at the result in the table below"
