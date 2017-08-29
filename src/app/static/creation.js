@@ -3667,12 +3667,7 @@ function calculateDatasetStats()
     d3.selectAll("svg > *").remove();
     $('#chart_dataset_linking_stats').html('');
     $('#dataset_linking_stats_results').html('');
-    $('#dataset_linking_stats_cluster_results').html('');
-    $('#dataset_linking_stats_cluster_results_details').html('');
-    $("#collapse_dataset_linking_stats_table").collapse("hide");
     $("#collapse_dataset_linking_stats_graphic").collapse("hide");
-    $("#collapse_dataset_linking_stats_cluster").collapse("hide");
-    $("#collapse_dataset_linking_stats_cluster_details").collapse("hide");
 
 
     var checkOptionalLabel = document.getElementById('optionalLabelCheckBok');
@@ -3686,8 +3681,6 @@ function calculateDatasetStats()
         var computeCluster = 'yes';
     else
         var computeCluster = 'no';
-
-  $("#collapse_dataset_linking_stats").collapse("show");
 
   $.get('/getDatasetLinkingStats',data={'dataset': $('#selected_dataset').attr('uri'),
                                  'entityType': $('#dts_selected_entity-type').attr('uri'),
@@ -3705,6 +3698,20 @@ function calculateDatasetStats()
         plotDatasetLinkingStats3(obj.plotdata);
     $("#collapse_dataset_linking_stats_graphic").collapse("show");
 
+    loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
+
+  });
+}
+
+function calculateDatasetCluster()
+{
+    $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
+    loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
+
+    $('#dataset_linking_stats_cluster_results').html('');
+    $('#dataset_linking_stats_cluster_results_details').html('');
+    $("#collapse_dataset_linking_stats_cluster").collapse("hide");
+    $("#collapse_dataset_linking_stats_cluster_details").collapse("hide");
 
       $.get('/getDatasetLinkingClusters',data={'dataset': $('#selected_dataset').attr('uri'),
                                      'entityType': $('#dts_selected_entity-type').attr('uri')}, function(data)
@@ -3712,23 +3719,26 @@ function calculateDatasetStats()
         var obj = JSON.parse(data);
         $('#dataset_linking_stats_cluster_results').html(obj.result);
         $("#collapse_dataset_linking_stats_cluster").collapse("show");
-
-        loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
+        $('#dataset_linking_cluster_message_col').html(addNote(obj.message,cl='info'));
+        loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2, show = false);
 
        // set actions after clicking a graph in the list
        $('#dataset_linking_stats_cluster_results TR').on('click',function(e){
-            $.get('/getDatasetLinkingClusterDetails',data={'cluster': $(this).attr('cluster')}, function(data)
+            var checkboxGroupDistValues = document.getElementById('checkboxGroupDistValues');
+            if (checkboxGroupDistValues.checked)
+                var groupDistValues = 'yes';
+            else
+                var groupDistValues = 'no';
+            $.get('/getDatasetLinkingClusterDetails',data={'cluster': $(this).attr('cluster'),
+                                                           'groupDistValues': groupDistValues }, function(data)
             {
             var obj = JSON.parse(data);
             $('#dataset_linking_stats_cluster_results_details').html(obj.result);
             $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
-              //alert($(this).attr('cluster'));
-//        //  x.append(
-//        //  "<div><table><TR><TD>" + String(x.rowIndex) + "</TD></table></div>"
+
             });
         });
       });
-  });
 }
 
 //$('#submit_file_button').addEventListener("click", myScript);
@@ -3771,7 +3781,7 @@ function calculateDatasetStats()
 
 function plotDatasetLinkingStats3(data){
 var margin = {top: 20, right: 30, bottom: 30, left: 40},
-    width = 960 - margin.left - margin.right,
+    width = 940 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 var x = d3.scale.ordinal()
@@ -3830,7 +3840,7 @@ var chart = d3.select(".chart")
 function plotDatasetLinkingStats4(data){
 
 var margin = {top: 20, right: 30, bottom: 30, left: 40},
-    width = 1080 - margin.left - margin.right,
+    width = 1040 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 var x = d3.scale.ordinal()

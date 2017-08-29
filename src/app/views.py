@@ -1918,14 +1918,15 @@ def datasetLinkingClusters():
 
 @app.route('/getDatasetLinkingClusterDetails')
 def datasetLinkingClusterDetails():
-    clusterStr = request.args.get('cluster')
+    clusterStr = request.args.get('cluster','')
+    distinctValues = request.args.get('groupDistValues','yes')
 
     properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name", "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
 
     cluster = clusterStr[1:-1].replace('rdflib.term.URIRef(u\'','').replace('\')','').split(', ')
     print cluster[0]
-    results = []
-    response = Clt.cluster_values2(cluster, properties, distinct_values=True, limit_resources=0)
+    # results = []
+    response = Clt.cluster_values2(cluster, properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
         print response['result']
         header = response['result'][0]
