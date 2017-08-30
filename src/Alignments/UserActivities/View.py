@@ -345,7 +345,7 @@ def view(view_specs, view_filter, save=False, limit=10):
 
             # About the dataset: [NAMESPACE, NAME]
             ds_ns_name = Ut.get_uri_ns_local_name(graph_uri)
-            if ds_ns_name[1][0] in range(0, 10):
+            if ds_ns_name[1][0].isdigit():
                 ds_ns_name[1] = "D{}".format(ds_ns_name[1])
             print ds_ns_name
             # shortening prefix length
