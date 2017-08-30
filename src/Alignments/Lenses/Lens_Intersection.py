@@ -184,6 +184,12 @@ def intersection(specs, display=False):
                     src = Ut.get_uri_local_name(targets[i][0])
                     trg = Ut.get_uri_local_name(targets[i][1])
 
+                    if src[0] in range(0, 10):
+                        src = "D{}".format(src)
+
+                    if trg[0] in range(0, 10):
+                        trg = "D{}".format(trg)
+
                     src_TYPE = Ut.get_uri_local_name(targets[i][2])
                     trg_TYPE = Ut.get_uri_local_name(targets[i][3])
 
@@ -210,6 +216,12 @@ def intersection(specs, display=False):
             elif targets and len(targets) == 2:
                 src = Ut.get_uri_local_name(targets[1][0])
                 trg = Ut.get_uri_local_name(targets[1][1])
+
+                if src[0] in range(0, 10):
+                    src = "D{}".format(src)
+
+                if trg[0] in range(0, 10):
+                    trg = "D{}".format(trg)
 
                 src_TYPE = Ut.get_uri_local_name(targets[1][2])
                 trg_TYPE = Ut.get_uri_local_name(targets[1][3])

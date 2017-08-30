@@ -345,7 +345,9 @@ def view(view_specs, view_filter, save=False, limit=10):
 
             # About the dataset: [NAMESPACE, NAME]
             ds_ns_name = Ut.get_uri_ns_local_name(graph_uri)
-
+            if ds_ns_name[1][0] in range(0, 10):
+                ds_ns_name[1] = "D{}".format(ds_ns_name[1])
+            print ds_ns_name
             # shortening prefix length
             short_name = ds_ns_name[1]
 
@@ -387,7 +389,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                 # view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], "", type_triple)
 
                 # Adding the resource as a variable to the variable list
-                view_select += " ?{}{}".format(ds_ns_name[1], e_type, )
+                view_select += " ?{}{}_1".format(ds_ns_name[1], e_type, )
 
                 t_properties = data_info[St.properties]
 
