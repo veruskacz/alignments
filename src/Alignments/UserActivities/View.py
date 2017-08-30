@@ -382,7 +382,8 @@ def view(view_specs, view_filter, save=False, limit=10):
 
                 #   ?GRID
                 # TODO ADD THE TYPE TO THE ALIGNMENTS IN THE INTERSECT
-                view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], e_type, type_triple)
+                # SUBJECT: ADDING 1 AT THE END SO THAT SAME SOURCE AND TARGET ARE TAKEN CARE OFF
+                view_where += "\n\t\t?{}{}_1{}".format(ds_ns_name[1], e_type, type_triple)
                 # view_where += "\n\t\t?{}{}{}".format(ds_ns_name[1], "", type_triple)
 
                 # Adding the resource as a variable to the variable list
@@ -494,7 +495,7 @@ def view(view_specs, view_filter, save=False, limit=10):
                                 else:
                                     view_select += value
 
-                    # >>> PROPERTY IS A OF TUPLE WITH THE PROPERTY AND A BOOLEAN
+                    # >>> PROPERTY IS A SET OF TUPLE WITH THE PROPERTY AND A BOOLEAN
                     # VALE INDICATING WHETHER OR NOT THE PROPERTY IS OPTIONAL
                     elif type(t_properties[i]) is tuple:
 

@@ -25,7 +25,6 @@ target_specs = {
     St.entity_datatype: "http://risis.eu/Panellists/ontology/class/Panelists"
 }
 
-
 # source_specs = {
 #     St.graph: "http://risis.eu/dataset/grid_20170712",
 #     St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
@@ -38,7 +37,6 @@ target_specs = {
 #     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"
 # }
 
-
 specs = {
     St.source: source_specs,
     St.target: target_specs,
@@ -50,7 +48,6 @@ specs = {
     St.insert_query: "",
     St.researchQ_URI: "http://risis.eu/activity/idea_8b78a8"
 }
-
 
 # Helper.stop_words_string =  "THE FOR IN THAT AND OF ON DE LA LES INC"
 Helper.stop_symbols_string = "\.\-\,\+'\?;()"
@@ -66,7 +63,6 @@ link = "alivocab:invertedIndexStrSim"
 
 theta = 0.5
 count = 0
-
 
 src_dataset = Helper.get_table(source_specs)
 trg_dataset = Helper.get_table(target_specs)

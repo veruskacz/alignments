@@ -178,6 +178,7 @@ def intersection(specs, display=False):
                 union = ""
 
                 for i in range(1, len(targets)):
+
                     append = "UNION" if i < len(targets) -1 else ""
                     tab = "" if i == 1 else ""
                     src = Ut.get_uri_local_name(targets[i][0])
@@ -186,8 +187,15 @@ def intersection(specs, display=False):
                     src_TYPE = Ut.get_uri_local_name(targets[i][2])
                     trg_TYPE = Ut.get_uri_local_name(targets[i][3])
 
-                    union += "\n\t\t{0}{{ ?{1}_{5}  ?predicate_{2}  ?{3}_{6} . }} {4}".format(
-                        tab, src, i, trg, append, src_TYPE[short:],  trg_TYPE[short:])
+                    src_variable = "{}_{}_1".format(src, src_TYPE[short:])
+
+                    if src == trg and src_TYPE == trg_TYPE:
+                        trg_variable = "{}_{}_2".format(trg, trg_TYPE[short:])
+                    else:
+                        trg_variable = "{}_{}_1".format(trg, trg_TYPE[short:])
+
+                    union += "\n\t\t{0}{{ ?{1}  ?predicate_{2}  ?{3} . }} {4}".format(
+                        tab, src_variable, i, trg_variable, append)
 
                 union = """
     ### ABOUT {0}
@@ -206,13 +214,20 @@ def intersection(specs, display=False):
                 src_TYPE = Ut.get_uri_local_name(targets[1][2])
                 trg_TYPE = Ut.get_uri_local_name(targets[1][3])
 
+                src_variable = "{}_{}_1".format(src, src_TYPE[short:])
+
+                if src == trg and src_TYPE == trg_TYPE:
+                    trg_variable = "{}_{}_2".format(trg, trg_TYPE[short:])
+                else:
+                    trg_variable = "{}_{}_1".format(trg, trg_TYPE[short:])
+
                 inter += """
     ### ABOUT {0}
     GRAPH <{0}>
     {{
-        ?{1}_{4}    ?pred_{2}   ?{3}_{5} .
+        ?{1}    ?pred_{2}   ?{3} .
     }}
-    """.format(graph, src, count_graph, trg, src_TYPE[short:],  trg_TYPE[short:])
+    """.format(graph, src_variable, count_graph, trg_variable)
 
         count_graph += 1
 

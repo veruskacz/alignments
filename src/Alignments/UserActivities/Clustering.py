@@ -496,12 +496,12 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
         union += """ {}
         {{
             bind(<{}> as ?resource)
-            graph ?input_dataset {{ ?resource ?property ?obj . }}
+            graph ?dataset {{ ?resource ?property ?value . }}
         }}""".format(append, cluster[i])
 
     if distinct_values is True:
-        select = '?obj (count(distinct ?resource) as ?count)'
-        group_by = 'group by ?obj order by desc(?count)'
+        select = '?dataset ?value (count(distinct ?resource) as ?count)'
+        group_by = 'group by ?value ?dataset order by desc(?count)'
     else:
         select = '*'
         group_by = ''
@@ -526,7 +526,6 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
         Qry.display_matrix(response, spacing=50, is_activated=True)
     return response
 
-
 # test = [('x','y'), ('x','B'), ('w','B'), ('x','w'), ('e','d'), ('e','y'),
 # ('s', 'w'),('a','b'),('h','j'),('k','h'),('k','s'),('s','a')]
 # clus= cluster(test)
@@ -536,7 +535,6 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
 # test = cluster_triples("http://risis.eu/linkset/subset_openAire_20170816_openAire_20170816_"
 #                        "embededAlignment_Organization_sameAs_P541043043")
 
-
 # groups = cluster_dataset("http://risis.eu/dataset/grid_20170712", "http://xmlns.com/foaf/0.1/Organization")
 # properties = ["http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
 # for key, value in groups.items():
@@ -544,7 +542,6 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
 #         print "\n{:10}\t{:3}".format(key, len(value))
 #         response = cluster_values(value, properties)
 #         exit(0)
-
 
 # groups = cluster_dataset("http://goldenagents.org/datasets/Ecartico", "http://ecartico.org/ontology/Person")
 # # print groups
@@ -558,8 +555,6 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
 #             exit(0)
 #         counter +=1
 
-
-#
 # groups = cluster_triples2("http://risis.eu/linkset/refined_003MarriageRegistries_Ecartico_exactStrSim_Person_full_name_N3531703432838097870_approxNbrSim_isInRecord_registration_date_P0")
 # counter = 0
 # for item in groups:
