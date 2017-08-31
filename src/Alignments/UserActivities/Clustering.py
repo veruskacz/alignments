@@ -482,6 +482,7 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
     """
     prop = ""
     union = ""
+    print "\nCLUSTER SIZE: {}".format(len(cluster))
 
     for uri in properties:
         prop += " <{}>".format(uri.strip())

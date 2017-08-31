@@ -299,28 +299,28 @@ def enrichdataset():
     return json.dumps(result)
 
 
-@app.route('/getcorrespheader', methods=['GET'])
-def correspondencesHeader():
-
-    rq_uri = request.args.get('rq_uri', '')
-    graph_uri = request.args.get('graph_uri', '')
-    filter_uri = request.args.get('filter_uri', '')
-    filter_term = request.args.get('filter_term', '').replace('\"','').replace('\'','')
-
-    query = Qry.get_correspondHeader(rq_uri, graph_uri, filter_uri, filter_term)
-    data = sparql(query, strip=True)
-
-    header_template = """<h3><strong>Correspondences</strong></h3>
-                          <span class="badge alert-primary"> {{ graph_label }} </span> contains
-                          <span id='triples_span' class="badge alert-success">{{ graph_triples }}</span> triples
-                            {% if alignsMechanism != ''%}
-                          , aligned using the <span class="badge alert-info"> {{ alignsMechanism|upper }}</span> mechanism.
-                            {%endif%}
-                            {% if operator != ''%}
-                           generated using the <span class="badge alert-info"> {{ operator|upper }}</span> operator.
-                            {%endif%}"""
-
-    return render_template(header_template, data)
+# @app.route('/getcorrespheader', methods=['GET'])
+# def correspondencesHeader():
+#
+#     rq_uri = request.args.get('rq_uri', '')
+#     graph_uri = request.args.get('graph_uri', '')
+#     filter_uri = request.args.get('filter_uri', '')
+#     filter_term = request.args.get('filter_term', '').replace('\"','').replace('\'','')
+#
+#     query = Qry.get_correspondHeader(rq_uri, graph_uri, filter_uri, filter_term)
+#     data = sparql(query, strip=True)
+#
+#     header_template = """<h3><strong>Correspondences</strong></h3>
+#                           <span class="badge alert-primary"> {{ graph_label }} </span> contains
+#                           <span id='triples_span' class="badge alert-success">{{ graph_triples }}</span> triples
+#                             {% if alignsMechanism != ''%}
+#                           , aligned using the <span class="badge alert-info"> {{ alignsMechanism|upper }}</span> mechanism.
+#                             {%endif%}
+#                             {% if operator != ''%}
+#                            generated using the <span class="badge alert-info"> {{ operator|upper }}</span> operator.
+#                             {%endif%}"""
+#
+#     return render_template(header_template, data)
 
 
 @app.route('/getcorrespondences', methods=['GET'])
@@ -1885,10 +1885,12 @@ def datasetLinkingClusters():
     dataset = request.args.get('dataset', '')
     entityType = request.args.get('entityType', '')
 
-    print "\nPROCESSING THE RESULT..."
+    print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     clusters = Clt.cluster_dataset(dataset, entityType)
 
-    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name", "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
+                  "http://xmlns.com/foaf/0.1/name",
+                  "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
     counter = 0
     header = ['id', 'size', 'prop', 'sample']
     results = []
@@ -1897,13 +1899,27 @@ def datasetLinkingClusters():
         if len(cluster) > 15:
             # print "\n{:10}\t{:3}".format(key, len(value))
             clustersList += [cluster]
-            response = Clt.cluster_values2([cluster[0]], properties, distinct_values=False, display=False)
+            # SAMPLE OF THE CLUSTER
+            index = 0
+            sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
+
+            # print "sample['result']", sample['result']
+            # TRY MORE ROWS TO FINALLY GET A SAMPLE
+            while index + 1 < len(cluster) and (sample['result'] is None or len(sample['result'])) < 2:
+                index += 1
+                sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
+                if sample['result'] and len(sample['result']) > 1:
+                    break
+
+            # print cluster[0]
             # if counter > 50:
             #     break
             counter +=1
-            if response['result'] and len(response['result']) > 1:
+            if sample['result'] and len(sample['result']) > 1:
                 # print response['result']
-                results += [[str(counter), str(len(cluster)), response['result'][1][0], response['result'][1][3].decode('utf-8')]]
+                results += [[str(counter), str(len(cluster)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+            else:
+                results += [[str(counter), str(len(cluster)), "-", "No value found"]]
 
     if len(results) > 1:
         message = "Have a look at the result in the table below"
@@ -1921,7 +1937,9 @@ def datasetLinkingClusterDetails():
     clusterStr = request.args.get('cluster','')
     distinctValues = request.args.get('groupDistValues','yes')
 
-    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name", "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
+                  "http://xmlns.com/foaf/0.1/name",
+                  "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
 
     cluster = clusterStr[1:-1].replace('rdflib.term.URIRef(u\'','').replace('\')','').split(', ')
     print cluster[0]
@@ -2399,7 +2417,6 @@ def sparql_update(query, endpoint_url=UPDATE_URL):
         params={'reasoning': REASONING_TYPE}, data=query, headers=UPDATE_HEADERS)
 
     return result.content
-
 
 
 def sparql(query, strip=False, endpoint_url=ENDPOINT_URL):

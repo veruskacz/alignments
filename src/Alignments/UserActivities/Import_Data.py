@@ -431,13 +431,15 @@ def import_graph(file_path, upload_folder, upload_archive, parent_predicate_inde
     return {"message": message}
 
 
-def download_data(endpoint, entity_type, graph, directory,  limit, main_query=None, count_query=None, activated=False):
+def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
+                  start_at=0, main_query=None, count_query=None, activated=False):
 
     if activated is False:
         print "\nTHE FUNCTION IS NOT ACTIVATED"
         return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
 
     triples = 0
+
     print "\n\tENDPOINT  : {}\n\tDIRECTORY : {}".format(endpoint, directory)
 
     # MAKE SURE THE FOLDER EXISTS
@@ -470,7 +472,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, main_query=No
     print "\n\tTOTAL TRIPLES TO RETREIVE  : {}\n\tTOTAL NUMBER OF ITERATIONS : {}\n".format(triples, iterations)
 
     # ITERATIONS
-    for i in range(0, iterations):
+    for i in range(start_at, iterations):
 
         if i == 0:
             offset = 0
@@ -508,7 +510,8 @@ def download_data(endpoint, entity_type, graph, directory,  limit, main_query=No
     b_writer.write(load_text)
     b_writer.close()
     os.chmod(b_file, 0o777)
-    # Ut.batch_load(b_file)
+    if load is True:
+        Ut.batch_load(b_file)
 
     message = "You have just successfully downloaded [{}] triples.\n" \
               "{} files where created in the folder [{}] and loaded into the [{}] dataset. ".format(

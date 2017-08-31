@@ -63,11 +63,34 @@ download(endpoint=endpoint, entity_type=entity_type, graph=graph, directory=dire
          limit=10000, main_query=main_query, count_query=count_query, activated=False)
 
 # DOWNLOADING DBPEDIA ORGANIZATION
-entity_type = "organization"
+dbo = "http://dbpedia.org/ontology/Organisation"
+dbo_directory = "D:/datasets/dbpedia/dbpediaOntologyOrganisation"
+edbo_ntity_type = "organisation"
+
+foaf = "<http://xmlns.com/foaf/0.1/Organization>"
 directory = "D:/datasets/dbpedia/organisation"
+entity_type = "organization"
+
 endpoint= "http://dbpedia.org/sparql"
 graph = "{}dbpedia_organisation_20170823".format(Ns.dataset)
-count_q = "SELECT (COUNT(?subj) as ?total) WHERE {?subj a <http://xmlns.com/foaf/0.1/Organization> ; ?pred ?object .}"
-main_q = "CONSTRUCT { ?subj ?pred ?object } WHERE {?subj a <http://xmlns.com/foaf/0.1/Organization> ; ?pred ?object .}"
-download(endpoint=endpoint, entity_type=entity_type, graph=graph, directory=directory,
-         limit=10000, main_query=main_q, count_query=count_q, activated=True)
+count_q = "SELECT (COUNT(?subj) as ?total) WHERE {{?subj a <{}> ; ?pred ?object .}}".format(dbo)
+main_q = "CONSTRUCT {{ ?subj ?pred ?object }} WHERE {{ ?subj a <{}> ; ?pred ?object .}}".format(dbo)
+download(endpoint=endpoint, entity_type=edbo_ntity_type, graph=graph, directory=dbo_directory,
+         limit=10000, start_at=2448, main_query=main_q, count_query=count_q, activated=False)
+
+# DOWNLOADING DBPEDIA ORGANIZATION TYPE AND LABEL ONLY
+label_count_q = """
+SELECT (COUNT(?subj) as ?total)
+WHERE {{ ?subj a <{}> ; <http://www.w3.org/2000/01/rdf-schema#label> ?object . }}""".format(dbo)
+
+label_main_q = """
+CONSTRUCT {{ ?subj a <{0}> ; <http://www.w3.org/2000/01/rdf-schema#label> ?object . }}
+WHERE {{ ?subj a <{0}> ; <http://www.w3.org/2000/01/rdf-schema#label> ?object . }}""".format(dbo)
+dbp_endpoint = "http://dbpedia.org/sparql"
+dbo_label_directory = "D:/datasets/dbpedia/dbpediaOntologyOrganisationLabel"
+
+download(endpoint=dbp_endpoint, entity_type=edbo_ntity_type, graph=graph, directory=dbo_label_directory,
+         limit=10000, start_at=0, main_query=label_main_q, count_query=label_count_q, activated=True)
+
+
+
