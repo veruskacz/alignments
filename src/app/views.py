@@ -1902,7 +1902,7 @@ def datasetLinkingClusters():
     results = []
     clustersList = []
     for parent, cluster in clusters.items():
-        if True: #len(cluster) > 15:
+        if len(cluster) > 2:
             print "\n{:10}\t{:3}".format(parent, len(cluster))
             clustersList += [cluster]
             # SAMPLE OF THE CLUSTER

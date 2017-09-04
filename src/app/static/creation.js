@@ -3891,8 +3891,6 @@ function calculateDatasetStats()
 
 function calculateDatasetCluster()
 {
-    $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
-    loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
 
     $('#dataset_linking_stats_cluster_results').html('');
     $('#dataset_linking_stats_cluster_results_details').html('');
@@ -3919,6 +3917,9 @@ function calculateDatasetCluster()
 
     if ((alignments.length > 0) && (properties.length > 0))
     {
+        $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
+        loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
+
       $.get('/getDatasetLinkingClusters',data={'dataset': $('#selected_dataset').attr('uri'),
                                      'entityType': $('#dts_selected_entity-type').attr('uri'),
                                      'alignments[]': alignments,
@@ -3951,7 +3952,7 @@ function calculateDatasetCluster()
     }
     else
     {
-        $('#dataset_linking_stats_message_col').html(addNote(missing_feature));
+        $('#dataset_linking_cluster_message_col').html(addNote(missing_feature));
     }
 
 }
