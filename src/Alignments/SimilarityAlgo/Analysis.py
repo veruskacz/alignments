@@ -2,7 +2,7 @@
 
 
 import re
-from time import time, ctime, gmtime
+from time import time   # , ctime, gmtime
 import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
@@ -16,7 +16,7 @@ LIMIT = ""
 
 
 def get_tf(specs, is_token=True,
-           stop_words_string="THE FOR IN THAT AND OF ON DE LA LES ltd inc", stop_symbols_string = "\.\-\,\+'\?"):
+           stop_words_string="THE FOR IN THAT AND OF ON DE LA LES ltd inc", stop_symbols_string="\.\-\,\+'\?"):
 
     term_frequency = dict()
 
@@ -67,10 +67,9 @@ def get_tf(specs, is_token=True,
             else:
                 term_frequency[in_tokens] += 1
 
-
     print "\n3. LOAD SAMPLE"
 
-    list = []
+    freq_list = []
     count = 0
     biggest = 0
     term = ""
@@ -85,7 +84,7 @@ def get_tf(specs, is_token=True,
                 term = token
 
             if frequency > 1:
-                list += [{"text":token, "freq": frequency}]
+                freq_list += [{"text": token, "freq": frequency}]
 
             if count < 11:
                 print "\t{}".format(str({"text": to_unicode(token), "freq": frequency}))
@@ -93,12 +92,12 @@ def get_tf(specs, is_token=True,
     t_load = time()
 
     print "\n4. FREQUENCY STATS.\n\t>>> LOADED IN         : {}" \
-          "\n\t>>> ITEM SIZE         : {}\n\t>>> BIGGEST FREQUENCY : {} | {}".format(
-        t_load - start, len(term_frequency), biggest, term)
+          "\n\t>>> ITEM SIZE         : {}\n\t>>> BIGGEST FREQUENCY : {} | {}".\
+        format(t_load - start, len(term_frequency), biggest, term)
 
     print "\nJOB DONE!!!!"
     # return term_frequency
-    return list
+    return freq_list
 
 
 # HELPER FOR EXTRACTING SPA VALUES FROM A GRAPH
@@ -226,11 +225,21 @@ def remove_info_in_bracket(text):
 
 
 # QUERY THAT COMPUTES STATISTICS OVER THE ALIGNMENTS INVOLVING A PARTICULAR DATASET
-def ds_stats(dataset, datatype, display = True, optionalLabel=True):
+def ds_stats(dataset, datatype, display=True, optional_label=True, graph_list=None):
 
     # QUERY THAT COMPUTES STATISTICS OVER THE ALIGNMENTS INVOLVING A PARTICULAR DATASET
 
-    commentOptLbl = '' if optionalLabel else '#'
+
+    append = "#" if graph_list is None else ""
+    values = ""
+
+    # LIST OF GRAPHS
+    if graph_list is not None:
+        for alignment in graph_list:
+            values += " {}".format(alignment)
+
+    comment_opt_lbl = '' if optional_label else '#'
+
     query = """
     PREFIX void: <http://rdfs.org/ns/void#>
     PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
@@ -239,6 +248,7 @@ def ds_stats(dataset, datatype, display = True, optionalLabel=True):
     PREFIX ll: <http://risis.eu/alignment/predicate/>
     PREFIX skos:        <{2}>
 
+    {4}VALUES ?linkset {{ {5} }}
     SELECT DISTINCT ?dataset ?alignsMechanism
     (COUNT(DISTINCT ?RESOURCE) as ?total) ?subTotal
     (ROUND((?subTotal / COUNT(DISTINCT ?RESOURCE) ) *10000)/100 as ?percentage) ?linkset ?linkset_uri
@@ -259,7 +269,7 @@ def ds_stats(dataset, datatype, display = True, optionalLabel=True):
          }}
          BIND (IF(bound(?lkst_label), ?lkst_label , ?linkset_uri) AS ?linkset)
 
-	    {{
+        {{
             SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset_uri ?dataset ?alignsMechanism
             {{
                 ?linkset_uri
@@ -276,9 +286,9 @@ def ds_stats(dataset, datatype, display = True, optionalLabel=True):
                 }}
                 FILTER (<{0}> = ?dataset)
             }} GROUP BY ?linkset_uri ?dataset ?alignsMechanism
-	    }}
-	    UNION
-	    {{
+        }}
+        UNION
+        {{
             SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset_uri ?dataset ?alignsMechanism
             {{
                 ?linkset_uri
@@ -314,9 +324,9 @@ def ds_stats(dataset, datatype, display = True, optionalLabel=True):
     }}
     GROUP BY ?linkset ?subTotal ?dataset ?alignsMechanism ?linkset_uri having (?subTotal > 0)
     ORDER BY ?dataset ?alignsMechanism
-    """.format(dataset, datatype, Ns.skos, commentOptLbl)
+    """.format(dataset, datatype, Ns.skos, comment_opt_lbl, append, values)
     # print query
-    if display == True:
+    if display is True:
         Qry.display_result(query=query, spacing=100, is_activated=True)
     return query
 
@@ -367,6 +377,7 @@ def linkset_stats(linkset):
     """.format(linkset)
     Qry.display_result(query=query, spacing=60, is_activated=True)
 
+
 # ds_stats("http://risis.eu/dataset/h2020", "http://xmlns.com/foaf/0.1/Organization")
 # linkset_stats("http://risis.eu/linkset/h2020_grid_20170712_exactStrSim_Organization_name_N1178738974")
 
@@ -379,4 +390,3 @@ def linkset_stats(linkset):
 # result = get_tf(spec, is_token=True)
 
 # print ds_stats("http://risis.eu/dataset/grid_20170712", datatype="http://xmlns.com/foaf/0.1/Organization")
-

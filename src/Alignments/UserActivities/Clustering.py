@@ -323,7 +323,7 @@ def cluster_dataset(dataset_uri, datatype_uri, graph_list=None):
     {{
         bind(<{}> as ?input_dataset)
         bind(<{}> as ?input_datatype)
-        {}VALUES ?linkset {}
+        {}VALUES ?linkset {{ {} }}
 
         graph ?input_dataset
         {{
