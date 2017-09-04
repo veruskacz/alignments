@@ -3,20 +3,20 @@ import rdflib
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.UserActivities.ExportAlignment as Exp
-from Alignments.Utility import get_uri_local_name as local_name
+# from Alignments.Utility import get_uri_local_name as local_name
 from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
 import Alignments.Query as Qry
 
 _format = "%a %b %d %H:%M:%S:%f %Y"
 
 
-def cluster(input):
+def cluster(graph):
 
     count = 0
     clusters = dict()
     root = dict()
 
-    for pair in input:
+    for pair in graph:
 
         count += 1
         child_1 = pair[0]
@@ -31,22 +31,22 @@ def cluster(input):
         has_parent_2 = True if child_2 in root else False
         print "{} Has Parents {}|{}".format(pair, has_parent_1, has_parent_2)
 
-        if (has_parent_1 is False and has_parent_2 is False):
+        if has_parent_1 is False and has_parent_2 is False:
 
             # GENERATE THE PARENT
             hash_value = hash(date + str(count))
-            parent = "_{}".format(str(hash_value).replace("-","N")) if str(hash_value).startswith("-") \
+            parent = "_{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
                 else "_P{}".format(hash_value)
 
             # ASSIGN A PARENT TO BOTH CHILD
             root[child_1] = parent
-            root[child_2 ] = parent
+            root[child_2] = parent
 
             # CREATE A CLUSTER
             if parent not in clusters:
-                clusters[parent] = [child_1, child_2 ]
+                clusters[parent] = [child_1, child_2]
 
-        elif (has_parent_1 is True and has_parent_2 is True):
+        elif has_parent_1 is True and has_parent_2 is True:
 
             # IF BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
             if clusters[root[child_1]] == clusters[root[child_2]]:
@@ -76,7 +76,7 @@ def cluster(input):
 
             # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
             parent = root[child_1]
-            root[child_2 ] = parent
+            root[child_2] = parent
             clusters[parent] += [child_2]
 
         elif has_parent_2 is True:
@@ -114,7 +114,7 @@ def cluster_triples(graph):
         count += 1
         child_1 = subject
         child_2 = obj
-        parent = ""
+        # parent = ""
 
         # DATE CREATION
         date = "{}".format(datetime.datetime.today().strftime(_format))
@@ -208,7 +208,7 @@ def cluster_triples2(graph, limit=0):
         count += 1
         child_1 = subject
         child_2 = obj
-        parent = ""
+        # parent = ""
 
         # DATE CREATION
         date = "{}".format(datetime.datetime.today().strftime(_format))
@@ -222,7 +222,9 @@ def cluster_triples2(graph, limit=0):
         if has_parent_1 is False and has_parent_2 is False:
 
             if limit != 0 and len(clusters) > limit:
-                continue ## Do not add new clusters
+                continue
+                # Do not add new clusters
+
             # GENERATE THE PARENT
             hash_value = hash(date + str(count))
             parent = "_{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
@@ -280,26 +282,35 @@ def cluster_triples2(graph, limit=0):
     print "3. NUMBER OF CLUSTER FOND: {}".format(len(clusters))
 
     result = []
-    for parent, cluster in clusters.items():
+    for parent, in_cluster in clusters.items():
         query = Qry.linkset_aligns_prop(graph)
         response = sparql2matrix(query)
         # print response
         # get one value per cluster in order to exemplify it
         sample = ''
-        if response['result'] and len(response['result']) >= 2: #header and one line
+        if response['result'] and len(response['result']) >= 2:  # header and one line
             # print response['result']
             properties = response['result'][1][:2]
-            sample_response = cluster_values2(cluster, properties, limit_resources=1)
-            if sample_response['result'] and len(sample_response['result']) >= 2: #header and one line
+            sample_response = cluster_values2(in_cluster, properties, limit_resources=1)
+            if sample_response['result'] and len(sample_response['result']) >= 2:  # header and one line
                 # print sample_response['result']
                 sample = sample_response['result'][1][0]
-        result += [{'parent': parent, 'cluster':cluster, 'sample': sample}]
+        result += [{'parent': parent, 'cluster': in_cluster, 'sample': sample}]
 
     return result
 
 
-def cluster_dataset(dataset_uri, datatype_uri):
+def cluster_dataset(dataset_uri, datatype_uri, graph_list=None):
 
+    append = "#" if graph_list is None else ""
+    values = ""
+
+    # LIST OF GRAPHS
+    if graph_list is not None:
+        for alignment in graph_list:
+            values += " {}".format(alignment)
+
+    # QUERY FOR LINKSETS INVOLVE AND THEIR RESPECTIVE DATA SOURCE
     query = """
     PREFIX void:    <{}>
     PREFIX bdb:     <{}>
@@ -310,21 +321,21 @@ def cluster_dataset(dataset_uri, datatype_uri):
 
     SELECT DISTINCT  ?linkset ?src_dataset ?trg_dataset
     {{
-		bind(<{}> as ?input_dataset)
-		bind(<{}> as ?datatype_uri)
+        bind(<{}> as ?input_dataset)
+        bind(<{}> as ?input_datatype)
+        {}VALUES ?linkset {}
 
         graph ?input_dataset
         {{
-            ?RESOURCE a ?datatype_uri .
+            ?RESOURCE a ?input_datatype .
         }}
 
         ?linkset
-
             void:subjectsTarget							?src_dataset  ;
             void:objectsTarget 							?trg_dataset  ;
-        	void:subjectsTarget|void:objectsTarget		?input_dataset  ;
-            bdb:subjectsDatatype|bdb:objectsDatatype	?datatype_uri .
-    }}""".format(Ns.void, Ns.bdb, Ns.dataset, Ns.foaf, Ns.alivocab, Ns.skos, dataset_uri, datatype_uri)
+            void:subjectsTarget|void:objectsTarget		?input_dataset  ;
+            bdb:subjectsDatatype|bdb:objectsDatatype	?input_datatype .
+    }}""".format(Ns.void, Ns.bdb, Ns.dataset, Ns.foaf, Ns.alivocab, Ns.skos, dataset_uri, datatype_uri, append, values)
     response = sparql2matrix(query)
 
     count = 0
@@ -339,8 +350,8 @@ def cluster_dataset(dataset_uri, datatype_uri):
         for row in range(1, len(matrix)):
 
             graph = matrix[row][0]
-            src_dataset = matrix[row][1]
-            trg_dataset = matrix[row][2]
+            # src_dataset = matrix[row][1]
+            # trg_dataset = matrix[row][2]
 
             # DOWNLOAD THE GRAPH
             print "\n0. DOWNLOADING THE GRAPH"
@@ -359,7 +370,7 @@ def cluster_dataset(dataset_uri, datatype_uri):
                 count += 1
                 child_1 = subject
                 child_2 = obj
-                parent = ""
+                # parent = ""
 
                 # DATE CREATION
                 date = "{}".format(datetime.datetime.today().strftime(_format))
@@ -430,11 +441,12 @@ def cluster_dataset(dataset_uri, datatype_uri):
     return clusters
 
 
-def cluster_values(cluster, properties, display=False):
+def cluster_values(g_cluster, properties, display=False):
 
     """
-    :param cluster: A LIST OF CLUSTERED RESOURCES
+    :param g_cluster: A LIST OF CLUSTERED RESOURCES
     :param properties: A LIST OF PROPERTIES OF INTEREST
+    :param display: if True, display the matrix as a table
     :return: A DICTIONARY WHERE THE RESULT OF THE QUERY IS OBTAINED USING THE KEY: result
     """
     prop = ""
@@ -442,7 +454,7 @@ def cluster_values(cluster, properties, display=False):
     for uri in properties:
         prop += " <{}>".format(uri.strip())
 
-    for i in range(0, len(cluster)):
+    for i in range(0, len(g_cluster)):
         if i > 0:
             append = "UNION"
         else:
@@ -451,7 +463,7 @@ def cluster_values(cluster, properties, display=False):
         {{
             bind(<{}> as ?resource)
             graph ?input_dataset {{ ?resource ?property ?obj . }}
-        }}""".format(append, cluster[i])
+        }}""".format(append, g_cluster[i])
 
     query = """
     PREFIX void: <http://rdfs.org/ns/void#>
@@ -469,25 +481,29 @@ def cluster_values(cluster, properties, display=False):
 
     # print query
     response = sparql2matrix(query)
-    Qry.display_matrix(response, spacing=100, is_activated=True)
+    if display is True:
+        Qry.display_matrix(response, spacing=100, is_activated=True)
     return response
 
 
-def cluster_values2(cluster, properties, distinct_values=True, display=False, limit_resources=100):
+def cluster_values2(g_cluster, properties, distinct_values=True, display=False, limit_resources=100):
 
     """
-    :param cluster: A LIST OF CLUSTERED RESOURCES
+    :param g_cluster: A LIST OF CLUSTERED RESOURCES
     :param properties: A LIST OF PROPERTIES OF INTEREST
+    :param distinct_values: return distinct resources
+    :param display: display the matrix as a table
+    :param limit_resources: limit the number of resources to include in the cluster
     :return: A DICTIONARY WHERE THE RESULT OF THE QUERY IS OBTAINED USING THE KEY: result
     """
     prop = ""
     union = ""
-    print "\nCLUSTER SIZE: {}".format(len(cluster))
+    print "\nCLUSTER SIZE: {}".format(len(g_cluster))
 
     for uri in properties:
         prop += " <{}>".format(uri.strip())
 
-    for i in range(0, len(cluster)):
+    for i in range(0, len(g_cluster)):
         if limit_resources != 0 and i > limit_resources:
             break
         if i > 0:
@@ -498,7 +514,7 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
         {{
             bind(<{}> as ?resource)
             graph ?dataset {{ ?resource ?property ?value . }}
-        }}""".format(append, cluster[i])
+        }}""".format(append, g_cluster[i])
 
     if distinct_values is True:
         select = '?dataset ?value (count(distinct ?resource) as ?count)'
@@ -526,6 +542,7 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
     if display is True:
         Qry.display_matrix(response, spacing=50, is_activated=True)
     return response
+
 
 # test = [('x','y'), ('x','B'), ('w','B'), ('x','w'), ('e','d'), ('e','y'),
 # ('s', 'w'),('a','b'),('h','j'),('k','h'),('k','s'),('s','a')]
@@ -556,7 +573,8 @@ def cluster_values2(cluster, properties, distinct_values=True, display=False, li
 #             exit(0)
 #         counter +=1
 
-# groups = cluster_triples2("http://risis.eu/linkset/refined_003MarriageRegistries_Ecartico_exactStrSim_Person_full_name_N3531703432838097870_approxNbrSim_isInRecord_registration_date_P0")
+# groups = cluster_triples2("http://risis.eu/linkset/refined_003MarriageRegistries_Ecartico_exactStrSim_Person_full_"
+#                           "name_N3531703432838097870_approxNbrSim_isInRecord_registration_date_P0")
 # counter = 0
 # for item in groups:
 #     if len(item['cluster']) > 1:
