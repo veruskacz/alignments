@@ -236,7 +236,7 @@ def ds_stats(dataset, datatype, display=True, optional_label=True, graph_list=No
     # LIST OF GRAPHS
     if graph_list is not None:
         for alignment in graph_list:
-            values += " {}".format(alignment)
+            values += " <{}>".format(alignment)
 
     comment_opt_lbl = '' if optional_label else '#'
 

@@ -308,7 +308,7 @@ def cluster_dataset(dataset_uri, datatype_uri, graph_list=None):
     # LIST OF GRAPHS
     if graph_list is not None:
         for alignment in graph_list:
-            values += " {}".format(alignment)
+            values += " <{}>".format(alignment)
 
     # QUERY FOR LINKSETS INVOLVE AND THEIR RESPECTIVE DATA SOURCE
     query = """
