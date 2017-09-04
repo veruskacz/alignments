@@ -1063,10 +1063,12 @@ def graphsperrqtype():
     mode = request.args.get('mode', 'inspect')
     btn_name = request.args.get('btn_name', type)
     template = request.args.get('template', 'list_dropdown.html')
+    dataset = request.args.get('dataset', None)
+
     if (mode == 'import'):
         graphs_query = Qry.get_graphs_related_to_rq_type(rq_uri,type)
     else:
-        graphs_query = Qry.get_graphs_per_rq_type(rq_uri,type)
+        graphs_query = Qry.get_graphs_per_rq_type(rq_uri, type, dataset)
     # RUN QUERY AGAINST ENDPOINT
     graphs = sparql(graphs_query, strip=True)
     if PRINT_RESULTS:
@@ -1818,14 +1820,15 @@ def datasetLinkingStats():
     entityType = request.args.get('entityType', '')
     optionalLabel = request.args.get('optionalLabel', 'yes') == 'yes'
     computeCluster = request.args.get('computeCluster', 'yes') == 'yes'
+    alignments = request.args.getlist('alignments[]')
 
     header = []
-    query = ds_stats(dataset, entityType, display=False, optionalLabel=optionalLabel)
+    query = ds_stats(dataset, entityType, display=False, optional_label=optionalLabel, graph_list=alignments)
 
     # print "\nRUNNING SPARQL QUERY:{}".format(query)
     dic_response = sparql2matrix(query)
-    print dic_response
-    print St.message in dic_response
+    # print dic_response
+    # print St.message in dic_response
 
     print "\nPROCESSING THE RESULT..."
     if dic_response[St.message] == "OK":
@@ -1884,20 +1887,23 @@ def datasetLinkingStats():
 def datasetLinkingClusters():
     dataset = request.args.get('dataset', '')
     entityType = request.args.get('entityType', '')
+    properties = request.args.getlist('properties[]')
+    alignments = request.args.getlist('alignments[]')
+    # print alignments
 
     print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
-    clusters = Clt.cluster_dataset(dataset, entityType)
+    clusters = Clt.cluster_dataset(dataset, entityType, alignments)
 
-    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
-                  "http://xmlns.com/foaf/0.1/name",
-                  "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+    # properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
+    #               "http://xmlns.com/foaf/0.1/name",
+    #               "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
     counter = 0
     header = ['id', 'size', 'prop', 'sample']
     results = []
     clustersList = []
     for parent, cluster in clusters.items():
-        if len(cluster) > 15:
-            # print "\n{:10}\t{:3}".format(key, len(value))
+        if True: #len(cluster) > 15:
+            print "\n{:10}\t{:3}".format(parent, len(cluster))
             clustersList += [cluster]
             # SAMPLE OF THE CLUSTER
             index = 0
@@ -1936,17 +1942,19 @@ def datasetLinkingClusters():
 def datasetLinkingClusterDetails():
     clusterStr = request.args.get('cluster','')
     distinctValues = request.args.get('groupDistValues','yes')
+    properties = request.args.getlist('properties[]')
+    # print properties
 
-    properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
-                  "http://xmlns.com/foaf/0.1/name",
-                  "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+    # properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
+    #               "http://xmlns.com/foaf/0.1/name",
+    #               "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
 
     cluster = clusterStr[1:-1].replace('rdflib.term.URIRef(u\'','').replace('\')','').split(', ')
-    print cluster[0]
+    # print cluster[0]
     # results = []
     response = Clt.cluster_values2(cluster, properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
-        print response['result']
+        # print response['result']
         header = response['result'][0]
         results = response['result'][1:]
         message = "Have a look at the result in the table below"

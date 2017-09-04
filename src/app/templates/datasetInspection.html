@@ -18,9 +18,22 @@
 </div>
 
 <div class="panel-body">
+
+  <div class="row"  >
+      <div class="col-md-12" id="dataset_inspection_select_RQ_col">
+        <div class="row rq" target = 'dataset_inspection_selected_RQ'>
+          <div class="col-md-2" id="button_dataset_inspection_RQ_col">
+              <!-- will be rendered via server -->
+          </div>
+          <div class="col-md-10">
+              <div class="well well-sm" id="dataset_inspection_selected_RQ" uri="" label="">Select a Research Question</div>
+          </div>
+       </div>
+      </div>
+  </div>
+
   <div class="row" id="dataset_inspect_row" >
     <div class="col-md-12">
-
 
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -106,6 +119,78 @@
         <div id="collapse_dataset_linking_stats" class="panel-collapse collapse in" target="link_collapse_dataset_linking_stats">
 
             <div class="panel-body">
+
+
+                <div class="row" id="dataset_linking_stats_selection_alginment_row">
+                    <div class="col-md-12">
+                      <div class="panel panel-default">
+                          <div class="panel-heading">
+                                  <a id="link_collapse_dataset_linking_stats_selection_alginment"
+                                     data-toggle="collapse" href="#collapse_dataset_linking_stats_selection_alginment">
+                                  <span class="badge alert-info"><strong>+</strong></span></a>
+                                  Alignment Selection <small>(select one or more alignments)</small>
+
+                          </div>
+                          <div id="collapse_dataset_linking_stats_selection_alginment" class="panel-collapse collapse" target="link_dataset_linking_stats_selection_alginment">
+                          <div class="panel-body">
+                              <div class="row">
+
+                                <div class="col-md-6" >
+                                    <div class="row">
+                                      <div class="col-md-10"><h4>Linksets</h4></div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-md-10">Select from the list:
+                                      </div>
+                                    </div>
+                                     <div class="row"> &nbsp </div>
+                                     <div class="row">
+                                         <div class="col-md-12">
+                                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                                       <input type="text" onkeyup='filterListGroup(this,"dataset_linking_stats_selection_linkset_col","dataset_linking_stats_selection_linkset_counter")'
+                                              placeholder="Search for names.." style='width: 75%'>
+                                          <span id="dataset_linking_stats_selection_linkset_counter" class="badge"></span>
+                                       </div>
+                                     </div>
+                                     <div class="row"> &nbsp </div>
+                                    <div class="row">
+                                      <div class="col-md-10" id="dataset_linking_stats_selection_linkset_col">
+
+                                      </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6" >
+                                    <div class="row">
+                                      <div class="col-md-10"><h4>Lenses</h4></div>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-md-10">Select from the list:
+                                      </div>
+                                    </div>
+                                     <div class="row"> &nbsp </div>
+                                     <div class="row">
+                                         <div class="col-md-12">
+                                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                                       <input type="text" onkeyup='filterListGroup(this,"dataset_linking_stats_selection_lens_col","dataset_linking_stats_selection_lens_counter")'
+                                              placeholder="Search for names.." style='width: 75%'>
+                                          <span id="dataset_linking_stats_selection_lens_counter" class="badge"></span>
+                                       </div>
+                                     </div>
+                                     <div class="row"> &nbsp </div>
+                                    <div class="row">
+                                      <div class="col-md-10" id="dataset_linking_stats_selection_lens_col">
+
+                                      </div>
+                                    </div>
+                                </div>
+
+                              </div>
+                          </div>
+                          </div>
+                      </div>
+                    </div>
+                </div>
 
                 <div class="row" id="dataset_linking_stats_row">
                   <div class="col-md-12">
@@ -204,6 +289,100 @@
                   </div>
                 </div>
 
+                <div class="row" id="dataset_linking_stats_selection_prop_row">
+                    <div class="col-md-12">
+                      <div class="panel panel-default">
+                       <div class="panel-heading">
+                          <div class="row">
+                              <div class="col-md-12">
+                                  <a id="link_collapse_dataset_linking_stats_selection_prop"
+                                     data-toggle="collapse" href="#collapse_dataset_linking_stats_selection_prop">
+                                      <span class="badge alert-info"><strong>+</strong></span></a>
+                                  Property Selection <small> (select a dataset bellow to see its attributes)</small>
+                              </div>
+                              <!--<h5><div class="col-md-6 text-right" style="color:red" id="view_creation_message_col"></div></h5>-->
+                              <!--<div class="col-md-8 text-right">-->
+                               <!--<table align="right">-->
+                                   <!--<tr align="right">-->
+                                       <!--<td align="right"><div id="dataset_linking_stats_selection_prop_message_col"></div></td>-->
+                                       <!--<td valign="center"><div class="loading"></div></td>-->
+                                       <!--<td align="right"><button type="button" id="dataset_linking_stats_selection_propButton" class="btn btn-success"-->
+                                          <!--data-toggle="button" onclick = 'createViewClick(mode="check")' >-->
+                                            <!--Check View-->
+                                       <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
+                                       <!--</button></td>-->
+                               <!--</table>-->
+                              <!--</div>-->
+                          </div>
+
+                       </div>
+                       <div id="collapse_dataset_linking_stats_selection_prop" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats_selection_prop">
+                          <div class="panel-body">
+                          <div class="row">
+
+                            <div class="col-md-4" >
+                                <div class="row">
+                                  <div class="col-md-12"><h4>Datasets</h4></div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-12">Select from the list:</div>
+                                </div>
+                                <div id="loading3" style='display:none'> Loading... </div>
+                                <div class="row">
+                                  <div class="col-md-12" >
+                                    <div class="list-group" id="dataset_linking_stats_selection_prop_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4" >
+                                <div class="row">
+                                  <div class="col-md-12"><h4>Attributes &nbsp
+                                        <small><strong> [<span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>]
+                                        </strong></small>
+                                    </h4>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-12" id="dataset_linking_stats_selection_prop_predicates_msg_col"></div>
+                                </div>
+                                <div class="row"> &nbsp </div>
+                             <div class="row">
+                                 <div class="col-md-12">
+                                <span class="glyphicon glyphicon glyphicon-search"></span>
+                               <input type="text" onkeyup='filterListGroup(this,"dataset_linking_stats_selection_prop_predicates_col","dataset_linking_stats_selection_prop_pred_counter")'
+                                      placeholder="Search for names.." style='width: 83%'>
+                                  <span id="dataset_linking_stats_selection_prop_pred_counter" class="badge"></span>
+                               </div>
+                             </div>
+                             <div class="row"> &nbsp </div>
+                                <div class="row">
+                                  <div class="col-md-12" id="dataset_linking_stats_selection_prop_predicates_col">
+
+                                  </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4" >
+                                <div class="row">
+                                  <div class="col-md-12"><h4>Selected Attributes</h4>
+                                  </div>
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-12">
+                                    <div class="list-group" id="dataset_linking_stats_selection_prop_selected_predicates_group"
+                                            style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+                          </div>
+                          </div>
+                       </div>
+                      </div>
+                    </div>
+                </div>
 
 
                 <div class="row" id="dataset_linking_stats_cluster">
@@ -214,7 +393,7 @@
                       <div class="col-md-4">
                             <a id="link_collapse_dataset_linking_stats_cluster"
                          data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster">
-                          <span class="badge alert-info"><strong>-</strong></span></a>Clusters
+                          <span class="badge alert-info"><strong>-</strong></span></a>Dataset Clusters
                       </div>
                       <div class="col-md-8 text-right">
                                 <table align="right">
@@ -224,7 +403,7 @@
                                        <td align="right">
                                             <button type="button" class="btn btn-primary"
                                             onclick='calculateDatasetCluster();'
-                                            >Compute Clusters
+                                            >Compute Dataset Clusters
                                             <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                                             </button>
                                            <br/>

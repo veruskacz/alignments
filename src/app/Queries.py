@@ -277,7 +277,7 @@ def get_graph_linkset():
 #     return query
 
 
-def get_graphs_per_rq_type(rq_uri, type=None):
+def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
     type_filter = ""
     type_filter_view = ""
     if type == "dataset":
@@ -297,6 +297,14 @@ def get_graphs_per_rq_type(rq_uri, type=None):
         type_filter = "?uri   rdf:type	bdb:Lens ."
     elif type == "view":
         type_filter_view = "?uri   rdf:type	<http://risis.eu/class/View> ."
+
+    if dataset is not None:
+        filter_dataset = """
+            ?uri    void:subjectsTarget|void:objectsTarget   <{}> .
+        """.format(dataset)
+    else:
+        filter_dataset = ""
+
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
@@ -334,8 +342,11 @@ def get_graphs_per_rq_type(rq_uri, type=None):
 
         ### FILTER THE TYPE OF GRAPH
         {1}
+
+        ### FILTER THE ALIGNED DATASET
+        {3}
     }}
-    """.format(rq_uri, type_filter, type_filter_view)
+    """.format(rq_uri, type_filter, type_filter_view, filter_dataset)
     if DETAIL:
         print query
     return query
