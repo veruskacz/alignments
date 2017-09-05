@@ -318,7 +318,7 @@ def bat_load(bat_path):
             # SUBPOCESS PRINT THE ENTIRE OUTPUT:
             #   THE FILES THAT WERE ADDED
             #   HOW MANY TRIPLES WHERE ADDED
-            output = subprocess.check_output(bat_path)
+            output = subprocess.check_output(bat_path, shell=True)
             output = re.sub('\(Conversion\).*\n', '', output)
 
             # THE OUTPUT CONTAINS FULL PATH THAT IS NOT ADVISABLE TO DISPLAY
@@ -712,7 +712,7 @@ def load_triple_store(graph_uri, directory, data):
     b_writer.close()
 
     # SET ACCESS RIGHT
-    if Ut.OPE_SYS != 'windows':
+    if OPE_SYS != 'windows':
         print "MAC BATCH: {}".format(batch_output)
         os.chmod(batch_output, 0o777)
 
@@ -725,3 +725,43 @@ def load_triple_store(graph_uri, directory, data):
     print triples
 
     return {"result": triples, "message": "{} inserted".format(triples)}
+
+
+def listening(directory):
+
+    # run indefinitely
+    while True:
+        # get the directory listing
+        lock_file = [name for name in os.listdir(directory)
+                     if name.endswith('.lock')]
+
+        # print the most recent listing
+        for lock in lock_file:
+            print(lock)
+
+        if len(lock_file) > 0:
+            return "THE SERVER IS ON."
+
+        # wait a little bit before getting the next listing
+        # if you want near instantaneous updates, make the sleep value small.
+        time.sleep(1)
+
+
+def stardog_on(bat_path):
+
+    print "RUNNING THE STARDOG SERVER"
+    lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
+    if len(lock_file) > 0:
+        print "THE SERVER WAS IS ALREADY ON."
+    else:
+        subprocess.check_call(bat_path, shell=True)
+
+def stardog_off(bat_path):
+
+    print "STOPPING THE STARDOG SERVER"
+    lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
+    if len(lock_file) > 0:
+        off = batch_load(bat_path)
+        print "RESPONSE: {}".format(off["result"])
+    else:
+        print "THE SERVER WAS NOT ON."
