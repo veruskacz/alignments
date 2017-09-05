@@ -62,7 +62,7 @@
           </div>
           <div class="col-md-20" id="inspection_dataset_col" style='display:none'
             mode="dataset" targetButton="button_dataset_inspection_RQ_col"
-            targetText="dataset_inspection_selected_RQ">
+            targetText="dataset_view_selected_RQ">
             {% include 'datasetInspection.html' %}
           </div>
           <div class="col-md-20" id="creation_dataset_col" style='display:none'
@@ -89,6 +89,7 @@
 <script src="{{url_for('.static', filename='alignments.js')}}"></script>
 <script src="{{url_for('.static', filename='inspection.js')}}"></script>
 <script src="{{url_for('.static', filename='creation.js')}}"></script>
+<script src="{{url_for('.static', filename='bootstrap-toggle.min.js')}}"></script>
 <script src="/static/upload/js/jquery.filedrop.js"></script>
 <script src="/static/upload/js/upload.js"></script>
 
@@ -102,8 +103,8 @@
 {% block styles %}
 {{super()}}
 <link href="/static/upload/css/styles.css" rel="stylesheet" media="screen">
-<link rel="stylesheet"
-      href="{{url_for('.static', filename='bootstrap.min.css')}}">
+<link rel="stylesheet" href="{{url_for('.static', filename='bootstrap.min.css')}}">
+<link rel="stylesheet" href="{{url_for('.static', filename='bootstrap-toggle.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{url_for('.static', filename='plot.css')}}">
 
 <style>

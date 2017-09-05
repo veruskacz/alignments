@@ -87,6 +87,19 @@ function importButtonClick(targetId)
    });
 }
 
+function test(btn)
+{
+    var status = 'off'
+    if (btn.checked) status = 'on'
+
+    $.get('/stardogManagement',
+            data = {'status': status},
+            function(data)
+     {
+     });
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in ideaCreation.html
 ///////////////////////////////////////////////////////////////////////////////

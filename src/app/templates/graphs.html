@@ -32,7 +32,7 @@
 <!--</nav> - -->
 
 <div class="row">
-    <div class="col-md-12">
+    <div class="col-md-10">
 
         <!-- This is the Mode dropdown button-->
         <span id="menu_list_col">
@@ -101,4 +101,14 @@
          <a class="btn btn-default" id="refreshButton" onclick="refresh();">Refresh</a>
 
     </div>
+    <div class="col-md-2 text-right">
+
+
+        <span id="triplestore_buttons_col">
+            <input id="stardog_btn" type="checkbox" checked data-toggle="toggle"
+                   data-on="Startdog is ON" data-off="Startdog is OFF" data-onstyle="success" data-offstyle="danger"
+                    onchange="test(this)">
+        </span>
+    </div>
+
 </div>

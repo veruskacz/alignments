@@ -234,6 +234,15 @@ def index():
     else:
         return render_template('base.html')
 
+@app.route("/stardogManagement", methods=['GET'])
+def stardogManagement():
+    status = request.args.get('status', 'off')
+
+    if status == 'on':
+        Ut.stardog_on(Svr.settings[St.stardog_data_path])
+    else:
+        Ut.stardog_off(Svr.settings[St.stardog_data_path])
+
 
 @app.route('/getgraphs')
 def graphs():
