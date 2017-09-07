@@ -11,6 +11,7 @@ import requests
 import xmltodict
 import collections
 import Queries as Qry
+import os.path as path
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
 
 logger = logging.getLogger(__name__)
@@ -239,9 +240,56 @@ def stardogManagement():
     status = request.args.get('status', 'off')
 
     if status == 'on':
-        Ut.stardog_on(Svr.settings[St.stardog_data_path])
+        bat_path = "{}stardogStart{}".format(Svr.SRC_DIR, Ut.batch_extension())
     else:
-        Ut.stardog_off(Svr.settings[St.stardog_data_path])
+        bat_path = "{}stardogStop{}".format(Svr.SRC_DIR, Ut.batch_extension())
+
+    if path.exists(bat_path) is False:
+
+        if Ut.batch_extension() == ".bat":
+
+            if status == 'on':
+                cmd = """
+                @echo off
+                cls
+                cd "{}"
+                START stardog-admin.bat server start --disable-security
+                """.format(Svr.settings[St.stardog_path])
+            else:
+                cmd = """
+                @echo off
+                cls
+                cd "{}"
+                call stardog-admin server stop
+                """.format(Svr.settings[St.stardog_path])
+
+        else:
+            if status == 'on':
+                cmd = """
+                @echo off
+                cls
+                cd "{}"
+                START stardog-admin.bat server start --disable-security
+                """.format(Svr.settings[St.stardog_path])
+            else:
+                cmd = """
+                @echo off
+                cls
+                cd "{}"
+                call stardog-admin server stop
+                """.format(Svr.settings[St.stardog_path])
+
+        writer = open(bat_path, "wb")
+        writer.write(cmd)
+        writer.close()
+
+    if status == 'on':
+        Ut.stardog_on(bat_path)
+    else:
+        Ut.stardog_off(bat_path)
+
+        # SEND BAK RESULTS
+    return ''
 
 
 @app.route('/getgraphs')
