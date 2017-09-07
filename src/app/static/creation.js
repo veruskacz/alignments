@@ -940,7 +940,7 @@ function createLinksetClick()
           //'corrsp_reducer': reducer
         }
 
-        multiple_entries = 'yes'
+        multiple_entries = 'no'
         if (multiple_entries == 'yes')
             specs['corrsp_reducer'] = reducer
         else {
