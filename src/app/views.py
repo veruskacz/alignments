@@ -250,7 +250,7 @@ def stardogManagement():
 
             if status == 'on':
                 cmd = """
-                @echo off
+                @echo STARTING STARDOG...
                 cls
                 cd "{}"
                 START stardog-admin.bat server start --disable-security
@@ -266,8 +266,8 @@ def stardogManagement():
         else:
             if status == 'on':
                 cmd = """
-                echo off
-                "{}"stardog-admin server start --disable-security
+                echo STARTING STARDOG...
+                "OPEN -a Terminal.app {}"stardog-admin server start --disable-security
                 """.format(Svr.settings[St.stardog_path])
             else:
                 cmd = """

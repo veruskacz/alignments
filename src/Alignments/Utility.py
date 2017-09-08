@@ -767,5 +767,10 @@ def stardog_off(bat_path):
     if len(lock_file) > 0:
         off = batch_load(bat_path)
         print "\tRESPONSE: {}".format(off)
+        if off.lower().__contains__("successfully"):
+            lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
+            if len(lock_file) > 0:
+                os.remove(lock_file[0])
+
     else:
         print "THE SERVER WAS NOT ON."
