@@ -829,15 +829,20 @@ def stardog_off(bat_path):
         os.chmod(bat_path, 0o777)
 
     lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
-    if len(lock_file) > 0:
-        off = batch_load(bat_path)
-        if off is not None:
-            print "\tRESPONSE: {}".format(off['result'])
 
-            if off['result'].lower().__contains__("successfully"):
-                lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
-                if len(lock_file) > 0:
-                    os.remove(Svr.settings[St.stardog_data_path] + lock_file[0])
+    if len(lock_file) > 0:
+
+        off = batch_load(bat_path)
+        lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
+
+        if off is not None and type(off) is dict:
+            print "\tRESPONSE: {}".format(off['result'])
+            if off['result'].lower().__contains__("successfully") and len(lock_file) > 0:
+                os.remove(Svr.settings[St.stardog_data_path] + lock_file[0])
+        else:
+            print "\tRESPONSE: {}".format(off)
+            if off.lower().__contains__("successfully") and len(lock_file) > 0:
+                os.remove(Svr.settings[St.stardog_data_path] + lock_file[0])
 
     else:
         print "THE SERVER WAS NOT ON."
