@@ -9,6 +9,8 @@ import cStringIO
 import xmltodict
 import subprocess
 from os import listdir
+import requests
+import os.path as path
 import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
 import Alignments.Settings as St
@@ -754,27 +756,88 @@ def stardog_on(bat_path, waiting_time=10):
     if len(lock_file) > 0:
         print "THE SERVER WAS ALREADY ON."
     else:
+
+        # CREATE THE BATCH FILE FOR STARTING THE STARDOG SERVER
+        if path.exists(bat_path) is False:
+
+            if batch_extension() == ".bat":
+
+                cmd = """
+                @echo STARTING STARDOG...
+                cls
+                cd "{}"
+                START stardog-admin.bat server start --disable-security
+                """.format(Svr.settings[St.stardog_path])
+
+            else:
+                cmd = """
+                echo STARTING STARDOG...
+                "{}"stardog-admin server start --disable-security
+                """.format(Svr.settings[St.stardog_path])
+
+            writer = open(bat_path, "wb")
+            writer.write(cmd)
+            writer.close()
+            os.chmod(bat_path, 0o777)
+
+
         # subprocess.call(bat_path, shell=True)
         if batch_extension() == ".bat":
             os.system(bat_path)
         else:
             os.system("OPEN -a Terminal.app {}".format(bat_path))
         # time.sleep(waiting_time)
-        listening(Svr.settings[St.stardog_data_path])
-        print "\tTHE SERVER IS ON."
+
+        while True:
+            try:
+                response = requests.get("http://localhost:5820")
+                if str(response).__contains__("200"):
+                    print "\tTHE SERVER IS ON."
+                return "THE SERVER IS ON"
+            except:
+                pass
+
+        # listening(Svr.settings[St.stardog_data_path])
+
 
 
 def stardog_off(bat_path):
 
     print "\nSTOPPING THE STARDOG SERVER"
+
+    if path.exists(bat_path) is False:
+
+        if batch_extension() == ".bat":
+
+            cmd = """
+            @echo STOPPING STARDOG...
+            cls
+            cd "{}"
+            call stardog-admin server stop
+            """.format(Svr.settings[St.stardog_path])
+
+        else:
+
+            cmd = """
+            echo STOPPING STARDOG...
+            "{}"stardog-admin server stop
+            """.format(Svr.settings[St.stardog_path])
+
+        writer = open(bat_path, "wb")
+        writer.write(cmd)
+        writer.close()
+        os.chmod(bat_path, 0o777)
+
     lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
     if len(lock_file) > 0:
         off = batch_load(bat_path)
-        print "\tRESPONSE: {}".format(off)
-        if off.lower().__contains__("successfully"):
-            lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
-            if len(lock_file) > 0:
-                os.remove(Svr.settings[St.stardog_data_path] + lock_file[0])
+        if off is not None:
+            print "\tRESPONSE: {}".format(off['result'])
+
+            if off['result'].lower().__contains__("successfully"):
+                lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
+                if len(lock_file) > 0:
+                    os.remove(Svr.settings[St.stardog_data_path] + lock_file[0])
 
     else:
         print "THE SERVER WAS NOT ON."
