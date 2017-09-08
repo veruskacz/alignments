@@ -759,7 +759,8 @@ def stardog_on(bat_path, waiting_time=10):
             os.system(bat_path)
         else:
             os.system("OPEN -a Terminal.app {}".format(bat_path))
-        time.sleep(waiting_time)
+        # time.sleep(waiting_time)
+        listening(Svr.settings[St.stardog_data_path])
         print "\tTHE SERVER IS ON."
 
 
