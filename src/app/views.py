@@ -271,8 +271,8 @@ def stardogManagement():
                 """.format(Svr.settings[St.stardog_path])
             else:
                 cmd = """
-                @echo off
-                call "{}"stardog-admin server stop
+                echo off
+                "{}"stardog-admin server stop
                 """.format(Svr.settings[St.stardog_path])
 
         writer = open(bat_path, "wb")
