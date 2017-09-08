@@ -3,52 +3,91 @@ import os
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
-from time import time, ctime, gmtime
+from time import time, gmtime  # , ctime
 import Alignments.Server_Settings as Ss
 import Alignments.GenericMetadata as Gn
 import Alignments.Server_Settings as Svr
 import Alignments.UserActivities.UserRQ as Urq
-from Alignments.CheckRDFFile import check_rdf_file
+# from Alignments.CheckRDFFile import check_rdf_file
 import Alignments.SimilarityAlgo.SimHelpers as Helper
-from kitchen.text.converters import to_unicode, to_bytes
+from kitchen.text.converters import to_unicode  # , to_bytes
 
 
-source_specs = {
-    St.graph: "http://risis.eu/dataset/genderc",
-    St.aligns: "http://risis.eu/genderc/vocab/affiliation",
-    St.entity_datatype: "http://risis.eu/genderc/vocab/Applicant"
-}
+theta = 0.5
+count = 0
 
-target_specs = {
-    St.graph: "http://risis.eu/dataset/genderc",
-    St.aligns: "http://risis.eu/Panellists/ontology/predicate/Name_of_home_institution",
-    St.entity_datatype: "http://risis.eu/Panellists/ontology/class/Panelists"
-}
+#################################################################################################
+# gender C
+#################################################################################################
 
 # source_specs = {
-#     St.graph: "http://risis.eu/dataset/grid_20170712",
-#     St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
-#     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"
-# }
+#     St.graph: "http://risis.eu/dataset/genderc",
+#     St.aligns: "http://risis.eu/genderc/vocab/affiliation",
+#     St.entity_datatype: "http://risis.eu/genderc/vocab/Applicant"}
 #
+# target_specs = {
+#     St.graph: "http://risis.eu/dataset/genderc",
+#     St.aligns: "http://risis.eu/Panellists/ontology/predicate/Name_of_home_institution",
+#     St.entity_datatype: "http://risis.eu/Panellists/ontology/class/Panelists"}
+#
+# specs = {
+#     St.source: source_specs,
+#     St.target: target_specs,
+#     St.linkset_name: "InvTest",
+#     St.sameAsCount: 1,
+#     St.mechanism: "approxStrSim",
+#     St.linkset: "http://risis.eu/linkset/InvTest",
+#     St.threshold: 1,
+#     St.insert_query: "",
+#     St.researchQ_URI: "http://risis.eu/activity/idea_8b78a8"}
+#
+# src_dataset = Helper.get_table(source_specs)
+# trg_dataset = Helper.get_table(target_specs)
+# universe_tf = Helper.get_tf_2([src_dataset, trg_dataset])
+# trg_inv_index = Helper.get_inverted_index(trg_dataset, universe_tf, theta)
+# Helper.data['delta'] = int(Helper.data['biggest_freq']/10)
+# t2r_dict = Helper.term_2_remove(universe_tf)
+
+#################################################################################################
+# AMADEUS
+#################################################################################################
+
+source_specs = {
+    St.graph: "http://risis.eu/dataset/amadeus",
+    St.aligns: "http://risis.eu/amadeus/ontology/predicate/Country",
+    St.entity_datatype: "http://risis.eu/amadeus/ontology/class/Organisation"}
+
+target_specs = {
+    St.graph: "http://risis.eu/dataset/grid_20170712",
+    St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
+    St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"}
+
+specs = {
+    St.source: source_specs,
+    St.target: target_specs,
+    St.sameAsCount: 5,
+    St.mechanism: "approxStrSim",
+    St.linkset_name: "InvTestAmadeus4",
+    St.linkset: "http://risis.eu/linkset/InvTestAmadeus4",
+    St.threshold: 1,
+    St.insert_query: "",
+    St.researchQ_URI: "http://risis.eu/activity/idea_13e5bc"}
+
+src_dataset = Helper.get_table(source_specs)
+trg_dataset = Helper.get_table(target_specs)
+universe_tf = Helper.get_tf([src_dataset, trg_dataset])
+trg_inv_index = Helper.get_inverted_index(trg_dataset, universe_tf, theta)
+Helper.data['delta'] = int(Helper.data['biggest_freq']/3)
+t2r_dict = Helper.term_2_remove(universe_tf)
+
 # target_specs = {
 #     St.graph: "http://risis.eu/dataset/grid_20170712",
 #     St.aligns: "http://www.w3.org/2004/02/skos/core#altLabel",
 #     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"
 # }
 
-specs = {
-    St.source: source_specs,
-    St.target: target_specs,
-    St.linkset_name: "InvTest",
-    St.sameAsCount: 1,
-    St.mechanism: "approxStrSim",
-    St.linkset: "http://risis.eu/linkset/InvTest",
-    St.threshold: 1,
-    St.insert_query: "",
-    St.researchQ_URI: "http://risis.eu/activity/idea_8b78a8"
-}
-
+#################################################################################################
+#################################################################################################
 # Helper.stop_words_string =  "THE FOR IN THAT AND OF ON DE LA LES INC"
 Helper.stop_symbols_string = "\.\-\,\+'\?;()"
 Helper.set_stop_word_dic()
@@ -57,19 +96,7 @@ Helper.remove_term_in_bracket = False
 link = "alivocab:invertedIndexStrSim"
 
 # print writers[St.batch_output_path]
-#
 # exit(0)
-
-
-theta = 0.5
-count = 0
-
-src_dataset = Helper.get_table(source_specs)
-trg_dataset = Helper.get_table(target_specs)
-universe_tf = Helper.get_tf_2([src_dataset, trg_dataset])
-trg_inv_index = Helper.get_inverted_index(trg_dataset, universe_tf, theta)
-Helper.data['delta'] = int(Helper.data['biggest_freq']/10)
-t2r_dict = Helper.term_2_remove(universe_tf, )
 
 print "TARGET INVERTED INDEX SIZE          : {}".format(len(universe_tf))
 print "TARGET INVERTED INDEX MAX FREQ      : {}".format(Helper.data['biggest_freq'])
@@ -88,7 +115,7 @@ for key, value in t2r_dict.items():
 #         biggest = value
 #     sum_up +=  value
 # print count2
-
+# exit(0)
 # ITERATE THROUGH THE SOURCE
 for row in range(1, len(src_dataset)):
     src_uri = src_dataset[row][0].strip()
@@ -130,6 +157,7 @@ for row in range(1, len(src_dataset)):
 
         if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
             print Helper.correspondence(crpdce, writers, count)
+            # Helper.correspondence(crpdce, writers, count)
         else:
             Helper.correspondence(crpdce, writers, count)
 
@@ -182,18 +210,20 @@ if count > 0:
 
     if int(specs[St.triples]) > 0:
         Qry.boolean_endpoint_response(metadata)
-    writers[St.meta_writer].close()
+        writers[St.meta_writer].close()
 
-    # REGISTER THE ALIGNMENT
-    # if check[St.result].__contains__("ALREADY EXISTS"):
-    #     Urq.register_alignment_mapping(specs, created=False)
-    # else:
-    #     Urq.register_alignment_mapping(specs, created=True)
-    Urq.register_alignment_mapping(specs, created=False)
-    # WRITE TO FILE
-    check_rdf_file(writers[St.crpdce_writer_path])
-    check_rdf_file(writers[St.meta_writer_path])
-    check_rdf_file(writers[St.singletons_writer_path])
+        # REGISTER THE ALIGNMENT
+        # if check[St.result].__contains__("ALREADY EXISTS"):
+        #     Urq.register_alignment_mapping(specs, created=False)
+        # else:
+        #     Urq.register_alignment_mapping(specs, created=True)
+        Urq.register_alignment_mapping(specs, created=False)
+        # WRITE TO FILE
+        # check_rdf_file(writers[St.crpdce_writer_path])
+        # check_rdf_file(writers[St.meta_writer_path])
+        # check_rdf_file(writers[St.singletons_writer_path])
+    else:
+        writers[St.meta_writer].close()
 
     print "\tLinkset created as: ", specs[St.linkset_name]
     print "\t*** JOB DONE! ***"

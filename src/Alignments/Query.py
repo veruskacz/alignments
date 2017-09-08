@@ -287,6 +287,9 @@ def endpoint(query):
     # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
     #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
 
+    # THIS SHOULD WORK:
+    # The Stardog SPARQL endpoint is http://<server>:<port>/{db}/query.
+
     url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
     # print url
     params = urllib.urlencode(
@@ -304,6 +307,10 @@ def endpoint(query):
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
     request = urllib2.Request(url, data=params, headers=headers)
+
+    # print "THE REQUEST'S FULL URI: " + request.get_full_url()
+    # print "THE REQUEST'S DATA: {}".format(request.data)
+
     request.get_method = lambda: "POST"
     try:
         response = urllib2.urlopen(request)

@@ -77,6 +77,8 @@ def set_linkset_name(specs, inverse=False):
 
     reducer = ""
     intermediate = ""
+    threshold = ""
+    delta = ""
 
     if St.reducer in specs[St.source]:
         reducer += specs[St.source][St.reducer]
@@ -85,7 +87,13 @@ def set_linkset_name(specs, inverse=False):
         reducer += specs[St.target][St.reducer]
 
     if St.intermediate_graph in specs:
-        intermediate = specs[St.intermediate_graph]
+        intermediate = str(specs[St.intermediate_graph])
+
+    if St.threshold in specs:
+        threshold += str(specs[St.threshold])
+
+    if St.delta in specs:
+        delta += specs[St.delta]
 
     if inverse is False:
 
@@ -93,7 +101,7 @@ def set_linkset_name(specs, inverse=False):
                  specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
                  specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
                  specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype] + "2" +\
-                 reducer + intermediate
+                 reducer + intermediate + threshold + delta
 
         hashed = hash(h_name)
 
@@ -113,7 +121,7 @@ def set_linkset_name(specs, inverse=False):
                  specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
                  specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
                  specs[St.target][St.entity_datatype] + specs[St.source][St.entity_datatype] + "2" +\
-                 reducer  + intermediate
+                 reducer  + intermediate + threshold + delta
 
         hashed = hash(h_name)
 

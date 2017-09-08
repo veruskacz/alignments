@@ -267,16 +267,12 @@ def stardogManagement():
             if status == 'on':
                 cmd = """
                 @echo off
-                cls
-                cd "{}"
-                START stardog-admin.bat server start --disable-security
+                START "{}"stardog-admin.bat server start --disable-security
                 """.format(Svr.settings[St.stardog_path])
             else:
                 cmd = """
                 @echo off
-                cls
-                cd "{}"
-                call stardog-admin server stop
+                call "{}"stardog-admin server stop
                 """.format(Svr.settings[St.stardog_path])
 
         writer = open(bat_path, "wb")
@@ -1322,6 +1318,7 @@ def spa_linkset():
 
         threshold = request.args.get('threshold', '0.8')
         threshold = float(threshold.strip())
+        threshold = float(0.60)
         # print threshold
         stop_words = request.args.get('stop_words', '')
         stop_symbols = request.args.get('stop_symbols', '')

@@ -169,4 +169,5 @@ enriched = "enriched"
 delta = "delta"
 numeric_approx_type = "numeric_approx_type"
 corr_reducer = "corr_reducer"
+stardog_data_path = "stardog_data_path"
 

@@ -11,8 +11,8 @@ from kitchen.text.converters import to_unicode, to_bytes
 import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 
-# LIMIT = ""
-LIMIT = "LIMIT 20000"
+LIMIT = ""
+# LIMIT = "LIMIT 20000"
 prefix = "@prefix alivocab:\t<{}> .\n" \
          "@prefix linkset:\t<{}> .\n" \
          "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
@@ -30,8 +30,7 @@ remove_term_in_bracket = False
 data = {
     'biggest_freq': 0,
     'biggest_freq_token': "",
-    'delta': 0
-}
+    'delta': 0}
 
 
 def term_2_remove(universe_tf):
@@ -73,7 +72,7 @@ def set_stop_word_dic():
 def get_table(dataset_specs, reducer=None):
     # ADD THE REDUCER IF SET. THE REDUCER OR (DATASET REDUCER) HELPS ELIMINATING
     # THE COMPUTATION OF SIMILARITY FOR INSTANCES THAT WHERE ALREADY MATCHED
-
+    print "LOADING: {}".format(dataset_specs[St.graph])
     if reducer is None:
         reducer_comment = "#"
         reducer = ""
@@ -119,7 +118,7 @@ def correspondence(description, in_writers, counter):
         description[St.src_resource], description[St.link],
         description[St.row], description[St.inv_index], description[St.trg_resource], counter)
     # WRITE CORRESPONDENCE TO FILE
-    print in_crpdce
+    # print in_crpdce
     in_writers[St.crpdce_writer].write(to_unicode(in_crpdce))
 
     # GENERATE SINGLETONS METADATA
@@ -134,7 +133,8 @@ def correspondence(description, in_writers, counter):
     return in_crpdce + singleton
 
 
-def get_tf_2(datasets):
+def get_tf(datasets):
+    print "COMPUTING TERM FREQUENCY"
     # Qry.display_matrix(matrix, is_activated=True)
     # print matrix
     # datasets = [matrix_src, matrix_trg]

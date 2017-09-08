@@ -254,7 +254,7 @@ def ds_stats(dataset, datatype, display=True, optional_label=True, graph_list=No
     (ROUND((?subTotal / COUNT(DISTINCT ?RESOURCE) ) *10000)/100 as ?percentage) ?linkset ?linkset_uri
     {{
         {4}VALUES ?linkset_uri {{ {5} }}
-        
+
         graph <{0}>
         {{
             ?RESOURCE a <{1}> .

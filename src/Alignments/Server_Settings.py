@@ -3,17 +3,24 @@ import Alignments.Settings as St
 
 # UPLOAD_FOLDER = os.getcwd()
 SEP = os.path.sep
+SRC_DIR = "{0}{1}{1}".format(os.getcwd(), SEP)
 DIR = "{0}{1}{1}Alignments{1}{1}Data".format(os.getcwd(), SEP)
 UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(), SEP)
 UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
 # "http://stardog.risis.d2s.labs.vu.nl/annex/risis/sparql/query"
 DATABASE = "risis"
 TEST_SERVER = "localhost:5820"
-PRODUCTION_SERVER = "stardog.risis.d2s.labs.vu.nl"
 
-STARDOG_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
 STARDOG_PATH_TEST_V = '/Applications/stardog-4.2.3/bin/'
-STARDOG_PATH_TEST_A = '...'
+STARDOG_DATA_PATH_TEST_V = "C:\Program Files\stardog-4.1.3\data"
+
+STARDOG_PATH_TEST_A = 'C:\\Program Files\\stardog-4.1.3\\bin'
+STARDOG_DATA_PATH_TEST_A = "C:\Program Files\stardog-4.1.3\data"
+
+PRODUCTION_SERVER = "stardog.risis.d2s.labs.vu.nl"
+STARDOG_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
+STARDOG_DATA_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data'
+
 
 settings = {
 
@@ -22,17 +29,25 @@ settings = {
     # St.split_sys: True,
     St.split_sys: False,
 
-    # STARDOG LOCAL HOST NAME
-    # St.stardog_host_name: TEST_SERVER,
+    # STARDOG SERVER LOCAL HOST NAME
     St.stardog_host_name: PRODUCTION_SERVER,
+    # St.stardog_host_name: TEST_SERVER,
 
     # STARDOG PATH
     St.stardog_path: STARDOG_PATH_PRODUCTION,
     # St.stardog_path: STARDOG_PATH_TEST_V,
     # St.stardog_path: STARDOG_PATH_TEST_A,
 
-    # St.stardog_version: "COMPATIBLE",
+    # STARDOG DATA PATH
+    St.stardog_data_path: STARDOG_DATA_PATH_PRODUCTION,
+    # St.stardog_data_path: STARDOG_DATA_PATH_TEST_V,
+    # St.stardog_data_path: STARDOG_DATA_PATH_TEST_A,
+
+    # STARDOG 4 IS COMPATIBLE
+    # STARDOG 5 IS NOT COMPATIBLE
     St.stardog_version: "NOT COMPATIBLE",
+    # St.stardog_version: "COMPATIBLE",
+
 
     # MAIN DATA FOLDER
     St.data_dir: DIR,

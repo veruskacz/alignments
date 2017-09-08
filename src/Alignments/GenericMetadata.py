@@ -17,6 +17,12 @@ def linkset_metadata(specs, display=False):
     if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
         extra += "\n        alivocab:intermediate       <{}> ;".format(specs[St.intermediate_graph])
 
+    if St.threshold in specs and len(str(specs[St.threshold])) > 0:
+        extra += "\n        alivocab:threshold          {} ;".format(str(specs[St.threshold]))
+
+    if St.delta in specs and len(str(specs[St.delta])) > 0:
+        extra += "\n        alivocab:delta              {} ;".format(str(specs[St.delta]))
+
     source = specs[St.source]
     target = specs[St.target]
 
