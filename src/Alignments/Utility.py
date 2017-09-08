@@ -342,7 +342,7 @@ def bat_load(bat_path):
                     # REPLACE THE PATTERN WITH THAT END FOUNb ABOVE
                     output = output.replace(f, " " + new)
 
-            print "---------------------{}---------------------".format(output)
+            print "PROCESS OUTPUT: {}".format(output)
             return {"message": "OK", "result": output}
 
     except Exception as err:
@@ -360,8 +360,8 @@ def sh_load(bat_path):
 
             output = subprocess.check_output(bat_path, shell=True)
 
-            print "---------------------{}---------------------".format(output)
-            return output
+            print "PROCESS OUTPUT: {}".format(output)
+            # return output
 
     except Exception as err:
         return "CHECK THE FILE PATH.\n{}".format(err.message)
@@ -747,21 +747,25 @@ def listening(directory):
         time.sleep(1)
 
 
-def stardog_on(bat_path):
+def stardog_on(bat_path, waiting_time=10):
 
-    print "RUNNING THE STARDOG SERVER"
+    print "\nSTARTING THE STARDOG SERVER"
     lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
     if len(lock_file) > 0:
-        print "THE SERVER WAS IS ALREADY ON."
+        print "THE SERVER WAS ALREADY ON."
     else:
-        subprocess.check_call(bat_path, shell=True)
+        # subprocess.call(bat_path, shell=True)
+        os.system(bat_path)
+        time.sleep(waiting_time)
+        print "\tTHE SERVER IS ON."
+
 
 def stardog_off(bat_path):
 
-    print "STOPPING THE STARDOG SERVER"
+    print "\nSTOPPING THE STARDOG SERVER"
     lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
     if len(lock_file) > 0:
         off = batch_load(bat_path)
-        print "RESPONSE: {}".format(off["result"])
+        print "\tRESPONSE: {}".format(off)
     else:
         print "THE SERVER WAS NOT ON."
