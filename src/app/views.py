@@ -257,7 +257,7 @@ def stardogManagement():
                 """.format(Svr.settings[St.stardog_path])
             else:
                 cmd = """
-                @echo off
+                @echo STOPPING STARDOG...
                 cls
                 cd "{}"
                 call stardog-admin server stop
@@ -271,7 +271,7 @@ def stardogManagement():
                 """.format(Svr.settings[St.stardog_path])
             else:
                 cmd = """
-                echo off
+                echo STOPPING STARDOG...
                 "{}"stardog-admin server stop
                 """.format(Svr.settings[St.stardog_path])
 

@@ -361,7 +361,7 @@ def sh_load(bat_path):
             output = subprocess.check_output(bat_path, shell=True)
 
             print "PROCESS OUTPUT: {}".format(output)
-            # return output
+            return output
 
     except Exception as err:
         return "CHECK THE FILE PATH.\n{}".format(err.message)
