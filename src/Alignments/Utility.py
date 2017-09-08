@@ -755,7 +755,10 @@ def stardog_on(bat_path, waiting_time=10):
         print "THE SERVER WAS ALREADY ON."
     else:
         # subprocess.call(bat_path, shell=True)
-        os.system(bat_path)
+        if batch_extension() == ".bat":
+            os.system(bat_path)
+        else:
+            os.system("OPEN -a Terminal.app {}".format(bat_path))
         time.sleep(waiting_time)
         print "\tTHE SERVER IS ON."
 
