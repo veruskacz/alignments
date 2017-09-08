@@ -278,6 +278,7 @@ def stardogManagement():
         writer = open(bat_path, "wb")
         writer.write(cmd)
         writer.close()
+        os.chmod(bat_path, 0o777)
 
     if status == 'on':
         Ut.stardog_on(bat_path)
