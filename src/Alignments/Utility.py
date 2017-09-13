@@ -515,12 +515,12 @@ def insertgraphs(dataset_name, dir_path):
 
     file_count = 1
     for f in listdir(dir_path):
-        path = join(dir_path, f)
-        extension = os.path.splitext(path)[1]
+        f_path = join(dir_path, f)
+        extension = os.path.splitext(f_path)[1]
 
-        if isfile(path) & (extension.lower() == ".trig"):
+        if isfile(f_path) & (extension.lower() == ".trig"):
             # print path
-            insertgraph(dataset_name, path, file_count)
+            insertgraph(dataset_name, f_path, file_count)
             file_count += 1
 
 
@@ -749,13 +749,26 @@ def listening(directory):
         time.sleep(1)
 
 
-def stardog_on(bat_path, waiting_time=10):
+def stardog_on(bat_path):
 
     print "\nSTARTING THE STARDOG SERVER"
-    lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
-    if len(lock_file) > 0:
+    directory = Svr.settings[St.stardog_data_path]
+
+    lock_file = [name for name in os.listdir(directory) if name.endswith('.lock')]
+    try:
+        response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
+    except Exception as err:
+        response = str(err)
+
+    # NO NEED FOR TURNING IT ON AS IT IS ALREADY ON
+    if len(lock_file) > 0 and str(response).__contains__("200"):
         print "THE SERVER WAS ALREADY ON."
+
     else:
+
+        # REMOVE THE LOCK FILE IF IT EXISTS
+        if len(lock_file) > 0 and path.exists(join(directory, lock_file[0])):
+            os.remove(join(directory, lock_file[0]))
 
         # CREATE THE BATCH FILE FOR STARTING THE STARDOG SERVER
         if path.exists(bat_path) is False:
@@ -780,7 +793,6 @@ def stardog_on(bat_path, waiting_time=10):
             writer.close()
             os.chmod(bat_path, 0o777)
 
-
         # subprocess.call(bat_path, shell=True)
         if batch_extension() == ".bat":
             os.system(bat_path)
@@ -790,20 +802,27 @@ def stardog_on(bat_path, waiting_time=10):
 
         while True:
             try:
-                response = requests.get("http://localhost:5820")
+                try:
+                    response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
+                except Exception as err:
+                    response = str(err)
                 if str(response).__contains__("200"):
-                    print "\tTHE SERVER IS ON."
+                    print ">>> THE SERVER IS ON."
                 return "THE SERVER IS ON"
-            except:
+
+            except Exception as err:
+                "ERROR: {}".format(str(err))
+                "THE SERVER IS STILL STARTING UP..."
                 pass
 
-        # listening(Svr.settings[St.stardog_data_path])
-
+        # listening(Svr.settings[St.stardog_data_path]) TEST_SERVER
 
 
 def stardog_off(bat_path):
 
     print "\nSTOPPING THE STARDOG SERVER"
+
+    directory = Svr.settings[St.stardog_data_path]
 
     if path.exists(bat_path) is False:
 
@@ -828,21 +847,26 @@ def stardog_off(bat_path):
         writer.close()
         os.chmod(bat_path, 0o777)
 
-    lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
+    lock_file = [name for name in os.listdir(directory) if name.endswith('.lock')]
 
     if len(lock_file) > 0:
 
         off = batch_load(bat_path)
-        lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
 
         if off is not None and type(off) is dict:
-            print "\tRESPONSE: {}".format(off['result'])
+            # print "IS DICTIONARY"
+            print ">>> RESPONSE: {}".format(off['result'])
+            # lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
             if off['result'].lower().__contains__("successfully") and len(lock_file) > 0:
-                os.remove(Svr.settings[St.stardog_data_path] + lock_file[0])
+                # MAKE SURE AS SOMETIMES IT TAKES TIME FOR THE LOCK FILE TO BE REMOVED BY STARDOG
+                if path.exists(join(directory,lock_file[0])):
+                    os.remove(join(directory,lock_file[0]))
         else:
-            print "\tRESPONSE: {}".format(off)
+            print ">>> RESPONSE: {}".format(off)
+            lock_file = [name for name in os.listdir(directory) if name.endswith('.lock')]
             if off.lower().__contains__("successfully") and len(lock_file) > 0:
-                os.remove(Svr.settings[St.stardog_data_path] + lock_file[0])
+                if path.exists(join(directory,lock_file[0])):
+                    os.remove(join(directory,lock_file[0]))
 
     else:
-        print "THE SERVER WAS NOT ON."
+        print ">>> THE SERVER WAS NOT ON."

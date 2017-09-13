@@ -3124,7 +3124,6 @@ def virtuoso_request(query):
         return {St.message: err, St.result: None}
 
 
-
 def remote_endpoint_request(query, endpoint):
 
     """
@@ -3203,7 +3202,6 @@ def remote_endpoint_request(query, endpoint):
         message = "\nOR MAYBE THERE IS AN ERROR IN THIS QUERY"
         print message + "\n" + query
         return {St.message: err, St.result: None}
-
 
 
 # print response[St.result]
