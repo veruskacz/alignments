@@ -1899,7 +1899,8 @@ def datasetLinkingStats():
             results_x = response[1:]
 
             # decode = lambda x: x.decode('utf-8') if str(x) else x
-            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") if x.startswith("http://") else x
+            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") \
+                if x.startswith("http://") else x
             for i in range(len(results_x)):
                 row = results_x[i]
                 temp = map(local_name, row[:-1])
