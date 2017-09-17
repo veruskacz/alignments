@@ -251,80 +251,147 @@ def ds_stats(dataset, datatype, display=True, optional_label=True, graph_list=No
 
     SELECT DISTINCT ?dataset ?alignsMechanism
     (COUNT(DISTINCT ?RESOURCE) as ?total) ?subTotal
-    (ROUND((?subTotal / COUNT(DISTINCT ?RESOURCE) ) *10000)/100 as ?percentage) ?linkset ?linkset_uri
+    (ROUND((?subTotal / COUNT(DISTINCT ?RESOURCE) ) *10000)/100 as ?percentage) ?graph ?graph_uri
     {{
-        {4}VALUES ?linkset_uri {{ {5} }}
+        {4}VALUES ?graph_uri {{ {5} }}
 
         graph <{0}>
         {{
             ?RESOURCE a <{1}> .
         }}
 
-        ?linkset_uri
-             void:subjectsTarget|void:objectsTarget 	<{0}>  ;
-             bdb:subjectsDatatype|bdb:objectsDatatype		<{1}> .
+        # TO CHECK WHETHER THE SELECTED GRAPH IS RELATED TO THE SELECTED DATASET
+        #?graph_uri
+        #     void:target*/(void:subjectsTarget|void:objectsTarget)     <{0}>  ;
+        #     void:target*/(bdb:subjectsDatatype|bdb:objectsDatatype)   <{1}> .
+
+        # DISPLYING THE USER UPDATED LABEL
         {3}OPTIONAL
         {{ graph ?rq
             {{
-                ?linkset_uri skos:prefLabel ?lkst_label
+                ?graph_uri skos:prefLabel ?label
             }}
          }}
-         BIND (IF(bound(?lkst_label), ?lkst_label , ?linkset_uri) AS ?linkset)
+         BIND (IF(bound(?label), ?label , ?graph_uri) AS ?graph)
 
+        # 1. LINKSET WHERE SUBJECTS AND OBJECTS RESOURCES ARE IN THE SAME DATASET
         {{
-            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset_uri ?dataset ?alignsMechanism
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
             {{
-                ?linkset_uri
+                ?graph_uri
                     bdb:subjectsDatatype 	<{1}>  ;
                     void:subjectsTarget		<{0}> ;
                     void:objectsTarget		?dataset ;
                     ll:alignsMechanism      ?alignsMechanism .
 
-                graph ?linkset_uri
+                graph ?graph_uri
                 {{
                     {{ ?RESOURCE ?SING ?oResource. }}
                     UNION
                     {{ ?oResource ?SING ?RESOURCE . }}
                 }}
                 FILTER (<{0}> = ?dataset)
-            }} GROUP BY ?linkset_uri ?dataset ?alignsMechanism
+            }} GROUP BY ?graph_uri ?dataset ?alignsMechanism
         }}
-        UNION
+        UNION # 2. WHEN THE DATSET SELECTED IS THE SUBJECT
         {{
-            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset_uri ?dataset ?alignsMechanism
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
             {{
-                ?linkset_uri
+                ?graph_uri
                     bdb:subjectsDatatype 	<{1}>  ;
                     void:subjectsTarget		<{0}> ;
                     void:objectsTarget		?dataset ;
                     ll:alignsMechanism      ?alignsMechanism .
 
-                graph ?linkset_uri
+                graph ?graph_uri
                 {{
                     ?RESOURCE ?SING ?oResource.
                 }}
                 FILTER (<{0}> != ?dataset)
-            }} GROUP BY ?linkset_uri ?dataset ?alignsMechanism
+            }} GROUP BY ?graph_uri ?dataset ?alignsMechanism
         }}
-        UNION
+        UNION # 3. WHEN THE DATASET SELECTED IS THE OBJECT
         {{
-            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?linkset_uri ?dataset ?alignsMechanism
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
             {{
-                ?linkset_uri
+                ?graph_uri
                     bdb:objectsDatatype 	<{1}>  ;
                     void:objectsTarget		<{0}> ;
                     void:subjectsTarget		?dataset ;
                     ll:alignsMechanism ?alignsMechanism .
 
-                graph ?linkset_uri
+                graph ?graph_uri
                 {{
                     ?oResource ?SING ?RESOURCE .
                 }}
                 FILTER (<{0}> != ?dataset)
-            }} GROUP BY ?linkset_uri ?dataset ?alignsMechanism
+            }} GROUP BY ?graph_uri ?dataset ?alignsMechanism
         }}
+        UNION # 4. RUN THIS WHEN THE GRAPH IS A LENS AND WHEN SUBJECTS AND OBJECTS RESOURCES ARE IN THE SAME DATASET
+        {{
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
+            {{
+                ?graph_uri
+                    void:target ?linkset ;
+                    ll:operator	?alignsMechanism .
+
+              ?linkset
+                    bdb:subjectsDatatype 	<{1}>  ;
+                    void:subjectsTarget		<{0}> ;
+                    void:objectsTarget		?dataset .
+
+                graph ?graph_uri
+                {{
+                    {{ ?RESOURCE ?SING ?oResource. }}
+                    UNION
+                    {{ ?oResource ?SING ?RESOURCE . }}
+                }}
+                FILTER (<{0}> = ?dataset)
+            }} GROUP BY ?graph_uri ?dataset ?alignsMechanism
+        }}
+        UNION # 5. RUN THIS WHEN THE GRAPH IS A LENS AND WHEN THE SELECTED DATASET IS THE SUBJECT
+        {{
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
+            {{
+                ?graph_uri
+                    void:target ?linkset ;
+                    ll:operator	?alignsMechanism .
+
+              ?linkset
+                    bdb:subjectsDatatype 	<{1}>  ;
+                    void:subjectsTarget		<{0}> ;
+                    void:objectsTarget		?dataset .
+
+                graph ?graph_uri
+                {{
+                    ?oResource ?SING ?RESOURCE .
+                }}
+                FILTER (<{0}> != ?dataset)
+            }} GROUP BY ?graph_uri ?dataset ?alignsMechanism
+        }}
+        UNION #6. RUN THIS WHEN THE GRAPH IS A LENS AND WHEN THE SELECTED DATASET IS THE OBJECT
+        {{
+            SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
+            {{
+                ?graph_uri
+                    void:target ?linkset ;
+                    ll:operator	?alignsMechanism .
+
+              ?linkset
+                    bdb:objectsDatatype 	<{1}>  ;
+                    void:objectsTarget		<{0}> ;
+                    void:subjectsTarget		?dataset .
+
+                graph ?graph_uri
+                {{
+                    ?oResource ?SING ?RESOURCE .
+                }}
+                FILTER (<{0}> != ?dataset)
+            }} GROUP BY ?graph_uri ?dataset ?alignsMechanism
+        }}
+
     }}
-    GROUP BY ?linkset ?subTotal ?dataset ?alignsMechanism ?linkset_uri having (?subTotal > 0)
+    GROUP BY ?graph ?subTotal ?dataset ?alignsMechanism ?graph_uri having (?subTotal > 0)
     ORDER BY ?dataset ?alignsMechanism
     """.format(dataset, datatype, Ns.skos, comment_opt_lbl, append, values)
     # print query
