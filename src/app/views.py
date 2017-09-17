@@ -1367,7 +1367,7 @@ def spa_linkset():
 
         threshold = request.args.get('threshold', '0.8')
         threshold = float(threshold.strip())
-        threshold = float(0.60)
+        # threshold = float(0.60)
         # print threshold
         stop_words = request.args.get('stop_words', '')
         stop_symbols = request.args.get('stop_symbols', '')
