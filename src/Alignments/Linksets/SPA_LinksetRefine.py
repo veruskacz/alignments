@@ -9,6 +9,7 @@ import Alignments.Lenses.Lens_Difference as Df
 from Alignments.Utility import write_to_file, update_specification
 from Alignments.UserActivities.UserRQ import register_alignment_mapping
 import Alignments.Server_Settings as Ss
+import cStringIO as buffer
 
 
 DIRECTORY = Ss.settings[St.linkset_Refined_dir]
@@ -694,6 +695,7 @@ def refine_metadata(specs):
 
 def is_refinable(graph):
     # x = "http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579"
+    description = buffer.StringIO()
 
     query = """
     PREFIX bdb:         <{}>
@@ -711,12 +713,41 @@ def is_refinable(graph):
     }}""".format(Ns.bdb, Ns.void, graph)
 
     response = Qry.sparql_xml_to_matrix(query)
+    # print response
 
     if response:
         result = response[St.result]
-        if len(result) == 2:
-            return {St.message: True, St.result: result}
-        return {St.message: False, St.result: result}
+        if result is not None and len(result) == 2:
+            description.write("\n{}\nIS REFINABLE AS ALL LINKSETS INVOLVED IN "
+                              "THE LENS SHARE THE SAME SPECIFICATION DESCRIBED BELOW ...".format(graph))
+            for i in range(1, len(result)):
+                description.write("\n\n\t{:17}: {}".format(result[0][0], result[i][0]))
+                description.write("\n\t{:17}: {}".format(result[0][1], result[i][1]))
+                description.write("\n\t{:17}: {}".format(result[0][2], result[i][2]))
+                description.write("\n\t{:17}: {}".format(result[0][3], result[i][3]))
+            print description.getvalue()
+            return {St.message: True, St.result: result, 'description':description}
+
+        description.write("\n{}\nIS NOT REFINABLE...".format(graph))
+        if result is not None:
+            result = response[St.result]
+            description.write(" AS THE LINKSETS INVOLVED IN "
+                              "THE LENS DO NOT SHARE THE SAME SPECIFICATIONS AS DESCRIBED BELOW ...")
+            for i in range(1, len(result)):
+                description.write("\n\n{:17}: {}".format(result[0][0], result[i][0]))
+                description.write("\n{:17}: {}".format(result[0][1], result[i][1]))
+                description.write("\n{:17}: {}".format(result[0][2], result[i][2]))
+                description.write("\n{:17}: {}".format(result[0][3], result[i][3]))
+            print description.getvalue()
+
+        description.write(" {}".format(response[St.message]))
+        print description.getvalue()
+        return {St.message: False, St.result: response, 'description': description}
+
+    description.write(" {}".format(response[St.message]))
+    description.write("\n{}\nIS NOT REFINABLE...".format(graph))
+    print description.getvalue()
+    return {St.message: False, St.result: response, 'description': description}
 
 
-# print is_refinable("http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579")
+# is_refinable("http://risis.eu/lens/union_Eter_2014_Amadeus_Orgref_20170703_P1252711024")
