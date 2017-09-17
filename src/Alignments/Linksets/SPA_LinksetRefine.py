@@ -53,7 +53,7 @@ def refine(specs, activated=False):
 
         if specs[St.mechanism] == 'exactStrSim':
             print "REFINING WITH EXACT STRING SIMILARITY"
-            insert_query = insert_exact_query
+            insert_query = refine_exact_query
 
         elif specs[St.mechanism] == 'intermediate':
             print "REFINING WITH INTERMEDIATE DATASET"
@@ -181,7 +181,8 @@ def refining(specs, insert_query, activated=False):
     else:
         print "\n4. RUNNING THE EXTRACTION QUERY"
         print specs[St.insert_query][0]
-        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][0])
+        # is_run = Qry.boolean_endpoint_response(specs[St.insert_query][0])
+        Qry.boolean_endpoint_response(specs[St.insert_query][0])
 
         print "\n5. RUNNING THE FINDING QUERY"
         print specs[St.insert_query][1]
@@ -248,7 +249,7 @@ def refining(specs, insert_query, activated=False):
         print "NO MATCH COULD BE FOUND."
 
 
-def insert_exact_query(specs):
+def refine_exact_query(specs):
 
     source = specs[St.source]
     target = specs[St.target]
