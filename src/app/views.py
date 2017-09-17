@@ -1473,7 +1473,7 @@ def refineLinkset():
 
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
-            linkset_result = refine.refine(specs, exact=True, activated=True)
+            linkset_result = refine.refine(specs, activated=True)
 
         elif specs['mechanism'] == 'identity':
             linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
@@ -1485,7 +1485,7 @@ def refineLinkset():
             linkset_result = None
 
         elif specs[St.mechanism] == "intermediate":
-            linkset_result = refine.refine(specs, exact_intermediate=True, activated=True)
+            linkset_result = refine.refine(specs, activated=True)
             # print linkset_result
             #linkset_result = result['refined']
 
@@ -1947,7 +1947,8 @@ def datasetLinkingStats():
             results_x = response[1:]
 
             # decode = lambda x: x.decode('utf-8') if str(x) else x
-            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") if x.startswith("http://") else x
+            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") \
+                if x.startswith("http://") else x
             for i in range(len(results_x)):
                 row = results_x[i]
                 temp = map(local_name, row[:-1])

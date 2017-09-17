@@ -14,7 +14,7 @@ import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Refined_dir]
 
 
-def refine(specs, exact=False, exact_intermediate=False, activated=False):
+def refine(specs, activated=False):
 
     heading = "======================================================" \
               "========================================================" \
@@ -53,7 +53,7 @@ def refine(specs, exact=False, exact_intermediate=False, activated=False):
 
         if specs[St.mechanism] == 'exactStrSim':
             print "REFINING WITH EXACT STRING SIMILARITY"
-            insert_query = insert_exact_query
+            insert_query = refine_exact_query
 
         elif specs[St.mechanism] == 'intermediate':
             print "REFINING WITH INTERMEDIATE DATASET"
@@ -175,14 +175,14 @@ def refining(specs, insert_query, activated=False):
 
     specs[St.insert_query] = insert_query(specs)
 
-
     if type(specs[St.insert_query]) == str:
         is_run = Qry.boolean_endpoint_response(specs[St.insert_query])
 
     else:
         print "\n4. RUNNING THE EXTRACTION QUERY"
         print specs[St.insert_query][0]
-        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][0])
+        # is_run = Qry.boolean_endpoint_response(specs[St.insert_query][0])
+        Qry.boolean_endpoint_response(specs[St.insert_query][0])
 
         print "\n5. RUNNING THE FINDING QUERY"
         print specs[St.insert_query][1]
@@ -249,7 +249,7 @@ def refining(specs, insert_query, activated=False):
         print "NO MATCH COULD BE FOUND."
 
 
-def insert_exact_query(specs):
+def refine_exact_query(specs):
 
     source = specs[St.source]
     target = specs[St.target]
@@ -284,8 +284,7 @@ def insert_exact_query(specs):
                 ## BUT THIS IS ADDED FOR QUERY SIMPLICITY AND EFFICIENCY
                 ?sP ?sO ;
                 ## THIS IS ITS OWN EVIDENCE
-                alivocab:hasEvidence        ?label .
-
+                alivocab:hasEvidence        ?trimmed .
         }}
     }}
     WHERE
@@ -309,7 +308,11 @@ def insert_exact_query(specs):
             ?subject
                 a   <{}> ;
                 {} 	?s_label .
-            BIND(lcase(str(?s_label)) as ?label)
+            BIND(lcase(str(?s_label)) as ?label1)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?label1, ?regexp, '$1$2') AS ?trimmed)
         }}
 
         ### TARGET DATASET
@@ -318,7 +321,11 @@ def insert_exact_query(specs):
             ?object
                 a   <{}> ;
                 {} 	?o_label .
-            BIND(lcase(str(?o_label)) as ?label)
+            BIND(lcase(str(?o_label)) as ?label2)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?label2, ?regexp, '$1$2') AS ?trimmed)
         }}
     }}
     """.format(Ns.prov, Ns.rdf, Ns.alivocab,
@@ -366,9 +373,9 @@ def refine_intermediate_query(specs):
         GRAPH <{0}load01>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} <{8}relatesTo1> ?src_value .
+            ?{1} <{8}relatesTo1> ?src_trimmed .
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} <{8}relatesTo3> ?trg_value .
+            ?{3} <{8}relatesTo3> ?trg_trimmed .
         }}
     }}
     WHERE
@@ -384,6 +391,10 @@ def refine_intermediate_query(specs):
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
             ?{1} {2} ?value_1 .
             bind (lcase(str(?value_1)) as ?src_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?src_trimmed)
         }}
         ### TARGET DATASET
         graph <{7}>
@@ -391,6 +402,10 @@ def refine_intermediate_query(specs):
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
             ?{3} {4} ?value_2 .
             bind (lcase(str(?value_2)) as ?trg_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trg_trimmed)
         }}
     }} ;
 
@@ -490,8 +505,8 @@ def refine_intermediate_query(specs):
 
 def refine_numeric_query(specs):
 
-    is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
-    number_of_load = '1' if is_de_duplication is True else "2"
+    # is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
+    # number_of_load = '1' if is_de_duplication is True else "2"
 
     # PLAIN NUMBER CHECK
     delta_check = "BIND(ABS(xsd:decimal(?x) - xsd:decimal(?x)) AS ?DELTA)"
@@ -571,7 +586,7 @@ def refine_numeric_query(specs):
     }} """.format(
         # 0          1         2           3                  4              5
         Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name],
-        #6           7                  8         9         10       11       12          13
+        # 6           7                  8         9         10       11       12          13
         Ns.tmpvocab, specs[St.linkset], src_name, trg_name, src_uri, trg_uri, src_aligns, trg_aligns
     )
 
@@ -678,7 +693,7 @@ def refine_metadata(specs):
 
 
 def is_refinable(graph):
-    x = "http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579"
+    # x = "http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579"
 
     query = """
     PREFIX bdb:         <{}>
