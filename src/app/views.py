@@ -1425,7 +1425,7 @@ def refineLinkset():
 
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
-            linkset_result = refine.refine(specs, exact=True, activated=True)
+            linkset_result = refine.refine(specs, activated=True)
 
         elif specs['mechanism'] == 'identity':
             linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
@@ -1437,7 +1437,7 @@ def refineLinkset():
             linkset_result = None
 
         elif specs[St.mechanism] == "intermediate":
-            linkset_result = refine.refine(specs, exact_intermediate=True, activated=True)
+            linkset_result = refine.refine(specs, activated=True)
             # print linkset_result
             #linkset_result = result['refined']
 
