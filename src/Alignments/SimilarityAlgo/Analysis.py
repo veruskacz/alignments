@@ -354,7 +354,7 @@ def ds_stats(dataset, datatype, display=True, optional_label=True, graph_list=No
             SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
             {{
                 ?graph_uri
-                    void:target ?linkset ;
+                    void:target+ ?linkset ;
                     ll:operator	?alignsMechanism .
 
               ?linkset
@@ -374,7 +374,7 @@ def ds_stats(dataset, datatype, display=True, optional_label=True, graph_list=No
             SELECT (count(DISTINCT ?RESOURCE) as ?subTotal) ?graph_uri ?dataset ?alignsMechanism
             {{
                 ?graph_uri
-                    void:target ?linkset ;
+                    void:target+ ?linkset ;
                     ll:operator	?alignsMechanism .
 
               ?linkset
