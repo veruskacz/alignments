@@ -1076,8 +1076,8 @@ function refineLinksetClick()
 
 function exportPlotLinksetClick(elem)
 {
-    var credentials = { 'user': $("#modalPlotPass #usrname").val().trim(),
-                        'password': $("#modalPlotPass #pssw").val().trim()}
+//    var credentials = { 'user': $("#modalPlotPass #usrname").val().trim(),
+//                        'password': $("#modalPlotPass #pssw").val().trim()}
     exportLinksetClick("export.ttl",mode="vis", user= $("#modalPlotPass #usrname").val().trim(), psswd=$("#modalPlotPass #pssw").val().trim() );
 //    $(elem).dialog("close");
 }
@@ -3762,18 +3762,6 @@ function dataset_stats_load_linksets_lenses()
        var num = ('0000' + String(a.length)).substr(-4);
        $('#dataset_linking_stats_selection_linkset_counter').html(num);
 
-       // select everything by default
-       var i, elem, elems;
-       elem = document.getElementById('dataset_linking_stats_selection_linkset_col');
-       //            console.log(elem);
-       if (elem) {
-            elems = elem.getElementsByClassName('list-group-item');
-            for (i = 0; i < elems.length; i++) {
-                uri = $(elems[i]).attr('uri');
-                    selectListItem(elems[i]);
-            }
-       }
-
        // set actions after clicking a graph in the list
        $('#dataset_linking_stats_selection_linkset_col a').on('click',function()
        {
@@ -3793,18 +3781,6 @@ function dataset_stats_load_linksets_lenses()
        var num = ('0000' + String(a.length)).substr(-4);
        $('#dataset_linking_stats_selection_lens_counter').html(num);
 
-       // select everything by default
-//       var i, elem, elems;
-//       elem = document.getElementById('dataset_linking_stats_selection_lens_col');
-//       //            console.log(elem);
-//       if (elem) {
-//            elems = elem.getElementsByClassName('list-group-item');
-//            for (i = 0; i < elems.length; i++) {
-//                uri = $(elems[i]).attr('uri');
-//                    selectListItem(elems[i]);
-//            }
-//       }
-
        // set actions after clicking a graph in the list
        $('#dataset_linking_stats_selection_lens_col a').on('click',function()
        {
@@ -3815,11 +3791,31 @@ function dataset_stats_load_linksets_lenses()
 
 }
 
+$('#selectAllLinksetsCheckBok').click(function() {
+    if (this.checked)
+    {
+        selectAllListItems('dataset_linking_stats_selection_linkset_col')
+   }
+   else
+   {  deselectAllListItems('dataset_linking_stats_selection_linkset_col');
+   }
+});
+
+
+$('#selectAllLensesCheckBok').click(function() {
+    if (this.checked)
+    {
+        selectAllListItems('dataset_linking_stats_selection_lens_col')
+   }
+   else
+   {  deselectAllListItems('dataset_linking_stats_selection_lens_col');
+   }
+});
 
 function calculateFreqClick(){
     var btn = document.getElementById('btn_freq_type');
     var elems = btn.getElementsByClassName('active');
-//    alert($(elems[0]).attr('type'))
+
     if (elems.length > 0) {
         $.get('/calculateFreq',
               data={'dataset': $('#selected_dataset').attr('uri'),
@@ -4093,8 +4089,8 @@ var svg = d3.select(".chart")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   x.domain(data.map(function(d) { return d.name; }));
-  y0.domain([0, d3.max(data, function(d) { return Math.min(Math.max(2*d.freq, 2*d.clust), 100); })]);
-  y1.domain([0, d3.max(data, function(d) { return Math.min(Math.max(2*d.freq, 2*d.clust), 100); })]);
+  y0.domain([0, d3.max(data, function(d) { return Math.min(Math.max(1.5*d.freq, 1.5*d.clust), 100); })]);
+  y1.domain([0, d3.max(data, function(d) { return Math.min(Math.max(1.5*d.freq, 1.5*d.clust), 100); })]);
 //y1.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust); })]);
 
 //  x.domain(data.map(function(d) { return d.year; }));

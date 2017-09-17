@@ -6,39 +6,41 @@
       {{ objectTarget }} <span class="badge alert-info">{{ alignsObjects }}</span>
     </div>
     <div class="panel-body" style='scroll: both; overflow: auto; height: 20em;'>
+        <div class="list-group" style='scroll: both; overflow: auto; height: 20em; width: 100%;'>
         <TABLE style='width: 100%;'>
           <TR>
-             <TH>
+             <TH style='width: 50%;'>
                  <span class="list-group-item-heading">
                      <span class="badge alert-default">{{ subjectTarget }}</span></span>
               </TH>
-             <TH>
+             <TH style='width: 50%;'>
                  <span class="list-group-item-heading">
                      <span class="badge alert-default">{{ objectTarget }}</span></span>
              </TH>
         {% for d in details %}
           <TR>
-              <TD>
+              <TD style='width: 50%;'>
                <li class="list-group-item" id="srcDatasetLI" uri='{{ sub_uri }}'
-                   style="background-color:lightgray">
-               {{alignsSubjects}} =
-                 <span class="list-group-item-heading" style="color:blue">
+                   style="background-color:lightgray;width: 100%;">
+               {{d.alignsSubjects_stripped.value}} =
+                 <span class="list-group-item-heading" style="color:blue;width: 100%;">
                      <strong>{{ d.srcPredValue.value }}</strong>
                  </span></li>
-              </TD>
-             <TD><li class="list-group-item" id="trgDatasetLI" uri='{{ obj_uri }}'
-                 style="background-color:lightgray">
-                 {{alignsObjects}} =
-                 <span class="list-group-item-heading" style="color:blue">
+              </TD >
+             <TD style='width: 50%;'><li class="list-group-item" id="trgDatasetLI" uri='{{ obj_uri }}'
+                 style="background-color:lightgray;width: 100%;">
+                 {{d.alignsObjects_stripped.value}} =
+                 <span class="list-group-item-heading" style="color:blue;width: 100%;">
                      <strong>{{ d.trgPredValue.value }}</strong></span>
                  </li>
              </TD>
           <TR>
         {% endfor %}
-             <TD id="srcDetails" target="{{ subjectTarget }}" aligns="{{ alignsSubjects }}">
+             <TD style='width: 50%;' id="srcDetails" target="{{ subjectTarget }}" aligns="{{ alignsSubjects }}">
               </TD>
-             <TD id="trgDetails" target="{{ objectTarget }}" aligns="{{ alignsObjects }}">
+             <TD style='width: 50%;' id="trgDetails" target="{{ objectTarget }}" aligns="{{ alignsObjects }}">
               </TD>
         </TABLE>
+        </div>
     </div>
 </div>

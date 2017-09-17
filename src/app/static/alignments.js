@@ -214,6 +214,31 @@ function selectListItemUniqueDeselect(item, grouplist_name)
   return true
 }
 
+function selectAllListItems(grouplist_name)
+{
+    // check if there are selected elements in the group list
+    elem = document.getElementById(grouplist_name);
+    elems = elem.getElementsByClassName('list-group-item');
+    var i;
+    for (i = 0; i < elems.length; i++) {
+      $(elems[i]).addClass('list-group-item-warning');
+    }
+  return true
+}
+
+function deselectAllListItems(grouplist_name)
+{
+    // check if there are selected elements in the group list
+    elem = document.getElementById(grouplist_name);
+    elems = elem.getElementsByClassName('list-group-item');
+    var i;
+    for (i = 0; i < elems.length; i++) {
+     // remove the selection
+      $(elems[i]).removeClass('list-group-item-warning');
+    }
+  return true
+}
+
 function selectListItem(item)
 {
   if ($(item).attr('class') == 'list-group-item') {

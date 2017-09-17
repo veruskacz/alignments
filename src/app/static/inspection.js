@@ -10,7 +10,10 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
   var alignsSubjects = detailsDict.s_property.value;
   var alignsObjects = detailsDict.o_property.value;
   var alignsMechanism = detailsDict.mechanism.value;
-  var operator = detailsDict.operator.value;;
+  var operator = detailsDict.operator.value;
+  var alignsSubjectsList = detailsDict.s_property_list.value
+  var alignsObjectsList = detailsDict.o_property_list.value
+
 
   hideColDiv('divInvestigation');
 
@@ -56,7 +59,10 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
                             'subjectTarget': subjectTarget,
                             'objectTarget': objectTarget,
                             'alignsSubjects': alignsSubjects,
-                            'alignsObjects': alignsObjects}
+                            'alignsObjects': alignsObjects,
+                            'alignsSubjectsList': alignsSubjectsList,
+                            'alignsObjectsList': alignsObjectsList
+                            }
 
           // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)
           if (operator) // THEN IT IS A LENS

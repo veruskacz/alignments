@@ -460,7 +460,7 @@ def correspondences2():
                             graph_menu = graph_menu,
                             correspondences = correspondences,
                             graph_uri = graph_uri,
-                            graph_label = get_URI_local_name(graph_label).replace("_"," "),
+                            graph_label = get_URI_local_name(graph_label.replace("_()","")).replace("_"," "),
                             graph_triples = graph_triples,
                             alignsMechanism = get_URI_local_name(alignsMechanism))
 
@@ -531,9 +531,16 @@ def details():
     objectTarget = request.args.get('objectTarget', '')
     alignsSubjects = request.args.get('alignsSubjects', '')
     alignsObjects = request.args.get('alignsObjects', '')
+    alignsSubjectsList = request.args.get('alignsSubjectsList', '').split('|')
+    alignsObjectsList = request.args.get('alignsObjectsList', '').split('|')
     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
-    query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjects, alignsObjects)
+
+    print alignsSubjectsList, alignsObjectsList
+    query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
+    # print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+    # print query
     details = sparql(query, strip=True)
+    # print details
 
     if PRINT_RESULTS:
         print "\n\nDETAILS:", details
@@ -545,8 +552,8 @@ def details():
                             obj_uri = obj_uri,
                             subjectTarget = subjectTarget,
                             objectTarget = objectTarget,
-                            alignsSubjects = get_URI_local_name(alignsSubjects),
-                            alignsObjects = get_URI_local_name(alignsObjects))
+                            alignsSubjects = Ut.get_uri_local_name(alignsSubjects, sep=" / "),
+                            alignsObjects = Ut.get_uri_local_name(alignsObjects, sep=" / "))
 
 
 @app.route('/getlinksetdetails', methods=['GET'])
@@ -565,7 +572,7 @@ def linksetdetails():
     rq_uri = request.args.get('rq_uri', '')
     filter_uri = request.args.get('filter_uri', '')
 
-    query = Qry.get_linkset_corresp_details(linkset, limit=10, rq_uri = rq_uri, filter_uri = filter_uri )
+    query = Qry.get_linkset_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri )
     metadata = sparql(query, strip=True)
 
     if metadata:
@@ -580,21 +587,6 @@ def linksetdetails():
         query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
         details = sparql(query, strip=True)
 
-        # print "LINKSET DETAIL QUERY:", query
-        # print "LINKSET DETAIL RESULT:", details
-
-        s_property_list = ''
-        o_property_list = ''
-        mechanism_list = ''
-        D = None
-        # print "RESULT!!!!!!!!", details
-        if details:
-            d = details[0]
-            # print "!!!!!!!! D", d
-            s_property_list = d['s_property_stripped']['value']
-            o_property_list = d['o_property_stripped']['value']
-            mechanism_list = d['mechanism_stripped']['value']
-
         if PRINT_RESULTS:
             print "\n\nDETAILS:", details
 
@@ -604,15 +596,62 @@ def linksetdetails():
             subTarget = md['subTarget_stripped']['value'],
             o_datatype = md['o_datatype_stripped']['value'],
             objTarget = md['objTarget_stripped']['value'],
-            s_property = md['s_property_stripped']['value'],
-            o_property = md['o_property_stripped']['value'],
-            mechanism = md['mechanism_stripped']['value'],
-            s_property_list = s_property_list,
-            o_property_list = o_property_list,
-            mechanism_list = mechanism_list
+            triples = md['triples']['value'],
+            ratio = md['threshold']['value'],
+            delta = md['delta']['value'],
+            s_property_list = md['s_property_list_stripped']['value'],
+            o_property_list = md['o_property_list_stripped']['value'],
+            mechanism_list = md['mechanism_list_stripped']['value']
         )
 
         return json.dumps({'metadata': md, 'data': data})
+
+# @app.route('/getlinksetdetailssample', methods=['GET'])
+# def linksetdetailssample():
+#     """
+#     This function is called due to request /getdetails
+#     It queries the dataset for both all the correspondences in a certain graph URI
+#     Expected Input: uri, label (for the graph)
+#     The results, ...,
+#         are passed as parameters to the template linksetDetails_list.html
+#     """
+#
+#     # RETRIEVE VARIABLES
+#     linkset = request.args.get('linkset', '')
+#     template = request.args.get('template', 'linksetDetails_list.html')
+#     # filter_uri = request.args.get('filter_uri', '')
+#
+#     query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
+#     details = sparql(query, strip=True)
+#
+#     # print "LINKSET DETAIL QUERY:", query
+#     # print "LINKSET DETAIL RESULT:", details
+#
+#     s_property_list = ''
+#     o_property_list = ''
+#     mechanism_list = ''
+#     D = None
+#     # print "RESULT!!!!!!!!", details
+#     if details:
+#         d = details[0]
+#         # print "!!!!!!!! D", d
+#         s_property_list = d['s_property_stripped']['value']
+#         o_property_list = d['o_property_stripped']['value']
+#         mechanism_list = d['mechanism_stripped']['value']
+#
+#     if PRINT_RESULTS:
+#         print "\n\nDETAILS:", details
+#
+#     data = render_template(template,
+#         details = details,
+#         subTarget = subTarget,
+#         objTarget = objTarget,
+#         s_property_list = s_property_list,
+#         o_property_list = o_property_list,
+#         mechanism_list = mechanism_list
+#     )
+#
+#     return json.dumps({'metadata': md, 'data': data})
 
 
 @app.route('/getlensspecs', methods=['GET'])
@@ -714,11 +753,14 @@ def detailsLens():
     # print graph_uri, singleton_uri
     det_query = Qry.get_target_datasets(graph_uri, singleton_uri)
     details = sparql(det_query, strip=True)
-    # print det_query
-    # print details
+    print det_query
+    print details
+
     rows = []
     src_align_list = []
     trg_align_list = []
+    subjectTarget = ''
+    objectTarget = ''
 
     if len(details) > 0:
         subjectTarget = details[0]['DatasetsSub']['value']
@@ -742,42 +784,48 @@ def detailsLens():
                 trg_align_list += [trg_aligns]
 
         s = u'http://risis.eu/alignment/predicate/resourceIdentifier'
-        # print "align_list", align_list
+        s2 = u'resource identifier'
         if s in src_align_list:
             src_align_list.remove(s)
+        if s2 in src_align_list:
+            src_align_list.remove(s2)
         # print "align_list", align_list
         val_query = Qry.get_resource_description(subjectTarget, sub_uri, src_align_list)
         values_matrix = sparql_xml_to_matrix(val_query)
+        print src_align_list
         pred_values_src = []
         for i in range(len(src_align_list)):
             if values_matrix is None:
-                pred_value = {'pred': get_URI_local_name(src_align_list[i]), 'value': ""}
+                pred_value = {'pred': Ut.get_uri_local_name(src_align_list[i],sep=' / '), 'value': ""}
             else:
-                pred_value = {'pred': get_URI_local_name(src_align_list[i]), 'value': to_unicode(values_matrix[1][i])}
+                pred_value = {'pred': Ut.get_uri_local_name(src_align_list[i],sep=' / '), 'value': to_unicode(values_matrix[1][i])}
 
             pred_values_src += [pred_value]
 
         if s in trg_align_list:
             trg_align_list.remove(s)
-        # print "align_list", align_list
+        if s2 in trg_align_list:
+            trg_align_list.remove(s2)
         val_query = Qry.get_resource_description(objectTarget, obj_uri, trg_align_list)
         values_matrix = sparql_xml_to_matrix(val_query)
         pred_values_trg = []
+        print trg_align_list
+
         for i in range(len(trg_align_list)):
             if values_matrix is None:
-                pred_value = {'pred': get_URI_local_name(trg_align_list[i]), 'value': ""}
+                pred_value = {'pred': Ut.get_uri_local_name(trg_align_list[i],sep=' / '), 'value': ""}
             else:
-                pred_value = {'pred': get_URI_local_name(trg_align_list[i]), 'value': to_unicode(values_matrix[1][i])}
+                pred_value = {'pred': Ut.get_uri_local_name(trg_align_list[i],sep=' / '), 'value': to_unicode(values_matrix[1][i])}
 
             pred_values_trg += [pred_value]
 
         col1 = {'dataset': subjectTarget,
-                'dataset_stripped': get_URI_local_name(subjectTarget),
+                'dataset_stripped': Ut.get_uri_local_name(subjectTarget),
                 'predicates': pred_values_src}
 
         if len(objectTarget) > 0:
             col2 = {'dataset': objectTarget,
-                    'dataset_stripped': get_URI_local_name(objectTarget),
+                    'dataset_stripped': Ut.get_uri_local_name(objectTarget),
                     'predicates': pred_values_trg}
         else:
             col2 = ""

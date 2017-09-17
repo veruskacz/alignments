@@ -14,9 +14,23 @@
 
         using
 
-        <span class="badge alert-info"><strong>{{ mechanism_list|upper }}</strong></span>.
+        <span class="badge alert-info"><strong>{{ mechanism_list|upper }}</strong></span>
+
+        {% if (ratio != '0') %}
+        with ratio  <span class="badge alert-info"><strong>{{ ratio }}</strong></span>
+        {% endif %}
+        {% if (delta != '0') %}
+        with delta  <span class="badge alert-info"><strong>{{ delta }}</strong></span>
+        {% endif %}
+
+        producing
+
+         <span class="badge alert-info"><strong>{{ triples }}</strong></span>
+
+        matches.
+
     </div>
-    <div class="panel-body" style='height: 12em;'>
+    <div class="panel-body" style='height: 14em;'>
         <TABLE style='width: 100%;'>
           <TR>
              <TH style='width: 50%;'>
@@ -29,24 +43,23 @@
              </TH>
         </TABLE>
 
-        <div class="list-group" style='scroll: both; overflow: auto; height: 8em; width: 100%;'>
-          {% for d in details %}
+        <div class="list-group" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
           <TABLE style='width: 100%;'>
+          {% for d in details %}
           <TR>
               <TD style='width: 50%;'>
-               <li class="list-group-item" id="srcDataset" >
+               <li class="list-group-item" id="srcDataset" style='width: 100%;' >
                  <span class="list-group-item-heading">{{ d.s_PredValue.value }}</span>
                </li>
               </TD>
              <TD style='width: 50%;'>
-               <li class="list-group-item" id="trgDataset" >
+               <li class="list-group-item" id="trgDataset" style='width: 100%;' >
                  <span class="list-group-item-heading">{{ d.o_PredValue.value }}</span>
                </li>
              </TD>
-              </li>
           <TR>
-          </TABLE>
           {% endfor %}
+          </TABLE>
         </div>
     </div>
 </div>
