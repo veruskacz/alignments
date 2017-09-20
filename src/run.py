@@ -23,5 +23,6 @@ if __name__ == "__main__":
         "SWITCHING ON THE SERVER..."
         bat_path = "{}stardogStart{}".format(Svr.SRC_DIR, Ut.batch_extension())
         Ut.stardog_on(bat_path)
+        Ut.listening(Svr.settings[St.stardog_data_path])
 
     app.run(host="0.0.0.0", port=5077)
