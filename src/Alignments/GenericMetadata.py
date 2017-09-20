@@ -6,7 +6,6 @@ import Alignments.Linksets.Linkset as Ls
 
 def linkset_metadata(specs, display=False):
 
-
     extra = ""
     if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
         extra += "\n        alivocab:subjectsReducer    <{}> ;".format(specs[St.source][St.reducer])
@@ -313,10 +312,16 @@ def linkset_refined_metadata(specs, display=False):
         extra += "\n        alivocab:subjectsReducer     <{}> ;".format(specs[St.source][St.reducer])
 
     if St.reducer in specs[St.target] and len(specs[St.target][St.reducer]) > 0:
-        extra += "\n        alivocab:objectsReducer     <{}> ;".format(specs[St.target][St.reducer])
+        extra += "\n        alivocab:objectsReducer      <{}> ;".format(specs[St.target][St.reducer])
 
     if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
-        extra += "\n        alivocab:intermediate       <{}> ;".format(specs[St.intermediate_graph])
+        extra += "\n        alivocab:intermediatesTarget <{}> ;".format(specs[St.intermediate_graph])
+
+    if St.threshold in specs and len(str(specs[St.threshold])) > 0:
+        extra += "\n        alivocab:threshold           {} ;".format(str(specs[St.threshold]))
+
+    if St.delta in specs and len(str(specs[St.delta])) > 0:
+        extra += "\n        alivocab:delta               {} ;".format(str(specs[St.delta]))
 
     source = specs[St.source]
     target = specs[St.target]
@@ -356,7 +361,6 @@ def linkset_refined_metadata(specs, display=False):
                                     " using the mechanism: {}". \
             format(source[St.graph], target[St.graph], specs[St.mechanism])
 
-
     elif str(specs[St.mechanism]).lower() == "approxstrsim":
         specs[St.link_name] = "Approximate String Similarity"
         specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
@@ -377,7 +381,6 @@ def linkset_refined_metadata(specs, display=False):
     # CHECKING WHETHER THE REFINED HAS SOME TRIPLES INSERTED
     specs[St.triples] = Qry.get_namedgraph_size(specs[St.refined], isdistinct=False)
 
-
     triples = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
     print "\t>>> {} CORRESPONDENCES IN THE SOURCE".format(triples)
     print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
@@ -389,9 +392,9 @@ def linkset_refined_metadata(specs, display=False):
         "{} CORRESPONDENCES INSERTED".format(specs[St.triples]),
         "{} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(str(int(triples) - int(specs[St.triples]))))
 
-    if int(specs[St.triples] ) > 0:
+    if int(specs[St.triples]) > 0:
         derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
-        intermediate = "        alivocab:intermediatesTarget    <{}> ;".format(specs[St.intermediate_graph]) \
+        intermediate = "\n        alivocab:intermediatesTarget    <{}> ;".format(specs[St.intermediate_graph]) \
             if str(specs[St.mechanism]).lower() == "intermediate" else ""
 
         query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
@@ -417,7 +420,7 @@ def linkset_refined_metadata(specs, display=False):
                    "        void:triples                    {} ;".format(specs[St.triples]),
                    "        alivocab:sameAsCount            {} ;".format(specs[St.sameAsCount]),
                    "        alivocab:alignsMechanism        <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),
-                   "        void:subjectsTarget             <{}> ;\n{}".format(source[St.graph], intermediate),
+                   "        void:subjectsTarget             <{}> ;{}".format(source[St.graph], intermediate),
                    "        void:objectsTarget              <{}> ;".format(target[St.graph]),
                    "        void:linkPredicate              <{}> ;".format(specs[St.link]),
                    "        bdb:subjectsDatatype            <{}> ;".format(source[St.entity_datatype]),

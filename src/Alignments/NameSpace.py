@@ -18,6 +18,7 @@ lens = 'http://risis.eu/lens/'
 riclass = 'http://risis.eu/class/'
 schema = 'http://risis.eu/ontology/'
 dataset = "http://risis.eu/dataset/"
+cluster = "http://risis.eu/cluster/"
 idea = "http://risis.eu/activity/"
 linkset = "http://risis.eu/linkset/"
 method = "http://risis.eu/method/"
