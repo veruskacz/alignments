@@ -732,6 +732,7 @@ def load_triple_store(graph_uri, directory, data):
 def listening(directory):
 
     # run indefinitely
+    print directory
     while True:
         # get the directory listing
         lock_file = [name for name in os.listdir(directory)
@@ -739,11 +740,12 @@ def listening(directory):
 
         # print the most recent listing
         for lock in lock_file:
-            print(lock)
+            print"{} is active".format(lock)
 
         if len(lock_file) > 0:
+            print "THE SERVER IS ON."
             return "THE SERVER IS ON."
-
+        print "Listening for \"system.lock\" file..."
         # wait a little bit before getting the next listing
         # if you want near instantaneous updates, make the sleep value small.
         time.sleep(1)
