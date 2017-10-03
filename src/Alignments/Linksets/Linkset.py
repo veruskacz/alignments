@@ -217,7 +217,7 @@ def set_refined_name(specs):
         threshold += str(specs[St.threshold])
 
     if St.delta in specs:
-        delta += specs[St.delta]
+        delta += str(specs[St.delta])
 
     hashed = hash(reducer + intermediate + threshold + delta)
 
