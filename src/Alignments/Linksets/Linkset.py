@@ -93,7 +93,7 @@ def set_linkset_name(specs, inverse=False):
         threshold += str(specs[St.threshold])
 
     if St.delta in specs:
-        delta += specs[St.delta]
+        delta += str(specs[St.delta])
 
     if inverse is False:
 
