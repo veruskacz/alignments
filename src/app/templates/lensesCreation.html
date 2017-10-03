@@ -1,8 +1,8 @@
 <div class="panel panel-info">
 <div class="panel-heading">
  <div class="row">
-  <div class="col-md-8"><h3>Lenses</h3></div>
-  <div class="col-md-4 text-right" id="creation_lens_buttons_col">
+  <div class="col-md-7"><h3>Lenses</h3></div>
+  <div class="col-md-5 text-right" id="creation_lens_buttons_col">
     <h4><button type="button" id="btn_inspect_lens"
             class="btn btn-primary btn btn-primary disabled"
             onclick='newSelectButton(this);
@@ -22,6 +22,12 @@
             activateTargetDiv(targetId="edit_lens_heading",cl="panel-heading");
             inspect_lens_activate(mode="edit")'
             >Edit</button>
+    <button type="button" id="btn_refine_lens" class="btn btn-primary disabled"
+            onclick='newSelectButton(this);
+            activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");
+            activateTargetDiv(targetId="refine_lens_heading",cl="panel-heading");
+            inspect_lens_activate(mode="refine")'
+            >Refine</button>
     <button type="button" class="btn btn-primary disabled" id="btn_export_lens"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");
@@ -146,10 +152,11 @@
   </div>
  </div>
 
+
  <div class="row creation" id="creation_lens_row" style='display:none'>
   <div class="col-md-12">
    <div class="panel panel-default">
-   <div class="panel-heading" id="create_lens_heading" >
+    <div class="panel-heading" id="create_lens_heading" >
      <div class="row">
        <div class="col-md-4">
           <h4 class="panel-title">
@@ -176,6 +183,7 @@
        </div>
      </div>
    </div>
+
     <div class="panel-heading" id="edit_lens_heading" style='display:none'>
      <div class="row">
        <div class="col-md-4">
@@ -235,13 +243,41 @@
      </div>
    </div>
 
+    <div class="panel-heading" id="refine_lens_heading" style='display:none'>
+     <div class="row">
+       <div class="col-md-4"><h4></h4>
+          <h4 class="panel-title">
+            <a id="link_collapse_lens_refine"
+                 data-toggle="collapse" href="#collapse_lens_create">
+                <span class="badge alert-info"><strong>-</strong></span></a>
+            Refine Lens
+          </h4>
+       </div>
+       <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_refine_message_col"></div></h5>-->
+       <div class="col-md-8 text-right">
+           <table align="right">
+               <tr align="right">
+                   <td align="right"><div id="lens_refine_message_col"></div></td>
+                   <td valign="center"><div class="loading"></div></td>
+                   <td align="right"><button type="button" id="refineLensButton"
+                       class="btn btn-success btn btn-primary"
+                       onclick = 'refineLensClick();'
+                       >Refine Lens
+                    <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                   </button></td>
+           </table>
+       </div>
+     </div>
+    </div>
+
 
    <div id="collapse_lens_create" class="panel-collapse collapse in"
         target="link_collapse_lens_create"
         target2="link_collapse_lens_edit"
-        target3="link_collapse_lens_export">
+        target3="link_collapse_lens_export"
+        target4="lens_refine_message_col">
    <div class="panel-body" id="lens_inspect_panel_body">
-    <div class="row">
+    <div class="row" id="lens_creation_row">
       <div class="col-md-4" style='border-right: 1px solid grey;' id="creation_operation_col">
           <div class="row">
             <div class="col-md-10">
@@ -382,6 +418,488 @@
           </div>
       </div>
 
+    </div>
+
+    <div class="row" id="lens_refine_row">
+
+      <!-- SOURCE OPTIONS -->
+      <div class="col-md-4" style='border-right: 1px solid grey;' id="refine_lens_source_col" >
+
+        <div class="row">
+          <div class="col-md-10">
+            <h3>Source</h3>
+          </div>
+        </div>
+
+        <div class="row">
+         <div class="col-md-12">
+         <div class="panel-group">
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-bottom: 0px;">
+                <div class="row" id="refine_lens_src_datasets_row">
+                  <div class="col-md-4 graph-list" id="refine_lens_button-src-col" mode="source"
+                        targetTxt="refine_lens_src_selected_graph"
+                        targetHidden="refine_lens_hidden_src_entType_div"
+                        targetBtn="refine_lens_button-src-entity-type-col"
+                        targetAddBtn="refine_lens_button_src_add_entity_type_pred_col">
+                        <div id="refine_lens_hidden_src_div" style='display:none' uri="" label="" ></div>
+                      <!-- will be rendered via server -->
+                  </div>
+                  <div class="col-md-8">
+                      <div class="well well-sm" id="refine_lens_src_selected_graph" uri="">Select a Graph</div>
+                  </div>
+                </div>
+
+                   <div class="row" id="refine_lens_src_entitytype_row">
+                      <div class="col-md-4 entity-list" id="refine_lens_button-src-entity-type-col"
+                            graph_uri=""
+                            targetTxt="refine_lens_src_selected_entity-type"
+                            targetList="refine_lens_src_predicates_col"
+                            hiddenDiv="refine_lens_hidden_src_entType_div">
+                        <!-- will be rendered via server -->
+                        <div class="hiddenDiv" id="refine_lens_hidden_src_entType_div" style='display:none' uri="" label="" ></div>
+                        <button class="btn btn-primary btn-round dropdown-toggle" type="button"
+                                data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
+                      </div>
+                      <div class="col-md-8">
+                         <div class="well well-sm" id="refine_lens_src_selected_entity-type" uri="">Select an Entity Type</div>
+                      </div>
+                   </div>
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">
+
+                   <div class="row">
+                          <div class="col-md-12">
+                              <h4><small>
+                                  <a href="#collapse_refine_lens_add_entity_type" data-toggle="collapse">
+                                      <span class="badge alert-default"><strong>+</strong></span></a>
+                                  </small>
+                                  Additional Entity Type or Condition</h4>
+                          </div>
+                   </div>
+                   <div id="collapse_refine_lens_add_entity_type" class="div-collapse collapse">
+                   <div class="row" id="refine_lens_src_add_entity_type_pred_row">
+                      <div class="col-md-4 selection-list" id="refine_lens_button_src_add_entity_type_pred_col" mode="source"
+                            targetTxt="refine_lens_src_selected_add_entity_type_pred"
+                            targetBtn="refine_lens_button_src_add_entity_type_value_col">
+                          <!-- will be rendered via server -->
+                          <button class="btn btn-primary btn-round dropdown-toggle" type="button"
+                                data-toggle='dropdown'>Other Types<span class="caret"></span></button>
+                      </div>
+                      <div class="col-md-8">
+                          <div class="well well-sm" id="refine_lens_src_selected_add_entity_type_pred" uri="">Select a Type-Property</div>
+                      </div>
+                   </div>
+
+                   <div class="row" id="refine_lens_src_add_entity_type_value_row">
+                      <div class="col-md-4 selection-list" id="refine_lens_button_src_add_entity_type_value_col" mode="source"
+                            targetTxt="refine_lens_src_selected_add_entity_type_value">
+                          <!-- will be rendered via server -->
+                          <button class="btn btn-primary btn-round dropdown-toggle" type="button"
+                                data-toggle='dropdown'>Type Values<span class="caret"></span></button>
+                      </div>
+                      <div class="col-md-8">
+                          <div class="well well-sm" id="refine_lens_src_selected_add_entity_type_value" uri="">Select a Type-Value</div>
+                      </div>
+                   </div>
+                   </div>
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">
+
+                   <div class="row">
+                          <div class="col-md-12">
+                              <h4><small>
+                                  <a href="#demo" data-toggle="collapse"><span class="badge alert-default"><strong>+</strong></span></a>
+                                  </small>
+                                  Enriched Dataset</h4>
+                          </div>
+                   </div>
+                   <div id="demo" class="div-collapse collapse">
+
+                    <div class="row" id="refine_lens_src_datasets_enriched_row">
+                      <div class="col-md-4 graph-list" id="refine_lens_button-src-enriched-col"
+                            targetTxt="refine_lens_src_selected_graph_enriched"
+                            graph_uri=""
+                            targetList="refine_lens_src_predicates_col">
+                          <!-- will be rendered via server -->
+                      </div>
+                      <div class="col-md-8">
+                          <div class="well well-sm" id="refine_lens_src_selected_graph_enriched" uri="">Select a Graph</div>
+                      </div>
+                    </div>
+
+                   </div>
+              </div>
+            </div>
+
+          <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row">
+                  <div class="col-md-12">
+                      <h4>Property to align</h4>
+                  </div>
+            </div>
+
+            <div class="row" id = "refine_lens_src_selected_pred_row">
+             <div class="col-md-12">
+                 <div class="well well-sm" id="refine_lens_src_selected_pred" uri="" >
+                     Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                 </div>
+             </div>
+            </div>
+
+            <div class="row" id = "refine_lens_src_list_pred_row">
+            <div class="col-md-12">
+                 <!--<div class="row"> &nbsp </div>-->
+                 <div class="row">
+                     <div class="col-md-12">
+                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                   <input type="text" onkeyup='filterListGroup(this,"refine_lens_src_predicates_col")' placeholder="Search for names.." style='width: 93%'>
+                   </div>
+                 </div>
+                 <div class="row"> &nbsp </div>
+             <div class="row">
+                 <div class="col-md-7">
+                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                         </strong></small>
+                 </div>
+                 <div class="col-md-5" align="right">
+                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="refine_lens_src_enable_prop_path"
+                            onclick='resetDivSelectedEntity("refine_lens_button-src-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                 </div>
+             </div>
+             <div class="row">
+                 <div class="col-md-12 pred-list" id="refine_lens_src_predicates_col"
+                      targetList="refine_lens_src_predicates_col"
+                      targetTxt="refine_lens_src_selected_pred"
+                      propPathCheckBok="refine_lens_src_enable_prop_path"
+                      propPath="enabled"> </div>
+             </div>
+            </div>
+            </div>
+          </div> <!-- Panel Body-->
+
+        </div> <!-- Panel -->
+         </div>
+        </div> <!-- Col 12-->
+       </div> <!-- Row-->
+
+      </div> <!-- Col 4 source -->
+
+      <!-- TARGET OPTIONS -->
+      <div class="col-md-4" style='border-right: 1px solid grey;' id="refine_lens_creation_target_col">
+
+         <div class="row">
+            <div class="col-md-10">
+              <h3>Target</h3></div>
+            </div>
+
+         <div class="row">
+          <div class="col-md-12">
+
+           <div class="panel-group">
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-bottom: 0px;">
+                  <div class="row" id="refine_lens_trg_datasets_row">
+                    <div class="col-md-4 graph-list" id="refine_lens_button-trg-col" mode="target"
+                          targetTxt="refine_lens_trg_selected_graph"
+                          targetHidden="refine_lens_hidden_trg_entType_div"
+                          targetBtn="refine_lens_button-trg-entity-type-col"
+                          targetAddBtn="refine_lens_button_trg_add_entity_type_pred_col"
+                          targetList="refine_lens_trg_predicates_col">
+                        <div id="refine_lens_hidden_trg_div" style='display:none' uri="" label="" ></div>
+                      <!-- will be rendered via server -->
+                    </div>
+                    <div class="col-md-8">
+                       <div class="well well-sm" id="refine_lens_trg_selected_graph">Select a Graph</div>
+                    </div>
+                  </div>
+
+                  <div class="row" id="refine_lens_trg_entitytype_row">
+                      <div class="col-md-4 entity-list" id="refine_lens_button-trg-entity-type-col"
+                            graph_uri=""
+                            targetTxt="refine_lens_trg_selected_entity-type"
+                            targetList="refine_lens_trg_predicates_col">
+                        <!-- will be rendered via server -->
+                        <div class="hiddenDiv" id="refine_lens_hidden_trg_entType_div" style='display:none' uri="" label="" ></div>
+                        <button class="btn btn-primary btn-round dropdown-toggle" type="button"
+                                data-toggle='dropdown'>Entity Type<span class="caret"></span></button>
+                      </div>
+                      <div class="col-md-8">
+                         <div class="well well-sm" id="refine_lens_trg_selected_entity-type" uri="">Select an Entity Type</div>
+                      </div>
+                  </div>
+
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">
+
+                   <div class="row">
+                          <div class="col-md-12">
+                              <h4><small>
+                                  <a href="#collapse_refine_lens_trg_add_entity_type" data-toggle="collapse">
+                                      <span class="badge alert-default"><strong>+</strong></span></a>
+                                  </small>
+                                  Additional Entity Type or Condition</h4>
+                          </div>
+                   </div>
+
+                   <div id="collapse_refine_lens_trg_add_entity_type" class="div-collapse collapse">
+                       <div class="row" id="refine_lens_trg_add_entity_type_pred_row">
+                          <div class="col-md-4 selection-list" id="refine_lens_button_trg_add_entity_type_pred_col" mode="target"
+                                targetTxt="refine_lens_trg_selected_add_entity_type_pred"
+                                targetBtn="refine_lens_button_trg_add_entity_type_value_col">
+                              <!-- will be rendered via server -->
+                              <button class="btn btn-primary btn-round dropdown-toggle" type="button"
+                                    data-toggle='dropdown'>Other Types<span class="caret"></span></button>
+                          </div>
+                          <div class="col-md-8">
+                              <div class="well well-sm" id="refine_lens_trg_selected_add_entity_type_pred" uri="">Select a Type-Property</div>
+                          </div>
+                       </div>
+
+                       <div class="row" id="refine_lens_trg_add_entity_type_value_row">
+                          <div class="col-md-4 selection-list" id="refine_lens_button_trg_add_entity_type_value_col"
+                                targetTxt="refine_lens_trg_selected_add_entity_type_value">
+                              <!-- will be rendered via server -->
+                              <button class="btn btn-primary btn-round dropdown-toggle" type="button"
+                                    data-toggle='dropdown'>Type Values<span class="caret"></span></button>
+                          </div>
+                          <div class="col-md-8">
+                              <div class="well well-sm" id="refine_lens_trg_selected_add_entity_type_value" uri="">Select a Type-Value</div>
+                          </div>
+                       </div>
+
+                   </div>
+
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">
+
+                   <div class="row">
+                          <div class="col-md-12">
+                              <h4><small>
+                                  <a href="#collapse_refine_lens_trg_enriched_datatet" data-toggle="collapse"><span class="badge alert-default"><strong>+</strong></span></a>
+                                  </small>
+                                  Enriched Dataset</h4>
+                          </div>
+                   </div>
+                   <div id="collapse_refine_lens_trg_enriched_datatet" class="div-collapse collapse">
+
+                    <div class="row" id="refine_lens_trg_datasets_enriched_row">
+                      <div class="col-md-4 graph-list" id="refine_lens_button-trg-enriched-col"
+                            targetTxt="refine_lens_trg_selected_graph_enriched"
+                            graph_uri=""
+                            targetList="refine_lens_trg_predicates_col">
+                          <!-- will be rendered via server -->
+                      </div>
+                      <div class="col-md-8">
+                          <div class="well well-sm" id="refine_lens_trg_selected_graph_enriched" uri="">Select a Graph</div>
+                      </div>
+                    </div>
+
+                   </div>
+              </div>
+            </div>
+
+
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <div class="row">
+                      <div class="col-md-12">
+                          <h4>Property to align</h4>
+                      </div>
+                </div>
+
+                 <div class="row" id = "refine_lens_trg_selected_pred_row">
+                   <div class="col-md-12">
+                       <div class="well well-sm" id="refine_lens_trg_selected_pred" uri="">Select a Property +
+                         <span style="color:blue"><strong> example value </strong></span>
+                       </div>
+
+                   </div>
+                 </div>
+                 <div class="row" id = "refine_lens_trg_list_pred_row">
+                    <div class="col-md-12">
+                     <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"refine_lens_trg_predicates_col")' placeholder="Search for names.." style='width: 93%'>
+                       </div>
+                     </div>
+                     <div class="row"> &nbsp </div>
+                     <div class="row">
+                         <div class="col-md-7">
+                             <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                 </strong></small>
+                         </div>
+                         <div class="col-md-5" align="right">
+                             <small><div class="checkbox-inline" ><label><input type="checkbox" id="refine_lens_trg_enable_prop_path"
+                                onclick='resetDivSelectedEntity("refine_lens_button-trg-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                         </div>
+                     </div>
+                     <div class="row">
+                         <div class="col-md-12 pred-list" id="refine_lens_trg_predicates_col"
+                            targetList="refine_lens_trg_predicates_col"
+                            targetTxt="refine_lens_trg_selected_pred"
+                            propPathCheckBok="refine_lens_trg_enable_prop_path"
+                            propPath="enabled"> </div>
+                     </div>
+                    </div>
+                 </div>
+              </div>   <!-- Panel body-->
+            </div>   <!-- Panel -->
+
+           </div>
+          </div>
+         </div>
+      </div>
+
+      <!-- METHOD OPTIONS -->
+      <div class="col-md-4" id="refine_lens_method_col">
+          <div class="row">
+            <div class="col-md-10">
+              <h3>Method</h3></div>
+            </div>
+          <div class="row">
+            <div class="col-md-3">
+               <span class="dropdown">
+                <button class="btn btn-primary btn-round dropdown-toggle" type="button" id="refine_lens_methodDropdown"
+                        data-toggle='dropdown'>Method<span class="caret"></span></button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="refine_lens_methodDropdown">
+                    <li role="presentation">
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Exact Match" uri="exactStrSim"
+                            onclick="methodClick(this);">Exact Match</a>
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Geo Match" uri="geoSim"
+                            onclick="methodClick(this);">Geo Match</a>
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Identifier Match" id = "item_identity" uri="identity"
+                            onclick="methodClick(this);">Identifier Match</a>
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Approximate Match" uri="approxStrSim"
+                            onclick="methodClick(this);">Approximate String-based</a>
+
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Approximate Number_Match" uri="approxNbrSim"
+                            onclick="methodClick(this);">Approximate Number-based</a>
+
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Embeded Alignment Extraction" uri="embededAlignment"
+                            onclick="methodClick(this);">Embeded Alignment Extraction</a>
+                        <a href="javascript:void();" role="menuitem" tabindex="-1"
+                            label="Match via Intermediate Dataset" uri="intermediate"
+                            onclick="methodClick(this);">Match via Intermediate Dataset</a>
+                        <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                            <!--label="Load existing Linkset" uri=loadLinkset-->
+                            <!--onclick="methodClick(this);">Laod existing Linkset</a>-->
+                    </li>
+                </ul>
+               </span>
+            </div>
+            <div class="col-md-9">
+               <div class="well well-sm" id="refine_lens_selected_meth" label="">Select a Method</div>
+            </div>
+         </div>
+         <div class="row">
+            <div class="col-md-12">
+               <div class="well well-sm" id="refine_lens_selected_method_desc" label="">Method Description</div>
+            </div>
+        </div>
+        <div class="row" id="refine_lens_aprox_settings_row" style='display:none'>
+            <div class="col-md-12">
+              <div class="panel panel-default">
+              <div class="panel-heading"></div>
+              <div class="panel-body">
+                <div class="row">
+                      <div class="col-md-3">
+                          <h5>Threshold</h5>
+                      </div>
+                   <div class="col-md-9">
+                        <input type="text" class="form-control" id="refine_lens_approx_threshold" value="0.8" readonly>
+                   </div>
+                 </div>
+                <div class="row">
+                      <div class="col-md-3">
+                          <h5>Symbols</h5>
+                      </div>
+                   <div class="col-md-9">
+                        <input type="text" class="form-control" id="refine_lens_approx_symbols" value="\.\-\,\+'\?;()" readonly>
+                   </div>
+                 </div>
+                <div class="row">
+                      <div class="col-md-3" style="padding-right: 0px;">
+                          <h5>Stop-words</h5>
+                      </div>
+                   <div class="col-md-9"  >
+                        <input type="text" class="form-control" id="refine_lens_approx_stop_words" value="THE FOR IN THAT AND OF ON DE LA LES INC">
+                   </div>
+                 </div>
+
+              </div>   <!-- Panel body-->
+              </div>   <!-- Panel -->
+          </div>
+        </div>
+        <div class="row" id="refine_lens_aprox_nbr_settings_row" style='display:none' >
+            <div class="col-md-12">
+              <div class="panel panel-default">
+              <div class="panel-heading"></div>
+              <div class="panel-body">
+               <div class="row">
+                      <div class="col-md-3" style="padding-right: 0px;">
+                          <h5>Delta</h5>
+                      </div>
+                   <div class="col-md-9"  >
+                        <input type="text" class="form-control" id="refine_lens_approx_delta" value="0">
+                   </div>
+                 </div>
+                <div class="row">
+                      <div class="col-md-3" style="padding-right: 0px;">
+                          <h5>Number Type</h5>
+                      </div>
+                   <div class="col-md-9"  >
+                        <!--<input type="text" class="form-control" id="linkset_approx_num_type" value="number">-->
+                        <div class="form-group">
+                            <!--<label for="sel1">Select list:</label>-->
+                            <select class="form-control" id="refine_lens_approx_num_type">
+                            <option>number</option>
+                            <option>date</option>
+                            </select>
+                        </div>
+                   </div>
+                 </div>
+              </div>
+              </div>
+            </div>
+        </div>
+        <div class="row" id="refine_lens_int_red_graph_row">
+            <div class="col-md-4 graph-list" id="refine_lens_button_int_red_graph"
+                  targetTxt="refine_lens_selected_int_red_graph" targetBtn="" targetList="">
+              <!-- will be rendered via server -->
+                  <button class="btn btn-primary dropdown-toggle" type="button"
+                    data-toggle='dropdown'>dataset<span class="caret"></span></button>
+            </div>
+            <div class="col-md-8">
+               <!--<div class="row" style='scroll: both; overflow: auto'>-->
+                <div class="well well-sm" style='display: inline-block;' id="refine_lens_selected_int_red_graph"
+                    uri="">Select a Dataset</div>
+               <!--</div>-->
+            </div>
+         </div>
+
+      </div>
     </div>
 
    </div>

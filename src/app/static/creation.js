@@ -1260,6 +1260,42 @@ function importLinksetClick()
 //    $(elem).dialog("close");
 //}
 
+$("#labelLinksetModal").on("shown.bs.modal", function(e) {
+//$( "#labelLinksetModal" ).on('shown', function(){
+//    alert("I want this to appear after the modal has opened!");
+    var label = '';
+    var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        label = $(elems[0]).attr('label');  // it should have only one selected
+    }
+    $('#linksetLabel').val(label);
+});
+
+$("#labelLensModal").on("shown.bs.modal", function(e) {
+//$( "#labelLinksetModal" ).on('shown', function(){
+//    alert("I want this to appear after the modal has opened!");
+    var label = '';
+    var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        label = $(elems[0]).attr('label');  // it should have only one selected
+    }
+    $('#lensLabel').val(label);
+});
+
+$("#labelViewModal").on("shown.bs.modal", function(e) {
+//$( "#labelLinksetModal" ).on('shown', function(){
+//    alert("I want this to appear after the modal has opened!");
+    var label = '';
+    var elems = selectedElemsInGroupList('inspect_views_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        label = $(elems[0]).attr('label');  // it should have only one selected
+    }
+    $('#viewLabel').val(label);
+});
+
 function editLabelClick(label, type='linkset') {
     if (type == 'linkset') {
         var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
@@ -1288,7 +1324,9 @@ function editLabelClick(label, type='linkset') {
             {
                 var obj = JSON.parse(data);
                 if (obj.result == 'OK')
-                {   $('#'+refresh_btn).click();
+                {
+                    $('#'+refresh_btn).click();
+                    //elem[0].setAttribute("label", label);
                     $('#'+msg_col).html(addNote(obj.message,cl='info')); }
                 else
                 {   $('#'+msg_col).html(addNote(obj.message)); }
@@ -1661,6 +1699,7 @@ function inspect_lens_activate(mode)
   var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
 
   $('#creation_lens_correspondence_row').hide();
+  $('#lens_inspect_panel_body').hide();
   $('#creation_lens_correspondence_col').html('');
   $('#inspect_lens_lens_details_col').html('');
   refresh_create_lens();
@@ -1706,6 +1745,23 @@ function inspect_lens_activate(mode)
                 $('#creation_lens_row').show();
                 enableButton('exportLensButton');
             }
+            else if (mode == 'refine')
+            {
+                $('#refine_lens_heading').show();
+                $('#lens_inspect_panel_body').show();
+                $('#lens_refine_row').show();
+                $('#refine_lens_row').show();
+//                enableButton('RefineLensButton');
+//                var obj = { subTarget: 'http://goldenagents.org/datasets/003MarriageRegistries',
+//                            objTarget: 'http://goldenagents.org/datasets/002BaptismRegistries',
+//                            s_datatype: 'http://goldenagents.org/uva/SAA/ontology/Person',
+//                            o_datatype: 'http://goldenagents.org/uva/SAA/ontology/Person' };
+                  $.get('/getlensrefinedetails',data={'lens': lens_uri},function(data)
+                  {
+                    var obj = JSON.parse(data);
+                    loadLensRefinePanel(obj);
+                  });
+            }
             else
             {
                 // load the panel for filter
@@ -1749,10 +1805,59 @@ function inspect_lens_activate(mode)
       $('#export_lens_heading').show();
       enableButton('exportLensButton', enable=false);
     }
+    else if (mode == 'refine') {
+      $('#lens_creation_row').hide();
+      $('#creation_lens_filter_row').hide();
+      $('#creation_lens_search_row').hide();
+      $('#creation_lens_correspondence_row').hide();
+      $('#creation_lens_row').show();
+//      enableButton('exportLensButton', enable=false);
+    }
     else
     { $('#lens_inspect_panel_body').show(); }
 
   }
+}
+
+
+function loadLensRefinePanel(obj)
+{
+    setAttr('refine_lens_hidden_src_div','uri',obj.subTarget);
+    setAttr('refine_lens_hidden_src_div','label',obj.subTarget_label);
+
+    setAttr('refine_lens_hidden_trg_div','uri',obj.objTarget);
+    setAttr('refine_lens_hidden_trg_div','label',obj.objTarget_label);
+
+    setAttr('refine_lens_hidden_src_entType_div','uri',obj.s_datatype);
+    setAttr('refine_lens_hidden_src_entType_div','label',obj.s_datatype_label);
+
+    setAttr('refine_lens_hidden_trg_entType_div','uri',obj.o_datatype);
+    setAttr('refine_lens_hidden_trg_entType_div','label',obj.o_datatype_label);
+
+    datasetClick(document.getElementById('refine_lens_hidden_src_div'));
+    datasetClick(document.getElementById('refine_lens_hidden_trg_div'));
+
+    setAttr('refine_lens_hidden_src_div','uri','');
+    setAttr('refine_lens_hidden_src_div','label','');
+
+    setAttr('refine_lens_hidden_trg_div','uri','');
+    setAttr('refine_lens_hidden_trg_div','label','');
+
+    var ancestorType = "entity-list";
+
+    selectionClick(document.getElementById('refine_lens_hidden_src_entType_div'), ancestorType);
+    selectionClick(document.getElementById('refine_lens_hidden_trg_entType_div'), ancestorType);
+
+    setAttr('refine_lens_hidden_src_entType_div','uri','');
+    setAttr('refine_lens_hidden_src_entType_div','label','');
+
+    setAttr('refine_lens_hidden_trg_entType_div','uri','');
+    setAttr('refine_lens_hidden_trg_entType_div','label','');
+
+    $('#refine_lens_button-src-entity-type-col').hide();
+    $('#refine_lens_button-trg-entity-type-col').hide();
+    $('#refine_lens_button-src-col').hide();
+    $('#refine_lens_button-trg-col').hide();
 }
 
 
@@ -1769,6 +1874,8 @@ function create_lens_activate()
     //   $('#lens_creation_message_col').html('');
     refresh_create_lens();
     $('#lens_inspect_panel_body').show();
+    $('#lens_creation_row').show();
+    $('#lens_refine_row').hide();
 
    $('#creation_lens_linkset_selection_col').html('Loading...');
    $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,

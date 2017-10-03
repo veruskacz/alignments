@@ -4,7 +4,13 @@
         {% for l in list|sort(attribute='uri_stripped') %}
             <a href="javascript:void();" class="list-group-item"
                 id='LGI{{l.uri.value }}'
-                uri='{{l.uri.value }}' label='{{ l.uri_stripped.value }}'>
+                uri='{{l.uri.value }}'
+                {% if (l.label.value != "-") %}
+                    label='{{l.label.value}}'
+                {% else %}
+                    label='{{ l.uri_stripped.value }}'
+                {% endif %}
+                >
                 <span class="list-group-item-heading">
                 {% if (l.mode.value == 'info') or (l.mode.value == 'warning') or
                       (l.mode.value == 'danger') or (l.mode.value == 'success')%}
