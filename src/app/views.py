@@ -114,7 +114,6 @@ PRINT_RESULTS = False
 # app = Flask(__name__)
 
 
-
 @app.route('/default_dir_files')
 def default_dir_files():
 
@@ -1320,7 +1319,6 @@ def datasetpredicatevalues():
                            list = list,
                            btn_name='Type Values',
                            function = function)
-
 
 @app.route('/createLinkset')
 def spa_linkset():
