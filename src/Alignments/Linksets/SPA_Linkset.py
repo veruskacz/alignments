@@ -443,10 +443,12 @@ def extract_query(specs, is_source):
     return query
 
 
-# STRING-BASED HIS COMPUTES TWO QUERIES: MATCHED AND INSERT MATCHED
+# STRING-BASED -> THIS COMPUTES TWO QUERIES: MATCHED AND INSERT MATCHED
 def match_query(specs):
 
-    is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
+    is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) and \
+                        (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
+
     operator = "<" if specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype] else "!="
 
     comment = "" if is_de_duplication is True else "#"
@@ -475,7 +477,9 @@ def match_query(specs):
         # DO NOT INCLUDE SAME URIs AND INVERSE DIRECTION DUPLICATES
         {2}FILTER( STR(?{0}_1) {4} STR(?{0}_2) )
     }}
-    """.format(specs[St.source][St.graph_name], specs[St.target][St.graph_name], comment, number_of_load, operator)
+    """.format(
+        specs[St.source][St.graph_name], specs[St.target][St.graph_name],
+        comment, number_of_load, operator)
 
     linkset = """
     INSERT
@@ -516,8 +520,9 @@ def match_query(specs):
 def match_numeric_query(specs):
 
 
-    is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph] \
-                        and specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype]
+    is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) \
+                        and (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
+
     number_of_load = '1' if is_de_duplication is True else "2"
 
     # PLAIN NUMBER CHECK
@@ -599,6 +604,9 @@ def match_numeric_query(specs):
 
 def insert_query_reduce(specs, match_numeric=False):
 
+    is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) and \
+                        (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
+
     prefix = """
     prefix dataset:    <{}>
     prefix linkset:    <{}>
@@ -623,8 +631,7 @@ def insert_query_reduce(specs, match_numeric=False):
     """.format(Ns.tmpgraph)
 
     source_extract = extract_query(specs, is_source=True)
-    target_extract = "" if specs[St.source][St.graph] == specs[St.target][St.graph] \
-        else extract_query(specs, is_source=False)
+    target_extract = "" if is_de_duplication is True else extract_query(specs, is_source=False)
 
     if match_numeric is False:
         match = match_query(specs)
