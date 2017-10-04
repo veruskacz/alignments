@@ -748,7 +748,7 @@ def listening(directory):
         print "Listening for \"system.lock\" file..."
         # wait a little bit before getting the next listing
         # if you want near instantaneous updates, make the sleep value small.
-        time.sleep(1)
+        time.sleep(5)
 
 
 def stardog_on(bat_path):
