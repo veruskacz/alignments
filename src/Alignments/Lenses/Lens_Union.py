@@ -248,8 +248,7 @@ def union_insert_q(lens, source, label):
     PREFIX tmpgraph:<{1}>
     PREFIX tmpvocab:<{5}>
     PREFIX ll:<{3}>
-
-    DROP SILENT GRAPH tmpgraph:load00 ;
+    
     DROP SILENT GRAPH tmpgraph:load01 ;
     DROP SILENT GRAPH tmpgraph:load02 ;
 
