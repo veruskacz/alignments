@@ -90,7 +90,7 @@ PREFIX = """
 
 short = 0
 
-
+# GENERATING THE VIEW INSERT QUERY (META DATA)
 def view_data(view_specs, view_filter, display=False):
 
     # GENERATING THE METADATA FOR REGISTERING A VIEW.
@@ -241,7 +241,7 @@ def view_data(view_specs, view_filter, display=False):
     # HASH THE STRING
     hash_value = hash(main_triples + triples)
 
-    # CHANGE THE "-" NEGATIVE VALUE TO "N" AND POSITIVE TO "p"
+    # CHANGE THE "-" NEGATIVE VALUE TO "N" AND POSITIVE TO "P"
     hash_value = str(hash_value).replace('-', "N") if str(hash_value).__contains__('-') else "P" + str(hash_value)
 
     # GENERATE THE URI FOR THE VIEW
@@ -267,6 +267,7 @@ def view_data(view_specs, view_filter, display=False):
     return {St.message: message, St.insert_query: query, St.result: uri, "sparql_issue": dataset_opt}
 
 
+# MAIN FUNCTION: METADATA + GENERATING THE VIEW SPARQL QUERY
 def view(view_specs, view_filter, save=False, limit=10):
     """
     :param view_specs:
@@ -292,14 +293,14 @@ def view(view_specs, view_filter, save=False, limit=10):
     is_problematic = False
 
     try:
-        # GENERATE THE INSERT METADATA
+        # 1. GENERATE THE INSERT METADATA
         # RETURNS MESSAGE, INSERT QUERY AND RESULT (THE VIEW URI)
         # RETURNS{St.message:message, St.insert_query: final, St.result: uri}
         view_metadata = view_data(view_specs, view_filter)
         # print view_metadata
         # print view_filter
 
-        # CHECK FOR POTENTIAL SPARQL TIMEOUT
+        # 2. CHECK FOR POTENTIAL SPARQL TIMEOUT
         opt_list = view_metadata["sparql_issue"]
         if len(opt_list) != 0:
             is_problematic = True
@@ -313,7 +314,7 @@ def view(view_specs, view_filter, save=False, limit=10):
             view_metadata[St.message] = message
             print message
 
-        # REGISTER THE METADATA IF SAVE ID SET TO TRUE
+        # 3. REGISTER THE METADATA IF SAVE ID SET TO TRUE
         if save:
             if is_problematic is False:
                 print "We are in save mode!"

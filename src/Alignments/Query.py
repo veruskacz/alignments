@@ -5,7 +5,7 @@ import time
 import urllib
 import urllib2
 import logging
-import requests
+# import requests
 import xmltodict
 import collections
 import Alignments.Settings as St
@@ -13,7 +13,7 @@ import Alignments.NameSpace as Ns
 import Alignments.ErrorCodes as Ec
 import Alignments.Server_Settings as Svr
 from cStringIO import StringIO
-from kitchen.text.converters import to_bytes # to_unicode
+from kitchen.text.converters import to_bytes  # to_unicode
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -25,6 +25,7 @@ HOST = Svr.settings[St.stardog_host_name]
 
 ERROR = "No connection could be made because the target machine actively refused it"
 ERROR_2 = 'The query was successfully executed but no feedback was returned'
+
 
 def linkset_evidence(linkset, display=False):
 
@@ -267,6 +268,7 @@ def transitive_evidence(graph, database_name, host, activated=False):
     ABOUT QUERYING ENDPOINTS
 """
 #################################################################
+
 
 def endpoint(query):
 
@@ -550,7 +552,7 @@ def sparql_xml_to_matrix(query):
                                 # print "value:", value
                                 # data = value[i]
 
-                                get_property = data['@name']
+                                # get_property = data['@name']
                                 # print "get_property:", get_property
                                 # index = name_index[get_property]
                                 # print "index", index
@@ -671,7 +673,7 @@ def sparql_xml_to_matrix(query):
     else:
         # logger.warning("NO RESPONSE")
         # print response[St.message]
-        return {St.message: "NO RESPONSE", St.result: response}
+        return {St.message: "NO RESPONSE", St.result: response[St.result], "justification": response[St.message]}
 
 
 def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
@@ -690,7 +692,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
         return {St.message: message, St.result: None}
 
     # start_time = time.time()
-    matrix = None
+    # matrix = None
     logger.info("XML RESULT TO TABLE")
     # print query
 
@@ -750,6 +752,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
                 # x*y*0 to avoid weak error say x and y where not used
 
                 matrix = [[str(x*y*0).replace("0", "") for x in range(w)] for y in range(h)]
+                "{}".format(matrix)
                 # print matrix
                 col = -1
 
@@ -822,18 +825,18 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
                                 # print "value:", value
                                 # data = value[i]
 
-                                get_property = data['@name']
+                                # ??? get_property = data['@name']
                                 # print "get_property:", get_property
                                 # index = name_index[get_property]
                                 # print "index", index
 
-                                index = name_index[data['@name']]
+                                # ??? index = name_index[data['@name']]
                                 item = data.items()[1][1]
                                 # print data['@name'], name_index[data['@name']]
                                 # matrix[1][index] = item
 
                             elif type(value) is collections.OrderedDict:
-                                index = name_index[value['@name']]
+                                # ??? index = name_index[value['@name']]
                                 if value.items()[1][0] != '@name':
                                     item = value.items()[1][1]
                                     # print "Collection:", value.items()[i][0]
@@ -872,6 +875,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
 
                 # print "INITIALIZING THE MATRIX FOR: [{}][{}]".format(h, w)
                 matrix = [[str(x*y*0).replace("0", "") for x in range(w)] for y in range(h)]
+                "{}".format(matrix)
 
                 # HEADER
                 # print "UPDATING MATRIX'S HEADER"
@@ -1007,7 +1011,6 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
         # print response[St.message]
         return {St.message: "NO RESPONSE", St.result: response}
 
-# sparql_xml_to_csv()
 
 def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
 
@@ -1167,7 +1170,8 @@ def contains_duplicates(graph):
     return response
 
 
-def remove_duplicates(graph, grap_name):
+# ??? def remove_duplicates(graph, graph_name):
+def remove_duplicates(graph):
 
     query = """
     PREFIX specific:    <{1}>
@@ -3063,18 +3067,10 @@ def virtuoso_request(query):
     # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
     #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
 
-    "http://sparql.sms.risis.eu/?" \
-    "default-graph-uri=" \
-    "&query=PREFIX+ll%3A+%3Chttp%3…A%7D%0D%0Alimit+100" \
-    "&should-sponge=" \
-    "&format=text%2Fturtle" \
-    "&timeout=0" \
-    "&debug=on"
-
     url = b"http://sparql.sms.risis.eu/?"
     # print url
     params = urllib.urlencode(
-        {b'query': q, b'default-graph-uri':'', b'format': b'text/turtle',
+        {b'query': q, b'default-graph-uri': '', b'format': b'text/turtle',
          b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
     headers = {b"Content-Type": b"application/x-www-form-urlencoded"}
 
@@ -3124,7 +3120,7 @@ def virtuoso_request(query):
         return {St.message: err, St.result: None}
 
 
-def remote_endpoint_request(query, endpoint):
+def remote_endpoint_request(query, endpoint_url):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
@@ -3143,18 +3139,10 @@ def remote_endpoint_request(query, endpoint):
     # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
     #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
 
-    "http://sparql.sms.risis.eu/?" \
-    "default-graph-uri=" \
-    "&query=PREFIX+ll%3A+%3Chttp%3…A%7D%0D%0Alimit+100" \
-    "&should-sponge=" \
-    "&format=text%2Fturtle" \
-    "&timeout=0" \
-    "&debug=on"
-
-    url = endpoint
+    url = endpoint_url
 
     params = urllib.urlencode(
-        {b'query': q, b'default-graph-uri':'', b'format': b'text/turtle',
+        {b'query': q, b'default-graph-uri': '', b'format': b'text/turtle',
          b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
     headers = {b"Content-Type": b"application/x-www-form-urlencoded"}
 
@@ -3204,10 +3192,7 @@ def remote_endpoint_request(query, endpoint):
         return {St.message: err, St.result: None}
 
 
-# print response[St.result]
-
-
-def remote_stardog(query, host):
+def remote_stardog(query):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
