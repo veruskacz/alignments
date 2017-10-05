@@ -731,6 +731,44 @@ def lensdetails():
                             )
 
 
+@app.route('/getlensrefinedetails', methods=['GET'])
+def getlensrefinedetails():
+    """
+    This function is called due to request /getlensdetails
+    It queries the dataset for ...
+    The results, ...,
+        are passed as parameters to the template lensDetails_list.html
+    """
+
+    # RETRIEVE VARIABLES
+    lens = request.args.get('lens', '')
+
+    response = refine.is_refinable(lens)
+
+    details = {}
+    if response[St.message]:
+        result = response[St.result]
+        if len(result) > 1:
+            details = {'subTarget': result[1][0],
+                       'subTarget_label': Ut.get_uri_local_name(result[1][0]),
+                       'objTarget': result[1][1],
+                       'objTarget_label': Ut.get_uri_local_name(result[1][1]),
+                       's_datatype': result[1][2],
+                       's_datatype_label': Ut.get_uri_local_name(result[1][2]),
+                       'o_datatype': result[1][3],
+                       'o_datatype_label': Ut.get_uri_local_name(result[1][3])
+                       };
+        if PRINT_RESULTS:
+            print "\n\nDETAILS:", details
+    else:
+        return 'NO RESULTS!'
+
+
+    # RETURN THE RESULT
+    if len(details)>0:
+        return json.dumps(details)
+
+
 ### TODO: REPLACE
 @app.route('/getLensDetail1', methods=['GET'])
 def detailsLens():
