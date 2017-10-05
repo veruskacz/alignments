@@ -1323,18 +1323,14 @@ def spa_linkset_intermediate_query(specs):
     """.format(Ns.tmpgraph, Ns.singletons, specs[St.linkset_name])
 
     query02 = prefix + """
-    ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
+
+    ### 1.1. LOADING SOURCE TO A TEMPORARY GRAPH
     INSERT
     {{
         GRAPH <{0}load00>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
             ?{1}_1 <{8}relatesTo1> ?SRC_trimmed .
-        }}
-        GRAPH <{0}load01>
-        {{
-            ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3}_2 <{8}relatesTo3> ?TRG_trimmed .
         }}
     }}
     WHERE
@@ -1353,7 +1349,19 @@ def spa_linkset_intermediate_query(specs):
             BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
             BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?SRC_trimmed)
         }}
+    }} ;
 
+    ### 1.2. LOADING TARGET TO A TEMPORARY GRAPH
+    INSERT
+    {{
+        GRAPH <{0}load01>
+        {{
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3}_2 <{8}relatesTo3> ?TRG_trimmed .
+        }}
+    }}
+    WHERE
+    {{
         ### TARGET DATASET
         graph <{7}>
         {{
@@ -1393,7 +1401,7 @@ def spa_linkset_intermediate_query(specs):
             ?intermediate_uri ?intPred_1 ?value ;
 
             # LOWER CASE OF THE VALUE
-            BIND(lcase(str(?value)) as ?INTERMEDIATE_vaL)
+            BIND(lcase(str(?value)) as ?INTERMEDIATE_val)
 
             # VALUE TRIMMING
             BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
@@ -1427,7 +1435,7 @@ def spa_linkset_intermediate_query(specs):
             ?intermediate_uri ?intPred_1 ?value .
 
             # LOWER CASE OF THE VALUE
-            BIND(lcase(str(?value)) as ?INTERMEDIATE_vaL)
+            BIND(lcase(str(?value)) as ?INTERMEDIATE_val)
 
             # VALUE TRIMMING
             BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
