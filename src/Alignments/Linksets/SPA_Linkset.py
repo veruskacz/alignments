@@ -963,7 +963,7 @@ def specs_2_linkset_id(specs, display=False, activated=False):
 # ALIGNING SUBJECTS USING AN INTERMEDIATE DATASET
 ########################################################################################
 
-
+# DEPRECATED (TODO TO DELETE)
 def spa_linkset_intermediate_query_2(specs):
 
     source = specs[St.source]
@@ -1256,7 +1256,7 @@ def spa_linkset_intermediate_query_2(specs):
     # )
 
     query04 = """
-    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load00> ;
     DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load02>
     """.format(Ns.tmpgraph)
@@ -1622,7 +1622,7 @@ def spa_linkset_intermediate_query(specs):
     # )
 
     query04 = """
-    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load00> ;
     DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load02>
     """.format(Ns.tmpgraph)
