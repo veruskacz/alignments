@@ -132,6 +132,9 @@ def union(specs, activated=False):
         #   2-GENERATE THE TRIPLES REPRESENTATION OF GHE GRAPHS COMPOSING THIS LENS
         #   3-GENERATE THE INSERT QUERY FOR MOVING BOTH LINKSET AND SINGLETON GRAPHS TO THE UNION GRAPH
         total_size = 0
+
+        # LOAD ALL GRAPHS IN LOAD00
+        specs[St.insert_query] += "DROP SILENT GRAPH <{}{}> ;\n".format(Ns.tmpgraph, "load00")
         for linkset in specs[St.datasets]:
 
             # print "TARGET: ", linkset
@@ -180,14 +183,14 @@ def union(specs, activated=False):
                 return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: None}
 
             # CHECK WHETHER THE RESULT CONTAINS DUPLICATES
-            contains_duplicated = Qry. contains_duplicates(lens)
+            contains_duplicated = Qry.contains_duplicates(lens)
             print "Contains Opposite Direction Duplicated:", contains_duplicated
 
             # IF IT DOES, REMOVE THE DUPLICATES
             if contains_duplicated is True:
                 # logger.warning("THE LENS CONTAINS DUPLICATES.")
                 print "THE LENS CONTAINS DUPLICATES."
-                Qry.remove_duplicates(lens, specs[St.lens_name])
+                Qry.remove_duplicates(lens)
                 # logger.warning("THE DUPLICATES ARE NOW REMOVED.")
                 print "THE DUPLICATES ARE NOW REMOVED."
 
@@ -216,14 +219,13 @@ def union(specs, activated=False):
                 graph_name=specs[St.lens_name], metadata=None, correspondences=construct_response, directory=DIRECTORY)
         print "\tLens created as : ", specs[St.lens]
 
-
         # REGISTER THE LINKSET
         Urq.register_lens(specs, is_created=True)
 
         # return specs[St.lens]
         message = "THE LENS WAS CREATED as {}. " \
-                  "With initially {} triples loaded, {} duplicated triples were found and removed.".format(
-            specs[St.lens], total_size, total_size - int(specs[St.triples]))
+                  "With initially {} triples loaded, {} duplicated triples were found and removed.".\
+            format(specs[St.lens], total_size, total_size - int(specs[St.triples]))
 
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: specs[St.lens]}
@@ -246,6 +248,10 @@ def union_insert_q(lens, source, label):
     PREFIX tmpgraph:<{1}>
     PREFIX tmpvocab:<{5}>
     PREFIX ll:<{3}>
+
+    DROP SILENT GRAPH tmpgraph:load00 ;
+    DROP SILENT GRAPH tmpgraph:load01 ;
+    DROP SILENT GRAPH tmpgraph:load02 ;
 
     ###### CREATING THE INTERSECTION CORRESPONDENCES WITH A TEMPORARY PREDICATE
     ###### REMOVE DUPLICATES IN THE SAME DIRECTION
