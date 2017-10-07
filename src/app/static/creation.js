@@ -1074,6 +1074,7 @@ function refineLinksetClick()
   }
 }
 
+
 function exportPlotLinksetClick(elem)
 {
 //    var credentials = { 'user': $("#modalPlotPass #usrname").val().trim(),
@@ -2064,6 +2065,97 @@ function createLensClick()
       $('#lens_creation_message_col').html(addNote(missing_feature));
     }
  }
+
+
+function refineLensClick()
+{
+    var reducer = ''; intermediate = '';
+    if ($('#refine_lens_selected_meth').attr('uri') != 'intermediate')
+     {   reducer = $('#refine_lens_selected_int_red_graph').attr('uri'); }
+    else
+     {   intermediate = $('#refine_lens_selected_int_red_graph').attr('uri'); }
+
+  $('#lens_refine_message_col').html("");
+
+  var srcDict = {};
+  if (($('#refine_lens_src_selected_graph').attr('uri')) &&
+     ($('#refine_lens_src_selected_pred').attr('uri')) &&
+     ($('#refine_lens_src_selected_entity-type').attr('uri'))  )
+  {
+     srcDict = {'graph': $('#refine_lens_src_selected_graph').attr('uri'),
+                'aligns': $('#refine_lens_src_selected_pred').attr('uri'),
+                'entity_datatye': $('#refine_lens_src_selected_entity-type').attr('uri')};
+  }
+
+  var trgDict = {};
+  if (($('#refine_lens_trg_selected_graph').attr('uri')) &&
+      ( $('#refine_lens_trg_selected_pred').attr('uri') ||
+       ($('#refine_lens_selected_meth').attr('uri') == 'embededAlignment')) &&
+     ($('#refine_lens_trg_selected_entity-type').attr('uri')) )
+  {
+     trgDict = {'graph': $('#refine_lens_trg_selected_graph').attr('uri'),
+                'aligns': $('#refine_lens_trg_selected_pred').attr('uri'),
+                'entity_datatye': $('#refine_lens_trg_selected_entity-type').attr('uri')};
+  }
+
+  var linkset = '';
+  var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+  if (elems.length > 0) // it should have only one selected
+  {
+    linkset = $(elems[0]).attr('uri');
+  }
+
+ if ((Object.keys(srcDict).length) &&
+        (Object.keys(trgDict).length) &&
+        ($('#refine_lens_selected_meth').attr('uri')) &&
+        ($('#refine_lens_selected_meth').attr('uri') != 'intermediate' || intermediate) &&
+      (linkset) &&
+        ($('#refine_lens_selected_meth').attr('uri') != 'approxNbrSim' ||
+            ($('#refine_lens_approx_delta').val() && $('#refine_lens_approx_num_type').val() ))
+      )
+  {
+
+      var specs = {
+        'rq_uri': $('#creation_lens_selected_RQ').attr('uri'),
+        'alignment_uri': linkset,
+
+        'src_graph': $('#refine_lens_src_selected_graph').attr('uri'),
+        'src_aligns': $('#refine_lens_src_selected_pred').attr('uri'),
+        'src_entity_datatye': $('#refine_lens_src_selected_entity-type').attr('uri'),
+        'src_reducer': reducer,
+
+        'trg_graph': $('#refine_lens_trg_selected_graph').attr('uri'),
+        'trg_aligns': $('#refine_lens_trg_selected_pred').attr('uri'),
+        'trg_entity_datatye': $('#refine_lens_trg_selected_entity-type').attr('uri'),
+        'trg_reducer': reducer,
+
+        'mechanism': $('#refine_lens_selected_meth').attr('uri'),
+
+        'intermediate_graph': intermediate,
+
+        'delta': $('#refine_lens_approx_delta').val() ,
+        'numeric_approx_type': $('#refine_lens_approx_num_type').val()
+      }
+
+      var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
+      $('#lens_refine_message_col').html(addNote(message,cl='warning'));
+      loadingGif(document.getElementById('lens_refine_message_col'), 2);
+
+      // call function that creates the linkset
+      // HERE!!!!
+      $.get('/refineAlignment', specs, function(data)
+      {
+            var obj = JSON.parse(data);
+            $('#lens_refine_message_col').html(addNote(obj.message,cl='info'));
+            loadingGif(document.getElementById('lens_refine_message_col'), 2, show=false);
+      });
+
+  }
+  else {
+    $('#lens_refine_message_col').html(addNote(missing_feature));
+  }
+}
+
 
 
 function importLensClick()
@@ -3194,6 +3286,124 @@ function methodClick(th)
     $('#selected_method_desc').html(description);
 }
 
+
+
+// Function fired onclick of a methods from list
+function methodClickLens(th)
+{
+    var description = '';
+    var method = $(th).attr('uri');
+    var meth_label = $(th).attr('label');
+    $('#refine_lens_int_red_graph_row').hide();
+    $('#refine_lens_aprox_settings_row').hide();
+    $('#refine_lens_aprox_nbr_settings_row').hide();
+
+    if (method == 'identity')
+    {
+      //refresh_create_linkset(mode='pred');
+      $('#refine_lens_src_selected_pred_row').hide();
+      $('#refine_lens_src_list_pred_row').hide();
+      $('#refine_lens_trg_selected_pred_row').hide();
+      $('#refine_lens_trg_list_pred_row').hide();
+      description = `The method <b>IDENTITY</b> aligns the <b>identifier of the source</b> with the <b>identifier of the target</b>.
+                     This implies that both datasets use the same Unified Resource Identifier (URI).`;
+    }
+    else if (method == 'embededAlignment')
+    {
+      //refresh_create_linkset(mode='pred');
+      $('#refine_lens_src_selected_pred_row').show();
+      $('#refine_lens_src_list_pred_row').show();
+      $('#refine_lens_trg_selected_pred_row').hide();
+      $('#refine_lens_trg_list_pred_row').hide();
+      description = `The method <b>EMBEDED ALIGNMENT EXTRATION</b> extracts an alignment already provided within the <b>source</b> dataset.
+                     The extraction relies on the value of the linking <b>property</b>, i.e. <b>property of the source</b> that holds the <b>identifier of the target</b>. However, the real mechanism used to create the alignment is not explicitly provided by the source.`;
+    }
+    else if (method == 'loadLinkset')
+    {
+      //refresh_create_linkset(mode='pred');
+      $('#refine_lens_src_selected_pred_row').show();
+      $('#refine_lens_src_list_pred_row').show();
+      $('#refine_lens_trg_selected_pred_row').hide();
+      $('#refine_lens_trg_list_pred_row').hide();
+      $('#refine_lens_dropbox_linkset_row').show();
+      description = `The method `+ '"' +`<b>LOADS EXISTING LINKSET</b>`+ '"' +` load the alignment provided within an RDF
+                    file and convert it according to the Lenticular Lens model. Source and target datasets,
+                    as well as Entity Type are mandatory. Other metadata can be filled in for documentation purpose.`;
+
+    }
+    else
+    {
+        //refresh_create_linkset(mode='pred');
+        $('#refine_lens_src_selected_pred_row').show();
+        $('#refine_lens_src_list_pred_row').show();
+        $('#refine_lens_trg_selected_pred_row').show();
+        $('#refine_lens_trg_list_pred_row').show();
+        if (method == 'exactStrSim')
+        {
+          description = 'The method <b>EXACT STRING-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by matching the (string) values of the selected <b>properties<b>.';
+        }
+        else if (method == 'approxStrSim')
+        {
+          description = 'The method <b>APPROXIMATE STRING-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (string) values of the selected <b>properties</b> according to a threshold. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, i.e. the resources already aligned will not be included in the new alignment. It allows for more efficient use of approximate similarity.';
+          $('#refine_lens_selected_int_red_graph').html("Select an alingment as reducer");
+          setAttr( 'refine_lens_selected_int_red_graph','style','background-color:none;');
+          $('#refine_lens_int_red_graph_row').show();
+          $('#refine_lens_aprox_settings_row').show();
+          $('#refine_lens_button_int_red_graph').html('Loading...');
+          rq_elem = document.getElementById('creation_idea_selected_RQ');
+          rq_uri = $(rq_elem).attr('uri');
+          if (rq_uri!='')
+          {
+              $.get('/getgraphsperrqtype',
+                      data={'rq_uri': rq_uri,
+                            'template': 'list_dropdown.html',
+                            'btn_name': 'Alignment',
+                            'type': 'linkset&lens',
+                            'function': 'intRedGraphClick(this);'},
+                      function(data)
+              {
+                    $('#refine_lens_button_int_red_graph').html(data);
+              });
+          }
+        }
+        else if (method == 'approxNbrSim')
+        {
+          description = 'The method <b>APPROXIMATE NUMBER-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (number/date) values of the selected <b>properties</b> according to a delta. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, i.e. the resources already aligned will not be included in the new alignment. It allows for more efficient use of approximate similarity.';
+          $('#refine_lens_aprox_nbr_settings_row').show();
+//          $('#selected_int_red_graph').html("Select an alingment as reducer");
+//          setAttr( 'selected_int_red_graph','style','background-color:none;');
+//          $('#int_red_graph_row').show();
+//          $('#aprox_settings_row').show();
+//          $('#button_int_red_graph').html('Loading...');
+        }
+        else if (method == 'geoSim')
+        {
+          description = 'The method <b>GEO SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by detecting whether the values of the selected <b>properties</b> of source and target appear within the same geographical boundary.';
+        }
+        else if (method == 'intermediate')
+        {
+          description = 'The method <b>MATCH VIA INTERMEDIATE DATASET</b> is used to align the <b>source</b> and the <b>target</b> by using <b>properties</b> that present different descriptions of a same entity, such as country name and country code. This is possible by providing an <b>intermediate dataset</b> that binds the two alternative descriptions to the very same identifier.';
+          $('#refine_lens_int_red_graph_row').show();
+          $('#refine_lens_button_int_red_graph').html('Loading...');
+          $.get('/getdatasets',
+                  data={'template': 'list_dropdown.html',
+                        'function': 'datasetClick(this);'},
+                  function(data)
+          {
+                $('#refine_lens_button_int_red_graph').html(data);
+          });
+
+        }
+    }
+
+    // Attribute the label of the selected method to the div
+    // where the name is displayed
+    setAttr('refine_lens_selected_meth','uri',method);
+    //setAttr('selected_meth','label',meth_label);
+    $('#refine_lens_selected_meth').html(meth_label);
+    setAttr('refine_lens_selected_meth','style','background-color:lightblue');
+    $('#refine_lens_selected_method_desc').html(description);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Functions for refreshing selection elements in each div

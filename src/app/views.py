@@ -1623,6 +1623,96 @@ def spa_lens():
     return json.dumps(lens_result)
 
 
+@app.route('/refineAlignment')
+def refineAlignment():
+
+    alignment = request.args.get('alignment_uri', '')
+    print alignment
+    is_refinable = refine.is_refinable(alignment)
+
+    if is_refinable['message'] == True:
+        specs = {
+
+            St.researchQ_URI: request.args.get('rq_uri', ''),
+
+            'mechanism': request.args.get('mechanism', ''),
+
+            St.linkset: alignment,
+
+            St.intermediate_graph: request.args.get('intermediate_graph', ''),
+
+            'source': {
+                'graph': request.args.get('src_graph', ''),
+                'aligns': request.args.get('src_aligns', ''),
+                'entity_datatype': request.args.get('src_entity_datatye', '')
+            },
+
+            'target': {
+                'graph': request.args.get('trg_graph', ''),
+                'aligns': request.args.get('trg_aligns', ''),
+                'entity_datatype': request.args.get('trg_entity_datatye', ''),
+            },
+
+            St.delta: request.args.get('delta', ''),
+
+            St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
+        }
+
+        print specs
+
+        if CREATION_ACTIVE:
+            if specs['mechanism'] == 'exactStrSim':
+                result = refine.refine(specs, activated=True)
+
+            elif specs['mechanism'] == 'identity':
+                result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
+
+            elif specs['mechanism'] == 'approxStrSim':
+                result = None
+
+            elif specs['mechanism'] == 'geoSim':
+                result = None
+
+            elif specs[St.mechanism] == "intermediate":
+                result = refine.refine(specs, activated=True)
+
+            elif specs['mechanism'] == 'approxNbrSim':
+                try:
+                    print "1", specs[St.delta]
+                    delta = float(specs[St.delta])
+                    specs[St.delta] = delta
+                    print "2"
+                    result = refine.refine(specs, activated=True)
+                except Exception as err:
+                    print "Error:", str(err)
+                    result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
+
+            else:
+                result = None
+        else:
+            result = {'message': 'Refinement is inactive!',
+                      'error_code': -1,
+                      'result': ''}
+
+        if result:
+            if St.refined in result:
+                refined = result[St.refined]
+                if refined:
+                    if refined[St.error_code] == 0:
+                        return json.dumps(refined)
+            else:
+                result = {'message': result[St.message],
+                          'error_code': -1,
+                          'result': ''}
+        # print "\n\n\n{}".format(linkset_result['message'])
+        return json.dumps(result)
+    else:
+        result = {'message': is_refinable['message'],
+                  'error_code': -1,
+                  'result': ''}
+        return json.dumps(result)
+
+
 @app.route('/importLens')
 def importLens():
     rq_uri = request.args.get('rq_uri')
