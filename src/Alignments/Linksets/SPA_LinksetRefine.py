@@ -115,11 +115,20 @@ def refining(specs, insert_query, activated=False):
     # print "LINKSET TO BE REFINED:", specs[St.linkset]
 
     print "\n2. RETRIEVING THE METADATA ABOUT THE GRAPH TO REFINE"
-    metadata_q = Qry.q_linkset_metadata(specs[St.linkset])
-
-    # print "QUERY:", metadata_q
+    # metadata_q = Qry.q_linkset_metadata(specs[St.linkset])
+    metadata_q = """
+    prefix ll:    <{}>
+    SELECT DISTINCT ?type ?singletonGraph
+    {{
+        # LINKSET METADATA
+        <{}>
+            a                       ?type ;
+            ll:singletonGraph		?singletonGraph .
+    }}
+    """.format(Ns.alivocab, specs[St.linkset])
+    print "QUERY:", metadata_q
     matrix = Qry.sparql_xml_to_matrix(metadata_q)
-    # print "\nMETA DATA: ", matrix
+    print "\nMETA DATA: ", matrix
 
     if matrix:
 
@@ -139,7 +148,7 @@ def refining(specs, insert_query, activated=False):
 
     # GET THE SINGLETON GRAPH OF THE LINKSET TO BE REFINED
     print "\n3. GETTING THE SINGLETON GRAPH OF THE GRAPH TO REFINE"
-    specs[St.singletonGraph] = matrix[St.result][1][0]
+    specs[St.singletonGraph] = matrix[St.result][1][1]
     # print matrix[St.result][1][0]
 
     specs[St.insert_query] = insert_query(specs)
@@ -783,12 +792,14 @@ def refine_metadata(specs):
 
 
 def is_refinable(graph):
+
     # x = "http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579"
     description = Buffer.StringIO()
 
     query = """
     PREFIX bdb:         <{}>
     PREFIX void:        <{}>
+    PREFIX ll:          <{}>
     SELECT DISTINCT ?subjectsTarget  ?objectsTarget ?subjectsDatatype ?objectsDatatype
     {{
         <{}>
@@ -799,7 +810,7 @@ def is_refinable(graph):
             void:subjectsTarget		?subjectsTarget ;
             bdb:objectsDatatype		?objectsDatatype ;
             bdb:subjectsDatatype	?subjectsDatatype .
-    }}""".format(Ns.bdb, Ns.void, graph)
+    }}""".format(Ns.bdb, Ns.void, Ns.alivocab, graph)
 
     response = Qry.sparql_xml_to_matrix(query)
     # print response
@@ -813,7 +824,8 @@ def is_refinable(graph):
                 description.write("\n\n\t{:17}: {}".format(result[0][0], result[i][0]))
                 description.write("\n\t{:17}: {}".format(result[0][1], result[i][1]))
                 description.write("\n\t{:17}: {}".format(result[0][2], result[i][2]))
-                description.write("\n\t{:17}: {}".format(result[0][3], result[i][3]))
+                description.write("\n\t{:17}: {}\n".format(result[0][3], result[i][3]))
+
             print description.getvalue()
             return {St.message: True, St.result: result, 'description': description}
 
@@ -826,7 +838,8 @@ def is_refinable(graph):
                 description.write("\n\n{:17}: {}".format(result[0][0], result[i][0]))
                 description.write("\n{:17}: {}".format(result[0][1], result[i][1]))
                 description.write("\n{:17}: {}".format(result[0][2], result[i][2]))
-                description.write("\n{:17}: {}".format(result[0][3], result[i][3]))
+                description.write("\n{:17}: {}\n".format(result[0][3], result[i][3]))
+
             print description.getvalue()
 
         description.write(" {}".format(response[St.message]))
