@@ -2538,21 +2538,24 @@ def linkset_aligns_prop(linkset_uri):
 
         ### LINKSET ALIGNED PROPERTIES
 
-        SELECT ?s_prop ?o_prop ?mec ?s_dataset ?o_dataset
+        SELECT DISTINCT ?s_prop ?o_prop (GROUP_CONCAT(DISTINCT ?mechanism; SEPARATOR=" | ") as ?mec)
+        ?s_dataset ?o_dataset
+
         {{
             ### RETRIEVING LINKSET METADATA
             <{}>
-                prov:wasDerivedFrom*        ?linkset .
+                (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*        ?linkset .
 
             ?linkset
                 ll:alignsSubjects     ?s_prop ;
                 ll:alignsObjects      ?o_prop ;
-                ll:alignsMechanism    ?mec ;
+                ll:alignsMechanism    ?mechanism ;
                 void:subjectsTarget   ?s_dataset ;
                 void:objectsTarget    ?o_dataset .
         }}
+        group by ?s_prop ?o_prop ?s_dataset ?o_dataset
     """.format(Ns.alivocab, Ns.prov, Ns.void, linkset_uri)
-    # print query
+    print query
     return query
 
 

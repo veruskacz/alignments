@@ -1254,7 +1254,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
             source += "\n\t\t\t\t\t\t?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
             target += "\n\t\t\t\t\t\t\t?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
 
-            if mec == 'http://risis.eu/mechanism/intermediate':
+            if mec == 'http://risis.eu/mechanism/identity':
                 source_bind += ", \"|\", STR(?sub_uri)"
                 target_bind += ", \"|\",  STR(?obj_uri)"
             else:
@@ -1304,8 +1304,8 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
     ### LINKSET DETAILS
 
     SELECT DISTINCT
-    (GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property_list)
-    (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property_list)
+    (GROUP_CONCAT(DISTINCT ?s_prop; SEPARATOR="|") as ?s_property_list)
+    (GROUP_CONCAT(DISTINCT ?o_prop; SEPARATOR="|") as ?o_property_list)
     (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism_list)
     #(GROUP_CONCAT(?triple; SEPARATOR="|") as ?triples)
     ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
@@ -1313,7 +1313,7 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
 	?s_property ?o_property ?mechanism
     WHERE {{
         <{0}>
-            prov:wasDerivedFrom*        ?linkset ;
+            (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
             alivocab:alignsSubjects     ?s_property;
             alivocab:alignsObjects      ?o_property ;
             alivocab:alignsMechanism    ?mechanism .
@@ -1329,7 +1329,10 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
 
         OPTIONAL {{
             <{0}>
-            alivocab:threshold          ?threshold_ ;
+            alivocab:threshold          ?threshold_ .
+        }}
+        OPTIONAL {{
+            <{0}>
             alivocab:delta              ?delta_ .
         }}
 
