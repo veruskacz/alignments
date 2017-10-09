@@ -525,16 +525,16 @@ def view(view_specs, view_filter, save=False, limit=10):
                             if i == len(t_properties) - 1:
 
                                 if t_properties[i][1] is True:
-                                    optional += "\n\t\tOPTIONAL{{ ?{}{:15}_1 {:60} ?{}{}_{} . }}".format(
-                                        ds_ns_name[1], e_type, predicate, attache, e_type, curr_ns[1])
+                                    optional += "\n\t\tOPTIONAL{{ ?{}{:15} {:60} ?{}{}_{} . }}".format(
+                                        ds_ns_name[1], "{}_1".format(e_type), predicate, attache, e_type, curr_ns[1])
                                 else:
                                     view_where += "\n\t\t\t{:55} ?{}{}_{} .".format(
                                         predicate, attache, e_type, curr_ns[1])
 
                             else:
                                 if t_properties[i][1] is True:
-                                    optional += "\n\t\tOPTIONAL{{ ?{}{:15}_1 {:60} ?{}{}_{} . }}".format(
-                                        ds_ns_name[1], e_type, predicate, attache, e_type, curr_ns[1])
+                                    optional += "\n\t\tOPTIONAL{{ ?{}{:15} {:60} ?{}{}_{} . }}".format(
+                                        ds_ns_name[1], "{}_1".format(e_type), predicate, attache, e_type, curr_ns[1])
                                 else:
                                     view_where += "\n\t\t\t{:55} ?{}{}_{} ;".format(
                                         predicate, attache, e_type, curr_ns[1])
