@@ -241,6 +241,8 @@ def inverted_index(specs, theta):
 
 def edit_distance(token_x, token_y):
 
+    # https://leojiang.com/experiments/levenshtein/
+
     try:
 
         if token_x == token_y:
@@ -248,7 +250,6 @@ def edit_distance(token_x, token_y):
 
         ln_y = len(token_y) + 1
         ln_x = len(token_x) + 1
-        # https://leojiang.com/experiments/levenshtein/
 
         """
         ***SEQUENCE-BASED SIMILARITY MEASURES **********************************************************************
@@ -318,10 +319,13 @@ def edit_distance(token_x, token_y):
 
     except Exception as err:
         print "ERROR FOR COMPUTING EDIT DISTANCE: {}".format(str(err.message))
+        print "STRING 1: {}".format(token_x)
+        print "STRING 2: {}".format(token_y)
+        print "\"0\" IS RETURNED AS A CONSEQUENCE OF THE ERROR."
         return 0
 
 
-print edit_distance("", "")
+# print edit_distance("", "")
 
 
 # pattern = str("[{}]".format(str("\.\-\,\+'\?;()").strip())).replace(" ", "")
@@ -908,7 +912,8 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
 
             value_1 = value_1.replace(" - ", "") if value_1 != " - " else value_1
             value_2 = value_2.replace(" - ", "") if value_2 != " - " else value_2
-            sim = edit_distance(value_1.strip(), value_2.strip())
+
+            sim = edit_distance(value_1.strip(), value_2.strip()) if value_1 and value_2 else 0
             # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
             # if row == 560000:
             #     print u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
@@ -945,13 +950,13 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
                     for i in range(len(tokens_2_sorted)):
                         sim_val_2 += tokens_2_sorted[i][0] if i == 0 else " {}".format(tokens_2_sorted[i][0])
 
-                    sim = edit_distance(sim_val_1, sim_val_2)
+                    sim = edit_distance(sim_val_1, sim_val_2) if sim_val_1 and sim_val_2 else 0
 
                     if debug is True:
                         writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(sim_val_1, sim_val_2, sim))
 
                 else:
-                    sim = edit_distance(src_input, trg_input)
+                    sim = edit_distance(src_input, trg_input) if src_input and trg_input else 0
 
                     if debug is True:
                         writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(src_input, trg_input, sim))
