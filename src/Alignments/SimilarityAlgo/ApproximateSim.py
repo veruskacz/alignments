@@ -910,10 +910,11 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
                     value_1 += token2include[i][0] + " "
                     value_2 += to_use[i][0] + " "
 
-            value_1 = value_1.replace(" - ", "") if value_1 != " - " else value_1
-            value_2 = value_2.replace(" - ", "") if value_2 != " - " else value_2
+            value_1 = (value_1.replace(" - ", "") if value_1 != " - " else value_1).strip()
+            value_2 = (value_2.replace(" - ", "") if value_2 != " - " else value_2).strip()
 
-            sim = edit_distance(value_1.strip(), value_2.strip()) if value_1 and value_2 else 0
+
+            sim = edit_distance(value_1, value_2) if value_1 and value_2 else 0
             # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
             # if row == 560000:
             #     print u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
