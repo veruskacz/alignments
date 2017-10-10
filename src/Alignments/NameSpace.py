@@ -38,3 +38,9 @@ plot = "{}plot/".format(alivocab)
 
 reserchQ = "http://risis.eu/dataset/researchQ"
 view = "http://risis.eu/view/"
+
+
+
+
+lens_type = 'http://vocabularies.bridgedb.org/ops#Lens'
+linkset_type = "http://rdfs.org/ns/void#Linkset"
