@@ -240,6 +240,10 @@ def inverted_index(specs, theta):
 
 
 def edit_distance(token_x, token_y):
+
+    if token_x == token_y:
+        return 1
+
     ln_y = len(token_y) + 1
     ln_x = len(token_x) + 1
     # https://leojiang.com/experiments/levenshtein/
@@ -309,6 +313,10 @@ def edit_distance(token_x, token_y):
     return 1 - matrix[ln_y - 1][ln_x - 1] / float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
 
     # return  matrix[ln_y - 1][ln_x - 1]
+
+
+print edit_distance("", "")
+
 
 # pattern = str("[{}]".format(str("\.\-\,\+'\?;()").strip())).replace(" ", "")
 # temp = re.sub(pattern, "", "aL. KOUDOUSS-KAR; INE, (LE+VOILA?ICI)")
