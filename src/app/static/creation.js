@@ -1083,6 +1083,15 @@ function exportPlotLinksetClick(elem)
 //    $(elem).dialog("close");
 }
 
+// TODO: make a single call for lens and linkset
+function exportPlotLensClick(elem)
+{
+//    var credentials = { 'user': $("#modalPlotPass #usrname").val().trim(),
+//                        'password': $("#modalPlotPass #pssw").val().trim()}
+    exportLensClick("export.ttl",mode="vis", user= $("#modalLensPlotPass #LensUsrname").val().trim(), psswd=$("#modalLensPlotPass #LensPssw").val().trim() );
+//    $(elem).dialog("close");
+}
+
 function exportLinksetClick(filename, mode='flat', user='', psswd='')
 {
     var linkset = '';
@@ -1136,18 +1145,40 @@ function exportLinksetClick(filename, mode='flat', user='', psswd='')
 
             }
         });
+    }
+}
+
+
+function exportLensClick(filename, mode='flat', user='', psswd='')
+{
+    var lens = '';
+    var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
+    if (elems.length > 0) // if any element is selected
+    {
+        lens = $(elems[0]).attr('uri');  // it should have only one selected
+
+        // if plot is requested, a list of graphs is the input
+        var graphs = []
+        if (mode == 'vis')
+        {
+            var i;
+            for (i = 0; i < elems.length; i++) {
+              graphs.push($(elems[i]).attr('uri'));
+            }
+        }
+
+        var message = "Exporting Lens";
+        $('#lens_export_message_col').html(addNote(message,cl='warning'));
+        loadingGif(document.getElementById('lens_export_message_col'), 2);
+
         // call function that creates the linkset
-//        $.post('/exportAlignment', data={'graph_uri':linkset,
-//                                        'graphs[]':graphs,
-//                                        'name': user,
-//                                        'code': psswd,
-//                                        'mode':mode}, function(data)
+//        $.get('/exportAlignment', data={'graph_uri':lens}, function(data)
 //        {
 //
 //            var obj = JSON.parse(data);
-//            loadingGif(document.getElementById('linkset_export_message_col'), 2, show=false);
+//            loadingGif(document.getElementById('lens_export_message_col'), 2, show=false);
 //
-//            $('#linkset_export_message_col').html(addNote(obj.message,cl='info'));
+//            $('#lens_export_message_col').html(addNote(obj.message,cl='info'));
 //            csv = obj.result;
 //
 //            var element = document.createElement('a');
@@ -1161,25 +1192,16 @@ function exportLinksetClick(filename, mode='flat', user='', psswd='')
 //
 //            document.body.removeChild(element);
 //        });
-    }
-}
 
-function exportLensClick(filename)
-{
-    var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
-    var lens = '';
-    var elems = selectedElemsInGroupList('inspect_lens_lens_selection_col');
-    if (elems.length > 0) // if any element is selected
-    {
-        lens = $(elems[0]).attr('uri');  // it should have only one selected
-        //alert(linkset);
-        var message = "Exporting Lens";
-        $('#lens_export_message_col').html(addNote(message,cl='warning'));
-        loadingGif(document.getElementById('lens_export_message_col'), 2);
-
-        // call function that creates the linkset
-        $.get('/exportAlignment', data={'graph_uri':lens}, function(data)
-        {
+        $.ajax({
+            url: "/exportAlignment",
+            data: {'graph_uri':lens,
+                                                'graphs[]':graphs,
+                                                'name': user,
+                                                'code': psswd,
+                                                'mode': mode},
+            dataType: "text",
+            success: function(data){
 
             var obj = JSON.parse(data);
             loadingGif(document.getElementById('lens_export_message_col'), 2, show=false);
@@ -1187,17 +1209,22 @@ function exportLensClick(filename)
             $('#lens_export_message_col').html(addNote(obj.message,cl='info'));
             csv = obj.result;
 
-            var element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
-            element.setAttribute('download', filename);
+             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                        var link = document.createElement("a");
+                        if (link.download !== undefined) { // feature detection
+                            // Browsers that support HTML5 download attribute
+                            var url = URL.createObjectURL(blob);
+                            link.setAttribute("href", url);
+                            link.setAttribute("download", filename);
+                            link.style.visibility = 'hidden';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
 
-            element.style.display = 'none';
-            document.body.appendChild(element);
-
-            element.click();
-
-            document.body.removeChild(element);
+            }
         });
+
     }
 }
 

@@ -28,12 +28,32 @@
             activateTargetDiv(targetId="refine_lens_heading",cl="panel-heading");
             inspect_lens_activate(mode="refine")'
             >Refine</button>
-    <button type="button" class="btn btn-primary disabled" id="btn_export_lens"
-            onclick='newSelectButton(this);
-            activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");
-            activateTargetDiv(targetId="export_lens_heading",cl="panel-heading");
-            inspect_lens_activate(mode="export")'
-            >Export</button>
+    <!--<button type="button" class="btn btn-primary disabled" id="btn_export_lens"-->
+            <!--onclick='newSelectButton(this);-->
+            <!--activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");-->
+            <!--activateTargetDiv(targetId="export_lens_heading",cl="panel-heading");-->
+            <!--inspect_lens_activate(mode="export")'-->
+            <!--&gt;Export</button>-->
+    <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle disabled" data-toggle="dropdown"
+                id="btn_export_lens"
+                onclick='newSelectButton(this);'>
+            Export <span class="caret"></span></button>
+            <ul class="dropdown-menu" role="menu"
+                onclick='activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");
+                activateTargetDiv(targetId="export_lens_heading",cl="panel-heading");
+                inspect_lens_activate(mode="export");'>
+              <li onclick='setAttr("exportLensButton","mode","flat");
+                            $("#exportLensButton").show();
+                            $("#exportPlotLensButton").hide()'><a href="#">Flat</a></li>
+              <li onclick='setAttr("exportLensButton","mode","md");
+                            $("#exportLensButton").show();
+                            $("#exportPlotLensButton").hide()'><a href="#">Flat + Metadata</a></li>
+              <li onclick='setAttr("exportLensButton","mode","vis");
+                            $("#exportLensButton").hide();
+                            $("#exportPlotLensButton").show()'><a href="#">Plot</a></li>
+            </ul>
+    </div>
     <button type="button" class="btn btn-primary disabled"
             onclick='newSelectButton(this);
             activateTargetDiv(targetId="inspect_lenses_row",cl="row creation");
@@ -124,30 +144,7 @@
         </div>
         </div>
 
-        <!-- Modal -->
-          <div class="modal fade" id="labelLensModal" role="dialog">
-            <div class="modal-dialog">  <!--modal-sm">-->
-              <div class="modal-content">
-                <div class="modal-header">
-                  <button type="button" class="close" data-dismiss="modal">&times;</button>
-                  <h4 class="modal-title">Edit Lens Label</h4>
-                </div>
-                <div class="modal-body">
-                    <form role="form">
-                        <div class="form-group">
-                          <label for="lensLabel"><span class="glyphicon glyphicon glyphicon-tag"></span> Lens Label</label>
-                          <input type="text" class="form-control" name="lensLabel" id="lensLabel" placeholder="Enter label">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                  <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
-                  <button type="submit" class="btn btn-success pull-right" data-dismiss="modal"
-                        onclick='editLabelClick($("#lensLabel").val(),type="lens")'> Save</button>
-                </div>
-              </div>
-            </div>
-          </div>
+
     </div>
   </div>
  </div>
@@ -231,13 +228,30 @@
                    <td align="right"><div id="lens_export_message_col"></div></td>
                    <td valign="center"><div class="loading"></div></td>
                    <td align="right">
-                     <button type="button" id="exportLensButton"
+                   <button type="button" id="exportPlotLensButton" style='display:none'
                        class="btn btn-success btn btn-primary"
-                       onclick='exportLensClick("export.csv")'>
-                         Export Lens
-                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
-                     </button>
+                       data-toggle="modal" data-target="#modalLensPlotPass"
+                       >Export</button>
+                   <button type="button" id="exportLensButton" style='display:none'
+                       class="btn btn-success btn btn-primary"
+                       mode=""
+                       onclick='exportLensClick("export.ttl",mode=$(this).attr("mode"))'>
+                       Export
+                        <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                   </button>
                    </td>
+
+               <!--<tr align="right">-->
+                   <!--<td align="right"><div id="lens_export_message_col"></div></td>-->
+                   <!--<td valign="center"><div class="loading"></div></td>-->
+                   <!--<td align="right">-->
+                     <!--<button type="button" id="exportLensButton"-->
+                       <!--class="btn btn-success btn btn-primary"-->
+                       <!--onclick='exportLensClick("export.csv")'>-->
+                         <!--Export Lens-->
+                       <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
+                     <!--</button>-->
+                   <!--</td>-->
            </table>
        </div>
      </div>
@@ -904,7 +918,63 @@
 
    </div>
    </div>
+
+        <!-- Modal -->
+          <div class="modal fade" id="labelLensModal" role="dialog">
+            <div class="modal-dialog">  <!--modal-sm">-->
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Edit Lens Label</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                          <label for="lensLabel"><span class="glyphicon glyphicon glyphicon-tag"></span> Lens Label</label>
+                          <input type="text" class="form-control" name="lensLabel" id="lensLabel" placeholder="Enter label">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                  <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                  <button type="submit" class="btn btn-success pull-right" data-dismiss="modal"
+                        onclick='editLabelClick($("#lensLabel").val(),type="lens")'> Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="modalLensPlotPass" role="dialog">
+            <div class="modal-dialog">  <!--modal-sm">-->
+            <!-- Modal content-->
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 style="color:red;"><span class="glyphicon glyphicon-lock"></span> Login</h4>
+                </div>
+                <div class="modal-body">
+                  <form role="form">
+                    <div class="form-group">
+                      <label for="LensUsrname"><span class="glyphicon glyphicon-user"></span> Username</label>
+                      <input type="text" class="form-control" id="LensUsrname" placeholder="Enter email">
+                    </div>
+                    <div class="form-group">
+                      <label for="LensPssw"><span class="glyphicon glyphicon-eye-open"></span> Password</label>
+                      <input type="password" class="form-control" id="LensPssw" placeholder="Enter password">
+                    </div>
+                    <div class="checkbox">
+                      <label><input type="checkbox" value="" checked>Remember me</label>
+                    </div>
+                      <button type="button" data-dismiss="modal" class="btn btn-success btn-block" onclick='exportPlotLensClick(this)'> OK </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
   </div>
+
   </div>
  </div>
 
