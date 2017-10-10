@@ -820,6 +820,10 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
         src_input = str(src_dataset[row][1])
         src_input = process_input(src_input)
 
+        # GO TO THE NEXT SOURCE TOKEN IF THE CURRENT TOKEN IS EMPTY
+        if not src_input.strip():
+            continue
+
         # TOKENIZE SOURCE INPUT
         tokens_src = src_input.split(" ")
 
@@ -860,6 +864,11 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
 
             # TOKENIZE TARGET INPUT AND PROCESS IT ACCORDINGLY
             trg_input = process_input(trg_dataset[idx][1])
+
+            # GO TO THE NEXT TARGET TOKEN IF THE CURRENT TOKEN IS EMPTY
+            if not trg_input.strip():
+                continue
+
             tokens_trg = trg_input.split(" ")
             # print "1", src_input
             # print "2", trg_input
@@ -913,7 +922,7 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
             value_1 = (value_1.replace(" - ", "") if value_1 != " - " else value_1).strip()
             value_2 = (value_2.replace(" - ", "") if value_2 != " - " else value_2).strip()
 
-
+            # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
             sim = edit_distance(value_1, value_2) if value_1 and value_2 else 0
             # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
             # if row == 560000:
@@ -951,12 +960,14 @@ def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, s
                     for i in range(len(tokens_2_sorted)):
                         sim_val_2 += tokens_2_sorted[i][0] if i == 0 else " {}".format(tokens_2_sorted[i][0])
 
+                    # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
                     sim = edit_distance(sim_val_1, sim_val_2) if sim_val_1 and sim_val_2 else 0
 
                     if debug is True:
                         writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(sim_val_1, sim_val_2, sim))
 
                 else:
+                    # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
                     sim = edit_distance(src_input, trg_input) if src_input and trg_input else 0
 
                     if debug is True:
