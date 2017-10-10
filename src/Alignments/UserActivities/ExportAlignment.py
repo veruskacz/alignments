@@ -112,7 +112,9 @@ def export_alignment(alignment):
     alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
     src_dataset = None
     trg_dataset = None
+    lens_targets = []
     mec_dataset = None
+    rdf_type = None
 
     # GET THE METADATA OF THE ALIGNMENT: THE QUERY
     meta = """
@@ -123,10 +125,12 @@ def export_alignment(alignment):
         {1} ?y ?z
     }} order by ?y
     """.format(Ns.alivocab, alignment)
+    # print meta
 
     # GET THE METADATA OF THE ALIGNMENT: RUN THE QUERY
     meta_construct = Qry.endpointconstruct(meta, clean=False)
     meta_construct = meta_construct.replace("{", "").replace("}", "")
+    print meta_construct
 
     # LOAD THE METADATA USING RDFLIB
     sg = rdflib.Graph()
@@ -136,19 +140,35 @@ def export_alignment(alignment):
     sbj = rdflib.URIRef(use)
     source = rdflib.URIRef("http://rdfs.org/ns/void#subjectsTarget")
     target = rdflib.URIRef("http://rdfs.org/ns/void#objectsTarget")
+    lens_uri_targets = rdflib.URIRef("http://rdfs.org/ns/void#target")
+    rdf_uri_type = rdflib.URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
     mechanism = rdflib.URIRef("http://risis.eu/alignment/predicate/alignsMechanism")
 
-    # EXTRACT THE SOURCE DATASET
-    for item in sg.objects(sbj, source):
-        src_dataset = item
+    # EXTRACT THE ALIGNMENT TYPE
+    for item in sg.objects(sbj, rdf_uri_type):
+        rdf_type = item
+        print "TYPE: ", rdf_type
 
-    # EXTRACT THE TARGET DATASET
-    for item in sg.objects(sbj, target):
-        trg_dataset = item
+    if str(rdf_type) == Ns.lens_type:
 
-    # EXTRACT THE MECHANISM USED FOR THIS ALIGNMENT
-    for item in sg.objects(sbj, mechanism):
-        mec_dataset = item
+        # EXTRACT THE SOURCE DATASET
+        for item in sg.objects(sbj, lens_uri_targets):
+            lens_targets += [str(item)]
+        print "TARGETS: ", lens_targets
+
+    else:
+
+        # EXTRACT THE SOURCE DATASET
+        for item in sg.objects(sbj, source):
+            src_dataset = item
+
+        # EXTRACT THE TARGET DATASET
+        for item in sg.objects(sbj, target):
+            trg_dataset = item
+
+        # EXTRACT THE MECHANISM USED FOR THIS ALIGNMENT
+        for item in sg.objects(sbj, mechanism):
+            mec_dataset = item
 
     # CONSTRUCT QUERY FOR EXTRACTING HE CORRESPONDENCES
     query = """
@@ -181,10 +201,12 @@ def export_alignment(alignment):
     # print result
     print "Done with graph: {}".format(alignment)
     return {
+        "type": rdf_type,
         'result': links,
         'message': message,
         'source': src_dataset,
         "target": trg_dataset,
+        "lens_targets": lens_targets,
         'mechanism': mec_dataset}
 
 
@@ -204,7 +226,7 @@ def visualise(graphs, directory, credential):
     prd_count = 0
     singletons = {}
     triples = 0
-    datasets = (None, None)
+    datasets = [None, None]
     code = 0
 
     for graph in graphs:
@@ -217,14 +239,20 @@ def visualise(graphs, directory, credential):
         mechanism = links['mechanism']
         # print "mechanism", mechanism
 
-        # THE SOURCE AND DATASET DATASETS
-        if datasets == (None, None):
-            datasets = (links["source"], links['target'])
+        # THE SOURCE AND TARGET DATASETS
+        if datasets == [None, None]:
 
-        # MAKE SURE THAT FOR ALL ALIGNMENT, THE SOURCE DATASET AND TARGET DATASET AND THE SAME
-        elif datasets != (links["source"], links['target']):
+            if str(links["type"]) == Ns.lens_type:
+                datasets = links["lens_targets"]
+            else:
+                datasets = [links["source"], links['target']]
+
+        # MAKE SURE THAT FOR ALL ALIGNMENT, THE SOURCE DATASET AND TARGET DATASETS ARE THE SAME
+        elif datasets != [links["source"], links['target']]:
             print "No visualisation for different set of source-target"
             return None
+
+        print "DATASETS: ", datasets
 
         # print links['result']
         if links['result'] is not None:
@@ -237,8 +265,8 @@ def visualise(graphs, directory, credential):
             sg.parse(data=links['result'], format="turtle")
             triples += len(sg)
             for subject, predicate, obj in sg.triples((None, None, None)):
+                mech = "{}_{}".format(mechanism, code)
                 if predicate not in singletons:
-                    mech = "{}_{}".format(mechanism, code)
                     singletons[predicate] = [mech]
                 elif mech not in singletons[mech]:
                     singletons[mech] += [mech]
@@ -251,15 +279,21 @@ def visualise(graphs, directory, credential):
     writer.write("PREFIX plot: <http://risis.eu/alignment/plot/>\n")
     writer.write("PREFIX mechanism: <{}>\n".format(Ns.mechanism))
 
+    print "size: ", len(datasets)
+    if len(datasets) > 2:
+        name = hash("".join(datasets))
+        name = "{}".format(str(name).replace("-", "P")) if str(name).__contains__("-") else "P{}".format(name)
+    else:
+        name = "{}_{}".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1]))
+    print "NAME: ", name
+
     # DROPPING GRAPH IF IT ALREADY EXISTS
     writer.write(
-        "\n#DROP SILENT GRAPH plot:{}_{} ;\n".format(
-            Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
+        "\n#DROP SILENT GRAPH plot:{} ;\n".format(name))
 
     # INSERT NEW DATA
     writer.write("#INSERT DATA\n#{")
-    writer.write("\n\tplot:{}_{}\n".format(
-        Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1])))
+    writer.write("\n\tplot:{}\n".format(name))
     writer.write("\t{")
 
     # GOING THROUGH ALL CORRESPONDENCES OF HE MAIN GRAPH (MERGED)
@@ -290,14 +324,16 @@ def visualise(graphs, directory, credential):
         writer.write("\t\t\tlink:target     {} ;\n".format(target[obj]))
         writer.write("\t\t\tlink:source_uri <{}> ;\n".format(subject))
         writer.write("\t\t\tlink:target_uri <{}> ;\n".format(obj))
+
         for value in singletons[predicate]:
-            writer.write("\t\t\tlink:mechanism  {} ;\n".format(value).replace(Ns.mechanism, "mechanism:"))
+            if str(value) != "None_1":
+                writer.write("\t\t\tlink:mechanism  {} ;\n".format(value).replace(Ns.mechanism, "mechanism:"))
         writer.write("\t\t\trdf:type        link:Link .\n")
         writer.write("")
     writer.write("\t}\n#}")
 
     # THE PATH OF THE OUTPUT FILES
-    name = "{}_{}".format(Ut.get_uri_local_name(datasets[0]), Ut.get_uri_local_name(datasets[1]))
+
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
     f_path = "{0}{1}{1}{2}_plots_{3}.trig".format(directory, os.path.sep, name, date)
     b_path = "{0}{1}{1}{2}_plots_{3}{4}".format(directory, os.path.sep, name, date, Ut.batch_extension())
