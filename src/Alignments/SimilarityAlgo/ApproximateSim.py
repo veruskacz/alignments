@@ -241,78 +241,84 @@ def inverted_index(specs, theta):
 
 def edit_distance(token_x, token_y):
 
-    if token_x == token_y:
-        return 1
+    try:
 
-    ln_y = len(token_y) + 1
-    ln_x = len(token_x) + 1
-    # https://leojiang.com/experiments/levenshtein/
+        if token_x == token_y:
+            return 1
 
-    """
-    ***SEQUENCE-BASED SIMILARITY MEASURES **********************************************************************
-    *
-    * Edit distance aka Levenshtein distance (MINIMUM DISTANCE)
-    *
-    * The edit distance measure d(x,y), computes the minimal cost of transforming string x to string y.
-    * Transforming a string is carried out using a sequence of the following operators: delete a character,
-    * insert a character, and substitute one character for another. Intuitively, the edit distance tries to
-    * capture the various ways people make editing mistakes.
-    * The smaller the edit distance is, the more similar the two strings are.
-    * the value of d(x,y) can be computed using dynamic programming.
-    *
-    * DYNAMIC PROGRAMMING (Wikipedia) [http://en.wikipedia.org/wiki/Dynamic_programming]
-    * Dynamic programming algorithms are used for optimization (for example, finding the shortest
-    * path between two points, or the fastest way to multiply many matrices). A dynamic programming
-    * algorithm will examine all possible ways to solve the problem and will pick the best solution.
-    * Therefore, we can roughly think of dynamic programming as an intelligent, brute-force method
-    * that enables us to go through all possible solutions to pick the best one. If the scope of the
-    * problem is such that going through all possible solutions is possible and fast enough, dynamic
-    * programming guarantees finding the optimal solution. The alternatives are many, such as using
-    * a greedy algorithm, which picks the best possible choice "at any possible branch in the road".
-    * While a greedy algorithm does not guarantee the optimal solution, it is faster. Fortunately,
-    * some greedy algorithms (such as minimum spanning trees) are proven to lead to the optimal solution.
-    *
-    * This function does not trace back the global optimal path but returns the optimal number of edit(s)
-    * action(s) necessary to transform x to y.
-    *
-    ************************************************************************************************************
-    """
+        ln_y = len(token_y) + 1
+        ln_x = len(token_x) + 1
+        # https://leojiang.com/experiments/levenshtein/
 
-    """
-    Create a matrix and set its first row and column
-    """
-    matrix = [[column * row * 0 for column in range(ln_x)] for row in range(ln_y)]
-    for row in range(ln_y):
-        matrix[row][0] = row
-    for col in range(1, ln_x):
-        matrix[0][col] = col
-    # print matrix
+        """
+        ***SEQUENCE-BASED SIMILARITY MEASURES **********************************************************************
+        *
+        * Edit distance aka Levenshtein distance (MINIMUM DISTANCE)
+        *
+        * The edit distance measure d(x,y), computes the minimal cost of transforming string x to string y.
+        * Transforming a string is carried out using a sequence of the following operators: delete a character,
+        * insert a character, and substitute one character for another. Intuitively, the edit distance tries to
+        * capture the various ways people make editing mistakes.
+        * The smaller the edit distance is, the more similar the two strings are.
+        * the value of d(x,y) can be computed using dynamic programming.
+        *
+        * DYNAMIC PROGRAMMING (Wikipedia) [http://en.wikipedia.org/wiki/Dynamic_programming]
+        * Dynamic programming algorithms are used for optimization (for example, finding the shortest
+        * path between two points, or the fastest way to multiply many matrices). A dynamic programming
+        * algorithm will examine all possible ways to solve the problem and will pick the best solution.
+        * Therefore, we can roughly think of dynamic programming as an intelligent, brute-force method
+        * that enables us to go through all possible solutions to pick the best one. If the scope of the
+        * problem is such that going through all possible solutions is possible and fast enough, dynamic
+        * programming guarantees finding the optimal solution. The alternatives are many, such as using
+        * a greedy algorithm, which picks the best possible choice "at any possible branch in the road".
+        * While a greedy algorithm does not guarantee the optimal solution, it is faster. Fortunately,
+        * some greedy algorithms (such as minimum spanning trees) are proven to lead to the optimal solution.
+        *
+        * This function does not trace back the global optimal path but returns the optimal number of edit(s)
+        * action(s) necessary to transform x to y.
+        *
+        ************************************************************************************************************
+        """
 
-    """
-    Filling in the matrix by comparing each element from the strings, character by character
-    """
-    for row in range(1, ln_y):
+        """
+        Create a matrix and set its first row and column
+        """
+        matrix = [[column * row * 0 for column in range(ln_x)] for row in range(ln_y)]
+        for row in range(ln_y):
+            matrix[row][0] = row
         for col in range(1, ln_x):
+            matrix[0][col] = col
+        # print matrix
 
-            # If the comparison is a MATCH ==> use the value at the diagonal of the current cell
-            if token_y[row - 1] == token_x[col - 1]:
-                matrix[row][col] = matrix[row - 1][col - 1]
+        """
+        Filling in the matrix by comparing each element from the strings, character by character
+        """
+        for row in range(1, ln_y):
+            for col in range(1, ln_x):
 
-            # If the match fails, take the minimal value of 3 cells surrounding the current cell
-            # [ cell on the left, cell in the diagonal and cell on the top] and add 1 to it
-            else:
-                # matrix[row][col] = maxint
-                # Left cell to the current cell
-                matrix[row][col] = min([matrix[row][col - 1], matrix[row-1][col - 1], matrix[row-1][col]]) + 1
+                # If the comparison is a MATCH ==> use the value at the diagonal of the current cell
+                if token_y[row - 1] == token_x[col - 1]:
+                    matrix[row][col] = matrix[row - 1][col - 1]
 
-    # print matrix
-    # print "EDIT DISTANCE:", matrix[ln_y - 1][ln_x - 1]
-    # print "DENOMINATOR", float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
-    # print "SIMILARITY [0 1]", 1 - matrix[ln_y - 1][ln_x - 1] / float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
+                # If the match fails, take the minimal value of 3 cells surrounding the current cell
+                # [ cell on the left, cell in the diagonal and cell on the top] and add 1 to it
+                else:
+                    # matrix[row][col] = maxint
+                    # Left cell to the current cell
+                    matrix[row][col] = min([matrix[row][col - 1], matrix[row-1][col - 1], matrix[row-1][col]]) + 1
 
-    return 1 - matrix[ln_y - 1][ln_x - 1] / float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
+        # print matrix
+        # print "EDIT DISTANCE:", matrix[ln_y - 1][ln_x - 1]
+        # print "DENOMINATOR", float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
+        # print "SIMILARITY [0 1]", 1 - matrix[ln_y - 1][ln_x - 1] / float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
 
-    # return  matrix[ln_y - 1][ln_x - 1]
+        return 1 - matrix[ln_y - 1][ln_x - 1] / float(ln_x - 1 if ln_x > ln_y else ln_y - 1)
+
+        # return  matrix[ln_y - 1][ln_x - 1]
+
+    except Exception as err:
+        print "ERROR FOR COMPUTING EDIT DISTANCE: {}".format(str(err.message))
+        return 0
 
 
 print edit_distance("", "")
