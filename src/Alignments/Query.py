@@ -363,6 +363,7 @@ def boolean_endpoint_response(query, display=False):
             return ERROR_2
         drops_doc = xmltodict.parse(response[St.result])
         result = drops_doc['sparql']['boolean']
+        print "BOOLEAN QUERY RESULT: {}".format(result)
         if display is True:
             print ">>> Query executed : {:<14}".format(result)
             print ">>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -370,6 +371,7 @@ def boolean_endpoint_response(query, display=False):
             print ""
     else:
         print query
+
     return result
 
 
