@@ -234,6 +234,7 @@ def index():
     else:
         return render_template('base.html')
 
+
 @app.route("/stardogManagement", methods=['GET'])
 def stardogManagement():
     status = request.args.get('status', 'off')
@@ -1243,7 +1244,6 @@ def datasetsperrq():
                             function = function)
 
 
-
 @app.route('/getentitytyperq')
 def entitytyperq():
     """
@@ -1357,6 +1357,7 @@ def datasetpredicatevalues():
                            list = list,
                            btn_name='Type Values',
                            function = function)
+
 
 @app.route('/createLinkset')
 def spa_linkset():
@@ -1473,7 +1474,6 @@ def spa_linkset():
             linkset_result = {'message': str(err.message), 'error_code': -1, St.result: None}
 
         return json.dumps(linkset_result)
-
 
 
 @app.route('/refineLinkset')
@@ -2012,6 +2012,7 @@ def getfilters():
                             function = function,
                             style = style,
                             list = data)
+
 
 @app.route('/calculateFreq')
 def calculateFreq():
