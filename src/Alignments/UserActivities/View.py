@@ -7,6 +7,7 @@ import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 from Alignments.Lenses.Lens_Intersection import intersection
+import Alignments.ErrorCodes as Ec
 from Alignments.Query import endpoint, sparql_xml_to_matrix, display_matrix, boolean_endpoint_response
 
 PREFIX = """
@@ -319,9 +320,10 @@ def view(view_specs, view_filter, save=False, limit=10):
             if is_problematic is False:
                 print "We are in save mode!"
                 is_metadata_inserted = boolean_endpoint_response(view_metadata[St.insert_query])
-                print is_metadata_inserted
+                print "IS THE METADATA INSERTED?: {}".format(is_metadata_inserted)
                 message = "The insertion metadata was successfully inserted as: {}".format(view_metadata[St.result]) \
-                    if is_metadata_inserted == "true" else "The metadata could not be inserted."
+                    if (is_metadata_inserted == "true" or is_metadata_inserted == Ec.ERROR_STARDOG_1) \
+                    else "The metadata could not be inserted."
                 print message
                 view_metadata[St.message] = message
                 # print view_metadata[St.insert_query]
