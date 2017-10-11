@@ -148,8 +148,53 @@ class CSV(RDF):
             #     self.turtleWriter.close()
             #     break
 
-            """ Proceed with the conversion """
-            self.write_triples_2(to_unicode(line), separator, row_number=n, field_metadata=self.fieldMetadata)
+            # """ Proceed with the conversion """
+            # self.write_triples_2(to_unicode(line), separator, row_number=n, field_metadata=self.fieldMetadata)
+
+            buffered = ""
+            while True:
+
+                record = line
+                if not record:
+                    break
+
+                if buffered != "":
+                    div = CSV.extractor(record, ",", content_delimiter='"')
+                    if len(div) != len(self.csvHeader):
+                        record = "{}{}".format(buffered, record)
+
+                div = CSV.extractor(record, ",", content_delimiter='"')
+
+                if len(div) < len(self.csvHeader):
+                    buffered = "{}".format(record)
+                    print ">>> Buffered: {}".format(buffered)
+
+                elif len(div) == len(self.csvHeader):
+                    # print "\nLINE: {}".format(record.rstrip())
+                    # print "SIZE: {}".format(len(div))
+                    buffered = ""
+                    # for item in div:
+                    #     print "{}".format(item)
+
+                    """ Proceed with the conversion """
+                    self.write_triples_2(div, row_number=n, field_metadata=self.fieldMetadata)
+                    break
+
+                elif len(div) > len(self.csvHeader):
+                    print "\nERROR!!!!"
+                    # REPORT ERROR IN THE CHARACTER SEPARATED VALUE FORMAT
+                    if len(div) != len(self.csvHeader):
+                        self.errorCount += 1
+                        print "{:5} Record encoding error. Header: {} columns while Record: {} columns".format(
+                            self.errorCount, len(self.csvHeader), len(div))
+                        print "\t\t{:8}".format(div)
+                        # print line
+                        # PRINTING ITEMS
+                        for i in range(0, len(div)):
+                            print b"\t\t{} - {}".format(i + 1, to_bytes(div[i]))
+                    break
+
+                line = to_unicode(_file.readline())
 
     def __init__(self, database, is_trig, file_to_convert, separator, entity_type,
                  rdftype=None, subject_id=None, embedded_uri=None, field_metadata=None, activated=False):
@@ -300,12 +345,57 @@ class CSV(RDF):
             #     print line
             #     pass
             # if n <= 72:
-            """ Proceed with the conversion """
-            self.write_triples(to_unicode(line), separator, embedded_uri, self.fieldMetadata)
+            # """ Proceed with the conversion """
+            # self.write_triples(to_unicode(line), separator, embedded_uri, self.fieldMetadata)
+
+            buffered = ""
+            while True:
+
+                record = line
+                if not record:
+                    break
+
+                if buffered != "":
+                    div = CSV.extractor(record, ",", content_delimiter='"')
+                    if len(div) != len(self.csvHeader):
+                        record = u"{}{}".format(buffered, record)
+
+                div = CSV.extractor(record, ",", content_delimiter='"')
+
+                if len(div) < len(self.csvHeader):
+                    buffered = u"{}".format(record)
+                    print u">>> Buffered: {}".format(buffered)
+
+                elif len(div) == len(self.csvHeader):
+                    # print "\nLINE: {}".format(record.rstrip())
+                    # print "SIZE: {}".format(len(div))
+                    buffered = ""
+                    # for item in div:
+                    #     print "{}".format(item)
+
+                    """ Proceed with the conversion """
+                    self.write_triples(div, embedded_uri, self.fieldMetadata)
+                    break
+
+                elif len(div) > len(self.csvHeader):
+                    print "\nERROR!!!!"
+                    # REPORT ERROR IN THE CHARACTER SEPARATED VALUE FORMAT
+                    if len(div) != len(self.csvHeader):
+                        self.errorCount += 1
+                        print "{:5} Record encoding error. Header: {} columns while Record: {} columns".format(
+                            self.errorCount, len(self.csvHeader), len(div))
+                        print "\t\t{:8}".format(div)
+                        # print line
+                        # PRINTING ITEMS
+                        for i in range(0, len(div)):
+                            print b"\t\t{} - {}".format(i + 1, to_bytes(div[i]))
+                    break
+
+                line = to_unicode(_file.readline())
 
     @staticmethod
-    def extractor(record, separator):
-        td = '"'
+    def extractor(record, separator, content_delimiter='"', check=None):
+        td = content_delimiter
         attributes = []
         temp = ""
 
@@ -314,19 +404,33 @@ class CSV(RDF):
         while i < len(record):
 
             if record[i] == td:
+                complete = False
                 j = i + 1
                 while j < len(record):
                     if record[j] != td:
                         temp += record[j]
+                    # THE CURRENT CHARACTER IS A DELIMITER
                     elif j + 1 < len(record) and record[j + 1] != separator:
                         if record[j] != td:
                             temp += record[j]
                     elif j + 1 < len(record) and record[j + 1] == separator:
-                        j += 2
-                        break
-                    j += 1
 
-                attributes.append(temp)
+                        # "column ""weird stuff"", something else",
+                        if j > 0 and record[j - 1] != td:
+                            j += 2
+                            complete = True
+                            break
+
+                        # "column ""weird stuff""",
+                        elif j > 1 and (record[j - 1] != td or record[j - 2] == td):
+                            j += 2
+                            complete = True
+                            break
+                        else:
+                            temp += record[j]
+                    j += 1
+                if complete == True:
+                    attributes.append(temp)
                 temp = ""
                 i = j
 
@@ -523,7 +627,8 @@ class CSV(RDF):
 
         return schema.getvalue()
 
-    def write_triples(self, line, separator, embedded_uri=None, field_metadata=None):
+    # TODO OLD FUNCTION, CAN BE REMOVED
+    def write_triples_old(self, line, separator, embedded_uri=None, field_metadata=None):
 
         # print line
 
@@ -573,7 +678,68 @@ class CSV(RDF):
                             namespace = specs['namespace'].strip()
                             subject = u"\t<{0}>".format(namespace + self.check_for_uri(record[specs['id']]))
                         else:
-                            subject =  u"\t{0}:".format(self.data_prefix) + self.check_for_uri(record[specs['id']])
+                            subject = u"\t{0}:".format(self.data_prefix) + self.check_for_uri(record[specs['id']])
+
+                        if specs['predicate'] is not None and len(specs['predicate']) > 0:
+                            if specs['predicate'].__contains__("http"):
+                                predicate = "<{}>".format(specs['predicate'].strip())
+                            else:
+                                predicate = vocabulary_prefix + self.check_for_uri(specs['predicate'])
+                        else:
+                            predicate = vocabulary_prefix + self.csvHeader[specs['id']]
+                        self.write_line(subject)
+                        self.write_line( self.pvFormat.format("", predicate, resource_uri) + " .")
+                        self.write_line("")
+
+
+
+            # WRITE ABOUT THE RESOURCE
+            self.write_line(resource_uri)
+
+            if self.entityType is not None and self.entityType != "":
+                self.write_line(self.pvFormat.format("", 'rdf:type', u"{0}:{1} ;".format(
+                    entity_type_prefix, self.entityType)))
+
+            # Write the values
+            self.write_record_values(record, embedded_uri, field_metadata)
+            # print record
+
+    def write_triples(self, colon_list, embedded_uri=None, field_metadata=None):
+
+        record = colon_list
+
+        size = len(record) - 1
+        record[size] = record[size].rstrip(u'\r\n')
+
+        # print record
+        subject_resource = record[self.subjectID]
+
+        if subject_resource is not None:
+            subject_resource = subject_resource.strip()
+
+        if len(subject_resource) > 0:
+
+            if subject_resource != "":
+                self.refreshCount += 1
+            if self.refreshCount > self.fileSplitSize:
+                self.refreshCount = 0
+                self.refresh()
+
+            # Write the subject
+            self.instanceCount += 1
+            self.write_line("\t### [ " + str(self.instanceCount) + " ]")
+            # self.write_line(u"\t{0}:".format(self.data_prefix) + subject_resource.replace(" ", "_"))
+            resource_uri = u"\t{0}:".format(self.data_prefix) + self.check_for_uri(subject_resource)
+
+            # WRITE ABOUT THE INVERSE RESOURCE THAT POINTS HTO THE SUBJECT
+            if embedded_uri is not None:
+                for specs in embedded_uri:
+                    if specs['reverse'] is True:
+                        if specs['namespace'] is not None and len(specs['namespace']) > 0:
+                            namespace = specs['namespace'].strip()
+                            subject = u"\t<{0}>".format(namespace + self.check_for_uri(record[specs['id']]))
+                        else:
+                            subject = u"\t{0}:".format(self.data_prefix) + self.check_for_uri(record[specs['id']])
 
                         if specs['predicate'] is not None and len(specs['predicate']) > 0:
                             if specs['predicate'].__contains__("http"):
@@ -643,7 +809,8 @@ class CSV(RDF):
                     # print "WORKING"
                     self.write_rdftype_value(i, cur_value)
 
-    def write_triples_2(self, line, separator, row_number, field_metadata=None):
+    # TODO OLD FUNCTION, CAN BE REMOVED
+    def write_triples_2_old(self, line, separator, row_number, field_metadata=None):
 
         # print line
         # line = line.strip(b'\r\n')
@@ -679,11 +846,47 @@ class CSV(RDF):
         self.write_record_values(record, field_metadata)
         # print record
 
+    def write_triples_2(self, colon_list, row_number, field_metadata=None):
+
+        # print line
+        # line = line.strip(b'\r\n')
+
+        record = colon_list
+        size = len(record) - 1
+        record[size] = record[size].rstrip(u'\r\n')
+
+        # print record
+        subject_resource = "R{0}".format(row_number)
+
+        if subject_resource is not None:
+            subject_resource = subject_resource.strip()
+
+        if subject_resource != "":
+            self.refreshCount += 1
+        if self.refreshCount > self.fileSplitSize:
+            self.refreshCount = 0
+            self.refresh()
+
+        # Write the subject
+        self.instanceCount += 1
+        self.write_line("\t### [ " + str(self.instanceCount) + " ]")
+
+        # self.write_line(u"\t{0}:".format(self.data_prefix) + subject_resource.strip().replace(" ", "_"))
+        self.write_line(u"\t{0}:".format(self.data_prefix) + self.check_for_uri(subject_resource))
+
+        if self.entityType is not None and self.entityType != "":
+            self.write_line(self.pvFormat.format("", 'rdf:type', u"{0}:{1} ;".format(
+                entity_type_prefix, self.entityType)))
+
+        # Write the values
+        self.write_record_values(record, field_metadata)
+        # print record
+
     def write_predicate_value(self, index, value, embedded_uri=None):
         is_embedded = False
         val = value.strip()
 
-        if embedded_uri is not  None:
+        if embedded_uri is not None:
             for spec in embedded_uri:
                 # print spec
                 if index == spec['id']:
@@ -758,5 +961,39 @@ class CSV(RDF):
 
 # print CSV.extractor("""\"Name","Country","State?","Level",
 # "Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID\"""", ",")
-
+#
 # CSV.view_file("C:\Users\Al\PycharmProjects\Linkset\Data_uploaded\orgref.csv")
+#
+# data = "Column_1,Column_2,Column_3,\"Column_4\",Column_5\n,Column_6,Column_7,Column_8"
+# _file = open("C:\Users\Al\Downloads\CSV_Test.csv")
+# buffered = ""
+# while True:
+#
+#     record = _file.readline()
+#     if not record:
+#         break
+#
+#     if buffered != "":
+#         div = CSV.extractor(record, ",", content_delimiter='"')
+#         if len(div) != 8:
+#             record = "{}{}".format(buffered, record)
+#
+#     div = CSV.extractor(record, ",", content_delimiter='"')
+#
+#     if len(div) < 8:
+#         buffered = "{}".format(record)
+#         print ">>> Buffered: {}".format(buffered)
+#
+#     elif len(div) == 8:
+#         print "\nLINE: {}".format(record)
+#         buffered = ""
+#         print "SIZE: {}".format(len(div))
+#         for item in div:
+#             print "{}".format(item)
+#         # break
+#
+#     elif len(div) > 8:
+#         # buffered = ""
+#         print div
+#         print "\nERROR!!!!"
+#         # break
