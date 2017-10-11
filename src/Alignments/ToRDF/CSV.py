@@ -70,6 +70,8 @@ class CSV(RDF):
         # -> Array  about the list of attributes in the csv file
         self.csvHeader = self.extractor(self.first_line, separator)
         self.csvHeaderLabel = self.extractor(self.first_line, separator)
+        print "\tThis is the header: ", self.csvHeader
+        print "THE HEADER IS OF SIZE:", len(self.csvHeader)
 
         """ 2. Get the last column ID. This allows to stop the loop before the end
                 whenever the identification column happens to be the last column"""
@@ -268,6 +270,8 @@ class CSV(RDF):
         # -> Array  about the list of attributes in the csv file
         self.csvHeader = self.extractor(self.first_line, separator)
         self.csvHeaderLabel = self.extractor(self.first_line, separator)
+        print "\tThis is the header: ", self.csvHeader
+        print "THE HEADER IS OF SIZE:", len(self.csvHeader)
 
         """ 2. Get the last column ID. This allows to stop the loop before the end
                 whenever the identification column happens to be the last column"""
