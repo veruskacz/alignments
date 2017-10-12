@@ -219,13 +219,14 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
 
     # CHECK WHETHER THE CLUSTER EXISTS
     check_cluster_query = """
+    PREFIX ll: <{}>
     SELECT ?constraint
     {{
         GRAPH <{}>
         {{
             ?sub ll:clusterConstraint ?constraint .
         }}
-    }} """.format(cluster_uri)
+    }} """.format(Ns.alivocab, cluster_uri)
     # print check_cluster_query
     response = Qry.sparql_xml_to_matrix(check_cluster_query)
 
