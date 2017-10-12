@@ -438,10 +438,12 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
 
     # COMPUTE THE GROUP NAME SHARED BY ALL CLUSTERS
     if reference is None:
+        print "group name in None: {}".format(property_list)
         group_name = Ut.get_uri_local_name(property_list)
     else:
+        print "given group name"
         group_name = reference
-    # print "group_name: ", group_name
+    print "group_name: ", group_name
 
     # EXTRACT CLUSTER CONSTRAINTS
     # FIND NEW CLUSTERS THAT DID NOT EXIST IN THE GROUP OF CLUSTERS
@@ -491,8 +493,8 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
         print "NO CONSTRAINT COULD BE FOUND"
         return {St.message: "NO CONSTRAINT COULD BE FOUND", "reference": group_name}
 
-    for i in range(1, len(constraint_table)):
-    # for i in range(1, 7):
+    # for i in range(1, len(constraint_table)):
+    for i in range(1, 2):
         create_cluster(
             constraint_table[i], initial_dataset_uri, property_uri, count=i, reference=group_name, activated=True)
 
