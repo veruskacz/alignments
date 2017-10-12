@@ -453,10 +453,12 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
     # print variables
 
     # EXTRACT CLUSTER CONSTRAINTS
+    # FIND NEW CLUSTERS THAT DID NOT EXIST IN THE GROUP OF CLUSTERS
     append = "#"
     if not_exists is True:
         append = ""
     query = """
+    PREFIX ll: <{6}>
     SELECT DISTINCT {0}
     {{
         GRAPH <{1}>
@@ -469,7 +471,7 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
             {4}    ?cluster ll:reference  "{3}" . {5}
             {4}}}
         {4}}}
-    }}""".format(variables, initial_dataset_uri, resources, reference, append, not_exists_t)
+    }}""".format(variables, initial_dataset_uri, resources, reference, append, not_exists_t, Ns.alivocab,)
     print query
     constraint_table_response = Qry.sparql_xml_to_matrix(query)
 
@@ -482,7 +484,7 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
         print "NO CONSTRAINT COULD BE FOUND"
         return {St.message: "NO CONSTRAINT COULD BE FOUND", "reference": group_name}
 
-    for i in range(1, 4):
+    for i in range(1, len(constraint_table)):
         create_cluster(
             constraint_table[i], initial_dataset_uri, property_uri, count=i, reference=group_name, activated=True)
 
