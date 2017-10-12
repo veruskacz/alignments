@@ -68,10 +68,13 @@ def get_uri_local_name(uri, sep="_"):
     # if type(uri) is not str:
     #     return None
 
-    if is_property_path(uri) or is_nt_format(uri):
+    check = re.findall("<([^<>]*)>/*", uri)
+
+    if is_property_path(uri) or is_nt_format(uri) or len(check) > 0 :
 
         name = ""
-        pro_list = re.findall("<([^<>]*)>/*", uri)
+        # pro_list = re.findall("<([^<>]*)>/*", uri)
+        pro_list = check
 
         for i in range(len(pro_list)):
             local = get_uri_local_name(pro_list[i])
