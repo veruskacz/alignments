@@ -442,6 +442,12 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
         group_name = reference
     # print "group_name: ", group_name
 
+    # EXTRACT CLUSTER CONSTRAINTS
+    # FIND NEW CLUSTERS THAT DID NOT EXIST IN THE GROUP OF CLUSTERS
+    append = "#"
+    if not_exists is True:
+        append = ""
+
     variables = ""
     resources = ""
     not_exists_t = ""
@@ -450,17 +456,13 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
         variables += " ?{}".format(name)
         if i == 0:
             resources += "\n\t\t\t?resource {} ?{} .".format(property_uri[i], name)
-            not_exists_t += "\n\t\t\t?cluster ll:clusterConstraint ?{} .".format(name)
+            not_exists_t += "\n\t\t\t{}?cluster ll:clusterConstraint ?{} .".format(append, name)
         else:
             resources += "\n\t\t\t?resource {} ?{} .".format(property_uri[i], name)
-            not_exists_t += "\n\t\t\t?cluster ll:clusterConstraint ?{} .".format(name)
+            not_exists_t += "\n\t\t\t{}?cluster ll:clusterConstraint ?{} .".format(append, name)
     # print variables
 
-    # EXTRACT CLUSTER CONSTRAINTS
-    # FIND NEW CLUSTERS THAT DID NOT EXIST IN THE GROUP OF CLUSTERS
-    append = "#"
-    if not_exists is True:
-        append = ""
+
     query = """
     PREFIX ll: <{6}>
     SELECT DISTINCT {0}
@@ -489,8 +491,10 @@ def create_clusters(initial_dataset_uri, property_uri, reference=None, not_exist
         return {St.message: "NO CONSTRAINT COULD BE FOUND", "reference": group_name}
 
     for i in range(1, len(constraint_table)):
+    # for i in range(1, 7):
         create_cluster(
             constraint_table[i], initial_dataset_uri, property_uri, count=i, reference=group_name, activated=True)
+
 
     return {St.message: "", "reference": group_name}
 
@@ -572,6 +576,7 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
     # ADD TO THE COMPATIBLE CLUSTERS FOUND
     else:
         for i in range(1, len(cluster_table)):
+        # for i in range(1, 4):
             add_to_cluster(cluster_table[i][0], dataset_uri, property_uri, count=i, activated=True)
 
     print "\n-> PHASE 2: NO COMPATIBLE CLUSTERS => CREATION OF NEW CLUSTERS"
