@@ -4,6 +4,7 @@
 from Alignments.ToRDF.RDF import *
 from Alignments.Utility import win_bat as bat
 from kitchen.text.converters import to_bytes, to_unicode
+import sys
 
 
 __name__ = """CSV"""
@@ -139,7 +140,7 @@ class CSV(RDF):
                 _file.close()
 
                 # WRITE THE BAT FILE
-                print self.dirName
+                print "\n", self.dirName
                 self.bat_file = bat(self.dirName, self.database)
                 break
 
@@ -156,16 +157,18 @@ class CSV(RDF):
             buffered = ""
             while True:
 
+                print >> sys.stderr, '\r', "\tCURRENT LINE: {}".format(n),
+
                 record = line
                 if not record:
                     break
 
                 if buffered != "":
-                    div = CSV.extractor(record, ",", content_delimiter='"')
+                    div = CSV.extractor(record, separator, content_delimiter='"')
                     if len(div) != len(self.csvHeader):
                         record = "{}{}".format(buffered, record)
 
-                div = CSV.extractor(record, ",", content_delimiter='"')
+                div = CSV.extractor(record, separator, content_delimiter='"')
 
                 if len(div) < len(self.csvHeader):
                     buffered = "{}".format(record)
@@ -264,14 +267,14 @@ class CSV(RDF):
 
         # get the first line
         # self.first_line = self.first_line.strip(u'\r\n')
-        print "\n\tThis is the header: ", self.first_line
+        print "\n\tTHIS IS THE HEADER STRING  : ", self.first_line
 
         # Get the attribute headers
         # -> Array  about the list of attributes in the csv file
         self.csvHeader = self.extractor(self.first_line, separator)
         self.csvHeaderLabel = self.extractor(self.first_line, separator)
-        print "\tThis is the header: ", self.csvHeader
-        print "THE HEADER IS OF SIZE:", len(self.csvHeader)
+        print "\tTHIS IS THE HEADER LIST    : ", self.csvHeader
+        print "\tTHE HEADER LIST IS OF SIZE : ", len(self.csvHeader)
 
         """ 2. Get the last column ID. This allows to stop the loop before the end
                 whenever the identification column happens to be the last column"""
@@ -330,7 +333,7 @@ class CSV(RDF):
             if not line:
 
                 # WRITE THE BAT FILE
-                print self.dirName
+                print "\n\nFILE LOCATION: {}", self.dirName
                 self.bat_file = bat(self.dirName, self.database)
 
                 """ Closing the named-graph by closing the turtle writer.
@@ -355,16 +358,18 @@ class CSV(RDF):
             buffered = ""
             while True:
 
+                print >>  sys.stderr, '\r', "\tCURRENT LINE: {}".format(n),
+
                 record = line
                 if not record:
                     break
 
                 if buffered != "":
-                    div = CSV.extractor(record, ",", content_delimiter='"')
+                    div = CSV.extractor(record, separator, content_delimiter='"')
                     if len(div) != len(self.csvHeader):
                         record = u"{}{}".format(buffered, record)
 
-                div = CSV.extractor(record, ",", content_delimiter='"')
+                div = CSV.extractor(record, separator, content_delimiter='"')
 
                 if len(div) < len(self.csvHeader):
                     buffered = u"{}".format(record)
@@ -393,9 +398,12 @@ class CSV(RDF):
                         # PRINTING ITEMS
                         for i in range(0, len(div)):
                             print b"\t\t{} - {}".format(i + 1, to_bytes(div[i]))
+
                     break
 
                 line = to_unicode(_file.readline())
+
+        print "\n"
 
     @staticmethod
     def extractor(record, separator, content_delimiter='"', check=None):
@@ -1001,3 +1009,23 @@ class CSV(RDF):
 #         print div
 #         print "\nERROR!!!!"
 #         # break
+
+
+# test_path = "C:\Users\Al\Downloads\Atest\orgreg_hei_export5October2017_.csv"
+# test_file = open(test_path)
+# header = test_file.readline()
+# separated = CSV.extractor(header, ";" )
+# print "SIZE:", len(header)
+# print "THE HEADER:", header
+# for i in range(0, len(separated)):
+#
+#     print >> sys.stderr, i, '\r',
+
+    # print "{:<6}{}".format(i+1, separated[i])
+
+# row = test_file.readline()
+# print "ROW:", row
+# separated_row = CSV.extractor(row, ";" )
+# print "SIZE OF THE ROW:", len(separated_row)
+# for item in separated_row:
+#     print item
