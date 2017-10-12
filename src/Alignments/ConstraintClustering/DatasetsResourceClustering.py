@@ -45,14 +45,16 @@ def cluster_meta(cluster_uri):
 
     # CHECK WHETHER THE CLUSTER EXISTS
     query = """
+    PREFIX ll: <{0}>
+    PREFIX prov: <{1}>
     SELECT ?constraint ?dataset
     {{
-        GRAPH <{}>
+        GRAPH <{2}>
         {{
             ?sub prov:wasDerivedFrom  ?dataset .
             ?sub ll:clusterConstraint ?constraint .
         }}
-    }} """.format(cluster_uri)
+    }} """.format(Ns.alivocab, Ns.prov, cluster_uri)
     response = Qry.sparql_xml_to_matrix(query)
 
     # SET THE MATRIX
@@ -148,6 +150,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1, refer
 
     query = """
     PREFIX ll: <{0}>
+    PREFIX prov: <{7}>
     INSERT
     {{
         # THE CLUSTERED GRAPH
@@ -174,7 +177,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1, refer
         }}
         FILTER (?trimmed_value = lcase(?constraint))
     }}
-    """.format(Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name)
+    """.format(Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov)
     # print query
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
@@ -257,6 +260,7 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
 
             query = """
     PREFIX ll: <{0}>
+    PREFIX prov: <{5}>
     INSERT
     {{
         # THE CLUSTERED GRAPH
@@ -282,7 +286,7 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
         }}
         FILTER (?trimmed_value = lcase(?constraint))
     }}
-    """.format(Ns.alivocab, cluster_uri, dataset_uri, property_list, cluster_constraint)
+    """.format(Ns.alivocab, cluster_uri, dataset_uri, property_list, cluster_constraint, Ns.prov)
             # print query
 
             # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
