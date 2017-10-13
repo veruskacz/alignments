@@ -70,7 +70,7 @@ def get_uri_local_name(uri, sep="_"):
 
     check = re.findall("<([^<>]*)>/*", uri)
 
-    if is_property_path(uri) or is_nt_format(uri) or len(check) > 0 :
+    if is_property_path(uri) or is_nt_format(uri) or len(check) > 0:
 
         name = ""
         # pro_list = re.findall("<([^<>]*)>/*", uri)
@@ -864,14 +864,14 @@ def stardog_off(bat_path):
             # lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
             if off['result'].lower().__contains__("successfully") and len(lock_file) > 0:
                 # MAKE SURE AS SOMETIMES IT TAKES TIME FOR THE LOCK FILE TO BE REMOVED BY STARDOG
-                if path.exists(join(directory,lock_file[0])):
-                    os.remove(join(directory,lock_file[0]))
+                if path.exists(join(directory, lock_file[0])):
+                    os.remove(join(directory, lock_file[0]))
         else:
             print ">>> RESPONSE: {}".format(off)
             lock_file = [name for name in os.listdir(directory) if name.endswith('.lock')]
             if off.lower().__contains__("successfully") and len(lock_file) > 0:
-                if path.exists(join(directory,lock_file[0])):
-                    os.remove(join(directory,lock_file[0]))
+                if path.exists(join(directory, lock_file[0])):
+                    os.remove(join(directory, lock_file[0]))
 
     else:
         print ">>> THE SERVER WAS NOT ON."
