@@ -28,6 +28,12 @@ mac_weird_name = "darwin"
 """
 #################################################################
 
+def hash_it(text):
+
+    code = hash(text)
+    name = str(code).replace("-", "N") if str(code).__contains__("-") else "P{}".format(code)
+    return name
+
 
 def from_alignment2singleton(alignment):
 
