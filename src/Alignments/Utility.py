@@ -28,6 +28,7 @@ mac_weird_name = "darwin"
 """
 #################################################################
 
+
 def hash_it(text):
 
     code = hash(text)
