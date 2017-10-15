@@ -2270,9 +2270,276 @@ function deleteLensClick()
     }
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Functions called at onclick of the buttons in clustersCreation.html
+///////////////////////////////////////////////////////////////////////////////
+
+function create_clusters_activate()
+{
+    // cleaning ...
+    $('#creation_cluster_predicates_col').html('');
+    $('#creation_cluster_selected_predicates_group').html('');
+    $('#cluster_creation_message_col').html('');
+    $('#cluster_creation_save_message_col').html('');
+    $('#creation_cluster_results_row').hide();
+    chronoReset();
+
+    var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
+
+    // loading...
+    cluster_load_datasets_predicates(rq_uri);
+
+//    view_load_linkesets_lenses(rq_uri);
+}
+
+
+function inspect_clusters_activate(mode="inspect")
+{
+  var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
+  chronoReset();
+
+  if (rq_uri)
+  {
+
+    if (mode == 'inspect')
+    {
+        $('#inspect_cluster_heading').show();
+        $('#edit_cluster_heading').hide();
+    }
+    else //edit
+    {
+        $('#inspect_cluster_heading').hide();
+        $('#edit_cluster_heading').show();
+        enableButton('deleteClusterButton', enable=false);
+        enableButton('editLabelClusterButton', enable=false);
+    }
+
+    $('#cluster_edit_message_col').html("");
+
+    $('#inspect_clusters_details_col').html('');
+    $('#inspect_clusters_selection_col').html('Loading...');
+    // Load into div all the existing views for a certain research question
+    $.get('/getgraphsperrqtype',
+                  data={'rq_uri': rq_uri,
+                        'type': 'cluster',
+                        'template': 'list_group.html'},
+                  function(data)
+    {
+      $('#inspect_clusters_selection_col').html(data);
+
+      // set actions after clicking a graph in the list
+      $('#inspect_clusters_selection_col a').on('click',function()
+       {
+          if (selectListItemUnique(this, 'inspect_clusters_selection_col'))
+          {
+            $('#cluster_creation_message_col').html("");
+            $('#cluster_creation_message_col').html("");
+            $('#cluster_creation_save_message_col').html("");
+            $('#creation_cluster_selected_predicates_group').html("");
+            var cluster_uri = $(this).attr('uri');
+
+              // load the panel for correspondences details
+              $('#inspect_clusters_details_col').html('Loading...');
+              $.get('/getclusterdetails',data={'rq_uri': rq_uri,
+                                            'cluster_uri': cluster_uri},function(data)
+              {
+                var obj = JSON.parse(data);
+
+                $('#inspect_clusters_details_col').html(obj.details);
+
+                if (mode == 'inspect')
+                {
+                    //show the creation-panels containing the linksets/lenses
+                    //and the datasets and properties to be selected
+                    //create_views_activate( function(){ alert('sync'); } );
+
+                    //alert('after');
+                    $('#creation_cluster_row').show();
+                    $('#creation_cluster_filter_row').show();
+
+                    cluster_load_datasets_predicates(rq_uri, obj.list_pred);
+//                    cluster_load_linkesets_lenses(rq_uri, obj.cluster_lens);
+                }
+                else if (mode == 'edit')
+                {
+                    $('#creation_cluster_row').hide();
+                    $('#creation_cluster_filter_row').hide();
+                    enableButton('deleteClusterButton');
+                    enableButton('editLabelClusterButton');
+                }
+
+              });
+
+           $('#creation_cluster_results_row').hide();
+           $("#collapse_cluster_filter").collapse("hide");
+
+          }
+        });
+    });
+
+  }
+}
+
+
+function cluster_load_datasets_predicates(rq_uri, cluster_filters=null)
+{
+// Load into div the selected datasets for a certain research question
+     $('#creation_cluster_dataset_col').html('Loading...');
+     $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'cluster'},function(data)
+     {
+       $('#creation_cluster_dataset_col').html(data);
+
+       // when a dataset from the list is selected, its list of predicates will be loaded
+       $('#creation_cluster_dataset_col li').on('click',function()
+       {
+          var graph_uri = $(this).attr('uri');
+          var graph_label = $(this).attr('label');
+          var type_uri = $(this).attr('type_uri');
+          var type_label = $(this).attr('type_label');
+          var total = $(this).attr('total');
+
+          if (selectListItemUnique(this, 'creation_cluster_dataset_col'))
+          {
+              // Exhibit a waiting message for the user to know loading time might be long.
+              $('#creation_cluster_predicates_col').html('Loading...');
+              // get the distinct predicates and example values of a graph into a list group
+              $.get('/getpredicates',data={'dataset_uri': graph_uri, 'type': type_uri, 'total': total},function(data)
+              {
+                  // load the rendered template into the column #creation_view_predicates_col
+                  var obj = JSON.parse(data);
+                  if (obj.message == 'OK') {
+                       $('#creation_cluster_predicates_col').html(obj.result);
+                       var ul = document.getElementById('creation_cluster_predicates_col');
+                       var li = ul.getElementsByTagName('li');
+                       var num = ('0000' + String(li.length)).substr(-4);
+                       $('#cluster_pred_counter').html(num);
+                  }
+                  else
+                        $('#creation_cluster_predicates_col').html(obj.message);
+
+                  // set actions after clicking one of the predicates
+                  $('#creation_cluster_predicates_col li').on('click',function()
+                  {
+                    var pred_uri = $(this).attr('uri');
+                    var pred_label = $(this).attr('label');
+
+                    var i;
+                    var check = false;
+                    var elem = document.getElementById('creation_cluster_selected_predicates_group');
+                    if (elem) {
+                        var elems = elem.getElementsByClassName('list-group-item');
+                        for (i = 0; i < elems.length; i++) {
+                            if ( ($(elems[i]).attr('pred_uri') == pred_uri)
+                                     && ($(elems[i]).attr('graph_uri') == graph_uri) )
+                            {
+                              check = true;
+                              break;
+                            }
+                        }
+                        if (!check) {
+                           var item = '<li class="list-group-item" pred_uri="' + pred_uri
+                                    + '" graph_uri="' + graph_uri
+                                    + '" type_uri="' + type_uri
+                                    + '" onclick= "this.parentElement.removeChild(this);"'
+                                    + '><span class="list-group-item-heading"><b>'
+                                    + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
+                           $('#creation_cluster_selected_predicates_group').prepend(item);
+                        }
+                    }
+                  });
+              });
+          }
+
+       });
+     });
+
+     if ((cluster_filters) && (cluster_filters.length > 0))
+     {
+        $('#creation_cluster_registered_predicates_group').html("");
+        //var view_filters = obj.list_pred
+        for (i = 0; i < cluster_filters.length; i++) {
+              $('#creation_cluster_selected_predicates_group').prepend(cluster_filters[i]);
+        }
+     }
+}
+
+
+function createClusterClick()
+{
+    $('#cluster_creation_message_col').html("");
+
+    var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
+
+    var cluster_specs = []
+    var elem = document.getElementById('creation_cluster_selected_predicates_group');
+    if (elem) {
+        elems = elem.getElementsByClassName('list-group-item');
+    }
+    var dict = {};
+    for (i = 0; i < elems.length; i++) {
+
+        var entityType = $(elems[i]).attr('type_uri');
+        if (!entityType) {entityType = 'no_type'};
+        dict = {'ds': $(elems[i]).attr('graph_uri'),
+                'type': entityType,
+                'att': $(elems[i]).attr('pred_uri').replace('>',"").replace('<',"") };
+        cluster_specs.push( JSON.stringify(dict));
+    }
+
+     if (mode=='check')
+     {   var message_col = 'cluster_creation_message_col'; }
+     else
+     {   var message_col = 'cluster_creation_save_message_col'; }
+
+    if (cluster_specs.length > 0)
+    {
+     var specs = {'mode': mode,
+                  'rq_uri': rq_uri,
+                  'cluster_specs[]': cluster_specs};
+
+     chronoReset();
+     $('#'+message_col).html(addNote('The proposed cluster is being processed',cl='warning'));
+     loadingGif(document.getElementById(message_col), 2);
+
+     $.get('/createClusterContraint', specs, function(data)
+     {
+         var obj = JSON.parse(data);
+         //{"metadata": metadata, "query": '', "table": []}
+//         $('#queryView').val(obj.query);
+         $('#creation_cluster_results_row').show();
+
+         if (obj.reference)
+             $('#'+message_col).html(addNote(obj.message,cl='info'));
+         else
+             $('#'+message_col).html(addNote(obj.message,cl='warning'));
+
+         loadingGif(document.getElementById(message_col), 2, show = false);
+
+//         if (obj.sparql_issue)
+//         {   var message = 'We cannot run the query because at least one non-optional property is required for each dataset in the select clause.'
+//             $('#'+message_col).html(addNote(message,cl='warning'));
+//             enableButton('view_run_button', enable=false);
+//             loadingGif(document.getElementById(message_col), 2, show = false);
+//         }
+//         else
+//         {   //enableButton('view_run_button');
+//             $('#'+message_col).html(addNote(obj.metadata.message,cl='info'));
+//             loadingGif(document.getElementById(message_col), 2, show = false);
+////             runViewClick();
+//         }
+
+     });
+    }
+    else {
+        $('#'+message_col).html(addNote(missing_feature));
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in viewsCreation.html
 ///////////////////////////////////////////////////////////////////////////////
+
 
 function create_views_activate()
 {
@@ -2752,6 +3019,11 @@ function rqClick(th, mode)
           refresh_create_view();
           var btn = document.getElementById('btn_inspect_view');
           break;
+      case 'cluster':
+          enableButtons(document.getElementById('creation_clusters_buttons_col'));
+          //refresh_create_cluster();
+          var btn = document.getElementById('btn_inspect_cluster');
+          break;
       case 'dataset':
           inspect_dataset_activate(rq_uri);
           break;
@@ -2771,6 +3043,12 @@ function rqClick(th, mode)
   $('#'+target).html(rq_label);
 
   target = 'creation_view_selected_RQ';
+  setAttr(target,'uri',rq_uri);
+  setAttr(target,'label',rq_label);
+  setAttr(target,'style','background-color:lightblue');
+  $('#'+target).html(rq_label);
+
+  target = 'creation_cluster_selected_RQ';
   setAttr(target,'uri',rq_uri);
   setAttr(target,'label',rq_label);
   setAttr(target,'style','background-color:lightblue');
