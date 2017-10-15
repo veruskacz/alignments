@@ -1,0 +1,524 @@
+<div class="panel panel-info">
+  <div class="panel-heading">
+     <div class="row">
+      <div class="col-md-9"><h3>Clusters</h3></div>
+      <div class="col-md-3 text-right" id="creation_clusters_buttons_col">
+        <h4><button type="button" id="btn_inspect_cluster"
+                class="btn btn-primary btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                $("#collapse_cluster_filter").collapse("hide");
+                activateTargetDiv(targetId="inspect_cluster_row",cl="row creation");
+                inspect_clusters_activate(mode="inspect")'
+                >Inspect</button>
+        <button type="button" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                create_clusters_activate();
+                $("#inspect_clusters_row").hide();
+                $("#collapse_cluster_filter").collapse("show");
+                activateTargetDiv(targetId="creation_cluster_row",cl="row creation");'
+                >Create</button>
+        <button type="button" class="btn btn-primary disabled" id="btn_edit_cluster"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_clusters_row",cl="row creation");
+                inspect_clusters_activate(mode="edit")'
+                >Edit</button></h4>
+      </div>
+     </div>
+
+  </div>
+
+  <div class="panel-body">
+
+    <div class="row">
+
+      <div class="col-md-12" id="creation_cluster_select_RQ_col">
+        <div class="row">
+          <div class="col-md-2" id="button_rq_creation_cluster_col">
+              <!-- will be rendered via server -->
+          </div>
+          <div class="col-md-10">
+              <div class="well well-sm" id="creation_cluster_selected_RQ" uri="" label="">Select a Research Question</div>
+          </div>
+       </div>
+      </div>
+    </div>
+
+     <div class="row creation" id="inspect_clusters_row" style='display:none'>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+        <div class="panel-heading" id="inspect_cluster_heading" style='display:none'>
+              <h4 class="panel-title">
+                  <a id="link_collapse_inspect_cluster"
+                     data-toggle="collapse" href="#collapse_inspect_cluster">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Inspect Cluster <small>(select to see the details)</small>
+              </h4>
+        </div>
+
+        <div class="panel-heading" id="edit_cluster_heading" style='display:none'>
+         <div class="row">
+           <div class="col-md-4">
+              <h4 class="panel-title">
+                <a id="link_collapse_edit_cluster"
+                     data-toggle="collapse" href="#collapse_inspect_cluster">
+                    <span class="badge alert-info"><strong>-</strong></span></a>
+                Edit Cluster
+              </h4>
+           </div>
+           <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="cluster_edit_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right">
+                       <button type="button" id="editLabelClusterButton"
+                           class="btn btn-success btn btn-primary disabled"
+                           data-toggle="modal" data-target="#labelClusterModal"
+                           >Edit Label</button>
+                       <button type="button" id="deleteClusterButton"
+                           class="btn btn-success btn btn-primary disabled"
+                           onclick="deleteClusterClick()">Delete Cluster
+                            <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button>
+                       </td>
+               </table>
+           </div>
+         </div>
+        </div>
+
+        <div id="collapse_inspect_cluster" class="panel-collapse collapse in"
+             target="link_collapse_inspect_cluster"
+             target2="link_collapse_edit_cluster"
+             >
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-4">
+              <div class="row">
+                <div class="col-md-12" id="inspect_clusters_selection_col"></div>
+                <!-- will be rendered via server -->
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col" id="inspect_clusters_details_col" style='width: 100%;'>
+                <!-- will be rendered via server -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div>
+          <!-- Modal -->
+          <div class="modal fade" id="labelClusterModal" role="dialog">
+            <div class="modal-dialog">  <!--modal-sm">-->
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Edit Cluster Label</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                          <label for="clusterLabel"><span class="glyphicon glyphicon glyphicon-tag"></span> Cluster Label</label>
+                          <input type="text" class="form-control" id="clusterLabel" placeholder="Enter label">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                  <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                  <!--<button type="button" data-dismiss="modal"-->
+                          <!--class="btn btn-success pull-right" onclick='editLabelClusterClick(this);'> Save</button>-->
+                  <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                  <button type="submit" class="btn btn-success pull-right" data-dismiss="modal"
+                        onclick='editLabelClick($("#clusterLabel").val(),type="cluster")'> Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+     </div>
+
+
+    <div class="row creation" id = "creation_cluster_row" style='display:none'>
+     <div class="col-md-12" >
+
+      <!--<div class="panel panel-default">-->
+          <!--<div class="panel-heading">-->
+              <!--<h4 class="panel-title">-->
+                  <!--<a id="link_collapse_cluster_lens"-->
+                     <!--data-toggle="collapse" href="#collapse_cluster_lens">-->
+                  <!--<span class="badge alert-info"><strong>+</strong></span></a>-->
+                  <!--Final Integration Lens <small>(more than one will be considered as intersection)</small>-->
+              <!--</h4>-->
+          <!--</div>-->
+          <!--<div id="collapse_cluster_lens" class="panel-collapse collapse" target="link_collapse_cluster_lens">-->
+          <!--<div class="panel-body">-->
+              <!--<div class="row">-->
+
+                <!--<div class="col-md-6" >-->
+                    <!--<div class="row">-->
+                      <!--<div class="col-md-10"><h4>Linksets</h4></div>-->
+                    <!--</div>-->
+                    <!--<div class="row">-->
+                      <!--<div class="col-md-10">Select from the list:-->
+                      <!--</div>-->
+                    <!--</div>-->
+                     <!--<div class="row"> &nbsp </div>-->
+                     <!--<div class="row">-->
+                         <!--<div class="col-md-12">-->
+                        <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                       <!--<input type="text" onkeyup='filterListGroup(this,"creation_cluster_linkset_col","cluster_linkset_counter")'-->
+                              <!--placeholder="Search for names.." style='width: 75%'>-->
+                          <!--<span id="cluster_linkset_counter" class="badge"></span>-->
+                       <!--</div>-->
+                     <!--</div>-->
+                     <!--<div class="row"> &nbsp </div>-->
+                    <!--<div class="row">-->
+                      <!--<div class="col-md-10" id="creation_cluster_linkset_col">-->
+
+                      <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+
+                <!--<div class="col-md-6" >-->
+                    <!--<div class="row">-->
+                      <!--<div class="col-md-10"><h4>Lenses</h4></div>-->
+                    <!--</div>-->
+                    <!--<div class="row">-->
+                      <!--<div class="col-md-10">Select from the list:-->
+                      <!--</div>-->
+                    <!--</div>-->
+                     <!--<div class="row"> &nbsp </div>-->
+                     <!--<div class="row">-->
+                         <!--<div class="col-md-12">-->
+                        <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                       <!--<input type="text" onkeyup='filterListGroup(this,"creation_cluster_lens_col","cluster_lens_counter")'-->
+                              <!--placeholder="Search for names.." style='width: 75%'>-->
+                          <!--<span id="cluster_lens_counter" class="badge"></span>-->
+                       <!--</div>-->
+                     <!--</div>-->
+                     <!--<div class="row"> &nbsp </div>-->
+                    <!--<div class="row">-->
+                      <!--<div class="col-md-10" id="creation_cluster_lens_col">-->
+
+                      <!--</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+
+              <!--</div>-->
+          <!--</div>-->
+          <!--</div>-->
+      <!--</div>-->
+
+      <div class="panel panel-default">
+       <div class="panel-heading">
+          <div class="row">
+              <div class="col-md-4">
+                <h4 class="panel-title">
+                  <a id="link_collapse_cluster_filter"
+                     data-toggle="collapse" href="#collapse_cluster_filter">
+                      <span class="badge alert-info"><strong>+</strong></span></a>
+                  Property Selection <small> (select a dataset to see its attributes)</small>
+                </h4>
+              </div>
+              <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="cluster_creation_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="createClusterButton" class="btn btn-success"
+                          data-toggle="button" onclick = 'createClusterClick(mode="check")' >
+                            Check Cluster
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
+               </table>
+              </div>
+          </div>
+
+       </div>
+       <div id="collapse_cluster_filter" class="panel-collapse collapse" target="link_collapse_cluster_filter">
+          <div class="panel-body">
+          <div class="row">
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Datasets</h4></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">Select from the list:</div>
+                </div>
+                <div id="loading3" style='display:none'> Loading... </div>
+                <div class="row">
+                  <div class="col-md-12" >
+                    <div class="list-group" id="creation_cluster_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Attributes &nbsp
+                        <small><strong> [<span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>]
+                        </strong></small>
+                    </h4>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12" id="creation_cluster_predicates_msg_col"></div>
+                </div>
+                <div class="row"> &nbsp </div>
+             <div class="row">
+                 <div class="col-md-12">
+                <span class="glyphicon glyphicon glyphicon-search"></span>
+               <input type="text" onkeyup='filterListGroup(this,"creation_cluster_predicates_col","cluster_pred_counter")'
+                      placeholder="Search for names.." style='width: 83%'>
+                  <span id="cluster_pred_counter" class="badge"></span>
+               </div>
+             </div>
+             <div class="row"> &nbsp </div>
+                <div class="row">
+                  <div class="col-md-12" id="creation_cluster_predicates_col">
+
+                  </div>
+                </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Selected Attributes</h4>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="list-group" id="creation_cluster_selected_predicates_group"
+                            style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+          </div>
+       </div>
+      </div>
+
+     </div>
+    </div>
+
+     <div class="row creation" id="creation_cluster_filter_row" style='display:none'>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+        <div class="panel-heading" id="cluster_filter_heading_panel">
+         <div class="row">
+          <div class="col-md-5">
+              <h4 class="panel-title">
+                  <a id="link_collapse_cluster_corresp_filter"
+                     data-toggle="collapse" href="#collapse_cluster_corresp_filter">
+                  <span class="badge alert-info"><strong>+</strong></span></a>
+                  Correspondences Filter
+              </h4>
+          </div>
+          <!--<h5><div class="col-md-4 text-right" style="color:red" id="cluster_add_filter_message_col"></div></h5>-->
+          <div class="col-md-7 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="cluster_add_filter_message_col"></div></td>
+                       <td align="right"><button type="button" id="btn_add_filter_cluster"
+                            class="btn btn-primary"
+                            onclick='addFilterClusterClick()'
+                            >Add filter</button>
+                            <button type="button" id="btn_apply_filter_cluster"
+                            class="btn btn-primary"
+                            onclick='applyFilterClusterClick()'
+                            >Apply Filter(s)</button>
+                       </td>
+               </table>
+              </div>
+         </div>
+        </div>
+        <div id="collapse_cluster_corresp_filter" class="panel-collapse collapse" target="link_collapse_cluster_corresp_filter">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <!--<label for="sel1">Select list:</label>-->
+                        <select class="form-control" id="cluster_filter_property">
+                        <option>--Select a Property--</option>
+                        <option>Threshold</option>
+                        <option>Accept</option>
+                        <option>Reject</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <table>
+                        <TR>
+                            <TD>
+                                <input type="text" class="form-control" style='width:5em' id="lcluster_filter_value1">
+                            </TD>
+                            <TD width="20"></TD>
+                            <TD>
+                                <input type="text" class="form-control" style='width:5em' id="cluster_filter_value2">
+                            </TD>
+                        <TR>
+                            <TD>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="cluster_value1_greater" value=">">></label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="cluster_value1_equal" value="=">=</label></div>
+                            </TD>
+                            <TD></TD>
+                            <TD>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="cluster_value2_smaller" value="<"><</label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="cluster_value2_equal" value="=">=</label></div>
+                            </TD>
+                    </table>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="cluster_filter_text" value="-- Type a term for search & filter --">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6" id="cluster_filter_col">
+                <div class="list-group" id="cluster_filter_list" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
+                    <li class="list-group-item list-group-item-warning" uri="none" id="no_filter_cluster"><span class="list-group-item-heading"> None </span></li>'
+                    <!-- To be loaded by the server -->
+                </div>
+            </div>
+          </div>
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+    <div class="row creation" id = "creation_cluster_results_row" style='display:none'>
+     <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="row">
+              <div class="col-md-4">
+                  <h4 class="panel-title">
+                      <a id="link_collapse_cluster_result"
+                         data-toggle="collapse" href="#collapse_cluster_result">
+                      <span class="badge alert-info"><strong>-</strong></span></a>
+                      Cluster-Result
+                  </h4>
+              </div>
+              <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="cluster_creation_save_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" class="btn btn-primary"
+                        onclick = 'createClusterClick(mode="save")'
+                        >Save Cluster
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
+               </table>
+              </div>
+             </div>
+        </div>
+        <div id="collapse_cluster_result" class="panel-collapse collapse in" target="link_collapse_cluster_result">
+        <div class="panel-body">
+          <div class="row" id="clusters-row">
+           <div class="col-md-12">
+              <div class="panel panel-default" id="cluster_query_row">
+                  <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-md-4">
+                          <h4 class="panel-title">
+                              <a id="link_collapse_cluster_query"
+                                 data-toggle="collapse" href="#collapse_cluster_query">
+                              <span class="badge alert-info"><strong>+</strong></span></a>
+                              SPARQL Query
+                          </h4>
+                        </div>
+                        <div class="col-md-8 text-right">
+
+                            <table align="right">
+                               <tr align="right">
+                                   <td align="right"><div id="cluster_run_message_col"></div></td>
+                                   <td valign="center"><div class="loading"></div></td>
+                                   <td align="right"><button type="button" id='cluster_run_button' class="btn btn-primary"
+                                        onclick='runClusterClick();'
+                                    >Run Query
+                                   <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                                   </button></td>
+                            </table>
+                        </div>
+                    </div>
+                  </div>
+                  <div id="collapse_cluster_query" class="panel-collapse collapse" target="link_collapse_cluster_query">
+                  <div class="panel-body">
+                    <div class="row" >
+                      <div class="col-md-12">
+                      <textarea id='queryCluster' class='sparql' style='width: 100%; font-size: 12pt;' rows='20'>
+                      </textarea>
+                      </div>
+                    </div>
+                  </div>
+                  </div>
+              </div>
+
+              <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <div class="row">
+                        <div class="col-md-2">
+                          <h4 class="panel-title">
+                              <a id="link_collapse_cluster_table"
+                                 data-toggle="collapse" href="#collapse_cluster_table">
+                              <span class="badge alert-info"><strong>-</strong></span></a>
+                              Result Table
+                          </h4>
+                        </div>
+                        <div class="col-md-10 text-right">
+                            <table align="right">
+                               <tr align="right">
+                                   <td align="right"><div id="cluster_download_message_col"></div></td>
+                                   <td valign="center"><div class="loading"></div></td>
+                                   <td align="right">
+                                        <a href="#" id="downloadResultTable"><button type="button" class="btn btn-primary"
+                                        >Download Table
+                                        </button></a>
+                                        <!--<h5><a href="#" id="downloadResultQuery">-->
+                                        <button type="button" class="btn btn-primary"
+                                        onclick='download(this, "export.csv", $("#queryCluster").val())'
+                                        >Download Complete Result
+                                        <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                                        </button>
+                                        <!--</a></h5>-->
+                                   </td>
+                            </table>
+                        </div>
+                    </div>
+                  </div>
+                  <div id="collapse_cluster_table" class="panel-collapse collapse in" target="link_collapse_cluster_table">
+                  <div class="panel-body">
+                    <div class="row" id="clusters-results-row">
+                    <div class="col-md-12">
+                      <h4></h4>
+                      <div id="clusters-results" style='height: 30em; width:100%, scroll: both; overflow: auto;'> </div>
+                    </div>
+                    </div>
+                  </div>
+                  </div>
+              </div>
+
+           </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+     </div>
+    </div>
+
+  </div>
+</div>
+
+
