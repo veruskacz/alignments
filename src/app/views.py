@@ -1494,13 +1494,15 @@ def refineLinkset():
         'source': {
             'graph': request.args.get('src_graph', ''),
             'aligns': request.args.get('src_aligns', ''),
-            'entity_datatype': request.args.get('src_entity_datatye', '')
+            'entity_datatype': request.args.get('src_entity_datatye', ''),
+            'graph_enriched': request.args.get('src_graph_enriched', '')
         },
 
         'target': {
             'graph': request.args.get('trg_graph', ''),
             'aligns': request.args.get('trg_aligns', ''),
             'entity_datatype': request.args.get('trg_entity_datatye', ''),
+            'graph_enriched': request.args.get('trg_graph_enriched', '')
         },
 
         St.delta: request.args.get('delta', ''),

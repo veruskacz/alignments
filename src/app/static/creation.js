@@ -987,11 +987,11 @@ function createLinksetClick()
 function refineLinksetClick()
 {
 
-    var reducer = ''; intermediate = '';
-    if ($('#selected_meth').attr('uri') != 'intermediate')
-     {   reducer = $('#selected_int_red_graph').attr('uri'); }
-    else
-     {   intermediate = $('#selected_int_red_graph').attr('uri'); }
+  var reducer = ''; intermediate = '';
+  if ($('#selected_meth').attr('uri') != 'intermediate')
+   {   reducer = $('#selected_int_red_graph').attr('uri'); }
+  else
+   {   intermediate = $('#selected_int_red_graph').attr('uri'); }
 
   $('#linkset_refine_message_col').html("");
 
@@ -1041,11 +1041,13 @@ function refineLinksetClick()
         'src_aligns': $('#src_selected_pred').attr('uri'),
         'src_entity_datatye': $('#src_selected_entity-type').attr('uri'),
         'src_reducer': reducer,
+        'src_graph_enriched': $('#src_selected_graph_enriched').attr('uri'),
 
         'trg_graph': $('#trg_selected_graph').attr('uri'),
         'trg_aligns': $('#trg_selected_pred').attr('uri'),
         'trg_entity_datatye': $('#trg_selected_entity-type').attr('uri'),
         'trg_reducer': reducer,
+        'trg_graph_enriched': $('#trg_selected_graph_enriched').attr('uri'),
 
         'mechanism': $('#selected_meth').attr('uri'),
 
