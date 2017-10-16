@@ -1739,6 +1739,9 @@ def createClusterContraint():
     mode = request.args.get('mode', 'save')
     cluster_specs_js = request.args.getlist('cluster_specs[]')
 
+    print cluster_specs_js
+    # return json.dumps({St.message: 'Cluster creation is not active!', "reference": None})
+
     # view_specs = {
     #     St.researchQ_URI: rq_uri,
     #     'datasets': view_lens,

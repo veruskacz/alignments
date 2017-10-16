@@ -260,11 +260,18 @@
 
             <div class="col-md-4" >
                 <div class="row">
-                  <div class="col-md-12"><h4>Attributes &nbsp
-                        <small><strong> [<span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>]
-                        </strong></small>
-                    </h4>
-                  </div>
+                            <div class="col-md-12">
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="cluster_enable_prop_path"
+                                            onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                            </div>
                 </div>
                 <div class="row">
                   <div class="col-md-12" id="creation_cluster_predicates_msg_col"></div>
@@ -279,11 +286,23 @@
                </div>
              </div>
              <div class="row"> &nbsp </div>
-                <div class="row">
-                  <div class="col-md-12" id="creation_cluster_predicates_col">
+             <!--<div class="row" id = "cluster_selected_pred_row">-->
+                 <!--<div class="col-md-12">-->
+                     <!--<div class="well well-sm" id="cluster_selected_pred" uri="" >-->
+                         <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                     <!--</div>-->
+                 <!--</div>-->
+             <!--</div>-->
+             <div class="row">
+                  <div class="col-md-12" id="creation_cluster_predicates_col"
+                                      badge_counter="cluster_pred_counter"
+                                      targetList="creation_cluster_predicates_col"
+                                      accumPath=""
+                                      accumPathLabel=""
+                                      propPathCheckBok="cluster_enable_prop_path"
+                                      propPath="enabled"> </div>
 
-                  </div>
-                </div>
+             </div>
             </div>
 
             <div class="col-md-4" >
