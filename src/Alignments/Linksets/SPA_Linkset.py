@@ -491,7 +491,7 @@ def match_query(specs):
         }}
         GRAPH singleton:{0}
         {{
-            ### Singleton metadata
+            ### Singleton metadata##
             ?singPre rdf:singletonPropertyOf     alivocab:exactStrSim{1} .
             ?singPre alivocab:hasStrength        1 .
             ?singPre alivocab:hasEvidence        ?label .
