@@ -363,7 +363,7 @@ def boolean_endpoint_response(query, display=False):
             return ERROR_2
         drops_doc = xmltodict.parse(response[St.result])
         result = drops_doc['sparql']['boolean']
-        print "BOOLEAN QUERY RESULT: {}".format(result)
+        # print "BOOLEAN QUERY RESULT: {}".format(result)
         if display is True:
             print ">>> Query executed : {:<14}".format(result)
             print ">>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
@@ -1089,7 +1089,7 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
         for space in range(50):
             line += "#"
 
-        logger.info(display_result)
+        # logger.info(display_result)
         my_format = "{{:.<{}}}".format(spacing)
         my_format2 = "{{:<{}}}".format(spacing)
 
@@ -1098,7 +1098,7 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
             return None
 
         if matrix[St.result] is None:
-            logger.warning("\nTHE MATRIX IS EMPTY\n")
+            # logger.warning("\nTHE MATRIX IS EMPTY\n")
             return None
 
         message = """
