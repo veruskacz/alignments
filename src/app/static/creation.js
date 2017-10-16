@@ -987,11 +987,11 @@ function createLinksetClick()
 function refineLinksetClick()
 {
 
-    var reducer = ''; intermediate = '';
-    if ($('#selected_meth').attr('uri') != 'intermediate')
-     {   reducer = $('#selected_int_red_graph').attr('uri'); }
-    else
-     {   intermediate = $('#selected_int_red_graph').attr('uri'); }
+  var reducer = ''; intermediate = '';
+  if ($('#selected_meth').attr('uri') != 'intermediate')
+   {   reducer = $('#selected_int_red_graph').attr('uri'); }
+  else
+   {   intermediate = $('#selected_int_red_graph').attr('uri'); }
 
   $('#linkset_refine_message_col').html("");
 
@@ -1041,11 +1041,13 @@ function refineLinksetClick()
         'src_aligns': $('#src_selected_pred').attr('uri'),
         'src_entity_datatye': $('#src_selected_entity-type').attr('uri'),
         'src_reducer': reducer,
+        'src_graph_enriched': $('#src_selected_graph_enriched').attr('uri'),
 
         'trg_graph': $('#trg_selected_graph').attr('uri'),
         'trg_aligns': $('#trg_selected_pred').attr('uri'),
         'trg_entity_datatye': $('#trg_selected_entity-type').attr('uri'),
         'trg_reducer': reducer,
+        'trg_graph_enriched': $('#trg_selected_graph_enriched').attr('uri'),
 
         'mechanism': $('#selected_meth').attr('uri'),
 
@@ -2288,11 +2290,11 @@ function create_clusters_activate()
     var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
 
     // loading...
-    cluster_load_datasets_predicates(rq_uri);
+    cluster_load_datasets(rq_uri);
+    //cluster_load_datasets_predicates(rq_uri);
 
 //    view_load_linkesets_lenses(rq_uri);
 }
-
 
 function inspect_clusters_activate(mode="inspect")
 {
@@ -2358,7 +2360,8 @@ function inspect_clusters_activate(mode="inspect")
                     $('#creation_cluster_row').show();
                     $('#creation_cluster_filter_row').show();
 
-                    cluster_load_datasets_predicates(rq_uri, obj.list_pred);
+                    cluster_load_datasets(rq_uri);
+//                    cluster_load_datasets_predicates(rq_uri, obj.list_pred);
 //                    cluster_load_linkesets_lenses(rq_uri, obj.cluster_lens);
                 }
                 else if (mode == 'edit')
@@ -2382,7 +2385,7 @@ function inspect_clusters_activate(mode="inspect")
 }
 
 
-function cluster_load_datasets_predicates(rq_uri, cluster_filters=null)
+function cluster_load_datasets(rq_uri)
 {
 // Load into div the selected datasets for a certain research question
      $('#creation_cluster_dataset_col').html('Loading...');
@@ -2393,77 +2396,93 @@ function cluster_load_datasets_predicates(rq_uri, cluster_filters=null)
        // when a dataset from the list is selected, its list of predicates will be loaded
        $('#creation_cluster_dataset_col li').on('click',function()
        {
-          var graph_uri = $(this).attr('uri');
-          var graph_label = $(this).attr('label');
-          var type_uri = $(this).attr('type_uri');
-          var type_label = $(this).attr('type_label');
-          var total = $(this).attr('total');
-
           if (selectListItemUnique(this, 'creation_cluster_dataset_col'))
           {
-              // Exhibit a waiting message for the user to know loading time might be long.
-              $('#creation_cluster_predicates_col').html('Loading...');
-              // get the distinct predicates and example values of a graph into a list group
-              $.get('/getpredicates',data={'dataset_uri': graph_uri, 'type': type_uri, 'total': total},function(data)
-              {
-                  // load the rendered template into the column #creation_view_predicates_col
-                  var obj = JSON.parse(data);
-                  if (obj.message == 'OK') {
-                       $('#creation_cluster_predicates_col').html(obj.result);
-                       var ul = document.getElementById('creation_cluster_predicates_col');
-                       var li = ul.getElementsByTagName('li');
-                       var num = ('0000' + String(li.length)).substr(-4);
-                       $('#cluster_pred_counter').html(num);
-                  }
-                  else
-                        $('#creation_cluster_predicates_col').html(obj.message);
-
-                  // set actions after clicking one of the predicates
-                  $('#creation_cluster_predicates_col li').on('click',function()
-                  {
-                    var pred_uri = $(this).attr('uri');
-                    var pred_label = $(this).attr('label');
-
-                    var i;
-                    var check = false;
-                    var elem = document.getElementById('creation_cluster_selected_predicates_group');
-                    if (elem) {
-                        var elems = elem.getElementsByClassName('list-group-item');
-                        for (i = 0; i < elems.length; i++) {
-                            if ( ($(elems[i]).attr('pred_uri') == pred_uri)
-                                     && ($(elems[i]).attr('graph_uri') == graph_uri) )
-                            {
-                              check = true;
-                              break;
-                            }
-                        }
-                        if (!check) {
-                           var item = '<li class="list-group-item" pred_uri="' + pred_uri
-                                    + '" graph_uri="' + graph_uri
-                                    + '" type_uri="' + type_uri
-                                    + '" onclick= "this.parentElement.removeChild(this);"'
-                                    + '><span class="list-group-item-heading"><b>'
-                                    + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
-                           $('#creation_cluster_selected_predicates_group').prepend(item);
-                        }
-                    }
-                  });
-              });
+                cluster_load_predicates(rq_uri, this);
           }
-
        });
      });
 
-     if ((cluster_filters) && (cluster_filters.length > 0))
-     {
-        $('#creation_cluster_registered_predicates_group').html("");
-        //var view_filters = obj.list_pred
-        for (i = 0; i < cluster_filters.length; i++) {
-              $('#creation_cluster_selected_predicates_group').prepend(cluster_filters[i]);
-        }
-     }
 }
 
+function cluster_load_predicates(rq_uri, source)
+{
+    var graph_uri = $(source).attr('uri');
+    var graph_label = $(source).attr('label');
+    var type_uri = $(source).attr('type_uri');
+    var type_label = $(source).attr('type_label');
+    var total = $(source).attr('total');
+    var propPath = $('#creation_cluster_predicates_col').attr('accumPath');
+
+      // Exhibit a waiting message for the user to know loading time might be long.
+      $('#creation_cluster_predicates_col').html('Loading...');
+      if (propPath != '') type_uri = '';
+      // get the distinct predicates and example values of a graph into a list group
+      $.get('/getpredicates',data={'dataset_uri': graph_uri,
+                                   'type': type_uri,
+                                   'propPath': propPath,
+                                   'total': total},function(data)
+      {
+          // load the rendered template into the column #creation_view_predicates_col
+          var obj = JSON.parse(data);
+          if (obj.message == 'OK') {
+               $('#creation_cluster_predicates_col').html(obj.result);
+               var ul = document.getElementById('creation_cluster_predicates_col');
+               var li = ul.getElementsByTagName('li');
+               var num = ('0000' + String(li.length)).substr(-4);
+               $('#cluster_pred_counter').html(num);
+          }
+          else
+                $('#creation_cluster_predicates_col').html(obj.message);
+
+          // set actions after clicking one of the predicates
+          $('#creation_cluster_predicates_col li').on('click',function()
+          {
+            var pred_uri = $(this).attr('uri');
+            var pred_label = $(this).attr('label');
+            if ($('#creation_cluster_predicates_col').attr('accumPath') != '')
+            {  pred_uri = $('#creation_cluster_predicates_col').attr('accumPath') + '/' + pred_uri;
+               pred_label = $('#creation_cluster_predicates_col').attr('accumPathLabel') + '/' + pred_label
+            }
+            var checkPropPath = document.getElementById('cluster_enable_prop_path');
+            if (($(this).attr('obj_type') == 'uri') && (checkPropPath.checked))
+            {
+              setAttr('creation_cluster_predicates_col','accumPath',pred_uri);
+              setAttr('creation_cluster_predicates_col','accumPathLabel',pred_label);
+              cluster_load_predicates(rq_uri, source);
+            }
+            else
+            {
+                var i;
+                var check = false;
+                var elem = document.getElementById('creation_cluster_selected_predicates_group');
+                if (elem) {
+                    var elems = elem.getElementsByClassName('list-group-item');
+                    for (i = 0; i < elems.length; i++) {
+                        if ( ($(elems[i]).attr('pred_uri') == pred_uri)
+                                 && ($(elems[i]).attr('graph_uri') == graph_uri) )
+                        {
+                          check = true;
+                          break;
+                        }
+                    }
+                    if (!check) {
+                       var item = '<li class="list-group-item" pred_uri="' + pred_uri
+                                + '" graph_uri="' + graph_uri
+                                + '" type_uri="' + type_uri
+                                + '" onclick= "this.parentElement.removeChild(this);"'
+                                + '><span class="list-group-item-heading"><b>'
+                                + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
+                       $('#creation_cluster_selected_predicates_group').prepend(item);
+                    }
+                    setAttr('creation_cluster_predicates_col','accumPath','');
+                    setAttr('creation_cluster_predicates_col','accumPathLabel','');
+                }
+            }
+          });
+      });
+
+}
 
 function createClusterClick()
 {

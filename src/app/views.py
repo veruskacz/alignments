@@ -1494,13 +1494,15 @@ def refineLinkset():
         'source': {
             'graph': request.args.get('src_graph', ''),
             'aligns': request.args.get('src_aligns', ''),
-            'entity_datatype': request.args.get('src_entity_datatye', '')
+            'entity_datatype': request.args.get('src_entity_datatye', ''),
+            'graph_enriched': request.args.get('src_graph_enriched', '')
         },
 
         'target': {
             'graph': request.args.get('trg_graph', ''),
             'aligns': request.args.get('trg_aligns', ''),
             'entity_datatype': request.args.get('trg_entity_datatye', ''),
+            'graph_enriched': request.args.get('trg_graph_enriched', '')
         },
 
         St.delta: request.args.get('delta', ''),
@@ -1738,6 +1740,9 @@ def createClusterContraint():
     rq_uri = request.args.get('rq_uri')
     mode = request.args.get('mode', 'save')
     cluster_specs_js = request.args.getlist('cluster_specs[]')
+
+    print cluster_specs_js
+    # return json.dumps({St.message: 'Cluster creation is not active!', "reference": None})
 
     # view_specs = {
     #     St.researchQ_URI: rq_uri,
