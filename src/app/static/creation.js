@@ -2398,6 +2398,8 @@ function cluster_load_datasets(rq_uri)
        {
           if (selectListItemUnique(this, 'creation_cluster_dataset_col'))
           {
+                setAttr('creation_cluster_predicates_col','accumPath','');
+                setAttr('creation_cluster_predicates_col','accumPathLabel','');
                 cluster_load_predicates(rq_uri, this);
           }
        });
@@ -2475,8 +2477,6 @@ function cluster_load_predicates(rq_uri, source)
                                 + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
                        $('#creation_cluster_selected_predicates_group').prepend(item);
                     }
-                    setAttr('creation_cluster_predicates_col','accumPath','');
-                    setAttr('creation_cluster_predicates_col','accumPathLabel','');
                 }
             }
           });
