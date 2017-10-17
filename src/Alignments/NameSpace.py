@@ -18,7 +18,6 @@ lens = 'http://risis.eu/lens/'
 riclass = 'http://risis.eu/class/'
 schema = 'http://risis.eu/ontology/'
 dataset = "http://risis.eu/dataset/"
-cluster = "http://risis.eu/cluster/"
 idea = "http://risis.eu/activity/"
 linkset = "http://risis.eu/linkset/"
 method = "http://risis.eu/method/"
@@ -38,6 +37,9 @@ plot = "{}plot/".format(alivocab)
 
 reserchQ = "http://risis.eu/dataset/researchQ"
 view = "http://risis.eu/view/"
+
+cluster = "http://risis.eu/cluster/"
+cluster_constraint = "http://risis.eu/cluster_constrain/"
 
 
 
