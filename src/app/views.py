@@ -1843,7 +1843,11 @@ def createClusterContraint():
             specs = cluster_specs[i]
             props = []
             for prop in specs['data'][0]['properties']:
-                props += [prop[0]]
+                print '@@@@@@@@@@@@', type(prop)
+                if type(prop) is tuple:
+                    props += [prop[0]]
+                else:
+                    props += [prop]
             print '@@@@@@@@@@@@', props
             if i == 0:
                 response = DRC.create_clusters(specs['graph'], props, reference=reference, not_exists=False, activated=True)
