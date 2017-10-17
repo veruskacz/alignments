@@ -276,6 +276,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     query = """
     PREFIX ll: <{0}>
     PREFIX prov: <{7}>
+    PREFIX void: <{15}>
     INSERT
     {{
         # THE CLUSTERED GRAPH
@@ -352,8 +353,8 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     """.format(
         # 0          1           2      3            4              5             6           7
         Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
-        # 8                    9           10          11              12          13
-        Ns.cluster_constraint, Ns.cluster, properties, property_bind, comment_ref, comment_ref_2, reference)
+        # 8                    9           10          11              12          13             14         15
+        Ns.cluster_constraint, Ns.cluster, properties, property_bind, comment_ref, comment_ref_2, reference, Ns.void)
     # print query
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
@@ -740,6 +741,7 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
             query = """
             PREFIX ll: <{0}>
             PREFIX prov: <{5}>
+            PREFIX void: <{10}>
             INSERT
             {{
                 # THE CLUSTERED GRAPH
@@ -787,8 +789,8 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
             """.format(
                 # 0          1            2            3              4                   5
                 Ns.alivocab, cluster_uri, dataset_uri, property_list, cluster_constraint, Ns.prov,
-                # 6                    7           8           9
-                Ns.cluster_constraint, Ns.cluster, properties, property_bind)
+                # 6                    7           8           9              10
+                Ns.cluster_constraint, Ns.cluster, properties, property_bind, Ns.void)
             # print query
 
             # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
