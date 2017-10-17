@@ -11,7 +11,7 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Ss
 import Alignments.Server_Settings as Svr
-from kitchen.text.converters import to_bytes , to_unicode
+from kitchen.text.converters import to_bytes  # , to_unicode
 
 # THE PROCESS OF IMPORTING AN ALIGNMENT
 #   1. SAVE THE TRIG FILE
@@ -451,9 +451,9 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
         return
 
     # COUNT TRIPLES
-    count_res = Qry.remote_endpoint_request(count_query, endpoint=endpoint)
+    count_res = Qry.remote_endpoint_request(count_query, endpoint_url=endpoint)
     result = count_res['result']
-    Qry.remote_endpoint_request(count_query, endpoint=endpoint)
+    Qry.remote_endpoint_request(count_query, endpoint_url=endpoint)
 
     # GET THE TOTAL NUMBER OF TRIPLES
     if result is None:
@@ -482,7 +482,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
         print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
         current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
         # print current_q
-        response = Qry.remote_endpoint_request(current_q, endpoint=endpoint)
+        response = Qry.remote_endpoint_request(current_q, endpoint_url=endpoint)
 
         # GET THE TOTAL NUMBER OF TRIPLES
         if response[St.result] is None:
@@ -513,15 +513,13 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
     if load is True:
         Ut.batch_load(b_file)
 
-    message = "You have just successfully downloaded [{}] triples.\n" \
-              "{} files where created in the folder [{}] and loaded into the [{}] dataset. ".format(
-        triples, iterations, directory, Svr.DATABASE)
+    message = "You have just successfully downloaded [{}] triples." \
+              "\n{} files where created in the folder [{}] and loaded " \
+              "into the [{}] dataset. ".format(triples, iterations, directory, Svr.DATABASE)
 
     print "\n\t{}".format(message)
 
     print "\n\tJOB DONE!!!"
-
-
 
     return {St.message: message, St.result: True}
 

@@ -96,8 +96,8 @@ convert_8 = CSV.CSV(
     separator=",", entity_type="Location", rdftype=[], embedded_uri=[resource], activated=False)
 
 
-# >>> ORGREG linkages
-# ===================
+# >>> ETER LONGITUDINAL DATASET
+# =============================
 eter_1 = "C:\Users\Al\Google Drive\RISIS-Project-VU\WP 7 - datasets\OrgReg\Orgreg_20171005" \
                  "\orgreg_hei_export5October2017_.csv"
 
