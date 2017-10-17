@@ -108,6 +108,9 @@ def validate_uri(prop_list):
         if Ut.is_nt_format(prop_list[i]) is False:
             prop_list[i] = "<{}>".format(prop_list[i])
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    CREATING A SINGLE CLUSTER OR MULTIPLE CLUSTERS
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 # GIVEN A CONSTRAINT, CREATE A CLUSTER AND ADD RESOURCES FROM A SELECTED DATASET
 # WHENEVER ITS RESOURCES SATISFIES THE CLUSTER'S CONSTRAINTS PROVIDED
@@ -131,7 +134,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     # reference = "ORG_COUNTRY"
 
     print "\n>>> CREATING A NEW CLUSTER\n~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    print "reference:", reference
+    # print "reference:", reference
 
     constraint_v = ""
     constraint = ""
@@ -265,8 +268,10 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
 
     if reference is None:
         comment_ref = ""
+        comment_ref_2 = "#"
     else:
         comment_ref = "#"
+        comment_ref_2 = ""
 
     query = """
     PREFIX ll: <{0}>
@@ -278,9 +283,11 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         {{
             # 1. THE REFERENCE
             {12}<{1}{2}>  ll:hasReference  ?cluster_ref .
+            {13}<{1}{2}>  ll:hasReference  <{14}> .
 
             # 2. THE REFERENCE LABEL
             {12}?cluster_ref  rdfs:label  \"{6}\" .
+            {13}?cluster_ref  rdfs:label  \"{6}\" .
 
             # 3. THE CONSTRAINT
             <{1}{2}>  ll:hasConstraint  ?URL_CONSTRAINT .
@@ -345,8 +352,8 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     """.format(
         # 0          1           2      3            4              5             6           7
         Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
-        # 8                    9           10          11              12
-        Ns.cluster_constraint, Ns.cluster, properties, property_bind, comment_ref)
+        # 8                    9           10          11              12          13
+        Ns.cluster_constraint, Ns.cluster, properties, property_bind, comment_ref, comment_ref_2, reference)
     # print query
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
@@ -372,21 +379,161 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     reference_result = reference_response[St.result]
     # print "reference_result:", reference_result
 
-    print "\nCLUSTER {}: {}{}".format(count, Ns.cluster, label)
+    print "\n\tCLUSTER {}: {}{}".format(count, Ns.cluster, label)
     if reference_result:
-        print "\t{:15} : {}".format("REFERENCE", reference_result[1][0])
+        print "\t\t{:15} : {}".format("REFERENCE", reference_result[1][0])
     else:
-        print "\t{:15} : {}".format("REFERENCE", None)
-    print "\t{:15} : {}".format("GROUP NAME", group_name)
-    print "\t{:15} : {}".format("DERIVED FROM", dataset_uri)
-    print "\t{:15} : {}".format("CONSTRAINT", constraint)
-    print "\t{:15} : {}".format("INSERTED STATUS", inserted)
+        print "\t\t{:15} : {}".format("REFERENCE", None)
+    print "\t\t{:15} : {}".format("GROUP NAME", group_name)
+    print "\t\t{:15} : {}".format("DERIVED FROM", dataset_uri)
+    print "\t\t{:15} : {}".format("CONSTRAINT", constraint)
+    print "\t\t{:15} : {}".format("INSERTED STATUS", inserted)
     # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.cluster, label)))
-    print "\t{:15} : {}".format("CLUSTER SIZE", count_list("{0}{1}".format(Ns.cluster, label)))
+    print "\t\t{:15} : {}".format("CLUSTER SIZE", count_list("{0}{1}".format(Ns.cluster, label)))
 
     return {St.message: "THE CLUSTER WAS SUCCESSFULLY EXECUTED.",
             St.result: reference_result, 'group_name': group_name}
 
+
+# GENERATE MULTIPLE CLUSTERS FROM AN INITIAL DATASET
+def create_clusters(initial_dataset_uri, property_uri,
+                    reference=None, group_name=None, not_exists=False, activated=False):
+
+    """ CREATE CLUSTERS TAKES AS INPUT
+
+        1. INITIAL DATASET: the dataset for witch the resources will be clustered.
+
+        2. PROPERTY: used as the basis on which clusters are created.
+        When a list of properties [A, B, C] is provided, they are used ad A or B or C and
+        used for the name of the cluster as cluster:A_B_C.
+
+        3. REFERENCE: serves as the unifying name shared by all clusters.
+
+    """
+    print "\n>>> CREATING NEW CLUSTERS (MULTIPLE)\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
+    # FUNCTION ACTIVATION
+    if activated is False:
+        print "THE FUNCTION IS NOT ACTIVATE"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATE", "reference": ""}
+
+    constraint_table = None
+    property_list = ""
+
+    # MAKING SURE THAT THE PROPERTIES ARE IN ANGLE BRACKETS
+    validate_uri(property_uri)
+
+    # LIST OF PROPERTIES OR SINGLE VALUE PROPERTY
+    if type(property_uri) is list:
+        # print "WE ARE IN A LIST"
+        for i in range(0, len(property_uri)):
+            current = property_uri[i] if Ut.is_nt_format(property_uri[i]) is True else "<{}>".format(property_uri[i])
+            current = current.strip()
+            if i == 0 and current:
+                property_list += "({})".format(current)
+            elif current:
+                property_list += "\n\t\t\t\t | ({})".format(current)
+    else:
+        property_list = property_uri if Ut.is_nt_format(property_uri) is True else "<{}>".format(property_uri)
+
+    # COMPUTE THE GROUP NAME SHARED BY ALL CLUSTERS
+    if group_name is None:
+        # print "group name in None: {}".format(property_list)
+        group_name = Ut.get_uri_local_name(property_list)
+
+    # print "group_name: ", group_name
+
+    # EXTRACT CLUSTER CONSTRAINTS
+    # FIND NEW CLUSTERS THAT DID NOT EXIST IN THE GROUP OF CLUSTERS
+    append = "#"
+    if not_exists is True:
+        append = ""
+
+    variables = ""
+    resources = ""
+    not_exists_t = ""
+    for i in range(0, len(property_uri)):
+        name = Ut.get_uri_local_name(property_uri[i])
+        variables += " ?{}".format(name)
+        if i == 0:
+            resources += "\n\t\t\t?resource {} ?prop_{} .".format(property_uri[i], i)
+            resources += "\n\t\t\tBIND(lcase(str(?prop_{0})) as ?prop_{0}{0}) .".format(i)
+            resources += "\n\t\t\tBIND(REPLACE(?prop_{0}{0}, ?regexp, '$1$2') AS ?{1}) .".format(i, name)
+
+            not_exists_t += "\n\t\t\t\t{}?URL_CONSTRAINT ll:hasValue ?{} .".format(append, name)
+        else:
+            resources += "\n\n\t\t\t?resource {} ?prop_{} .".format(property_uri[i], i)
+            resources += "\n\t\t\tBIND(lcase(str(?prop_{0})) as ?prop_{0}{0}) .".format(i)
+            resources += "\n\t\t\tBIND(REPLACE(?prop_{0}{0}, ?regexp, '$1$2') AS ?{1}) .".format(i, name)
+            not_exists_t += "\n\t\t\t\t{}?URL_CONSTRAINT ll:hasValue ?{} .".format(append, name)
+    # print variables
+
+    query = """
+    PREFIX ll: <{6}>
+    SELECT DISTINCT {0}
+    {{
+        GRAPH <{1}>
+        {{
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp){2}
+        }}
+        {4}FILTER NOT EXISTS
+        {4}{{
+            # FIND AN EXISTING CLUSTER FOR WITCH YOU SHARE THE SAME CONSTRAINT
+            {4}GRAPH ?cluster
+            {4}{{
+            {4}    ?cluster ll:hasReference  <{3}> .
+            {4}    ?cluster  ll:hasConstraint  ?URL_CONSTRAINT .{5}
+            {4}}}
+        {4}}}
+        {4}FILTER EXISTS
+        {4}{{
+            ### CHECK FOR THE EXISTENCE OF THE CLUSTER. IF IT DOES NOT EXIST, TERMINATE THE PROCESS
+            {4}GRAPH ?cluster
+            {4}{{
+            {4}    ?cluster ll:hasReference  <{3}> .
+            {4}}}
+        {4}}}
+    }}""".format(variables, initial_dataset_uri, resources, reference, append, not_exists_t, Ns.alivocab,)
+    # print query
+    constraint_table_response = Qry.sparql_xml_to_matrix(query)
+
+    if constraint_table_response is not None:
+        constraint_table = constraint_table_response[St.result]
+    print "TABLE OF CONSTRAINTS"
+    Qry.display_matrix(constraint_table_response, is_activated=True)
+
+    if constraint_table is None:
+        print "NO CONSTRAINT COULD BE FOUND"
+        return {St.message: "NO CONSTRAINT COULD BE FOUND", "reference": reference}
+
+    reference_uri= ""
+    # for i in range(1, 2):
+    for i in range(1, len(constraint_table)):
+        if i == 1:
+            reference_uri_response = create_cluster(
+                constraint_table[i], initial_dataset_uri, property_uri,
+                count=i, reference=reference, group_name=group_name, activated=True)
+            # print "reference_uri_response:", reference_uri_response
+
+            if reference_uri_response[St.result]:
+                reference_uri = reference_uri_response[St.result]
+
+        else:
+            create_cluster(
+                constraint_table[i], initial_dataset_uri, property_uri,
+                count=i, reference=reference_uri[1][0], group_name=group_name, activated=True)
+
+    # print "reference_uri:",
+
+    if reference_uri:
+        return {St.message: "", "reference": reference_uri[1][0], "group_name": group_name}
+
+    return {St.message: "", "reference": None, "group_name": group_name}
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    ADDING TO A SINGLE CLUSTER OR TO MULTIPLE CLUSTERS
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 # ADD NEW RESOURCES TO THE ALREADY EXISTING CLUSTER
 def add_to_cluster_0(cluster_uri, dataset_uri, property_uri, count=1, activated=False):
@@ -547,16 +694,22 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
     # print "RESPONSE:", response
 
     # PROCEED ONLY IF THE CLUSTER GRAPH EXISTS
+    distinct_constraint = []
     if response is not None:
         result = response[St.result]
         if result is not None:
 
             # EXTRACT THE VALUES THAT A RESOURCES NEEDS TO VALIDATE TO BE PART OF THE CLUSTER
             for i in range(1, len(result)):
+                item = result[i][0]
                 if i == 1:
-                    cluster_constraint = "\"{}\"".format(result[i][0])
+                    if item not in distinct_constraint:
+                        cluster_constraint = "\"{}\"".format(item)
+                        distinct_constraint += [item]
                 else:
-                    cluster_constraint += " \"{}\"".format(result[i][0])
+                    if item not in distinct_constraint:
+                        cluster_constraint += " \"{}\"".format(item)
+                        distinct_constraint += [item]
 
             print "\t>>> USING CLUSTER CONSTRAINT:", cluster_constraint
             cluster_constraint = str(cluster_constraint).strip()
@@ -581,6 +734,8 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
                 property_uri = property_uri.strip()
                 property_list = property_uri if Ut.is_nt_format(property_uri) is True else "<{}>".format(
                     property_uri)
+
+            print "\t>>> USING CLUSTER PROPERTIES:", property_list
 
             query = """
             PREFIX ll: <{0}>
@@ -637,16 +792,120 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
             # print query
 
             # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
-            print "\nCLUSTER {}: {}".format(count, cluster_uri)
-            print "\t{:20} : {}".format("DATASET",dataset_uri)
-            print "\t{:20} : {}".format("CLUSTER SIZE BEFORE", count_list(cluster_uri))
+            print "\n\tCLUSTER {}: {}".format(count, cluster_uri)
+            print "\t\t{:20} : {}".format("DATASET",dataset_uri)
+            print "\t\t{:20} : {}".format("CLUSTER SIZE BEFORE", count_list(cluster_uri))
             inserted = Qry.boolean_endpoint_response(query)
-            print "\t{:20} : {}".format("INSERTED STATUS", inserted)
+            print "\t\t{:20} : {}".format("INSERTED STATUS", inserted)
             # print alignment_construct
-            print "\t{:20} : {}".format("CLUSTER SIZE AFTER", count_list(cluster_uri))
+            print "\t\t{:20} : {}".format("CLUSTER SIZE AFTER", count_list(cluster_uri))
     else:
         print "CLUSTER DOES NOT EXIST"
 
+
+# ADD TO EXISTING CLUSTERS
+def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
+
+    print "\n>>> ADDING TO EXISTING CLUSTERS (MULTIPLE)\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
+    # FUNCTION ACTIVATION
+    if activated is False:
+        print "THE FUNCTION IS NOT ACTIVATE"
+        return "THE FUNCTION IS NOT ACTIVATE"
+
+    resources = ""
+
+    # SET THE PROPERTY OF THE CONSTRAINTS
+    if type(property_uri) is list:
+        for i in range(0, len(property_uri)):
+            prop = "<{}>".format(property_uri[i]) \
+                if Ut.is_nt_format(property_uri[i]) is False else "{}".format(property_uri[i])
+            if i == 0:
+                resources += "?resource {} ".format(prop)
+            else:
+                resources += "\n\t\t\t\t| {} ".format(prop)
+    else:
+        prop = "<{}>".format(property_uri) if Ut.is_nt_format(property_uri) is False else "{}".format(property_uri)
+        resources = "?resource {} ?constraint .".format(prop, )
+
+    def cluster_extraction(not_exists=False):
+
+        append1 = ""
+        append2 = ""
+        cluster_matrix = None
+        if not_exists is True:
+            append1 = "!"
+            append2 = "?constraint_1 #"
+
+        # FIND THE CLUSTERS OF INTEREST BASED ON THE CONSTRAINTS
+        query = """
+    PREFIX ll: <{0}>
+    SELECT DISTINCT {5}?cluster
+    {{
+        # EXTRACT THE CONSTRAINTS
+        # SHOWS THE VALUES OF THE CONSTRAINT PROPERTY
+        GRAPH <{2}>
+        {{
+            {3} ?constraint_1 .
+        }}
+
+        # FIND AN EXISTING CLUSTER FOR WITCH YOU SHARE THE SAME CONSTRAINT
+        GRAPH ?cluster
+        {{
+            ?cluster ll:hasReference  <{1}> .
+
+            # 3. THE CONSTRAINT
+            ?cluster  ll:hasConstraint  ?URL_CONSTRAINT .
+
+            # 4. CONSTRAINT'S METADATA
+            ?URL_CONSTRAINT  ll:hasValue  ?constraint_2  .
+        }}
+        FILTER (LCASE(?constraint_1) {4}= LCASE(?constraint_2) )
+    }}
+    """.format(Ns.alivocab, reference, dataset_uri, resources, append1, append2)
+        # print query
+
+        # RUN THE QUERY AGAINST  THE TRIPLE STORE
+        cluster_table_response = Qry.sparql_xml_to_matrix(query)
+        if cluster_table_response is not None:
+            cluster_matrix = cluster_table_response[St.result]
+        if not_exists is True:
+            print "\nTABLE OF NOT COMPATIBLE CLUSTER"
+        else:
+            print "\t>>> TABLE OF COMPATIBLE CLUSTER"
+        Qry.display_matrix(cluster_table_response, is_activated=True)
+        return cluster_matrix
+
+    print "\n-> PHASE 1: ADDING TO COMPATIBLE/EXISTING CLUSTERS"
+    # EXTRACTING COMPATIBLE  CLUSTERS
+    cluster_table = cluster_extraction(not_exists=False)
+    # print "cluster_table:", cluster_table
+
+    # ADDING TO EXISTING CLUSTERS
+    if cluster_table is None:
+        print "\t>>> NO COMPATIBLE CLUSTERS WERE FOUND."
+    # ADD TO THE COMPATIBLE CLUSTERS FOUND
+    else:
+        # for i in range(1, 2):
+        for i in range(1, len(cluster_table)):
+            #     print "cluster_table[i][0]:", cluster_table[0]
+            add_to_cluster(cluster_table[i][0], dataset_uri, property_uri, count=i, activated=True)
+
+    print "\n-> PHASE 2: CREATION OF NEW CLUSTERS"
+    # EXTRACTING  CLUSTERS FOR WITCH A MATCH WAS NOT FOUND
+    # constraint_not_exists_table = cluster_extraction(not_exists=True)
+    # if constraint_not_exists_table is None:
+    #     print "NO COMPATIBLE CLUSTERS WERE FOUND."
+    #     return "NO NEW CLUSTERS WERE CREATED."
+    # else:
+
+    create_clusters(dataset_uri, property_uri, reference=reference, not_exists=True, activated=True)
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    CREATING A LINKSET OUT OF A CLUSTERS OR OUT OF
+            CLUSTERS THAT SAME REFERENCE
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 # GENERATE A LINKSET FROM A CLUSTER
 def linkset_from_cluster(cluster_uri, properties, user_label=None, count=1):
@@ -743,241 +1002,6 @@ def linkset_from_cluster(cluster_uri, properties, user_label=None, count=1):
     # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.linkset, label)))
 
 
-# GENERATE MULTIPLE CLUSTERS FROM AN INITIAL DATASET
-def create_clusters(initial_dataset_uri, property_uri,
-                    reference=None, group_name=None, not_exists=False, activated=False):
-
-    """ CREATE CLUSTERS TAKES AS INPUT
-
-        1. INITIAL DATASET: the dataset for witch the resources will be clustered.
-
-        2. PROPERTY: used as the basis on which clusters are created.
-        When a list of properties [A, B, C] is provided, they are used ad A or B or C and
-        used for the name of the cluster as cluster:A_B_C.
-
-        3. REFERENCE: serves as the unifying name shared by all clusters.
-
-    """
-    print "\n>>> CREATING NEW CLUSTERS (MULTIPLE)\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
-    # FUNCTION ACTIVATION
-    if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATE", "reference": ""}
-
-    constraint_table = None
-    property_list = ""
-
-    # MAKING SURE THAT THE PROPERTIES ARE IN ANGLE BRACKETS
-    validate_uri(property_uri)
-
-    # LIST OF PROPERTIES OR SINGLE VALUE PROPERTY
-    if type(property_uri) is list:
-        # print "WE ARE IN A LIST"
-        for i in range(0, len(property_uri)):
-            current = property_uri[i] if Ut.is_nt_format(property_uri[i]) is True else "<{}>".format(property_uri[i])
-            current = current.strip()
-            if i == 0 and current:
-                property_list += "({})".format(current)
-            elif current:
-                property_list += "\n\t\t\t\t | ({})".format(current)
-    else:
-        property_list = property_uri if Ut.is_nt_format(property_uri) is True else "<{}>".format(property_uri)
-
-    # COMPUTE THE GROUP NAME SHARED BY ALL CLUSTERS
-    if group_name is None:
-        # print "group name in None: {}".format(property_list)
-        group_name = Ut.get_uri_local_name(property_list)
-
-    # print "group_name: ", group_name
-
-    # EXTRACT CLUSTER CONSTRAINTS
-    # FIND NEW CLUSTERS THAT DID NOT EXIST IN THE GROUP OF CLUSTERS
-    append = "#"
-    if not_exists is True:
-        append = ""
-
-    variables = ""
-    resources = ""
-    not_exists_t = ""
-    for i in range(0, len(property_uri)):
-        name = Ut.get_uri_local_name(property_uri[i])
-        variables += " ?{}".format(name)
-        if i == 0:
-            resources += "\n\t\t\t?resource {} ?prop_{} .".format(property_uri[i], i)
-            resources += "\n\t\t\tBIND(lcase(str(?prop_{0})) as ?prop_{0}{0}) .".format(i)
-            resources += "\n\t\t\tBIND(REPLACE(?prop_{0}{0}, ?regexp, '$1$2') AS ?{1}) .".format(i, name)
-
-            not_exists_t += "\n\t\t\t\t{}?URL_CONSTRAINT ll:hasValue ?{} .".format(append, name)
-        else:
-            resources += "\n\n\t\t\t?resource {} ?prop_{} .".format(property_uri[i], i)
-            resources += "\n\t\t\tBIND(lcase(str(?prop_{0})) as ?prop_{0}{0}) .".format(i)
-            resources += "\n\t\t\tBIND(REPLACE(?prop_{0}{0}, ?regexp, '$1$2') AS ?{1}) .".format(i, name)
-            not_exists_t += "\n\t\t\t\t{}?URL_CONSTRAINT ll:hasValue ?{} .".format(append, name)
-    # print variables
-
-    query = """
-    PREFIX ll: <{6}>
-    SELECT DISTINCT {0}
-    {{
-        GRAPH <{1}>
-        {{
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp){2}
-        }}
-        {4}FILTER NOT EXISTS
-        {4}{{
-            # FIND AN EXISTING CLUSTER FOR WITCH YOU SHARE THE SAME CONSTRAINT
-            {4}GRAPH ?cluster
-            {4}{{
-            {4}    ?cluster ll:hasReference  <{3}> .
-            {4}    ?cluster  ll:hasConstraint  ?URL_CONSTRAINT .{5}
-            {4}}}
-        {4}}}
-        {4}FILTER EXISTS
-        {4}{{
-            ### CHECK FOR THE EXISTENCE OF THE CLUSTER. IF IT DOES NOT EXIST, TERMINATE THE PROCESS
-            {4}GRAPH ?cluster
-            {4}{{
-            {4}    ?cluster ll:hasReference  <{3}> .
-            {4}}}
-        {4}}}
-    }}""".format(variables, initial_dataset_uri, resources, reference, append, not_exists_t, Ns.alivocab,)
-    # print query
-    constraint_table_response = Qry.sparql_xml_to_matrix(query)
-
-    if constraint_table_response is not None:
-        constraint_table = constraint_table_response[St.result]
-    print "TABLE OF CONSTRAINTS"
-    Qry.display_matrix(constraint_table_response, is_activated=True)
-
-    if constraint_table is None:
-        print "NO CONSTRAINT COULD BE FOUND"
-        return {St.message: "NO CONSTRAINT COULD BE FOUND", "reference": group_name}
-
-    reference_uri= ""
-    for i in range(1, 2):
-    # for i in range(1, len(constraint_table)):
-        if i == 1:
-            reference_uri_response = create_cluster(
-                constraint_table[i], initial_dataset_uri, property_uri,
-                count=i, reference=reference, group_name=group_name, activated=True)
-            # print "reference_uri_response:", reference_uri_response
-
-            if reference_uri_response[St.result]:
-                reference_uri = reference_uri_response[St.result]
-
-        else:
-            create_cluster(
-                constraint_table[i], initial_dataset_uri, property_uri,
-                count=i, reference=reference, group_name=group_name, activated=True)
-
-    # print "reference_uri:",
-
-    if reference_uri:
-        return {St.message: "", "reference": reference_uri[1][0], "group_name": group_name}
-
-    return {St.message: "", "reference": None, "group_name": group_name}
-
-
-# ADD TO EXISTING CLUSTERS
-def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
-
-    print "\n>>> ADDING TO EXISTING CLUSTERS (MULTIPLE)\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-
-    # FUNCTION ACTIVATION
-    if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
-        return "THE FUNCTION IS NOT ACTIVATE"
-
-    resources = ""
-
-    # SET THE PROPERTY OF THE CONSTRAINTS
-    if type(property_uri) is list:
-        for i in range(0, len(property_uri)):
-            prop = "<{}>".format(property_uri[i]) \
-                if Ut.is_nt_format(property_uri[i]) is False else "{}".format(property_uri[i])
-            if i == 0:
-                resources += "?resource {} ".format(prop)
-            else:
-                resources += "\n\t\t\t\t| {} ".format(prop)
-    else:
-        prop = "<{}>".format(property_uri) if Ut.is_nt_format(property_uri) is False else "{}".format(property_uri)
-        resources = "?resource {} ?constraint .".format(prop, )
-
-    def cluster_extraction(not_exists=False):
-
-        append1 = ""
-        append2 = ""
-        cluster_matrix = None
-        if not_exists is True:
-            append1 = "!"
-            append2 = "?constraint_1 #"
-
-        # FIND THE CLUSTERS OF INTEREST BASED ON THE CONSTRAINTS
-        query = """
-    PREFIX ll: <{0}>
-    SELECT DISTINCT {5}?cluster
-    {{
-        # EXTRACT THE CONSTRAINTS
-        # SHOWS THE VALUES OF THE CONSTRAINT PROPERTY
-        GRAPH <{2}>
-        {{
-            {3} ?constraint_1 .
-        }}
-
-        # FIND AN EXISTING CLUSTER FOR WITCH YOU SHARE THE SAME CONSTRAINT
-        GRAPH ?cluster
-        {{
-            ?cluster ll:hasReference  <{1}> .
-
-            # 3. THE CONSTRAINT
-            ?cluster  ll:hasConstraint  ?URL_CONSTRAINT .
-
-            # 4. CONSTRAINT'S METADATA
-            ?URL_CONSTRAINT  ll:hasValue  ?constraint_2  .
-        }}
-        FILTER (LCASE(?constraint_1) {4}= LCASE(?constraint_2) )
-    }}
-    """.format(Ns.alivocab, reference, dataset_uri, resources, append1, append2)
-        # print query
-
-        # RUN THE QUERY AGAINST  THE TRIPLE STORE
-        cluster_table_response = Qry.sparql_xml_to_matrix(query)
-        if cluster_table_response is not None:
-            cluster_matrix = cluster_table_response[St.result]
-        if not_exists is True:
-            print "\nTABLE OF NOT COMPATIBLE CLUSTER"
-        else:
-            print "\t>>> TABLE OF COMPATIBLE CLUSTER"
-        Qry.display_matrix(cluster_table_response, is_activated=True)
-        return cluster_matrix
-
-    print "\n-> PHASE 1: ADDING TO COMPATIBLE CLUSTERS"
-    # EXTRACTING COMPATIBLE  CLUSTERS
-    cluster_table = cluster_extraction(not_exists=False)
-    # print "cluster_table:", cluster_table
-
-    # ADDING TO EXISTING CLUSTERS
-    if cluster_table is None:
-        print "\t>>> NO COMPATIBLE CLUSTERS WERE FOUND."
-    # ADD TO THE COMPATIBLE CLUSTERS FOUND
-    else:
-        for i in range(1, 2):
-        # for i in range(1, len(cluster_table)):
-        #     print "cluster_table[i][0]:", cluster_table[0]
-            add_to_cluster(cluster_table[i][0], dataset_uri, property_uri, count=i, activated=True)
-
-    print "\n-> PHASE 2: NO COMPATIBLE CLUSTERS => CREATION OF NEW CLUSTERS"
-    # EXTRACTING  CLUSTERS FOR WITCH A MATCH WAS NOT FOUND
-    # constraint_not_exists_table = cluster_extraction(not_exists=True)
-    # if constraint_not_exists_table is None:
-    #     print "NO COMPATIBLE CLUSTERS WERE FOUND."
-    #     return "NO NEW CLUSTERS WERE CREATED."
-    # else:
-
-    create_clusters(dataset_uri, property_uri, reference=reference, not_exists=True, activated=True)
-
-
 # FROM MULTIPLE CLUSTERS TO A SINGLE MULTI SOURCES LINKSET
 def linkset_from_clusters(reference, properties, activated=False):
 
@@ -1033,86 +1057,3 @@ def linkset_from_clusters(reference, properties, activated=False):
 # TODO stardog-admin query list
 # TODO stardog-admin query kill 66
 
-
-def create_add_cluster(cluster_label, dataset_uri):
-
-    query = """
-    PREFIX ll: <{0}>
-    PREFIX prov: <{7}>
-    INSERT
-    {{
-        # THE CLUSTERED GRAPH
-        GRAPH <{1}{2}>
-        {{
-            # 1. THE REFERENCE
-            <{1}{2}>  ll:hasReference  ?cluster_ref .
-
-            # 2. THE REFERENCE LABEL
-            ?cluster_ref  rdfs:label  \"{6}\" .
-
-            # 3. THE CONSTRAINT
-            <{1}{2}>  ll:hasConstraint  ?URL_CONSTRAINT .
-
-            # 4. CONSTRAINT'S METADATA
-            ?URL_CONSTRAINT  ll:hasValue  ?constraint .
-            ?URL_CONSTRAINT  void:target  <{3}> .
-            ?URL_CONSTRAINT  ll:hasProperty  {10} .
-
-            # 5. THE LIST OR RESOURCES
-            <{1}{2}>  ll:list  ?resource .
-        }}
-    }}
-    WHERE
-    {{
-        # CONSTRAINT VALUES
-        VALUES ?constraint {{ {5} }}
-
-        # BIND CLUSTER CONSTRAINT URL
-        BIND( MD5(lcase(str(""\"{3}{4}""\"))) AS ?hashed )
-        BIND( CONCAT("{8}cluster/",?hashed) as ?pre )
-        BIND(iri(?pre) as ?URL_CONSTRAINT)
-
-        # BIND CLUSTER NAME URL
-        BIND( replace(\"{9}#\",\"#\", MD5(STR(NOW()))) as ?name )
-        BIND(iri(?name) as ?cluster_ref)
-
-        # BIND PROPERTIES TO OVERCOME PROPERTY PATH
-        {11}
-
-        # THE DATASET WHOSE RESOURCES NEED TO BE CLUSTERED
-        GRAPH <{3}>
-        {{
-            ?resource {4} ?value .
-
-            # CONVERT THE VALUE TO LOWER CASE
-            BIND(lcase(str(?value)) as ?str_value)
-
-            # VALUE TRIMMING
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-            BIND(REPLACE(?str_value, ?regexp, '$1$2') AS ?trimmed_value)
-        }}
-        FILTER (?trimmed_value = lcase(?constraint))
-
-        # DO NOT CREATE THE SAME THING AGAIN OTHERWISE
-        # THE SAME CLUSTER WILL HAVE MULTIPLE REFERENCES
-        FILTER NOT EXISTS
-        {{
-
-            GRAPH <{1}{2}>
-            {{
-                # 3. THE CONSTRAINT
-                <{1}{2}>  ll:hasConstraint  ?URL_CONSTRAINT .
-
-                # 4. CONSTRAINT'S METADATA
-                ?URL_CONSTRAINT  ll:hasValue  ?constraint .
-                ?URL_CONSTRAINT  void:target  <{3}> .
-                # ?URL_CONSTRAINT  ll:hasProperty
-            }}
-        }}
-    }}
-    """.format(
-        # 0          1           2      3            4              5             6           7
-        Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
-        # 8                    9           10          11
-        Ns.cluster_constraint, Ns.cluster, properties, property_bind)
-    print query
