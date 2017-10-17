@@ -2502,7 +2502,7 @@ function createClusterClick()
         if (!entityType) {entityType = 'no_type'};
         dict = {'ds': $(elems[i]).attr('graph_uri'),
                 'type': entityType,
-                'att': $(elems[i]).attr('pred_uri').replace('>',"").replace('<',"") };
+                'att': $(elems[i]).attr('pred_uri') }; //.replace('>',"").replace('<',"") };
         cluster_specs.push( JSON.stringify(dict));
     }
 
