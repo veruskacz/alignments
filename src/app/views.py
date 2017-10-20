@@ -1503,25 +1503,34 @@ def refineLinkset():
             'aligns': request.args.get('trg_aligns', ''),
             'entity_datatype': request.args.get('trg_entity_datatye', '')
             # 'extended_graph': request.args.get('trg_graph_enriched', '')
-        },
+        }
 
+        # St.delta: request.args.get('delta', ''),
 
-        St.delta: request.args.get('delta', ''),
-
-        St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
-
+        # St.numeric_approx_type: request.args.get('numeric_approx_type', '')
     }
 
     # ADDING AN EXTENDED SOURCE GRAPH IF SELECTED
     temp_src = request.args.get('src_graph_enriched', '')
     if temp_src:
         specs[St.source][St.extended_graph] = temp_src
-    print "temp_src:", temp_src
+    # print "temp_src:", temp_src
+
     # ADDING AN EXTENDED TARGET GRAPH IS SELECTED
     temp_trg = request.args.get('trg_graph_enriched', '')
     if temp_trg:
         specs[St.target][St.extended_graph] = temp_trg
-    print "temp_trg:", temp_trg
+    # print "temp_trg:", temp_trg
+
+    # ADDING A DELTA VALUE IF GIVEN
+    temp_delta = request.args.get('delta', '')
+    if temp_delta:
+        specs[St.delta] = temp_delta
+
+    # ADDING A NUMERIC APPROXIMATION
+    temp_num_approx = request.args.get('numeric_approx_type', '')
+    if temp_num_approx:
+        specs[St.numeric_approx_type] = temp_num_approx
 
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
