@@ -232,6 +232,11 @@ def refine_exact_query(specs):
 
     source = specs[St.source]
     target = specs[St.target]
+    src_graph = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
+    trg_graph = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
+
+    print "src_graph:", src_graph
+    print "trg_graph:", trg_graph
 
     # FORMATTING THE ALIGNS PROPERTY
     src_aligns = source[St.aligns] \
@@ -311,10 +316,11 @@ def refine_exact_query(specs):
                specs[St.refined], Ns.singletons, specs[St.refined_name], specs[St.mechanism], specs[St.sameAsCount],
                specs[St.linkset], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
                specs[St.singletonGraph],
-               source[St.graph], source[St.entity_datatype], src_aligns,
-               target[St.graph], target[St.entity_datatype], trg_aligns)
+               src_graph, source[St.entity_datatype], src_aligns,
+               trg_graph, target[St.entity_datatype], trg_aligns)
     # print insert_query
     return insert_query
+
 
 # DEPRECATED (TODO TO DELETE)
 def refine_intermediate_query_1(specs):
@@ -329,12 +335,14 @@ def refine_intermediate_query_1(specs):
     trg_aligns = target[St.aligns] \
         if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
 
-    src_name = specs[St.source][St.graph_name]
-    src_uri = specs[St.source][St.graph]
+    src_name = source[St.graph_name]
+    # src_uri =source[St.graph]
+    src_uri = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
     # src_aligns = specs[St.source][St.aligns]
 
     trg_name = specs[St.target][St.graph_name]
-    trg_uri = specs[St.target][St.graph]
+    # trg_uri = specs[St.target][St.graph]
+    trg_uri = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
     # trg_aligns = specs[St.target][St.aligns]
 
     insert = """
@@ -501,11 +509,13 @@ def refine_intermediate_query(specs):
         if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
 
     src_name = specs[St.source][St.graph_name]
-    src_uri = specs[St.source][St.graph]
+    # src_uri = specs[St.source][St.graph]
+    src_uri = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
     # src_aligns = specs[St.source][St.aligns]
 
     trg_name = specs[St.target][St.graph_name]
-    trg_uri = specs[St.target][St.graph]
+    # trg_uri = specs[St.target][St.graph]
+    trg_uri = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
     # trg_aligns = specs[St.target][St.aligns]
 
     insert = """
@@ -625,11 +635,13 @@ def refine_numeric_query(specs):
         if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
 
     src_name = specs[St.source][St.graph_name]
-    src_uri = specs[St.source][St.graph]
+    # src_uri = specs[St.source][St.graph]
+    src_uri = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
     # src_aligns = specs[St.source][St.aligns]
 
     trg_name = specs[St.target][St.graph_name]
-    trg_uri = specs[St.target][St.graph]
+    # trg_uri = specs[St.target][St.graph]
+    trg_uri = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
     # trg_aligns = specs[St.target][St.aligns]
 
     extract = """
@@ -767,7 +779,6 @@ def refine_metadata(specs):
             "PREFIX predicate:      <{}>".format(Ns.alivocab),
             "PREFIX prov:           <{}>".format(Ns.prov),
             "PREFIX rdf:            <{}>".format(Ns.rdf),
-
             "construct { ?x ?y ?z }",
             "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.singleton]),
         )
