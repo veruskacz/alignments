@@ -291,8 +291,9 @@ def endpoint(query):
 
     # THIS SHOULD WORK:
     # The Stardog SPARQL endpoint is http://<server>:<port>/{db}/query.
-
+    # http://145.100.59.152:5820/risis_test#!/query/
     url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
+    # url = b"http://{}/{}#!/query/".format(HOST, DATABASE)
     # print url
     params = urllib.urlencode(
         {b'query': q, b'format': b'application/sparql-results+json',

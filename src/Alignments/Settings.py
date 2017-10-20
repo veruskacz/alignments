@@ -21,6 +21,13 @@ graph_prefix = "graph_prefix"
 graph_ns = 'graph_ns'
 graph_name = 'graph_name'
 
+# AN ENRICHED GRAPH OF THE ORIGINAL GRAPH.
+# THIS GRAPH CONTAINS THE NEW ENRICHED PROPERTIES
+extended_graph = 'graph'
+extended_graph_prefix = "graph_prefix"
+extended_graph_ns = 'graph_ns'
+extended_graph_name = 'graph_name'
+
 # URI of the lens graph
 lens = "lens"
 lens_prefix = 'lens_prefix'
@@ -170,4 +177,7 @@ delta = "delta"
 numeric_approx_type = "numeric_approx_type"
 corr_reducer = "corr_reducer"
 stardog_data_path = "stardog_data_path"
+
+longitude = "longitude"
+latitude = "latitude"
 

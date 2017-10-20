@@ -1494,22 +1494,34 @@ def refineLinkset():
         'source': {
             'graph': request.args.get('src_graph', ''),
             'aligns': request.args.get('src_aligns', ''),
-            'entity_datatype': request.args.get('src_entity_datatye', ''),
-            'graph_enriched': request.args.get('src_graph_enriched', '')
+            'entity_datatype': request.args.get('src_entity_datatye', '')
+            # 'extended_graph': request.args.get('src_graph_enriched', '')
         },
 
         'target': {
             'graph': request.args.get('trg_graph', ''),
             'aligns': request.args.get('trg_aligns', ''),
-            'entity_datatype': request.args.get('trg_entity_datatye', ''),
-            'graph_enriched': request.args.get('trg_graph_enriched', '')
+            'entity_datatype': request.args.get('trg_entity_datatye', '')
+            # 'extended_graph': request.args.get('trg_graph_enriched', '')
         },
+
 
         St.delta: request.args.get('delta', ''),
 
         St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
 
     }
+
+    # ADDING AN EXTENDED SOURCE GRAPH IF SELECTED
+    temp_src = request.args.get('src_graph_enriched', '')
+    if temp_src:
+        specs[St.source][St.extended_graph] = temp_src
+    print "temp_src:", temp_src
+    # ADDING AN EXTENDED TARGET GRAPH IS SELECTED
+    temp_trg = request.args.get('trg_graph_enriched', '')
+    if temp_trg:
+        specs[St.target][St.extended_graph] = temp_trg
+    print "temp_trg:", temp_trg
 
     if CREATION_ACTIVE:
         if specs['mechanism'] == 'exactStrSim':
