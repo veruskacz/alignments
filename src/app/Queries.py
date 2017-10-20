@@ -440,12 +440,10 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     SELECT DISTINCT ?uri ?mode ?label
     WHERE
     {{
-
         # GRAPH-TYPE FILTER
         {0}
         OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
         BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
-
 
         # GRAPH-TYPE CONDITION
         {1}
@@ -1811,3 +1809,103 @@ def get_filter(research_uri, graph_uri):
         print query
 
     return query
+
+def get_cluster_references():
+    query = """
+    PREFIX rdfs:    <{}>
+    PREFIX ll:    <{}>
+
+    SELECT DISTINCT ?uri ?label ?mode
+    {{
+        GRAPH  ?cluster
+        {{
+            ?cluster ll:hasReference ?uri .
+            ?reference  rdfs:label ?label .
+        }}
+        BIND("no-mode" as ?mode)
+    }}
+    """.format(Ns.rdfs, Ns.alivocab)
+
+    if DETAIL:
+        print query
+    return query
+
+def get_clusters_by_reference(reference_uri):
+    query = """
+    PREFIX ll:    <{}>
+
+    SELECT DISTINCT ?uri ?label ?mode
+    {{
+        GRAPH  ?uri
+        {{
+            bind (<{}> as ?reference)
+            ?uri ll:hasReference ?reference .
+        }}
+        BIND("no-mode" as ?mode)
+        BIND("-" as ?label)
+    }}
+    """.format(Ns.alivocab, reference_uri)
+
+    if DETAIL:
+        print query
+    return query
+
+def get_cluster_metadata(reference_uri, cluster_uri):
+    query = """
+    PREFIX void:    <{}>
+    PREFIX ll:    <{}>
+
+    SELECT DISTINCT (?constr as ?id) (?constr as ?uri) ?description
+    {{
+        GRAPH  ?cluster
+        {{
+            bind (<{}> as ?reference)
+            bind (<{}> as ?cluster)
+            ?cluster ll:hasReference ?reference .
+            ?cluster ll:hasConstraint ?constr .
+            ?constr  void:target ?dataset;
+        		     ll:hasValue ?value;
+                     ll:hasProperty ?property.
+        }}
+        BIND (CONCAT( str(?dataset), " | ", str(?property), " | ", ?value) AS ?description)
+    }}
+    """.format(Ns.void, Ns.alivocab, reference_uri, cluster_uri)
+
+    if DETAIL:
+        print query
+    return query
+
+def get_clustered_objects(cluster_uri):
+    query = """
+    PREFIX void:    <{}>
+    PREFIX ll:    <{}>
+
+    SELECT DISTINCT ?object (group_concat(str(?v)) as ?values)
+    {{
+        graph ?dataset
+        {{
+          ?object ?p ?v .
+        }}
+        {{
+          select ?object ?dataset (group_concat(str(?property)) as ?properties)
+          {{
+          bind ({} as ?cluster)
+          GRAPH  ?cluster
+          {{
+                ?cluster ll:hasReference ?reference .
+                ?cluster ll:hasConstraint ?constr ;
+                       ll:list ?o.
+                ?constr  void:target ?dataset;
+                      ll:hasProperty ?property;
+                      ll:hasValue ?value.
+          }}
+          }} group by ?object ?dataset
+        }}
+         FILTER (CONTAINS( ?properties, str(?p) ) )
+    }} group by ?object
+    """.format(Ns.void, Ns.alivocab, cluster_uri)
+
+    if DETAIL:
+        print query
+    return query
+

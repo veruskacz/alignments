@@ -1543,10 +1543,10 @@ def refineLinkset():
 
         elif specs['mechanism'] == 'approxNbrSim':
             try:
-                print "1", specs[St.delta]
+                print "Delta", specs[St.delta]
                 delta = float(specs[St.delta])
                 specs[St.delta] = delta
-                print "2"
+                # print "2"
                 linkset_result = refine.refine(specs, activated=True)
                     # spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
                     #                                           activated=FUNCTION_ACTIVATED)
@@ -2793,6 +2793,77 @@ def loadGraph():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
+
+@app.route('/getClusterReferences')
+def getClusterReferences():
+    """
+    """
+    # GET QUERY
+    query = Qry.get_cluster_references()
+
+    # RUN QUERY AGAINST ENDPOINT
+    try:
+        result = sparql(query, strip=True)
+        if PRINT_RESULTS:
+            print "\n\nREFERENCES:", result
+        if (len(result) > 0) and (len(result[0]) > 0):
+            return render_template('list_group.html',  list = result)
+        else:
+            return ''
+    except Exception as error:
+        return str(error.message)
+
+
+@app.route('/getClustersByReference')
+def getClustersByReference():
+    """
+    """
+    reference_uri = request.args.get('reference_uri','')
+
+    # GET QUERY
+    query = Qry.get_clusters_by_reference(reference_uri)
+
+    # RUN QUERY AGAINST ENDPOINT
+    try:
+        result = sparql(query, strip=True)
+        if PRINT_RESULTS:
+            print "\n\nCLUSTERS:", result
+        if (len(result) > 0) and (len(result[0]) > 0):
+            return render_template('list_group.html',  list = result)
+        else:
+            return ''
+    except Exception as error:
+        return str(error.message)
+
+
+@app.route('/getClusterMetadata')
+def getClusterMetadata():
+    """
+    """
+    cluster_uri = request.args.get('cluster_uri','')
+    reference_uri = request.args.get('reference_uri','')
+
+    # GET QUERY
+    query = Qry.get_cluster_metadata(reference_uri, cluster_uri)
+
+    # RUN QUERY AGAINST ENDPOINT
+    try:
+        result = sparql(query, strip=True)
+        print result
+        if PRINT_RESULTS:
+            print "\n\nCLUSTERS:", result
+        if (len(result) > 0) and (len(result[0]) > 0):
+            return render_template('list_group_description.html',
+                            # function = function,
+                            # style = style,
+                            list = result)
+        else:
+            return ''
+    except Exception as error:
+        return str(error.message)
+
 
 
 # ######################################################################
