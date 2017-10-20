@@ -234,7 +234,6 @@ def refine_exact_query(specs):
     target = specs[St.target]
     src_graph = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
     trg_graph = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
-
     print "src_graph:", src_graph
     print "trg_graph:", trg_graph
 
