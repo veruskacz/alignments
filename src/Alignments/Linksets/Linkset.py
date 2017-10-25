@@ -202,24 +202,29 @@ def set_refined_name(specs):
     reducer = ""
     intermediate = ""
     threshold = ""
+    extended_graph = ""
     delta = ""
 
+    # THE REDUCER
     if St.reducer in specs[St.source]:
         reducer += specs[St.source][St.reducer]
-
     if St.reducer in specs[St.target]:
         reducer += specs[St.target][St.reducer]
-
+    # THE EXTENDED GRAPH
+    if St.extended_graph in specs[St.source]:
+        extended_graph += str(specs[St.source][St.extended_graph])
+    if St.extended_graph in specs[St.target]:
+        extended_graph += str(specs[St.target][St.extended_graph])
+    # THE INTERMEDIATE GRAPH
     if St.intermediate_graph in specs:
         intermediate = specs[St.intermediate_graph]
-
     if St.threshold in specs:
         threshold += str(specs[St.threshold])
-
+    # THE NUMERIC DELTA
     if St.delta in specs:
         delta += str(specs[St.delta])
 
-    hashed = hash(reducer + intermediate + threshold + delta)
+    hashed = hash(reducer + extended_graph + intermediate + threshold + delta)
 
     append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
