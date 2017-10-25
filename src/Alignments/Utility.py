@@ -103,6 +103,14 @@ def get_uri_local_name(uri, sep="_"):
             return name
 
 
+def split_property_path(property_path):
+
+    # example = """(" <http://www.grid.ac/ontology/hasAddress>  / <http://www.grid.ac/ontology/countryCode>")"""
+    if property_path is None:
+        return []
+    return re.findall("<([^<>]*)>/*", property_path)
+
+
 def pipe_split(text, sep="_"):
 
     altered = ""
@@ -882,3 +890,5 @@ def stardog_off(bat_path):
 
     else:
         print ">>> THE SERVER WAS NOT ON."
+
+
