@@ -1765,13 +1765,7 @@ def createClusterContraint():
     print cluster_specs_js
     # return json.dumps({St.message: 'Cluster creation is not active!', "reference": None})
 
-    # view_specs = {
-    #     St.researchQ_URI: rq_uri,
-    #     'datasets': view_lens,
-    #     'lens_operation': 'http://risis.eu/lens/operator/intersection'}
-    #
     dict_stats = {}
-    #
     cluster_specs = []
 
     for json_item in cluster_specs_js:
@@ -1790,24 +1784,22 @@ def createClusterContraint():
                     # check if the entityType has been already registered for that graph
                     if (data['entity_datatype'] == row['type']):
 
-                        # if a valid entity type is provided
-                        if (row['type'] != 'no_type'):
-                            uri = row['att'].replace("<", "").replace(">", "")
-                            # print "\nURI", uri
-                            # print "TYPE:", filter_row['type']
-                            # print "OPTIONAL CODE:", dict_stats[filter_row['ds']][filter_row['type']]
-                            # print "STATS:", dict_stats
+                        data['properties'].append(row['att'])
+                        exists_dataset_entityType = True
 
-                            optional = dict_stats[row['ds']][row['type']][uri]
-                            tuple_data = (row['att'], optional)
-                            data['properties'].append(tuple_data)
-                            # if desired dictionary is found, the loop can be broken
-                            exists_dataset_entityType = True
-                            break
-                        else:
-                            data['properties'].append(row['att'])
-                            exists_dataset_entityType = True
-                            break
+                        # if a valid entity type is provided
+                        # if (row['type'] != 'no_type'):
+                        #     uri = row['att'].replace("<", "").replace(">", "")
+                        #     optional = dict_stats[row['ds']][row['type']][uri]
+                        #     tuple_data = (row['att'], optional)
+                        #     data['properties'].append(tuple_data)
+                        #     # if desired dictionary is found, the loop can be broken
+                        #     exists_dataset_entityType = True
+                        #     break
+                        # else:
+                        #     data['properties'].append(row['att'])
+                        #     exists_dataset_entityType = True
+                        #     break
 
         # if the above loop finished without finding the desired dictionary, then it will be registered
         if not exists_dataset_entityType:
@@ -1818,40 +1810,27 @@ def createClusterContraint():
                 dict_graph = {'graph': row['ds'], 'data':[]}
                 cluster_specs.append(dict_graph)
                 # check if there is already an entry for the dataset in dict_stats
-                if row['ds'] not in dict_stats:
-                    # calculate the stats per dataset, if it hasn't been done yet
-                    dict_stats[row['ds']] =  stats(row['ds'], display_table=False, display_text=False)
-                    # print "DATASET:", filter_row['ds']
-                    # print "STATS:", dict_stats
+                # if row['ds'] not in dict_stats:
+                #     # calculate the stats per dataset, if it hasn't been done yet
+                #     dict_stats[row['ds']] =  stats(row['ds'], display_table=False, display_text=False)
 
-            if (row['type'] != 'no_type'):
-                uri = row['att'].replace("<", "").replace(">", "")
-                # print "URI:", uri
-                # print "\n\nPRINTING:", filter_row['ds'], filter_row['att']
-                # print "DICTIONARY 0:", dict_stats
-                # print "DICTIONARY 1:", dict_stats[filter_row['ds']]
-                # print "DICTIONARY 2:", dict_stats[filter_row['ds']][filter_row['type']]
-                # print "OPTIONAL:", dict_stats[filter_row['ds']][filter_row['type']][uri]
+            properties = [row['att']]
 
-                optional = dict_stats[row['ds']][row['type']][uri]
-                properties = [(row['att'], optional)]
-                # dict = {'graph': filter_row['ds'], 'entity_datatype': filter_row['type'], 'properties': [tuple_data]}
-                # view_filter.append(dict)
-            else:
-                properties = [row['att']]
-                # dict = {'graph': filter_row['ds'], 'properties': [filter_row['att']]}
-                # view_filter.append(dict)
+            # if (row['type'] != 'no_type'):
+            #     uri = row['att'].replace("<", "").replace(">", "")
+            #
+            #     optional = dict_stats[row['ds']][row['type']][uri]
+            #     properties = [(row['att'], optional)]
+            # else:
+            #     properties = [row['att']]
 
             data = {'entity_datatype': row['type'], 'properties': properties}
-
-            # print "data", data
-            # print "dict_graph", dict_graph
 
             dict_graph['data'].append(data)
 
 
-    # print "\n\nVIEW SPECS:", view_specs
-    # print "\n\nVIEW DESIGN:", view_filter
+    print "\n\n SPECS:", cluster_specs
+    # return json.dumps({St.message: 'Cluster creation is not active!', "reference": None})
 
     # CREATION_ACTIVE = False
     # print view_filter
@@ -1863,12 +1842,15 @@ def createClusterContraint():
         for i in range(len(cluster_specs)):
             specs = cluster_specs[i]
             props = []
-            for prop in specs['data'][0]['properties']:
-                print '@@@@@@@@@@@@', type(prop)
-                if type(prop) is tuple:
-                    props += [prop[0]]
-                else:
-                    props += [prop]
+            ## merging properties regardelss to entity type
+            ## TODO: check if there is a better approach
+            for j in range(len(specs['data'])):
+                for prop in specs['data'][j]['properties']:
+                    print '@@@@@@@@@@@@', type(prop)
+                    if type(prop) is tuple:
+                        props += [prop[0]]
+                    else:
+                        props += [prop]
             print '@@@@@@@@@@@@', props
             if i == 0:
                 response = DRC.create_clusters(specs['graph'], props, reference=reference, not_exists=False, activated=True)
@@ -1876,6 +1858,8 @@ def createClusterContraint():
                 response = DRC.add_to_clusters(reference, specs['graph'], props, activated=True)
             if response:
                 reference = response['reference']
+            else:
+                print 'No response in interaction', i
         # for specs in cluster_specs:
         #     props = []
         #     print specs['data']['properties']
@@ -1887,7 +1871,7 @@ def createClusterContraint():
     else:
         response = {St.message: 'Cluster creation is not active!', "reference": None}
 
-    print response
+    print 'response', response
     return json.dumps(response)
 
 
