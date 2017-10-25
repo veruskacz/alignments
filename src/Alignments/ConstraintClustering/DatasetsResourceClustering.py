@@ -108,9 +108,11 @@ def validate_uri(prop_list):
         if Ut.is_nt_format(prop_list[i]) is False:
             prop_list[i] = "<{}>".format(prop_list[i])
 
+
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
     CREATING A SINGLE CLUSTER OR MULTIPLE CLUSTERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 # GIVEN A CONSTRAINT, CREATE A CLUSTER AND ADD RESOURCES FROM A SELECTED DATASET
 # WHENEVER ITS RESOURCES SATISFIES THE CLUSTER'S CONSTRAINTS PROVIDED
@@ -124,6 +126,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     :param count: just an int for counting the number of clusters
     :param reference: name associated to a group of clusters
     :param activated: boolean value for activating the function
+    :param group_name: the label for the reference
     :return:
     """
 
@@ -141,6 +144,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     property_list = ""
     properties = ""
     property_bind = ""
+    plans = []
 
     # FUNCTION ACTIVATION
     if activated is False:
@@ -164,6 +168,9 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
 
     # LIST OF PROPERTIES OR SINGLE VALUE PROPERTY
     if type(property_uri) is list:
+
+        plans = property_builder(property_uri)
+
         # print "WE ARE IN A LIST"
         for i in range(0, len(property_uri)):
             current = property_uri[i] if Ut.is_nt_format(property_uri[i]) is True else "<{}>".format(property_uri[i])
@@ -220,7 +227,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     #     # BIND CLUSTER CONSTRAINT URL
     #     BIND( MD5(lcase(str("""http://risis.eu/dataset/grid_20170712
     #       (<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>)
-	# 		 | (<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>)"""))) AS ?hashed )
+    # 	    | (<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>)"""))) AS ?hashed )
     #     BIND( CONCAT("http://risis.eu/cluster_constrain/cluster/",?hashed) as ?pre )
     #     BIND(iri(?pre) as ?URL_CONSTRAINT)
     #
@@ -230,13 +237,13 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     #
     #     # BIND PROPERTIES TO OVERCOME PROPERTY PATH
     #     BIND( IRI("<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>") AS ?prop_0 )
-		# BIND( IRI("<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>") AS ?prop_1 )
+    #     BIND( IRI("<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>") AS ?prop_1 )
     #
     #     # THE DATASET WHOSE RESOURCES NEED TO BE CLUSTERED
     #     GRAPH <http://risis.eu/dataset/grid_20170712>
     #     {
     #         ?resource (<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>)
-		# 		 | (<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>) ?value .
+    # 		 | (<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>) ?value .
     #
     #         # CONVERT THE VALUE TO LOWER CASE
     #         BIND(lcase(str(?value)) as ?str_value)
@@ -307,14 +314,14 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         # CONSTRAINT VALUES
         VALUES ?constraint {{ {5} }}
 
-        # BIND CLUSTER CONSTRAINT URL
-        BIND( MD5(lcase(str(""\"{3}{4}""\"))) AS ?hashed )
-        BIND( CONCAT("{8}cluster/",?hashed) as ?pre )
-        BIND(iri(?pre) as ?URL_CONSTRAINT)
-
         # BIND CLUSTER NAME URL
         BIND( replace(\"{9}#\",\"#\", MD5(STR(NOW()))) as ?name )
         BIND(iri(?name) as ?cluster_ref)
+
+        # BIND CLUSTER CONSTRAINT URL
+        BIND(MD5(str(?constraint)) AS ?hashed )
+        BIND( CONCAT("{8}cluster/",?hashed) as ?pre )
+        BIND(iri(?pre) as ?URL_CONSTRAINT)
 
         # BIND PROPERTIES TO OVERCOME PROPERTY PATH
         {11}
@@ -322,22 +329,30 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         # THE DATASET WHOSE RESOURCES NEED TO BE CLUSTERED
         GRAPH <{3}>
         {{
+            ### 1. THE RESOURCE AND ITS VALUE
             ?resource {4} ?value .
 
-            # CONVERT THE VALUE TO LOWER CASE
+            ### 2. CONVERT THE VALUE TO LOWER CASE
             BIND(lcase(str(?value)) as ?str_value)
 
-            # VALUE TRIMMING
+            ### 3. VALUE TRIMMING
             BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
             BIND(REPLACE(?str_value, ?regexp, '$1$2') AS ?trimmed_value)
+
+            ### 4. EXTRACT THE PROPERTY OR PROPERTY PATH FOR DOCUMENTATION {16}
+
+            ### 5. BIND THE PROPERTY OR PROPERTY PATH FOR CONFIRMATION {17}
         }}
+
+        ### FILTER BASED ON THE CONSTRAINT
         FILTER (?trimmed_value = lcase(?constraint))
+
+        ### FILTER THE RIGHT PROPERTY {18}
 
         # DO NOT CREATE THE SAME THING AGAIN OTHERWISE
         # THE SAME CLUSTER WILL HAVE MULTIPLE REFERENCES
         FILTER NOT EXISTS
         {{
-
             GRAPH <{1}{2}>
             {{
                 # 3. THE CONSTRAINT
@@ -354,8 +369,13 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         # 0          1           2      3            4              5             6           7
         Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
         # 8                    9           10          11              12          13             14         15
-        Ns.cluster_constraint, Ns.cluster, properties, property_bind, comment_ref, comment_ref_2, reference, Ns.void)
-    # print query
+        Ns.cluster_constraint, Ns.cluster, plans[3], property_bind, comment_ref, comment_ref_2, reference, Ns.void,
+        # 16      17        18
+        plans[0], plans[1], plans[2]
+    )
+    print query
+    # return {St.message: "THE CLUSTER WAS SUCCESSFULLY EXECUTED.",
+    #         St.result: "", 'group_name': group_name}
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
     inserted = Qry.boolean_endpoint_response(query)
@@ -411,7 +431,11 @@ def create_clusters(initial_dataset_uri, property_uri,
         3. REFERENCE: serves as the unifying name shared by all clusters.
 
     """
+
     print "\n>>> CREATING NEW CLUSTERS (MULTIPLE)\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
+    # ORDER THE PROPERTY
+    property_uri.sort()
 
     # FUNCTION ACTIVATION
     if activated is False:
@@ -507,9 +531,9 @@ def create_clusters(initial_dataset_uri, property_uri,
         print "NO CONSTRAINT COULD BE FOUND"
         return {St.message: "NO CONSTRAINT COULD BE FOUND", "reference": reference}
 
-    reference_uri= ""
-    # for i in range(1, 2):
-    for i in range(1, len(constraint_table)):
+    reference_uri = ""
+    for i in range(1, 2):
+    # for i in range(1, len(constraint_table)):
         if i == 1:
             reference_uri_response = create_cluster(
                 constraint_table[i], initial_dataset_uri, property_uri,
@@ -535,6 +559,7 @@ def create_clusters(initial_dataset_uri, property_uri,
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
     ADDING TO A SINGLE CLUSTER OR TO MULTIPLE CLUSTERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 # ADD NEW RESOURCES TO THE ALREADY EXISTING CLUSTER
 def add_to_cluster_0(cluster_uri, dataset_uri, property_uri, count=1, activated=False):
@@ -795,7 +820,7 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
 
             # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
             print "\n\tCLUSTER {}: {}".format(count, cluster_uri)
-            print "\t\t{:20} : {}".format("DATASET",dataset_uri)
+            print "\t\t{:20} : {}".format("DATASET", dataset_uri)
             print "\t\t{:20} : {}".format("CLUSTER SIZE BEFORE", count_list(cluster_uri))
             inserted = Qry.boolean_endpoint_response(query)
             print "\t\t{:20} : {}".format("INSERTED STATUS", inserted)
@@ -888,8 +913,8 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
         print "\t>>> NO COMPATIBLE CLUSTERS WERE FOUND."
     # ADD TO THE COMPATIBLE CLUSTERS FOUND
     else:
-        # for i in range(1, 2):
-        for i in range(1, len(cluster_table)):
+        for i in range(1, 2):
+        # for i in range(1, len(cluster_table)):
             #     print "cluster_table[i][0]:", cluster_table[0]
             add_to_cluster(cluster_table[i][0], dataset_uri, property_uri, count=i, activated=True)
 
@@ -908,6 +933,7 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
     CREATING A LINKSET OUT OF A CLUSTERS OR OUT OF
             CLUSTERS THAT SAME REFERENCE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 # GENERATE A LINKSET FROM A CLUSTER
 def linkset_from_cluster(cluster_uri, properties, user_label=None, count=1):
@@ -1054,8 +1080,90 @@ def linkset_from_clusters(reference, properties, activated=False):
         linkset_from_cluster(cluster_table[i][0], properties, user_label=label, count=i)
 
 
+def property_builder(properties):
+
+    rsc_plan = Buffer.StringIO()
+    bind_plan = Buffer.StringIO()
+    filter_plan = Buffer.StringIO()
+    filter_plan.write("\n\t\tFILTER( ")
+    compatibility = []
+    for n in range(0, len(properties)):
+
+        checked = Ut.split_property_path(properties[n])
+        # print "\nPROPERTY {}\t".format(n, properties[n])
+        # for item in checked:
+        #     print "\t", item
+
+        compatible = False
+        if len(checked) not in compatibility:
+            compatibility += [len(checked)]
+            compatible = True
+
+        if len(checked) ==  1:
+            if compatible is True:
+                rsc_plan.write( "\n\t\t\t{ ?resource ?prop_0_0 ?value . }" )
+                bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_0_0 ), ">" )  AS ?pattern_{0} ) """.format(n))
+                bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{0}) AS ?prop_uri_{0} )""".format(n))
+
+        else:
+
+            for i in range(0, len(checked)):
+
+                # START OF THE LOOP
+                if i == 0:
+                    # EXTRACTING THE PROPERTY PATH COMPOSITION IF ANY
+                    if compatible is True:
+                        if rsc_plan.getvalue():
+                            rsc_plan.write("\n\t\t\t UNION {{ \n\t?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(n, i))
+                        else:
+                            rsc_plan.write("\n\t\t\t{{ ?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(n, i))
+                        # BINDING THE PROPERTY PATH FOR AS A STRING LATER USE FOR FILTERING
+                        bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_{0}_{1})""".format(n, i))
+
+                # END OF THE LOOP
+                elif i == len(checked) -1:
+                    if compatible is True:
+                        rsc_plan.write("\n\t\t\t?object_{0}_{1} ?prop_{0}_{2} ?value . }}".format(n, i-1, i))
+                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}), ">") AS ?pattern_{1} )""".format(checked[i], n, i))
+                        bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{0}) AS ?prop_uri_{0} )""".format( n))
+
+                # MIDDLE OF THE LOOP
+                else:
+                    if compatible is True:
+                        rsc_plan.write("\n\t?object_{0}_{1} ?prop_{0}_{2} ?object_{0}_{2} .".format(n, i-1, i))
+                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}) """.format(checked[i], n, i))
+
+    # USING THE EXTRACTED PATH FOR FILTERING
+    property_list = ""
+    for i in range(0, len(compatibility)):
+        # print "Pattern: {}".format(compatibility[i])
+
+        for n in range(0, len(properties)):
+            checked = Ut.split_property_path(properties[n])
+            if len(checked) == compatibility[i]:
+                # print "yes"
+
+                if i == 0:
+                    value = """prop_uri_{}""".format(i)
+                    if property_list.__contains__(value) is False:
+                        property_list += """?prop_uri_{}""".format(i)
+                    if n == 0:
+                        filter_plan.write("""?pattern_{0} = STR(?prop_{1})""".format(i, n))
+                    else:
+                        filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
+                else:
+                    property_list += """, ?prop_uri_{}""".format(i)
+                    filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
+
+    filter_plan.write(" )")
+    # print "\nPlan:", rsc_plan.getvalue()
+    # print "\nCompatibility:", len(compatibility)
+    # print "\nBind plan:", bind_plan.getvalue()
+    # print "\nFiler plan:", filter_plan.getvalue()
+
+    return [rsc_plan.getvalue(), bind_plan.getvalue(), filter_plan.getvalue(), property_list]
+
 # TODO ADD THE DIFFERENCE => FILTER NOT EXISTS
 # TODO MERGING CLUSTER
 # TODO stardog-admin query list
 # TODO stardog-admin query kill 66
-
