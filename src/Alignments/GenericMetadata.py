@@ -2,6 +2,8 @@ import Alignments.NameSpace as Ns
 import Alignments.Settings as St
 import Alignments.Query as Qry
 import Alignments.Linksets.Linkset as Ls
+import numbers
+import math
 
 
 def linkset_metadata(specs, display=False):
@@ -307,7 +309,16 @@ def diff_meta(specs):
 
 def linkset_refined_metadata(specs, display=False):
 
+    # CONDITIONAL METADATA TO APPEND TO THE REFINED LINKSET
+
     extra = ""
+
+    if St.extended_graph in specs[St.source] and len(specs[St.source][St.extended_graph]) > 0:
+        extra += "\n        alivocab:subjectsExtended    <{}> ;".format(specs[St.source][St.extended_graph])
+
+    if St.extended_graph in specs[St.target] and len(specs[St.target][St.extended_graph]) > 0:
+        extra += "\n        alivocab:objectsExtended     <{}> ;".format(specs[St.target][St.extended_graph])
+
     if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
         extra += "\n        alivocab:subjectsReducer     <{}> ;".format(specs[St.source][St.reducer])
 
@@ -320,8 +331,10 @@ def linkset_refined_metadata(specs, display=False):
     if St.threshold in specs and len(str(specs[St.threshold])) > 0:
         extra += "\n        alivocab:threshold           {} ;".format(str(specs[St.threshold]))
 
-    if St.delta in specs and len(str(specs[St.delta])) > 0:
-        extra += "\n        alivocab:delta               {} ;".format(str(specs[St.delta]))
+    if St.delta in specs and str(specs[St.delta]) != "0":
+        converted = convert_to_float(str(specs[St.delta]))
+        if math.isnan(converted) is False:
+            extra += "\n        alivocab:delta               {} ;".format(converted)
 
     source = specs[St.source]
     target = specs[St.target]
@@ -459,3 +472,10 @@ def linkset_refined_metadata(specs, display=False):
         return {"query": query, "message": message}
     else:
         return {"query": None, "message": message}
+
+def convert_to_float(value):
+    # print isinstance(u'\x30', numbers.Rational)
+    try:
+        return float(value)
+    except:
+        return float("NaN")
