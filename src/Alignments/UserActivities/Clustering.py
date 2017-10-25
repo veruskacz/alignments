@@ -34,9 +34,9 @@ def cluster(graph):
         if has_parent_1 is False and has_parent_2 is False:
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count))
-            parent = "_{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
-                else "_P{}".format(hash_value)
+            hash_value = hash(date + str(count) + graph)
+            parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
+                else "P{}".format(hash_value)
 
             # ASSIGN A PARENT TO BOTH CHILD
             root[child_1] = parent
@@ -128,9 +128,9 @@ def cluster_triples(graph):
         if has_parent_1 is False and has_parent_2 is False:
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count))
-            parent = "_{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
-                else "_P{}".format(hash_value)
+            hash_value = hash(date + str(count) + graph)
+            parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
+                else "P{}".format(hash_value)
 
             # ASSIGN A PARENT TO BOTH CHILD
             root[child_1] = parent
@@ -226,9 +226,9 @@ def cluster_triples2(graph, limit=0):
                 # Do not add new clusters
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count))
-            parent = "_{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
-                else "_P{}".format(hash_value)
+            hash_value = hash(date + str(count) + graph)
+            parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
+                else "P{}".format(hash_value)
 
             # ASSIGN A PARENT TO BOTH CHILD
             root[child_1] = parent
@@ -384,9 +384,9 @@ def cluster_dataset(dataset_uri, datatype_uri, graph_list=None):
                 if has_parent_1 is False and has_parent_2 is False:
 
                     # GENERATE THE PARENT
-                    hash_value = hash(date + str(count))
-                    parent = "_{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
-                        else "_P{}".format(hash_value)
+                    hash_value = hash(date + str(count) + dataset_uri)
+                    parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
+                        else "P{}".format(hash_value)
 
                     # ASSIGN A PARENT TO BOTH CHILD
                     root[child_1] = parent
@@ -498,7 +498,7 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
     """
     prop = ""
     union = ""
-    print "\nCLUSTER SIZE: {}".format(len(g_cluster))
+    # print "\nCLUSTER SIZE: {}".format(len(g_cluster))
 
     for uri in properties:
         prop += " <{}>".format(uri.strip())
@@ -537,12 +537,74 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
         {}
     }} {} """.format(select, prop, union, group_by)
 
-    print query
+    # print query
     response = sparql2matrix(query)
     if display is True:
         Qry.display_matrix(response, spacing=50, is_activated=True)
     return response
 
+
+def linkset_from_cluster():
+
+    query = """
+    # DATASETS
+    {{
+        # CLUSTER
+        GRAPH <{}>
+        {{
+            
+        }}
+    }}
+    """
+
+
+" >>> CLUSTERING RESOURCES BASED ON COUNTRY CODE"
+# groups0 = cluster_triples("http://risis.eu/dataset/grid_country")
+# count = 0
+# print ""
+# for cluster1 in groups0.items():
+#
+#     count += 1
+#     country = None
+#     for instance in cluster1[1]:
+#         if str(instance).__contains__("http://") is False:
+#             country = instance
+#     if country is not None:
+#         print "{} in {} {}".format(cluster1[0], country, len(cluster1[1]))
+# exit(0)
+
+" >>> COMPARE LINKSET FOR MERGED CLUSTERS"
+# groups1 = cluster_triples(
+#     "http://risis.eu/linkset/orgref_20170703_grid_20170712_approxStrSim_Organisation_Name_N221339442")
+# groups2 = cluster_triples(
+#     "http://risis.eu/linkset/orgref_20170703_grid_20170712_approxStrSim_Organisation_Name_N212339613")
+# counter = 0
+# print ""
+# for cluster1 in groups1.items():
+#     counter += 1
+#     stop = False
+#     outer = "CLUSTER {} of size {}".format(cluster1[0], len(cluster1[1]))
+#
+#     # for instance in cluster1[1]:
+#     #     print "\t{}".format(instance)
+#
+#     for instance in cluster1[1]:
+#         for other_cluster in groups2.items():
+#             if instance in other_cluster[1]:
+#                 stop = True
+#                 inner = "LINKED TO CLUSTER {} OF SIZE {}".format(other_cluster[0], len(other_cluster[1]))
+#                 if len(cluster1[1]) != len(other_cluster[1]):
+#                     print "{} {}".format(outer, inner)
+#                 # for o_cluster in other_cluster[1]:
+#                 #     print "\t\t\t{}".format(o_cluster)
+#             if stop:
+#                 break
+#     if counter == 5000:
+#         break
+
+
+    # if len(item['cluster']) > 1:
+    #     print "\n{:10}\t{:3}\t{}".format(item['parent'], len(item['cluster']), item['sample'])
 
 # test = [('x','y'), ('x','B'), ('w','B'), ('x','w'), ('e','d'), ('e','y'),
 # ('s', 'w'),('a','b'),('h','j'),('k','h'),('k','s'),('s','a')]
