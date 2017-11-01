@@ -432,7 +432,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
             {3}
         }}
     }}
-    """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, date, label, Ns.void)
+    """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, ref_code, label, Ns.void)
     # print "reference_query:", reference_query
     reference_response = Qry.sparql_xml_to_matrix(reference_query)
     # print "reference_response:", reference_response
@@ -440,12 +440,12 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     # print "reference_result:", reference_result
 
     if reference_result:
-        print "\n\tCLUSTER {}: {}".format(count, "{}{}_{}".format(Ns.cluster, date, label))
+        print "\n\tCLUSTER {}: {}".format(count, "{}{}_{}".format(Ns.cluster, ref_code, label))
         print "\t\t{:17} : {}".format("CONSTRAINT", constraint)
         print "\t\t{:17} : {}".format("GROUP NAME", group_name)
         print "\t\t{:17} : {}".format("REFERENCE", reference_result[1][0])
         print "\t\t{:17} : {}".format("Nbr OF REFERENCES", len(reference_result) - 1)
-        print "\t\t{:17} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, date, label)))
+        print "\t\t{:17} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, ref_code, label)))
 
     else:
         print "\n\tCLUSTER {}: {}".format(count, None)
