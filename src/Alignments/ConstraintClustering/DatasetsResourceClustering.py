@@ -296,9 +296,11 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     # """
 
     if reference is None:
+        ref_code = Ut.hash_it("{}".format(datetime.datetime.today().strftime(_format)))
+        reference = "{}reference/{})".format(Ns.cluster, ref_code)
         comment_ref = ""
         comment_ref_2 = "#"
-        ref_code = Ut.hash_it("{}".format(datetime.datetime.today().strftime(_format)))
+
     else:
         comment_ref = "#"
         comment_ref_2 = ""
@@ -460,7 +462,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.cluster, label)))
 
     return {St.message: "THE CLUSTER WAS SUCCESSFULLY EXECUTED.",
-            St.result: reference_result, 'group_name': group_name}
+            St.result: reference_result, 'group_name': group_name, "reference": reference}
 
 
 # GENERATE MULTIPLE CLUSTERS FROM AN INITIAL DATASET
@@ -590,7 +592,7 @@ def create_clusters(initial_dataset_uri, property_uri,
             # print "reference_uri_response:", reference_uri_response
 
             if reference_uri_response[St.result]:
-                reference_uri = reference_uri_response[St.result]
+                reference_uri = reference_uri_response["reference"]
 
         else:
             if reference_uri:
