@@ -162,8 +162,8 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
 
     # FUNCTION ACTIVATION
     if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATE", St.result: None, 'group_name': None, "reference": None}
+        print "\tTHE FUNCTION IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED", St.result: None, 'group_name': None, "reference": None}
 
     # LIST OF CONSTRAINT OR SINGLE VALUE
     if type(cluster_constraint) is list:
@@ -644,8 +644,8 @@ def create_clusters(initial_dataset_uri, property_uri,
 
     # FUNCTION ACTIVATION
     if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATE", "reference": ""}
+        print "\tTHE FUNCTION IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED", "reference": ""}
 
     constraint_table = None
     property_list = ""
@@ -730,7 +730,7 @@ def create_clusters(initial_dataset_uri, property_uri,
         constraint_table = constraint_table_response[St.result]
 
     print "TABLE OF CONSTRAINTS"
-    Qry.display_matrix(constraint_table_response, is_activated=True, limit=10)
+    Qry.display_matrix(constraint_table_response, is_activated=True, limit=5)
 
     if constraint_table is None:
         print "NO CONSTRAINT COULD BE FOUND"
@@ -753,8 +753,8 @@ def create_clusters(initial_dataset_uri, property_uri,
             create_cluster(constraint_table[i], initial_dataset_uri, property_uri,
                 count=i, reference=reference_uri, group_name=group_name, strong=strong, activated=True)
 
-        if i == 3:
-            break
+        # if i == 3:
+        #     break
 
     # print "reference_uri:",
 
@@ -790,7 +790,7 @@ def add_to_cluster_0(cluster_uri, dataset_uri, property_uri, count=1, activated=
 
     # FUNCTION ACTIVATION
     if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
+        print "\tTHE FUNCTION IS NOT ACTIVATE"
         return "THE FUNCTION IS NOT ACTIVATE"
 
     # CHECK WHETHER THE CLUSTER EXISTS
@@ -905,8 +905,8 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
 
     # FUNCTION ACTIVATION
     if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
-        return "THE FUNCTION IS NOT ACTIVATE"
+        print "\tTHE FUNCTION IS NOT ACTIVATED"
+        return "THE FUNCTION IS NOT ACTIVATED"
 
     # CHECK WHETHER THE CLUSTER EXISTS AND EXTRACT THE CLUSTER CONSTRAINT
     # LABEL REQUIRED FOR A RESOURCE TO BE AN INDIVIDUAL OF THIS CLUSTER
@@ -1041,8 +1041,6 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
 # ADD TO EXISTING CLUSTERS
 def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
 
-
-
     print "\n>>> ADDING TO EXISTING CLUSTERS (MULTIPLE)\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     if reference is None:
@@ -1051,8 +1049,8 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
 
     # FUNCTION ACTIVATION
     if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATE", "reference": None}
+        print "\tTHE FUNCTION IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED", "reference": None}
 
     resources = ""
 
@@ -1114,7 +1112,8 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
             print "\nTABLE OF NOT COMPATIBLE CLUSTER"
         else:
             print "\t>>> TABLE OF COMPATIBLE CLUSTER"
-        Qry.display_matrix(cluster_table_response, is_activated=True)
+
+        Qry.display_matrix(cluster_table_response, limit=5, is_activated=True)
         return cluster_matrix
 
     # ----------------------------------------------------------------
@@ -1136,8 +1135,9 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
         for i in range(1, len(cluster_table)):
             # print "cluster_table[i][0]:", cluster_table[0]
             add_to_cluster(cluster_table[i][0], dataset_uri, property_uri, count=i, activated=True)
-            if i == 3:
-                break
+
+            # if i == 3:
+            #     break
 
     # ----------------------------------------------------------------
     # >>> PHASE 2: CREATION OF NEW CLUSTERS
@@ -1213,7 +1213,12 @@ def helper(specs, is_source=True):
 
 
 # GENERATE A LINKSET FROM A CLUSTER
-def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1):
+def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated=False):
+
+    # FUNCTION ACTIVATION
+    if activated is False:
+        print "\tTHE FUNCTION IS NOT ACTIVATED"
+        return "THE FUNCTION IS NOT ACTIVATED"
 
     values = ""
     constraints = ""
@@ -1306,7 +1311,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1):
         {{
             GRAPH <{3}{4}>
             {{
-                ?resource_0  ll:sameAs ?resource_1 .
+                ?resource_1  ll:sameAs ?resource_2 .
             }}
         }}
         WHERE
@@ -1314,39 +1319,39 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1):
             # TAKE 2 RANDOM RESOURCES FROM THE CLUSTER
             GRAPH <{1}>
             {{
-                <{1}> ll:list ?resource_0 .
                 <{1}> ll:list ?resource_1 .
+                <{1}> ll:list ?resource_2 .
             }}
             # FIND SOME INFORMATION ABOUT RESOURCE_O WITHIN A RANDOM GRAPH 1
             {2}
             # FIND THE SAME INFORMATION ABOUT RESOURCE_1 WITHIN A DIFFERENT RANDOM GRAPH 2
             {5}
-            FILTER(str(?dataset_0) > str(?dataset_1))
+            FILTER(str(?dataset_1) > str(?dataset_2))
         }}
         """.format(Ns.alivocab, cluster_uri, helper(specs, is_source=True),
                    Ns.linkset, label, helper(specs, is_source=False))
 
-    print query
+    # print query
 
-    # print "\nRUN {}: {}".format(count, cluster_uri)
-    # print "\t{:20}: {}".format("LINKSET", label)
-    # print "\t{:20}: {}".format("LINKSET SIZE BEFORE", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
-    # # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
-    # inserted = Qry.boolean_endpoint_response(query)
-    # print "\t{:20}: {}".format("LINKSET SIZE AFTER", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
-    # print "INSERTED STATUS: {}".format(inserted)
-    # # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.linkset, label)))
+    print "\nRUN {}: {}".format(count, cluster_uri)
+    print "\t{:20}: {}".format("LINKSET", label)
+    print "\t{:20}: {}".format("LINKSET SIZE BEFORE", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
+    # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
+    inserted = Qry.boolean_endpoint_response(query)
+    print "\t{:20}: {}".format("LINKSET SIZE AFTER", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
+    print "INSERTED STATUS: {}".format(inserted)
+    # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.linkset, label)))
 
 
 # FROM MULTIPLE CLUSTERS TO A SINGLE MULTI SOURCES LINKSET
-def linkset_from_clusters(reference, properties, activated=False):
+def linkset_from_clusters(specs, reference, activated=False):
 
     print "\n>>> CREATING A MIXED RESOURCES-LINKSET\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
     # FUNCTION ACTIVATION
     if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATE"
-        return "THE FUNCTION IS NOT ACTIVATE"
+        print "\tTHE FUNCTION IS NOT ACTIVATED"
+        return "THE FUNCTION IS NOT ACTIVATED"
 
     # EXTRACT ALL CLUSTERS THAT SHARE THE SAME INITIAL DATASET THERE ARE DERIVED FROM
     query = """
@@ -1356,18 +1361,18 @@ def linkset_from_clusters(reference, properties, activated=False):
     {{
         GRAPH ?cluster
         {{
-            ?cluster ll:hasReference  \"{1}\" .
+            ?cluster ll:hasReference  <{1}> .
         }}
     }}
     """.format(Ns.alivocab, reference)
-    # print query
+    print query
 
     # RUN THE QUERY AGAINST  THE TRIPLE STORE
     cluster_table_response = Qry.sparql_xml_to_matrix(query)
     cluster_table = cluster_table_response[St.result]
 
     print "\t>>> TABLE OF COMPATIBLE CLUSTER(S) FOUND"
-    Qry.display_matrix(cluster_table_response, is_activated=True)
+    Qry.display_matrix(cluster_table_response, limit=5, is_activated=True)
     # print "cluster_table:", cluster_table_response
     if cluster_table is None:
         return "NO LINKSET COULD BE GENERATED AS NOT MATCHING CLUSTER COULD BE FOUND."
@@ -1385,7 +1390,10 @@ def linkset_from_clusters(reference, properties, activated=False):
 
     # CREATE AND ADD RESOURCES TO THE LINKSET
     for i in range(1, len(cluster_table)):
-        linkset_from_cluster(cluster_table[i][0], properties, user_label=label, count=i)
+        linkset_from_cluster(specs, cluster_table[i][0], user_label=label, count=i)
+
+        if i == 3:
+            break
 
 
 def property_builder(properties):
