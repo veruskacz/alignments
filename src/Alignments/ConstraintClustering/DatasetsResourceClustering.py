@@ -298,11 +298,13 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     if reference is None:
         comment_ref = ""
         comment_ref_2 = "#"
+        ref_code = Ut.hash_it("{}".format(datetime.datetime.today().strftime(_format)))
     else:
         comment_ref = "#"
         comment_ref_2 = ""
+        ref_code = Ut.extract_ref(reference)
 
-    date = Ut.hash_it("{}".format(datetime.datetime.today().strftime(_format)))
+
     query = """
     PREFIX ll: <{0}>
     PREFIX prov: <{7}>
@@ -317,8 +319,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
             {13}?insertGraphURI  ll:hasReference  <{14}> .
 
             # 2. THE REFERENCE LABEL
-            {12}?cluster_ref  rdfs:label  \"{6}\" .
-            {13}?cluster_ref  rdfs:label  \"{6}\" .
+            {12}{13}?cluster_ref  rdfs:label  \"{6}\" .
 
             # 3. THE CONSTRAINT
             ?insertGraphURI  ll:hasConstraint  ?URL_CONSTRAINT .
@@ -399,7 +400,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         # 8                    9           10          11              12          13             14         15
         Ns.cluster_constraint, Ns.cluster, plans[3], property_bind, comment_ref, comment_ref_2, reference, Ns.void,
         # 16      17        18        19     20
-        plans[0], plans[1], plans[2], fetch, date
+        plans[0], plans[1], plans[2], fetch, ref_code
     )
     # print query
     # return {St.message: "THE CLUSTER WAS SUCCESSFULLY EXECUTED.",
@@ -413,6 +414,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     reference_query = """
     PREFIX ll: <{0}>
     PREFIX prov: <{1}>
+    PREFIX void: <{7}>
     SELECT DISTINCT ?cluster_ref ?cluster
     {{
         # THE CLUSTERED GRAPH
@@ -430,7 +432,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
             {3}
         }}
     }}
-    """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, date, label)
+    """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, date, label, Ns.void)
     # print "reference_query:", reference_query
     reference_response = Qry.sparql_xml_to_matrix(reference_query)
     # print "reference_response:", reference_response
@@ -890,7 +892,7 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
 
     if reference is None:
         print "AS THE REFERENCE IS NOT PROVIDED, THE PROCESS WAS TERMINATED."
-        return {St.message: "THE FUNCTION IS NOT ACTIVATE", "reference": None}
+        return {St.message: "AS THE REFERENCE IS NOT PROVIDED, THE PROCESS WAS TERMINATED.", "reference": None}
 
     # FUNCTION ACTIVATION
     if activated is False:
