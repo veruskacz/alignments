@@ -897,7 +897,7 @@ def extract_ref(text):
     # example = """(" <http://www.grid.ac/ontology/yfshvbsuov_code>")"""
     if text is None:
         return []
-    result = re.findall(".*/(.*)_.*", text)
+    result = re.findall(".*/([^_]*)_.*", text)
     if len(result) == 0:
         local = get_uri_local_name(text)
         return local

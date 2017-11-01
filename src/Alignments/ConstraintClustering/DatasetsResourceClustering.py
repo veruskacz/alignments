@@ -130,7 +130,7 @@ def validate_uri(prop_list):
 # GIVEN A CONSTRAINT, CREATE A CLUSTER AND ADD RESOURCES FROM A SELECTED DATASET
 # WHENEVER ITS RESOURCES SATISFIES THE CLUSTER'S CONSTRAINTS PROVIDED
 def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
-                   reference=None, group_name=None, activated=False):
+                   reference=None, group_name=None, strong=True, activated=False):
 
     """
     :param cluster_constraint: a ascii string to satisfy for example country name: BENIN
@@ -306,7 +306,10 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         comment_ref_2 = ""
         ref_code = Ut.get_uri_local_name(reference)
 
-    print "ref_code", ref_code
+    if strong is True:
+        strong_append = "#"
+    else:
+        strong_append = ""
 
     query = """
     PREFIX ll: <{0}>
@@ -322,8 +325,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
             {13}?insertGraphURI  ll:hasReference  <{14}> .
 
             # 2. THE REFERENCE LABEL
-            {12}?cluster_ref  rdfs:label  \"{6}\" .
-            {13}?cluster_ref  rdfs:label  \"{6}\" .
+            ?cluster_ref  rdfs:label  \"{6}\" .
 
             # 3. THE CONSTRAINT
             ?insertGraphURI  ll:hasConstraint  ?URL_CONSTRAINT .
@@ -388,13 +390,17 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         {{
             GRAPH ?cluster
             {{
+                # THE REFERENCE
+                {21}{12}?insertGraphURI  ll:hasReference  ?cluster_ref .
+                {21}{13}?insertGraphURI  ll:hasReference  <{14}> .
+
                 # 3. THE CONSTRAINT
                 ?cluster  ll:hasConstraint  ?URL_CONSTRAINT .
 
                 # 4. CONSTRAINT'S METADATA
                 ?URL_CONSTRAINT  ll:hasValue  ?constraint .
                 ?URL_CONSTRAINT  void:target  <{3}> .
-                #?URL_CONSTRAINT  ll:hasProperty  {19} .
+                #MAKING STRICTER BY INCLUDING THE PROPERTIES TO THE RESTRICTION  {19} .
             }}
         }}
     }}
@@ -403,10 +409,111 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
         # 8                    9           10          11              12          13             14         15
         Ns.cluster_constraint, Ns.cluster, plans[3], property_bind, comment_ref, comment_ref_2, reference, Ns.void,
-        # 16      17        18        19     20
-        plans[0], plans[1], plans[2], fetch, ref_code
+        # 16      17        18        19     20        21
+        plans[0], plans[1], plans[2], fetch, ref_code, strong_append
     )
     # print query
+
+    query_strong_true = """
+    PREFIX ll: <{0}>
+    PREFIX prov: <{7}>
+    PREFIX void: <{15}>
+    INSERT
+    {{
+        # THE CLUSTERED GRAPH
+        GRAPH ?cluster
+        {{
+            # 1. THE REFERENCE
+            {12}?cluster  ll:hasReference  ?cluster_ref .
+            {13}?cluster  ll:hasReference  <{14}> .
+
+            # 2. THE REFERENCE LABEL
+            ?cluster_ref  rdfs:label  \"{6}\" .
+
+            # 3. THE CONSTRAINT
+            ?insertGraphURI  ll:hasConstraint  ?URL_CONSTRAINT .
+
+            # 4. CONSTRAINT'S METADATA
+            ?URL_CONSTRAINT  ll:hasValue  ?constraint .
+            ?URL_CONSTRAINT  void:target  <{3}> .
+            ?URL_CONSTRAINT  ll:hasProperty  {10} .
+
+            # 5. THE LIST OR RESOURCES
+            ?cluster  ll:list  ?resource .
+        }}
+    }}
+    WHERE
+    {{
+        # NAME
+        BIND( "{20}" AS ?code)
+
+        # CONSTRAINT VALUES
+        VALUES ?constraint {{ {5} }}
+
+        # BIND CLUSTER NAME URL
+        BIND( replace(\"{9}reference/#\",\"#\", ?code) as ?name )
+        BIND(iri(?name) as ?cluster_ref)
+
+        # BIND CLUSTER CONSTRAINT URL
+        BIND(MD5(str(?constraint)) AS ?hashed )
+        BIND( CONCAT("{8}cluster/constraint/",?hashed) as ?pre )
+        BIND(iri(?pre) as ?URL_CONSTRAINT)
+
+        # BIND PROPERTIES TO OVERCOME PROPERTY PATH
+        {11}
+
+        # THE DATASET WHOSE RESOURCES NEED TO BE CLUSTERED
+        GRAPH <{3}>
+        {{
+            ### 1. THE RESOURCE AND ITS VALUE
+            ?resource {4} ?value .
+
+            ### 2. CONVERT THE VALUE TO LOWER CASE
+            BIND(lcase(str(?value)) as ?str_value)
+
+            ### 3. VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?str_value, ?regexp, '$1$2') AS ?trimmed_value)
+
+            ### 4. EXTRACT THE PROPERTY OR PROPERTY PATH FOR DOCUMENTATION {16}
+
+            ### 5. BIND THE PROPERTY OR PROPERTY PATH FOR CONFIRMATION {17}
+        }}
+
+        ### FILTER BASED ON THE CONSTRAINT
+        FILTER (?trimmed_value = lcase(?constraint))
+
+        ### FILTER THE RIGHT PROPERTY {18}
+
+        # DO NOT CREATE THE SAME THING AGAIN OTHERWISE
+        # THE SAME CLUSTER WILL HAVE MULTIPLE REFERENCES
+        {{
+            GRAPH ?cluster
+            {{
+                # 3. THE CONSTRAINT
+                ?cluster  ll:hasConstraint  ?URL_CONSTRAINT .
+
+                # 4. CONSTRAINT'S METADATA
+                ?URL_CONSTRAINT  ll:hasValue  ?constraint .
+                ?URL_CONSTRAINT  void:target  <{3}> .
+                #MAKING STRICTER BY INCLUDING THE PROPERTIES TO THE RESTRICTION  {19} .
+            }}
+        }}
+    }}
+    """.format(
+        # 0          1           2      3            4              5             6           7
+        Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
+        # 8                    9           10          11              12          13             14         15
+        Ns.cluster_constraint, Ns.cluster, plans[3], property_bind, comment_ref, comment_ref_2, reference, Ns.void,
+        # 16      17        18        19     20        21
+        plans[0], plans[1], plans[2], fetch, ref_code, strong_append
+    )
+    # print query_strong_true
+
+
+
+
+
     # return {St.message: "THE CLUSTER WAS SUCCESSFULLY EXECUTED.",
     #         St.result: "", 'group_name': group_name}
 
@@ -446,24 +553,66 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
 
 
     print "\n\tCLUSTER {}: {}".format(count, "{}{}_{}".format(Ns.cluster, ref_code, label))
-    print "\t\t{:17} : {}".format("CONSTRAINT", constraint)
-    print "\t\t{:17} : {}".format("GROUP NAME", group_name)
-    print "\t\t{:17} : {}".format("REFERENCE", reference)
+    print "\t\t{:19} : {}".format("REFERENCE CODE", ref_code)
+    print "\t\t{:19} : {}".format("CONSTRAINT", constraint)
+    print "\t\t{:19} : {}".format("GROUP NAME", group_name)
+    print "\t\t{:19} : {}".format("REFERENCE", reference)
     if reference_result:
-        print "\t\t{:17} : {}".format("Nbr OF REFERENCES", len(reference_result) - 1)
-    print "\t\t{:17} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, ref_code, label)))
+        print "\t\t{:19} : {}".format("Nbr OF REFERENCES", len(reference_result) - 1)
+    print "\t\t{:19} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, ref_code, label)))
 
-    # else:
-    #     print "\n\tCLUSTER {}: {}".format(count, None)
-    #     print "\t\t{:17} : {}".format("CONSTRAINT", constraint)
-    #     print "\t\t{:17} : {}".format("GROUP NAME", group_name)
-    #     print "\t\t{:17} : {}".format("REFERENCE", None)
-    #     print "\t\t{:17} : {}".format("CLUSTER SIZE", None)
-
-    print "\t\t{:17} : {}".format("DERIVED FROM", dataset_uri)
+    print "\t\t{:19} : {}".format("DERIVED FROM", dataset_uri)
 
     # print "\t\t{:17} : {}".format("INSERTED STATUS", inserted)
     # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.cluster, label)))
+
+
+    if strong is True:
+
+        Qry.boolean_endpoint_response(query_strong_true)
+
+        # FETCH THE CLUSTER REFERENCE URL
+        reference_query = """
+        PREFIX ll: <{0}>
+        PREFIX prov: <{1}>
+        PREFIX void: <{7}>
+        SELECT DISTINCT ?cluster_ref ?cluster
+        {{
+            # CONSTRAINT VALUES
+            VALUES ?constraint {{ {8} }}
+            # THE CLUSTERED GRAPH
+            GRAPH ?cluster
+            {{
+                # 1. THE REFERENCE
+                ?cluster  ll:hasReference  ?cluster_ref .
+
+                # 3. THE CONSTRAINT
+                ?cluster  ll:hasConstraint  ?URL_CONSTRAINT .
+
+                # 4. CONSTRAINT'S METADATA
+                ?URL_CONSTRAINT  ll:hasValue  ?constraint .
+                ?URL_CONSTRAINT  void:target  <{2}> .
+                {3}
+            }}
+        }}
+        """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, ref_code, label, Ns.void, constraint_v)
+        # print "reference_query:", reference_query
+        # RUN FETCH
+        reference_response = Qry.sparql_xml_to_matrix(reference_query)
+        # print "reference_response:", reference_response
+        reference_result = reference_response[St.result]
+        # print "reference_result:", reference_result
+
+        if reference_result:
+            print "\n\tADDING TO THE EXISTING OLD CLUSTER INSTEAD"
+            print "\t\t{:19} : {}".format("OLD CLUSTER", reference_result[1][1])
+            print "\t\t{:19} : {}".format("OLD REFERENCE CODE", Ut.extract_ref(reference_result[1][1]))
+            print "\t\t{:19} : {}".format("CONSTRAINT", constraint)
+            print "\t\t{:19} : {}".format("GROUP NAME", group_name)
+            print "\t\t{:19} : {}".format("REFERENCE", reference)
+            print "\t\t{:19} : {}".format("Nbr OF REFERENCES", len(reference_result) - 1)
+            print "\t\t{:19} : {}".format("CLUSTER SIZE", count_list("{}".format(reference_result[1][1])))
+            print "\t\t{:19} : {}".format("DERIVED FROM", dataset_uri)
 
     return {St.message: "THE CLUSTER WAS SUCCESSFULLY EXECUTED.",
             St.result: reference_result, 'group_name': group_name, "reference": reference}
@@ -471,7 +620,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
 
 # GENERATE MULTIPLE CLUSTERS FROM AN INITIAL DATASET
 def create_clusters(initial_dataset_uri, property_uri,
-                    reference=None, group_name=None, not_exists=False, activated=False):
+                    reference=None, group_name=None, not_exists=False, strong=True, activated=False):
 
     # IF THE REFERENCE IS NONE OR NOT GIVEN,
     # A REFERENCE IS GENERATED IN THE FIRST ITERATION OF THIS FUNCTION
@@ -594,7 +743,7 @@ def create_clusters(initial_dataset_uri, property_uri,
 
         if i == 1:
             response = create_cluster(constraint_table[i], initial_dataset_uri, property_uri,
-                count=i, reference=reference, group_name=group_name, activated=True)
+                count=i, reference=reference, group_name=group_name, strong=strong, activated=True)
             # print "reference_uri_response:", response
 
             reference_uri = response["reference"]
@@ -602,7 +751,7 @@ def create_clusters(initial_dataset_uri, property_uri,
         else:
             # print reference_uri
             create_cluster(constraint_table[i], initial_dataset_uri, property_uri,
-                count=i, reference=reference_uri, group_name=group_name, activated=True)
+                count=i, reference=reference_uri, group_name=group_name, strong=strong, activated=True)
 
         if i == 3:
             break
