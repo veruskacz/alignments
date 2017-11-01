@@ -163,7 +163,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     # FUNCTION ACTIVATION
     if activated is False:
         print "THE FUNCTION IS NOT ACTIVATE"
-        return "THE FUNCTION IS NOT ACTIVATE"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATE", St.result: None, 'group_name': None, "reference": None}
 
     # LIST OF CONSTRAINT OR SINGLE VALUE
     if type(cluster_constraint) is list:
@@ -297,15 +297,16 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
 
     if reference is None:
         ref_code = Ut.hash_it("{}".format(datetime.datetime.today().strftime(_format)))
-        reference = "{}reference/{})".format(Ns.cluster, ref_code)
+        reference = "{}reference/{}".format(Ns.cluster, ref_code)
         comment_ref = ""
         comment_ref_2 = "#"
 
     else:
         comment_ref = "#"
         comment_ref_2 = ""
-        ref_code = Ut.extract_ref(reference)
+        ref_code = Ut.get_uri_local_name(reference)
 
+    print "ref_code", ref_code
 
     query = """
     PREFIX ll: <{0}>
@@ -436,25 +437,27 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     }}
     """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, ref_code, label, Ns.void)
     # print "reference_query:", reference_query
+    # RUN FETCH
     reference_response = Qry.sparql_xml_to_matrix(reference_query)
     # print "reference_response:", reference_response
     reference_result = reference_response[St.result]
     # print "reference_result:", reference_result
 
-    if reference_result:
-        print "\n\tCLUSTER {}: {}".format(count, "{}{}_{}".format(Ns.cluster, ref_code, label))
-        print "\t\t{:17} : {}".format("CONSTRAINT", constraint)
-        print "\t\t{:17} : {}".format("GROUP NAME", group_name)
-        print "\t\t{:17} : {}".format("REFERENCE", reference_result[1][0])
-        print "\t\t{:17} : {}".format("Nbr OF REFERENCES", len(reference_result) - 1)
-        print "\t\t{:17} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, ref_code, label)))
 
-    else:
-        print "\n\tCLUSTER {}: {}".format(count, None)
-        print "\t\t{:17} : {}".format("CONSTRAINT", constraint)
-        print "\t\t{:17} : {}".format("GROUP NAME", group_name)
-        print "\t\t{:17} : {}".format("REFERENCE", None)
-        print "\t\t{:17} : {}".format("CLUSTER SIZE", None)
+    print "\n\tCLUSTER {}: {}".format(count, "{}{}_{}".format(Ns.cluster, ref_code, label))
+    print "\t\t{:17} : {}".format("CONSTRAINT", constraint)
+    print "\t\t{:17} : {}".format("GROUP NAME", group_name)
+    print "\t\t{:17} : {}".format("REFERENCE", reference)
+    if reference_result:
+        print "\t\t{:17} : {}".format("Nbr OF REFERENCES", len(reference_result) - 1)
+    print "\t\t{:17} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, ref_code, label)))
+
+    # else:
+    #     print "\n\tCLUSTER {}: {}".format(count, None)
+    #     print "\t\t{:17} : {}".format("CONSTRAINT", constraint)
+    #     print "\t\t{:17} : {}".format("GROUP NAME", group_name)
+    #     print "\t\t{:17} : {}".format("REFERENCE", None)
+    #     print "\t\t{:17} : {}".format("CLUSTER SIZE", None)
 
     print "\t\t{:17} : {}".format("DERIVED FROM", dataset_uri)
 
@@ -468,6 +471,9 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
 # GENERATE MULTIPLE CLUSTERS FROM AN INITIAL DATASET
 def create_clusters(initial_dataset_uri, property_uri,
                     reference=None, group_name=None, not_exists=False, activated=False):
+
+    # IF THE REFERENCE IS NONE OR NOT GIVEN,
+    # A REFERENCE IS GENERATED IN THE FIRST ITERATION OF THIS FUNCTION
 
     """ CREATE CLUSTERS TAKES AS INPUT
 
@@ -583,22 +589,19 @@ def create_clusters(initial_dataset_uri, property_uri,
     reference_uri = ""
     for i in range(1, len(constraint_table)):
 
-        print "Count runs: ", i
+        # print "Count runs: ", i
 
         if i == 1:
-            reference_uri_response = create_cluster(
-                constraint_table[i], initial_dataset_uri, property_uri,
+            response = create_cluster(constraint_table[i], initial_dataset_uri, property_uri,
                 count=i, reference=reference, group_name=group_name, activated=True)
-            # print "reference_uri_response:", reference_uri_response
+            # print "reference_uri_response:", response
 
-            if reference_uri_response[St.result]:
-                reference_uri = reference_uri_response["reference"]
+            reference_uri = response["reference"]
 
         else:
-            if reference_uri:
-                create_cluster(
-                    constraint_table[i], initial_dataset_uri, property_uri,
-                    count=i, reference=reference_uri[1][0], group_name=group_name, activated=True)
+            # print reference_uri
+            create_cluster(constraint_table[i], initial_dataset_uri, property_uri,
+                count=i, reference=reference_uri, group_name=group_name, activated=True)
 
         if i == 3:
             break
@@ -606,7 +609,7 @@ def create_clusters(initial_dataset_uri, property_uri,
     # print "reference_uri:",
 
     if reference_uri:
-        return {St.message: "", "reference": reference_uri[1][0], "group_name": group_name}
+        return {St.message: "", "reference": reference_uri, "group_name": group_name}
 
     return {St.message: "", "reference": None, "group_name": group_name}
 

@@ -897,8 +897,11 @@ def extract_ref(text):
     # example = """(" <http://www.grid.ac/ontology/yfshvbsuov_code>")"""
     if text is None:
         return []
-    return re.findall(".*/(.*)_.*", text)
+    result = re.findall(".*/(.*)_.*", text)
+    if len(result) == 0:
+        local = get_uri_local_name(text)
+        return local
+    return result[0]
 
-# print extract_ref("""<http://www.grid.ac/ontology/yfshvbsuov_code>""")
 
 
