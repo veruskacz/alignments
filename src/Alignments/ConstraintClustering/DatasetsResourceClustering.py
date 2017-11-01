@@ -322,7 +322,8 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
             {13}?insertGraphURI  ll:hasReference  <{14}> .
 
             # 2. THE REFERENCE LABEL
-            ?cluster_ref  rdfs:label  \"{6}\" .
+            {12}?cluster_ref  rdfs:label  \"{6}\" .
+            {13}?cluster_ref  rdfs:label  \"{6}\" .
 
             # 3. THE CONSTRAINT
             ?insertGraphURI  ll:hasConstraint  ?URL_CONSTRAINT .
