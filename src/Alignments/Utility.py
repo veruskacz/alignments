@@ -892,3 +892,13 @@ def stardog_off(bat_path):
         print ">>> THE SERVER WAS NOT ON."
 
 
+def extract_ref(text):
+
+    # example = """(" <http://www.grid.ac/ontology/yfshvbsuov_code>")"""
+    if text is None:
+        return []
+    return re.findall(".*/(.*)_.*", text)
+
+# print extract_ref("""<http://www.grid.ac/ontology/yfshvbsuov_code>""")
+
+
