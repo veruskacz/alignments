@@ -1193,8 +1193,10 @@ def helper(specs, is_source=True):
             sub = """{3}{{
                     BIND(<{2}> AS ?dataset_{0})
                     ?resource_{0} {1} ?obj_{0} .
+
                     # TO STRING AND TO LOWER CASE
                     BIND(lcase(str(?obj_{0})) as ?label_{0})
+
                     # VALUE TRIMMING
                     BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
                     BIND(REPLACE(?label_{0}, ?regexp, '$1$2') AS ?trimmed_label)
@@ -1213,7 +1215,7 @@ def helper(specs, is_source=True):
     return query
 
 
-# GENERATE A LINKSET FROM A CLUSTER
+# GENERATE AN EXACT MATCH LINKSET FROM A CLUSTER
 def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated=False):
 
     # FUNCTION ACTIVATION
@@ -1339,9 +1341,13 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     print "\t{:20}: {}".format("LINKSET SIZE BEFORE", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
     inserted = Qry.boolean_endpoint_response(query)
-    print "\t{:20}: {}".format("LINKSET SIZE AFTER", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
+    size_after = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label))
+    print "\t{:20}: {}".format("LINKSET SIZE AFTER", size_after)
     print "INSERTED STATUS: {}".format(inserted)
     # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.linkset, label)))
+
+    return {St.message: "The linkset was created as [{}] and contains {} triples".format(
+        label, size_after), St.result: label}
 
 
 # FROM MULTIPLE CLUSTERS TO A SINGLE MULTI SOURCES LINKSET
@@ -1390,11 +1396,14 @@ def linkset_from_clusters(specs, reference, activated=False):
     # print label
 
     # CREATE AND ADD RESOURCES TO THE LINKSET
+    result = {St.message: "The linkset was not created.", St.result: None}
     for i in range(1, len(cluster_table)):
-        linkset_from_cluster(specs, cluster_table[i][0], user_label=label, count=i, activated=activated)
+        result = linkset_from_cluster(specs, cluster_table[i][0], user_label=label, count=i, activated=activated)
 
         if i == 3:
             break
+
+    return result
 
 
 def property_builder(properties):
