@@ -902,6 +902,3 @@ def extract_ref(text):
         local = get_uri_local_name(text)
         return local
     return result[0]
-
-
-
