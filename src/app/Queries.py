@@ -1815,14 +1815,16 @@ def get_cluster_references():
     PREFIX rdfs:    <{}>
     PREFIX ll:    <{}>
 
-    SELECT DISTINCT ?uri ?label ?mode
+    SELECT DISTINCT (?uri as ?id) ?uri ?description
+   # SELECT DISTINCT ?uri ?label ?mode
     {{
         GRAPH  ?cluster
         {{
             ?cluster ll:hasReference ?uri .
             ?reference  rdfs:label ?label .
         }}
-        BIND("no-mode" as ?mode)
+        #BIND("no-mode" as ?mode)
+        BIND (CONCAT( str(?uri), " | ", str(?label)) AS ?description)
     }}
     """.format(Ns.rdfs, Ns.alivocab)
 
