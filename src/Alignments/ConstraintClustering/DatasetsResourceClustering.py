@@ -123,7 +123,7 @@ def validate_uri(prop_list):
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    CREATING A SINGLE CLUSTER OR MULTIPLE CLUSTERS
+    [CREATING] A SINGLE CLUSTER OR MULTIPLE CLUSTERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
@@ -765,7 +765,7 @@ def create_clusters(initial_dataset_uri, property_uri,
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    ADDING TO A SINGLE CLUSTER OR TO MULTIPLE CLUSTERS
+    [ADDING] TO A SINGLE CLUSTER OR TO MULTIPLE CLUSTERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
@@ -1157,7 +1157,7 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    CREATING A LINKSET OUT OF A CLUSTERS OR OUT OF
+    CREATING A [LINKSET] OUT OF A CLUSTERS OR OUT OF
             CLUSTERS THAT SAME REFERENCE
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
