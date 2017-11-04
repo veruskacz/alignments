@@ -79,7 +79,7 @@ def cluster_meta(cluster_uri):
     query = """
     PREFIX ll: <{0}>
     PREFIX prov: <{1}>
-    PREFIX void: <{3}}
+    PREFIX void: <{3}>
     SELECT ?cluster_ref ?dataset ?label
     {{
         GRAPH <{2}>
