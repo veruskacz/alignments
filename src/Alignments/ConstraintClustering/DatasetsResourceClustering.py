@@ -79,6 +79,7 @@ def cluster_meta(cluster_uri):
     query = """
     PREFIX ll: <{0}>
     PREFIX prov: <{1}>
+    PREFIX void: <{3}}
     SELECT ?cluster_ref ?dataset ?label
     {{
         GRAPH <{2}>
@@ -94,7 +95,7 @@ def cluster_meta(cluster_uri):
 
             ?URL_CONSTRAINT  void:target  ?dataset .
         }}
-    }} """.format(Ns.alivocab, Ns.prov, cluster_uri)
+    }} """.format(Ns.alivocab, Ns.prov, cluster_uri, Ns.void)
     # print query
     response = Qry.sparql_xml_to_matrix(query)
 
