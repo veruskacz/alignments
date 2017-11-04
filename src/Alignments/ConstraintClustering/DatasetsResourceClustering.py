@@ -1390,7 +1390,7 @@ def linkset_from_clusters(specs, reference, activated=False):
 
     # CREATE AND ADD RESOURCES TO THE LINKSET
     for i in range(1, len(cluster_table)):
-        linkset_from_cluster(specs, cluster_table[i][0], user_label=label, count=i)
+        linkset_from_cluster(specs, cluster_table[i][0], user_label=label, count=i, activated=activated)
 
         if i == 3:
             break
