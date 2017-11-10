@@ -208,7 +208,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     else:
         property_list = property_uri if Ut.is_nt_format(property_uri) is True else "<{}>".format(property_uri)
 
-    label = constraint.replace(" ", "_")
+    label =  Ut.prep_4_uri(constraint)
 
     # THE GROUP NAME SHARED BY ALL CLUSTERS
     if group_name is None:
@@ -324,6 +324,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
             # 1. THE REFERENCE
             {12}?insertGraphURI  ll:hasReference  ?cluster_ref .
             {13}?insertGraphURI  ll:hasReference  <{14}> .
+            {13}?insertGraphURI  rdfs:label  ""\"{22}\""" .
 
             # 2. THE REFERENCE LABEL
             ?cluster_ref  rdfs:label  \"{6}\" .
@@ -410,8 +411,8 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
         # 8                    9           10          11              12          13             14         15
         Ns.cluster_constraint, Ns.cluster, plans[3], property_bind, comment_ref, comment_ref_2, reference, Ns.void,
-        # 16      17        18        19     20        21
-        plans[0], plans[1], plans[2], fetch, ref_code, strong_append
+        # 16      17        18        19     20        21             22
+        plans[0], plans[1], plans[2], fetch, ref_code, strong_append, constraint
     )
     # print query
 
