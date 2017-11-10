@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# coding=utf-8
+
 import re
 import os
 import time
@@ -16,8 +19,11 @@ import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.Server_Settings as Svr
 from os.path import isfile, join
+from unidecode import unidecode
 from kitchen.text.converters import to_bytes, to_unicode
 # write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
+
+
 OPE_SYS = platform.system().lower()
 mac_weird_name = "darwin"
 
@@ -781,7 +787,7 @@ def stardog_on(bat_path):
         response = str(err)
 
     # NO NEED FOR TURNING IT ON AS IT IS ALREADY ON
-    if len(lock_file) > 0 and str(response).__contains__("200"):
+    if len(lock_file) > 0 and (str(response).__contains__("200") or str(response).__contains__("401")):
         print "THE SERVER WAS ALREADY ON."
 
     else:
@@ -792,20 +798,20 @@ def stardog_on(bat_path):
 
         # CREATE THE BATCH FILE FOR STARTING THE STARDOG SERVER
         if path.exists(bat_path) is False:
-
+            # START stardog-admin.bat server start --disable-security
             if batch_extension() == ".bat":
 
                 cmd = """
                 @echo STARTING STARDOG...
                 cls
                 cd "{}"
-                START stardog-admin.bat server start --disable-security
+                START stardog-admin.bat server start
                 """.format(Svr.settings[St.stardog_path])
 
             else:
                 cmd = """
                 echo STARTING STARDOG...
-                "{}"stardog-admin server start --disable-security
+                "{}"stardog-admin server start
                 """.format(Svr.settings[St.stardog_path])
 
             writer = open(bat_path, "wb")
@@ -902,3 +908,190 @@ def extract_ref(text):
         local = get_uri_local_name(text)
         return local
     return result[0]
+
+
+def diacritic_character_mapping(input_text):
+    temp = unicode(input_text, "utf-8")
+    # print temp
+    builder = cStringIO.StringIO()
+    "http://www.fileformat.info/info/unicode/char/0189/index.htm"
+    "http://www.jarte.com/help_new/accent_marks_diacriticals_and_special_characters.html"
+    # Diacritical Character to ASCII Character Mapping
+    "https://docs.oracle.com/cd/E29584_01/webhelp/mdex_basicDev/src/rbdv_chars_mapping.html"
+    convert = {
+
+        u"a": u"a", u"á": u"a", u"ä": u"a", u"ã": u"a", u"â": u"a", u"à": u"a", u"å": u"a", u"æ": u"ae", u"ā": u"a",
+        u"ă": u"a", u"ą": u"a",
+        u"À": u"A", u"Á": u"A", u"Â": u"A", u"Ã": u"A", u"Ä": u"A", u"Å": u"A", u"Æ": u"AE",  u"Ā": u"A", u"Ą": u"A",
+
+        u"b": u"b", u"ƀ": u"b", u"ɓ": u"b", u"ƃ": u"b",
+        u"Ƀ": u"B", u"Ɓ": u"B", u"Ƃ": u"B", u"Ƅ": u"B",
+
+        u"c": u"c", u"ç": u"c", u"č": u"c", u"ć": u"c", u"¢": u"c", u"ĉ": u"c",
+        u"Ç": u"C", u"Ć": u"C", u"Ĉ": u"C", u"Ċ": u"C", u"Č": u"C", u"ċ": u"C",
+        u"ƈ": u"C",
+        u"Ƈ": u"C",
+
+        u"d": u"d", u"ď": u"d",  u"đ": u"d", u"ð": u"d", u"ɖ": u"ɖ",
+        u"Ď": u"D", u"Đ": u"D", u"Ɖ": u"d",
+        u"e": u"e", u"é": u"e", u"ë": u"e", u"ê": u"e", u"è": u"e", u"ē": u"e", u"ĕ": u"e", u"ė": u"e", u"ę": u"e",
+        u"ě": u"e",
+        u"È": u"E", u"É": u"E", u"Ê": u"E", u"Ë": u"E", u"Ē": u"E", u"Ĕ": u"E", u"Ė": u"E", u"Ę": u"E", u"Ě": u"E",
+
+        u"f": u"f",
+        u"g": u"g", u"ġ": u"g", u"ĝ": u"g", u"ģ": u"g",
+        u"Ĝ": u"G", u"Ğ": u"G", u"Ġ": u"G", u"Ģ": u"G",
+
+        u"h": u"h", u"ħ": u"h",  u"ĥ": u"h",
+        u"Ħ": u"H", u"Ĥ": u"H",
+
+        u"i": u"i", u"í": u"i", u"ï": u"i", u"ì": u"i", u"î": u"i", u"ĭ": u"i", u"ĩ": u"i", u"ī": u"i", u"Į": u"I",
+        u"ı": u"i",
+        u"Ì": u"I", u"Í": u"I", u"Î": u"I", u"Ï": u"I", u"Ĩ": u"I", u"Ī": u"I", u"Ĭ": u"I", u"į": u"i", u"I": u"I",
+
+        u"Ĳ": u"IJ",
+        u"ĳ": u"ij",
+
+        u"ß": u"ss",
+
+        u"j": u"j", u"ĵ": u"j",
+        u"Ĵ": u"J",
+
+        u"k": u"k", u"Ķ": u"K", u"ķ": u"k", u"ĸ": u"K",
+
+        u"l": u"l", u"ļ": u"l", u"ľ": u"l", u"ĺ": u"l", u"ŀ": u"l", u"ł": u"l",
+        u"Ĺ": u"L", u"Ļ": u"L", u"Ľ": u"L", u"Ŀ": u"L", u"Ł": u"L",
+
+        u"m": u"m", u"µ": u"m",
+
+        u"n": u"n", u"ñ": u"n", u"ń": u"n", u"ņ": u"n", u"ň": u"n", u"ŋ": u"n",
+        u"Ñ": u"N", u"Ń": u"N", u"Ņ": u"N", u"Ň": u"N", u"ʼN": u"n", u"Ŋ": u"N",
+
+        u"o": u"o", u"ó": u"o", u"ö": u"o", u"ô": u"o", u"ø": u"o", u"õ": u"o", u"œ": u"oe", u"ò": u"o", u"ɔ": u"o",
+        u"Ò": u"O", u"Ó": u"O", u"Ô": u"O", u"Õ": u"O", u"Ö": u"O",  u"Ø": u"O", u"Ɔ": u"O",
+
+        u"Ō": u"O", u"Ŏ": u"O", u"Ő": u"o",
+        u"ō": u"o", u"ŏ": u"o", u"ő": u"o",
+
+        u"Œ": u"oe",
+        u"p": u"p",
+        u"q": u"q",
+
+        u"r": u"r", u"ŕ": u"r", u"ŗ": u"t", u"ř": u"r",
+        u"Ŕ": u"R", u"Ŗ": u"R", u"Ř": u"R",
+
+        u"s": u"s", u"ş": u"s", u"š": u"s", u"ś": u"s", u"ŝ": u"s", u"S": u"S", u"ſ": u"s",
+        u"Ś": u"S", u"Ŝ": u"S", u"Ş": u"S", u"Š": u"S",
+
+        u"t": u"t", u"ţ": u"t", u"ť": u"t", u"ŧ": u"t", u"Ţ": u"T", u"Ť": u"T",
+        u"Ŧ": u"T",
+
+        u"u": u"u", u"ü": u"u", u"û": u"u", u"ù": u"u", u"ú": u"u", u"ũ": u"u", u"ū": u"u", u"ŭ": u"u", u"ů": u"u",
+        u"ű": u"u", u"ų": u"u",
+        u"Ù": u"U", u"Ú": u"U", u"Ü": u"U", u"Û": u"U", u"Ũ": u"U", u"Ū": u"U", u"Ŭ": u"U", u"Ů": u"U", u"Ű": u"U",
+        u"Ų": u"U",
+
+        u"v": u"v",
+        u"w": u"w",
+        u"ŵ": u"w", u"Ŵ": u"W",
+        u"x": u"x",
+
+        u"y": u"y", u"ÿ": u"y", u"ý": u"y", u"ŷ": u"y",
+        u"Ÿ": u"Y", u"¥": u"Y", u"Ý": u"Y", u"Ŷ": u"Y",
+
+        u"z": u"z", u"ź": u"z", u"ž": u"z", u"ż": u"z",
+        u"Ź": u"Z", u"Ż": u"Z", u"Ž": u"Z",
+    }
+
+    # for x, y in convert.items():
+    #     print x, y
+
+    for x in temp:
+        # print x
+        if x in convert:
+            # print "yes", x
+            builder.write(convert[x])
+        else:
+            # print "no", x
+            if type(x) == unicode:
+                builder.write(to_bytes(x))
+            else:
+                builder.write(unicode(x, "utf-8"))
+    return builder.getvalue()
+
+
+def character_mapping(input_text):
+
+    if type(input_text) is  unicode:
+        return unidecode(input_text)
+    return unidecode(unicode(input_text, encoding="utf-8"))
+
+
+def to_alphanumeric(input_text):
+    if type(input_text) is not unicode:
+        input_text = (unicode(input_text, "utf-8"))
+    return re.sub('[\W]', "_", input_text)
+
+
+def prep_4_uri(input_text):
+
+    # map diacritic characters
+    mapping = character_mapping(input_text)
+
+    # Only alpha numeric
+    return to_alphanumeric(mapping)
+
+# print prep_4_uri(u"""Á	a	Capital A, acute \n\taccent
+# voila
+# A/b\i?d.j>an""")
+#
+#
+# print prep_4_uri("""'s-gravesande""")
+# print prep_4_uri("""'s_heerenberg""")
+# print prep_4_uri("""(wlenburch)""")
+# print prep_4_uri("""...""")
+# print prep_4_uri("""[arumsma]""")
+# print prep_4_uri("""=[barbier]""")
+# print prep_4_uri(""" [bellinckhuys]""")
+# print prep_4_uri(""" [blauscheer]""")
+# print prep_4_uri("""[coopman] """)
+# print prep_4_uri(""" _[eversdijck]""")
+# print prep_4_uri(""" [fenema]""")
+# print prep_4_uri("""3_zäslin """)
+# print prep_4_uri(""" _zürich""")
+# print prep_4_uri(""" _[voskuijl]""")
+# print prep_4_uri(""" """)
+# """ http://risis.eu/cluster/N2352535174637540373_'s-gravesande
+#  http://risis.eu/cluster/N2352535174637540373_'s_heerenberg
+#  http://risis.eu/cluster/N2352535174637540373_(wlenburch)
+#  http://risis.eu/cluster/N2352535174637540373_...
+#  http://risis.eu/cluster/N2352535174637540373_[arumsma]
+#  http://risis.eu/cluster/N2352535174637540373_
+#  http://risis.eu/cluster/N2352535174637540373_
+#  http://risis.eu/cluster/N2352535174637540373_
+#  http://risis.eu/cluster/N2352535174637540373_
+#  http://risis.eu/cluster/N2352535174637540373
+#  http://risis.eu/cluster/N2352535174637540373_
+#  http://risis.eu/cluster/N2352535174637540373_[grebber]
+#  http://risis.eu/cluster/N2352535174637540373_[hoogsaat]
+#  http://risis.eu/cluster/N2352535174637540373_[huysinck]
+#  http://risis.eu/cluster/N2352535174637540373_[lootsman]
+#  http://risis.eu/cluster/N2352535174637540373_[meerhuysen]
+#  http://risis.eu/cluster/N2352535174637540373_[muller]
+#  http://risis.eu/cluster/N2352535174637540373_[padbrue]
+#  http://risis.eu/cluster/N2352535174637540373_[sibersma]
+#  http://risis.eu/cluster/N2352535174637540373_[stavelijn]
+#  http://risis.eu/cluster/N2352535174637540373_[sweel]
+#  http://risis.eu/cluster/N2352535174637540373_[vinckenbrinck]
+#  http://risis.eu/cluster/N2352535174637540373
+# http://risis.eu/cluster/N235253517463754037
+#  http://risis.eu/cluster/N2352535174637540373
+#
+# """
+#
+# try:
+#     response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
+# except Exception as err:
+#     response = str(err)
+#
+# print response
