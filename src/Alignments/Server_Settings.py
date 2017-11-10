@@ -11,18 +11,21 @@ UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
 DATABASE = "risis"
 TEST_SERVER = "localhost:5820"
 
-STARDOG_PATH_TEST_V = '/Applications/stardog-4.2.3/bin/'
-STARDOG_DATA_PATH_TEST_V = "C:\Program Files\stardog-4.1.3\data"
+STARDOG_PATH_TEST_V = '/Applications/stardog-5.0.2/bin/'
+STARDOG_DATA_PATH_TEST_V = "/Users/veruskazanborlini/data/"
 
 STARDOG_PATH_TEST_A = 'C:\\Program Files\\stardog-4.1.3\\bin'
 STARDOG_DATA_PATH_TEST_A = "C:\Program Files\stardog-4.1.3\data"
 
 PRODUCTION_SERVER = "stardog.risis.d2s.labs.vu.nl"
 STARDOG_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
-STARDOG_DATA_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data'
+STARDOG_DATA_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data/'
 
 
 settings = {
+
+    St.stardog_user: "admin",
+    St.stardog_pass: "admin",
 
     # TRUE MEANS THE PYTHON SERVER AND THE STARDOG
     # SERVER ARE NOT ON THE SAME LOCAL HOST
@@ -48,7 +51,6 @@ settings = {
     St.stardog_version: "NOT COMPATIBLE",
     # St.stardog_version: "COMPATIBLE",
 
-
     # MAIN DATA FOLDER
     St.data_dir: DIR,
 
@@ -73,6 +75,5 @@ settings = {
     # UPLOADED ALIGNMENTS
     St.uploaded_alignments: '{0}{1}{1}Alignments'.format(DIR, SEP),
 }
-
 
 # print DIR
