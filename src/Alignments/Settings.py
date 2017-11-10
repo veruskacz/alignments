@@ -151,6 +151,8 @@ intermediate_graph = "intermediate_graph"
 stardog_host_name = "stardog_host_name"
 stardog_path = 'stardog_path'
 stardog_version = "stardog_version"
+stardog_user = "stardog_user"
+stardog_pass = "stardog_pass"
 
 
 data_dir = "data_dir"
