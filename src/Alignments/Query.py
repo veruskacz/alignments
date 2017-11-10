@@ -303,8 +303,8 @@ def endpoint(query):
     """
         Authentication
     """
-    user = "admin"
-    password = "adminT314a"
+    user = Svr.settings[St.stardog_user]
+    password = Svr.settings[St.stardog_pass]
     # password = "admin"
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)

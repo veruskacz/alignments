@@ -2944,10 +2944,54 @@ def sparql(query, strip=False, endpoint_url=ENDPOINT_URL):
     cannot handle the Stardog-style query headers needed for inferencing"""
     # print "ENDPOINT_URL", ENDPOINT_URL
 
-    result = requests.post(endpoint_url, data={'query': query, 'reasoning': REASONING_TYPE}, headers=QUERY_HEADERS,
-                           timeout=None)
+    url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
+    # print url
+    params = urllib.urlencode(
+        {b'query': query, b'format': b'application/sparql-results+json',
+         b'timeout': b'0', b'debug': b'on', b'should-sponge': b'',
+        b'reasoning': REASONING_TYPE
+         }
+
+    )
+
+    headers = {b"Content-Type": b"application/x-www-form-urlencoded",
+               'Accept': 'application/sparql-results+json',
+               'SD-Connection-String': 'reasoning={}'.format(REASONING_TYPE)
+               }
+
+    """
+        Authentication
+    """
+    user = Svr.settings[St.stardog_user]
+    password = Svr.settings[St.stardog_pass]
+    # password = "admin"
+    passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    passman.add_password(None, url, user, password)
+    urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
+
+    request = urllib2.Request(url, data=params, headers=headers)
+    response = ""
+    result = ""
+    request.get_method = lambda: "POST"
+    try:
+        response = urllib2.urlopen(request)
+        result = response.read()
+        # print result
+
+    except Exception as err:
+
+        if str(err).__contains__("No connection") is True:
+            logger.warning(err)
+            return "No connection"
+
+    # result = requests.post(endpoint_url, data={'query': query, 'reasoning': REASONING_TYPE}, headers=QUERY_HEADERS,
+    #                        timeout=None)
+    # print result.content
+    # result = requests.post(endpoint_url, data=params, headers=headers,
+    #                        timeout=None)
+
     try :
-        result_dict = json.loads(result.content)
+        result_dict = json.loads(result)
     except Exception as e:
         return result.content
 
