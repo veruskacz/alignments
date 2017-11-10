@@ -141,6 +141,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     :param reference: name associated to a group of clusters
     :param activated: boolean value for activating the function
     :param group_name: the label for the reference
+    :param strong: reuse existing cluster or create new cluster
     :return:
     """
 
@@ -208,7 +209,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     else:
         property_list = property_uri if Ut.is_nt_format(property_uri) is True else "<{}>".format(property_uri)
 
-    label =  Ut.prep_4_uri(constraint)
+    label = Ut.prep_4_uri(constraint)
 
     # THE GROUP NAME SHARED BY ALL CLUSTERS
     if group_name is None:
@@ -296,6 +297,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     # }
     # """
 
+    second_code = Ut.hash_it(constraint)[:10]
     if reference is None:
         ref_code = Ut.hash_it("{}".format(datetime.datetime.today().strftime(_format)))
         reference = "{}reference/{}".format(Ns.cluster, ref_code)
@@ -311,6 +313,8 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         strong_append = "#"
     else:
         strong_append = ""
+
+    concat_code = "{}_{}".format(ref_code, second_code)
 
     query = """
     PREFIX ll: <{0}>
@@ -345,7 +349,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     {{
         # NAME
         BIND( "{20}" AS ?code)
-        BIND( CONCAT("{1}", ?code, "_", "{2}") AS ?insertGraph )
+        BIND( CONCAT("{1}", {23}, "_", "{2}") AS ?insertGraph )
         BIND(iri(?insertGraph) as ?insertGraphURI)
 
         # CONSTRAINT VALUES
@@ -411,8 +415,8 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         Ns.alivocab, Ns.cluster, label, dataset_uri, property_list, constraint_v, group_name, Ns.prov,
         # 8                    9           10          11              12          13             14         15
         Ns.cluster_constraint, Ns.cluster, plans[3], property_bind, comment_ref, comment_ref_2, reference, Ns.void,
-        # 16      17        18        19     20        21             22
-        plans[0], plans[1], plans[2], fetch, ref_code, strong_append, constraint
+        # 16      17        18        19     20        21             22          23
+        plans[0], plans[1], plans[2], fetch, ref_code, strong_append, constraint, concat_code
     )
     # print query
 
@@ -512,10 +516,6 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     )
     # print query_strong_true
 
-
-
-
-
     # return {St.message: "THE CLUSTER WAS SUCCESSFULLY EXECUTED.",
     #         St.result: "", 'group_name': group_name}
 
@@ -545,7 +545,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
             {3}
         }}
     }}
-    """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, ref_code, label, Ns.void)
+    """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, concat_code, label, Ns.void)
     # print "reference_query:", reference_query
     # RUN FETCH
     reference_response = Qry.sparql_xml_to_matrix(reference_query)
@@ -553,21 +553,19 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     reference_result = reference_response[St.result]
     # print "reference_result:", reference_result
 
-
-    print "\n\tCLUSTER {}: {}".format(count, "{}{}_{}".format(Ns.cluster, ref_code, label))
+    print "\n\tCLUSTER {}: {}".format(count, "{}{}_{}".format(Ns.cluster, concat_code, label))
     print "\t\t{:19} : {}".format("REFERENCE CODE", ref_code)
     print "\t\t{:19} : {}".format("CONSTRAINT", constraint)
     print "\t\t{:19} : {}".format("GROUP NAME", group_name)
     print "\t\t{:19} : {}".format("REFERENCE", reference)
     if reference_result:
         print "\t\t{:19} : {}".format("Nbr OF REFERENCES", len(reference_result) - 1)
-    print "\t\t{:19} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, ref_code, label)))
+    print "\t\t{:19} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, concat_code, label)))
 
     print "\t\t{:19} : {}".format("DERIVED FROM", dataset_uri)
 
     # print "\t\t{:17} : {}".format("INSERTED STATUS", inserted)
     # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.cluster, label)))
-
 
     if strong is True:
 
@@ -577,11 +575,11 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         reference_query = """
         PREFIX ll: <{0}>
         PREFIX prov: <{1}>
-        PREFIX void: <{7}>
+        PREFIX void: <{4}>
         SELECT DISTINCT ?cluster_ref ?cluster
         {{
             # CONSTRAINT VALUES
-            VALUES ?constraint {{ {8} }}
+            VALUES ?constraint {{ {5} }}
             # THE CLUSTERED GRAPH
             GRAPH ?cluster
             {{
@@ -597,7 +595,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
                 {3}
             }}
         }}
-        """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, ref_code, label, Ns.void, constraint_v)
+        """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.void, constraint_v)
         # print "reference_query:", reference_query
         # RUN FETCH
         reference_response = Qry.sparql_xml_to_matrix(reference_query)
@@ -744,16 +742,17 @@ def create_clusters(initial_dataset_uri, property_uri,
         # print "Count runs: ", i
 
         if i == 1:
-            response = create_cluster(constraint_table[i], initial_dataset_uri, property_uri,
-                count=i, reference=reference, group_name=group_name, strong=strong, activated=True)
+            response = create_cluster(
+                constraint_table[i], initial_dataset_uri, property_uri, count=i,
+                reference=reference, group_name=group_name, strong=strong, activated=True)
             # print "reference_uri_response:", response
 
             reference_uri = response["reference"]
 
         else:
             # print reference_uri
-            create_cluster(constraint_table[i], initial_dataset_uri, property_uri,
-                count=i, reference=reference_uri, group_name=group_name, strong=strong, activated=True)
+            create_cluster(constraint_table[i], initial_dataset_uri, property_uri, count=i,
+                           reference=reference_uri, group_name=group_name, strong=strong, activated=True)
 
         # if i == 3:
         #     break
@@ -1166,16 +1165,16 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
 
 def helper(specs, is_source=True):
 
-    def property_list(properties):
+    def property_list(properties_uri):
         values = ""
         # MAKING SURE THAT THE PROPERTIES URI ARE IN ANGLE BRACKETS
-        for i in range(0, len(properties)):
-            if Ut.is_nt_format(properties[i]) is False:
-                properties[i] = "<{}>".format(properties[i])
+        for i in range(0, len(properties_uri)):
+            if Ut.is_nt_format(properties_uri[i]) is False:
+                properties_uri[i] = "<{}>".format(properties_uri[i])
             if i == 0:
-                values = "({})".format(properties[i])
+                values = "({})".format(properties_uri[i])
             else:
-                values += "\n\t\t\t\t\t | ({})".format(properties[i])
+                values += "\n\t\t\t\t\t | ({})".format(properties_uri[i])
         return values
 
     if is_source is True:
