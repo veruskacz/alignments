@@ -718,7 +718,8 @@
                                       <h5>Threshold</h5>
                                   </div>
                                <div class="col-md-9">
-                                    <input type="text" class="form-control" id="linkset_approx_threshold" value="0.8" readonly>
+                                    <!--<input type="text" class="form-control" id="linkset_approx_threshold" value="0.8" readonly>-->
+                                   <input type="number"style='width: 100%;'  id="linkset_approx_threshold" min="0.70" max="1.00" step="0.01" value="0.80">
                                </div>
                              </div>
                             <div class="row">
@@ -775,6 +776,7 @@
                         </div>
                     </div>
                     <div class="row" id="int_red_graph_row">
+                     <!--<div class="row" >-->
                         <div class="col-md-4 graph-list" id="button_int_red_graph"
                               targetTxt="selected_int_red_graph" targetBtn="" targetList="">
                           <!-- will be rendered via server -->
@@ -787,8 +789,15 @@
                                 uri="">Select a Dataset</div>
                            <!--</div>-->
                         </div>
-                     </div>
-
+                     <!--</div>-->
+                    <!--<div class="row" >-->
+                        <div class="col-md-12" align="right">
+                            <small><div class="checkbox-inline" >
+                                <label><input type="checkbox" id="int_red_graph_mult_entries" value="" unchecked>Multiple entries per entity (duplicates)</label>
+                            </div></small>
+                        </div>
+                    <!--</div>-->
+                    </div>
                   </div>
                 </div>
                </div> <!-- Panel Body -->
@@ -908,7 +917,7 @@
 
       </div> <!-- Panel -->
 
-      <div class="panel panel-default">
+      <div class="panel panel-default" id="panel_cluster_prop_selection">
        <div class="panel-heading">
           <div class="row">
               <div class="col-md-12">
@@ -923,7 +932,7 @@
 
        </div>
 
-      <div id="collapse_linkset_cluster_props" class="panel-collapse collapse" target="link_collapse_linkset_cluster_props">
+      <div id="collapse_linkset_cluster_props" class="panel-collapse collapse in" target="link_collapse_linkset_cluster_props">
           <div class="panel-body">
           <div class="row">
 

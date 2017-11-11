@@ -823,7 +823,8 @@ function create_linkset_activate(mode='default')
        refresh_create_linkset();
        $('#creation_linkset_row').show();
        $('#create_panel_body').show();
-        $('#create_linkset_cluster_panel_body').hide();
+       $('#create_linkset_cluster_panel_body').hide();
+       $('#panel_cluster_prop_selection').hide();
        $('#button-src-col').html('Loading...');
        $('#button-trg-col').html('Loading...');
        $.get('/getdatasetsperrq',
@@ -856,7 +857,9 @@ function create_linkset_activate(mode='default')
    else
    {
         $('#create_linkset_cluster_panel_body').show();
+        $('#panel_cluster_prop_selection').show();
         $('#create_linkset_clusters_row').show();
+
         $('#create_panel_body').hide();
 
         $('#cluster_edit_message_col').html("");
@@ -910,8 +913,12 @@ function createLinksetClick()
     $('#linkset_creation_message_col').html("");
 
     var reducer = ''; intermediate = '';
+    multiple_entries = 'no'
     if ($('#selected_meth').attr('uri') != 'intermediate')
-     {   reducer = $('#selected_int_red_graph').attr('uri'); }
+     {   reducer = $('#selected_int_red_graph').attr('uri');
+         if ($('#int_red_graph_mult_entries').is(':checked'))
+            multiple_entries = 'yes'
+     }
     else
      {   intermediate = $('#selected_int_red_graph').attr('uri'); }
 
@@ -1003,9 +1010,8 @@ function createLinksetClick()
           //'corrsp_reducer': reducer
         }
 
-        multiple_entries = 'no'
         if (multiple_entries == 'yes')
-            specs['corrsp_reducer'] = reducer
+            specs['corresp_reducer'] = reducer
         else {
             specs['src_reducer'] = reducer
             specs['trg_reducer'] = reducer }
@@ -1046,6 +1052,9 @@ function createLinksetClick()
     }
 }
 
+$("[type='number']").keypress(function (evt) {
+    evt.preventDefault();
+});
 
 function refineLinksetClick()
 {
@@ -2390,6 +2399,11 @@ function inspect_clusters_activate(mode="inspect")
     $.get('/getClusterReferences', function(data)
     {
       $('#inspect_clusters_reference_selection_col').html(data);
+       var ul = document.getElementById('inspect_clusters_reference_selection_col');
+       var li = ul.getElementsByTagName('li');
+       var num = ('0000' + String(li.length)).substr(-4);
+       $('#cluster_refs_counter').html(num);
+
       // set actions after clicking a graph in the list
       $('#inspect_clusters_reference_selection_col li').on('click',function()
        {
@@ -2406,6 +2420,11 @@ function inspect_clusters_activate(mode="inspect")
                           function(data)
             {
               $('#inspect_clusters_selection_col').html(data);
+               var ul = document.getElementById('inspect_clusters_selection_col');
+               var li = ul.getElementsByTagName('a');
+               var num = ('0000' + String(li.length)).substr(-4);
+               $('#clusters_counter').html(num);
+
               // set actions after clicking a graph in the list
               $('#inspect_clusters_selection_col a').on('click',function()
               {
@@ -3803,7 +3822,7 @@ function methodClick(th)
         }
         else if (method == 'approxStrSim')
         {
-          description = 'The method <b>APPROXIMATE STRING-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (string) values of the selected <b>properties</b> according to a threshold. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, i.e. the resources already aligned will not be included in the new alignment. It allows for more efficient use of approximate similarity.';
+          description = 'The method <b>APPROXIMATE STRING-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (string) values of the selected <b>properties</b> according to a threshold. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, which improves the efficiency when computing approximate similarity. This means unique resources already aligned will not be re-aligned. Instead, if entities are duplicated, then the checkbox <b>"duplicates"</b> should be selected, so that the effect of the reducer is restricted to only not recreating existing alignments.'
           $('#selected_int_red_graph').html("Select an alingment as reducer");
           setAttr( 'selected_int_red_graph','style','background-color:none;');
           $('#int_red_graph_row').show();
