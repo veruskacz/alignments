@@ -1185,6 +1185,7 @@ def get_aligned_predicate_value(source_uri, target_uri, src_aligns_list, trg_ali
 #     print query
 #     return query
 
+
 def get_linkset_corresp_sample_details(linkset, limit=1):
 
     source = ""
@@ -1810,6 +1811,7 @@ def get_filter(research_uri, graph_uri):
 
     return query
 
+
 def get_cluster_references():
     query = """
     PREFIX rdfs:    <{}>
@@ -1832,6 +1834,7 @@ def get_cluster_references():
         print query
     return query
 
+
 def get_clusters_by_reference(reference_uri):
     query = """
     PREFIX ll:    <{}>
@@ -1851,6 +1854,7 @@ def get_clusters_by_reference(reference_uri):
     if DETAIL:
         print query
     return query
+
 
 def get_cluster_metadata(reference_uri, cluster_uri):
     query = """
@@ -1876,6 +1880,7 @@ def get_cluster_metadata(reference_uri, cluster_uri):
     if DETAIL:
         print query
     return query
+
 
 def get_clustered_objects(cluster_uri):
     query = """
