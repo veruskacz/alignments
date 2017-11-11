@@ -1185,7 +1185,6 @@ def get_aligned_predicate_value(source_uri, target_uri, src_aligns_list, trg_ali
 #     print query
 #     return query
 
-
 def get_linkset_corresp_sample_details(linkset, limit=1):
 
     source = ""
@@ -1811,29 +1810,27 @@ def get_filter(research_uri, graph_uri):
 
     return query
 
-
 def get_cluster_references():
     query = """
     PREFIX rdfs:    <{}>
     PREFIX ll:    <{}>
 
-    SELECT DISTINCT (?uri as ?id) ?uri ?description
+    SELECT DISTINCT (?uri as ?id) ?uri (GROUP_CONCAT(distinct ?label; SEPARATOR=" ") AS ?labels) (CONCAT( str(?uri), " | ", ?labels) as ?description)
    # SELECT DISTINCT ?uri ?label ?mode
     {{
         GRAPH  ?cluster
         {{
             ?cluster ll:hasReference ?uri .
-            ?reference  rdfs:label ?label .
+            ?uri  rdfs:label ?label .
         }}
         #BIND("no-mode" as ?mode)
-        BIND (CONCAT( str(?uri), " | ", str(?label)) AS ?description)
-    }}
+        # BIND (CONCAT( str(?uri), " | ", str(?label)) AS ?description)
+    }} group by ?uri
     """.format(Ns.rdfs, Ns.alivocab)
 
     if DETAIL:
         print query
     return query
-
 
 def get_clusters_by_reference(reference_uri):
     query = """
@@ -1855,7 +1852,6 @@ def get_clusters_by_reference(reference_uri):
         print query
     return query
 
-
 def get_cluster_metadata(reference_uri, cluster_uri):
     query = """
     PREFIX void:    <{}>
@@ -1873,9 +1869,33 @@ def get_cluster_metadata(reference_uri, cluster_uri):
         		     ll:hasValue ?value;
                      ll:hasProperty ?property.
         }}
-        BIND (CONCAT( str(?dataset), " | ", str(?property), " | ", ?value) AS ?description)
+        BIND (CONCAT( str(?dataset), " | ", str(?property), " | ", str(?value)) AS ?description)
     }}
     """.format(Ns.void, Ns.alivocab, reference_uri, cluster_uri)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_datasets_per_reference(reference_uri):
+    query = """
+    PREFIX ll:    <{}>
+    PREFIX void:    <{}>
+
+    SELECT DISTINCT ?uri ?label ?mode
+    {{
+        GRAPH  ?uri
+        {{
+            bind (<{}> as ?reference)
+            ?cluster ll:hasReference ?reference .
+            ?cluster ll:hasConstraint ?constr .
+            ?constr  void:target ?uri;
+        }}
+        BIND("no-mode" as ?mode)
+        BIND("-" as ?label)
+    }}
+    """.format(Ns.alivocab, Ns.void, reference_uri)
 
     if DETAIL:
         print query

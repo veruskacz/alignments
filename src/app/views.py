@@ -1395,8 +1395,8 @@ def spa_linkset():
     if len(request.args.get('trg_reducer', '')) > 0:
         specs[St.target][St.reducer] = request.args.get('trg_reducer', '')
 
-    if len(request.args.get('corrsp_reducer', '')) > 0:
-        specs[St.corr_reducer] = request.args.get('corrsp_reducer', '')
+    if len(request.args.get('corresp_reducer', '')) > 0:
+        specs[St.corr_reducer] = request.args.get('corresp_reducer', '')
 
     # print specs
 

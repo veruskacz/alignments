@@ -286,22 +286,39 @@
                 </div>
               </div>
               <div class="row">
-                <!--<div class="col-md-12" id="inspect_clusters_reference_selection_col"></div>-->
-                <div class="co-md-12">
-                <!-- will be rendered via server -->
-                    <div class="list-group" id="inspect_clusters_reference_selection_col"
-                         style='scroll: both; overflow: auto; height: 15em; width: 100%; margin-left: 0.3cm;'>
-                    </div>
-                </div>
-                <!-- will be rendered via server -->
+                   <div class="col-md-12">
+                     <span class="glyphicon glyphicon glyphicon-search"></span>
+                     <input type="text" onkeyup='filterListGroup(this,"inspect_clusters_reference_selection_col","cluster_refs_counter")' placeholder="Search for names.." style='width: 83%'>
+                      <span id="cluster_refs_counter" class="badge"></span>
+                   </div>
               </div>
+              <div class="row"> &nbsp </div>
+              <div class="row">
+                    <div class="co-md-12">
+                    <!-- will be rendered via server -->
+                        <div class="list-group" id="inspect_clusters_reference_selection_col"
+                             style='scroll: both; overflow: auto; height: 15em; width: 100%; margin-left: 0.3cm;'>
+                        </div>
+                    </div>
+              </div>
+
             </div>
+
+
             <div class="col-md-4">
               <div class="row">
                 <div class="col-md-12">
                     <h4>Clusters</h4>
                 </div>
               </div>
+              <div class="row">
+                   <div class="col-md-12">
+                     <span class="glyphicon glyphicon glyphicon-search"></span>
+                     <input type="text" onkeyup='filterListGroup(this,"inspect_clusters_selection_col","clusters_counter")' placeholder="Search for names.." style='width: 83%'>
+                      <span id="clusters_counter" class="badge"></span>
+                   </div>
+              </div>
+              <div class="row"> &nbsp </div>
               <div class="row">
                 <div class="col-md-12" id="inspect_clusters_selection_col" style='width: 100%;'>
                 <!-- will be rendered via server -->
