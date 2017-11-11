@@ -119,6 +119,8 @@ def split_property_path(property_path):
 
 def pipe_split(text, sep="_"):
 
+    # print pipe_split("[rembrandt van rijn] aligns with [rembrandt van rijn]")
+
     altered = ""
     split = str(to_bytes(text)).split("|")
 
@@ -134,9 +136,6 @@ def pipe_split(text, sep="_"):
         return text
 
     return altered
-
-
-# print pipe_split("[rembrandt van rijn] aligns with [rembrandt van rijn]")
 
 
 def get_uri_ns_local_name(uri):
@@ -1022,7 +1021,7 @@ def diacritic_character_mapping(input_text):
 
 def character_mapping(input_text):
 
-    if type(input_text) is  unicode:
+    if type(input_text) is unicode:
         return unidecode(input_text)
     return unidecode(unicode(input_text, encoding="utf-8"))
 

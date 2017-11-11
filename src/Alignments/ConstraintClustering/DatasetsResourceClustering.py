@@ -349,7 +349,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     {{
         # NAME
         BIND( "{20}" AS ?code)
-        BIND( CONCAT("{1}", {23}, "_", "{2}") AS ?insertGraph )
+        BIND( CONCAT("{1}", "{23}", "_", "{2}") AS ?insertGraph )
         BIND(iri(?insertGraph) as ?insertGraphURI)
 
         # CONSTRAINT VALUES
@@ -884,7 +884,7 @@ def add_to_cluster_0(cluster_uri, dataset_uri, property_uri, count=1, activated=
         print "CLUSTER DOES NOT EXIST"
 
 
-def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=False):
+def add_to_cluster(cluster_uri, reference, dataset_uri, property_uri, count=1, activated=False):
 
     """
     :param cluster_uri: the cluster graph
@@ -892,6 +892,7 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
     :param property_uri: the property URI
     :param count: just an int for counting the number of clusters
     :param activated: boolean value for activating the function
+    :param reference: the reference of the cluster
     :return:
     """
 
@@ -948,6 +949,7 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
 
             print "\t>>> USING CLUSTER CONSTRAINT:", cluster_constraint
             cluster_constraint = str(cluster_constraint).strip()
+
             # property_uri = property_uri if Ut.is_nt_format(property_uri) is True else "<{}>".format(property_uri)
 
             # EXTRACT THE LIST OF PROPERTIES OR SINGLE VALUE PROPERTY
@@ -971,6 +973,7 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
                     property_uri)
 
             print "\t>>> USING CLUSTER PROPERTIES:", property_list
+            label = Ut.prep_4_uri(Ut.get_uri_local_name(property_list))
 
             query = """
             PREFIX ll: <{0}>
@@ -983,6 +986,9 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
                 {{
                     # 3. THE CONSTRAINT
                     <{1}>  ll:hasConstraint  ?URL_CONSTRAINT .
+
+                    # 2. THE REFERENCE LABEL
+                    <{11}>  rdfs:label  \"{12}\" .
 
                     # 4. CONSTRAINT'S METADATA
                     ?URL_CONSTRAINT  ll:hasValue  ?constraint .
@@ -1023,8 +1029,8 @@ def add_to_cluster(cluster_uri, dataset_uri, property_uri, count=1, activated=Fa
             """.format(
                 # 0          1            2            3              4                   5
                 Ns.alivocab, cluster_uri, dataset_uri, property_list, cluster_constraint, Ns.prov,
-                # 6                    7           8           9              10
-                Ns.cluster_constraint, Ns.cluster, properties, property_bind, Ns.void)
+                # 6                    7           8           9              10       11         12
+                Ns.cluster_constraint, Ns.cluster, properties, property_bind, Ns.void, reference, label)
             # print query
 
             # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
@@ -1135,7 +1141,7 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
     else:
         for i in range(1, len(cluster_table)):
             # print "cluster_table[i][0]:", cluster_table[0]
-            add_to_cluster(cluster_table[i][0], dataset_uri, property_uri, count=i, activated=True)
+            add_to_cluster(cluster_table[i][0], reference, dataset_uri, property_uri, count=i, activated=True)
 
             # if i == 3:
             #     break
@@ -1506,3 +1512,15 @@ def property_builder(properties):
 # TODO MERGING CLUSTER
 # TODO stardog-admin query list
 # TODO stardog-admin query kill 66
+
+
+# MATRIX
+# CENTRALITY:
+#   THE IMPORTANCE OF A NODE OR SIGNIFICANCE OF A NODE
+#   THE POSITION OF THE NODE
+#       DEGREE OF CONNECTIVITY :
+#       CLOSENESS   : HOW LONG WILL IT TAKE TO SPREAD GOSSIP
+#       BETWEENESS  : NODES THAT HAVE A HIGH PROBABILITY OF OCCURRING ON A RANDOM CHOSEN SHORTEST PATH BETWEEN TWO NODES
+#       PRESTIGE    :
+#
+# CHECK
