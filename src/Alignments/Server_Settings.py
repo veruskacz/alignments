@@ -8,11 +8,11 @@ DIR = "{0}{1}{1}Alignments{1}{1}Data".format(os.getcwd(), SEP)
 UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(), SEP)
 UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
 # "http://stardog.risis.d2s.labs.vu.nl/annex/risis/sparql/query"
-DATABASE = "saa"
+DATABASE = "risis"
 TEST_SERVER = "localhost:5820"
 
 STARDOG_PATH_TEST_V = '/Applications/stardog-5.0.2/bin/'
-STARDOG_DATA_PATH_TEST_V = "/Users/veruskazamborlini/data/"
+STARDOG_DATA_PATH_TEST_V = "/Users/veruskazanborlini/data/"
 
 STARDOG_PATH_TEST_A = 'C:\\Program Files\\stardog-4.1.3\\bin'
 STARDOG_DATA_PATH_TEST_A = "C:\Program Files\stardog-4.1.3\data"
@@ -33,17 +33,17 @@ settings = {
     St.split_sys: False,
 
     # STARDOG SERVER LOCAL HOST NAME
-    # St.stardog_host_name: PRODUCTION_SERVER,
-    St.stardog_host_name: TEST_SERVER,
+    St.stardog_host_name: PRODUCTION_SERVER,
+    # St.stardog_host_name: TEST_SERVER,
 
     # STARDOG PATH
-    # St.stardog_path: STARDOG_PATH_PRODUCTION,
-    St.stardog_path: STARDOG_PATH_TEST_V,
+    St.stardog_path: STARDOG_PATH_PRODUCTION,
+    # St.stardog_path: STARDOG_PATH_TEST_V,
     # St.stardog_path: STARDOG_PATH_TEST_A,
 
     # STARDOG DATA PATH
-    # St.stardog_data_path: STARDOG_DATA_PATH_PRODUCTION,
-    St.stardog_data_path: STARDOG_DATA_PATH_TEST_V,
+    St.stardog_data_path: STARDOG_DATA_PATH_PRODUCTION,
+    # St.stardog_data_path: STARDOG_DATA_PATH_TEST_V,
     # St.stardog_data_path: STARDOG_DATA_PATH_TEST_A,
 
     # STARDOG 4 IS COMPATIBLE
