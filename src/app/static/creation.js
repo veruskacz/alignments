@@ -2835,7 +2835,7 @@ function createLinksetClusterClick()
 {
     $('#linkset_cluster_creation_message_col').html("");
 
-//    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
 
     var elems = selectedElemsInGroupList('create_linkset_clusters_reference_selection_col');
     var reference_uri = ''
@@ -2847,10 +2847,10 @@ function createLinksetClusterClick()
 
     if ((reference_uri) || (cluster_uri))
     {
-        alert(reference_uri);
-        alert(cluster_uri);
+//        alert(reference_uri);
+//        alert(cluster_uri);
 
-        var specs = []
+        var targets = []
         elems = []
         var elem = document.getElementById('creation_linkset_cluster_selected_predicates_group');
         if (elem) {
@@ -2864,14 +2864,16 @@ function createLinksetClusterClick()
             dict = {'ds': $(elems[i]).attr('graph_uri'),
                     'type': entityType,
                     'att': $(elems[i]).attr('pred_uri') };
-            specs.push( JSON.stringify(dict));
+            targets.push( JSON.stringify(dict));
         }
 
-        if (specs.length > 0)
+        if (targets.length > 0)
         {
          var specs = {'cluster_uri': cluster_uri,
                       'reference_uri': reference_uri,
-                      'specs[]': specs};
+                      'mechanism': "exactStrSim",
+                      'researchQ_URI': rq_uri,
+                      'targets[]': targets};
 
             chronoReset();
             $('#linkset_cluster_creation_message_col').html(addNote('The linkset is being created',cl='warning'));

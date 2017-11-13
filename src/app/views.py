@@ -3017,21 +3017,21 @@ def createClusterContraint():
 def createLinksetFromCluster():
     """
     """
+    rq_uri = request.args.get('rq_uri','')
     cluster_uri = request.args.get('cluster_uri','')
     reference_uri = request.args.get('reference_uri','')
-    specs_js = request.args.getlist('specs[]')
+    targets_js = request.args.getlist('targets[]')
 
     # RUN QUERY AGAINST ENDPOINT
     # try:
     if True:
-        # print 'Start', specs_js
-        specs = []
-        for json_item in specs_js:
+        targets = []
+        for json_item in targets_js:
             row = ast.literal_eval(json_item)
             dict_graph = None
             exists_dataset_entityType = False
 
-            for elem in specs:
+            for elem in targets:
                 # check if the dataset has been already registered
                 if (elem['graph'] == row['ds']):
                     # only assigns value to dict_graph if the desired dataset was found
@@ -3050,24 +3050,29 @@ def createLinksetFromCluster():
                 if (dict_graph is None):
                     # create an entry for this dataset
                     dict_graph = {'graph': row['ds'], 'data':[]}
-                    specs.append(dict_graph)
+                    targets.append(dict_graph)
 
                 properties = [row['att']]
                 data = {'entity_datatype': row['type'], 'properties': properties}
                 dict_graph['data'].append(data)
 
-        print "\n\n SPECS:", specs
+        print "\n\n targets:", targets
         # CREATION_ACTIVE = False
 
-        if CREATION_ACTIVE:
-            if cluster_uri == '' and reference_uri != '':
-                response = DRC.linkset_from_clusters(specs=specs, reference=reference_uri, activated=True)
-            elif cluster_uri != '':
-                response = DRC.linkset_from_cluster(specs=specs, cluster_uri=cluster_uri, user_label=None, count=1, activated=True)
+        response = ''
+        if len(targets) > 0:
+            specs = {St.reference: reference_uri,
+                     St.mechanism: "exactStrSim",
+                     St.researchQ_URI: rq_uri,
+                     St.targets: targets}
+            if CREATION_ACTIVE:
+                if cluster_uri == '' and reference_uri != '':
+                    # response = DRC.linkset_from_clusters(specs=specs, reference=reference_uri, activated=True)
+                    response = spa_linkset2.cluster_specs_2_linksets(specs=specs, match_numeric=False, activated=True)
+                elif cluster_uri != '':
+                    response = DRC.linkset_from_cluster(specs=specs, cluster_uri=cluster_uri, user_label=None, count=1, activated=True)
             else:
-                response = ''
-        else:
-            response = {St.message: 'Linkset creation is not active!', St.result: None}
+                response = {St.message: 'Linkset creation is not active!', St.result: None}
 
         return json.dumps(response)
 

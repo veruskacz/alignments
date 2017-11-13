@@ -1852,7 +1852,7 @@ def get_cluster_references_table():
 			?cluster ll:hasConstraint ?constr .
             ?constr  void:target ?dataset .
 
-          {{ select ?cluster ?uri (count(?s) as ?c)
+          {{ select ?cluster ?uri (count(distinct ?o) as ?c)
             {{
    			  GRAPH  ?cluster
          	  {{
@@ -1883,7 +1883,7 @@ def get_clusters_table(reference_uri):
 				(GROUP_CONCAT(distinct ?dataset; SEPARATOR=" | ") AS ?datasets)
 				(GROUP_CONCAT(distinct ?property; SEPARATOR=" | ") AS ?properties)
 				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
-				(count(?s) as ?count)
+				(count(distinct ?o) as ?count)
     {{
         GRAPH  ?uri
         {{
@@ -1980,7 +1980,7 @@ def get_clustered_objects(reference_uri, cluster_uri):
     PREFIX void:    <{}>
     PREFIX ll:    <{}>
 
-    SELECT DISTINCT (?object as ?uri) (?object as ?id) (group_concat(str(?v)) as ?values) (group_concat(distinct str(?p)) as ?properties)
+    SELECT DISTINCT (?object as ?uri) (?object as ?id) ?dataset (group_concat(distinct str(?p); SEPARATOR=" | ") as ?properties) (group_concat(str(?v); SEPARATOR=" | ") as ?values)
     {{
         graph ?dataset
         {{
@@ -2002,7 +2002,7 @@ def get_clustered_objects(reference_uri, cluster_uri):
           }} group by ?object ?dataset
         }}
          FILTER (CONTAINS( ?properties, str(?p) ) )
-    }} group by ?object
+    }} group by ?object ?dataset
     """.format(Ns.void, Ns.alivocab, cluster_uri, reference_uri)
 
     if DETAIL:
