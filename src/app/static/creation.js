@@ -2356,7 +2356,9 @@ function create_clusters_activate()
     $('#creation_cluster_selected_predicates_group').html('');
     $('#cluster_creation_message_col').html('');
     $('#cluster_creation_save_message_col').html('');
-    $('#inspect_clusters_row').hide();
+//    $('#inspect_clusters_row').hide();
+    $('#inspect_cluster_references_row').hide();
+    $('#inspect_clusters_tab_row').hide();
     chronoReset();
 
     var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
@@ -2390,99 +2392,143 @@ function inspect_clusters_activate(mode="inspect")
         enableButton('editLabelClusterButton', enable=false);
     }
 
+    $('#inspect_cluster_references_row').show();
+    $('#inspect_clusters_tab_row').hide();
+    $.get('/getClusterReferencesTable', function(data)
+    {
+        var obj = JSON.parse(data);
+        if (obj.message == 'OK')
+        {
+            $('#inspect_cluster_references_table').html(obj.result);
+            var ul = document.getElementById('inspect_cluster_references_table');
+            var rows = ul.getElementsByTagName('tr');
+            var num = ('0000' + String(rows.length-1)).substr(-4);
+            $('#cluster_ref_tab_counter').html(num);
+
+            $('#inspect_cluster_references_table tr').on('click',function()
+            {
+                $(this).addClass('warning').siblings().removeClass('warning');
+                var reference_uri = $(this).attr('uri');
+
+                $('#inspect_clusters_tab_row').show();
+                $.get('/getClustersTable',
+                    data={'reference_uri': reference_uri},
+                    function(data)
+                {
+                    var obj = JSON.parse(data);
+                    if (obj.message == 'OK')
+                    {
+                        $('#inspect_clusters_table').html(obj.result);
+                        var ul = document.getElementById('inspect_clusters_table');
+                        var rows = ul.getElementsByTagName('tr');
+                        var num = ('0000' + String(rows.length-1)).substr(-4);
+                        $('#cluster_tab_counter').html(num);
+
+                        $('#inspect_clusters_table tr').on('click',function()
+                        {
+                            $(this).addClass('warning').siblings().removeClass('warning');
+
+                        });
+                    }
+                });
+
+            });
+        }
+    });
+
     $('#cluster_edit_message_col').html("");
 
-    $('#inspect_clusters_details_col').html('');
-    $('#inspect_clusters_selection_col').html('');
-    $('#inspect_clusters_reference_selection_col').html('Loading...');
-    // Load into div all the existing views for a certain research question
-    $.get('/getClusterReferences', function(data)
-    {
-      $('#inspect_clusters_reference_selection_col').html(data);
-       var ul = document.getElementById('inspect_clusters_reference_selection_col');
-       var li = ul.getElementsByTagName('li');
-       var num = ('0000' + String(li.length)).substr(-4);
-       $('#cluster_refs_counter').html(num);
-
-      // set actions after clicking a graph in the list
-      $('#inspect_clusters_reference_selection_col li').on('click',function()
-       {
-          $('#inspect_clusters_details_col').html('');
-          if (selectListItemUnique(this, 'inspect_clusters_reference_selection_col'))
-          {
-            $('#cluster_creation_message_col').html("");
-            var reference_uri = $(this).attr('uri');
-
-            $('#inspect_clusters_selection_col').html('Loading...');
-            // Load into div all the existing views for a certain research question
-            $.get('/getClustersByReference',
-                          data={'reference_uri': reference_uri},
-                          function(data)
-            {
-              $('#inspect_clusters_selection_col').html(data);
-               var ul = document.getElementById('inspect_clusters_selection_col');
-               var li = ul.getElementsByTagName('a');
-               var num = ('0000' + String(li.length)).substr(-4);
-               $('#clusters_counter').html(num);
-
-              // set actions after clicking a graph in the list
-              $('#inspect_clusters_selection_col a').on('click',function()
-              {
-                  if (selectListItemUnique(this, 'inspect_clusters_selection_col'))
-                  {
-                    var cluster_uri = $(this).attr('uri');
-                    $('#inspect_clusters_details_col').html('Loading...');
-                    // Load into div all the existing views for a certain research question
-                    $.get('/getClusterMetadata',
-                                  data={'reference_uri': reference_uri,
-                                        'cluster_uri': cluster_uri},
-                                  function(data)
-                    {
-                      $('#inspect_clusters_details_col').html(data);
-
-                   });
-                  }
-              });
-
-              // load the panel for correspondences details
-//              $('#inspect_clusters_details_col').html('Loading...');
-//              $.get('/getclusterdetails',data={'rq_uri': rq_uri,
-//                                            'cluster_uri': cluster_uri},function(data)
+//    $('#inspect_clusters_details_col').html('');
+//    $('#inspect_clusters_selection_col').html('');
+//    $('#inspect_clusters_reference_selection_col').html('Loading...');
+//    // Load into div all the existing views for a certain research question
+//    $.get('/getClusterReferences', function(data)
+//    {
+//       $('#inspect_clusters_reference_selection_col').html(data);
+//       var ul = document.getElementById('inspect_clusters_reference_selection_col');
+//       var li = ul.getElementsByTagName('li');
+//       var num = ('0000' + String(li.length)).substr(-4);
+//       $('#cluster_refs_counter').html(num);
+//
+//       // set actions after clicking a graph in the list
+//       $('#inspect_clusters_reference_selection_col li').on('click',function()
+//       {
+//          $('#inspect_clusters_details_col').html('');
+//          if (selectListItemUnique(this, 'inspect_clusters_reference_selection_col'))
+//          {
+//            $('#cluster_creation_message_col').html("");
+//            var reference_uri = $(this).attr('uri');
+//
+//            $('#inspect_clusters_selection_col').html('Loading...');
+//            // Load into div all the existing views for a certain research question
+//            $.get('/getClustersByReference',
+//                          data={'reference_uri': reference_uri},
+//                          function(data)
+//            {
+//              $('#inspect_clusters_selection_col').html(data);
+//               var ul = document.getElementById('inspect_clusters_selection_col');
+//               var li = ul.getElementsByTagName('a');
+//               var num = ('0000' + String(li.length)).substr(-4);
+//               $('#clusters_counter').html(num);
+//
+//              // set actions after clicking a graph in the list
+//              $('#inspect_clusters_selection_col a').on('click',function()
 //              {
-//                var obj = JSON.parse(data);
+//                  if (selectListItemUnique(this, 'inspect_clusters_selection_col'))
+//                  {
+//                    var cluster_uri = $(this).attr('uri');
+//                    $('#inspect_clusters_details_col').html('Loading...');
+//                    // Load into div all the existing views for a certain research question
+//                    $.get('/getClusterMetadata',
+//                                  data={'reference_uri': reference_uri,
+//                                        'cluster_uri': cluster_uri},
+//                                  function(data)
+//                    {
+//                      $('#inspect_clusters_details_col').html(data);
 //
-//                $('#inspect_clusters_details_col').html(obj.details);
+//                   });
+//                  }
+//              });
 //
-//                if (mode == 'inspect')
-//                {
-//                    //show the creation-panels containing the linksets/lenses
-//                    //and the datasets and properties to be selected
-//                    //create_views_activate( function(){ alert('sync'); } );
+//              // load the panel for correspondences details
+////              $('#inspect_clusters_details_col').html('Loading...');
+////              $.get('/getclusterdetails',data={'rq_uri': rq_uri,
+////                                            'cluster_uri': cluster_uri},function(data)
+////              {
+////                var obj = JSON.parse(data);
+////
+////                $('#inspect_clusters_details_col').html(obj.details);
+////
+////                if (mode == 'inspect')
+////                {
+////                    //show the creation-panels containing the linksets/lenses
+////                    //and the datasets and properties to be selected
+////                    //create_views_activate( function(){ alert('sync'); } );
+////
+////                    //alert('after');
+////                    $('#creation_cluster_row').show();
+//////                    $('#creation_cluster_filter_row').show();
+////
+////                    cluster_load_datasets(rq_uri);
+//////                    cluster_load_datasets_predicates(rq_uri, obj.list_pred);
+//////                    cluster_load_linkesets_lenses(rq_uri, obj.cluster_lens);
+////                }
+////                else if (mode == 'edit')
+////                {
+////                    $('#creation_cluster_row').hide();
+//////                    $('#creation_cluster_filter_row').hide();
+////                    enableButton('deleteClusterButton');
+////                    enableButton('editLabelClusterButton');
+////                }
 //
-//                    //alert('after');
-//                    $('#creation_cluster_row').show();
-////                    $('#creation_cluster_filter_row').show();
+//              });
 //
-//                    cluster_load_datasets(rq_uri);
-////                    cluster_load_datasets_predicates(rq_uri, obj.list_pred);
-////                    cluster_load_linkesets_lenses(rq_uri, obj.cluster_lens);
-//                }
-//                else if (mode == 'edit')
-//                {
-//                    $('#creation_cluster_row').hide();
-////                    $('#creation_cluster_filter_row').hide();
-//                    enableButton('deleteClusterButton');
-//                    enableButton('editLabelClusterButton');
-//                }
-
-              });
-
-//           $('#creation_cluster_results_row').hide();
-//           $("#collapse_cluster_filter").collapse("hide");
-
-          }
-        });
-    });
+////           $('#creation_cluster_results_row').hide();
+////           $("#collapse_cluster_filter").collapse("hide");
+//
+//          }
+//        });
+//    });
 
   }
 }
@@ -2631,7 +2677,8 @@ function createClusterClick()
          var obj = JSON.parse(data);
          //{"metadata": metadata, "query": '', "table": []}
 //         $('#queryView').val(obj.query);
-         $('#inspect_clusters_row').show();
+//         $('#inspect_clusters_row').show();
+         $('#inspect_cluster_references_row').show();
 
          if (obj.reference)
              $('#'+message_col).html(addNote(obj.message,cl='info'));

@@ -2668,6 +2668,109 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
+def process_table_columns(text):
+    #text = 'http://goldenagents.org/datasets/Ecartico | http://goldenagents.org/datasets/BaptismRegistries002'
+    if text.startswith("http"):
+        ll = text.split("|")
+        #ll = ll.sort()
+        result = " ,"
+        for l in ll:
+            result += Ut.get_uri_local_name(l.strip()) + ", "
+        return result[2:-2]
+    elif str(text):
+        return text.decode('utf-8')
+    else:
+        return text
+
+@app.route('/getClusterReferencesTable')
+def getClusterReferencesTable():
+    """
+    """
+    # GET QUERY
+    query = Qry.get_cluster_references_table()
+
+    # RUN QUERY AGAINST ENDPOINT
+    try:
+        dic_response = sparql2matrix(query)
+        # if PRINT_RESULTS:
+        print "\n\nREFERENCES:", dic_response
+
+        print "\nPROCESSING THE RESULT..."
+        if dic_response[St.message] == "OK":
+
+            # response = sparql_xml_to_matrix(query)
+            response = dic_response[St.result]
+            results = []
+            if (response):
+                header = response[0]
+                results_x = response[1:]
+
+                results = []
+                #f = lambda x: Ut.get_uri_local_name(x, " ") if x.startswith("http") else x.decode('utf-8') if str(x) else x
+                for r in results_x:
+                    #results += [[r[0]]+map(f, r[1:])]
+                    results += [[r[0]]+map(process_table_columns, r[1:])]
+
+            # print '\n\n', results
+            if len(response) > 1:
+                message = "OK"
+            else:
+                message = "No good results"
+
+            return json.dumps({'message': message, 'result':
+                render_template('list_table.html', header = header, results = results)})
+
+        else:
+            return json.dumps({'message': "NO RESPONSE", 'result': None})
+
+    except Exception as error:
+        return json.dumps({'message': str(error.message), 'result': None})
+
+
+@app.route('/getClustersTable')
+def getClustersTable():
+    """
+    """
+    reference_uri = request.args.get('reference_uri','')
+
+    # GET QUERY
+    query = Qry.get_clusters_table(reference_uri)
+
+    # RUN QUERY AGAINST ENDPOINT
+    try:
+        dic_response = sparql2matrix(query)
+        #if PRINT_RESULTS:
+        print "\n\nCLUSTERS:", dic_response
+
+        print "\nPROCESSING THE RESULT..."
+        if dic_response[St.message] == "OK":
+
+            response = dic_response[St.result]
+            results = []
+            if (response):
+                header = response[0]
+                results_x = response[1:]
+
+                results = []
+                #f = lambda x: Ut.get_uri_local_name(x, " ") if x.startswith("http") else x.decode('utf-8') if str(x) else x
+                for r in results_x:
+                    #results += [[r[0]]+map(f, r[1:])]
+                    results += [[r[0]]+map(process_table_columns, r[1:])]
+
+            if len(response) > 1:
+                message = "OK"
+            else:
+                message = "No good results"
+
+            return json.dumps({'message': message, 'result':
+                render_template('list_table.html', header = header, results = results)})
+
+        else:
+            return json.dumps({'message': "NO RESPONSE", 'result': None})
+
+    except Exception as error:
+        return json.dumps({'message': str(error.message), 'result': None})
+
 
 @app.route('/getClusterReferences')
 def getClusterReferences():

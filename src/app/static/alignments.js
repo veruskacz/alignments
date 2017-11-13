@@ -544,6 +544,49 @@ function filterListGroup(input,div_id,counter_div='') {
     }
 }
 
+function filterTableRow(input,div_id,counter_div='') {
+
+    var filter, ul, rows, cols, i, k, display, counter;
+
+    filter = input.value.toUpperCase();
+
+    if (div_id!='')
+    {   ul = document.getElementById(div_id); }
+    else
+    {   ul = input.parentNode; }
+
+    rows = ul.getElementsByTagName('tr');
+
+    // Loop through all list items, and hide those who don't match the search query
+    for (i = 1, counter=0; i < rows.length; i++) {
+
+        cols = rows[i].getElementsByTagName('td');
+        display = "none";
+        n = cols.length;
+        for (k=0; k < n; k++)
+        {  if (cols[k].innerHTML.toUpperCase().indexOf(filter) > -1) {
+            display = "";
+            counter += 1;
+            break;
+            }
+        }
+        rows[i].style.display = display;
+    }
+    if (counter_div != '')
+    {   num = ('0000' + String(counter)).substr(-4);
+        $('#'+counter_div).html(num) }
+    else
+    {
+        var cs = ul.getElementsByClassName('badge counter');
+        if (cs.length > 0)
+        {
+            counter_obj = cs[0];
+            num = ('0000' + String(counter)).substr(-4);
+            $(counter_obj).html(num)
+        }
+    }
+}
+
 ///////////////////////////////////
 // Download html table to csv
 ////////////////////////////////////

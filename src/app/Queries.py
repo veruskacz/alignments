@@ -1832,6 +1832,75 @@ def get_cluster_references():
         print query
     return query
 
+
+def get_cluster_references_table():
+    query = """
+    PREFIX rdfs:    <{}>
+    PREFIX ll:    <{}>
+    PREFIX void:    <{}>
+
+    SELECT DISTINCT ?uri (?uri as ?id)
+				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
+				(GROUP_CONCAT(distinct ?dataset; SEPARATOR=" | ") AS ?datasets)
+				(count(distinct ?cluster) as ?clusters)
+				(round(avg(?c)) as ?avgc) (max(?c) as ?maxc) (min(?c) as ?minc)
+    {{
+        GRAPH  ?cluster
+        {{
+            ?cluster ll:hasReference ?uri .
+            ?uri  rdfs:label ?label .
+			?cluster ll:hasConstraint ?constr .
+            ?constr  void:target ?dataset .
+
+          {{ select ?cluster ?uri (count(?s) as ?c)
+            {{
+   			  GRAPH  ?cluster
+         	  {{
+                  ?cluster ll:hasReference ?uri .
+                  ?s ll:list ?o .
+              }}
+            }} group by ?uri ?cluster
+          }}
+        }}
+        #BIND("no-mode" as ?mode)
+        # BIND (CONCAT( str(?uri), " | ", str(?label)) AS ?description)
+    }} group by ?uri
+    order by ?labels
+    """.format(Ns.rdfs, Ns.alivocab, Ns.void)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_clusters_table(reference_uri):
+    query = """
+    PREFIX rdfs:    <{}>
+    PREFIX ll:    <{}>
+    PREFIX void:    <{}>
+
+    SELECT DISTINCT ?uri (?uri as ?id)
+				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
+				(GROUP_CONCAT(distinct ?dataset; SEPARATOR=" | ") AS ?datasets)
+				(count(?s) as ?count)
+    {{
+        GRAPH  ?uri
+        {{
+            ?uri ll:hasReference <{}> .
+            ?uri  rdfs:label ?label .
+			?uri ll:hasConstraint ?constr .
+            ?constr  void:target ?dataset .
+            ?s ll:list ?o .
+        }}
+    }} group by ?uri
+    order by ?labels
+    """.format(Ns.rdfs, Ns.alivocab, Ns.void, reference_uri)
+
+    if DETAIL:
+        print query
+    return query
+
+
 def get_clusters_by_reference(reference_uri):
     query = """
     PREFIX ll:    <{}>
@@ -1844,13 +1913,15 @@ def get_clusters_by_reference(reference_uri):
             ?uri ll:hasReference ?reference .
         }}
         BIND("no-mode" as ?mode)
-        BIND("-" as ?label)
+        #BIND("-" as ?label)
+        BIND(strafter(strafter(str(?uri),"cluster/"), "_") as ?label)
     }}
     """.format(Ns.alivocab, reference_uri)
 
     if DETAIL:
         print query
     return query
+
 
 def get_cluster_metadata(reference_uri, cluster_uri):
     query = """
