@@ -1,0 +1,18 @@
+<TABLE class="table table-striped" id="resultTable" style='height: 10em; scroll: both; overflow: auto;' >
+     <thead>
+         <TR>
+         {% for col in header[1:] %}
+            <TH>{{ col }}</TH>
+         {% endfor %}
+     </thead>
+     <tbody>
+         {% for row in results %}
+         <!--The uri should always be the first element-->
+         <TR class="clickable-row"
+             uri="{{row[0]}}">
+            {% for col in row[1:] %}
+            <TD >{{ col }}</TD>
+            {% endfor %}
+         {% endfor %}
+     </tbody>
+</TABLE>
