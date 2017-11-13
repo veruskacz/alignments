@@ -2427,7 +2427,29 @@ function inspect_clusters_activate(mode="inspect")
                         $('#inspect_clusters_table tr').on('click',function()
                         {
                             $(this).addClass('warning').siblings().removeClass('warning');
+                            var cluster_uri = $(this).attr('uri');
 
+                            $('#inspect_clusters_resources_tab_row').show();
+                            $.get('/getClusteredObjectsTable',
+                                data={'reference_uri': reference_uri, 'cluster_uri': cluster_uri},
+                                function(data)
+                            {
+                                var obj = JSON.parse(data);
+                                if (obj.message == 'OK')
+                                {
+                                    $('#inspect_clusters_resources_table').html(obj.result);
+                                    var ul = document.getElementById('inspect_clusters_resources_table');
+                                    var rows = ul.getElementsByTagName('tr');
+                                    var num = ('0000' + String(rows.length-1)).substr(-4);
+                                    $('#cluster_resources_tab_counter').html(num);
+
+//                                    $('#inspect_clusters_resources_table tr').on('click',function()
+//                                    {
+//                                        $(this).addClass('warning').siblings().removeClass('warning');
+//
+//                                    });
+                                }
+                            });
                         });
                     }
                 });

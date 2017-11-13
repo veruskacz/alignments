@@ -1840,8 +1840,8 @@ def get_cluster_references_table():
     PREFIX void:    <{}>
 
     SELECT DISTINCT ?uri (?uri as ?id)
-				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
 				(GROUP_CONCAT(distinct ?dataset; SEPARATOR=" | ") AS ?datasets)
+				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
 				(count(distinct ?cluster) as ?clusters)
 				(round(avg(?c)) as ?avgc) (max(?c) as ?maxc) (min(?c) as ?minc)
     {{
@@ -1880,8 +1880,9 @@ def get_clusters_table(reference_uri):
     PREFIX void:    <{}>
 
     SELECT DISTINCT ?uri (?uri as ?id)
-				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
 				(GROUP_CONCAT(distinct ?dataset; SEPARATOR=" | ") AS ?datasets)
+				(GROUP_CONCAT(distinct ?property; SEPARATOR=" | ") AS ?properties)
+				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
 				(count(?s) as ?count)
     {{
         GRAPH  ?uri
@@ -1889,7 +1890,8 @@ def get_clusters_table(reference_uri):
             ?uri ll:hasReference <{}> .
             ?uri  rdfs:label ?label .
 			?uri ll:hasConstraint ?constr .
-            ?constr  void:target ?dataset .
+            ?constr  void:target ?dataset ;
+                      ll:hasProperty ?property.
             ?s ll:list ?o .
         }}
     }} group by ?uri
@@ -1973,12 +1975,12 @@ def get_datasets_per_reference(reference_uri):
     return query
 
 
-def get_clustered_objects(cluster_uri):
+def get_clustered_objects(reference_uri, cluster_uri):
     query = """
     PREFIX void:    <{}>
     PREFIX ll:    <{}>
 
-    SELECT DISTINCT ?object (group_concat(str(?v)) as ?values)
+    SELECT DISTINCT (?object as ?uri) (?object as ?id) (group_concat(str(?v)) as ?values) (group_concat(distinct str(?p)) as ?properties)
     {{
         graph ?dataset
         {{
@@ -1987,12 +1989,12 @@ def get_clustered_objects(cluster_uri):
         {{
           select ?object ?dataset (group_concat(str(?property)) as ?properties)
           {{
-          bind ({} as ?cluster)
+          bind (<{}> as ?cluster)
           GRAPH  ?cluster
           {{
-                ?cluster ll:hasReference ?reference .
+                ?cluster ll:hasReference <{}> .
                 ?cluster ll:hasConstraint ?constr ;
-                       ll:list ?o.
+                       ll:list ?object.
                 ?constr  void:target ?dataset;
                       ll:hasProperty ?property;
                       ll:hasValue ?value.
@@ -2001,7 +2003,7 @@ def get_clustered_objects(cluster_uri):
         }}
          FILTER (CONTAINS( ?properties, str(?p) ) )
     }} group by ?object
-    """.format(Ns.void, Ns.alivocab, cluster_uri)
+    """.format(Ns.void, Ns.alivocab, cluster_uri, reference_uri)
 
     if DETAIL:
         print query
