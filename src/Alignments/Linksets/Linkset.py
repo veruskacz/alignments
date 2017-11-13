@@ -136,6 +136,44 @@ def set_linkset_name(specs, inverse=False):
         return specs[St.linkset]
 
 
+def set_cluster_linkset_name(specs):
+
+    intermediate = ""
+    threshold = ""
+    delta = ""
+
+    def sort_me(element):
+        data = element[St.data]
+        for info in data:
+            info[St.properties].sort()
+        return element[St.graph]
+
+    specs[St.targets].sort(key=sort_me)
+
+
+    if St.intermediate_graph in specs:
+        intermediate = str(specs[St.intermediate_graph])
+
+    if St.threshold in specs:
+        threshold += str(specs[St.threshold])
+
+    if St.delta in specs:
+        delta += str(specs[St.delta])
+
+    h_name = specs[St.mechanism] + specs[St.reference] + str(specs[St.targets]) + intermediate + threshold + delta
+
+    hashed = hash(h_name)
+
+    append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
+
+    specs[St.linkset_name] = "clustered_{}_{}".format(specs[St.mechanism], append)
+
+    specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+
+    return specs[St.linkset]
+
+
+
 def set_linkset_identity_name(specs, inverse=False):
 
     if inverse is False:
@@ -443,6 +481,124 @@ def run_checks_id(specs):
     set_linkset_identity_name(specs, inverse=False)
     print "NAME: " + specs[St.linkset]
     print "\n>>> GOOD TO GO !!!"
+    return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
+
+
+def run_checks_cluster(specs, check_type):
+
+    heading = "RUNNING LINKSET SPECS CHECK" \
+              "\n======================================================" \
+              "========================================================"
+    print heading
+
+    ask = "ASK {{ <#> ?p ?o . }}"
+    linkset = specs[St.refined] if St.refined in specs else specs[St.linkset]
+
+    # linkset = specs[St.refined] if St.refined in specs else specs[St.linkset]
+    # print linkset
+
+    """
+    # CHECK WHETHER THE GRAPHS EXIST
+    """
+    g_exist_q = "ASK { GRAPH <@> {?s ?p ?o} }"
+    response = "false"
+    for target in specs[St.targets]:
+        response = Qry.boolean_endpoint_response(g_exist_q.replace("@", target[St.graph]))
+        if response == "false":
+            break
+    # print response
+    if response == "false":
+        print Ec.ERROR_CODE_10
+        return {St.message: Ec.ERROR_CODE_10, St.error_code: 10, St.result: None}
+
+    """
+    # CHECK THE TASK SPECIFIC PREDICATE COUNT
+    """
+    if specs[St.sameAsCount] is None:
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: None}
+    # print "sameAsCount", specs[St.sameAsCount]
+
+    """
+    # CHECK WHETHER THE LINKSET WAS ALREADY CREATED AND ITS ALTERNATIVE NAME REPRESENTATION
+    """
+
+    # CHECK WHETHER THE CURRENT LINKSET NAME EXIST
+    ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
+    # print ask_1
+
+    # THE CURRENT AME EXIST
+    if ask_1 == "true":
+        # print specs[St.linkset_name]
+        print "ASK_1: YES, THE CURRENT NAME EXIST"
+        message = Ec.ERROR_CODE_2.replace('#', linkset)
+
+        if St.refined in specs:
+
+            # GET LINKSET DERIVED FROM
+            subjects_target = linkset_wasderivedfrom(linkset)
+            # CHECK THE RESULT OF THE DIFFERENCE AND OUT PUT BOTH THE REFINED AND THE DIFFERENCE
+            if subjects_target is not None:
+
+                print "\t>>> NOT GOOD TO GO, IT ALREADY EXISTS"
+
+                diff_lens_specs = {
+                    St.researchQ_URI: specs[St.researchQ_URI],
+                    # THE OBJECT IS THE LINKSET THE REFINED LINKSET WAS DERIVED FROM
+                    St.subjectsTarget: subjects_target,
+                    # THE TARGET IS THE REFINED LINKSET
+                    St.objectsTarget: linkset
+                }
+
+                Lu.diff_lens_name(diff_lens_specs)
+                message2 = Ec.ERROR_CODE_7.replace('#', diff_lens_specs[St.lens])
+                refined = {St.message: message, St.error_code: 0, St.result: linkset}
+                difference = {St.message: message2, St.error_code: 7, St.result: diff_lens_specs[St.lens]}
+                # print "difference", difference
+
+                # REGISTER THE ALIGNMENT
+                if refined[St.message].__contains__("ALREADY EXISTS"):
+                    Ura.register_alignment_mapping(specs, created=False)
+                else:
+                    Ura.register_alignment_mapping(specs, created=True)
+
+                # REGISTER THE LENS
+                Ura.register_lens(diff_lens_specs, is_created=False)
+
+                return {St.message: "NOT GOOD TO GO", 'refined': refined, 'difference': difference}
+        print message
+        return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
+
+    # CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST
+    # elif ask_1 == "false" and str(check_type).lower() != "subset":
+        #
+        # print "ASK 2: CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST"
+        # if St.refined not in specs:
+        #     print "\t- NOT REFINED"
+            # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY TO SUBSET BECAUSE WE ASSUME
+            # A LINKSET BY SUBSET DOES NOT NEED THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
+            # counter_check = set_linkset_name(specs, inverse=True)
+
+            # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
+            # ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
+
+            # if ask_2 == "true":
+            #     message = Ec.ERROR_CODE_3.replace('#', linkset).replace("@", counter_check)
+            #     print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS UNDER THE NAME {}".format(counter_check)
+            #     print message
+            #     return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
+
+    if str(check_type).lower() == "subset":
+        print "ASK 3: IT IS A SUBSET"
+        set_subset_name(specs, inverse=False)
+    elif str(check_type).lower() == "linkset":
+        print "ASK 3: IT IS A LINKSET"
+        set_cluster_linkset_name(specs)
+    elif str(check_type).lower() == "refine":
+        print "ASK 3: IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
+        set_refined_name(specs)
+    # print specs[St.linkset_name]
+    print ">>> GOOD TO GO !!!"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 

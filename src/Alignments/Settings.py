@@ -72,6 +72,7 @@ sameAsCount = "sameAsCount"
 
 source = "source"
 target = "target"
+targets = "targets"
 dataset = "dataset"
 src_dataset = "src_dataset"
 trg_dataset = "trg_dataset"
@@ -182,4 +183,5 @@ stardog_data_path = "stardog_data_path"
 
 longitude = "longitude"
 latitude = "latitude"
+reference = "reference"
 

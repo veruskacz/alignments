@@ -1,60 +1,7 @@
 import Alignments.ConstraintClustering.DatasetsResourceClustering as Dcs
 import Alignments.Settings as St
+import Alignments.Linksets.SPA_Linkset as Linkset
 
-###################################################
-# DATA(INPUT) NEEDED AND FORMAT
-###################################################
-
-# ## GRID
-grid_graph = "http://risis.eu/dataset/grid_20170712"
-grid_org_type = "http://xmlns.com/foaf/0.1/Organization"
-grid_org_props = ["http://www.w3.org/2000/01/rdf-schema#label", "http://www.w3.org/2004/02/skos/core#prefLabel",
-                  "http://www.w3.org/2004/02/skos/core#altLabel", "http://xmlns.com/foaf/0.1/homepage"]
-grid_main_dict = {
-    St.graph: grid_graph,
-    St.data: [{St.entity_datatype: grid_org_type, St.properties: grid_org_props}]
-}
-
-# ## ORGREF
-orgref_graph = "http://risis.eu/dataset/orgref_20170703"
-orgref_org_type = "http://risis.eu/orgref_20170703/ontology/class/Organisation"
-orgref_org_props = ["http://risis.eu/orgref_20170703/ontology/predicate/Name",
-                    "http://risis.eu/orgref_20170703/ontology/predicate/Website"]
-orgref_main_dict = {
-    St.graph: orgref_graph,
-    St.data: [{St.entity_datatype: orgref_org_type, St.properties: orgref_org_props}]
-}
-
-# ## ORGREG
-orgreg_graph = "http://risis.eu/dataset/orgre8_20170718"
-orgreg_org_type = "http://risis.eu/orgreg_20170718/resource/organization"
-orgreg_org_props = ["http://risis.eu/orgreg_20170718/ontology/predicate/Name_of_entity",
-                    "http://risis.eu/orgreg_20170718/ontology/predicate/English_name_of_entity",
-                    "http://risis.eu/orgreg_20170718/ontology/predicate/Entity_current_name_English",
-                    "http://risis.eu/orgreg_20170718/ontology/predicate/Country_of_establishment",
-                    "http://risis.eu/orgreg_20170718/ontology/predicate/Website_of_entity"]
-orgreg_main_dict = {
-    St.graph: orgreg_graph,
-    St.data: [{St.entity_datatype: orgreg_org_type, St.properties: orgreg_org_props}]
-}
-
-# ## ETER
-eter_graph = "http://risis.eu/dataset/eter_2014"
-eter_org_type = "http://risis.eu/eter_2014/ontology/class/University"
-eter_org_props = ["http://risis.eu/eter_2014/ontology/predicate/Institution_Name",
-                  "<http://risis.eu/eter_2014/ontology/predicate/English_Institution_Name>",
-                  "http://risis.eu/eter_2014/ontology/predicate/Name_of_foreign_institution",
-                  "http://risis.eu/eter_2014/ontology/predicate/Institutional_website"]
-eter_main_dict = {
-    St.graph: eter_graph,
-    St.data: [{St.entity_datatype: eter_org_type, St.properties: eter_org_props}]
-}
-
-specs = [grid_main_dict, orgref_main_dict, orgreg_main_dict, eter_main_dict]
-
-prop2 = ["http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode",
-         "http://risis.eu/eter_2014/ontology/predicate/Country_Code",
-         "http://risis.eu/orgref_20170703/ontology/predicate/Country"]
 
 ###################################################
 # CREATING MULTIPLE CLUSTERS IN ONE STEP
@@ -62,19 +9,100 @@ prop2 = ["http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/c
 
 # THE INITIAL DATASET IS grid_20170712
 grid_GRAPH = "http://risis.eu/dataset/grid_20170712"
-grid_PROPS = ["<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>",
-              "<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>"]
+grid_org_type = "http://xmlns.com/foaf/0.1/Organization"
+grid_cluster_PROPS = ["<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>",
+                      "<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>"]
+grid_link_org_props = ["http://www.w3.org/2000/01/rdf-schema#label",
+                       "http://www.w3.org/2004/02/skos/core#prefLabel",
+                       "http://www.w3.org/2004/02/skos/core#altLabel",
+                       "http://xmlns.com/foaf/0.1/homepage"
+                       ]
+grid_main_dict = {St.graph: grid_GRAPH,
+                  St.data: [{St.entity_datatype: grid_org_type, St.properties: grid_link_org_props}]}
 
+# [ORGREF] DATASET TO ADD
 orgref_GRAPH = "http://risis.eu/dataset/orgref_20170703"
-orgref_PROPS = ["http://risis.eu/orgref_20170703/ontology/predicate/Country"]
+orgref_cluster_PROPS = ["http://risis.eu/orgref_20170703/ontology/predicate/Country"]
+orgref_org_type = "http://risis.eu/orgref_20170703/ontology/class/Organisation"
+orgref_link_org_props = ["http://risis.eu/orgref_20170703/ontology/predicate/Name",
+                         "http://risis.eu/orgref_20170703/ontology/predicate/Website"
+                         ]
+orgref_main_dict = {St.graph: orgref_GRAPH,
+                    St.data: [{St.entity_datatype: orgref_org_type, St.properties: orgref_link_org_props}]}
 
+# [ETER] DATASET TO ADD
+eter_GRAPH = "http://risis.eu/dataset/eter_2014"
+eter_cluster_PROPS = ["http://risis.eu/eter_2014/ontology/predicate/Country_Code"]
+eter_org_type = "http://risis.eu/eter_2014/ontology/class/University"
+eter_link_org_props = ["http://risis.eu/eter_2014/ontology/predicate/Institution_Name",
+                       "<http://risis.eu/eter_2014/ontology/predicate/English_Institution_Name>",
+                       "http://risis.eu/eter_2014/ontology/predicate/Name_of_foreign_institution",
+                       "http://risis.eu/eter_2014/ontology/predicate/Institutional_website"]
+eter_main_dict = {St.graph: eter_GRAPH,
+                  St.data: [{St.entity_datatype: eter_org_type, St.properties: eter_link_org_props}]}
+
+# [ORGREG] DATASET TO ADD
+orgreg_GRAPH = "http://risis.eu/dataset/orgreg_20170718"
+orgreg_cluster_PROPS = ["<http://risis.eu/orgreg_20170718/ontology/predicate/locationOf>"
+                        "/<http://risis.eu/orgreg_20170718/ontology/predicate/Country_of_location>",
+                        "http://risis.eu/orgreg_20170718/ontology/predicate/Country_of_establishment"]
+orgreg_org_type = "http://risis.eu/orgreg_20170718/resource/organization"
+orgreg_link_org_props = ["http://risis.eu/orgreg_20170718/ontology/predicate/Name_of_entity",
+                         "http://risis.eu/orgreg_20170718/ontology/predicate/English_name_of_entity",
+                         "http://risis.eu/orgreg_20170718/ontology/predicate/Entity_current_name_English",
+                         "http://risis.eu/orgreg_20170718/ontology/predicate/Country_of_establishment",
+                         "http://risis.eu/orgreg_20170718/ontology/predicate/Website_of_entity"]
+orgreg_main_dict = {St.graph: orgreg_GRAPH,
+                    St.data: [{St.entity_datatype: orgreg_org_type, St.properties: orgreg_link_org_props}]}
+
+# [LEIDEN] DATASET TO ADD
+leiden_GRAPH = "http://risis.eu/dataset/leidenRanking_2015"
+leiden_cluster_PROPS = ["<http://risis.eu/leidenRanking_2015/ontology/predicate/country>"]
+leiden_org_type = "http://risis.eu/leidenRanking_2015/ontology/class/University"
+leiden_link_org_props = ["http://risis.eu/leidenRanking_2015/ontology/predicate/actor"]
+leiden_main_dict = {St.graph: leiden_GRAPH,
+                    St.data: [{St.entity_datatype: leiden_org_type, St.properties: leiden_link_org_props}]}
+
+# [H2020] DATASET TO ADD
+h2020_GRAPH = "http://risis.eu/dataset/h2020"
+h2020_cluster_PROPS = ["http://risis.eu/cordisH2020/vocab/country"]
+h2020_org_type = "http://xmlns.com/foaf/0.1/Organization"
+h2020_link_org_props = ["http://xmlns.com/foaf/0.1/name", "http://xmlns.com/foaf/0.1/page"]
+h2020_main_dict = {St.graph: h2020_GRAPH,
+                   St.data: [{St.entity_datatype: h2020_org_type, St.properties: h2020_link_org_props}]}
+
+# [OPENAIRE] DATASET TO ADD
+openaire_GRAPH = "http://risis.eu/dataset/openAire_20170816"
+openaire_cluster_PROPS = ["http://dbpedia.org/ontology/country"]
+openaire_org_type = "hhttp://xmlns.com/foaf/0.1/Organization"
+openaire_link_org_props = ["http://www.w3.org/2004/02/skos/core#prefLabel",
+                           "http://www.w3.org/2004/02/skos/core#altLabel",
+                           "http://lod.openaire.eu/vocab/webSiteUrl"]
+openaire_main_dict = {St.graph: openaire_GRAPH,
+                      St.data: [{St.entity_datatype: openaire_org_type, St.properties: openaire_link_org_props}]}
+
+targets = [
+    grid_main_dict,
+    orgref_main_dict,
+    orgreg_main_dict,
+    eter_main_dict,
+    leiden_main_dict,
+    h2020_main_dict,
+    openaire_main_dict
+]
+
+specs = {St.reference: "http://risis.eu/cluster/reference/P1041014171",
+         St.mechanism: "exactStrSim",
+         St.researchQ_URI: "http://risis.eu/activity/idea_349cbe",
+         St.targets: targets}
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 >>> 1. [CREATE] A GROUP OF CLUSTERS USING THE [GRID] DATASET AND
     [COUNTRY CODE] AND [COUNTRY NAME] AS CLUSTER CONSTRAINTS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 print "1. INITIAL GROUP OF CLUSTERS"
-response = Dcs.create_clusters(initial_dataset_uri=grid_GRAPH, property_uri=grid_PROPS, strong=True, activated=False)
+response = Dcs.create_clusters(
+    initial_dataset_uri=grid_GRAPH, property_uri=grid_cluster_PROPS, strong=True, activated=False)
 # reference = response["reference"]
 # print reference
 
@@ -85,9 +113,27 @@ response = Dcs.create_clusters(initial_dataset_uri=grid_GRAPH, property_uri=grid
     IF A NON EXISTING CLUSTER EXISTS IN [ORGREF] BUT NOT IN THE EXISTING
     GROUP, A NEW CLUSTER IS GENERATED AND ADDED TO THE GROUP.
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-print "\n2. ADDING ORGREF RESOURCE TO THE INITIAL GROUP OF CLUSTER"
+
 reference_2 = "http://risis.eu/cluster/reference/P1041014171"
-Dcs.add_to_clusters(reference=reference_2, dataset_uri=orgref_GRAPH, property_uri=orgref_PROPS, activated=False)
+
+print "\n2.1 ADDING [ORGREF] RESOURCES TO THE INITIAL GROUP OF CLUSTER"
+Dcs.add_to_clusters(reference=reference_2, dataset_uri=orgref_GRAPH, property_uri=orgref_cluster_PROPS, activated=False)
+
+print "\n2.2 ADDING [ETER] RESOURCES TO THE INITIAL GROUP OF CLUSTER"
+Dcs.add_to_clusters(reference=reference_2, dataset_uri=eter_GRAPH, property_uri=eter_cluster_PROPS, activated=False)
+
+print "\n2.3 ADDING [LEIDEN] RESOURCES TO THE INITIAL GROUP OF CLUSTER"
+Dcs.add_to_clusters(reference=reference_2, dataset_uri=leiden_GRAPH, property_uri=leiden_cluster_PROPS, activated=False)
+
+print "\n2.4 ADDING [H2020] RESOURCES TO THE INITIAL GROUP OF CLUSTER"
+Dcs.add_to_clusters(reference=reference_2, dataset_uri=h2020_GRAPH, property_uri=h2020_cluster_PROPS, activated=False)
+
+print "\n2.5 ADDING [ORGREG] RESOURCES TO THE INITIAL GROUP OF CLUSTER"
+Dcs.add_to_clusters(reference=reference_2, dataset_uri=orgreg_GRAPH, property_uri=orgreg_cluster_PROPS, activated=False)
+
+print "\n2.6 ADDING [ORGREG] RESOURCES TO THE INITIAL GROUP OF CLUSTER"
+Dcs.add_to_clusters(
+    reference=reference_2, dataset_uri=openaire_GRAPH, property_uri=openaire_cluster_PROPS, activated=False)
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -103,7 +149,10 @@ Dcs.linkset_from_cluster(specs=specs, cluster_uri=cluster, user_label=None, coun
 >>> 4. CREATING A [LINKSET] FROM A [CLUSTER REFERENCE]
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 print "\n4. CREATING A LINKSET FROM A [CLUSTER REFERENCE]"
-Dcs.linkset_from_clusters(specs=specs, reference=reference_2, activated=False)
+
+Linkset.cluster_specs_2_linksets(specs=specs, match_numeric=False, activated=True)
+
+# Dcs.linkset_from_clusters(specs=specs, activated=True)
 
 
 ###################################################
@@ -152,3 +201,11 @@ Dcs.linkset_from_clusters(specs=specs, reference=reference_2, activated=False)
 # eter_boundary_ds = "http://risis.eu/dataset/eter_2014_enriched"
 # eter_props = ["http://risis.eu/alignment/predicate/intersects"]
 # Dcs.create_clusters(initial_dataset_uri=eter_boundary_ds, property_uri=eter_props, activated=False)
+
+###################################################
+# DATA(INPUT) NEEDED AND FORMAT
+###################################################
+
+prop2 = ["http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode",
+         "http://risis.eu/eter_2014/ontology/predicate/Country_Code",
+         "http://risis.eu/orgref_20170703/ontology/predicate/Country"]

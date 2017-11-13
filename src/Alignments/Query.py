@@ -390,8 +390,8 @@ def endpointconstruct(query, clean=True):
     """
         Authentication
     """
-    user = "admin"
-    password = "adminT314a"
+    user = Svr.settings[St.stardog_user]
+    password = Svr.settings[St.stardog_pass]
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))

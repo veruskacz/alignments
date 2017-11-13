@@ -4,6 +4,7 @@ import Alignments.Query as Qry
 import Alignments.Settings as St
 import cStringIO as Buffer
 import datetime
+import time
 
 
 """
@@ -1179,6 +1180,7 @@ def helper(specs, is_source=True):
                 properties_uri[i] = "<{}>".format(properties_uri[i])
             if i == 0:
                 values = "({})".format(properties_uri[i])
+
             else:
                 values += "\n\t\t\t\t\t | ({})".format(properties_uri[i])
         return values
@@ -1190,6 +1192,12 @@ def helper(specs, is_source=True):
     builder = Buffer.StringIO()
     is_empty = True
 
+    singleton = """
+                    ### Create A SINGLETON URI"
+                    BIND( replace("{0}_#", "#", STRAFTER(str(UUID()),"uuid:")) as ?pre )
+                    BIND( iri(?pre) as ?singPre )""".format(Ns.alivocab)
+    if number == 2:
+        singleton = ""
     for dataset in specs:
         graph = dataset[St.graph]
         data = dataset[St.data]
@@ -1200,19 +1208,21 @@ def helper(specs, is_source=True):
                     BIND(<{2}> AS ?dataset_{0})
                     ?resource_{0} {1} ?obj_{0} .
 
+                    ?resource_{0} ?property_{0} ?obj_{0} .
+
                     # TO STRING AND TO LOWER CASE
                     BIND(lcase(str(?obj_{0})) as ?label_{0})
 
                     # VALUE TRIMMING
                     BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-                    BIND(REPLACE(?label_{0}, ?regexp, '$1$2') AS ?trimmed_label)
-                }} """.format(number, property_list(properties), graph, union)
+                    BIND(REPLACE(?label_{0}, ?regexp, '$1$2') AS ?trimmed_label){5}
+                }} """.format(number, property_list(properties), graph, union, Ns.alivocab, singleton)
             is_empty = False
 
             builder.write(sub)
 
-    query = """# FIND SOME INFORMATION ABOUT RESOURCE_O WITHIN A RANDOM GRAPH {0}
-            GRAPH ?dataset_{0}
+    # # FIND SOME INFORMATION ABOUT RESOURCE_O WITHIN A RANDOM GRAPH {0}
+    query = """GRAPH ?dataset_{0}
             {{
                 {1}
             }}
@@ -1313,14 +1323,46 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     # }}
     # """.format(Ns.alivocab, cluster_uri, values, Ns.linkset, label)
 
+    targets_array = specs[St.targets]
+    targets = ""
+    for i in range(0, len(targets_array)):
+
+        if i == 0:
+            targets = "<{}>".format((targets_array[i])[St.graph])
+        else:
+            targets += " ,\n\t\t\t\t\t\t\t\t\t\t\t<{}>".format((targets_array[i])[St.graph])
+
     query = """
         # CREATION OF A LINKSET OF MIXED-RESOURCES
-        PREFIX ll: <{0}>
+        PREFIX ll:          <{0}>
+        PREFIX void:        <{6}>
+        PREFIX rdfs:        <{7}>
+        PREFIX bdb:         <{8}>
+        PREFIX prov:        <{9}>
+        PREFIX singleton:   <{12}>
+        prefix linkset:     <{3}>
         INSERT
         {{
-            GRAPH <{3}{4}>
+            # GENERIC METADATA
+            linkset:{4}
+                rdfs:label                  "{4}" ;
+                a                           void:Linkset ;
+                ll:alignsMechanism          <{11}exact> ;
+                void:target                 {10} .
+
+            GRAPH singleton:{4}
             {{
-                ?resource_1  ll:sameAs ?resource_2 .
+                ?singPre ll:hasStrength         1 .
+                ?singPre ll:hasEvidence         ?trimmed_label .
+                ?singPre void:subjectsTarget    ?dataset_1 .
+                ?singPre void:objectsTarget     ?dataset_2 .
+                ?singPre ll:alignsSubjects      ?property_1 .
+                ?singPre ll:alignsObjects       ?property_2 .
+            }}
+
+            GRAPH linkset:{4}
+            {{
+                ?resource_1  ?singPre ?resource_2 .
             }}
         }}
         WHERE
@@ -1337,27 +1379,37 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
             {5}
             FILTER(str(?dataset_1) > str(?dataset_2))
         }}
-        """.format(Ns.alivocab, cluster_uri, helper(specs, is_source=True),
-                   Ns.linkset, label, helper(specs, is_source=False))
-
+        """.format(Ns.alivocab, cluster_uri, helper(targets_array, is_source=True),
+                   Ns.linkset, label, helper(targets_array, is_source=False),
+                   # 6      7        8       9        10       11            12
+                   Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, targets, Ns.mechanism, Ns.singletons)
     # print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
+    print "\t{:20}: {}".format("STARTED ON", datetime.datetime.today().strftime(_format))
     print "\t{:20}: {}".format("LINKSET", label)
     print "\t{:20}: {}".format("LINKSET SIZE BEFORE", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
+
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
+    start = time.time()
     inserted = Qry.boolean_endpoint_response(query)
+    end = time.time()
+    diff = end - start
+
+    print "\t{:20}: {}".format("ENDED ON", datetime.datetime.today().strftime(_format))
     size_after = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label))
     print "\t{:20}: {}".format("LINKSET SIZE AFTER", size_after)
-    print "INSERTED STATUS: {}".format(inserted)
+    print "\t{:20}: {} minute(s) [{}]".format(">>> Executed in", str(diff / 60), diff)
+    # print "INSERTED STATUS: {}".format(inserted)
     # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.linkset, label)))
 
+    specs[St.triples] = size_after
     return {St.message: "The linkset was created as [{}] and contains {} triples".format(
         label, size_after), St.result: label}
 
 
 # FROM MULTIPLE CLUSTERS TO A SINGLE MULTI SOURCES LINKSET
-def linkset_from_clusters(specs, reference, activated=False):
+def linkset_from_clusters(specs, activated=False):
 
     print "\n>>> CREATING A MIXED RESOURCES-LINKSET\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
@@ -1377,8 +1429,8 @@ def linkset_from_clusters(specs, reference, activated=False):
             ?cluster ll:hasReference  <{1}> .
         }}
     }}
-    """.format(Ns.alivocab, reference)
-    print query
+    """.format(Ns.alivocab, specs[St.reference])
+    # print query
 
     # RUN THE QUERY AGAINST  THE TRIPLE STORE
     cluster_table_response = Qry.sparql_xml_to_matrix(query)
@@ -1397,8 +1449,9 @@ def linkset_from_clusters(specs, reference, activated=False):
 
     # LINKSET LABEL (ID)
     identification = hash(builder.getvalue())
-    label = "clustered_{}".format(str(identification).replace("-", "N")) \
-        if str(identification).startswith("-") else "clustered_P{}".format(str(identification))
+    # label = "clustered_{}".format(str(identification).replace("-", "N")) \
+    #     if str(identification).startswith("-") else "clustered_P{}".format(str(identification))
+    label = specs[St.linkset_name]
     # print label
 
     # CREATE AND ADD RESOURCES TO THE LINKSET
@@ -1406,7 +1459,7 @@ def linkset_from_clusters(specs, reference, activated=False):
     for i in range(1, len(cluster_table)):
         result = linkset_from_cluster(specs, cluster_table[i][0], user_label=label, count=i, activated=activated)
 
-        if i == 3:
+        if i == 1:
             break
 
     return result

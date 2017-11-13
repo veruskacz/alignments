@@ -11,6 +11,7 @@ import Alignments.Linksets.Linkset as Ls
 import Alignments.UserActivities.UserRQ as Urq
 from Alignments.Utility import update_specification
 from Alignments.Linksets.Linkset import writelinkset
+from Alignments.ConstraintClustering.DatasetsResourceClustering import linkset_from_clusters
 
 DIRECTORY = Ss.settings[St.linkset_Exact_dir]
 logger = logging.getLogger(__name__)
@@ -1959,46 +1960,52 @@ def insert_query_reduce2(specs):
 # See if this makes sens or is necessary
 ########################################################################################
 
-def approx_numeric(specs):
-    query = """
-    select ?s ?x ?y
-    {
-        # SOURCE
-        graph dataset:leidenRanking_2015
-        {
-          ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/Int_coverage> ?x .
-          ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/MNCS> ?y .
-
-          filter( abs( xsd:decimal(?x) - xsd:decimal(?y) ) <= 0.1)
-
-        }
-    }
-    """
-
-    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
-
-    # UPDATE THE SPECS OF SOURCE AND TARGETS
-    update_specification(specs[St.source])
-    update_specification(specs[St.target])
-
-    # GENERATE THE NAME OF THE LINKSET
-    Ls.set_linkset_name(specs)
-
-    insert_query_numeric_reduce(specs)
+# def approx_numeric(specs):
+#     query = """
+#     select ?s ?x ?y
+#     {
+#         # SOURCE
+#         graph dataset:leidenRanking_2015
+#         {
+#           ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/Int_coverage> ?x .
+#           ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/MNCS> ?y .
+#
+#           filter( abs( xsd:decimal(?x) - xsd:decimal(?y) ) <= 0.1)
+#
+#         }
+#     }
+#     """
+#
+#     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+#
+#     # UPDATE THE SPECS OF SOURCE AND TARGETS
+#     update_specification(specs[St.source])
+#     update_specification(specs[St.target])
+#
+#     # GENERATE THE NAME OF THE LINKSET
+#     Ls.set_linkset_name(specs)
+#
+#     insert_query_numeric_reduce(specs)
 
 
 grid = {
     St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-    St.graph: "http://risis.eu/dataset/grid",
+    St.graph: "http://risis.eu/dataset/grid_20170712",
     St.entity_datatype: "http://risis.eu/grid/ontology/class/Institution",
     St.aligns: "http://risis.eu/grid/ontology/predicate/name",
-    St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715"}
+    St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
+    St.longitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
+    St.latitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"
+}
 
 eter_english = {
-   St.graph: "http://risis.eu/dataset/eter",
+   St.graph: "http://risis.eu/dataset/eter_2014",
    St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
    St.aligns: "http://risis.eu/eter/ontology/predicate/english_Institution_Name",
-   St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715"}
+   St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
+   St.longitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__longitude",
+   St.latitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__latitude"
+}
 
 """ DEFINE LINKSET SPECIFICATIONS """
 ls_specs_1 = {
@@ -2034,3 +2041,214 @@ ls_specs_2 = {
 # approx_numeric(ls_specs_2)
 
 # specs_2_linkset_num_approx(ls_specs_2, match_numeric=True, activated=True)
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    GEO-SIMILARITY
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
+def geo_query(specs, is_source):
+
+    # UPDATE THE SPECS OF SOURCE AND TARGETS
+    if is_source is True:
+        info = specs[St.source]
+        load = "_1"
+    else:
+        info = specs[St.target]
+        load = "_2"
+
+    # REPLACE RDF TYPE "rdf:type" IN CASE ANOTHER TYPE IS PROVIDED
+    if St.rdf_predicate in info and info[St.rdf_predicate] is not None:
+        rdf_pred = info[St.rdf_predicate] \
+            if Ls.nt_format(info[St.rdf_predicate]) else "<{}>".format(info[St.rdf_predicate])
+    else:
+        rdf_pred = "a"
+
+    # FORMATTING THE LONGITUDE PROPERTY
+    longitude = info[St.longitude] \
+        if Ls.nt_format(info[St.longitude]) else "<{}>".format(info[St.longitude])
+
+    # FORMATTING THE LATITUDE PROPERTY
+    latitude = info[St.latitude] \
+        if Ls.nt_format(info[St.latitude]) else "<{}>".format(info[St.latitude])
+
+    # EXTRACTING THE RESOURCE GRAPH URI LOCAL NAME
+    # name = info[St.graph_name]
+
+    # EXTRACTING THE RESOURCE GRAPH URI
+    uri = info[St.graph]
+
+
+    # ADD THE REDUCER IF SET
+    if St.reducer not in info:
+        reducer_comment = "#"
+        reducer = ""
+    else:
+        reducer_comment = ""
+        reducer = info[St.reducer]
+
+    if is_source is True:
+        message = """######################################################################
+    ### INSERTING DATA FROM THE SOURCE
+    ######################################################################"""
+    else:
+        message = """######################################################################
+    ### INSERTING MESSAGE FROM THE TARGET
+    ######################################################################"""
+
+    query = """
+    {5}
+    PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+    PREFIX wgs:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    INSERT
+    {{
+        GRAPH <{0}load{1}>
+        {{
+            ?resource  wgs:long  ?longitude .
+            ?resource  wgs:lat   ?latitude .
+        }}
+    }}
+    WHERE
+    {{
+        GRAPH <{2}>
+        {{
+            ### LOCATION COORDINATES
+            ?resource  {6}  <{7}> .
+            ?resource  {3}  ?long .
+            ?resource  {4}  ?lat .
+
+            ### MAKING SURE THE COORDINATES ARE WELL FORMATTED
+            BIND( STRDT(REPLACE(STR(?long), ",", "."), xsd:float)  as ?longitude )
+            BIND( STRDT(REPLACE(STR(?lat), ",", "."), xsd:float)  as ?latitude )
+
+            ### MAKING SURE THE COORDINATES AT DIGITS AND NOT LITERALS
+            Filter (?longitude >= 0 || ?longitude <= 0 )
+            Filter (?latitude  >= 0 || ?latitude  <= 0 )
+
+            ### GENERATE A LOCATION URI
+            BIND( replace("http://risis.eu/#","#", STRAFTER(str(UUID()),"uuid:")) as ?name )
+            BIND(iri(?name) as ?location)
+        }}
+    }}
+    """.format(
+        # 0          1     2    3          4         5        6         7
+        Ns.tmpgraph, load, uri, longitude, latitude, message, rdf_pred, info[St.entity_datatype] )
+    print query
+    return query
+
+
+def geo_match_query(specs):
+
+    is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) and \
+                        (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
+
+    operator = "<" if specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype] else "!="
+
+    comment = "" if is_de_duplication is True else "#"
+    number_of_load = '1' if is_de_duplication is True else "2"
+
+    match = """
+    ######################################################################
+    ### INSETTING MATCH FOUND IN A TEMPORARY GRAPH
+    ######################################################################
+    PREFIX tmpvocab: <{0}>
+    PREFIX tmpgraph: <{1}>
+    PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
+    PREFIX wgs:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    INSERT
+    {{
+        GRAPH tmpgraph:load_3
+        {{
+            ?src_resource  tmpvocab:exactName  ?trg_resource .
+        }}
+    }}
+    WHERE
+    {{
+        ### SOURCE DATASET WITH GEO-COORDINATES
+        GRAPH tmpgraph:load_1
+        {{
+            ?src_resource  wgs:long  ?src_longitude .
+            ?src_resource  wgs:lat   ?src_latitude .
+        }}
+        ### TARGET DATASET WITH GEO-COORDINATES
+        GRAPH tmpgraph:load_{2}
+        {{
+            ?trg_resource  wgs:long  ?trg_longitude .
+            ?trg_resource  wgs:lat   ?trg_latitude .
+        }}
+        ### MATCHING TARGETS NEAR BY SOURCE
+        ?src_resource  geof:nearby (?trg_resource 1 <http://qudt.org/vocab/unit#Meter>).
+    }}
+    """.format(Ns.alivocab, Ns.tmpgraph, number_of_load)
+    print match
+
+# geo_query(ls_specs_1, True)
+# geo_query(ls_specs_1, False)
+# geo_match_query(ls_specs_1)
+# print Qry.boolean_endpoint_response(geo_query(ls_specs_1, True))
+# print Qry.boolean_endpoint_response(geo_query(ls_specs_1, False))
+# print Qry.boolean_endpoint_response(geo_match_query(ls_specs_1))
+
+
+
+def cluster_specs_2_linksets(specs, match_numeric=False, display=False, activated=False):
+
+    # if activated is True:
+    heading = "======================================================" \
+              "========================================================" \
+              "\nEXECUTING LINKSET SPECS"
+
+    print heading
+    # inserted_mapping = None
+    # inserted_linkset = None
+
+    # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+
+    if specs[St.sameAsCount]:
+
+        # UPDATE THE SPECS OF SOURCE AND TARGETS
+        # update_specification(specs[St.source])
+        # update_specification(specs[St.target])
+
+        # GENERATE THE NAME OF THE LINKSET
+        Ls.set_cluster_linkset_name(specs)
+        # print specs[St.linkset_name]
+
+        check = Ls.run_checks_cluster(specs, check_type="linkset")
+        # print check
+        # if check[St.result] != "GOOD TO GO":
+        #     return check
+
+        # SET THE INSERT QUERY
+        # specs[St.linkset_insert_queries] = spa_linkset_ess_query(specs)
+        # specs[St.linkset_insert_queries] = insert_query_reduce(specs, match_numeric)
+
+        # GENERATE THE LINKSET
+        # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
+        # inserted_linkset = spa_linksets(specs, display=display, activated=activated)
+
+
+
+
+        message = Ec.ERROR_CODE_4.replace('\n', "<br/>")
+        if activated is True:
+
+            # REGISTER THE ALIGNMENT
+            if check[St.message].__contains__("ALREADY EXISTS"):
+                Urq.register_alignment_mapping(specs, created=False)
+            else:
+                linkset_from_clusters(specs=specs, activated=True)
+                message = "The linkset was created as [{}] with {} triples found!".format(
+                    specs[St.linkset], specs[St.triples])
+                Urq.register_alignment_mapping(specs, created=True)
+
+            return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+
+        return {St.message: message, St.error_code: 4, St.result: None}
+
+    else:
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
+#
