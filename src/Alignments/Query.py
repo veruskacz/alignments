@@ -359,6 +359,7 @@ def boolean_endpoint_response(query, display=False):
     response = endpoint(query)
     drop_end = time.time()
     result = None
+    # print response
     if response[St.result] is not None:
         if len(response[St.result]) == 0:
             return ERROR_2

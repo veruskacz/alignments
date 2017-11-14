@@ -2384,8 +2384,8 @@ def deleteLinkset():
     rq_uri = request.args.get('rq_uri', '')
     linkset_uri = request.args.get('linkset_uri', '')
     mode = request.args.get('mode', '')
-
-    try:
+    if True:
+    # try:
         if mode == 'check':
 
             query = Qry.check_graph_dependencies_rq(rq_uri, linkset_uri)
@@ -2436,9 +2436,9 @@ def deleteLinkset():
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
 
-    except Exception as error:
-        print "AN ERROR OCCURRED: ", error
-        return json.dumps({'message':str(error.message), 'result':None})
+    # except Exception as error:
+    #     print "AN ERROR OCCURRED: ", error
+    #     return json.dumps({'message':str(error.message), 'result':None})
 
 
 @app.route('/deleteLens')
@@ -3107,7 +3107,6 @@ def sparql(query, strip=False, endpoint_url=ENDPOINT_URL):
          b'timeout': b'0', b'debug': b'on', b'should-sponge': b'',
         b'reasoning': REASONING_TYPE
          }
-
     )
 
     headers = {b"Content-Type": b"application/x-www-form-urlencoded",
@@ -3149,7 +3148,8 @@ def sparql(query, strip=False, endpoint_url=ENDPOINT_URL):
     try :
         result_dict = json.loads(result)
     except Exception as e:
-        return result.content
+        # return result.content
+        return result
 
     if strip:
         new_results = strip_dict(result_dict)

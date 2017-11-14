@@ -1988,59 +1988,67 @@ def insert_query_reduce2(specs):
 #     insert_query_numeric_reduce(specs)
 
 
-grid = {
-    St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-    St.graph: "http://risis.eu/dataset/grid_20170712",
-    St.entity_datatype: "http://risis.eu/grid/ontology/class/Institution",
-    St.aligns: "http://risis.eu/grid/ontology/predicate/name",
-    St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
-    St.longitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
-    St.latitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"
-}
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    LINKSET FROM CLUSTERS
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-eter_english = {
-   St.graph: "http://risis.eu/dataset/eter_2014",
-   St.entity_datatype: "http://risis.eu/eter/ontology/class/University",
-   St.aligns: "http://risis.eu/eter/ontology/predicate/english_Institution_Name",
-   St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
-   St.longitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__longitude",
-   St.latitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__latitude"
-}
+def cluster_specs_2_linksets(specs, match_numeric=False, display=False, activated=False):
 
-""" DEFINE LINKSET SPECIFICATIONS """
-ls_specs_1 = {
-    St.researchQ_URI: "",
-    St.source: eter_english,
-    St.target: grid,
-    St.mechanism: "mechanism",
-}
+    # if activated is True:
+    heading = "======================================================" \
+              "========================================================" \
+              "\nEXECUTING LINKSET SPECS"
 
-leiden_1 = {
-    St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-    St.graph: "http://risis.eu/dataset/leidenRanking_2015",
-    St.entity_datatype: "http://risis.eu/leidenRanking_2015/ontology/class/University",
-    St.aligns: "http://risis.eu/leidenRanking_2015/ontology/predicate/Int_coverage"}
+    print heading
+    # inserted_mapping = None
+    # inserted_linkset = None
 
-leiden_2 = {
-   St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-   St.graph: "http://risis.eu/dataset/leidenRanking_2015",
-   St.entity_datatype: "http://risis.eu/leidenRanking_2015/ontology/class/University",
-   St.aligns: "http://risis.eu/leidenRanking_2015/ontology/predicate/MNCS"}
+    # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
 
-ls_specs_2 = {
-    St.researchQ_URI: "",
-    St.source: leiden_1,
-    St.target: leiden_2,
-    St.mechanism: "approxNbrSim",
-    St.delta: 1,
-    St.numeric_approx_type: "number"
-}
+    if specs[St.sameAsCount]:
 
-# insert_query_reduce(ls_specs_1)
+        # UPDATE THE SPECS OF SOURCE AND TARGETS
+        # update_specification(specs[St.source])
+        # update_specification(specs[St.target])
 
-# approx_numeric(ls_specs_2)
+        # GENERATE THE NAME OF THE LINKSET
+        Ls.set_cluster_linkset_name(specs)
+        # print specs[St.linkset_name]
 
-# specs_2_linkset_num_approx(ls_specs_2, match_numeric=True, activated=True)
+        check = Ls.run_checks_cluster(specs, check_type="linkset")
+        print check
+        # if check[St.result] != "GOOD TO GO":
+        #     return check
+
+        # SET THE INSERT QUERY
+        # specs[St.linkset_insert_queries] = spa_linkset_ess_query(specs)
+        # specs[St.linkset_insert_queries] = insert_query_reduce(specs, match_numeric)
+
+        # GENERATE THE LINKSET
+        # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
+        # inserted_linkset = spa_linksets(specs, display=display, activated=activated)
+
+        # exit(0)
+        message = Ec.ERROR_CODE_4.replace('\n', "<br/>")
+        if activated is True:
+
+            # REGISTER THE ALIGNMENT
+            if check[St.message].__contains__("ALREADY EXISTS"):
+                Urq.register_alignment_mapping(specs, created=False)
+            else:
+                linkset_from_clusters(specs=specs, activated=True)
+                message = "The linkset was created as [{}] with {} triples found!".format(
+                    specs[St.linkset], specs[St.triples])
+                Urq.register_alignment_mapping(specs, created=True)
+
+            return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+
+        return {St.message: message, St.error_code: 4, St.result: None}
+
+    else:
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -2134,7 +2142,7 @@ def geo_query(specs, is_source):
     """.format(
         # 0          1     2    3          4         5        6         7
         Ns.tmpgraph, load, uri, longitude, latitude, message, rdf_pred, info[St.entity_datatype] )
-    print query
+    # print query
     return query
 
 
@@ -2147,20 +2155,28 @@ def geo_match_query(specs):
 
     comment = "" if is_de_duplication is True else "#"
     number_of_load = '1' if is_de_duplication is True else "2"
+    unit = "{}(s)".format(Ut.get_uri_local_name(specs[St.unit]).lower())
 
     match = """
     ######################################################################
     ### INSETTING MATCH FOUND IN A TEMPORARY GRAPH
     ######################################################################
-    PREFIX tmpvocab: <{0}>
-    PREFIX tmpgraph: <{1}>
-    PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-    PREFIX wgs:  <http://www.w3.org/2003/01/geo/wgs84_pos#>
+    PREFIX tmpvocab:    <{0}>
+    PREFIX tmpgraph:    <{1}>
+    prefix linkset:     <{5}>
+    prefix singleton:   <{7}>
+    PREFIX geof:        <http://www.opengis.net/def/function/geosparql/>
+    PREFIX wgs:         <http://www.w3.org/2003/01/geo/wgs84_pos#>
     INSERT
     {{
-        GRAPH tmpgraph:load_3
+        GRAPH linkset:{6}
         {{
-            ?src_resource  tmpvocab:exactName  ?trg_resource .
+            ?src_resource  ?singPre  ?trg_resource .
+        }}
+
+        GRAPH singleton:{6}
+        {{
+            ?singPre ll:hasEvidence "Near each other by at most {3} {9}" .
         }}
     }}
     WHERE
@@ -2170,6 +2186,9 @@ def geo_match_query(specs):
         {{
             ?src_resource  wgs:long  ?src_longitude .
             ?src_resource  wgs:lat   ?src_latitude .
+            ### Create A SINGLETON URI
+            BIND( replace("{0}{8}_#", "#", STRAFTER(str(UUID()),"uuid:")) as ?pre )
+            BIND( iri(?pre) as ?singPre )
         }}
         ### TARGET DATASET WITH GEO-COORDINATES
         GRAPH tmpgraph:load_{2}
@@ -2178,30 +2197,59 @@ def geo_match_query(specs):
             ?trg_resource  wgs:lat   ?trg_latitude .
         }}
         ### MATCHING TARGETS NEAR BY SOURCE
-        ?src_resource  geof:nearby (?trg_resource 1 <http://qudt.org/vocab/unit#Meter>).
+        ?src_resource  geof:nearby (?trg_resource {3} <{4}>).
     }}
-    """.format(Ns.alivocab, Ns.tmpgraph, number_of_load)
-    print match
-
-# geo_query(ls_specs_1, True)
-# geo_query(ls_specs_1, False)
-# geo_match_query(ls_specs_1)
-# print Qry.boolean_endpoint_response(geo_query(ls_specs_1, True))
-# print Qry.boolean_endpoint_response(geo_query(ls_specs_1, False))
-# print Qry.boolean_endpoint_response(geo_match_query(ls_specs_1))
+    """.format(
+        # 0          1            2               3                     4
+        Ns.alivocab, Ns.tmpgraph, number_of_load, specs[St.unit_value], specs[St.unit],
+        # 5         6                       7              8                    9
+        Ns.linkset, specs[St.linkset_name], Ns.singletons, specs[St.mechanism], unit)
+    # print match
+    return match
 
 
+def geo_match(specs):
 
-def cluster_specs_2_linksets(specs, match_numeric=False, display=False, activated=False):
+    # geo_query(ls_specs_1, True)
+    # geo_query(ls_specs_1, False)
+    # geo_match_query(ls_specs_1)
+    drop = """
+    PREFIX tmp: <{0}>
+    DROP SILENT GRAPH tmp:load_1 ;
+    drop silent graph tmp:load_2
+    """.format(Ns.tmpgraph)
+
+    print "\n>>> LOADING SOURCE INTO GRAPH LOAD-1"
+    print Qry.boolean_endpoint_response(geo_query(specs, True))
+
+    print "\n>>> LOADING SOURCE INTO GRAPH LOAD-2"
+    print Qry.boolean_endpoint_response(geo_query(specs, False))
+
+    print "\n>>> LOOKING FOR GEO-SIM BETWEEN SOURCE AND TARGET"
+    print Qry.boolean_endpoint_response(geo_match_query(specs))
+
+    print "\n>>> DROPPING GRAPH LOAD-1 &LOAD-2"
+    print Qry.boolean_endpoint_response(drop)
+
+
+def geo_specs_2_linkset(specs, display=False, activated=False):
+
 
     # if activated is True:
     heading = "======================================================" \
               "========================================================" \
-              "\nEXECUTING LINKSET SPECS"
+              "\nEXECUTING LINKSET SPECS FOR GEO-SIMILARITY"
 
     print heading
-    # inserted_mapping = None
-    # inserted_linkset = None
+
+    if activated is False:
+        print "THE FUNCTION IS NOT ACTIVATED" \
+              "\n======================================================" \
+              "========================================================"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
+
+    source = specs[St.source]
+    target = specs[St.target]
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -2209,28 +2257,15 @@ def cluster_specs_2_linksets(specs, match_numeric=False, display=False, activate
     if specs[St.sameAsCount]:
 
         # UPDATE THE SPECS OF SOURCE AND TARGETS
-        # update_specification(specs[St.source])
-        # update_specification(specs[St.target])
+        update_specification(specs[St.source])
+        update_specification(specs[St.target])
 
         # GENERATE THE NAME OF THE LINKSET
-        Ls.set_cluster_linkset_name(specs)
+        Ls.set_linkset_name(specs)
         # print specs[St.linkset_name]
 
-        check = Ls.run_checks_cluster(specs, check_type="linkset")
-        # print check
-        # if check[St.result] != "GOOD TO GO":
-        #     return check
-
-        # SET THE INSERT QUERY
-        # specs[St.linkset_insert_queries] = spa_linkset_ess_query(specs)
-        # specs[St.linkset_insert_queries] = insert_query_reduce(specs, match_numeric)
-
-        # GENERATE THE LINKSET
-        # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
-        # inserted_linkset = spa_linksets(specs, display=display, activated=activated)
-
-
-
+        check = Ls.run_checks(specs, check_type="linkset")
+        print check
 
         message = Ec.ERROR_CODE_4.replace('\n', "<br/>")
         if activated is True:
@@ -2239,10 +2274,35 @@ def cluster_specs_2_linksets(specs, match_numeric=False, display=False, activate
             if check[St.message].__contains__("ALREADY EXISTS"):
                 Urq.register_alignment_mapping(specs, created=False)
             else:
-                linkset_from_clusters(specs=specs, activated=True)
-                message = "The linkset was created as [{}] with {} triples found!".format(
-                    specs[St.linkset], specs[St.triples])
-                Urq.register_alignment_mapping(specs, created=True)
+                geo_match(specs)
+                specs[St.triples] = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, specs[St.linkset_name]))
+                specs[St.insert_query] = "{} ;\n{};\n{}".format(geo_query(specs, True),
+                                                   geo_query(specs, False), geo_match_query(specs))
+                print "INSERT QUERY: {}".format(specs[St.insert_query])
+
+                if specs[St.triples] > 0:
+                    metadata = Gn.linkset_metadata(specs)
+                    Qry.boolean_endpoint_response(metadata)
+
+                    ########################################################################
+                    print """ 6. WRITING TO FILE                                         """
+                    ########################################################################
+                    src = [source[St.graph_name], "", source[St.entity_ns]]
+                    trg = [target[St.graph_name], "", target[St.entity_ns]]
+
+                    print "\t>>> WRITING TO FILE"
+                    # linkset_path = "D:\datasets\Linksets\ExactName"
+                    linkset_path = DIRECTORY
+                    writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata)
+                    server_message = "Linksets created as: {}".format(specs[St.linkset])
+                    message = "The linkset was created as [{}] with {} triples found!".format(
+                        specs[St.linkset], specs[St.triples])
+                    print "\t", server_message
+                    print "\t*** JOB DONE! ***"
+
+                    message = "The linkset was created as [{}] with {} triples found!".format(
+                        specs[St.linkset], specs[St.triples])
+                    Urq.register_alignment_mapping(specs, created=True)
 
             return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
@@ -2251,4 +2311,64 @@ def cluster_specs_2_linksets(specs, match_numeric=False, display=False, activate
     else:
         print Ec.ERROR_CODE_1
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
-#
+
+
+grid = {
+    St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    St.graph: "http://risis.eu/dataset/grid_20170712",
+    St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
+    St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
+    St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
+    St.longitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
+    St.latitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"
+}
+
+eter_english = {
+   St.graph: "http://risis.eu/dataset/eter_2014",
+   St.entity_datatype: "http://risis.eu/eter_2014/ontology/class/University",
+   St.aligns: "http://risis.eu/eter_2014/ontology/predicate/English_Institution_Name",
+   St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
+   St.longitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__longitude",
+   St.latitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__latitude"
+}
+
+""" DEFINE LINKSET SPECIFICATIONS """
+ls_specs_1 = {
+    St.unit: Ns.meter,
+    St.unit_value: 5,
+    St.researchQ_URI: "http://risis.eu/activity/idea_3fd3a8",
+    St.source: eter_english,
+    St.target: grid,
+    St.mechanism: "nearbyGeoSim",
+}
+
+leiden_1 = {
+    St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    St.graph: "http://risis.eu/dataset/leidenRanking_2015",
+    St.entity_datatype: "http://risis.eu/leidenRanking_2015/ontology/class/University",
+    St.aligns: "http://risis.eu/leidenRanking_2015/ontology/predicate/Int_coverage"}
+
+leiden_2 = {
+   St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+   St.graph: "http://risis.eu/dataset/leidenRanking_2015",
+   St.entity_datatype: "http://risis.eu/leidenRanking_2015/ontology/class/University",
+   St.aligns: "http://risis.eu/leidenRanking_2015/ontology/predicate/MNCS"}
+
+ls_specs_2 = {
+    St.researchQ_URI: "",
+    St.source: leiden_1,
+    St.target: leiden_2,
+    St.mechanism: "approxNbrSim",
+    St.delta: 1,
+    St.numeric_approx_type: "number"
+}
+
+# insert_query_reduce(ls_specs_1)
+
+# approx_numeric(ls_specs_2)
+
+# specs_2_linkset_num_approx(ls_specs_2, match_numeric=True, activated=True)
+
+# geo_match(ls_specs_1)
+
+geo_specs_2_linkset(ls_specs_1, display=False, activated=True)

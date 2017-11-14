@@ -75,6 +75,16 @@ def linkset_metadata(specs, display=False):
                                     " using the mechanism: {}". \
             format(source[St.graph], target[St.graph], specs[St.mechanism])
 
+
+    elif str(specs[St.mechanism]).lower() == "nearbygeosim":
+        specs[St.link_name] = "Near by Geo-Similarity"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "This includes entities near each other by at most {} <{}>.". \
+            format(specs[St.unit_value], specs[St.unit_value])
+        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their nearby Geo-Similarity" \
+                                    " using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], specs[St.mechanism])
+
     specs[St.triples] = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
     print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
 

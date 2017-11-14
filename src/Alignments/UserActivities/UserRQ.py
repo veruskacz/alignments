@@ -338,6 +338,7 @@ def get_linkset_alignment(question_uri, linkset_uri):
 
         #?alignmentMapping
             a						<http://risis.eu/class/AlignmentMapping> ;
+            void:target		        ?target ;
             void:subjectsTarget		?subjectsTarget ;
             void:objectsTarget		?objectsTarget ;
             bdb:subjectsDatatype	?subjectsDatatype ;
@@ -348,7 +349,8 @@ def get_linkset_alignment(question_uri, linkset_uri):
     where
     {{
       #BIND(iri(replace('http://risis.eu/activity/idea_algmt_#','#',SUBSTR(str(uuid()), 40))) as ?alignmentMapping)
-        <{1}>    void:subjectsTarget		?subjectsTarget ;
+        {{ <{1}>    void:subjectsTarget		?subjectsTarget . }}
+        UNION {{ <{1}>   void:target		?target .  }}
         optional {{ <{1}>    void:objectsTarget		    ?objectsTarget . }}
         optional {{ <{1}>    bdb:subjectsDatatype	    ?subjectsDatatype . }}
         optional {{ <{1}>    bdb:objectsDatatype		?objectsDatatype . }}

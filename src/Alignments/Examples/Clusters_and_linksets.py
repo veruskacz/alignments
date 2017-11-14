@@ -15,8 +15,7 @@ grid_cluster_PROPS = ["<http://www.grid.ac/ontology/hasAddress>/<http://www.grid
 grid_link_org_props = ["http://www.w3.org/2000/01/rdf-schema#label",
                        "http://www.w3.org/2004/02/skos/core#prefLabel",
                        "http://www.w3.org/2004/02/skos/core#altLabel",
-                       "http://xmlns.com/foaf/0.1/homepage"
-                       ]
+                       "http://xmlns.com/foaf/0.1/homepage"]
 grid_main_dict = {St.graph: grid_GRAPH,
                   St.data: [{St.entity_datatype: grid_org_type, St.properties: grid_link_org_props}]}
 
@@ -25,8 +24,7 @@ orgref_GRAPH = "http://risis.eu/dataset/orgref_20170703"
 orgref_cluster_PROPS = ["http://risis.eu/orgref_20170703/ontology/predicate/Country"]
 orgref_org_type = "http://risis.eu/orgref_20170703/ontology/class/Organisation"
 orgref_link_org_props = ["http://risis.eu/orgref_20170703/ontology/predicate/Name",
-                         "http://risis.eu/orgref_20170703/ontology/predicate/Website"
-                         ]
+                         "http://risis.eu/orgref_20170703/ontology/predicate/Website"]
 orgref_main_dict = {St.graph: orgref_GRAPH,
                     St.data: [{St.entity_datatype: orgref_org_type, St.properties: orgref_link_org_props}]}
 

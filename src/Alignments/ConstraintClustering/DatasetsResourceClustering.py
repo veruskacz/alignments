@@ -521,7 +521,7 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     #         St.result: "", 'group_name': group_name}
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
-    # inserted = Qry.boolean_endpoint_response(query)
+    inserted = Qry.boolean_endpoint_response(query)
     Qry.boolean_endpoint_response(query)
 
     # FETCH THE CLUSTER REFERENCE URL
@@ -1193,6 +1193,7 @@ def helper(specs, is_source=True):
     is_empty = True
 
     singleton = """
+
                     ### Create A SINGLETON URI"
                     BIND( replace("{0}_#", "#", STRAFTER(str(UUID()),"uuid:")) as ?pre )
                     BIND( iri(?pre) as ?singPre )""".format(Ns.alivocab)
@@ -1383,7 +1384,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
                    Ns.linkset, label, helper(targets_array, is_source=False),
                    # 6      7        8       9        10       11            12
                    Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, targets, Ns.mechanism, Ns.singletons)
-    # print query
+    print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
     print "\t{:20}: {}".format("STARTED ON", datetime.datetime.today().strftime(_format))
@@ -1392,7 +1393,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
     start = time.time()
-    inserted = Qry.boolean_endpoint_response(query)
+    # inserted = Qry.boolean_endpoint_response(query)
     end = time.time()
     diff = end - start
 
@@ -1560,6 +1561,7 @@ def property_builder(properties):
     # print "\nFiler plan:", filter_plan.getvalue()
 
     return [rsc_plan.getvalue(), bind_plan.getvalue(), filter_plan.getvalue(), property_list]
+
 
 # TODO ADD THE DIFFERENCE => FILTER NOT EXISTS
 # TODO MERGING CLUSTER

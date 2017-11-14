@@ -304,7 +304,8 @@ def run_checks(specs, check_type):
     # CHECK WHETHER THE LINKSET WAS ALREADY CREATED AND ITS ALTERNATIVE NAME REPRESENTATION
     """
 
-    # CHECK WHETHER THE CURRENT LINKSET NAME EXIST
+    # CHECK WHETHER THE CURRENT LINKSET NAME EXIST IN THE GENERIC METADATA
+    # print ask.replace("#", linkset)
     ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
 
     # THE CURRENT AME EXIST
@@ -352,6 +353,7 @@ def run_checks(specs, check_type):
     # CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST
     elif ask_1 == "false" and str(check_type).lower() != "subset":
 
+        print "LINKSET {} \nDOES NOT HAVE ANY GENERIC METADATA.".format(linkset)
         print "ASK 2: CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST"
         if St.refined not in specs:
             print "\t- NOT REFINED"
@@ -378,7 +380,7 @@ def run_checks(specs, check_type):
         print "ASK 3: IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
         set_refined_name(specs)
 
-    print ">>> GOOD TO GO !!!"
+    print ">>> GOOD TO GO WITH LINKSET {}.".format(linkset)
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 
@@ -493,8 +495,6 @@ def run_checks_cluster(specs, check_type):
 
     ask = "ASK {{ <#> ?p ?o . }}"
     linkset = specs[St.refined] if St.refined in specs else specs[St.linkset]
-
-    # linkset = specs[St.refined] if St.refined in specs else specs[St.linkset]
     # print linkset
 
     """
@@ -503,10 +503,13 @@ def run_checks_cluster(specs, check_type):
     g_exist_q = "ASK { GRAPH <@> {?s ?p ?o} }"
     response = "false"
     for target in specs[St.targets]:
+        # query = g_exist_q.replace("@", target[St.graph])
+        # print query
         response = Qry.boolean_endpoint_response(g_exist_q.replace("@", target[St.graph]))
         if response == "false":
             break
     # print response
+
     if response == "false":
         print Ec.ERROR_CODE_10
         return {St.message: Ec.ERROR_CODE_10, St.error_code: 10, St.result: None}
@@ -524,6 +527,7 @@ def run_checks_cluster(specs, check_type):
     """
 
     # CHECK WHETHER THE CURRENT LINKSET NAME EXIST
+    print ask.replace("#", linkset)
     ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
     # print ask_1
 
@@ -734,3 +738,5 @@ def linkset_wasderivedfrom(refined_linkset_uri):
         if dictionary_result[St.result]:
             return dictionary_result[St.result][1][0]
     return None
+
+
