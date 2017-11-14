@@ -980,8 +980,9 @@ function createLinksetClick()
         ($('#selected_meth').attr('uri')) &&
         ($('#selected_meth').attr('uri') != 'intermediate' || intermediate) &&
         ($('#selected_meth').attr('uri') != 'approxNbrSim' ||
-            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').find("option:selected").text() )
-            )
+            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').find("option:selected").text() ))
+        ($('#selected_meth').attr('uri') != 'geoSim' ||
+            ($('#linkset_geo_match_nbr').val() && $('#linkset_geo_match_unit').find("option:selected").text() ))
         )
     {
         var specs = {
@@ -1006,6 +1007,9 @@ function createLinksetClick()
 
           'delta': $('#linkset_approx_delta').val() ,
           'numeric_approx_type': $('#linkset_approx_num_type').find("option:selected").text(),
+
+          'geo_dist': $('#linkset_geo_match_nbr').val() ,
+          'geo_unit': $('#linkset_geo_match_unit').find("option:selected").text(),
 
           //'corrsp_reducer': reducer
         }
@@ -3846,6 +3850,7 @@ function methodClick(th)
     $('#int_red_graph_row').hide();
     $('#aprox_settings_row').hide();
     $('#aprox_nbr_settings_row').hide();
+    $('#geo_match_settings_row').hide();
 
     if (method == 'identity')
     {
@@ -3928,6 +3933,7 @@ function methodClick(th)
         else if (method == 'geoSim')
         {
           description = 'The method <b>GEO SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by detecting whether the values of the selected <b>properties</b> of source and target appear within the same geographical boundary.';
+          $('#geo_match_settings_row').show();
         }
         else if (method == 'intermediate')
         {

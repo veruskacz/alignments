@@ -1384,6 +1384,9 @@ def spa_linkset():
 
         St.delta: request.args.get('delta', ''),
         St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
+
+        St.unit: Ns.meter.rsplit('#', 1)[0] + request.args.get('geo_unit', ''),
+        St.unit_value: request.args.get('geo_dist', '')
     }
 
     if len(request.args.get('intermediate_graph', '')) > 0:
