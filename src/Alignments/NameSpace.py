@@ -42,7 +42,13 @@ cluster = "http://risis.eu/cluster/"
 cluster_constraint = "http://risis.eu/cluster_constrain/"
 
 
-
-
 lens_type = 'http://vocabularies.bridgedb.org/ops#Lens'
 linkset_type = "http://rdfs.org/ns/void#Linkset"
+
+kilometer = "http://qudt.org/vocab/unit#Kilometer"
+meter = "http://qudt.org/vocab/unit#Meter"
+centimeter = "http://qudt.org/vocab/unit#Centimeter"
+mileUSStatute = "http://qudt.org/vocab/unit#MileUSStatute"
+yard = "http://qudt.org/vocab/unit#Yard"
+inch = "http://qudt.org/vocab/unit#Inch"
+foot = "http://qudt.org/vocab/unit#Foot"
