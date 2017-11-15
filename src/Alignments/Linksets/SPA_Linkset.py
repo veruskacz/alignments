@@ -2148,6 +2148,12 @@ def geo_query(specs, is_source):
 
 def geo_match_query(specs):
 
+    # Note that for WKT formatted points,
+    # the location is <long, lat>. The location of the White House can also be encoded using the WGS 84
+
+    source = specs[St.source]
+    target = specs[St.target]
+
     is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) and \
                         (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
 
@@ -2161,6 +2167,7 @@ def geo_match_query(specs):
     ######################################################################
     ### INSETTING MATCH FOUND IN A TEMPORARY GRAPH
     ######################################################################
+    PREFIX ll:          <{0}>
     PREFIX tmpvocab:    <{0}>
     PREFIX tmpgraph:    <{1}>
     prefix linkset:     <{5}>
@@ -2169,6 +2176,9 @@ def geo_match_query(specs):
     PREFIX wgs:         <http://www.w3.org/2003/01/geo/wgs84_pos#>
     INSERT
     {{
+        linkset:{6} ll:alignsSubjects (<{11}> <{12}>)  .
+        linkset:{6} ll:alignsObjects (<{11}> <{12}>)  .
+
         GRAPH linkset:{6}
         {{
             ?src_resource  ?singPre  ?trg_resource .
@@ -2176,7 +2186,8 @@ def geo_match_query(specs):
 
         GRAPH singleton:{6}
         {{
-            ?singPre ll:hasEvidence "Near each other by at most {3} {9}" .
+            ?singPre rdf:singletonPropertyOf     ll:nearbyGeoSim{10} .
+            ?singPre ll:hasEvidence             "Near each other by at most {3} {9}" .
         }}
     }}
     WHERE
@@ -2202,8 +2213,11 @@ def geo_match_query(specs):
     """.format(
         # 0          1            2               3                     4
         Ns.alivocab, Ns.tmpgraph, number_of_load, specs[St.unit_value], specs[St.unit],
-        # 5         6                       7              8                    9
-        Ns.linkset, specs[St.linkset_name], Ns.singletons, specs[St.mechanism], unit)
+        # 5         6                       7              8                    9     10
+        Ns.linkset, specs[St.linkset_name], Ns.singletons, specs[St.mechanism], unit, specs[St.sameAsCount],
+        # 11
+        source[St.longitude], source[St.latitude]
+    )
     # print match
     return match
 
@@ -2218,6 +2232,9 @@ def geo_match(specs):
     DROP SILENT GRAPH tmp:load_1 ;
     drop silent graph tmp:load_2
     """.format(Ns.tmpgraph)
+
+    print "\n>>> DROPPING GRAPH LOAD-1 &LOAD-2 IF THEY EXIST"
+    print Qry.boolean_endpoint_response(drop)
 
     print "\n>>> LOADING SOURCE INTO GRAPH LOAD-1"
     print Qry.boolean_endpoint_response(geo_query(specs, True))
@@ -2278,10 +2295,10 @@ def geo_specs_2_linkset(specs, display=False, activated=False):
                 specs[St.triples] = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, specs[St.linkset_name]))
                 specs[St.insert_query] = "{} ;\n{};\n{}".format(geo_query(specs, True),
                                                    geo_query(specs, False), geo_match_query(specs))
-                print "INSERT QUERY: {}".format(specs[St.insert_query])
+                # print "INSERT QUERY: {}".format(specs[St.insert_query])
 
                 if specs[St.triples] > 0:
-                    metadata = Gn.linkset_metadata(specs)
+                    metadata = Gn.linkset_geo_metadata(specs)
                     Qry.boolean_endpoint_response(metadata)
 
                     ########################################################################
