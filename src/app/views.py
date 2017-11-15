@@ -1385,7 +1385,7 @@ def spa_linkset():
         St.delta: request.args.get('delta', ''),
         St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
 
-        St.unit: Ns.meter.rsplit('#', 1)[0] + request.args.get('geo_unit', ''),
+        St.unit: Ns.meter.rsplit('#', 1)[0] + '#' + request.args.get('geo_unit', ''),
         St.unit_value: request.args.get('geo_dist', '')
     }
 
@@ -1401,11 +1401,25 @@ def spa_linkset():
     if len(request.args.get('corresp_reducer', '')) > 0:
         specs[St.corr_reducer] = request.args.get('corresp_reducer', '')
 
+    if len(request.args.get('src_lat', '')) > 0:
+        specs[St.source][St.latitude] = request.args.get('src_lat', '')
+
+    if len(request.args.get('src_long', '')) > 0:
+        specs[St.source][St.longitude] = request.args.get('src_long', '')
+
+    if len(request.args.get('trg_lat', '')) > 0:
+        specs[St.target][St.latitude] = request.args.get('trg_lat', '')
+
+    if len(request.args.get('trg_long', '')) > 0:
+        specs[St.target][St.longitude] = request.args.get('trg_long', '')
+    #
     # print specs
+    # return json.dumps('')
 
     check_type = "linkset"
     id = False
-    try:
+    # try:
+    if True:
 
         threshold = request.args.get('threshold', '0.8')
         threshold = float(threshold.strip())
@@ -1450,7 +1464,11 @@ def spa_linkset():
                 linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
 
             elif specs['mechanism'] == 'geoSim':
-                linkset_result = None
+                # linkset_result = None
+                print 'HERE', specs
+                specs['mechanism'] = 'nearbyGeoSim'
+                linkset_result = spa_linkset2.geo_specs_2_linkset(specs, activated=FUNCTION_ACTIVATED)
+                print linkset_result
 
             else:
                 linkset_result = None
@@ -1462,23 +1480,23 @@ def spa_linkset():
         # print "\n\n\n{}".format(linkset_result['message'])
         return json.dumps(linkset_result)
 
-    except Exception as err:
-
-        print "\nSECOND CHECK AFTER SERVER ERROR"
-
-        if id == True:
-            check = Ls.run_checks_id(specs)
-        else:
-            check = Ls.run_checks(specs, check_type=check_type)
-
-        if check[St.result] != "GOOD TO GO":
-            # THE LINKSET WAS CREATED
-            linkset_result = {'message': Ec.ERROR_CODE_22.replace('#', check[St.result]),
-                              'error_code': 0, St.result: check[St.result]}
-        else:
-            linkset_result = {'message': str(err.message), 'error_code': -1, St.result: None}
-
-        return json.dumps(linkset_result)
+    # except Exception as err:
+    #
+    #     print "\nSECOND CHECK AFTER SERVER ERROR"
+    #
+    #     if id == True:
+    #         check = Ls.run_checks_id(specs)
+    #     else:
+    #         check = Ls.run_checks(specs, check_type=check_type)
+    #
+    #     if check[St.result] != "GOOD TO GO":
+    #         # THE LINKSET WAS CREATED
+    #         linkset_result = {'message': Ec.ERROR_CODE_22.replace('#', check[St.result]),
+    #                           'error_code': 0, St.result: check[St.result]}
+    #     else:
+    #         linkset_result = {'message': str(err.message), 'error_code': -1, St.result: None}
+    #
+    #     return json.dumps(linkset_result)
 
 
 @app.route('/refineLinkset')

@@ -980,9 +980,11 @@ function createLinksetClick()
         ($('#selected_meth').attr('uri')) &&
         ($('#selected_meth').attr('uri') != 'intermediate' || intermediate) &&
         ($('#selected_meth').attr('uri') != 'approxNbrSim' ||
-            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').find("option:selected").text() ))
+            ($('#linkset_approx_delta').val() && $('#linkset_approx_num_type').find("option:selected").text() )) &&
         ($('#selected_meth').attr('uri') != 'geoSim' ||
-            ($('#linkset_geo_match_nbr').val() && $('#linkset_geo_match_unit').find("option:selected").text() ))
+            ($('#linkset_geo_match_nbr').val() && $('#linkset_geo_match_unit').find("option:selected").text()
+             && $('#source_lat_selected_pred').attr('uri') && $('#source_long_selected_pred').attr('uri')
+             && $('#target_lat_selected_pred').attr('uri') && $('#target_long_selected_pred').attr('uri') ))
         )
     {
         var specs = {
@@ -1010,15 +1012,20 @@ function createLinksetClick()
 
           'geo_dist': $('#linkset_geo_match_nbr').val() ,
           'geo_unit': $('#linkset_geo_match_unit').find("option:selected").text(),
-
-          //'corrsp_reducer': reducer
         }
 
         if (multiple_entries == 'yes')
-            specs['corresp_reducer'] = reducer
+            specs['corresp_reducer'] = reducer;
         else {
-            specs['src_reducer'] = reducer
-            specs['trg_reducer'] = reducer }
+            specs['src_reducer'] = reducer;
+            specs['trg_reducer'] = reducer; }
+
+        if ($('#source_lat_selected_pred').attr('uri'))
+        {   specs['src_lat'] = $('#source_lat_selected_pred').attr('uri');
+            specs['src_long'] = $('#source_long_selected_pred').attr('uri');
+            specs['trg_lat'] = $('#target_lat_selected_pred').attr('uri');
+            specs['trg_long'] = $('#target_long_selected_pred').attr('uri');
+        }
 
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
         $('#linkset_creation_message_col').html(addNote(message,cl='warning'));
@@ -3821,6 +3828,21 @@ function resetDivSelectedEntity(button_id,mode)
                 selectionClick(elem, "entity-list");
         }
     }
+    else
+    {
+        var button = document.getElementById(button_id); //button-src-entity-type-col
+        var targetList = mode;
+        var predList = $(button).attr(targetList);
+
+        setAttr(predList,'propPath','enabled');
+        var selectedPredDiv = $('#'+predList).attr('targetTxt');
+        setAttr(selectedPredDiv,'uri','');
+        $('#'+selectedPredDiv).html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+        setAttr(selectedPredDiv,'style','background-color:none');
+
+        // reload the predicates list
+        $('#'+predList).html($('#'+$(button).attr('targetList')).html());
+     }
 }
 
 
@@ -3851,6 +3873,8 @@ function methodClick(th)
     $('#aprox_settings_row').hide();
     $('#aprox_nbr_settings_row').hide();
     $('#geo_match_settings_row').hide();
+    $('#source_geoSim_params').hide();
+    $('#target_geoSim_params').hide();
 
     if (method == 'identity')
     {
@@ -3932,8 +3956,10 @@ function methodClick(th)
         }
         else if (method == 'geoSim')
         {
-          description = 'The method <b>GEO SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by detecting whether the values of the selected <b>properties</b> of source and target appear within the same geographical boundary.';
+          description = 'The method <b>GEO SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by detecting whether the values of the selected <b>LATITUDE</b> and <b>LONGITUTE</b> properties of source and target appear within a certain distance. Observe that the selection of <b>property to Align</b> in this method has a mere function of visualization of the aligned results (e.g. the name can be selected).';
           $('#geo_match_settings_row').show();
+          $('#source_geoSim_params').show();
+          $('#target_geoSim_params').show();
         }
         else if (method == 'intermediate')
         {
@@ -4129,6 +4155,7 @@ function refresh_create_linkset(mode='all')
 
       $('#button-src-col').html('<div id="hidden_src_div" style="display:none" uri="" label="" ></div>');
       $('#button-trg-col').html('<div id="hidden_trg_div" style="display:none" uri="" label="" ></div>');
+
     }
 
     if (mode == 'all' || mode == 'source')
@@ -4163,6 +4190,10 @@ function refresh_create_linkset(mode='all')
       elem.setAttribute('style', 'background-color:none');
 
       $('#src_predicates_col').html('');
+      $('#source_lat_predicates_col').html('');
+      $('#source_long_predicates_col').html('');
+      $('#source_geoSim_params').hide();
+
     }
 
     if (mode == 'all' || mode == 'target')
@@ -4194,9 +4225,12 @@ function refresh_create_linkset(mode='all')
       elem.setAttribute('style', 'background-color:none');
 
       $('#trg_predicates_col').html('');
+      $('#target_lat_predicates_col').html('');
+      $('#target_long_predicates_col').html('');
+      $('#target_geoSim_params').hide();
     }
 
-    if (mode == 'all' || mode == 'source' || mode == 'pred')
+    if (mode == 'all' || mode == 'source' || mode == 'target' || mode == 'pred')
     {
       elem = document.getElementById('src_selected_pred');
       $('#src_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
@@ -4204,6 +4238,26 @@ function refresh_create_linkset(mode='all')
       elem.setAttribute('style', 'background-color:none');
 
       elem = document.getElementById('trg_selected_pred');
+      $('#trg_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('source_lat_selected_pred');
+      $('#trg_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('source_long_selected_pred');
+      $('#trg_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('target_lat_selected_pred');
+      $('#trg_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
+      elem.setAttribute('uri', '');
+      elem.setAttribute('style', 'background-color:none');
+
+      elem = document.getElementById('target_long_selected_pred');
       $('#trg_selected_pred').html('Select a Property + <span style="color:blue"><strong> example value </strong></span>');
       elem.setAttribute('uri', '');
       elem.setAttribute('style', 'background-color:none');

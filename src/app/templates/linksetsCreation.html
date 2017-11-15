@@ -345,6 +345,8 @@
                                         graph_uri=""
                                         targetTxt="src_selected_entity-type"
                                         targetList="src_predicates_col"
+                                        targetList2="source_lat_predicates_col"
+                                        targetList3="source_long_predicates_col"
                                         hiddenDiv="hidden_src_entType_div">
                                     <!-- will be rendered via server -->
                                     <div class="hiddenDiv" id="hidden_src_entType_div" style='display:none' uri="" label="" ></div>
@@ -476,6 +478,128 @@
                       </div> <!-- Panel Body-->
 
                     </div> <!-- Panel -->
+
+                      <div id="source_geoSim_params" style='display:none'>
+
+                        <div class="panel panel-default">
+                          <div class="panel-body" style="padding-bottom: 10px;">
+
+                        <div class="row" >
+                            <div class="col-md-12">
+                                <h4>Latitude</h4>
+                            </div>
+                        </div>
+
+                        <div class="row" id = "source_lat_selected_pred_row">
+                         <div class="col-md-11" style="padding-right: 1px;">
+                             <div class="well well-sm" id="source_lat_selected_pred" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                         <div class="col-md-1" style="padding-left: 0px;">
+                             <span class="glyphicon glyphicon-remove-circle"
+                                   onclick='resetDivSelectedEntity("button-src-entity-type-col","targetList2")'></span>
+                         </div>
+                        </div>
+
+
+                        <div class="row" id = "source_lat_list_pred_row">
+                            <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"source_lat_predicates_col","source_lat_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                                    <span id="source_lat_pred_counter" class="badge"></span>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                             <div class="row">
+                                 <div class="col-md-7">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="source_lat_enable_prop_path"
+                                            checked="checked">
+                                            <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                                         Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-12 pred-list" id="source_lat_predicates_col"
+                                      badge_counter="source_lat_pred_counter"
+                                      targetList="source_lat_predicates_col"
+                                      targetTxt="source_lat_selected_pred"
+                                      propPathCheckBok="source_lat_enable_prop_path"
+                                      propPath="enabled"> </div>
+                             </div>
+                            </div>
+                            </div>
+
+
+                          </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                          <div class="panel-body" style="padding-bottom: 10px;">
+
+                        <div class="row" >
+                            <div class="col-md-12">
+                                <h4>Longitude</h4>
+                            </div>
+                        </div>
+
+                        <div class="row" id = "source_long_selected_pred_row">
+                         <div class="col-md-11" style="padding-right: 1px;">
+                             <div class="well well-sm" id="source_long_selected_pred" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                         <div class="col-md-1" style="padding-left: 0px;">
+                             <span class="glyphicon glyphicon-remove-circle"
+                                   onclick='resetDivSelectedEntity("button-src-entity-type-col","targetList3")'></span>
+                         </div>
+                        </div>
+
+
+                        <div class="row" id = "source_long_list_pred_row">
+                            <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"source_long_predicates_col","source_long_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                                    <span id="source_long_pred_counter" class="badge"></span>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                             <div class="row">
+                                 <div class="col-md-7">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="source_long_enable_prop_path"
+                                            checked="checked">
+                                            <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                                         Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                             <div class="row">
+                                 <div class="col-md-12 pred-list" id="source_long_predicates_col"
+                                      badge_counter="source_long_pred_counter"
+                                      targetList="source_long_predicates_col"
+                                      targetTxt="source_long_selected_pred"
+                                      propPathCheckBok="source_long_enable_prop_path"
+                                      propPath="enabled"> </div>
+                             </div>
+                            </div>
+                            </div>
+
+
+                          </div>
+                        </div>
+                      </div>
+
                      </div>
                     </div> <!-- Col 12-->
                    </div> <!-- Row-->
@@ -516,7 +640,10 @@
                                   <div class="col-md-4 entity-list" id="button-trg-entity-type-col"
                                         graph_uri=""
                                         targetTxt="trg_selected_entity-type"
-                                        targetList="trg_predicates_col">
+                                        targetList="trg_predicates_col"
+                                        targetList2="target_lat_predicates_col"
+                                        targetList3="target_long_predicates_col"
+                                        hiddenDiv="hidden_trg_entType_div">
                                     <!-- will be rendered via server -->
                                     <div class="hiddenDiv" id="hidden_trg_entType_div" style='display:none' uri="" label="" ></div>
                                     <button class="btn btn-primary btn-round dropdown-toggle" type="button"
@@ -651,6 +778,125 @@
                           </div>   <!-- Panel body-->
                         </div>   <!-- Panel -->
 
+                        <div id="target_geoSim_params" style='display:none'>
+                            <div class="panel panel-default">
+                              <div class="panel-body" style="padding-bottom: 10px;">
+
+                            <div class="row" >
+                                <div class="col-md-12">
+                                    <h4>Latitude</h4>
+                                </div>
+                            </div>
+
+                            <div class="row" id = "target_lat_selected_pred_row">
+                             <div class="col-md-11" style="padding-right: 1px;">
+                                 <div class="well well-sm" id="target_lat_selected_pred" uri="" >
+                                     Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                                 </div>
+                             </div>
+                             <div class="col-md-1" style="padding-left: 0px;">
+                                 <span class="glyphicon glyphicon-remove-circle"
+                                       onclick='resetDivSelectedEntity("button-trg-entity-type-col","targetList2")'></span>
+                             </div>
+                            </div>
+
+
+                            <div class="row" id = "target_lat_list_pred_row">
+                                <div class="col-md-12">
+                                     <div class="row">
+                                         <div class="col-md-12">
+                                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                                       <input type="text" onkeyup='filterListGroup(this,"target_lat_predicates_col","target_lat_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                                        <span id="target_lat_pred_counter" class="badge"></span>
+                                       </div>
+                                     </div>
+                                     <div class="row"> &nbsp </div>
+                                 <div class="row">
+                                     <div class="col-md-7">
+                                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                             </strong></small>
+                                     </div>
+                                     <div class="col-md-5" align="right">
+                                         <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="target_lat_enable_prop_path"
+                                                checked="checked">
+                                                <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                                             Enable Prop. Path</label></div></small>
+                                     </div>
+                                 </div>
+                                 <div class="row">
+                                     <div class="col-md-12 pred-list" id="target_lat_predicates_col"
+                                          badge_counter="target_lat_pred_counter"
+                                          targetList="target_lat_predicates_col"
+                                          targetTxt="target_lat_selected_pred"
+                                          propPathCheckBok="target_lat_enable_prop_path"
+                                          propPath="enabled"> </div>
+                                 </div>
+                                </div>
+                                </div>
+
+
+                              </div>
+                            </div>
+
+                            <div class="panel panel-default">
+                              <div class="panel-body" style="padding-bottom: 10px;">
+
+                            <div class="row" >
+                                <div class="col-md-12">
+                                    <h4>Longitude</h4>
+                                </div>
+                            </div>
+
+                            <div class="row" id = "target_long_selected_pred_row">
+                             <div class="col-md-11" style="padding-right: 1px;">
+                                 <div class="well well-sm" id="target_long_selected_pred" uri="" >
+                                     Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                                 </div>
+                             </div>
+                             <div class="col-md-1" style="padding-left: 0px;">
+                                 <span class="glyphicon glyphicon-remove-circle"
+                                       onclick='resetDivSelectedEntity("button-trg-entity-type-col","targetList3")'></span>
+                             </div>
+                            </div>
+
+
+                            <div class="row" id = "target_long_list_pred_row">
+                                <div class="col-md-12">
+                                     <div class="row">
+                                         <div class="col-md-12">
+                                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                                       <input type="text" onkeyup='filterListGroup(this,"target_long_predicates_col","target_long_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                                        <span id="target_long_pred_counter" class="badge"></span>
+                                       </div>
+                                     </div>
+                                     <div class="row"> &nbsp </div>
+                                 <div class="row">
+                                     <div class="col-md-7">
+                                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                             </strong></small>
+                                     </div>
+                                     <div class="col-md-5" align="right">
+                                         <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="target_long_enable_prop_path"
+                                                checked="checked">
+                                                <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                                             Enable Prop. Path</label></div></small>
+                                     </div>
+                                 </div>
+                                 <div class="row">
+                                     <div class="col-md-12 pred-list" id="target_long_predicates_col"
+                                          badge_counter="target_long_pred_counter"
+                                          targetList="target_long_predicates_col"
+                                          targetTxt="target_long_selected_pred"
+                                          propPathCheckBok="target_long_enable_prop_path"
+                                          propPath="enabled"> </div>
+                                 </div>
+                                </div>
+                                </div>
+
+
+                              </div>
+                            </div>
+                        </div>
                        </div>
                       </div>
                      </div>
@@ -785,7 +1031,7 @@
                                       <h5>Geo distance</h5>
                                   </div>
                                <div class="col-md-9"  >
-                                    <input type="text" class="form-control" id="linkset_geo_match_nbr" value="0">
+                                    <input type="text" class="form-control" id="linkset_geo_match_nbr" value="1">
                                </div>
                              </div>
                             <div class="row">
