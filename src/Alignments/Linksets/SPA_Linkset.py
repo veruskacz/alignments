@@ -2176,8 +2176,6 @@ def geo_match_query(specs):
     PREFIX wgs:         <http://www.w3.org/2003/01/geo/wgs84_pos#>
     INSERT
     {{
-        linkset:{6} ll:alignsSubjects (<{11}> <{12}>)  .
-        linkset:{6} ll:alignsObjects (<{11}> <{12}>)  .
 
         GRAPH linkset:{6}
         {{
@@ -2214,9 +2212,7 @@ def geo_match_query(specs):
         # 0          1            2               3                     4
         Ns.alivocab, Ns.tmpgraph, number_of_load, specs[St.unit_value], specs[St.unit],
         # 5         6                       7              8                    9     10
-        Ns.linkset, specs[St.linkset_name], Ns.singletons, specs[St.mechanism], unit, specs[St.sameAsCount],
-        # 11
-        source[St.longitude], source[St.latitude]
+        Ns.linkset, specs[St.linkset_name], Ns.singletons, specs[St.mechanism], unit, specs[St.sameAsCount]
     )
     # print match
     return match
