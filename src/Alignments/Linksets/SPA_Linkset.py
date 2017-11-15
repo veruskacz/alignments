@@ -513,13 +513,12 @@ def match_query(specs):
     """.format(specs[St.linkset_name], specs[St.sameAsCount],
                Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount])
 
-    query = match + linkset
+    # query = match + linkset
     return [match, linkset]
 
 
 # NUMERIC-BASED -> THIS COMPUTES TWO QUERIES: MATCHED AND INSERT MATCHED
 def match_numeric_query(specs):
-
 
     is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) \
                         and (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
@@ -532,7 +531,6 @@ def match_numeric_query(specs):
     # DATE CHECK
     if specs[St.numeric_approx_type].lower() == "date":
         delta_check = "BIND( (YEAR(xsd:datetime(STR(?x))) - YEAR(xsd:datetime(STR(?y))) ) as ?DELTA )"
-
 
     match = """
     INSERT
@@ -599,7 +597,7 @@ def match_numeric_query(specs):
     """.format(specs[St.linkset_name], specs[St.sameAsCount],
                Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount])
 
-    query = match + linkset
+    # query = match + linkset
     return [match, linkset]
 
 
@@ -1992,7 +1990,8 @@ def insert_query_reduce2(specs):
     LINKSET FROM CLUSTERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-def cluster_specs_2_linksets(specs, match_numeric=False, display=False, activated=False):
+
+def cluster_specs_2_linksets(specs, activated=False):
 
     # if activated is True:
     heading = "======================================================" \
@@ -2087,14 +2086,13 @@ def geo_query(specs, is_source):
     # EXTRACTING THE RESOURCE GRAPH URI
     uri = info[St.graph]
 
-
     # ADD THE REDUCER IF SET
-    if St.reducer not in info:
-        reducer_comment = "#"
-        reducer = ""
-    else:
-        reducer_comment = ""
-        reducer = info[St.reducer]
+    # if St.reducer not in info:
+    #     reducer_comment = "#"
+    #     reducer = ""
+    # else:
+    #     reducer_comment = ""
+    #     reducer = info[St.reducer]
 
     if is_source is True:
         message = """######################################################################
@@ -2141,7 +2139,7 @@ def geo_query(specs, is_source):
     }}
     """.format(
         # 0          1     2    3          4         5        6         7
-        Ns.tmpgraph, load, uri, longitude, latitude, message, rdf_pred, info[St.entity_datatype] )
+        Ns.tmpgraph, load, uri, longitude, latitude, message, rdf_pred, info[St.entity_datatype])
     # print query
     return query
 
@@ -2151,15 +2149,15 @@ def geo_match_query(specs):
     # Note that for WKT formatted points,
     # the location is <long, lat>. The location of the White House can also be encoded using the WGS 84
 
-    source = specs[St.source]
-    target = specs[St.target]
+    # source = specs[St.source]
+    # target = specs[St.target]
 
     is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) and \
                         (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
 
-    operator = "<" if specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype] else "!="
+    # operator = "<" if specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype] else "!="
 
-    comment = "" if is_de_duplication is True else "#"
+    # comment = "" if is_de_duplication is True else "#"
     number_of_load = '1' if is_de_duplication is True else "2"
     unit = "{}(s)".format(Ut.get_uri_local_name(specs[St.unit]).lower())
 
@@ -2245,8 +2243,7 @@ def geo_match(specs):
     print "\t", Qry.boolean_endpoint_response(drop)
 
 
-def geo_specs_2_linkset(specs, display=False, activated=False):
-
+def geo_specs_2_linkset(specs, activated=False):
 
     # if activated is True:
     heading = "======================================================" \
@@ -2323,11 +2320,9 @@ def geo_specs_2_linkset(specs, display=False, activated=False):
                     server_message = "Linksets created as: {}".format(specs[St.linkset])
                     message = "The linkset was created as [{}] with {} triples found!".format(
                         specs[St.linkset], specs[St.triples])
-                    print "\t", server_message
 
+                    print "\n\t", server_message
 
-                    message = "The linkset was created as [{}] with {} triples found!".format(
-                        specs[St.linkset], specs[St.triples])
                     Urq.register_alignment_mapping(specs, created=True)
 
                     print "\t*** JOB DONE! ***"
@@ -2399,4 +2394,4 @@ ls_specs_2 = {
 
 # geo_match(ls_specs_1)
 
-# geo_specs_2_linkset(ls_specs_1, display=False, activated=True)
+# geo_specs_2_linkset(ls_specs_1, activated=True)
