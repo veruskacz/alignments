@@ -2229,20 +2229,20 @@ def geo_match(specs):
     drop silent graph tmp:load_2
     """.format(Ns.tmpgraph)
 
-    print "\n>>> DROPPING GRAPH LOAD-1 &LOAD-2 IF THEY EXIST"
-    print Qry.boolean_endpoint_response(drop)
+    print "\n\t>>> DROPPING GRAPH LOAD-1 &LOAD-2 IF THEY EXIST"
+    print "\t", Qry.boolean_endpoint_response(drop)
 
-    print "\n>>> LOADING SOURCE INTO GRAPH LOAD-1"
-    print Qry.boolean_endpoint_response(geo_query(specs, True))
+    print "\n\t>>> LOADING SOURCE INTO GRAPH LOAD-1"
+    print "\t", Qry.boolean_endpoint_response(geo_query(specs, True))
 
-    print "\n>>> LOADING SOURCE INTO GRAPH LOAD-2"
-    print Qry.boolean_endpoint_response(geo_query(specs, False))
+    print "\n\t>>> LOADING SOURCE INTO GRAPH LOAD-2"
+    print "\t", Qry.boolean_endpoint_response(geo_query(specs, False))
 
-    print "\n>>> LOOKING FOR GEO-SIM BETWEEN SOURCE AND TARGET"
-    print Qry.boolean_endpoint_response(geo_match_query(specs))
+    print "\n\t>>> LOOKING FOR GEO-SIM BETWEEN SOURCE AND TARGET"
+    print "\t", Qry.boolean_endpoint_response(geo_match_query(specs))
 
-    print "\n>>> DROPPING GRAPH LOAD-1 &LOAD-2"
-    print Qry.boolean_endpoint_response(drop)
+    print "\n\t>>> DROPPING GRAPH LOAD-1 &LOAD-2"
+    print "\t", Qry.boolean_endpoint_response(drop)
 
 
 def geo_specs_2_linkset(specs, display=False, activated=False):
@@ -2273,7 +2273,6 @@ def geo_specs_2_linkset(specs, display=False, activated=False):
         update_specification(specs[St.source])
         update_specification(specs[St.target])
 
-        # GENERATE THE NAME OF THE LINKSET
         Ls.set_linkset_name(specs)
         # print specs[St.linkset_name]
 
@@ -2287,23 +2286,37 @@ def geo_specs_2_linkset(specs, display=False, activated=False):
             if check[St.message].__contains__("ALREADY EXISTS"):
                 Urq.register_alignment_mapping(specs, created=False)
             else:
+                ########################################################################
+                print """\n1. EXECUTING THE GEO-MATCH                                   """
+                ########################################################################
                 geo_match(specs)
+
+                ########################################################################
+                print """\n2. EXTRACT THE NUMBER OF TRIPLES                           """
+                ########################################################################
                 specs[St.triples] = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, specs[St.linkset_name]))
-                specs[St.insert_query] = "{} ;\n{};\n{}".format(geo_query(specs, True),
-                                                   geo_query(specs, False), geo_match_query(specs))
+
+                ########################################################################
+                print """\n3. ASSIGN THE SPARQL INSERT QUERY                         """
+                ########################################################################
+                specs[St.insert_query] = "{} ;\n{};\n{}".format(
+                    geo_query(specs, True), geo_query(specs, False), geo_match_query(specs))
                 # print "INSERT QUERY: {}".format(specs[St.insert_query])
 
                 if specs[St.triples] > 0:
+
+                    ########################################################################
+                    print """\n4. INSERTING THE GENERIC METADATA                         """
+                    ########################################################################
                     metadata = Gn.linkset_geo_metadata(specs)
                     Qry.boolean_endpoint_response(metadata)
 
                     ########################################################################
-                    print """ 6. WRITING TO FILE                                         """
+                    print """\n5. WRITING TO FILE                                         """
                     ########################################################################
                     src = [source[St.graph_name], "", source[St.entity_ns]]
                     trg = [target[St.graph_name], "", target[St.entity_ns]]
 
-                    print "\t>>> WRITING TO FILE"
                     # linkset_path = "D:\datasets\Linksets\ExactName"
                     linkset_path = DIRECTORY
                     writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata)
@@ -2311,11 +2324,13 @@ def geo_specs_2_linkset(specs, display=False, activated=False):
                     message = "The linkset was created as [{}] with {} triples found!".format(
                         specs[St.linkset], specs[St.triples])
                     print "\t", server_message
-                    print "\t*** JOB DONE! ***"
+
 
                     message = "The linkset was created as [{}] with {} triples found!".format(
                         specs[St.linkset], specs[St.triples])
                     Urq.register_alignment_mapping(specs, created=True)
+
+                    print "\t*** JOB DONE! ***"
 
             return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 

@@ -152,19 +152,19 @@ def linkset_geo_metadata(specs, display=False):
 
     extra = ""
     if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
-        extra += "\n        ll:subjectsReducer    <{}> ;".format(specs[St.source][St.reducer])
+        extra += "\n        ll:subjectsReducer      <{}> ;".format(specs[St.source][St.reducer])
 
     if St.reducer in specs[St.target] and len(specs[St.target][St.reducer]) > 0:
-        extra += "\n        ll:objectsReducer     <{}> ;".format(specs[St.target][St.reducer])
+        extra += "\n        ll:objectsReducer       <{}> ;".format(specs[St.target][St.reducer])
 
     if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
-        extra += "\n        ll:intermediate       <{}> ;".format(specs[St.intermediate_graph])
+        extra += "\n        ll:intermediate         <{}> ;".format(specs[St.intermediate_graph])
 
     if St.threshold in specs and len(str(specs[St.threshold])) > 0:
-        extra += "\n        ll:threshold          {} ;".format(str(specs[St.threshold]))
+        extra += "\n        ll:threshold            {} ;".format(str(specs[St.threshold]))
 
     if St.delta in specs and len(str(specs[St.delta])) > 0:
-        extra += "\n        ll:delta              {} ;".format(str(specs[St.delta]))
+        extra += "\n        ll:delta                {} ;".format(str(specs[St.delta]))
 
     source = specs[St.source]
     target = specs[St.target]
@@ -265,7 +265,7 @@ def linkset_geo_metadata(specs, display=False):
                "    BIND(iri({}) AS ?trg_lat)".format(trg_lat),
 
                "}")
-    print query
+    # print query
     if display is True:
         print query
     return query
