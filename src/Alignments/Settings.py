@@ -43,6 +43,17 @@ linkset_ns = 'linkset_ns'
 linkset_name = 'linkset_name'
 linkset_comment = 'linkset_comment'
 
+
+longitude = "longitude"
+longitude_prefix = 'longitude_prefix'
+longitude_ns = 'longitude_ns'
+longitude_name = 'longitude_name'
+
+latitude = "latitude"
+latitude_prefix = 'latitude_prefix'
+latitude_ns = 'latitude_ns'
+latitude_name = 'latitude_name'
+
 # URI of the singleton graph
 singleton = 'singleton'
 assertion_method = 'assertion_method'
@@ -181,8 +192,6 @@ numeric_approx_type = "numeric_approx_type"
 corr_reducer = "corr_reducer"
 stardog_data_path = "stardog_data_path"
 
-longitude = "longitude"
-latitude = "latitude"
 reference = "reference"
 crossCheck = "crossCheck"
 

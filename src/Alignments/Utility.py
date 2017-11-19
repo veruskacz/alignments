@@ -175,6 +175,7 @@ def update_specification(specs):
     # print specs
 
     if St.link_old in specs:
+
         if specs[St.link_old]:
             if is_property_path(specs[St.link_old]) or is_nt_format(specs[St.link_old]):
                 pro_list = re.findall("<([^<>]*)>/*", specs[St.link_old])
@@ -207,7 +208,9 @@ def update_specification(specs):
         # print specs[St.entity_name]
 
     if St.aligns in specs:
+
         if specs[St.aligns]:
+
             if is_property_path(specs[St.aligns]) or is_nt_format(specs[St.aligns]):
                 pro_list = re.findall("<([^<>]*)>/*", specs[St.aligns])
                 name = ""
@@ -228,6 +231,56 @@ def update_specification(specs):
                 specs[St.aligns_name] = get_uri_local_name(specs[St.aligns])
                 specs[St.aligns_ns] = str(specs[St.aligns]).replace(specs[St.aligns_name], '')
             # print specs[St.aligns_name]
+
+    if St.longitude in specs:
+
+        if specs[St.longitude]:
+
+            if is_property_path(specs[St.longitude]) or is_nt_format(specs[St.longitude]):
+                pro_list = re.findall("<([^<>]*)>/*", specs[St.longitude])
+                name = ""
+                for i in range(len(pro_list)):
+                    local = get_uri_local_name(pro_list[i])
+                    if i == 0:
+                        name = local
+                    else:
+                        name = "{}_{}".format(name, local)
+                        # print ">>>> name: ", name
+                specs[St.longitude_name] = name
+                if len(pro_list) == 1:
+                    specs[St.longitude_ns] = str(specs[St.longitude]).replace(specs[St.longitude_name], '')
+                else:
+                    specs[St.longitude_ns] = None
+
+            else:
+                specs[St.longitude_name] = get_uri_local_name(specs[St.longitude])
+                specs[St.longitude_ns] = str(specs[St.longitude]).replace(specs[St.longitude_name], '')
+                # print specs[St.aligns_name]
+
+    if St.latitude in specs:
+
+        if specs[St.latitude]:
+
+            if is_property_path(specs[St.latitude]) or is_nt_format(specs[St.latitude]):
+                pro_list = re.findall("<([^<>]*)>/*", specs[St.latitude])
+                name = ""
+                for i in range(len(pro_list)):
+                    local = get_uri_local_name(pro_list[i])
+                    if i == 0:
+                        name = local
+                    else:
+                        name = "{}_{}".format(name, local)
+                        # print ">>>> name: ", name
+                specs[St.latitude_name] = name
+                if len(pro_list) == 1:
+                    specs[St.latitude_ns] = str(specs[St.latitude]).replace(specs[St.latitude_name], '')
+                else:
+                    specs[St.latitude_ns] = None
+
+            else:
+                specs[St.latitude_name] = get_uri_local_name(specs[St.latitude])
+                specs[St.latitude_ns] = str(specs[St.latitude]).replace(specs[St.latitude_name], '')
+                # print specs[St.aligns_name]
 
     if St.lens in specs:
         specs[St.lens_name] = get_uri_local_name(specs[St.lens])
