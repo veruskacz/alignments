@@ -4,6 +4,7 @@ import Alignments.Query as Qry
 import Alignments.Linksets.Linkset as Ls
 import numbers
 import math
+import Alignments.Utility as Ut
 
 
 def linkset_metadata(specs, display=False):
@@ -148,6 +149,7 @@ def linkset_metadata(specs, display=False):
         print query
     return query
 
+
 def linkset_geo_metadata(specs, display=False):
 
     extra = ""
@@ -169,11 +171,11 @@ def linkset_geo_metadata(specs, display=False):
     source = specs[St.source]
     target = specs[St.target]
 
-    src_aligns = Ls.format_aligns(source[St.aligns])
+    src_crossCheck = Ls.format_aligns(source[St.crossCheck])
     src_long = Ls.format_aligns(source[St.longitude])
     src_lat = Ls.format_aligns(source[St.latitude])
 
-    trg_aligns = Ls.format_aligns(target[St.aligns])
+    trg_crossCheck = Ls.format_aligns(target[St.crossCheck])
     trg_long = Ls.format_aligns(target[St.longitude])
     trg_lat = Ls.format_aligns(target[St.latitude])
 
@@ -191,7 +193,7 @@ def linkset_geo_metadata(specs, display=False):
         specs[St.link_name] = "Near by Geo-Similarity"
         specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
         specs[St.justification_comment] = "This includes entities near each other by at most {} <{}>.". \
-            format(specs[St.unit_value], specs[St.unit_value])
+            format(specs[St.unit_value], specs[St.unit])
         specs[St.linkset_comment] = "Linking <{}> to <{}> based on their nearby Geo-Similarity" \
                                     " using the mechanism: {}". \
             format(source[St.graph], target[St.graph], specs[St.mechanism])
@@ -230,8 +232,8 @@ def linkset_geo_metadata(specs, display=False):
                "        ll:singletonGraph           <{}> ;".format(specs[St.singleton]),
                "        bdb:assertionMethod         <{}> ;".format(specs[St.assertion_method]),
                "        bdb:linksetJustification    <{}> ;{}".format(specs[St.justification], extra),
-               "        ll:alignsSubjects           ?src_aligns ;",
-               "        ll:alignsObjects            ?trg_aligns ;",
+               "        ll:crossCheckSubject        ?src_crossCheck ;",
+               "        ll:crossCheckObjects        ?trg_crossCheck ;",
 
                "        ll:alignsSubjects           ( ?src_long ?src_lat ) ;",
                "        ll:alignsObjects            ( ?trg_long ?trg_lat ) ;",
@@ -255,8 +257,8 @@ def linkset_geo_metadata(specs, display=False):
 
                "WHERE",
                "{",
-               "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
-               "    BIND(iri({}) AS ?trg_aligns)".format(trg_aligns),
+               "    BIND(iri({}) AS ?src_crossCheck)".format(src_crossCheck),
+               "    BIND(iri({}) AS ?trg_crossCheck)".format(trg_crossCheck),
 
                "    BIND(iri({}) AS ?src_long)".format(src_long),
                "    BIND(iri({}) AS ?src_lat)".format(src_lat),
@@ -269,6 +271,7 @@ def linkset_geo_metadata(specs, display=False):
     if display is True:
         print query
     return query
+
 
 def spa_subset_metadata(specs):
     source = specs[St.source]
@@ -604,9 +607,76 @@ def linkset_refined_metadata(specs, display=False):
     else:
         return {"query": None, "message": message}
 
+
 def convert_to_float(value):
     # print isinstance(u'\x30', numbers.Rational)
     try:
         return float(value)
     except:
         return float("NaN")
+
+
+# FUNCTION FOR TARGET DATATYPE AND PROPERTIES
+def target_datatype_properties(model, label, linkset_label):
+
+    main_tabs = "\t"
+    tabs = "{}\t\t\t\t\t\t\t\t\t\t\t\t".format(main_tabs)
+    # ALIGNMENT COMBINATION: LIST OD DICTIONARIES
+    alignment_targets = ""
+    for item in model:
+        target = item[St.graph]
+        data = item[St.data]
+
+        # LIST OF DICTIONARIES
+        for info in data:
+            code = "llTarget:{}_{}".format(label, Ut.hash_it(target + str(info)))
+            datatype = info[St.entity_datatype]
+            properties = info[St.properties]
+            property_list = ""
+
+            # LIST OF PROPERTIES
+            for i in range(0, len(properties)):
+                property = properties[i] if Ut.is_nt_format(properties[i]) else "<{}>".format(info[St.properties][i])
+                property_list += "{} ".format(property) if i == 0 else ",\n{}{} ".format(tabs, property)
+
+            triples = """
+    {5}linkset:{4}  ll:hasAlignmentTarget  {0} .
+    {5}{0}  ll:hasTarget    <{1}> .
+    {5}{0}  ll:hasDatatype  <{2}> .
+    {5}{0}  ll:selected     {3}.
+    """ .format(code, target, datatype, property_list, linkset_label, main_tabs)
+            # print triples
+            alignment_targets += triples
+
+    return alignment_targets
+
+
+def cluster_2_linkset_metadata(specs):
+    # METADATA
+    # A TARGET COMBINES A DATATYPE AND A LIST OF PROPERTIES
+    alignment_targets = target_datatype_properties(specs[St.targets], "alignmentTarget", specs[St.linkset_name])
+    query = """
+        # CREATION OF A LINKSET OF MIXED-RESOURCES
+        PREFIX ll:          <{0}>
+        PREFIX void:        <{1}>
+        PREFIX rdfs:        <{2}>
+        PREFIX bdb:         <{3}>
+        PREFIX prov:        <{4}>
+        PREFIX singleton:   <{5}>
+        prefix linkset:     <{6}>
+        PREFIX llTarget:    <{7}>
+        prefix stardog:     <tag:stardog:api:context:>
+        INSERT DATA
+        {{
+            # GENERIC METADATA
+
+            linkset:{8}
+                rdfs:label                  "{8}" ;
+                a                           void:Linkset ;
+                ll:alignsMechanism          <{9}exact> .
+            {10}
+        }}
+    """.format(Ns.alivocab, Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.linkset, Ns.alignmentTarget,
+               # 8                      9            10
+               specs[St.linkset_name], Ns.mechanism, alignment_targets)
+    Qry.boolean_endpoint_response(query)
