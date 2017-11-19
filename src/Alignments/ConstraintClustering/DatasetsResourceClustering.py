@@ -5,6 +5,7 @@ import Alignments.Settings as St
 import cStringIO as Buffer
 import datetime
 import time
+import re
 from Alignments.GenericMetadata import cluster_2_linkset_metadata as metadata
 
 
@@ -125,7 +126,8 @@ def validate_uri(prop_list):
             prop_list[i] = "<{}>".format(prop_list[i])
 
 
-def property_builder(properties):
+# PROPERTY REWRITING
+def property_builder(properties, resource="resource", rs_object="value", tab_count=3, prop_id=""):
 
     rsc_plan = Buffer.StringIO()
     bind_plan = Buffer.StringIO()
@@ -133,14 +135,40 @@ def property_builder(properties):
     filter_plan.write("\n\t\tFILTER( ")
     compatibility = []
     pattern_count = 0
+
+    tabs = ""
+    for i in range(0, tab_count):
+        tabs += "\t"
+
+    string_bind = ""
+
+    def checking(uri):
+        checks = Ut.split_property_path(uri)
+        if not checks:
+            checks = re.findall("<([^<>]*)>*", uri)
+        if not checks:
+            checks = re.findall("(http[^<> ]*)", uri)
+        return checks
+
     for n in range(0, len(properties)):
 
-        checked = Ut.split_property_path(properties[n])
+        property_checked = "{}".format(
+            properties[n]) if Ut.is_nt_format(properties[n]) else "<{}>".format(properties[n])
+        string_bind += """BIND("{}" AS ?prop{}_{})""".format(property_checked, prop_id, n) if n == 0 \
+            else """\n{}BIND("{}" AS ?prop{}_{})""".format(tabs, property_checked, prop_id, n)
+
+        checked = checking(properties[n])
+
         # print "\nPROPERTY {}\t".format(n, properties[n])
         # for item in checked:
         #     print "\t", item
+        # print "\tPATTERN SIZE IS: ", len(checked)
 
+        # COMPATIBLE CHECKS WHETHER WE HAVE DIFFERENT TRIPLE PATTERN
+        # IF YES, A NEW PATTERN IS BUILT
+        # PS; THIS WORKS ONLY FOR SEQUENCE PATTERN
         compatible = False
+
         if len(checked) not in compatibility:
             compatibility += [len(checked)]
             compatible = True
@@ -150,14 +178,17 @@ def property_builder(properties):
             if compatible is True:
 
                 if rsc_plan.getvalue():
-                    rsc_plan.write("\n\t\t\tUNION {{ ?resource ?prop_{}_0 ?value . }}".format(n))
-
+                    rsc_plan.write("\n{}UNION {{ ?{} ?prop{}_{}_0 ?{} . }}".format(
+                        tabs, resource, prop_id, n, rs_object))
                 else:
-                    rsc_plan.write("\n\t\t\t{{ ?resource ?prop_{}_0 ?value . }}".format(n))
-                bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_{0}_0 ), ">" )  AS ?pattern_{1} ) """.format(
-                    n, pattern_count))
+                    rsc_plan.write("\n{}{{ ?{} ?prop{}_{}_0 ?{} . }}".format(
+                        tabs, resource, prop_id, n, rs_object))
 
-                bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{1}) AS ?prop_uri_{0} )""".format(n, pattern_count))
+                bind_plan.write("""\n{2}BIND( CONCAT( "<", STR(?prop{3}_{0}_0 ), ">" )  AS ?pattern{3}_{0} ) """.format(
+                    n, pattern_count, tabs, prop_id))
+
+                bind_plan.write("""\n{1}BIND ( IRI(?pattern{2}_{0}) AS ?prop{2}_uri_{0} )\n""".format(
+                    n, tabs, prop_id))
 
                 pattern_count += 1
 
@@ -167,51 +198,70 @@ def property_builder(properties):
 
                 # START OF THE LOOP
                 if i == 0:
+
                     # EXTRACTING THE PROPERTY PATH COMPOSITION IF ANY
                     if compatible is True:
                         if rsc_plan.getvalue():
-                            rsc_plan.write("\n\t\t\t UNION {{ \n\t?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(
-                                n, i))
+                            rsc_plan.write("\n{3}UNION {{ ?{0} ?prop{4}_{1}_{2} ?object{4}_{1}_{2} .".format(
+                                resource, n, i, tabs, prop_id))
                         else:
-                            rsc_plan.write("\n\t\t\t{{ ?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(n, i))
+                            rsc_plan.write("\n{3}{{ ?{0} ?prop{4}_{1}_{2} ?object{4}_{1}_{2} .".format(
+                                resource, n, i, tabs, prop_id))
+
                         # BINDING THE PROPERTY PATH FOR AS A STRING LATER USE FOR FILTERING
-                        bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_{0}_{1})""".format(n, i))
+                        bind_plan.write("""\n{2}BIND( CONCAT( "<", STR(?prop{3}_{0}_{1})""".format(n, i, tabs, prop_id))
 
                 # END OF THE LOOP
                 elif i == len(checked) - 1:
+
                     if compatible is True:
-                        rsc_plan.write("\n\t\t\t?object_{0}_{1} ?prop_{0}_{2} ?value . }}".format(n, i-1, i))
-                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}), ">") AS ?pattern_{1} )""".format(
-                            checked[i], n, i))
-                        bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{0}) AS ?prop_uri_{0} )""".format(n))
+                        rsc_plan.write(
+                            "\n{4}?object{5}_{0}_{1} ?prop{5}_{0}_{2} ?{3} . }}".format(
+                                n, i-1, i, rs_object, tabs, prop_id))
+
+                        bind_plan.write(""", ">/<", STR(?prop{3}_{1}_{2}), ">") AS ?pattern{3}_{1} )""".format(
+                            checked[i], n, i, prop_id))
+
+                        bind_plan.write("""\n{1}BIND ( IRI(?pattern{2}_{0}) AS ?prop{2}_uri_{0} )\n""".format(
+                            n, tabs, prop_id))
 
                 # MIDDLE OF THE LOOP
                 else:
                     if compatible is True:
-                        rsc_plan.write("\n\t?object_{0}_{1} ?prop_{0}_{2} ?object_{0}_{2} .".format(n, i-1, i))
-                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}) """.format(checked[i], n, i))
+                        rsc_plan.write("\n\t?object{3}_{0}_{1} ?prop{3}_{0}_{2} ?object{3}_{0}_{2} .".format(
+                            n, i-1, i, prop_id))
+
+                        bind_plan.write(""", ">/<", STR(?prop{3}_{1}_{2}) """.format(checked[i], n, i, prop_id))
+
+    # print string_bing
 
     # USING THE EXTRACTED PATH FOR FILTERING
     property_list = ""
+    property_list_unique = []
     for i in range(0, len(compatibility)):
         # print "Pattern: {}".format(compatibility[i])
 
         for n in range(0, len(properties)):
-            checked = Ut.split_property_path(properties[n])
+
+            checked = checking(properties[n])
             if len(checked) == compatibility[i]:
                 # print "yes"
 
+                result = """?prop{}_uri_{}""".format(prop_id, i)
+                if result not in property_list_unique:
+                    property_list_unique += [result]
+
                 if i == 0:
-                    value = """prop_uri_{}""".format(i)
-                    if property_list.__contains__(value) is False:
-                        property_list += """?prop_uri_{}""".format(i)
+                    if property_list.__contains__(result) is False:
+                        property_list += result
                     if n == 0:
-                        filter_plan.write("""?pattern_{0} = STR(?prop_{1})""".format(i, n))
+                        filter_plan.write("""?pattern{2}_{0} = STR(?prop{2}_{1})""".format(i, n, prop_id))
                     else:
-                        filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
+                        filter_plan.write(""" || ?pattern{2}_{0} = STR(?prop{2}_{1})""".format(i, n, prop_id))
                 else:
-                    property_list += """, ?prop_uri_{}""".format(i)
-                    filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
+                    result = """?prop{}_uri_{}""".format(prop_id, i)
+                    property_list += """, {}""".format(result)
+                    filter_plan.write(""" || ?pattern{2}_{0} = STR(?prop{2}_{1})""".format(i, n, prop_id))
 
     filter_plan.write(" )")
     # print "\nPlan:", rsc_plan.getvalue()
@@ -219,7 +269,8 @@ def property_builder(properties):
     # print "\nBind plan:", bind_plan.getvalue()
     # print "\nFiler plan:", filter_plan.getvalue()
 
-    return [rsc_plan.getvalue(), bind_plan.getvalue(), filter_plan.getvalue(), property_list]
+    return [rsc_plan.getvalue(), bind_plan.getvalue(),
+            filter_plan.getvalue(), property_list, string_bind, property_list_unique]
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -1268,19 +1319,20 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
+# HELPING IN GENERATING THE LINKSET FROM CLUSTER METADATA
 def helper(specs, is_source=True):
 
     def property_list(properties_uri):
         values = ""
         # MAKING SURE THAT THE PROPERTIES URI ARE IN ANGLE BRACKETS
-        for i in range(0, len(properties_uri)):
-            if Ut.is_nt_format(properties_uri[i]) is False:
-                properties_uri[i] = "<{}>".format(properties_uri[i])
-            if i == 0:
-                values = "({})".format(properties_uri[i])
+        for j in range(0, len(properties_uri)):
+            if Ut.is_nt_format(properties_uri[j]) is False:
+                properties_uri[j] = "<{}>".format(properties_uri[j])
+            if j == 0:
+                values = "({})".format(properties_uri[j])
 
             else:
-                values += "\n\t\t\t\t\t | ({})".format(properties_uri[i])
+                values += "\n\t\t\t\t\t | ({})".format(properties_uri[j])
         return values
 
     if is_source is True:
@@ -1297,25 +1349,45 @@ def helper(specs, is_source=True):
                     BIND( iri(?pre) as ?singPre )""".format(Ns.alivocab)
     if number == 2:
         singleton = ""
+
+    insert_prop = []
+
     for dataset in specs:
         graph = dataset[St.graph]
         data = dataset[St.data]
+
         for detail in data:
             properties = detail[St.properties]
+            re_wright = property_builder(
+                properties, "resource_{}".format(number), "obj_{}".format(number), 5, str(number))
+
+            pattern = re_wright[0]
+            pattern_bind = re_wright[1]
+            string_bind = re_wright[4]
+            p_filter = re_wright[2]
+            for prop in re_wright[5]:
+                if prop not in insert_prop:
+                    insert_prop += [prop]
+
             union = "\n\t\t\t\tUNION " if is_empty is False else ""
             sub = """{3}{{
                     BIND(<{2}> AS ?dataset_{0})
                     ?resource_{0} {1} ?obj_{0} .
 
-                    ?resource_{0} ?property_{0} ?obj_{0} .
+                    #?resource_{0} ?property_{0} ?obj_{0} .
+                    {6}
+                    {7}
 
+                    {8}
                     # TO STRING AND TO LOWER CASE
                     BIND(lcase(str(?obj_{0})) as ?label_{0})
 
                     # VALUE TRIMMING
                     BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
                     BIND(REPLACE(?label_{0}, ?regexp, '$1$2') AS ?trimmed_label){5}
-                }} """.format(number, property_list(properties), graph, union, Ns.alivocab, singleton)
+                    {9}
+                }} """.format(number, property_list(properties), graph, union, Ns.alivocab, singleton,
+                              string_bind, pattern, pattern_bind, p_filter)
             is_empty = False
 
             builder.write(sub)
@@ -1327,7 +1399,13 @@ def helper(specs, is_source=True):
             }}
     """.format(number, builder.getvalue())
     # print query
-    return query
+
+    insert_list = ""
+    for i in range(0, len(insert_prop)):
+        insert_list += insert_prop[i] if i == 0 else ", {}".format(insert_prop[i])
+    print insert_list
+
+    return {"query": query, "insert_list": insert_list}
 
 
 # GENERATE AN EXACT MATCH LINKSET FROM A CLUSTER
@@ -1436,6 +1514,10 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     # A TARGET COMBINES A DATATYPE AND A LIST OF PROPERTIES
     # alignment_targets = target_datatype_properties(targets_array, "alignmentTarget", label)
 
+    # {"query": query, "insert_list": insert_list}
+    re_writer_1 = helper(targets_array, is_source=True)
+    re_writer_2 = helper(targets_array, is_source=False)
+
     query = """
     # CREATION OF A LINKSET OF MIXED-RESOURCES
     PREFIX ll:          <{0}>
@@ -1455,8 +1537,8 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
             ?singPre ll:hasEvidence         ?trimmed_label .
             ?singPre void:subjectsTarget    ?dataset_1 .
             ?singPre void:objectsTarget     ?dataset_2 .
-            ?singPre ll:alignsSubjects      ?property_1 .
-            ?singPre ll:alignsObjects       ?property_2 .
+            ?singPre ll:alignsSubjects      {12} .
+            ?singPre ll:alignsObjects       {13} .
         }}
 
         GRAPH linkset:{4}
@@ -1478,11 +1560,13 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
         {5}
         FILTER(str(?dataset_1) > str(?dataset_2))
     }}
-    """.format(Ns.alivocab, cluster_uri, helper(targets_array, is_source=True),
-               Ns.linkset, label, helper(targets_array, is_source=False),
+    """.format(Ns.alivocab, cluster_uri, re_writer_1["query"],
+               Ns.linkset, label, re_writer_2["query"],
                # 6      7        8       9        10             11
-               Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.alignmentTarget)
-    # print query
+               Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.alignmentTarget,
+               # 12                        13
+               re_writer_1["insert_list"], re_writer_2["insert_list"])
+    print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
     print "\t{:20}: {}".format("STARTED ON", datetime.datetime.today().strftime(_format))

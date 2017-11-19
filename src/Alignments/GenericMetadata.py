@@ -646,7 +646,7 @@ def target_datatype_properties(model, label, linkset_label):
     {5}linkset:{4}  ll:hasAlignmentTarget  {0} .
     {5}{0}  ll:hasTarget    <{1}> .
     {5}{0}  ll:hasDatatype  <{2}> .
-    {5}{0}  ll:selected     {3}.
+    {5}{0}  ll:aligns       {3}.
     """ .format(code, target, datatype, property_list, linkset_label, main_tabs)
             # print triples
             alignment_targets += triples
