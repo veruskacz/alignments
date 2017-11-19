@@ -5,6 +5,7 @@ import Alignments.Settings as St
 import cStringIO as Buffer
 import datetime
 import time
+from Alignments.GenericMetadata import cluster_2_linkset_metadata as metadata
 
 
 """
@@ -122,6 +123,103 @@ def validate_uri(prop_list):
     for i in range(0, len(prop_list)):
         if Ut.is_nt_format(prop_list[i]) is False:
             prop_list[i] = "<{}>".format(prop_list[i])
+
+
+def property_builder(properties):
+
+    rsc_plan = Buffer.StringIO()
+    bind_plan = Buffer.StringIO()
+    filter_plan = Buffer.StringIO()
+    filter_plan.write("\n\t\tFILTER( ")
+    compatibility = []
+    pattern_count = 0
+    for n in range(0, len(properties)):
+
+        checked = Ut.split_property_path(properties[n])
+        # print "\nPROPERTY {}\t".format(n, properties[n])
+        # for item in checked:
+        #     print "\t", item
+
+        compatible = False
+        if len(checked) not in compatibility:
+            compatibility += [len(checked)]
+            compatible = True
+
+        if len(checked) == 1:
+
+            if compatible is True:
+
+                if rsc_plan.getvalue():
+                    rsc_plan.write("\n\t\t\tUNION {{ ?resource ?prop_{}_0 ?value . }}".format(n))
+
+                else:
+                    rsc_plan.write("\n\t\t\t{{ ?resource ?prop_{}_0 ?value . }}".format(n))
+                bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_{0}_0 ), ">" )  AS ?pattern_{1} ) """.format(
+                    n, pattern_count))
+
+                bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{1}) AS ?prop_uri_{0} )""".format(n, pattern_count))
+
+                pattern_count += 1
+
+        else:
+
+            for i in range(0, len(checked)):
+
+                # START OF THE LOOP
+                if i == 0:
+                    # EXTRACTING THE PROPERTY PATH COMPOSITION IF ANY
+                    if compatible is True:
+                        if rsc_plan.getvalue():
+                            rsc_plan.write("\n\t\t\t UNION {{ \n\t?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(
+                                n, i))
+                        else:
+                            rsc_plan.write("\n\t\t\t{{ ?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(n, i))
+                        # BINDING THE PROPERTY PATH FOR AS A STRING LATER USE FOR FILTERING
+                        bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_{0}_{1})""".format(n, i))
+
+                # END OF THE LOOP
+                elif i == len(checked) - 1:
+                    if compatible is True:
+                        rsc_plan.write("\n\t\t\t?object_{0}_{1} ?prop_{0}_{2} ?value . }}".format(n, i-1, i))
+                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}), ">") AS ?pattern_{1} )""".format(
+                            checked[i], n, i))
+                        bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{0}) AS ?prop_uri_{0} )""".format(n))
+
+                # MIDDLE OF THE LOOP
+                else:
+                    if compatible is True:
+                        rsc_plan.write("\n\t?object_{0}_{1} ?prop_{0}_{2} ?object_{0}_{2} .".format(n, i-1, i))
+                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}) """.format(checked[i], n, i))
+
+    # USING THE EXTRACTED PATH FOR FILTERING
+    property_list = ""
+    for i in range(0, len(compatibility)):
+        # print "Pattern: {}".format(compatibility[i])
+
+        for n in range(0, len(properties)):
+            checked = Ut.split_property_path(properties[n])
+            if len(checked) == compatibility[i]:
+                # print "yes"
+
+                if i == 0:
+                    value = """prop_uri_{}""".format(i)
+                    if property_list.__contains__(value) is False:
+                        property_list += """?prop_uri_{}""".format(i)
+                    if n == 0:
+                        filter_plan.write("""?pattern_{0} = STR(?prop_{1})""".format(i, n))
+                    else:
+                        filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
+                else:
+                    property_list += """, ?prop_uri_{}""".format(i)
+                    filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
+
+    filter_plan.write(" )")
+    # print "\nPlan:", rsc_plan.getvalue()
+    # print "\nCompatibility:", len(compatibility)
+    # print "\nBind plan:", bind_plan.getvalue()
+    # print "\nFiler plan:", filter_plan.getvalue()
+
+    return [rsc_plan.getvalue(), bind_plan.getvalue(), filter_plan.getvalue(), property_list]
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -755,8 +853,8 @@ def create_clusters(initial_dataset_uri, property_uri,
             create_cluster(constraint_table[i], initial_dataset_uri, property_uri, count=i,
                            reference=reference_uri, group_name=group_name, strong=strong, activated=True)
 
-        # if i == 3:
-        #     break
+        if i == 3:
+            break
 
     # print "reference_uri:",
 
@@ -1144,8 +1242,8 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
             # print "cluster_table[i][0]:", cluster_table[0]
             add_to_cluster(cluster_table[i][0], reference, dataset_uri, property_uri, count=i, activated=True)
 
-            # if i == 3:
-            #     break
+            if i == 3:
+                break
 
     # ----------------------------------------------------------------
     # >>> PHASE 2: CREATION OF NEW CLUSTERS
@@ -1323,68 +1421,68 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     #     FILTER(str(?dataset_0) > str(?dataset_1))
     # }}
     # """.format(Ns.alivocab, cluster_uri, values, Ns.linkset, label)
-
+    # specs[St.targets] IS A LIST OF DICTIONARIES WITH St.graph AND St.data as KEYS
+    # St.data IS AN OTHER LIST OF DICTIONARY WITH St.entity_datatype AND St.properties KEYS
+    # WHERE St.properties IS A LIST OF PROPERTIES
     targets_array = specs[St.targets]
-    targets = ""
-    for i in range(0, len(targets_array)):
+    # targets = ""
+    # for i in range(0, len(targets_array)):
+    #
+    #     if i == 0:
+    #         targets = "<{}>".format((targets_array[i])[St.graph])
+    #     else:
+    #         targets += " ,\n\t\t\t\t\t\t\t\t\t\t\t<{}>".format((targets_array[i])[St.graph])
 
-        if i == 0:
-            targets = "<{}>".format((targets_array[i])[St.graph])
-        else:
-            targets += " ,\n\t\t\t\t\t\t\t\t\t\t\t<{}>".format((targets_array[i])[St.graph])
+    # A TARGET COMBINES A DATATYPE AND A LIST OF PROPERTIES
+    # alignment_targets = target_datatype_properties(targets_array, "alignmentTarget", label)
 
     query = """
-        # CREATION OF A LINKSET OF MIXED-RESOURCES
-        PREFIX ll:          <{0}>
-        PREFIX void:        <{6}>
-        PREFIX rdfs:        <{7}>
-        PREFIX bdb:         <{8}>
-        PREFIX prov:        <{9}>
-        PREFIX singleton:   <{12}>
-        prefix linkset:     <{3}>
-        INSERT
+    # CREATION OF A LINKSET OF MIXED-RESOURCES
+    PREFIX ll:          <{0}>
+    PREFIX void:        <{6}>
+    PREFIX rdfs:        <{7}>
+    PREFIX bdb:         <{8}>
+    PREFIX prov:        <{9}>
+    PREFIX singleton:   <{10}>
+    prefix linkset:     <{3}>
+    PREFIX llTarget:    <{11}>
+    prefix stardog:     <tag:stardog:api:context:>
+    INSERT
+    {{
+        GRAPH singleton:{4}
         {{
-            # GENERIC METADATA
-            linkset:{4}
-                rdfs:label                  "{4}" ;
-                a                           void:Linkset ;
-                ll:alignsMechanism          <{11}exact> ;
-                void:target                 {10} .
-
-            GRAPH singleton:{4}
-            {{
-                ?singPre ll:hasStrength         1 .
-                ?singPre ll:hasEvidence         ?trimmed_label .
-                ?singPre void:subjectsTarget    ?dataset_1 .
-                ?singPre void:objectsTarget     ?dataset_2 .
-                ?singPre ll:alignsSubjects      ?property_1 .
-                ?singPre ll:alignsObjects       ?property_2 .
-            }}
-
-            GRAPH linkset:{4}
-            {{
-                ?resource_1  ?singPre ?resource_2 .
-            }}
+            ?singPre ll:hasStrength         1 .
+            ?singPre ll:hasEvidence         ?trimmed_label .
+            ?singPre void:subjectsTarget    ?dataset_1 .
+            ?singPre void:objectsTarget     ?dataset_2 .
+            ?singPre ll:alignsSubjects      ?property_1 .
+            ?singPre ll:alignsObjects       ?property_2 .
         }}
-        WHERE
+
+        GRAPH linkset:{4}
         {{
-            # TAKE 2 RANDOM RESOURCES FROM THE CLUSTER
-            GRAPH <{1}>
-            {{
-                <{1}> ll:list ?resource_1 .
-                <{1}> ll:list ?resource_2 .
-            }}
-            # FIND SOME INFORMATION ABOUT RESOURCE_O WITHIN A RANDOM GRAPH 1
-            {2}
-            # FIND THE SAME INFORMATION ABOUT RESOURCE_1 WITHIN A DIFFERENT RANDOM GRAPH 2
-            {5}
-            FILTER(str(?dataset_1) > str(?dataset_2))
+            ?resource_1  ?singPre ?resource_2 .
         }}
-        """.format(Ns.alivocab, cluster_uri, helper(targets_array, is_source=True),
-                   Ns.linkset, label, helper(targets_array, is_source=False),
-                   # 6      7        8       9        10       11            12
-                   Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, targets, Ns.mechanism, Ns.singletons)
-    print query
+    }}
+    WHERE
+    {{
+        # TAKE 2 RANDOM RESOURCES FROM THE CLUSTER
+        GRAPH <{1}>
+        {{
+            <{1}> ll:list ?resource_1 .
+            <{1}> ll:list ?resource_2 .
+        }}
+        # FIND SOME INFORMATION ABOUT RESOURCE_O WITHIN A RANDOM GRAPH 1
+        {2}
+        # FIND THE SAME INFORMATION ABOUT RESOURCE_1 WITHIN A DIFFERENT RANDOM GRAPH 2
+        {5}
+        FILTER(str(?dataset_1) > str(?dataset_2))
+    }}
+    """.format(Ns.alivocab, cluster_uri, helper(targets_array, is_source=True),
+               Ns.linkset, label, helper(targets_array, is_source=False),
+               # 6      7        8       9        10             11
+               Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.alignmentTarget)
+    # print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
     print "\t{:20}: {}".format("STARTED ON", datetime.datetime.today().strftime(_format))
@@ -1393,7 +1491,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
     start = time.time()
-    # inserted = Qry.boolean_endpoint_response(query)
+    Qry.boolean_endpoint_response(query)
     end = time.time()
     diff = end - start
 
@@ -1401,12 +1499,10 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     size_after = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label))
     print "\t{:20}: {}".format("LINKSET SIZE AFTER", size_after)
     print "\t{:20}: {} minute(s) [{}]".format(">>> Executed in", str(diff / 60), diff)
-    # print "INSERTED STATUS: {}".format(inserted)
-    # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.linkset, label)))
 
     specs[St.triples] = size_after
     return {St.message: "The linkset was created as [{}] and contains {} triples".format(
-        label, size_after), St.result: label}
+        label, size_after), St.result: label, "correspondences": size_after}
 
 
 # FROM MULTIPLE CLUSTERS TO A SINGLE MULTI SOURCES LINKSET
@@ -1437,11 +1533,14 @@ def linkset_from_clusters(specs, activated=False):
     cluster_table_response = Qry.sparql_xml_to_matrix(query)
     cluster_table = cluster_table_response[St.result]
 
+    # DISPLAY A SAMPLE OF THE TABLE
     print "\t>>> TABLE OF COMPATIBLE CLUSTER(S) FOUND"
     Qry.display_matrix(cluster_table_response, limit=5, is_activated=True)
     # print "cluster_table:", cluster_table_response
+
     if cluster_table is None:
-        return "NO LINKSET COULD BE GENERATED AS NOT MATCHING CLUSTER COULD BE FOUND."
+        print "NO LINKSET COULD BE GENERATED AS NO MATCHING CLUSTER COULD BE FOUND."
+        return "NO LINKSET COULD BE GENERATED AS NO MATCHING CLUSTER COULD BE FOUND."
 
     # BUILD THE STRING FOR GENERATING THE MIXED RESOURCE LINKSET
     builder = Buffer.StringIO()
@@ -1449,118 +1548,31 @@ def linkset_from_clusters(specs, activated=False):
         builder.write(" {}".format(cluster_table[i]))
 
     # LINKSET LABEL (ID)
-    identification = hash(builder.getvalue())
+    # identification = hash(builder.getvalue())
     # label = "clustered_{}".format(str(identification).replace("-", "N")) \
     #     if str(identification).startswith("-") else "clustered_P{}".format(str(identification))
-    label = specs[St.linkset_name]
+    # label = specs[St.linkset_name]
     # print label
 
     # CREATE AND ADD RESOURCES TO THE LINKSET
     result = {St.message: "The linkset was not created.", St.result: None}
+    linkset_name = specs[St.linkset_name]
+    correspondences = 0
     for i in range(1, len(cluster_table)):
-        result = linkset_from_cluster(specs, cluster_table[i][0], user_label=label, count=i, activated=activated)
-
+        result = linkset_from_cluster(specs, cluster_table[i][0], linkset_name, count=i, activated=activated)
+        correspondences += int(result["correspondences"])
         if i == 1:
             break
+
+    if correspondences > 0:
+        print "\nINSERTING THE GENERIC METADATA AS A TOTAL OF {} CORRESPONDENCE(S) WERE INSERTED.".format(
+            correspondences)
+        metadata(specs)
 
     return result
 
 
-def property_builder(properties):
 
-    rsc_plan = Buffer.StringIO()
-    bind_plan = Buffer.StringIO()
-    filter_plan = Buffer.StringIO()
-    filter_plan.write("\n\t\tFILTER( ")
-    compatibility = []
-    pattern_count = 0
-    for n in range(0, len(properties)):
-
-        checked = Ut.split_property_path(properties[n])
-        # print "\nPROPERTY {}\t".format(n, properties[n])
-        # for item in checked:
-        #     print "\t", item
-
-        compatible = False
-        if len(checked) not in compatibility:
-            compatibility += [len(checked)]
-            compatible = True
-
-        if len(checked) == 1:
-
-            if compatible is True:
-
-                if rsc_plan.getvalue():
-                    rsc_plan.write("\n\t\t\tUNION {{ ?resource ?prop_{}_0 ?value . }}".format(n))
-
-                else:
-                    rsc_plan.write("\n\t\t\t{{ ?resource ?prop_{}_0 ?value . }}".format(n))
-                bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_{0}_0 ), ">" )  AS ?pattern_{1} ) """.format(
-                    n, pattern_count))
-
-                bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{1}) AS ?prop_uri_{0} )""".format(n, pattern_count))
-
-                pattern_count += 1
-
-        else:
-
-            for i in range(0, len(checked)):
-
-                # START OF THE LOOP
-                if i == 0:
-                    # EXTRACTING THE PROPERTY PATH COMPOSITION IF ANY
-                    if compatible is True:
-                        if rsc_plan.getvalue():
-                            rsc_plan.write("\n\t\t\t UNION {{ \n\t?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(
-                                n, i))
-                        else:
-                            rsc_plan.write("\n\t\t\t{{ ?resource ?prop_{0}_{1} ?object_{0}_{1} .".format(n, i))
-                        # BINDING THE PROPERTY PATH FOR AS A STRING LATER USE FOR FILTERING
-                        bind_plan.write("""\n\t\t\tBIND( CONCAT( "<", STR(?prop_{0}_{1})""".format(n, i))
-
-                # END OF THE LOOP
-                elif i == len(checked) - 1:
-                    if compatible is True:
-                        rsc_plan.write("\n\t\t\t?object_{0}_{1} ?prop_{0}_{2} ?value . }}".format(n, i-1, i))
-                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}), ">") AS ?pattern_{1} )""".format(
-                            checked[i], n, i))
-                        bind_plan.write("""\n\t\t\tBIND ( IRI(?pattern_{0}) AS ?prop_uri_{0} )""".format(n))
-
-                # MIDDLE OF THE LOOP
-                else:
-                    if compatible is True:
-                        rsc_plan.write("\n\t?object_{0}_{1} ?prop_{0}_{2} ?object_{0}_{2} .".format(n, i-1, i))
-                        bind_plan.write(""", ">/<", STR(?prop_{1}_{2}) """.format(checked[i], n, i))
-
-    # USING THE EXTRACTED PATH FOR FILTERING
-    property_list = ""
-    for i in range(0, len(compatibility)):
-        # print "Pattern: {}".format(compatibility[i])
-
-        for n in range(0, len(properties)):
-            checked = Ut.split_property_path(properties[n])
-            if len(checked) == compatibility[i]:
-                # print "yes"
-
-                if i == 0:
-                    value = """prop_uri_{}""".format(i)
-                    if property_list.__contains__(value) is False:
-                        property_list += """?prop_uri_{}""".format(i)
-                    if n == 0:
-                        filter_plan.write("""?pattern_{0} = STR(?prop_{1})""".format(i, n))
-                    else:
-                        filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
-                else:
-                    property_list += """, ?prop_uri_{}""".format(i)
-                    filter_plan.write(""" || ?pattern_{0} = STR(?prop_{1})""".format(i, n))
-
-    filter_plan.write(" )")
-    # print "\nPlan:", rsc_plan.getvalue()
-    # print "\nCompatibility:", len(compatibility)
-    # print "\nBind plan:", bind_plan.getvalue()
-    # print "\nFiler plan:", filter_plan.getvalue()
-
-    return [rsc_plan.getvalue(), bind_plan.getvalue(), filter_plan.getvalue(), property_list]
 
 
 # TODO ADD THE DIFFERENCE => FILTER NOT EXISTS
