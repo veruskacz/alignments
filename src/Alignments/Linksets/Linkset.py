@@ -74,7 +74,7 @@ def format_aligns(resource):
 
 
 def set_linkset_name(specs, inverse=False):
-    
+
     src_aligns = ""
     trg_aligns = ""
     reducer = ""
@@ -121,17 +121,17 @@ def set_linkset_name(specs, inverse=False):
 
     if St.aligns_name in source:
         src_aligns += source[St.aligns_name]
-    elif St.latitude in source:
-        src_aligns += source[St.latitude]
-        if St.longitude in source:
-            src_aligns += source[St.longitude]
+    elif St.latitude_name in source:
+        src_aligns += source[St.latitude_name]
+        if St.longitude_name in source:
+            src_aligns += source[St.longitude_name]
 
     if St.aligns_name in target:
         trg_aligns += target[St.aligns_name]
-    elif St.latitude in target:
-        trg_aligns += target[St.latitude]
-        if St.longitude in target:
-            trg_aligns += target[St.longitude]
+    elif St.latitude_name in target:
+        trg_aligns += target[St.latitude_name]
+        if St.longitude_name in target:
+            trg_aligns += target[St.longitude_name]
 
     if inverse is False:
 
