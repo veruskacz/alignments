@@ -187,7 +187,7 @@ def update_specification(specs):
                         name = "{}_{}".format(name, local)
                     # print ">>>> name: ", name
                 specs[St.link_old_name] = name
-                if len(pro_list) == 1:
+                if len(pro_list) == 1 and St.aligns in specs:
                     specs[St.link_old_ns] = str(specs[St.aligns]).replace(specs[St.link_old_name], '')
                 else:
                     specs[St.link_old_ns] = None

@@ -1999,8 +1999,6 @@ def cluster_specs_2_linksets(specs, activated=False):
               "\nEXECUTING LINKSET SPECS"
 
     print heading
-    # inserted_mapping = None
-    # inserted_linkset = None
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])

@@ -74,7 +74,9 @@ def format_aligns(resource):
 
 
 def set_linkset_name(specs, inverse=False):
-
+    
+    src_aligns = ""
+    trg_aligns = ""
     reducer = ""
     intermediate = ""
     threshold = ""
@@ -117,11 +119,25 @@ def set_linkset_name(specs, inverse=False):
     if St.unit_value  in specs:
         geo += str(specs[St.unit_value ])
 
+    if St.aligns_name in source:
+        src_aligns += source[St.aligns_name]
+    elif St.latitude in source:
+        src_aligns += source[St.latitude]
+        if St.longitude in source:
+            src_aligns += source[St.longitude]
+
+    if St.aligns_name in target:
+        trg_aligns += target[St.aligns_name]
+    elif St.latitude in target:
+        trg_aligns += target[St.latitude]
+        if St.longitude in target:
+            trg_aligns += target[St.longitude]
+
     if inverse is False:
 
         h_name = specs[St.mechanism] + \
-                 source[St.graph_name] + source[St.aligns_name] + \
-                 target[St.graph_name] + target[St.aligns_name] + \
+                 source[St.graph_name] + src_aligns + \
+                 target[St.graph_name] + trg_aligns + \
                  source[St.entity_datatype] + target[St.entity_datatype] + "2" +\
                  reducer + intermediate + threshold + delta + geo
 
@@ -131,7 +147,7 @@ def set_linkset_name(specs, inverse=False):
 
         specs[St.linkset_name] = "{}_{}_{}_{}_{}_{}".format(
             source[St.graph_name], target[St.graph_name],
-            specs[St.mechanism], source[St.entity_name], source[St.aligns_name], append)
+            specs[St.mechanism], source[St.entity_name], src_aligns, append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -140,8 +156,8 @@ def set_linkset_name(specs, inverse=False):
     else:
 
         h_name = specs[St.mechanism] + \
-                 target[St.graph_name] + target[St.aligns_name] + \
-                 source[St.graph_name] + source[St.aligns_name] + \
+                 target[St.graph_name] + trg_aligns + \
+                 source[St.graph_name] + src_aligns + \
                  target[St.entity_datatype] + source[St.entity_datatype] + "2" +\
                  reducer  + intermediate + threshold + delta
 
@@ -151,7 +167,7 @@ def set_linkset_name(specs, inverse=False):
 
         specs[St.linkset_name] = "{}_{}_{}_{}_{}_()".format(
             target[St.graph_name], source[St.graph_name],
-            specs[St.mechanism], target[St.entity_name], target[St.aligns_name], append)
+            specs[St.mechanism], target[St.entity_name], trg_aligns, append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
         print "specs[St.linkset]", specs[St.linkset]

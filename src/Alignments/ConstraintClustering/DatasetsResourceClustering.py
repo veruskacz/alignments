@@ -619,7 +619,6 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     #         St.result: "", 'group_name': group_name}
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
-    inserted = Qry.boolean_endpoint_response(query)
     Qry.boolean_endpoint_response(query)
 
     # FETCH THE CLUSTER REFERENCE URL
@@ -646,9 +645,11 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     }}
     """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.cluster, concat_code, label, Ns.void)
     # print "reference_query:", reference_query
+
     # RUN FETCH
     reference_response = Qry.sparql_xml_to_matrix(reference_query)
     # print "reference_response:", reference_response
+
     reference_result = reference_response[St.result]
     # print "reference_result:", reference_result
 
@@ -662,9 +663,6 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
     print "\t\t{:19} : {}".format("CLUSTER SIZE", count_list("{}{}_{}".format(Ns.cluster, concat_code, label)))
 
     print "\t\t{:19} : {}".format("DERIVED FROM", dataset_uri)
-
-    # print "\t\t{:17} : {}".format("INSERTED STATUS", inserted)
-    # print "TRIPLE COUNT: {}".format(count_triples("{0}{1}".format(Ns.cluster, label)))
 
     if strong is True:
 
@@ -696,9 +694,11 @@ def create_cluster(cluster_constraint, dataset_uri, property_uri, count=1,
         }}
         """.format(Ns.alivocab, Ns.prov, dataset_uri, fetch, Ns.void, constraint_v)
         # print "reference_query:", reference_query
+
         # RUN FETCH
         reference_response = Qry.sparql_xml_to_matrix(reference_query)
         # print "reference_response:", reference_response
+
         reference_result = reference_response[St.result]
         # print "reference_result:", reference_result
 
@@ -1345,7 +1345,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     # EXTRACTING THE CLUSTER METADATA MEANING DATASETS AND CONSTRAINTS
     cluster_metadata = cluster_meta(cluster_uri)
     dataset_count = len(cluster_metadata['datasets'])
-    metadata = cluster_metadata['constraints']
+    c_metadata = cluster_metadata['constraints']
 
     # CONDITION TO CONTINUE
     if dataset_count == 0:
@@ -1364,7 +1364,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     #         values += "\n\t\t\t\t | ({})".format(properties[i])
 
     # THE SPARQL QUERY DEPENDS ON THE AMOUNT OF DATASETS IN THE CLUSTERS
-    for item in metadata:
+    for item in c_metadata:
         constraints += "{} ".format(item)
 
     # LINKSET LABEL (ID)
@@ -1570,9 +1570,6 @@ def linkset_from_clusters(specs, activated=False):
         metadata(specs)
 
     return result
-
-
-
 
 
 # TODO ADD THE DIFFERENCE => FILTER NOT EXISTS
