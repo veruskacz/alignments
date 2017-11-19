@@ -622,25 +622,35 @@ def convert_to_float(value):
 # FUNCTION FOR TARGET DATATYPE AND PROPERTIES
 def target_datatype_properties(model, label, linkset_label):
 
-    main_tabs = "\t"
+    main_tabs = "\t\t\t"
     tabs = "{}\t\t\t\t\t\t\t\t\t\t\t\t".format(main_tabs)
     # ALIGNMENT COMBINATION: LIST OD DICTIONARIES
     alignment_targets = ""
+    property_list_bind = ""
+    count = 0
     for item in model:
+        count += 1
         target = item[St.graph]
         data = item[St.data]
 
         # LIST OF DICTIONARIES
-        for info in data:
-            code = "llTarget:{}_{}".format(label, Ut.hash_it(target + str(info)))
-            datatype = info[St.entity_datatype]
-            properties = info[St.properties]
+        for n in range(0, len(data)):
+            code = "llTarget:{}_{}".format(label, Ut.hash_it(target + str(data[n])))
+            datatype = data[n][St.entity_datatype]
+            properties = data[n][St.properties]
             property_list = ""
 
             # LIST OF PROPERTIES
             for i in range(0, len(properties)):
-                property = properties[i] if Ut.is_nt_format(properties[i]) else "<{}>".format(info[St.properties][i])
-                property_list += "{} ".format(property) if i == 0 else ",\n{}{} ".format(tabs, property)
+                property = properties[i] if Ut.is_nt_format(properties[i]) else "<{}>".format(data[i][St.properties][i])
+                property_list += "?property_{}_{} ".format(count, i) if i == 0 \
+                    else ",\n{}?property_{}_{} ".format(tabs, count, i)
+
+                if i == 0 and count == 1:
+                    property_list_bind += """BIND( IRI("{}") AS ?property_{}_{})""".format(property, count, i)
+                else:
+                    property_list_bind += """\n{}BIND( IRI("{}") AS ?property_{}_{})""".format(
+                        main_tabs, property, count, i)
 
             triples = """
     {5}linkset:{4}  ll:hasAlignmentTarget  {0} .
@@ -651,7 +661,7 @@ def target_datatype_properties(model, label, linkset_label):
             # print triples
             alignment_targets += triples
 
-    return alignment_targets
+    return {"list": alignment_targets, "binds": property_list_bind}
 
 
 def cluster_2_linkset_metadata(specs):
@@ -669,7 +679,7 @@ def cluster_2_linkset_metadata(specs):
         prefix linkset:     <{6}>
         PREFIX llTarget:    <{7}>
         prefix stardog:     <tag:stardog:api:context:>
-        INSERT DATA
+        INSERT
         {{
             # GENERIC METADATA
 
@@ -679,7 +689,11 @@ def cluster_2_linkset_metadata(specs):
                 ll:alignsMechanism          <{9}exact> .
             {10}
         }}
+        WHERE
+        {{
+            {11}
+        }}
     """.format(Ns.alivocab, Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.linkset, Ns.alignmentTarget,
-               # 8                      9            10
-               specs[St.linkset_name], Ns.mechanism, alignment_targets)
+               # 8                      9            10                       11
+               specs[St.linkset_name], Ns.mechanism, alignment_targets["list"], alignment_targets["binds"])
     Qry.boolean_endpoint_response(query)
