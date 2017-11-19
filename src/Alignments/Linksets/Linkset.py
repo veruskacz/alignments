@@ -122,16 +122,20 @@ def set_linkset_name(specs, inverse=False):
     if St.aligns_name in source:
         src_aligns += source[St.aligns_name]
     elif St.latitude_name in source:
-        src_aligns += source[St.latitude_name]
+        # src_aligns += source[St.latitude_name]
+        src_aligns += "Latitude"
         if St.longitude_name in source:
-            src_aligns += source[St.longitude_name]
+            # src_aligns += source[St.longitude_name]
+            src_aligns += "Longitude"
 
     if St.aligns_name in target:
         trg_aligns += target[St.aligns_name]
     elif St.latitude_name in target:
-        trg_aligns += target[St.latitude_name]
+        # trg_aligns += target[St.latitude_name]
+        trg_aligns += "Latitude"
         if St.longitude_name in target:
-            trg_aligns += target[St.longitude_name]
+            # trg_aligns += target[St.longitude_name]
+            trg_aligns += "Longitude"
 
     if inverse is False:
 

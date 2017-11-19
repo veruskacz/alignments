@@ -233,7 +233,7 @@ def linkset_geo_metadata(specs, display=False):
                "        bdb:assertionMethod         <{}> ;".format(specs[St.assertion_method]),
                "        bdb:linksetJustification    <{}> ;{}".format(specs[St.justification], extra),
                "        ll:crossCheckSubject        ?src_crossCheck ;",
-               "        ll:crossCheckObjects        ?trg_crossCheck ;",
+               "        ll:crossCheckObject         ?trg_crossCheck ;",
 
                "        ll:alignsSubjects           ( ?src_long ?src_lat ) ;",
                "        ll:alignsObjects            ( ?trg_long ?trg_lat ) ;",
