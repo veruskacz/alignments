@@ -2007,28 +2007,13 @@ def cluster_specs_2_linksets(specs, activated=False):
 
     if specs[St.sameAsCount]:
 
-        # UPDATE THE SPECS OF SOURCE AND TARGETS
-        # update_specification(specs[St.source])
-        # update_specification(specs[St.target])
-
         # GENERATE THE NAME OF THE LINKSET
         Ls.set_cluster_linkset_name(specs)
         # print specs[St.linkset_name]
 
         check = Ls.run_checks_cluster(specs, check_type="linkset")
-        print check
-        # if check[St.result] != "GOOD TO GO":
-        #     return check
+        # print check
 
-        # SET THE INSERT QUERY
-        # specs[St.linkset_insert_queries] = spa_linkset_ess_query(specs)
-        # specs[St.linkset_insert_queries] = insert_query_reduce(specs, match_numeric)
-
-        # GENERATE THE LINKSET
-        # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
-        # inserted_linkset = spa_linksets(specs, display=display, activated=activated)
-
-        # exit(0)
         message = Ec.ERROR_CODE_4.replace('\n', "<br/>")
         if activated is True:
 
@@ -2340,8 +2325,7 @@ grid = {
     St.rdf_predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
     St.graph: "http://risis.eu/dataset/grid_20170712",
     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization",
-    St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
-    St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
+    St.crossCheck: "http://www.w3.org/2000/01/rdf-schema#label",
     St.longitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#long>",
     St.latitude: "<http://www.grid.ac/ontology/hasAddress>/<http://www.w3.org/2003/01/geo/wgs84_pos#lat>"
 }
@@ -2349,8 +2333,7 @@ grid = {
 eter_english = {
    St.graph: "http://risis.eu/dataset/eter_2014",
    St.entity_datatype: "http://risis.eu/eter_2014/ontology/class/University",
-   St.aligns: "http://risis.eu/eter_2014/ontology/predicate/English_Institution_Name",
-   St.reducer: "http://risis.eu/linkset/eter_grid_approxStrSim_institution_Name_N1691154715",
+   St.crossCheck: "http://risis.eu/eter_2014/ontology/predicate/English_Institution_Name",
    St.longitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__longitude",
    St.latitude: "http://risis.eu/eter_2014/ontology/predicate/Geographic_coordinates__latitude"
 }
@@ -2358,7 +2341,7 @@ eter_english = {
 """ DEFINE LINKSET SPECIFICATIONS """
 ls_specs_1 = {
     St.unit: Ns.meter,
-    St.unit_value: 5,
+    St.unit_value: 10,
     St.researchQ_URI: "http://risis.eu/activity/idea_3fd3a8",
     St.source: eter_english,
     St.target: grid,
