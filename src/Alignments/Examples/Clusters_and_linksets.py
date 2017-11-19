@@ -1,6 +1,7 @@
 import Alignments.ConstraintClustering.DatasetsResourceClustering as Dcs
 import Alignments.Settings as St
 import Alignments.Linksets.SPA_Linkset as Linkset
+import Alignments.Utility as Ut
 
 
 ###################################################
@@ -12,8 +13,7 @@ grid_GRAPH = "http://risis.eu/dataset/grid_20170712"
 grid_org_type = "http://xmlns.com/foaf/0.1/Organization"
 grid_cluster_PROPS = ["<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>",
                       "<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryName>"]
-grid_link_org_props = ["http://www.w3.org/2000/01/rdf-schema#label",
-                       "http://www.w3.org/2004/02/skos/core#prefLabel",
+grid_link_org_props = ["http://www.w3.org/2000/01/rdf-schema#label", "http://www.w3.org/2004/02/skos/core#prefLabel",
                        "http://www.w3.org/2004/02/skos/core#altLabel",
                        "http://xmlns.com/foaf/0.1/homepage"]
 grid_main_dict = {St.graph: grid_GRAPH,
@@ -72,7 +72,7 @@ h2020_main_dict = {St.graph: h2020_GRAPH,
 # [OPENAIRE] DATASET TO ADD
 openaire_GRAPH = "http://risis.eu/dataset/openAire_20170816"
 openaire_cluster_PROPS = ["http://dbpedia.org/ontology/country"]
-openaire_org_type = "hhttp://xmlns.com/foaf/0.1/Organization"
+openaire_org_type = "http://xmlns.com/foaf/0.1/Organization"
 openaire_link_org_props = ["http://www.w3.org/2004/02/skos/core#prefLabel",
                            "http://www.w3.org/2004/02/skos/core#altLabel",
                            "http://lod.openaire.eu/vocab/webSiteUrl"]
@@ -89,9 +89,9 @@ targets = [
     openaire_main_dict
 ]
 
-specs = {St.reference: "http://risis.eu/cluster/reference/P1041014171",
+specs = {St.reference: "http://risis.eu/cluster/reference/N1528759258",
          St.mechanism: "exactStrSim",
-         St.researchQ_URI: "http://risis.eu/activity/idea_349cbe",
+         St.researchQ_URI: "http://risis.eu/activity/idea_749ab8",
          St.targets: targets}
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -112,7 +112,7 @@ response = Dcs.create_clusters(
     GROUP, A NEW CLUSTER IS GENERATED AND ADDED TO THE GROUP.
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-reference_2 = "http://risis.eu/cluster/reference/P1041014171"
+reference_2 = "http://risis.eu/cluster/reference/N1528759258"
 
 print "\n2.1 ADDING [ORGREF] RESOURCES TO THE INITIAL GROUP OF CLUSTER"
 Dcs.add_to_clusters(reference=reference_2, dataset_uri=orgref_GRAPH, property_uri=orgref_cluster_PROPS, activated=False)
@@ -140,7 +140,7 @@ Dcs.add_to_clusters(
 print "\n3. CREATING A LINKSET FROM A [CLUSTER]"
 # # GENERATE THE MIXED-RESOURCES LINKSET
 cluster = "http://risis.eu/cluster/P1041014171_au_australia"
-Dcs.linkset_from_cluster(specs=specs, cluster_uri=cluster, user_label=None, count=1, activated=False)
+# Dcs.linkset_from_cluster(specs=specs, cluster_uri=cluster, user_label=None, count=1, activated=False)
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -148,7 +148,7 @@ Dcs.linkset_from_cluster(specs=specs, cluster_uri=cluster, user_label=None, coun
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 print "\n4. CREATING A LINKSET FROM A [CLUSTER REFERENCE]"
 
-Linkset.cluster_specs_2_linksets(specs=specs, match_numeric=False, activated=True)
+Linkset.cluster_specs_2_linksets(specs=specs, activated=True)
 
 # Dcs.linkset_from_clusters(specs=specs, activated=True)
 
@@ -207,3 +207,9 @@ Linkset.cluster_specs_2_linksets(specs=specs, match_numeric=False, activated=Tru
 prop2 = ["http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode",
          "http://risis.eu/eter_2014/ontology/predicate/Country_Code",
          "http://risis.eu/orgref_20170703/ontology/predicate/Country"]
+
+
+
+
+# Dcs.target_datatype_properties(targets, "alignmentTarget", "myLinkset")
+
