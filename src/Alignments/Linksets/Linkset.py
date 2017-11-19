@@ -79,12 +79,28 @@ def set_linkset_name(specs, inverse=False):
     intermediate = ""
     threshold = ""
     delta = ""
+    geo = ""
 
-    if St.reducer in specs[St.source]:
-        reducer += specs[St.source][St.reducer]
+    source = specs[St.source]
+    target = specs[St.target]
+
+    if St.reducer in source:
+        reducer += source[St.reducer]
+
+    if St.longitude in source:
+        geo += source[St.longitude]
+
+    if St.latitude in source:
+        geo += source[St.latitude]
+
+    if St.longitude in target:
+        geo += target[St.longitude]
+
+    if St.latitude in source:
+        geo += target[St.latitude]
 
     if St.reducer in specs[St.target]:
-        reducer += specs[St.target][St.reducer]
+        reducer += target[St.reducer]
 
     if St.intermediate_graph in specs:
         intermediate = str(specs[St.intermediate_graph])
@@ -95,21 +111,27 @@ def set_linkset_name(specs, inverse=False):
     if St.delta in specs:
         delta += str(specs[St.delta])
 
+    if St.unit  in specs:
+        geo += str(specs[St.unit ])
+
+    if St.unit_value  in specs:
+        geo += str(specs[St.unit_value ])
+
     if inverse is False:
 
         h_name = specs[St.mechanism] + \
-                 specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
-                 specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
-                 specs[St.source][St.entity_datatype] + specs[St.target][St.entity_datatype] + "2" +\
-                 reducer + intermediate + threshold + delta
+                 source[St.graph_name] + source[St.aligns_name] + \
+                 target[St.graph_name] + target[St.aligns_name] + \
+                 source[St.entity_datatype] + target[St.entity_datatype] + "2" +\
+                 reducer + intermediate + threshold + delta + geo
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
         specs[St.linkset_name] = "{}_{}_{}_{}_{}_{}".format(
-            specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-            specs[St.mechanism], specs[St.source][St.entity_name], specs[St.source][St.aligns_name], append)
+            source[St.graph_name], target[St.graph_name],
+            specs[St.mechanism], source[St.entity_name], source[St.aligns_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -118,9 +140,9 @@ def set_linkset_name(specs, inverse=False):
     else:
 
         h_name = specs[St.mechanism] + \
-                 specs[St.target][St.graph_name] + specs[St.target][St.aligns_name] + \
-                 specs[St.source][St.graph_name] + specs[St.source][St.aligns_name] + \
-                 specs[St.target][St.entity_datatype] + specs[St.source][St.entity_datatype] + "2" +\
+                 target[St.graph_name] + target[St.aligns_name] + \
+                 source[St.graph_name] + source[St.aligns_name] + \
+                 target[St.entity_datatype] + source[St.entity_datatype] + "2" +\
                  reducer  + intermediate + threshold + delta
 
         hashed = hash(h_name)
@@ -128,11 +150,11 @@ def set_linkset_name(specs, inverse=False):
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
         specs[St.linkset_name] = "{}_{}_{}_{}_{}_()".format(
-            specs[St.target][St.graph_name], specs[St.source][St.graph_name],
-            specs[St.mechanism], specs[St.target][St.entity_name], specs[St.target][St.aligns_name], append)
+            target[St.graph_name], source[St.graph_name],
+            specs[St.mechanism], target[St.entity_name], target[St.aligns_name], append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
-
+        print "specs[St.linkset]", specs[St.linkset]
         return specs[St.linkset]
 
 
@@ -171,7 +193,6 @@ def set_cluster_linkset_name(specs):
     specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
     return specs[St.linkset]
-
 
 
 def set_linkset_identity_name(specs, inverse=False):
@@ -527,6 +548,7 @@ def run_checks_cluster(specs, check_type):
     """
 
     # CHECK WHETHER THE CURRENT LINKSET NAME EXIST
+    print "CHECK WHETHER THE CURRENT LINKSET NAME EXIST"
     print ask.replace("#", linkset)
     ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
     # print ask_1
@@ -592,17 +614,18 @@ def run_checks_cluster(specs, check_type):
             #     print message
             #     return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
+    print "\t>>> NO IT DOES NOT EXIST YET..."
     if str(check_type).lower() == "subset":
-        print "ASK 3: IT IS A SUBSET"
+        print "\nSETTING THE LINKSET SUBSET NAME"
         set_subset_name(specs, inverse=False)
     elif str(check_type).lower() == "linkset":
-        print "ASK 3: IT IS A LINKSET"
+        print "\nSETTING THE LINKSET NAME"
         set_cluster_linkset_name(specs)
     elif str(check_type).lower() == "refine":
-        print "ASK 3: IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
+        print "\nSETTING THE LINKSET REFINE NAME"
         set_refined_name(specs)
     # print specs[St.linkset_name]
-    print ">>> GOOD TO GO !!!"
+    print "\n>>> GOOD TO GO !!!"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 
