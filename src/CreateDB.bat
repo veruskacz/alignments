@@ -1,0 +1,1 @@
+stardog-admin db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n risis
