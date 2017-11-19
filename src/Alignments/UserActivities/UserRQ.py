@@ -285,9 +285,11 @@ def linkset_composition(alignment_mapping, request_ask_select_or_insert="ask", g
         return composition[0]
 
     if len(composition) == 0:
-        print "construct", construct
-        print "composition:", type(composition), len(composition), composition
-        print "THE LINKSET <linkset_uri> DOES NOT EXIST".format(linkset_uri)
+        # INSPECT linkset_alignment_query = get_linkset_alignment(question_uri, linkset_uri)
+        # print "construct", construct
+        print "\tcomposition:", type(composition), len(composition), composition
+        print "\tTHE LINKSET <{}> DOES NOT EXIST".format(linkset_uri)
+        print linkset_alignment_query
         return None
 
     composition_str = composition[0]
@@ -350,7 +352,7 @@ def get_linkset_alignment(question_uri, linkset_uri):
     {{
       #BIND(iri(replace('http://risis.eu/activity/idea_algmt_#','#',SUBSTR(str(uuid()), 40))) as ?alignmentMapping)
         {{ <{1}>    void:subjectsTarget		?subjectsTarget . }}
-        UNION {{ <{1}>   void:target		?target .  }}
+        UNION {{ <{1}>   alivocab:hasAlignmentTarget		?target .  }}
         optional {{ <{1}>    void:objectsTarget		    ?objectsTarget . }}
         optional {{ <{1}>    bdb:subjectsDatatype	    ?subjectsDatatype . }}
         optional {{ <{1}>    bdb:objectsDatatype		?objectsDatatype . }}
