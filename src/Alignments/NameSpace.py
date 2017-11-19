@@ -27,6 +27,7 @@ tmpvocab = "http://risis.eu//temp-match/temp-match/predicate/"
 mechanism = "http://risis.eu/mechanism/"
 singletons = "http://risis.eu/singletons/"
 justification = "http://risis.eu/justification/"
+alignmentTarget = "http://risis.eu/alignmentTarget/"
 lensOp = "http://risis.eu/lens/operator/"
 lensOpu = "http://risis.eu/lens/operator/union"
 lensOpi = "http://risis.eu/lens/operator/intersection"
@@ -40,7 +41,6 @@ view = "http://risis.eu/view/"
 
 cluster = "http://risis.eu/cluster/"
 cluster_constraint = "http://risis.eu/cluster_constrain/"
-
 
 lens_type = 'http://vocabularies.bridgedb.org/ops#Lens'
 linkset_type = "http://rdfs.org/ns/void#Linkset"

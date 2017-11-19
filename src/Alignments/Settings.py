@@ -184,6 +184,7 @@ stardog_data_path = "stardog_data_path"
 longitude = "longitude"
 latitude = "latitude"
 reference = "reference"
+crossCheck = "crossCheck"
 
 unit = "unit"
 unit_value = "unit_value"

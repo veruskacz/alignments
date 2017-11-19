@@ -37,9 +37,10 @@ mac_weird_name = "darwin"
 
 def hash_it(text):
 
-    code = hash(text)
-    name = str(code).replace("-", "N") if str(code).__contains__("-") else "P{}".format(code)
-    return name
+    code = hash(str(text))
+    hashed = str(code).replace("-", "N") if str(code).__contains__("-") else "P{}".format(code)
+    # print hashed
+    return hashed
 
 
 def from_alignment2singleton(alignment):
@@ -784,6 +785,8 @@ def stardog_on(bat_path):
         response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
     except Exception as err:
         response = str(err)
+
+    print response
 
     # NO NEED FOR TURNING IT ON AS IT IS ALREADY ON
     if len(lock_file) > 0 and (str(response).__contains__("200") or str(response).__contains__("401")):
