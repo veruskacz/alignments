@@ -202,7 +202,7 @@ def linkset_geo_metadata(specs, display=False):
     print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
 
     query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}" \
             "\n{}\n{}\n{}" \
             "\n{}\n{}\n{}\n{}\n{}" \
@@ -234,6 +234,9 @@ def linkset_geo_metadata(specs, display=False):
                "        bdb:linksetJustification    <{}> ;{}".format(specs[St.justification], extra),
                "        ll:crossCheckSubject        ?src_crossCheck ;",
                "        ll:crossCheckObject         ?trg_crossCheck ;",
+
+               "        ll:unit                     <{}> ;".format(specs[St.unit]),
+               "        ll:unitValue                {} ;".format(specs[St.unit_value]),
 
                "        ll:alignsSubjects           ( ?src_long ?src_lat ) ;",
                "        ll:alignsObjects            ( ?trg_long ?trg_lat ) ;",
