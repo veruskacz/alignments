@@ -640,6 +640,40 @@ function inspect_linkset_activate(mode='default')
           {
             var selection = selectListItemUnique(this, 'inspect_linkset_selection_col')
           }
+
+          if (mode == 'inspect_linkset_cluster')
+          {
+            var linkset_uri = $(this).attr('uri');
+
+            // load the panel describing the linkset sample
+            $('#inspect_linkset_linkset_details_col').show();
+            $('#inspect_linkset_linkset_details_col').html('Loading...');
+            $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri},function(data)
+            {
+                var obj = JSON.parse(data);
+                $('#inspect_linkset_linkset_details_col').html(obj.data);
+
+                get_filter(rq_uri, linkset_uri);
+
+                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
+                {
+                   $('#creation_linkset_row').show();
+                   loadEditPanel(obj.metadata, mode);
+                   enableButton('deleteLinksetButton');
+                   enableButton('exportLinksetButton');
+                   enableButton('exportPlotLinksetButton');
+                }
+                else if (mode == 'inspect')
+                {
+                   $('#creation_linkset_filter_row').show();
+                   $('#creation_linkset_search_row').show();
+                   $('#creation_linkset_correspondence_row').show();
+                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
+                }
+            });
+
+          }
+          else
           if (selection)
           {
             var linkset_uri = $(this).attr('uri');
@@ -670,16 +704,16 @@ function inspect_linkset_activate(mode='default')
                    showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
                 }
             });
-
           }
           else { $('#inspect_linkset_linkset_details_col').html(""); }
+
           e.preventDefault();
           return false;
         });
      });
   }
 
-
+  $('#panel_cluster_prop_selection').hide();
   if (mode == 'import') {
     $('#import_heading_panel').show();
     $('#inspect_heading_panel').hide();
@@ -691,7 +725,7 @@ function inspect_linkset_activate(mode='default')
     $('#create_panel_body').show();
     $('#inspect_heading_panel').show();
 
-    if (mode == 'inspect') {
+    if ((mode == 'inspect') || (mode == 'inspect_linkset_cluster')) {
         $('#creation_linkset_row').hide();
     }
     else if (mode == 'refine') {
@@ -1007,11 +1041,14 @@ function createLinksetClick()
           'stop_symbols': $('#linkset_approx_symbols').val(),
           'threshold': $('#linkset_approx_threshold').val(),
 
-          'delta': $('#linkset_approx_delta').val() ,
-          'numeric_approx_type': $('#linkset_approx_num_type').find("option:selected").text(),
-
           'geo_dist': $('#linkset_geo_match_nbr').val() ,
           'geo_unit': $('#linkset_geo_match_unit').find("option:selected").text(),
+        }
+
+        if ($('#selected_meth').attr('uri') == 'approxNbrSim')
+        {
+            specs['delta'] = $('#linkset_approx_delta').val();
+            specs['numeric_approx_type'] = $('#linkset_approx_num_type').find("option:selected").text();
         }
 
         if (multiple_entries == 'yes')
@@ -1177,6 +1214,7 @@ function exportPlotLensClick(elem)
 //    $(elem).dialog("close");
 }
 
+
 function exportLinksetClick(filename, mode='flat', user='', psswd='')
 {
     var linkset = '';
@@ -1313,6 +1351,7 @@ function exportLensClick(filename, mode='flat', user='', psswd='')
     }
 }
 
+
 function importLinksetClick()
 {
     var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
@@ -1409,6 +1448,7 @@ $("#labelViewModal").on("shown.bs.modal", function(e) {
     $('#viewLabel').val(label);
 });
 
+
 function editLabelClick(label, type='linkset') {
     if (type == 'linkset') {
         var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
@@ -1447,6 +1487,7 @@ function editLabelClick(label, type='linkset') {
         }
     }
 }
+
 
 $('#linkset_filter_property').change(function() {
     $("#linkset_filter_value1").val('');
@@ -1588,6 +1629,7 @@ function addFilterLinksetClick()
     }
 }
 
+
 function addFilterLensClick()
 {
     var rq_uri = $('#creation_lens_selected_RQ').attr('uri');
@@ -1651,6 +1693,7 @@ function addFilterLensClick()
         });
     }
 }
+
 
 function applyFilterLinksetClick()
 {
@@ -2370,6 +2413,9 @@ function create_clusters_activate()
 //    $('#inspect_clusters_row').hide();
     $('#inspect_cluster_references_row').hide();
     $('#inspect_clusters_tab_row').hide();
+    $('#createClusterButton').show();
+    $('#addClusterButton').hide();
+
     chronoReset();
 
     var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
@@ -2379,6 +2425,46 @@ function create_clusters_activate()
     //cluster_load_datasets_predicates(rq_uri);
 
 //    view_load_linkesets_lenses(rq_uri);
+}
+
+
+function add_clusters_activate()
+{
+    // cleaning ...
+    $('#creation_cluster_predicates_col').html('');
+    $('#creation_cluster_selected_predicates_group').html('');
+    $('#cluster_creation_message_col').html('');
+    $('#cluster_creation_save_message_col').html('');
+    $('#createClusterButton').hide();
+    $('#addClusterButton').show();
+
+    chronoReset();
+
+    var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
+
+    // loading...
+    cluster_load_datasets(rq_uri);
+
+    $('#inspect_cluster_references_row').show();
+
+    $.get('/getClusterReferencesTable', function(data)
+    {
+        var obj = JSON.parse(data);
+        if (obj.message == 'OK')
+        {
+            $('#inspect_cluster_references_table').html(obj.result);
+            var ul = document.getElementById('inspect_cluster_references_table');
+            var rows = ul.getElementsByTagName('tr');
+            var num = ('0000' + String(rows.length-1)).substr(-4);
+            $('#cluster_ref_tab_counter').html(num);
+
+            $('#inspect_cluster_references_table tr').on('click',function()
+            {
+                $(this).addClass('warning').siblings().removeClass('warning');
+                var reference_uri = $(this).attr('uri');
+            });
+        }
+    });
 }
 
 
@@ -2741,6 +2827,68 @@ function createClusterClick()
 }
 
 
+function addToClusterClick()
+{
+    $('#cluster_creation_message_col').html("");
+
+    var rq_uri = $('#creation_cluster_selected_RQ').attr('uri');
+    elem = document.getElementById('inspect_cluster_references_table');
+    if (elem) elems = elem.getElementsByClassName('warning');
+    else elems = [];
+    if (elems.length > 0) reference = $(elems[0]).attr('uri');
+    else reference = '';
+
+    var cluster_specs = [];
+    var elem = document.getElementById('creation_cluster_selected_predicates_group');
+    if (elem) {
+        elems = elem.getElementsByClassName('list-group-item');
+    }
+    var dict = {};
+    for (i = 0; i < elems.length; i++) {
+
+        var entityType = $(elems[i]).attr('type_uri');
+        if (!entityType) {entityType = 'no_type'};
+        dict = {'ds': $(elems[i]).attr('graph_uri'),
+                'type': entityType,
+                'att': $(elems[i]).attr('pred_uri') }; //.replace('>',"").replace('<',"") };
+        cluster_specs.push( JSON.stringify(dict));
+    }
+
+    if (mode=='check')
+    {   var message_col = 'cluster_creation_message_col'; }
+    else
+    {   var message_col = 'cluster_creation_save_message_col'; }
+
+    if (cluster_specs.length > 0)
+    {
+     var specs = {'mode': mode,
+                  'rq_uri': rq_uri,
+                  'reference': reference,
+                  'cluster_specs[]': cluster_specs};
+
+     chronoReset();
+     $('#'+message_col).html(addNote('The proposed cluster is being processed',cl='warning'));
+     loadingGif(document.getElementById(message_col), 2);
+
+     $.get('/addClusterContraint', specs, function(data)
+     {
+         var obj = JSON.parse(data);
+         $('#inspect_cluster_references_row').show();
+
+         if (obj.reference)
+             $('#'+message_col).html(addNote(obj.message,cl='info'));
+         else
+             $('#'+message_col).html(addNote(obj.message,cl='warning'));
+
+         loadingGif(document.getElementById(message_col), 2, show = false);
+     });
+    }
+    else {
+        $('#'+message_col).html(addNote(missing_feature));
+    }
+}
+
+
 function linkset_cluster_load_datasets(rq_uri)
 {
 // Load into div the selected datasets for a certain research question
@@ -2883,7 +3031,7 @@ function createLinksetClusterClick()
          var specs = {'cluster_uri': cluster_uri,
                       'reference_uri': reference_uri,
                       'mechanism': "exactStrSim",
-                      'researchQ_URI': rq_uri,
+                      'rq_uri': rq_uri,
                       'targets[]': targets};
 
             chronoReset();
@@ -3875,6 +4023,8 @@ function methodClick(th)
     $('#geo_match_settings_row').hide();
     $('#source_geoSim_params').hide();
     $('#target_geoSim_params').hide();
+    $('#div_targetAlignProp').html('<h4>Property to align</h4>');
+    $('#div_sourceAlignProp').html('<h4>Property to align</h4>');
 
     if (method == 'identity')
     {
@@ -3960,6 +4110,8 @@ function methodClick(th)
           $('#geo_match_settings_row').show();
           $('#source_geoSim_params').show();
           $('#target_geoSim_params').show();
+          $('#div_targetAlignProp').html('<h4>Property for cross-checking</h4>');
+          $('#div_sourceAlignProp').html('<h4>Property for cross-checking</h4>');
         }
         else if (method == 'intermediate')
         {
@@ -4193,6 +4345,7 @@ function refresh_create_linkset(mode='all')
       $('#source_lat_predicates_col').html('');
       $('#source_long_predicates_col').html('');
       $('#source_geoSim_params').hide();
+      $('#div_sourceAlignProp').html('<h4>Property to align</h4>');
 
     }
 
@@ -4228,6 +4381,8 @@ function refresh_create_linkset(mode='all')
       $('#target_lat_predicates_col').html('');
       $('#target_long_predicates_col').html('');
       $('#target_geoSim_params').hide();
+      $('#div_targetAlignProp').html('<h4>Property to align</h4>');
+
     }
 
     if (mode == 'all' || mode == 'source' || mode == 'target' || mode == 'pred')

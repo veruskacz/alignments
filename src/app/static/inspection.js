@@ -13,6 +13,8 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
   var operator = detailsDict.operator.value;
   var alignsSubjectsList = detailsDict.s_property_list.value
   var alignsObjectsList = detailsDict.o_property_list.value
+  var crossCheckSubject = detailsDict.s_crossCheck_property.value
+  var crossCheckObject = detailsDict.o_crossCheck_property.value
 
 
   hideColDiv('divInvestigation');
@@ -61,7 +63,9 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
                             'alignsSubjects': alignsSubjects,
                             'alignsObjects': alignsObjects,
                             'alignsSubjectsList': alignsSubjectsList,
-                            'alignsObjectsList': alignsObjectsList
+                            'alignsObjectsList': alignsObjectsList,
+                            'crossCheckSubject': crossCheckSubject,
+                            'crossCheckObject': crossCheckObject
                             }
 
           // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)

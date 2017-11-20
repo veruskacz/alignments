@@ -1,14 +1,20 @@
 <div class="panel panel-info">
   <div class="panel-heading">
      <div class="row">
-      <div class="col-md-5"><h3>Linkset</h3></div>
-      <div class="col-md-7 text-right" id="creation_linkset_buttons_col">
+      <div class="col-md-1"><h3>Linkset</h3></div>
+      <div class="col-md-11 text-right" id="creation_linkset_buttons_col">
         <h4><button type="button" id="btn_inspect_linkset"
                 class="btn btn-primary btn btn-primary disabled"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
                 inspect_linkset_activate(mode="inspect")'
                 >Inspect</button>
+        <button type="button" id="btn_inspect_linkset_cluster"
+                class="btn btn-primary btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+                inspect_linkset_activate(mode="inspect_linkset_cluster")'
+        >Inspect from Cluster</button>
         <button type="button" class="btn btn-primary disabled"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="creation_linkset_row",cl="row creation");
@@ -430,55 +436,6 @@
                           </div>
                         </div>
 
-                      <div class="panel panel-default">
-                      <div class="panel-body">
-                        <div class="row">
-                              <div class="col-md-12">
-                                  <h4>Property to align</h4>
-                              </div>
-                        </div>
-
-                        <div class="row" id = "src_selected_pred_row">
-                         <div class="col-md-12">
-                             <div class="well well-sm" id="src_selected_pred" uri="" >
-                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
-                             </div>
-                         </div>
-                        </div>
-
-                        <div class="row" id = "src_list_pred_row">
-                        <div class="col-md-12">
-                             <!--<div class="row"> &nbsp </div>-->
-                             <div class="row">
-                                 <div class="col-md-12">
-                                <span class="glyphicon glyphicon glyphicon-search"></span>
-                               <input type="text" onkeyup='filterListGroup(this,"src_predicates_col")' placeholder="Search for names.." style='width: 93%'>
-                               </div>
-                             </div>
-                             <div class="row"> &nbsp </div>
-                         <div class="row">
-                             <div class="col-md-7">
-                                 <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
-                                     </strong></small>
-                             </div>
-                             <div class="col-md-5" align="right">
-                                 <small><div class="checkbox-inline" ><label><input type="checkbox" id="src_enable_prop_path"
-                                        onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
-                             </div>
-                         </div>
-                         <div class="row">
-                             <div class="col-md-12 pred-list" id="src_predicates_col"
-                                  targetList="src_predicates_col"
-                                  targetTxt="src_selected_pred"
-                                  propPathCheckBok="src_enable_prop_path"
-                                  propPath="enabled"> </div>
-                         </div>
-                        </div>
-                        </div>
-                      </div> <!-- Panel Body-->
-
-                    </div> <!-- Panel -->
-
                       <div id="source_geoSim_params" style='display:none'>
 
                         <div class="panel panel-default">
@@ -599,6 +556,55 @@
                           </div>
                         </div>
                       </div>
+
+                      <div class="panel panel-default">
+                      <div class="panel-body">
+                        <div class="row">
+                              <div class="col-md-12" id="div_sourceAlignProp">
+                                  <h4>Property to align</h4>
+                              </div>
+                        </div>
+
+                        <div class="row" id = "src_selected_pred_row">
+                         <div class="col-md-12">
+                             <div class="well well-sm" id="src_selected_pred" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                        </div>
+
+                        <div class="row" id = "src_list_pred_row">
+                        <div class="col-md-12">
+                             <!--<div class="row"> &nbsp </div>-->
+                             <div class="row">
+                                 <div class="col-md-12">
+                                <span class="glyphicon glyphicon glyphicon-search"></span>
+                               <input type="text" onkeyup='filterListGroup(this,"src_predicates_col")' placeholder="Search for names.." style='width: 93%'>
+                               </div>
+                             </div>
+                             <div class="row"> &nbsp </div>
+                         <div class="row">
+                             <div class="col-md-7">
+                                 <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                     </strong></small>
+                             </div>
+                             <div class="col-md-5" align="right">
+                                 <small><div class="checkbox-inline" ><label><input type="checkbox" id="src_enable_prop_path"
+                                        onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                             </div>
+                         </div>
+                         <div class="row">
+                             <div class="col-md-12 pred-list" id="src_predicates_col"
+                                  targetList="src_predicates_col"
+                                  targetTxt="src_selected_pred"
+                                  propPathCheckBok="src_enable_prop_path"
+                                  propPath="enabled"> </div>
+                         </div>
+                        </div>
+                        </div>
+                      </div> <!-- Panel Body-->
+
+                    </div> <!-- Panel -->
 
                      </div>
                     </div> <!-- Col 12-->
@@ -730,54 +736,6 @@
                           </div>
                         </div>
 
-
-                        <div class="panel panel-default">
-                          <div class="panel-body">
-                            <div class="row">
-                                  <div class="col-md-12">
-                                      <h4>Property to align</h4>
-                                  </div>
-                            </div>
-
-                             <div class="row" id = "trg_selected_pred_row">
-                               <div class="col-md-12">
-                                   <div class="well well-sm" id="trg_selected_pred" uri="">Select a Property +
-                                     <span style="color:blue"><strong> example value </strong></span>
-                                   </div>
-
-                               </div>
-                             </div>
-                             <div class="row" id = "trg_list_pred_row">
-                                <div class="col-md-12">
-                                 <div class="row">
-                                     <div class="col-md-12">
-                                    <span class="glyphicon glyphicon glyphicon-search"></span>
-                                   <input type="text" onkeyup='filterListGroup(this,"trg_predicates_col")' placeholder="Search for names.." style='width: 93%'>
-                                   </div>
-                                 </div>
-                                 <div class="row"> &nbsp </div>
-                                 <div class="row">
-                                     <div class="col-md-7">
-                                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
-                                             </strong></small>
-                                     </div>
-                                     <div class="col-md-5" align="right">
-                                         <small><div class="checkbox-inline" ><label><input type="checkbox" id="trg_enable_prop_path"
-                                            onclick='resetDivSelectedEntity("button-trg-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
-                                     </div>
-                                 </div>
-                                 <div class="row">
-                                     <div class="col-md-12 pred-list" id="trg_predicates_col"
-                                        targetList="trg_predicates_col"
-                                        targetTxt="trg_selected_pred"
-                                        propPathCheckBok="trg_enable_prop_path"
-                                        propPath="enabled"> </div>
-                                 </div>
-                                </div>
-                             </div>
-                          </div>   <!-- Panel body-->
-                        </div>   <!-- Panel -->
-
                         <div id="target_geoSim_params" style='display:none'>
                             <div class="panel panel-default">
                               <div class="panel-body" style="padding-bottom: 10px;">
@@ -897,6 +855,54 @@
                               </div>
                             </div>
                         </div>
+
+                        <div class="panel panel-default">
+                          <div class="panel-body">
+                            <div class="row">
+                                  <div class="col-md-12" id="div_targetAlignProp">
+                                      <h4>Property to align</h4>
+                                  </div>
+                            </div>
+
+                             <div class="row" id = "trg_selected_pred_row">
+                               <div class="col-md-12">
+                                   <div class="well well-sm" id="trg_selected_pred" uri="">Select a Property +
+                                     <span style="color:blue"><strong> example value </strong></span>
+                                   </div>
+
+                               </div>
+                             </div>
+                             <div class="row" id = "trg_list_pred_row">
+                                <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"trg_predicates_col")' placeholder="Search for names.." style='width: 93%'>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                                 <div class="row">
+                                     <div class="col-md-7">
+                                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                             </strong></small>
+                                     </div>
+                                     <div class="col-md-5" align="right">
+                                         <small><div class="checkbox-inline" ><label><input type="checkbox" id="trg_enable_prop_path"
+                                            onclick='resetDivSelectedEntity("button-trg-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                                     </div>
+                                 </div>
+                                 <div class="row">
+                                     <div class="col-md-12 pred-list" id="trg_predicates_col"
+                                        targetList="trg_predicates_col"
+                                        targetTxt="trg_selected_pred"
+                                        propPathCheckBok="trg_enable_prop_path"
+                                        propPath="enabled"> </div>
+                                 </div>
+                                </div>
+                             </div>
+                          </div>   <!-- Panel body-->
+                        </div>   <!-- Panel -->
+
                        </div>
                       </div>
                      </div>

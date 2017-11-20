@@ -213,6 +213,15 @@ def register_correspondence_filter(research_uri, graph_uri, method, greater_eq=N
             condition += """ count(distinct ?reject) {} {}""".format(smaller_eq["operator"], smaller_eq["value"])
         c_filter += "HAVING ({})".format(condition) if condition != "" else ""
 
+    elif method == "strength":
+        condition = ""
+        if greater_eq is not None:
+            condition = """ count(distinct ?derivedFrom) {} {}""".format(greater_eq["operator"], greater_eq["value"])
+        if smaller_eq is not None:
+            condition += " && " if condition != "" else ""
+            condition += """ count(distinct ?derivedFrom) {} {}""".format(smaller_eq["operator"], smaller_eq["value"])
+        c_filter += "HAVING ({})".format(condition) if condition != "" else ""
+
     if c_filter != "":
         hash_code = hash(research_uri + graph_uri + c_filter)
         hash_code = str(hash_code).replace("-", "N") if str(hash_code).__contains__("-") else "P{}".format(hash_code)
@@ -250,7 +259,7 @@ def register_correspondence_filter(research_uri, graph_uri, method, greater_eq=N
     """.format(
             # 0           1            2           3           4            5        6         7
             research_uri, Ns.alivocab, filter_uri, Ns.riclass, graph_uri, Ns.rdfs, c_filter, method)
-        print query
+        # print query
 
         # REGISTER IT
         response = boolean_endpoint_response(query)
@@ -311,7 +320,7 @@ def get_graph_filter(research_uri, graph_uri, filter_uri=''):
     }}
     """.format(research_uri, Ns.riclass, Ns.alivocab, graph_uri, filter_uri)
 
-    print query
+    # print query
 
     result = sparql_xml_to_matrix(query)
 

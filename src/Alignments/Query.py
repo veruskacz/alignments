@@ -2533,7 +2533,110 @@ def construct_namedgraph(namedgraph):
     return query
 
 
-def linkset_aligns_prop(linkset_uri):
+def linkset_aligns_prop(linkset_uri, crossCheck=False):
+
+    if crossCheck is True:
+        # read the property for cross checking instead of aligns
+        prop_aligns = """
+              {?linkset ll:crossCheckSubject ?s_prop ;
+                       ll:crossCheckObject ?o_prop .
+                       bind ('True' as ?crossCheck)
+              }
+              """
+    else:
+        # TODO: make the code dynamic for any amount of properties (for now works only for two, latitude and longitude)
+        prop_aligns = """
+              {?linkset ll:alignsSubjects ?SRC_onj ;
+                       ll:alignsObjects ?trg_onj .
+              {
+              ?SRC_onj  rdf:first ?s_prop .
+              ?trg_onj  rdf:first ?o_prop .
+              }
+              union {
+              ?SRC_onj  rdf:rest/rdf:first ?s_prop .
+              ?trg_onj  rdf:rest/rdf:first ?o_prop .
+              }
+              bind ('False' as ?crossCheck)
+              """
+
+    query = """
+        ################################################################
+        PREFIX ll:    <{}>
+        PREFIX prov:  <{}>
+        PREFIX void:  <{}>
+
+        ### LINKSET ALIGNED PROPERTIES
+
+        SELECT DISTINCT ?s_prop ?o_prop (GROUP_CONCAT(DISTINCT ?mechanism; SEPARATOR=" | ") as ?mec)
+        ?s_dataset ?o_dataset ?crossCheck
+
+        {{
+            ### RETRIEVING LINKSET METADATA
+            <{}>
+                (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*        ?linkset .
+
+            ?linkset
+                #ll:alignsSubjects     ?s_prop ;
+                #ll:alignsObjects      ?o_prop ;
+                ll:alignsMechanism    ?mechanism ;
+                void:subjectsTarget   ?s_dataset ;
+                void:objectsTarget    ?o_dataset .
+
+            {{
+                ?linkset ll:alignsSubjects ?s_prop ;
+                        ll:alignsObjects ?o_prop .
+                #?graph   ll:alignsSubjects ?s_property.
+                filter not exists {{?linkset ll:alignsSubjects/rdf:rest ?r}}
+                filter not exists {{?linkset ll:alignsObjects/rdf:rest ?r}}
+                bind ('False' as ?crossCheck)
+            }}
+            union
+            {{
+              # choices for aligns or crossCheck
+              {}
+            }}
+
+          filter (isBlank(?o_prop) = "FALSE"^^xsd:boolean).
+          filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean).
+
+        }}
+        group by ?s_prop ?o_prop ?s_dataset ?o_dataset ?crossCheck
+    """.format(Ns.alivocab, Ns.prov, Ns.void, linkset_uri, prop_aligns)
+    print query
+    return query
+
+
+def linksetCluster_aligns_prop(linkset_uri):
+
+    query = """
+        ################################################################
+        PREFIX ll:    <{}>
+        PREFIX prov:  <{}>
+        PREFIX void:  <{}>
+
+        ### LINKSET ALIGNED PROPERTIES
+
+        SELECT DISTINCT ?dataset ?datatype (GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
+
+        {{
+            ### RETRIEVING LINKSET METADATA
+            <{}>
+                (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*        ?linkset .
+
+            ?linkset	ll:hasAlignmentTarget  ?target .
+			?target
+                ll:hasTarget  		?dataset ;
+                ll:hasDatatype   	?datatype ;
+                ll:aligns		    ?property .
+
+        }}
+        group by ?dataset ?datatype
+    """.format(Ns.alivocab, Ns.prov, Ns.void, linkset_uri, prop_aligns)
+    print query
+    return query
+
+
+def linkset_aligns_propOld(linkset_uri):
     query = """
         ################################################################
         PREFIX ll:    <{}>

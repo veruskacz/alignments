@@ -531,13 +531,32 @@ def details():
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
     objectTarget = request.args.get('objectTarget', '')
-    alignsSubjects = request.args.get('alignsSubjects', '')
-    alignsObjects = request.args.get('alignsObjects', '')
-    alignsSubjectsList = request.args.get('alignsSubjectsList', '').split('|')
-    alignsObjectsList = request.args.get('alignsObjectsList', '').split('|')
+    # alignsSubjects = request.args.get('alignsSubjectsList', '')
+    # alignsObjects = request.args.get('alignsObjectsList', '')
+    alignsSubjectsList = map((lambda x: x.strip()),request.args.get('alignsSubjectsList', '').split('|'))
+    alignsObjectsList = map((lambda x: x.strip()),request.args.get('alignsObjectsList', '').split('|'))
     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
 
-    print alignsSubjectsList, alignsObjectsList
+    if len(alignsSubjectsList) > 1:
+        alignsSubjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsSubjectsList)
+    else:
+        alignsSubjects = Ut.get_uri_local_name(request.args.get('alignsSubjectsList', ''))
+
+    if len(alignsObjectsList) > 1:
+        alignsObjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsObjectsList)
+    else:
+        alignsObjects = Ut.get_uri_local_name(request.args.get('alignsObjectsList', ''))
+
+    s_crossCheck_property = request.args.get('crossCheckSubject', '')
+    if s_crossCheck_property != '':
+        alignsSubjectsList += [s_crossCheck_property]
+
+    o_crossCheck_property = request.args.get('crossCheckObject', '')
+    if o_crossCheck_property != '':
+        alignsObjectsList += [o_crossCheck_property]
+
+    print s_crossCheck_property, alignsSubjectsList
+    print o_crossCheck_property, alignsObjectsList
     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
     # print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
     # print query
@@ -547,6 +566,7 @@ def details():
     if PRINT_RESULTS:
         print "\n\nDETAILS:", details
 
+    # print Ut.get_uri_local_name(alignsSubjects, sep=" | "), alignsSubjects
     # RETURN THE RESULT
     return render_template('details_list.html',
                             details = details,
@@ -554,8 +574,8 @@ def details():
                             obj_uri = obj_uri,
                             subjectTarget = subjectTarget,
                             objectTarget = objectTarget,
-                            alignsSubjects = Ut.get_uri_local_name(alignsSubjects, sep=" / "),
-                            alignsObjects = Ut.get_uri_local_name(alignsObjects, sep=" / "))
+                            alignsSubjects = alignsSubjects,
+                            alignsObjects = alignsObjects)
 
 
 @app.route('/getlinksetdetails', methods=['GET'])
@@ -589,8 +609,15 @@ def linksetdetails():
         query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
         details = sparql(query, strip=True)
 
-        if PRINT_RESULTS:
-            print "\n\nDETAILS:", details
+        #if PRINT_RESULTS:
+        print "\n\nDETAILS:", details
+
+        if len(details) > 1 and details[0]['crossCheck']['value'] and details[0]['crossCheck']['value'] == 'True':
+            s_property_crossCheck = md['s_property_stripped']['value']
+            o_property_crossCheck = md['o_property_stripped']['value']
+        else:
+            s_property_crossCheck = md['s_property_list_stripped']['value']
+            o_property_crossCheck = md['o_property_list_stripped']['value']
 
         data = render_template(template,
             details = details,
@@ -601,8 +628,12 @@ def linksetdetails():
             triples = md['triples']['value'],
             ratio = md['threshold']['value'],
             delta = md['delta']['value'],
+            dist = md['dist']['value'],
+            dist_unit = md['dist_unit_stripped']['value'],
             s_property_list = md['s_property_list_stripped']['value'],
             o_property_list = md['o_property_list_stripped']['value'],
+            s_property_crossCheck = s_property_crossCheck,
+            o_property_crossCheck = o_property_crossCheck,
             mechanism_list = md['mechanism_list_stripped']['value']
         )
 
@@ -654,6 +685,48 @@ def linksetdetails():
 #     )
 #
 #     return json.dumps({'metadata': md, 'data': data})
+
+@app.route('/getlinksetdetailsCluster', methods=['GET'])
+def linksetdetailsCluster():
+    """
+    This function is called due to request /getdetails
+    It queries the dataset for both all the correspondences in a certain graph URI
+    Expected Input: uri, label (for the graph)
+    The results, ...,
+        are passed as parameters to the template linksetDetails_list.html
+    """
+
+    # RETRIEVE VARIABLES
+    linkset = request.args.get('linkset', '')
+    template = request.args.get('template', 'linksetDetailsCluster_list.html')
+    rq_uri = request.args.get('rq_uri', '')
+    filter_uri = request.args.get('filter_uri', '')
+
+    query = Qry.get_linksetCluster_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri )
+    metadata = sparql(query, strip=True)
+
+    if metadata:
+        md = metadata[0]
+    else:
+        return 'NO RESULTS!'
+
+    # RETURN THE RESULT
+    if (template == 'none'):
+        return json.dumps(md)
+    else:
+        query = Qry.get_linksetCluster_corresp_sample_details(linkset, limit=10)
+        print query
+        details = sparql(query, strip=True)
+
+        print md['alignments_stripped']['value']
+        data = render_template(template,
+            details = details,
+            triples = md['triples']['value'],
+            mechanism_list = md['mechanism_stripped']['value'],
+            alignments = md['alignments_stripped']['value'].replace('| breakline |','|||')
+        )
+
+        return json.dumps({'metadata': md, 'data': data})
 
 
 @app.route('/getlensspecs', methods=['GET'])
@@ -1382,12 +1455,15 @@ def spa_linkset():
 
         'mechanism': request.args.get('mechanism', ''),
 
-        St.delta: request.args.get('delta', ''),
         St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
 
         St.unit: Ns.meter.rsplit('#', 1)[0] + '#' + request.args.get('geo_unit', ''),
         St.unit_value: request.args.get('geo_dist', '')
     }
+
+    if request.args.get('delta', ''):
+        specs[St.delta] = request.args.get('delta', '')
+        # print specs[St.delta]
 
     if len(request.args.get('intermediate_graph', '')) > 0:
         specs[St.intermediate_graph] = request.args.get('intermediate_graph', '')
@@ -1403,12 +1479,16 @@ def spa_linkset():
 
     if len(request.args.get('src_lat', '')) > 0:
         specs[St.source][St.latitude] = request.args.get('src_lat', '')
+        specs[St.source][St.crossCheck] = specs[St.source][St.aligns]
+        del specs[St.source][St.aligns]
 
     if len(request.args.get('src_long', '')) > 0:
         specs[St.source][St.longitude] = request.args.get('src_long', '')
 
     if len(request.args.get('trg_lat', '')) > 0:
         specs[St.target][St.latitude] = request.args.get('trg_lat', '')
+        specs[St.target][St.crossCheck] = specs[St.target][St.aligns]
+        del specs[St.target][St.aligns]
 
     if len(request.args.get('trg_long', '')) > 0:
         specs[St.target][St.longitude] = request.args.get('trg_long', '')
@@ -1510,7 +1590,7 @@ def refineLinkset():
 
         St.linkset: request.args.get('linkset_uri', ''),
 
-        St.intermediate_graph: request.args.get('intermediate_graph', ''),
+        # St.intermediate_graph: request.args.get('intermediate_graph', ''),
 
         'source': {
             'graph': request.args.get('src_graph', ''),
@@ -1525,11 +1605,35 @@ def refineLinkset():
             'entity_datatype': request.args.get('trg_entity_datatye', '')
             # 'extended_graph': request.args.get('trg_graph_enriched', '')
         }
-
-        # St.delta: request.args.get('delta', ''),
-
-        # St.numeric_approx_type: request.args.get('numeric_approx_type', '')
     }
+
+    if len(request.args.get('intermediate_graph', '')) > 0:
+        specs[St.intermediate_graph] = request.args.get('intermediate_graph', '')
+
+    if len(request.args.get('src_reducer', '')) > 0:
+        specs[St.source][St.reducer] = request.args.get('src_reducer', '')
+
+    if len(request.args.get('trg_reducer', '')) > 0:
+        specs[St.target][St.reducer] = request.args.get('trg_reducer', '')
+
+    if len(request.args.get('corresp_reducer', '')) > 0:
+        specs[St.corr_reducer] = request.args.get('corresp_reducer', '')
+
+    if len(request.args.get('src_lat', '')) > 0:
+        specs[St.source][St.latitude] = request.args.get('src_lat', '')
+        specs[St.source][St.crossCheck] = specs[St.source][St.aligns]
+        del specs[St.source][St.aligns]
+
+    if len(request.args.get('src_long', '')) > 0:
+        specs[St.source][St.longitude] = request.args.get('src_long', '')
+
+    if len(request.args.get('trg_lat', '')) > 0:
+        specs[St.target][St.latitude] = request.args.get('trg_lat', '')
+        specs[St.target][St.crossCheck] = specs[St.target][St.aligns]
+        del specs[St.target][St.aligns]
+
+    if len(request.args.get('trg_long', '')) > 0:
+        specs[St.target][St.longitude] = request.args.get('trg_long', '')
 
     # ADDING AN EXTENDED SOURCE GRAPH IF SELECTED
     temp_src = request.args.get('src_graph_enriched', '')
@@ -2044,6 +2148,7 @@ def getfilters():
     graph_uri = request.args.get('graph_uri', '')
     mode = request.args.get('mode', '')
     query = Qry.get_filter(rq_uri, graph_uri)
+    # print query
 
     if (mode == 'added'):
         style = 'background-color:lightblue'
@@ -2703,6 +2808,7 @@ def process_table_columns(text):
     else:
         return text
 
+
 @app.route('/getClusterReferencesTable')
 def getClusterReferencesTable():
     """
@@ -3034,6 +3140,81 @@ def createClusterContraint():
     return json.dumps(response)
 
 
+@app.route('/addClusterContraint')
+def addClusterContraint():
+
+    # rq_uri = request.args.get('rq_uri')
+    reference = request.args.get('reference')
+    cluster_specs_js = request.args.getlist('cluster_specs[]')
+
+
+    print cluster_specs_js
+
+    cluster_specs = []
+
+    for json_item in cluster_specs_js:
+
+        row = ast.literal_eval(json_item)
+        dict_graph = None
+        exists_dataset_entityType = False
+
+        for elem in cluster_specs:
+            # check if the dataset has been already registered
+            if (elem['graph'] == row['ds']):
+                # only assigns value to dict_graph if the desired dataset was found
+                dict_graph = elem
+                data_list = elem['data']
+                for data in data_list:
+                    # check if the entityType has been already registered for that graph
+                    if (data['entity_datatype'] == row['type']):
+
+                        data['properties'].append(row['att'])
+                        exists_dataset_entityType = True
+
+        # if the above loop finished without finding the desired dictionary, then it will be registered
+        if not exists_dataset_entityType:
+
+            # this means the entry for the dataset does not exists
+            if (dict_graph is None):
+                # create an entry for this dataset
+                dict_graph = {'graph': row['ds'], 'data':[]}
+                cluster_specs.append(dict_graph)
+
+            properties = [row['att']]
+
+            data = {'entity_datatype': row['type'], 'properties': properties}
+
+            dict_graph['data'].append(data)
+
+    print "\n\n SPECS:", cluster_specs
+
+    if CREATION_ACTIVE:
+        print cluster_specs
+        # reference= None
+        response = {St.message: "", "reference": reference}
+        for i in range(len(cluster_specs)):
+            specs = cluster_specs[i]
+            props = []
+            ## merging properties regardelss to entity type
+            ## TODO: check if there is a better approach
+            for j in range(len(specs['data'])):
+                for prop in specs['data'][j]['properties']:
+                    # print '@@@@@@@@@@@@', type(prop)
+                    if type(prop) is tuple:
+                        props += [prop[0]]
+                    else:
+                        props += [prop]
+            # print '@@@@@@@@@@@@', props
+            response = DRC.add_to_clusters(reference, specs['graph'], props, activated=True)
+            if not(response):
+                print 'No response in interaction', i
+    else:
+        response = {St.message: 'Cluster creation is not active!', "reference": None}
+
+    print 'response', response
+    return json.dumps(response)
+
+
 @app.route('/createLinksetFromCluster')
 def createLinksetFromCluster():
     """
@@ -3089,7 +3270,7 @@ def createLinksetFromCluster():
             if CREATION_ACTIVE:
                 if cluster_uri == '' and reference_uri != '':
                     # response = DRC.linkset_from_clusters(specs=specs, reference=reference_uri, activated=True)
-                    response = spa_linkset2.cluster_specs_2_linksets(specs=specs, match_numeric=False, activated=True)
+                    response = spa_linkset2.cluster_specs_2_linksets(specs=specs, activated=True)
                 elif cluster_uri != '':
                     response = DRC.linkset_from_cluster(specs=specs, cluster_uri=cluster_uri, user_label=None, count=1, activated=True)
             else:
