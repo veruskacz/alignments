@@ -1403,7 +1403,7 @@ def helper(specs, is_source=True):
     insert_list = ""
     for i in range(0, len(insert_prop)):
         insert_list += insert_prop[i] if i == 0 else ", {}".format(insert_prop[i])
-    print insert_list
+    # print insert_list
 
     return {"query": query, "insert_list": insert_list}
 
