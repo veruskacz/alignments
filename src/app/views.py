@@ -618,6 +618,7 @@ def linksetdetails():
         else:
             s_property_crossCheck = md['s_property_list_stripped']['value']
             o_property_crossCheck = md['o_property_list_stripped']['value']
+            
 
         data = render_template(template,
             details = details,
