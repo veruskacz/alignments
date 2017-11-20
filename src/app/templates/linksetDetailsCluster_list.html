@@ -12,7 +12,10 @@
 
         matches. <br/>
 
-         <span>{{ alignments }}</span>
+        {% for a in alignments %}
+        <span class="badge alert-info"><strong>{{ a.dataset_stripped.value|upper }}</strong></span>
+        | {{ a.datatype_stripped.value|upper }} | {{ a.properties_stripped.value }}
+        {% endfor %}
 
     </div>
 

@@ -704,10 +704,10 @@ def linksetdetailsCluster():
     filter_uri = request.args.get('filter_uri', '')
 
     query = Qry.get_linksetCluster_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri )
-    metadata = sparql(query, strip=True)
+    alignments = sparql(query, strip=True)
 
-    if metadata:
-        md = metadata[0]
+    if alignments:
+        md = alignments[0]
     else:
         return 'NO RESULTS!'
 
@@ -719,12 +719,12 @@ def linksetdetailsCluster():
         print query
         details = sparql(query, strip=True)
 
-        print md['alignments_stripped']['value']
+        # print md['alignments_stripped']['value']
         data = render_template(template,
             details = details,
             triples = md['triples']['value'],
             mechanism_list = md['mechanism_stripped']['value'],
-            alignments = md['alignments_stripped']['value'].replace('| breakline |','|||')
+            alignments = alignments
         )
 
         return json.dumps({'metadata': md, 'data': data})

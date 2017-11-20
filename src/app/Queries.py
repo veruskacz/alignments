@@ -1514,34 +1514,27 @@ def get_linksetCluster_corresp_details(linkset, limit=1, rq_uri='', filter_uri='
     query = PREFIX + """
     ### LINKSET DETAILS
 
-    SELECT DISTINCT ?mechanism ?triples
-	(GROUP_CONCAT(?alignment; SEPARATOR=" | breakline | ") as ?alignments)
+     SELECT DISTINCT ?mechanism ?triples
+	(GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
+		?dataset ?datatype
     WHERE {{
         bind (<{0}> as ?graph)
         ?graph
             (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
             alivocab:alignsMechanism    ?mechanism .
         ?linkset
-            alivocab:alignsMechanism    ?mec .
-
-      {{
-		SELECT DISTINCT ?linkset (GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
-		((CONCAT(str(?dataset), ' | ', str(?datatype), ' | ', str(?properties))) as ?alignment)
-        {{
-            ?linkset	alivocab:hasAlignmentTarget  ?target .
-			?target
-                alivocab:hasTarget  		?dataset ;
+            alivocab:alignsMechanism    ?mec ;
+            alivocab:hasAlignmentTarget  ?target .
+		?target
+                alivocab:hasTarget  	?dataset ;
                 alivocab:hasDatatype   	?datatype ;
                 alivocab:aligns		    ?property .
-        }}
-        group by ?linkset ?dataset ?datatype
-      }}
 
             # COUNT TRIPLES ACCORDING TO FILTER
             {{ {2} }}
 
         }}
-    GROUP BY ?triples ?mechanism
+    GROUP BY ?triples ?mechanism ?linkset ?dataset ?datatype
     # LIMIT {1}
     """.format(linkset, limit, count_query)
 
