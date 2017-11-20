@@ -501,6 +501,9 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
                     OPTIONAL {{?pred2 <http://risis.eu/alignment/predicate/hasValidation> ?reject.
                                 ?reject rdf:type <http://risis.eu/alignment/predicate/Reject> .
                              }}"""
+                elif method == "strength":
+                    filter_count_aux = """
+                    OPTIONAL {{ ?pred prov:wasDerivedFrom ?derivedFrom. }}"""
 
     # ADD FILTER TERM MATCH
     filter_term_match = ''
@@ -1185,17 +1188,18 @@ def get_aligned_predicate_value(source_uri, target_uri, src_aligns_list, trg_ali
 #     print query
 #     return query
 
-def get_linkset_corresp_sample_details(linkset, limit=1):
+def get_linkset_corresp_sample_details(linkset, limit=1, crossCheck=True):
 
     source = ""
     source_bind = ""
     target = ""
     target_bind = ""
-    prop_query = linkset_aligns_prop(linkset)
+    prop_query = linkset_aligns_prop(linkset, crossCheck=crossCheck)
     prop_matrix = sparql_matrix(prop_query)["result"]
 
     s_ds = "<{}>".format(prop_matrix[1][3])
     t_ds = "<{}>".format(prop_matrix[1][4])
+    crossCheck = prop_matrix[1][5]
 
     query = PREFIX + """
     #### CORRESPONDENCE DETAIL SAMPLE
@@ -1203,6 +1207,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     SELECT ?sub_uri ?obj_uri
     (GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
     (GROUP_CONCAT(DISTINCT ?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
+    ("{4}" as ?crossCheck)
     {{
         GRAPH  <{0}>
         {{
@@ -1222,7 +1227,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
         BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
         BIND ("" AS ?operator)
     }} GROUP BY ?sub_uri ?obj_uri
-    LIMIT {1}""".format(linkset, limit, s_ds, t_ds)
+    LIMIT {1}""".format(linkset, limit, s_ds, t_ds, crossCheck)
 
     # print "\n\nprop_matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", prop_matrix
     # print "length", len(prop_matrix)
@@ -1265,7 +1270,56 @@ def get_linkset_corresp_sample_details(linkset, limit=1):
     source += source_bind
     target += target_bind
     query = str(query).replace("###SOURCE SLOT", source).replace("###TARGET SLOT", target)
-    print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
+    #print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
+    print query
+    return query
+
+
+def get_linksetCluster_corresp_sample_details(linkset, limit=1, crossCheck=True):
+
+    source = ""
+    source_bind = ""
+    target = ""
+    target_bind = ""
+    # prop_query = linksetCluster_aligns_prop(linkset)
+    # prop_matrix = sparql_matrix(prop_query)["result"]
+    #
+    # s_ds = "<{}>".format(prop_matrix[1][3])
+    # t_ds = "<{}>".format(prop_matrix[1][4])
+    # crossCheck = prop_matrix[1][5]
+
+    query = PREFIX + """
+    #### CORRESPONDENCE DETAIL SAMPLE
+
+    SELECT ?subjectsTarget ?alignsSubjects ?valueSubj ?objectsTarget ?alignsObjects ?valueObj
+    {{
+        GRAPH  <{0}>
+        {{
+            ?sub    ?singProp        ?obj
+        }}
+
+        GRAPH <{1}> {{
+
+              ?singProp  void:subjectsTarget		?subjectsTarget;
+                         void:objectsTarget			?objectsTarget;
+                         alivocab:alignsSubjects			?alignsSubjects;
+                         alivocab:alignsObjects			?alignsObjects.
+            }}
+
+			GRAPH ?subjectsTarget
+            {{
+            	?sub 	?p1			?valueSubj.
+                bind(iri(concat('<', str(?p1),'>')) as ?alignsSubjects)
+            }}
+
+			GRAPH ?objectsTarget
+            {{
+            	?obj 	?p2			?valueObj.
+                bind(iri(concat('<', str(?p2),'>')) as ?alignsObjects)
+            }}
+    }}
+    LIMIT {2}""".format(linkset, Ut.from_alignment2singleton(linkset), limit)
+
     print query
     return query
 
@@ -1302,14 +1356,15 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
     ### LINKSET DETAILS
 
     SELECT DISTINCT
-    (GROUP_CONCAT(DISTINCT ?s_prop; SEPARATOR="|") as ?s_property_list)
-    (GROUP_CONCAT(DISTINCT ?o_prop; SEPARATOR="|") as ?o_property_list)
-    (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism_list)
-    #(GROUP_CONCAT(?triple; SEPARATOR="|") as ?triples)
+    (GROUP_CONCAT(DISTINCT ?s_prop; SEPARATOR=" | ") as ?s_property_list)
+    (GROUP_CONCAT(DISTINCT ?o_prop; SEPARATOR=" | ") as ?o_property_list)
+    (GROUP_CONCAT(?mec; SEPARATOR=" | ") as ?mechanism_list)
+    #(GROUP_CONCAT(?triple; SEPARATOR=" | ") as ?triples)
     ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
     #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-    ?threshold ?delta
+    ?threshold ?delta ?dist ?dist_unit
 	?s_property ?o_property ?mechanism
+	?s_crossCheck_property ?o_crossCheck_property
     WHERE {{
         bind (<{0}> as ?graph)
         ?graph
@@ -1327,33 +1382,35 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
             #alivocab:alignsObjects      ?o_prop .
             #void:triples               ?triple .
 
-    filter (isBlank(?s_property) = "FALSE"^^xsd:boolean)
-    filter (isBlank(?o_property) = "FALSE"^^xsd:boolean)
-
-    {{ ?linkset alivocab:alignsSubjects ?s_prop .
-        ?graph   alivocab:alignsSubjects     ?s_property.
+    {{ ?linkset alivocab:alignsSubjects ?s_prop ;
+                alivocab:alignsObjects ?o_prop .
+        ?graph   alivocab:alignsSubjects     ?s_property;
+                 alivocab:alignsObjects     ?o_property.
         filter not exists {{?linkset alivocab:alignsSubjects/rdf:rest ?r}}
+        filter not exists {{?linkset alivocab:alignsObjects/rdf:rest ?r}}
     }}
-    union {{
-      ?linkset alivocab:alignsSubjects ?SRC_onj .
-      ?SRC_onj  rdf:rest*/rdf:first ?s_prop .
-      ?linkset   alivocab:alignsSubjects ?s_property.
-      filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean)
-      filter (isBlank(?s_property) = "FALSE"^^xsd:boolean)
-    }}
+    union
+    {{
+      {{ select ?graph ?linkset
+                    (GROUP_CONCAT(DISTINCT ?s_prop_; SEPARATOR=" | ") as ?s_prop)
+                    (GROUP_CONCAT(DISTINCT ?o_prop_; SEPARATOR=" | ") as ?o_prop)
+                     ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
+      {{
+        ?linkset    alivocab:alignsSubjects     ?SRC_onj .
+        ?SRC_onj    rdf:rest*/rdf:first         ?s_prop_ .
+        ?graph      alivocab:crossCheckSubject  ?s_property .
+        ?graph      alivocab:crossCheckSubject  ?s_crossCheck_property_ .
 
-    {{ ?linkset alivocab:alignsObjects ?o_prop .
-        ?graph   alivocab:alignsObjects     ?o_property.
-        filter not exists {{?linkset alivocab:alignsSubjects/rdf:rest ?r}}
-    }}
-    union {{
-      ?linkset alivocab:alignsObjects ?trg_onj .
-      ?trg_onj  rdf:rest*/rdf:first ?o_prop .
-      ?linkset   alivocab:alignsObjects ?o_property.
-      filter (isBlank(?o_prop) = "FALSE"^^xsd:boolean)
-      filter (isBlank(?o_property) = "FALSE"^^xsd:boolean)
-   	}}
+        ?linkset    alivocab:alignsObjects      ?trg_onj .
+        ?trg_onj    rdf:rest*/rdf:first         ?o_prop_ .
+        ?graph      alivocab:crossCheckObject   ?o_property .
+        ?graph      alivocab:crossCheckObject   ?o_crossCheck_property_ .
 
+         filter (isBlank(?s_prop_) = "FALSE"^^xsd:boolean) .
+         filter (isBlank(?o_prop_) = "FALSE"^^xsd:boolean) .
+      }} GROUP BY ?graph ?linkset ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
+      }}
+    }}
 
         OPTIONAL {{
             <{0}>
@@ -1363,9 +1420,22 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
             <{0}>
             alivocab:delta              ?delta_ .
         }}
+        OPTIONAL {{
+            <{0}>
+            alivocab:unit                   ?unit_ .
+        }}
+        OPTIONAL {{
+            <{0}>
+            alivocab:unitValue              ?unit_value_ .
+        }}
+
+            BIND (IF(bound(?s_crossCheck_property_), ?s_crossCheck_property_ , '') AS ?s_crossCheck_property)
+            BIND (IF(bound(?o_crossCheck_property_), ?o_crossCheck_property_ , '') AS ?o_crossCheck_property)
 
             BIND (IF(bound(?threshold_), ?threshold_ , 0) AS ?threshold)
-            BIND (IF(bound(?delta_), ?delta_ , 0) AS ?delta)
+            BIND (IF(bound(?delta_), ?delta_ , '') AS ?delta)
+            BIND (IF(bound(?unit_), ?unit_ , '') AS ?dist_unit)
+            BIND (IF(bound(?unit_value_), ?unit_value_ , '') AS ?dist)
             BIND ("" AS ?operator)
 
             # COUNT TRIPLES ACCORDING TO FILTER
@@ -1375,13 +1445,104 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
     GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples
     #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
     ?operator
-    ?s_property ?o_property ?mechanism ?threshold ?delta
+    ?s_property ?o_property ?mechanism ?threshold ?delta ?dist ?dist_unit
+    ?s_crossCheck_property ?o_crossCheck_property
+    # LIMIT {1}
+    """.format(linkset, limit, count_query)
+
+    # {{ ?linkset alivocab:alignsSubjects ?s_prop .
+    #     ?graph   alivocab:alignsSubjects     ?s_property.
+    #     filter not exists {{?linkset alivocab:alignsSubjects/rdf:rest ?r}}
+    # }}
+    # union {{
+    #   ?linkset alivocab:alignsSubjects ?SRC_onj .
+    #   ?SRC_onj  rdf:rest*/rdf:first ?s_prop .
+    #   ?graph   alivocab:crossCheckSubject ?s_property .
+    #   filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean)
+    # }}
+    #
+    # {{ ?linkset alivocab:alignsObjects ?o_prop .
+    #     ?graph   alivocab:alignsObjects     ?o_property.
+    #     filter not exists {{?linkset alivocab:alignsObjects/rdf:rest ?r}}
+    # }}
+    # union {{
+    #   ?linkset alivocab:alignsObjects ?trg_onj .
+    #   ?trg_onj  rdf:rest*/rdf:first ?o_prop .
+    #   ?graph   alivocab:crossCheckObject ?o_property
+    #   filter (isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+   	# }}
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_linksetCluster_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
+
+    filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
+    # print 'FILTERS:', filters
+
+    count_query = """
+                SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
+                {{
+                    GRAPH <{0}> {{ ?sub ?pred ?obj }}
+                    GRAPH <{5}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
+                               ?pred2 ?p ?o .
+                        # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+                        {3}
+                    }}
+
+                    # FILTER BY CONDITION
+                    {1}
+
+                    # FILTER BY TERM MATCH
+                    {4}
+
+                }}
+                # FILTER BY COUNT
+                {2}
+    """.format(linkset, filters['filter_condition'],
+               filters['filter_count'], filters['filter_count_aux'],
+               filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
+
+    query = PREFIX + """
+    ### LINKSET DETAILS
+
+    SELECT DISTINCT ?mechanism ?triples
+	(GROUP_CONCAT(?alignment; SEPARATOR=" | breakline | ") as ?alignments)
+    WHERE {{
+        bind (<{0}> as ?graph)
+        ?graph
+            (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
+            alivocab:alignsMechanism    ?mechanism .
+        ?linkset
+            alivocab:alignsMechanism    ?mec .
+
+      {{
+		SELECT DISTINCT ?linkset (GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
+		((CONCAT(str(?dataset), ' | ', str(?datatype), ' | ', str(?properties))) as ?alignment)
+        {{
+            ?linkset	alivocab:hasAlignmentTarget  ?target .
+			?target
+                alivocab:hasTarget  		?dataset ;
+                alivocab:hasDatatype   	?datatype ;
+                alivocab:aligns		    ?property .
+        }}
+        group by ?linkset ?dataset ?datatype
+      }}
+
+            # COUNT TRIPLES ACCORDING TO FILTER
+            {{ {2} }}
+
+        }}
+    GROUP BY ?triples ?mechanism
     # LIMIT {1}
     """.format(linkset, limit, count_query)
 
     if DETAIL:
         print query
     return query
+
 
 def get_linkset_corresp_details_old(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
 
@@ -1944,6 +2105,7 @@ def get_filter(research_uri, graph_uri):
         print query
 
     return query
+
 
 def get_cluster_references():
     query = """

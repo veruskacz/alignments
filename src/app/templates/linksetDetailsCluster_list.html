@@ -1,0 +1,56 @@
+
+<div class="panel panel-primary">
+    <div class="panel-heading" id="detailsHeading">
+
+        alignment using
+
+        <span class="badge alert-info"><strong>{{ mechanism_list|upper }}</strong></span>
+
+        producing
+
+         <span class="badge alert-info"><strong>{{ triples }}</strong></span>
+
+        matches. <br/>
+
+         <span>{{ alignments }}</span>
+
+    </div>
+
+        <div class="panel-body" style='height: 14em;'>
+        <TABLE style='width: 100%;'>
+          <TR>
+             <TH style='width: 50%;'>
+                 <span class="list-group-item-heading">
+                     <span class="badge alert-default"> Subject </span>
+              </TH>
+             <TH style='width: 50%;'>
+                 <span class="list-group-item-heading">
+                     <span class="badge alert-default"> Object </span>
+             </TH>
+        </TABLE>
+
+        <div class="list-group" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
+          <TABLE style='width: 100%;'>
+          {% for d in details %}
+          <TR>
+              <TD style='width: 50%;'>
+               <li class="list-group-item" id="srcDataset" style='width: 100%;' >
+                <span class="badge alert-info"><strong>{{ d.subjectsTarget_stripped.value|upper }}</strong></span>
+                <span class="badge alert-info"><strong>{{ d.alignsSubjects_stripped.value|upper }}</strong></span><br/>
+                 <span class="list-group-item-heading">{{ d.valueSubj.value }}</span>
+               </li>
+              </TD>
+             <TD style='width: 50%;'>
+               <li class="list-group-item" id="trgDataset" style='width: 100%;' >
+                <span class="badge alert-info"><strong>{{ d.objectsTarget_stripped.value|upper }}</strong></span>
+                <span class="badge alert-info"><strong>{{ d.alignsObjects_stripped.value|upper }}</strong></span><br/>
+                 <span class="list-group-item-heading">{{ d.valueObj.value }}</span>
+               </li>
+             </TD>
+          <TR>
+          {% endfor %}
+          </TABLE>
+        </div>
+    </div>
+
+</div>

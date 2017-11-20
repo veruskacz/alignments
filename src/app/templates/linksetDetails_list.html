@@ -19,8 +19,12 @@
         {% if (ratio != '0') %}
         with ratio  <span class="badge alert-info"><strong>{{ ratio }}</strong></span>
         {% endif %}
-        {% if (delta != '0') %}
+        {% if (delta != '') %}
         with delta  <span class="badge alert-info"><strong>{{ delta }}</strong></span>
+        {% endif %}
+
+        {% if (dist != '') %}
+        with distance nearby <span class="badge alert-info"><strong>{{ dist }} {{ dist_unit }}</strong></span>
         {% endif %}
 
         producing
@@ -35,11 +39,11 @@
           <TR>
              <TH style='width: 50%;'>
                  <span class="list-group-item-heading">
-                     <span class="badge alert-default"><strong>{{ subTarget|upper }}:</strong></span> <strong>{{s_property_list|upper}}</strong> </span>
+                     <span class="badge alert-default"><strong>{{ subTarget|upper }}:</strong></span> <strong>{{s_property_crossCheck|upper}}</strong> </span>
               </TH>
              <TH style='width: 50%;'>
                  <span class="list-group-item-heading">
-                     <span class="badge alert-default"><strong>{{ objTarget|upper }}:</strong></span> <strong>{{o_property_list|upper}}</strong></span>
+                     <span class="badge alert-default"><strong>{{ objTarget|upper }}:</strong></span> <strong>{{o_property_crossCheck|upper}}</strong></span>
              </TH>
         </TABLE>
 

@@ -1,8 +1,8 @@
 <div class="panel panel-info">
   <div class="panel-heading">
      <div class="row">
-      <div class="col-md-9"><h3>Clusters</h3></div>
-      <div class="col-md-3 text-right" id="creation_clusters_buttons_col">
+      <div class="col-md-4"><h3>Clusters</h3></div>
+      <div class="col-md-8 text-right" id="creation_clusters_buttons_col">
         <h4><button type="button" id="btn_inspect_cluster"
                 class="btn btn-primary btn btn-primary disabled"
                 onclick='newSelectButton(this);
@@ -17,7 +17,13 @@
                 $("#inspect_clusters_row").hide();
                 $("#collapse_cluster_filter").collapse("show");
                 activateTargetDiv(targetId="creation_cluster_row",cl="row creation");'
-                >Create Cluster</button>
+                >Create Clusters</button>
+        <button type="button" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                $("#collapse_cluster_filter").collapse("show");
+                activateTargetDiv(targetId="creation_cluster_row",cl="row creation");
+                add_clusters_activate();'
+                >Add to Clusters</button>
         <button type="button" class="btn btn-primary disabled" id="btn_edit_cluster"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="inspect_clusters_row",cl="row creation");
@@ -42,192 +48,6 @@
           </div>
        </div>
       </div>
-    </div>
-
-    <div class="row creation" id = "creation_cluster_row" style='display:none'>
-     <div class="col-md-12" >
-
-      <!--<div class="panel panel-default">-->
-          <!--<div class="panel-heading">-->
-              <!--<h4 class="panel-title">-->
-                  <!--<a id="link_collapse_cluster_lens"-->
-                     <!--data-toggle="collapse" href="#collapse_cluster_lens">-->
-                  <!--<span class="badge alert-info"><strong>+</strong></span></a>-->
-                  <!--Final Integration Lens <small>(more than one will be considered as intersection)</small>-->
-              <!--</h4>-->
-          <!--</div>-->
-          <!--<div id="collapse_cluster_lens" class="panel-collapse collapse" target="link_collapse_cluster_lens">-->
-          <!--<div class="panel-body">-->
-              <!--<div class="row">-->
-
-                <!--<div class="col-md-6" >-->
-                    <!--<div class="row">-->
-                      <!--<div class="col-md-10"><h4>Linksets</h4></div>-->
-                    <!--</div>-->
-                    <!--<div class="row">-->
-                      <!--<div class="col-md-10">Select from the list:-->
-                      <!--</div>-->
-                    <!--</div>-->
-                     <!--<div class="row"> &nbsp </div>-->
-                     <!--<div class="row">-->
-                         <!--<div class="col-md-12">-->
-                        <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
-                       <!--<input type="text" onkeyup='filterListGroup(this,"creation_cluster_linkset_col","cluster_linkset_counter")'-->
-                              <!--placeholder="Search for names.." style='width: 75%'>-->
-                          <!--<span id="cluster_linkset_counter" class="badge"></span>-->
-                       <!--</div>-->
-                     <!--</div>-->
-                     <!--<div class="row"> &nbsp </div>-->
-                    <!--<div class="row">-->
-                      <!--<div class="col-md-10" id="creation_cluster_linkset_col">-->
-
-                      <!--</div>-->
-                    <!--</div>-->
-                <!--</div>-->
-
-                <!--<div class="col-md-6" >-->
-                    <!--<div class="row">-->
-                      <!--<div class="col-md-10"><h4>Lenses</h4></div>-->
-                    <!--</div>-->
-                    <!--<div class="row">-->
-                      <!--<div class="col-md-10">Select from the list:-->
-                      <!--</div>-->
-                    <!--</div>-->
-                     <!--<div class="row"> &nbsp </div>-->
-                     <!--<div class="row">-->
-                         <!--<div class="col-md-12">-->
-                        <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
-                       <!--<input type="text" onkeyup='filterListGroup(this,"creation_cluster_lens_col","cluster_lens_counter")'-->
-                              <!--placeholder="Search for names.." style='width: 75%'>-->
-                          <!--<span id="cluster_lens_counter" class="badge"></span>-->
-                       <!--</div>-->
-                     <!--</div>-->
-                     <!--<div class="row"> &nbsp </div>-->
-                    <!--<div class="row">-->
-                      <!--<div class="col-md-10" id="creation_cluster_lens_col">-->
-
-                      <!--</div>-->
-                    <!--</div>-->
-                <!--</div>-->
-
-              <!--</div>-->
-          <!--</div>-->
-          <!--</div>-->
-      <!--</div>-->
-
-      <div class="panel panel-default">
-       <div class="panel-heading">
-          <div class="row">
-              <div class="col-md-4">
-                <h4 class="panel-title">
-                  <a id="link_collapse_cluster_filter"
-                     data-toggle="collapse" href="#collapse_cluster_filter">
-                      <span class="badge alert-info"><strong>+</strong></span></a>
-                  Property Selection <small> (select a dataset to see its attributes)</small>
-                </h4>
-              </div>
-              <div class="col-md-8 text-right">
-               <table align="right">
-                   <tr align="right">
-                       <td align="right"><div id="cluster_creation_message_col"></div></td>
-                       <td valign="center"><div class="loading"></div></td>
-                       <td align="right"><button type="button" id="createClusterButton" class="btn btn-success"
-                          data-toggle="button" onclick = 'createClusterClick(mode="check")' >
-                            Create Cluster
-                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
-                       </button></td>
-               </table>
-              </div>
-          </div>
-
-       </div>
-
-       <div id="collapse_cluster_filter" class="panel-collapse collapse" target="link_collapse_cluster_filter">
-          <div class="panel-body">
-          <div class="row">
-
-            <div class="col-md-4" >
-                <div class="row">
-                  <div class="col-md-12"><h4>Datasets</h4></div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12">Select from the list:</div>
-                </div>
-                <div id="loading3" style='display:none'> Loading... </div>
-                <div class="row">
-                  <div class="col-md-12" >
-                    <div class="list-group" id="creation_cluster_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
-                    </div>
-                  </div>
-                </div>
-            </div>
-
-            <div class="col-md-4" >
-                <div class="row">
-                            <div class="col-md-12">
-                             <div class="row">
-                                 <div class="col-md-6">
-                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
-                                         </strong></small>
-                                 </div>
-                                 <div class="col-md-5" align="right">
-                                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="cluster_enable_prop_path"
-                                            onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
-                                 </div>
-                             </div>
-                            </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12" id="creation_cluster_predicates_msg_col"></div>
-                </div>
-                <div class="row"> &nbsp </div>
-             <div class="row">
-                 <div class="col-md-12">
-                <span class="glyphicon glyphicon glyphicon-search"></span>
-               <input type="text" onkeyup='filterListGroup(this,"creation_cluster_predicates_col","cluster_pred_counter")'
-                      placeholder="Search for names.." style='width: 83%'>
-                  <span id="cluster_pred_counter" class="badge"></span>
-               </div>
-             </div>
-             <div class="row"> &nbsp </div>
-             <!--<div class="row" id = "cluster_selected_pred_row">-->
-                 <!--<div class="col-md-12">-->
-                     <!--<div class="well well-sm" id="cluster_selected_pred" uri="" >-->
-                         <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
-                     <!--</div>-->
-                 <!--</div>-->
-             <!--</div>-->
-             <div class="row">
-                  <div class="col-md-12" id="creation_cluster_predicates_col"
-                                      badge_counter="cluster_pred_counter"
-                                      targetList="creation_cluster_predicates_col"
-                                      accumPath=""
-                                      accumPathLabel=""
-                                      propPathCheckBok="cluster_enable_prop_path"
-                                      propPath="enabled"> </div>
-
-             </div>
-            </div>
-
-            <div class="col-md-4" >
-                <div class="row">
-                  <div class="col-md-12"><h4>Selected Attributes</h4>
-                  </div>
-                </div>
-                <div class="row">
-                  <div class="col-md-12">
-                    <div class="list-group" id="creation_cluster_selected_predicates_group"
-                            style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
-                    </div>
-                  </div>
-                </div>
-            </div>
-          </div>
-          </div>
-       </div>
-      </div>
-
-     </div>
     </div>
 
      <!--<div class="row creation" id="inspect_clusters_row" style='display:none'>-->
@@ -513,6 +333,129 @@
         </div>
       </div>
      </div>
+
+     <div class="row creation" id = "creation_cluster_row" style='display:none'>
+     <div class="col-md-12" >
+
+      <div class="panel panel-default">
+       <div class="panel-heading">
+          <div class="row">
+              <div class="col-md-4">
+                <h4 class="panel-title">
+                  <a id="link_collapse_cluster_filter"
+                     data-toggle="collapse" href="#collapse_cluster_filter">
+                      <span class="badge alert-info"><strong>+</strong></span></a>
+                  Property Selection <small> (select a dataset to see its attributes)</small>
+                </h4>
+              </div>
+              <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="cluster_creation_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="createClusterButton" class="btn btn-success"
+                          data-toggle="button" onclick = 'createClusterClick(mode="check")' style='display:none' >
+                            Create Clusters
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
+                       <td align="right"><button type="button" id="addClusterButton" class="btn btn-success"
+                          data-toggle="button" onclick = 'addToClusterClick(mode="check")' style='display:none'>
+                            Add to Clusters
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
+               </table>
+              </div>
+          </div>
+
+       </div>
+
+       <div id="collapse_cluster_filter" class="panel-collapse collapse" target="link_collapse_cluster_filter">
+          <div class="panel-body">
+          <div class="row">
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Datasets</h4></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">Select from the list:</div>
+                </div>
+                <div id="loading3" style='display:none'> Loading... </div>
+                <div class="row">
+                  <div class="col-md-12" >
+                    <div class="list-group" id="creation_cluster_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                            <div class="col-md-12">
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="cluster_enable_prop_path"
+                                            onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                            </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12" id="creation_cluster_predicates_msg_col"></div>
+                </div>
+                <div class="row"> &nbsp </div>
+             <div class="row">
+                 <div class="col-md-12">
+                <span class="glyphicon glyphicon glyphicon-search"></span>
+               <input type="text" onkeyup='filterListGroup(this,"creation_cluster_predicates_col","cluster_pred_counter")'
+                      placeholder="Search for names.." style='width: 83%'>
+                  <span id="cluster_pred_counter" class="badge"></span>
+               </div>
+             </div>
+             <div class="row"> &nbsp </div>
+             <!--<div class="row" id = "cluster_selected_pred_row">-->
+                 <!--<div class="col-md-12">-->
+                     <!--<div class="well well-sm" id="cluster_selected_pred" uri="" >-->
+                         <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                     <!--</div>-->
+                 <!--</div>-->
+             <!--</div>-->
+             <div class="row">
+                  <div class="col-md-12" id="creation_cluster_predicates_col"
+                                      badge_counter="cluster_pred_counter"
+                                      targetList="creation_cluster_predicates_col"
+                                      accumPath=""
+                                      accumPathLabel=""
+                                      propPathCheckBok="cluster_enable_prop_path"
+                                      propPath="enabled"> </div>
+
+             </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Selected Attributes</h4>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="list-group" id="creation_cluster_selected_predicates_group"
+                            style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+          </div>
+       </div>
+      </div>
+
+     </div>
+    </div>
 
 
   </div>
