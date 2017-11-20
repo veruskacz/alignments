@@ -1368,7 +1368,13 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
     WHERE {{
         bind (<{0}> as ?graph)
         ?graph
-            (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
+            # (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
+            # Temporarilly changed due to strange result in windows computer
+            # after adding the union for addressing list of aligns-properties.
+            # To be further checked because this affects the visulisation of
+            # linkset that are derived from other alignments,
+            # e.g. showing several times the mechanism
+            prov:wasDerivedFrom*/void:target*/prov:wasDerivedFrom*       ?linkset ;
             #alivocab:alignsSubjects     ?s_property;
             #alivocab:alignsObjects      ?o_property ;
             alivocab:alignsMechanism    ?mechanism .
