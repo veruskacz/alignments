@@ -329,7 +329,11 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
 
     if dataset is not None:
         filter_dataset = """
-            ?uri    void:subjectsTarget|void:objectsTarget   <{}> .
+            {{ ?uri    void:subjectsTarget|void:objectsTarget   <{0}> . }}
+            UNION {{
+                ?uri                alivocab:hasAlignmentTarget ?alignmentTarget .
+                ?alignmentTarget    alivocab:hasTarget          <{0}>  .
+            }}
         """.format(dataset)
     else:
         filter_dataset = ""
