@@ -904,7 +904,7 @@ def create_clusters(initial_dataset_uri, property_uri,
             create_cluster(constraint_table[i], initial_dataset_uri, property_uri, count=i,
                            reference=reference_uri, group_name=group_name, strong=strong, activated=True)
 
-        if i == 150:
+        if i == 3:
             break
 
     # print "reference_uri:",
@@ -1293,7 +1293,7 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
             # print "cluster_table[i][0]:", cluster_table[0]
             add_to_cluster(cluster_table[i][0], reference, dataset_uri, property_uri, count=i, activated=True)
 
-            if i == 150:
+            if i == 3:
                 break
 
     # ----------------------------------------------------------------
@@ -1645,7 +1645,7 @@ def linkset_from_clusters(specs, activated=False):
     for i in range(1, len(cluster_table)):
         result = linkset_from_cluster(specs, cluster_table[i][0], linkset_name, count=i, activated=activated)
         correspondences += int(result["correspondences"])
-        if i == 70:
+        if i == 1:
             break
 
     if correspondences > 0:
@@ -1663,12 +1663,34 @@ def linkset_from_clusters(specs, activated=False):
 
 
 # MATRIX
+# http://complexitylabs.io/course/network-theory/
+# http://complexitylabs.io/course/network-theory/?course_type=content&course_page=1&lecture=1&section-quiz=1
+
 # CENTRALITY:
+
 #   THE IMPORTANCE OF A NODE OR SIGNIFICANCE OF A NODE
 #   THE POSITION OF THE NODE
-#       DEGREE OF CONNECTIVITY :
-#       CLOSENESS   : HOW LONG WILL IT TAKE TO SPREAD GOSSIP
-#       BETWEENESS  : NODES THAT HAVE A HIGH PROBABILITY OF OCCURRING ON A RANDOM CHOSEN SHORTEST PATH BETWEEN TWO NODES
-#       PRESTIGE    :
+
+#       DEGREE OF CONNECTIVITY
+#       ======================
+#       measure of the number of in and out links the node has to other nodes
+#
+#       CLOSENESS
+#       =========
+#       HOW LONG WILL IT TAKE TO SPREAD GOSSIP?
+#       the sum of the length of the shortest paths between the node and all other nodes in the graph.
+#       Thus the more central a node is, the closer it is to all other nodes.
+#
+#       BETWEENESS
+#       ==========
+#       NODES THAT HAVE A HIGH PROBABILITY OF OCCURRING ON A RANDOM CHOSEN SHORTEST PATH BETWEEN TWO NODES.
+#       it represents the degree of which nodes stand between each other.
+#       For every pair of vertices in a connected graph, there exists at least one shortest path between
+#       the vertices such that either the number of edges that the path passes through (for unweighted graphs)
+#       or the sum of the weights of the edges (for weighted graphs) is minimized. The betweenness centrality
+#       for each vertex is the number of these shortest paths that pass through the vertex.
+#
+#       PRESTIGE
+#       ========
 #
 # CHECK
