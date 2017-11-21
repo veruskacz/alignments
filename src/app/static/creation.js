@@ -596,6 +596,321 @@ function geoEnrichmentClick()
 
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Functions called at onclick of the buttons in linksetsClusterCreation.html
+///////////////////////////////////////////////////////////////////////////////
+
+// Button that activates the inspect div for either inspect, refine or import modes
+function inspect_linkset_cluster_activate(mode='default')
+{
+
+  var rq_uri = $('#creation_linkset_cluster_selected_RQ').attr('uri');
+//    setAttr("inspect_linkset_selection_col","unique","enabled");
+
+  if (rq_uri)
+  {
+     $('#creation_linkset_cluster_row').hide();
+//     TODO
+//     refresh_create_linkset_cluster();
+
+     $('#inspect_linkset_cluster_selection_col').html('Loading...');
+     $.get('/getgraphsperrqtype',
+                  data={'rq_uri': rq_uri,
+                        'mode': mode,
+                        'type': 'linkset',
+                        'template': 'list_group.html'},
+                  function(data)
+     {
+       $('#inspect_linkset_cluster_selection_col').html(data);
+       var ul = document.getElementById('inspect_linkset_cluster_selection_col');
+       var a = ul.getElementsByTagName('a');
+       var num = ('0000' + String(a.length)).substr(-4);
+       $('#linkset_cluster_counter').html(num);
+
+       // set actions after clicking a graph in the list
+       $('#inspect_linkset_cluster_selection_col a').on('click',function(e)
+        {
+          if ((mode == 'export') && ($('#exportLinksetClusterButton').attr('mode')=='vis'))
+          {
+            var selection = selectListItem(this);
+//            alert(selection);
+          }
+          else
+          {
+            var selection = selectListItemUnique(this, 'inspect_linkset_cluster_selection_col')
+          }
+
+            var linkset_uri = $(this).attr('uri');
+
+            // load the panel describing the linkset sample
+            $('#inspect_linkset_linkset_details_col').show();
+            $('#inspect_linkset_linkset_details_col').html('Loading...');
+            $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri},function(data)
+            {
+                var obj = JSON.parse(data);
+                $('#inspect_linkset_cluster_details_col').html(obj.data);
+
+                get_filter(rq_uri, linkset_uri);
+
+                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
+                {
+                   $('#creation_linkset_cluster_row').show();
+                   loadEditPanel(obj.metadata, mode);
+//                   enableButton('deleteLinksetButton');
+//                   enableButton('exportLinksetButton');
+//                   enableButton('exportPlotLinksetButton');
+                }
+                else if (mode == 'inspect')
+                {
+//                   $('#creation_linkset_cluster_filter_row').show();
+//                   $('#creation_linkset_cluster_search_row').show();
+//                   $('#creation_linkset_cluster_correspondence_row').show();
+                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
+                }
+            });
+
+//          if (selection)
+//          {
+//            var linkset_uri = $(this).attr('uri');
+//
+//            // load the panel describing the linkset sample
+//            $('#inspect_linkset_linkset_details_col').show();
+//            $('#inspect_linkset_linkset_details_col').html('Loading...');
+//            $.get('/getlinksetdetails',data={'linkset': linkset_uri},function(data)
+//            {
+//                var obj = JSON.parse(data);
+//                $('#inspect_linkset_linkset_details_col').html(obj.data);
+//
+//                get_filter(rq_uri, linkset_uri);
+//
+//                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
+//                {
+//                   $('#creation_linkset_row').show();
+//                   loadEditPanel(obj.metadata, mode);
+//                   enableButton('deleteLinksetButton');
+//                   enableButton('exportLinksetButton');
+//                   enableButton('exportPlotLinksetButton');
+//                }
+//                else if (mode == 'inspect')
+//                {
+//                   $('#creation_linkset_filter_row').show();
+//                   $('#creation_linkset_search_row').show();
+//                   $('#creation_linkset_correspondence_row').show();
+//                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
+//                }
+//            });
+//          }
+//          else { $('#inspect_linkset_cluster_details_col').html(""); }
+
+          e.preventDefault();
+          return false;
+        });
+     });
+  }
+
+  $('#panel_cluster_prop_selection').hide();
+  if (mode == 'import') {
+    $('#import_linkset_cluster_heading_panel').show();
+    $('#inspect_cluster_heading_panel').hide();
+  }
+  else {
+
+    $('#import_linkset_cluster_heading_panel').hide();
+    $('#creation_linkset_cluster_row').show();
+    $('#create_linkset_cluster_panel_body').show();
+    $('#inspect_linkset_cluster_heading_panel').show();
+
+    if (mode == 'inspect') {
+        $('#creation_linkset_cluster_row').hide();
+    }
+    else if (mode == 'refine') {
+      $('#creation_linkset_cluster_row').hide();
+//      $('#item_identity').hide();
+    }
+    else if (mode == 'edit') {
+      $('#create_linkset_cluster_panel_body').hide();
+      $('#edit_linkset_cluster_heading').show();
+      enableButton('deleteLinksetClusterButton', enable=false);
+    }
+    else if (mode == 'export') {
+      $('#create_linkset_cluster_panel_body').hide();
+      $('#creation_linkset_cluster_row').show();
+      $('#export_linkset_cluster_heading').show();
+      enableButton('exportLinksetClusterButton', enable=false);
+      enableButton('exportPlotLinksetClusterButton', enable=false);
+    }
+    else if (mode == 'create') {
+//      $('#create_panel_body').hide();
+      $('#creation_linkset_cluster_row').show();
+      $('#create_linkset_cluster_heading').show();
+      //linkset_cluster_load_datasets(rq_uri);
+//      enableButton('exportLinksetButton', enable=false);
+//      enableButton('exportPlotLinksetButton', enable=false);
+    }
+
+  }
+}
+
+
+// Button that activates the linkset creation div.
+// It fires the request /getdatasetsperrq and  the resulting list_dropdown are
+// loaded into both buttons button-src-col and button-trg-col
+// Each item in the list is settled with onclick function datasetClick(this);
+function create_linkset_cluster_activate(mode='default')
+{
+   if (mode == 'default')
+   {
+        $('#create_linkset_cluster_panel_body').show();
+        $('#panel_cluster_prop_selection').show();
+        $('#create_linkset_clusters_row').show();
+
+//        $('#create_panel_body').hide();
+
+        $('#cluster_edit_message_col').html("");
+
+        $('#create_linkset_clusters_selection_col').html('');
+        $('#create_linkset_clusters_reference_selection_col').html('Loading...');
+        // Load into div all the existing views for a certain research question
+        $.get('/getClusterReferences', function(data)
+        {
+          $('#create_linkset_clusters_reference_selection_col').html(data);
+          // set actions after clicking a graph in the list
+          $('#create_linkset_clusters_reference_selection_col li').on('click',function()
+           {
+              $('#inspect_clusters_details_col').html('');
+              if (selectListItemUnique(this, 'create_linkset_clusters_reference_selection_col'))
+              {
+                $('#create_linkset_clusters_selection_col').html("");
+                var reference_uri = $(this).attr('uri');
+
+                $('#create_linkset_clusters_selection_col').html('Loading...');
+                // Load into div all the existing views for a certain research question
+                $.get('/getClustersByReference',
+                              data={'reference_uri': reference_uri},
+                              function(data)
+                {
+                  $('#create_linkset_clusters_selection_col').html(data);
+                  // set actions after clicking a graph in the list
+                  $('#create_linkset_clusters_selection_col a').on('click',function()
+                  {
+                      if (selectListItemUnique(this, 'create_linkset_clusters_selection_col'))
+                      {
+                      }
+                  });
+                });
+              }
+            });
+        });
+
+      var rq_uri = $('#creation_linkset_cluster_selected_RQ').attr('uri');
+      linkset_cluster_load_datasets(rq_uri);
+
+   }
+}
+
+
+
+
+function linkset_cluster_load_datasets(rq_uri)
+{
+// Load into div the selected datasets for a certain research question
+     $('#linkset_cluster_dataset_col').html('Loading...');
+     $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'cluster'},function(data)
+     {
+       $('#linkset_cluster_dataset_col').html(data);
+
+       // when a dataset from the list is selected, its list of predicates will be loaded
+       $('#linkset_cluster_dataset_col li').on('click',function()
+       {
+          if (selectListItemUnique(this, 'linkset_cluster_dataset_col'))
+          {
+                setAttr('creation_linkset_cluster_predicates_col','accumPath','');
+                setAttr('creation_linkset_cluster_predicates_col','accumPathLabel','');
+                linkset_cluster_load_predicates(rq_uri, this);
+          }
+       });
+     });
+
+}
+
+
+function linkset_cluster_load_predicates(rq_uri, source)
+{
+    var graph_uri = $(source).attr('uri');
+    var graph_label = $(source).attr('label');
+    var type_uri = $(source).attr('type_uri');
+    var type_label = $(source).attr('type_label');
+    var total = $(source).attr('total');
+    var propPath = $('#creation_linkset_cluster_predicates_col').attr('accumPath');
+
+      // Exhibit a waiting message for the user to know loading time might be long.
+      $('#creation_linkset_cluster_predicates_col').html('Loading...');
+      if (propPath != '') type_uri = '';
+      // get the distinct predicates and example values of a graph into a list group
+      $.get('/getpredicates',data={'dataset_uri': graph_uri,
+                                   'type': type_uri,
+                                   'propPath': propPath,
+                                   'total': total},function(data)
+      {
+          // load the rendered template into the column #creation_view_predicates_col
+          var obj = JSON.parse(data);
+          if (obj.message == 'OK') {
+               $('#creation_linkset_cluster_predicates_col').html(obj.result);
+               var ul = document.getElementById('creation_linkset_cluster_predicates_col');
+               var li = ul.getElementsByTagName('li');
+               var num = ('0000' + String(li.length)).substr(-4);
+               $('#linkset_cluster_pred_counter').html(num);
+          }
+          else
+                $('#creation_linkset_cluster_predicates_col').html(obj.message);
+
+          // set actions after clicking one of the predicates
+          $('#creation_linkset_cluster_predicates_col li').on('click',function()
+          {
+            var pred_uri = $(this).attr('uri');
+            var pred_label = $(this).attr('label');
+            if ($('#creation_linkset_cluster_predicates_col').attr('accumPath') != '')
+            {  pred_uri = $('#creation_linkset_cluster_predicates_col').attr('accumPath') + '/' + pred_uri;
+               pred_label = $('#creation_linkset_cluster_predicates_col').attr('accumPathLabel') + '/' + pred_label
+            }
+            var checkPropPath = document.getElementById('linkset_cluster_enable_prop_path');
+            if (($(this).attr('obj_type') == 'uri') && (checkPropPath.checked))
+            {
+              setAttr('creation_linkset_cluster_predicates_col','accumPath',pred_uri);
+              setAttr('creation_linkset_cluster_predicates_col','accumPathLabel',pred_label);
+              cluster_load_predicates(rq_uri, source);
+            }
+            else
+            {
+                var i;
+                var check = false;
+                var elem = document.getElementById('creation_linkset_cluster_selected_predicates_group');
+                if (elem) {
+                    var elems = elem.getElementsByClassName('list-group-item');
+                    for (i = 0; i < elems.length; i++) {
+                        if ( ($(elems[i]).attr('pred_uri') == pred_uri)
+                                 && ($(elems[i]).attr('graph_uri') == graph_uri) )
+                        {
+                          check = true;
+                          break;
+                        }
+                    }
+                    if (!check) {
+                       var item = '<li class="list-group-item" pred_uri="' + pred_uri
+                                + '" graph_uri="' + graph_uri
+                                + '" type_uri="' + type_uri
+                                + '" onclick= "this.parentElement.removeChild(this);"'
+                                + '><span class="list-group-item-heading"><b>'
+                                + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
+                       $('#creation_linkset_cluster_selected_predicates_group').prepend(item);
+                    }
+                }
+            }
+          });
+      });
+
+}
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2889,107 +3204,6 @@ function addToClusterClick()
 }
 
 
-function linkset_cluster_load_datasets(rq_uri)
-{
-// Load into div the selected datasets for a certain research question
-     $('#linkset_cluster_dataset_col').html('Loading...');
-     $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'cluster'},function(data)
-     {
-       $('#linkset_cluster_dataset_col').html(data);
-
-       // when a dataset from the list is selected, its list of predicates will be loaded
-       $('#linkset_cluster_dataset_col li').on('click',function()
-       {
-          if (selectListItemUnique(this, 'linkset_cluster_dataset_col'))
-          {
-                setAttr('creation_linkset_cluster_predicates_col','accumPath','');
-                setAttr('creation_linkset_cluster_predicates_col','accumPathLabel','');
-                linkset_cluster_load_predicates(rq_uri, this);
-          }
-       });
-     });
-
-}
-
-
-function linkset_cluster_load_predicates(rq_uri, source)
-{
-    var graph_uri = $(source).attr('uri');
-    var graph_label = $(source).attr('label');
-    var type_uri = $(source).attr('type_uri');
-    var type_label = $(source).attr('type_label');
-    var total = $(source).attr('total');
-    var propPath = $('#creation_linkset_cluster_predicates_col').attr('accumPath');
-
-      // Exhibit a waiting message for the user to know loading time might be long.
-      $('#creation_linkset_cluster_predicates_col').html('Loading...');
-      if (propPath != '') type_uri = '';
-      // get the distinct predicates and example values of a graph into a list group
-      $.get('/getpredicates',data={'dataset_uri': graph_uri,
-                                   'type': type_uri,
-                                   'propPath': propPath,
-                                   'total': total},function(data)
-      {
-          // load the rendered template into the column #creation_view_predicates_col
-          var obj = JSON.parse(data);
-          if (obj.message == 'OK') {
-               $('#creation_linkset_cluster_predicates_col').html(obj.result);
-               var ul = document.getElementById('creation_linkset_cluster_predicates_col');
-               var li = ul.getElementsByTagName('li');
-               var num = ('0000' + String(li.length)).substr(-4);
-               $('#linkset_cluster_pred_counter').html(num);
-          }
-          else
-                $('#creation_linkset_cluster_predicates_col').html(obj.message);
-
-          // set actions after clicking one of the predicates
-          $('#creation_linkset_cluster_predicates_col li').on('click',function()
-          {
-            var pred_uri = $(this).attr('uri');
-            var pred_label = $(this).attr('label');
-            if ($('#creation_linkset_cluster_predicates_col').attr('accumPath') != '')
-            {  pred_uri = $('#creation_linkset_cluster_predicates_col').attr('accumPath') + '/' + pred_uri;
-               pred_label = $('#creation_linkset_cluster_predicates_col').attr('accumPathLabel') + '/' + pred_label
-            }
-            var checkPropPath = document.getElementById('linkset_cluster_enable_prop_path');
-            if (($(this).attr('obj_type') == 'uri') && (checkPropPath.checked))
-            {
-              setAttr('creation_linkset_cluster_predicates_col','accumPath',pred_uri);
-              setAttr('creation_linkset_cluster_predicates_col','accumPathLabel',pred_label);
-              cluster_load_predicates(rq_uri, source);
-            }
-            else
-            {
-                var i;
-                var check = false;
-                var elem = document.getElementById('creation_linkset_cluster_selected_predicates_group');
-                if (elem) {
-                    var elems = elem.getElementsByClassName('list-group-item');
-                    for (i = 0; i < elems.length; i++) {
-                        if ( ($(elems[i]).attr('pred_uri') == pred_uri)
-                                 && ($(elems[i]).attr('graph_uri') == graph_uri) )
-                        {
-                          check = true;
-                          break;
-                        }
-                    }
-                    if (!check) {
-                       var item = '<li class="list-group-item" pred_uri="' + pred_uri
-                                + '" graph_uri="' + graph_uri
-                                + '" type_uri="' + type_uri
-                                + '" onclick= "this.parentElement.removeChild(this);"'
-                                + '><span class="list-group-item-heading"><b>'
-                                + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
-                       $('#creation_linkset_cluster_selected_predicates_group').prepend(item);
-                    }
-                }
-            }
-          });
-      });
-
-}
-
-
 function createLinksetClusterClick()
 {
     $('#linkset_cluster_creation_message_col').html("");
@@ -3515,6 +3729,14 @@ function rqClick(th, mode)
           var btn = document.getElementById('btn_inspect_linkset');
 
           break;
+      case 'linksetCluster':
+          enableButtons(document.getElementById('creation_linkset_cluster_buttons_col'));
+
+          // get the datasets for the selected rq
+          // show the creation_linkset_row with a loading message
+          var btn = document.getElementById('btn_inspect_linkset_cluster');
+
+          break;
       case 'lens':
           enableButtons(document.getElementById('creation_lens_buttons_col'));
 
@@ -3552,6 +3774,12 @@ function rqClick(th, mode)
 
   //set target div with selected RQ
   var target = 'creation_linkset_selected_RQ';
+  setAttr(target,'uri',rq_uri);
+  setAttr(target,'label',rq_label);
+  setAttr(target,'style','background-color:lightblue');
+  $('#'+target).html(rq_label);
+
+  var target = 'creation_linkset_cluster_selected_RQ';
   setAttr(target,'uri',rq_uri);
   setAttr(target,'label',rq_label);
   setAttr(target,'style','background-color:lightblue');

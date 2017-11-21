@@ -32,7 +32,7 @@
 <!--</nav> - -->
 
 <div class="row">
-    <div class="col-md-10">
+    <div class="col-md-11">
 
         <!-- This is the Mode dropdown button-->
         <span id="menu_list_col">
@@ -74,7 +74,9 @@
             <button type="button" class="btn btn-primary" id="creationIdeaButton"
                     onclick='newSelectButton(this);idea_button(targetId="creation_idea_col");'>Research Question</button>
             <button type="button" class="btn btn-primary" id="creationClusterButton"
-                    onclick='newSelectButton(this);mainButtonClick(targetId="creation_cluster_col");'>Cluster</button>
+                    onclick='newSelectButton(this);mainButtonClick(targetId="creation_cluster_col");'>Resource Cluster</button>
+            <button type="button" class="btn btn-primary" id="creationLinksetClusterButton"
+                    onclick='newSelectButton(this);mainButtonClick(targetId="creation_linkset_cluster_col");'>Linkset from Cluster</button>
             <button type="button" class="btn btn-primary" id="creationLinksetButton"
                     onclick='newSelectButton(this);mainButtonClick(targetId="creation_linkset_col");'>Linkset</button>
             <button type="button" class="btn btn-primary" id="creationLensButton"
@@ -82,7 +84,7 @@
             <button type="button" class="btn btn-primary" id="creationViewButton"
                     onclick='newSelectButton(this);mainButtonClick(targetId="creation_view_col");'>View</button>
             <button type="button" class="btn btn-primary" id="inspectionDatasetButton"
-                    onclick='newSelectButton(this);mainButtonClick(targetId="inspection_dataset_col");'>Dataset</button>
+                    onclick='newSelectButton(this);mainButtonClick(targetId="inspection_dataset_col");'>Link Cluster</button>
             <button type="button" class="btn btn-primary" id="creationDatasetButton"
                     onclick='newSelectButton(this);importButtonClick(targetId="creation_dataset_col");'>Import</button>
         </span>
@@ -103,7 +105,7 @@
          <a class="btn btn-default" id="refreshButton" onclick="refresh();">Refresh</a>
 
     </div>
-    <div class="col-md-2 text-right">
+    <div class="col-md-1 text-right">
 
 
         <span id="triplestore_buttons_col">

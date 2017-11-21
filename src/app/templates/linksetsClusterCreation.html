@@ -1,0 +1,1451 @@
+<div class="panel panel-info">
+  <div class="panel-heading">
+     <div class="row">
+      <div class="col-md-1"><h3>Linkset</h3></div>
+      <div class="col-md-11 text-right" id="creation_linkset_cluster_buttons_col">
+        <h4><button type="button" id="btn_inspect_linkset_cluster"
+                class="btn btn-primary btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_linkset_cluster_row",cl="row creation");
+                inspect_linkset_cluster_activate(mode="inspect")'
+                >Inspect</button>
+        <button type="button" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="creation_linkset_cluster_row",cl="row creation");
+                activateTargetDiv(targetId="create_linkset_cluster_heading",cl="panel-heading");
+                create_linkset_cluster_activate()'
+                >Create</button>
+        <button type="button" id="btn_edit_linkset_cluster" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_linkset_cluster_row",cl="row creation");
+                activateTargetDiv(targetId="edit_linkset_heading",cl="panel-heading");
+                activateTargetDiv(targetId="item_identity");
+                inspect_linkset_cluster_activate(mode="edit")'
+                >Edit</button>
+        <button type="button" id="btn_refine_linkset_cluster" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_linkset_cluster_row",cl="row creation");
+                activateTargetDiv(targetId="refine_linkset_cluster_heading",cl="panel-heading");
+                inspect_linkset_cluster_activate(mode="refine")'
+                >Refine</button>
+        <!--<div class="btn-group">-->
+            <!--<button type="button" class="btn btn-primary dropdown-toggle disabled" data-toggle="dropdown"-->
+                <!--id="btn_export_linkset_cluster"-->
+                <!--onclick='newSelectButton(this);'>-->
+            <!--Export <span class="caret"></span></button>-->
+            <!--<ul class="dropdown-menu" role="menu"-->
+                <!--onclick='activateTargetDiv(targetId="inspect_linkset_cluster_row",cl="row creation");-->
+                <!--activateTargetDiv(targetId="export_linkset_cluster_heading",cl="panel-heading");-->
+                <!--inspect_linkset_activate(mode="exportCluster");'>-->
+              <!--<li onclick='setAttr("exportLinksetButton","mode","flat");-->
+                            <!--$("#exportLinksetButton").show();-->
+                            <!--$("#exportPlotLinksetButton").hide()'><a href="#">Flat</a></li>-->
+              <!--<li onclick='setAttr("exportLinksetButton","mode","md");-->
+                            <!--$("#exportLinksetButton").show();-->
+                            <!--$("#exportPlotLinksetButton").hide()'><a href="#">Flat + Metadata</a></li>-->
+              <!--<li onclick='setAttr("exportLinksetButton","mode","vis");-->
+                            <!--$("#exportLinksetButton").hide();-->
+                            <!--$("#exportPlotLinksetButton").show()'><a href="#">Plot</a></li>-->
+            <!--</ul>-->
+        <!--</div>-->
+        <button type="button" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_linkset_cluster_row",cl="row creation");
+                inspect_linkset_cluster_activate(mode="import")'
+                >Import</button></h4>
+      </div>
+     </div>
+    </div>
+
+  <div class="panel-body">
+     <div class="row">
+      <div class="col-md-12" id="creation_linkset_cluster_select_RQ_col">
+        <div class="row rq" target = 'creation_linkset_cluster_selected_RQ'>
+          <div class="col-md-2" id="button_creation_linkset_cluster_RQ_col">
+              <!-- will be rendered via server -->
+          </div>
+          <div class="col-md-10">
+              <div class="well well-sm" id="creation_linkset_cluster_selected_RQ" uri="" label="">Select a Research Question</div>
+          </div>
+       </div>
+      </div>
+     </div>
+
+     <div class="row creation" id="inspect_linkset_cluster_row" style='display:none'>
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" id="inspect_linkset_cluster_heading_panel" style='display:none'>
+          <h4 class="panel-title">
+            <a id="link_collapse_linkset_cluster_inspect"
+                 data-toggle="collapse" href="#collapse_linkset_cluster_inspect">
+                <span class="badge alert-info"><strong>-</strong></span></a>
+            Inspect Linksets <small>(select to see the details)</small>
+          </h4>
+        </div>
+        <div class="panel-heading" id="import_linkset_cluster_heading_panel" style='display:none'>
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                <a id="link_collapse_linkset_cluster_import"
+                     data-toggle="collapse" href="#collapse_linkset_cluster_inspect">
+                    <span class="badge alert-info"><strong>-</strong></span></a>
+                Import Related Linksets <small>(select to see the details)</small>
+              </h4>
+          </div>
+          <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_import_message_col"></div></h5>-->
+          <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="linkset_cluster_import_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="btn_import_linkset_cluster"
+                            class="btn btn-primary btn btn-success"
+                            onclick='importLinksetClusterClick()'
+                            >Import
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
+               </table>
+          </div>
+         </div>
+        </div>
+
+       <div id="collapse_linkset_cluster_inspect" class="panel-collapse collapse in"
+             target="link_collapse_linkset_cluster_inspect"
+             target2="link_collapse_linkset_cluster_import">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-4">
+             <div class="row">
+               <div class="col-md-12">
+                 <span class="glyphicon glyphicon glyphicon-search"></span>
+                 <input type="text" onkeyup='filterListGroup(this,"inspect_linkset_cluster_selection_col","linkset_cluster_counter")' placeholder="Search for names.." style='width: 83%'>
+                  <span id="linkset_cluster_counter" class="badge"></span>
+               </div>
+             </div>
+             <div class="row"> &nbsp </div>
+              <div class="row">
+                <div class="col-md-12" id="inspect_linkset_cluster_selection_col"></div>
+                <!-- will be rendered via server -->
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col" id="inspect_linkset_cluster_details_col" style='width: 100%;'></div>
+                <!-- will be rendered via server -->
+              </div>
+            </div>
+          </div>
+        </div>
+       </div>
+      </div>
+      </div>
+     </div>
+
+
+     <div class="row creation" id="creation_linkset_cluster_row" style='display:none'>
+      <div class="col-md-12">
+       <div class="panel panel-default">
+           <!--<div class="panel-heading" id="create_linkset_heading" >-->
+             <!--<div class="row">-->
+               <!--<div class="col-md-2">-->
+                  <!--<h4 class="panel-title">-->
+                    <!--<a id="link_collapse_linkset_create"-->
+                         <!--data-toggle="collapse" href="#collapse_linkset_create">-->
+                        <!--<span class="badge alert-info"><strong>-</strong></span></a>-->
+                    <!--Create Linkset-->
+                  <!--</h4>-->
+               <!--</div>-->
+               <!--&lt;!&ndash;<h5><div class="col-md-8 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>&ndash;&gt;-->
+               <!--<div class="col-md-10 text-right">-->
+                   <!--<table align="right">-->
+                       <!--<tr align="right" >-->
+                           <!--<td align="right" valign="center" ><div id="linkset_creation_message_col"></div></td>-->
+                           <!--<td valign="center"><div class="loading"></div></td>-->
+                           <!--<td align="right" valign="center"><button type="button" id="createLinksetButton"-->
+                           <!--class="btn btn-success btn btn-primary"-->
+                           <!--onclick="createLinksetClick()">Create Linkset-->
+                               <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
+                           <!--</button></td>-->
+                   <!--</table>-->
+               <!--</div>-->
+             <!--</div>-->
+           <!--</div>-->
+
+           <div class="panel-heading" id="create_linkset_cluster_heading" >
+             <div class="row">
+               <div class="col-md-4">
+                  <h4 class="panel-title">
+                    <a id="link_collapse_linkset_cluster_create"
+                         data-toggle="collapse" href="#collapse_linkset_cluster_create">
+                        <span class="badge alert-info"><strong>-</strong></span></a>
+                    Create Linkset
+                  </h4>
+               </div>
+               <!--<h5><div class="col-md-8 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>-->
+               <div class="col-md-8 text-right">
+                   <table align="right">
+                       <tr align="right" >
+                           <td align="right" valign="center" ><div id="linkset_cluster_creation_message_col"></div></td>
+                           <td valign="center"><div class="loading"></div></td>
+                           <td align="right" valign="center"><button type="button" id="create_clusterLinksetButton"
+                           class="btn btn-success btn btn-primary"
+                           onclick="createLinksetClusterClick()">Create Linkset
+                               <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </button></td>
+                   </table>
+               </div>
+             </div>
+           </div>
+
+           <div class="panel-heading" id="edit_linkset_cluster_heading" style='display:none'>
+             <div class="row">
+               <div class="col-md-4">
+                  <h4 class="panel-title">
+                    <a id="link_collapse_linkset_cluster_edit"
+                         data-toggle="collapse" href="#collapse_linkset_cluster_create">
+                        <span class="badge alert-info"><strong>-</strong></span></a>
+                    Edit Linkset
+                  </h4>
+               </div>
+               <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_edit_message_col"></div></h5>-->
+               <div class="col-md-8 text-right">
+                   <table align="right">
+                       <tr align="right">
+                           <td align="right"><div id="linkset_cluster_edit_message_col"></div></td>
+                           <td valign="center"><div class="loading"></div></td>
+                           <td align="right">
+                           <button type="button" id="editLinksetClusterButton"
+                               class="btn btn-success btn btn-primary"
+                               data-toggle="modal" data-target="#labelLinksetClusterModal"
+                               >Edit Linkset</button>
+                           <button type="button" id="deleteLinksetClusterButton"
+                               class="btn btn-success btn btn-primary"
+                               onclick="deleteLinksetClusterClick()">Delete Linkset
+                                <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </button>
+                           </td>
+                   </table>
+               </div>
+             </div>
+           </div>
+
+           <div class="panel-heading" id="refine_linkset_cluster_heading" style='display:none'>
+             <div class="row">
+               <div class="col-md-4"><h4></h4>
+                  <h4 class="panel-title">
+                    <a id="link_collapse_linkset_cluster_refine"
+                         data-toggle="collapse" href="#collapse_linkset_cluster_create">
+                        <span class="badge alert-info"><strong>-</strong></span></a>
+                    Refine Linkset
+                  </h4>
+               </div>
+               <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_refine_message_col"></div></h5>-->
+               <div class="col-md-8 text-right">
+                   <table align="right">
+                       <tr align="right">
+                           <td align="right"><div id="linkset_cluster_refine_message_col"></div></td>
+                           <td valign="center"><div class="loading"></div></td>
+                           <td align="right"><button type="button" id="refineLinksetClusterButton"
+                               class="btn btn-success btn btn-primary"
+                               onclick = 'refineLinksetClusterClick();'
+                               >Refine Linkset
+                            <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </button></td>
+                   </table>
+               </div>
+             </div>
+           </div>
+
+           <!--<div class="panel-heading" id="export_linkset_heading" style='display:none'>-->
+             <!--<div class="row">-->
+               <!--<div class="col-md-4">-->
+                  <!--<h4 class="panel-title">-->
+                    <!--<a id="link_collapse_linkset_export"-->
+                         <!--data-toggle="collapse" href="#collapse_linkset_create">-->
+                        <!--<span class="badge alert-info"><strong>-</strong></span></a>-->
+                    <!--Export Linkset-->
+                  <!--</h4>-->
+               <!--</div>-->
+               <!--&lt;!&ndash;<h5><div class="col-md-6 text-right" style="color:red" id="linkset_edit_message_col"></div></h5>&ndash;&gt;-->
+               <!--<div class="col-md-8 text-right">-->
+                   <!--<table align="right">-->
+                       <!--<tr align="right">-->
+                           <!--<td align="right"><div id="linkset_export_message_col"></div></td>-->
+                           <!--<td valign="center"><div class="loading"></div></td>-->
+                           <!--<td align="right">-->
+                           <!--<button type="button" id="exportPlotLinksetButton" style='display:none'-->
+                               <!--class="btn btn-success btn btn-primary"-->
+                               <!--data-toggle="modal" data-target="#modalPlotPass"-->
+                               <!--&gt;Export</button>-->
+                           <!--<button type="button" id="exportLinksetButton" style='display:none'-->
+                               <!--class="btn btn-success btn btn-primary"-->
+                               <!--mode=""-->
+                               <!--onclick='exportLinksetClick("export.trig",mode=$(this).attr("mode"))'>-->
+                               <!--Export-->
+                                <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
+                           <!--</button>-->
+                           <!--</td>-->
+                   <!--</table>-->
+               <!--</div>-->
+             <!--</div>-->
+           <!--</div>-->
+
+           <!--<div id="collapse_linkset_create" class="panel-collapse collapse in"-->
+             <!--target="link_collapse_linkset_create"-->
+             <!--target2="link_collapse_linkset_edit"-->
+             <!--target3="link_collapse_linkset_refine"-->
+             <!--target4="link_collapse_linkset_export">-->
+
+               <!--<div class="panel-body" id="create_panel_body">-->
+
+                <!--<div class="row">-->
+
+                  <!--&lt;!&ndash; SOURCE OPTIONS &ndash;&gt;-->
+                  <!--<div class="col-md-4" style='border-right: 1px solid grey;' id="creation_source_col" >-->
+
+                    <!--<div class="row">-->
+                      <!--<div class="col-md-10">-->
+                        <!--<h3>Source</h3>-->
+                      <!--</div>-->
+                    <!--</div>-->
+
+                    <!--<div class="row">-->
+                     <!--<div class="col-md-12">-->
+                     <!--<div class="panel-group">-->
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-bottom: 0px;">-->
+                            <!--<div class="row" id="src_datasets_row">-->
+                              <!--<div class="col-md-4 graph-list" id="button-src-col" mode="source"-->
+                                    <!--targetTxt="src_selected_graph"-->
+                                    <!--targetHidden="hidden_src_entType_div"-->
+                                    <!--targetBtn="button-src-entity-type-col"-->
+                                    <!--targetAddBtn="button_src_add_entity_type_pred_col">-->
+                                    <!--<div id="hidden_src_div" style='display:none' uri="" label="" ></div>-->
+                                  <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                              <!--</div>-->
+                              <!--<div class="col-md-8">-->
+                                  <!--<div class="well well-sm" id="src_selected_graph" uri="">Select a Graph</div>-->
+                              <!--</div>-->
+                            <!--</div>-->
+
+                               <!--<div class="row" id="src_entitytype_row">-->
+                                  <!--<div class="col-md-4 entity-list" id="button-src-entity-type-col"-->
+                                        <!--graph_uri=""-->
+                                        <!--targetTxt="src_selected_entity-type"-->
+                                        <!--targetList="src_predicates_col"-->
+                                        <!--targetList2="source_lat_predicates_col"-->
+                                        <!--targetList3="source_long_predicates_col"-->
+                                        <!--hiddenDiv="hidden_src_entType_div">-->
+                                    <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                    <!--<div class="hiddenDiv" id="hidden_src_entType_div" style='display:none' uri="" label="" ></div>-->
+                                    <!--<button class="btn btn-primary btn-round dropdown-toggle" type="button"-->
+                                            <!--data-toggle='dropdown'>Entity Type<span class="caret"></span></button>-->
+                                  <!--</div>-->
+                                  <!--<div class="col-md-8">-->
+                                     <!--<div class="well well-sm" id="src_selected_entity-type" uri="">Select an Entity Type</div>-->
+                                  <!--</div>-->
+                               <!--</div>-->
+                          <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">-->
+
+                               <!--<div class="row">-->
+                                      <!--<div class="col-md-12">-->
+                                          <!--<h4><small>-->
+                                              <!--<a href="#collapse_add_entity_type" data-toggle="collapse">-->
+                                                  <!--<span class="badge alert-default"><strong>+</strong></span></a>-->
+                                              <!--</small>-->
+                                              <!--Additional Entity Type or Condition</h4>-->
+                                      <!--</div>-->
+                               <!--</div>-->
+                               <!--<div id="collapse_add_entity_type" class="div-collapse collapse">-->
+                               <!--<div class="row" id="src_add_entity_type_pred_row">-->
+                                  <!--<div class="col-md-4 selection-list" id="button_src_add_entity_type_pred_col" mode="source"-->
+                                        <!--targetTxt="src_selected_add_entity_type_pred"-->
+                                        <!--targetBtn="button_src_add_entity_type_value_col">-->
+                                      <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                      <!--<button class="btn btn-primary btn-round dropdown-toggle" type="button"-->
+                                            <!--data-toggle='dropdown'>Other Types<span class="caret"></span></button>-->
+                                  <!--</div>-->
+                                  <!--<div class="col-md-8">-->
+                                      <!--<div class="well well-sm" id="src_selected_add_entity_type_pred" uri="">Select a Type-Property</div>-->
+                                  <!--</div>-->
+                               <!--</div>-->
+
+                               <!--<div class="row" id="src_add_entity_type_value_row">-->
+                                  <!--<div class="col-md-4 selection-list" id="button_src_add_entity_type_value_col" mode="source"-->
+                                        <!--targetTxt="src_selected_add_entity_type_value">-->
+                                      <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                      <!--<button class="btn btn-primary btn-round dropdown-toggle" type="button"-->
+                                            <!--data-toggle='dropdown'>Type Values<span class="caret"></span></button>-->
+                                  <!--</div>-->
+                                  <!--<div class="col-md-8">-->
+                                      <!--<div class="well well-sm" id="src_selected_add_entity_type_value" uri="">Select a Type-Value</div>-->
+                                  <!--</div>-->
+                               <!--</div>-->
+                               <!--</div>-->
+                          <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">-->
+
+                               <!--<div class="row">-->
+                                      <!--<div class="col-md-12">-->
+                                          <!--<h4><small>-->
+                                              <!--<a href="#demo" data-toggle="collapse"><span class="badge alert-default"><strong>+</strong></span></a>-->
+                                              <!--</small>-->
+                                              <!--Enriched Dataset</h4>-->
+                                      <!--</div>-->
+                               <!--</div>-->
+                               <!--<div id="demo" class="div-collapse collapse">-->
+
+                                <!--<div class="row" id="src_datasets_enriched_row">-->
+                                  <!--<div class="col-md-4 graph-list" id="button-src-enriched-col"-->
+                                        <!--targetTxt="src_selected_graph_enriched"-->
+                                        <!--graph_uri=""-->
+                                        <!--targetList="src_predicates_col">-->
+                                      <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                  <!--</div>-->
+                                  <!--<div class="col-md-8">-->
+                                      <!--<div class="well well-sm" id="src_selected_graph_enriched" uri="">Select a Graph</div>-->
+                                  <!--</div>-->
+                                <!--</div>-->
+
+                               <!--</div>-->
+                          <!--</div>-->
+                        <!--</div>-->
+
+                      <!--<div id="source_geoSim_params" style='display:none'>-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-bottom: 10px;">-->
+
+                        <!--<div class="row" >-->
+                            <!--<div class="col-md-12">-->
+                                <!--<h4>Latitude</h4>-->
+                            <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="row" id = "source_lat_selected_pred_row">-->
+                         <!--<div class="col-md-11" style="padding-right: 1px;">-->
+                             <!--<div class="well well-sm" id="source_lat_selected_pred" uri="" >-->
+                                 <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                             <!--</div>-->
+                         <!--</div>-->
+                         <!--<div class="col-md-1" style="padding-left: 0px;">-->
+                             <!--<span class="glyphicon glyphicon-remove-circle"-->
+                                   <!--onclick='resetDivSelectedEntity("button-src-entity-type-col","targetList2")'></span>-->
+                         <!--</div>-->
+                        <!--</div>-->
+
+
+                        <!--<div class="row" id = "source_lat_list_pred_row">-->
+                            <!--<div class="col-md-12">-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-12">-->
+                                    <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                                   <!--<input type="text" onkeyup='filterListGroup(this,"source_lat_predicates_col","source_lat_pred_counter")' placeholder="Search for names.." style='width: 80%'>-->
+                                    <!--<span id="source_lat_pred_counter" class="badge"></span>-->
+                                   <!--</div>-->
+                                 <!--</div>-->
+                                 <!--<div class="row"> &nbsp </div>-->
+                             <!--<div class="row">-->
+                                 <!--<div class="col-md-7">-->
+                                     <!--<small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>-->
+                                         <!--</strong></small>-->
+                                 <!--</div>-->
+                                 <!--<div class="col-md-5" align="right">-->
+                                     <!--<small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="source_lat_enable_prop_path"-->
+                                            <!--checked="checked">-->
+                                            <!--&lt;!&ndash;onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >&ndash;&gt;-->
+                                         <!--Enable Prop. Path</label></div></small>-->
+                                 <!--</div>-->
+                             <!--</div>-->
+                             <!--<div class="row">-->
+                                 <!--<div class="col-md-12 pred-list" id="source_lat_predicates_col"-->
+                                      <!--badge_counter="source_lat_pred_counter"-->
+                                      <!--targetList="source_lat_predicates_col"-->
+                                      <!--targetTxt="source_lat_selected_pred"-->
+                                      <!--propPathCheckBok="source_lat_enable_prop_path"-->
+                                      <!--propPath="enabled"> </div>-->
+                             <!--</div>-->
+                            <!--</div>-->
+                            <!--</div>-->
+
+
+                          <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-bottom: 10px;">-->
+
+                        <!--<div class="row" >-->
+                            <!--<div class="col-md-12">-->
+                                <!--<h4>Longitude</h4>-->
+                            <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="row" id = "source_long_selected_pred_row">-->
+                         <!--<div class="col-md-11" style="padding-right: 1px;">-->
+                             <!--<div class="well well-sm" id="source_long_selected_pred" uri="" >-->
+                                 <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                             <!--</div>-->
+                         <!--</div>-->
+                         <!--<div class="col-md-1" style="padding-left: 0px;">-->
+                             <!--<span class="glyphicon glyphicon-remove-circle"-->
+                                   <!--onclick='resetDivSelectedEntity("button-src-entity-type-col","targetList3")'></span>-->
+                         <!--</div>-->
+                        <!--</div>-->
+
+
+                        <!--<div class="row" id = "source_long_list_pred_row">-->
+                            <!--<div class="col-md-12">-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-12">-->
+                                    <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                                   <!--<input type="text" onkeyup='filterListGroup(this,"source_long_predicates_col","source_long_pred_counter")' placeholder="Search for names.." style='width: 80%'>-->
+                                    <!--<span id="source_long_pred_counter" class="badge"></span>-->
+                                   <!--</div>-->
+                                 <!--</div>-->
+                                 <!--<div class="row"> &nbsp </div>-->
+                             <!--<div class="row">-->
+                                 <!--<div class="col-md-7">-->
+                                     <!--<small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>-->
+                                         <!--</strong></small>-->
+                                 <!--</div>-->
+                                 <!--<div class="col-md-5" align="right">-->
+                                     <!--<small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="source_long_enable_prop_path"-->
+                                            <!--checked="checked">-->
+                                            <!--&lt;!&ndash;onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >&ndash;&gt;-->
+                                         <!--Enable Prop. Path</label></div></small>-->
+                                 <!--</div>-->
+                             <!--</div>-->
+                             <!--<div class="row">-->
+                                 <!--<div class="col-md-12 pred-list" id="source_long_predicates_col"-->
+                                      <!--badge_counter="source_long_pred_counter"-->
+                                      <!--targetList="source_long_predicates_col"-->
+                                      <!--targetTxt="source_long_selected_pred"-->
+                                      <!--propPathCheckBok="source_long_enable_prop_path"-->
+                                      <!--propPath="enabled"> </div>-->
+                             <!--</div>-->
+                            <!--</div>-->
+                            <!--</div>-->
+
+
+                          <!--</div>-->
+                        <!--</div>-->
+                      <!--</div>-->
+
+                      <!--<div class="panel panel-default">-->
+                      <!--<div class="panel-body">-->
+                        <!--<div class="row">-->
+                              <!--<div class="col-md-12" id="div_sourceAlignProp">-->
+                                  <!--<h4>Property to align</h4>-->
+                              <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="row" id = "src_selected_pred_row">-->
+                         <!--<div class="col-md-12">-->
+                             <!--<div class="well well-sm" id="src_selected_pred" uri="" >-->
+                                 <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                             <!--</div>-->
+                         <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="row" id = "src_list_pred_row">-->
+                        <!--<div class="col-md-12">-->
+                             <!--&lt;!&ndash;<div class="row"> &nbsp </div>&ndash;&gt;-->
+                             <!--<div class="row">-->
+                                 <!--<div class="col-md-12">-->
+                                <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                               <!--<input type="text" onkeyup='filterListGroup(this,"src_predicates_col")' placeholder="Search for names.." style='width: 93%'>-->
+                               <!--</div>-->
+                             <!--</div>-->
+                             <!--<div class="row"> &nbsp </div>-->
+                         <!--<div class="row">-->
+                             <!--<div class="col-md-7">-->
+                                 <!--<small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>-->
+                                     <!--</strong></small>-->
+                             <!--</div>-->
+                             <!--<div class="col-md-5" align="right">-->
+                                 <!--<small><div class="checkbox-inline" ><label><input type="checkbox" id="src_enable_prop_path"-->
+                                        <!--onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>-->
+                             <!--</div>-->
+                         <!--</div>-->
+                         <!--<div class="row">-->
+                             <!--<div class="col-md-12 pred-list" id="src_predicates_col"-->
+                                  <!--targetList="src_predicates_col"-->
+                                  <!--targetTxt="src_selected_pred"-->
+                                  <!--propPathCheckBok="src_enable_prop_path"-->
+                                  <!--propPath="enabled"> </div>-->
+                         <!--</div>-->
+                        <!--</div>-->
+                        <!--</div>-->
+                      <!--</div> &lt;!&ndash; Panel Body&ndash;&gt;-->
+
+                    <!--</div> &lt;!&ndash; Panel &ndash;&gt;-->
+
+                     <!--</div>-->
+                    <!--</div> &lt;!&ndash; Col 12&ndash;&gt;-->
+                   <!--</div> &lt;!&ndash; Row&ndash;&gt;-->
+
+                  <!--</div> &lt;!&ndash; Col 4 source &ndash;&gt;-->
+
+                  <!--&lt;!&ndash; TARGET OPTIONS &ndash;&gt;-->
+                  <!--<div class="col-md-4" style='border-right: 1px solid grey;' id="creation_target_col">-->
+
+                     <!--<div class="row">-->
+                        <!--<div class="col-md-10">-->
+                          <!--<h3>Target</h3></div>-->
+                        <!--</div>-->
+
+                     <!--<div class="row">-->
+                      <!--<div class="col-md-12">-->
+
+                       <!--<div class="panel-group">-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-bottom: 0px;">-->
+                              <!--<div class="row" id="trg_datasets_row">-->
+                                <!--<div class="col-md-4 graph-list" id="button-trg-col" mode="target"-->
+                                      <!--targetTxt="trg_selected_graph"-->
+                                      <!--targetHidden="hidden_trg_entType_div"-->
+                                      <!--targetBtn="button-trg-entity-type-col"-->
+                                      <!--targetAddBtn="button_trg_add_entity_type_pred_col"-->
+                                      <!--targetList="trg_predicates_col">-->
+                                    <!--<div id="hidden_trg_div" style='display:none' uri="" label="" ></div>-->
+                                  <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                <!--</div>-->
+                                <!--<div class="col-md-8">-->
+                                   <!--<div class="well well-sm" id="trg_selected_graph">Select a Graph</div>-->
+                                <!--</div>-->
+                              <!--</div>-->
+
+                              <!--<div class="row" id="trg_entitytype_row">-->
+                                  <!--<div class="col-md-4 entity-list" id="button-trg-entity-type-col"-->
+                                        <!--graph_uri=""-->
+                                        <!--targetTxt="trg_selected_entity-type"-->
+                                        <!--targetList="trg_predicates_col"-->
+                                        <!--targetList2="target_lat_predicates_col"-->
+                                        <!--targetList3="target_long_predicates_col"-->
+                                        <!--hiddenDiv="hidden_trg_entType_div">-->
+                                    <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                    <!--<div class="hiddenDiv" id="hidden_trg_entType_div" style='display:none' uri="" label="" ></div>-->
+                                    <!--<button class="btn btn-primary btn-round dropdown-toggle" type="button"-->
+                                            <!--data-toggle='dropdown'>Entity Type<span class="caret"></span></button>-->
+                                  <!--</div>-->
+                                  <!--<div class="col-md-8">-->
+                                     <!--<div class="well well-sm" id="trg_selected_entity-type" uri="">Select an Entity Type</div>-->
+                                  <!--</div>-->
+                              <!--</div>-->
+
+                          <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">-->
+
+                               <!--<div class="row">-->
+                                      <!--<div class="col-md-12">-->
+                                          <!--<h4><small>-->
+                                              <!--<a href="#collapse_trg_add_entity_type" data-toggle="collapse">-->
+                                                  <!--<span class="badge alert-default"><strong>+</strong></span></a>-->
+                                              <!--</small>-->
+                                              <!--Additional Entity Type or Condition</h4>-->
+                                      <!--</div>-->
+                               <!--</div>-->
+
+                               <!--<div id="collapse_trg_add_entity_type" class="div-collapse collapse">-->
+                                   <!--<div class="row" id="trg_add_entity_type_pred_row">-->
+                                      <!--<div class="col-md-4 selection-list" id="button_trg_add_entity_type_pred_col" mode="target"-->
+                                            <!--targetTxt="trg_selected_add_entity_type_pred"-->
+                                            <!--targetBtn="button_trg_add_entity_type_value_col">-->
+                                          <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                          <!--<button class="btn btn-primary btn-round dropdown-toggle" type="button"-->
+                                                <!--data-toggle='dropdown'>Other Types<span class="caret"></span></button>-->
+                                      <!--</div>-->
+                                      <!--<div class="col-md-8">-->
+                                          <!--<div class="well well-sm" id="trg_selected_add_entity_type_pred" uri="">Select a Type-Property</div>-->
+                                      <!--</div>-->
+                                   <!--</div>-->
+
+                                   <!--<div class="row" id="trg_add_entity_type_value_row">-->
+                                      <!--<div class="col-md-4 selection-list" id="button_trg_add_entity_type_value_col"-->
+                                            <!--targetTxt="trg_selected_add_entity_type_value">-->
+                                          <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                          <!--<button class="btn btn-primary btn-round dropdown-toggle" type="button"-->
+                                                <!--data-toggle='dropdown'>Type Values<span class="caret"></span></button>-->
+                                      <!--</div>-->
+                                      <!--<div class="col-md-8">-->
+                                          <!--<div class="well well-sm" id="trg_selected_add_entity_type_value" uri="">Select a Type-Value</div>-->
+                                      <!--</div>-->
+                                   <!--</div>-->
+
+                               <!--</div>-->
+
+                          <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body" style="padding-top: 1px; padding-bottom: 1px;">-->
+
+                               <!--<div class="row">-->
+                                      <!--<div class="col-md-12">-->
+                                          <!--<h4><small>-->
+                                              <!--<a href="#collapse_trg_enriched_datatet" data-toggle="collapse"><span class="badge alert-default"><strong>+</strong></span></a>-->
+                                              <!--</small>-->
+                                              <!--Enriched Dataset</h4>-->
+                                      <!--</div>-->
+                               <!--</div>-->
+                               <!--<div id="collapse_trg_enriched_datatet" class="div-collapse collapse">-->
+
+                                <!--<div class="row" id="trg_datasets_enriched_row">-->
+                                  <!--<div class="col-md-4 graph-list" id="button-trg-enriched-col"-->
+                                        <!--targetTxt="trg_selected_graph_enriched"-->
+                                        <!--graph_uri=""-->
+                                        <!--targetList="trg_predicates_col">-->
+                                      <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                  <!--</div>-->
+                                  <!--<div class="col-md-8">-->
+                                      <!--<div class="well well-sm" id="trg_selected_graph_enriched" uri="">Select a Graph</div>-->
+                                  <!--</div>-->
+                                <!--</div>-->
+
+                               <!--</div>-->
+                          <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div id="target_geoSim_params" style='display:none'>-->
+                            <!--<div class="panel panel-default">-->
+                              <!--<div class="panel-body" style="padding-bottom: 10px;">-->
+
+                            <!--<div class="row" >-->
+                                <!--<div class="col-md-12">-->
+                                    <!--<h4>Latitude</h4>-->
+                                <!--</div>-->
+                            <!--</div>-->
+
+                            <!--<div class="row" id = "target_lat_selected_pred_row">-->
+                             <!--<div class="col-md-11" style="padding-right: 1px;">-->
+                                 <!--<div class="well well-sm" id="target_lat_selected_pred" uri="" >-->
+                                     <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                                 <!--</div>-->
+                             <!--</div>-->
+                             <!--<div class="col-md-1" style="padding-left: 0px;">-->
+                                 <!--<span class="glyphicon glyphicon-remove-circle"-->
+                                       <!--onclick='resetDivSelectedEntity("button-trg-entity-type-col","targetList2")'></span>-->
+                             <!--</div>-->
+                            <!--</div>-->
+
+
+                            <!--<div class="row" id = "target_lat_list_pred_row">-->
+                                <!--<div class="col-md-12">-->
+                                     <!--<div class="row">-->
+                                         <!--<div class="col-md-12">-->
+                                        <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                                       <!--<input type="text" onkeyup='filterListGroup(this,"target_lat_predicates_col","target_lat_pred_counter")' placeholder="Search for names.." style='width: 80%'>-->
+                                        <!--<span id="target_lat_pred_counter" class="badge"></span>-->
+                                       <!--</div>-->
+                                     <!--</div>-->
+                                     <!--<div class="row"> &nbsp </div>-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-7">-->
+                                         <!--<small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>-->
+                                             <!--</strong></small>-->
+                                     <!--</div>-->
+                                     <!--<div class="col-md-5" align="right">-->
+                                         <!--<small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="target_lat_enable_prop_path"-->
+                                                <!--checked="checked">-->
+                                                <!--&lt;!&ndash;onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >&ndash;&gt;-->
+                                             <!--Enable Prop. Path</label></div></small>-->
+                                     <!--</div>-->
+                                 <!--</div>-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-12 pred-list" id="target_lat_predicates_col"-->
+                                          <!--badge_counter="target_lat_pred_counter"-->
+                                          <!--targetList="target_lat_predicates_col"-->
+                                          <!--targetTxt="target_lat_selected_pred"-->
+                                          <!--propPathCheckBok="target_lat_enable_prop_path"-->
+                                          <!--propPath="enabled"> </div>-->
+                                 <!--</div>-->
+                                <!--</div>-->
+                                <!--</div>-->
+
+
+                              <!--</div>-->
+                            <!--</div>-->
+
+                            <!--<div class="panel panel-default">-->
+                              <!--<div class="panel-body" style="padding-bottom: 10px;">-->
+
+                            <!--<div class="row" >-->
+                                <!--<div class="col-md-12">-->
+                                    <!--<h4>Longitude</h4>-->
+                                <!--</div>-->
+                            <!--</div>-->
+
+                            <!--<div class="row" id = "target_long_selected_pred_row">-->
+                             <!--<div class="col-md-11" style="padding-right: 1px;">-->
+                                 <!--<div class="well well-sm" id="target_long_selected_pred" uri="" >-->
+                                     <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                                 <!--</div>-->
+                             <!--</div>-->
+                             <!--<div class="col-md-1" style="padding-left: 0px;">-->
+                                 <!--<span class="glyphicon glyphicon-remove-circle"-->
+                                       <!--onclick='resetDivSelectedEntity("button-trg-entity-type-col","targetList3")'></span>-->
+                             <!--</div>-->
+                            <!--</div>-->
+
+
+                            <!--<div class="row" id = "target_long_list_pred_row">-->
+                                <!--<div class="col-md-12">-->
+                                     <!--<div class="row">-->
+                                         <!--<div class="col-md-12">-->
+                                        <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                                       <!--<input type="text" onkeyup='filterListGroup(this,"target_long_predicates_col","target_long_pred_counter")' placeholder="Search for names.." style='width: 80%'>-->
+                                        <!--<span id="target_long_pred_counter" class="badge"></span>-->
+                                       <!--</div>-->
+                                     <!--</div>-->
+                                     <!--<div class="row"> &nbsp </div>-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-7">-->
+                                         <!--<small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>-->
+                                             <!--</strong></small>-->
+                                     <!--</div>-->
+                                     <!--<div class="col-md-5" align="right">-->
+                                         <!--<small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="target_long_enable_prop_path"-->
+                                                <!--checked="checked">-->
+                                                <!--&lt;!&ndash;onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >&ndash;&gt;-->
+                                             <!--Enable Prop. Path</label></div></small>-->
+                                     <!--</div>-->
+                                 <!--</div>-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-12 pred-list" id="target_long_predicates_col"-->
+                                          <!--badge_counter="target_long_pred_counter"-->
+                                          <!--targetList="target_long_predicates_col"-->
+                                          <!--targetTxt="target_long_selected_pred"-->
+                                          <!--propPathCheckBok="target_long_enable_prop_path"-->
+                                          <!--propPath="enabled"> </div>-->
+                                 <!--</div>-->
+                                <!--</div>-->
+                                <!--</div>-->
+
+
+                              <!--</div>-->
+                            <!--</div>-->
+                        <!--</div>-->
+
+                        <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-body">-->
+                            <!--<div class="row">-->
+                                  <!--<div class="col-md-12" id="div_targetAlignProp">-->
+                                      <!--<h4>Property to align</h4>-->
+                                  <!--</div>-->
+                            <!--</div>-->
+
+                             <!--<div class="row" id = "trg_selected_pred_row">-->
+                               <!--<div class="col-md-12">-->
+                                   <!--<div class="well well-sm" id="trg_selected_pred" uri="">Select a Property +-->
+                                     <!--<span style="color:blue"><strong> example value </strong></span>-->
+                                   <!--</div>-->
+
+                               <!--</div>-->
+                             <!--</div>-->
+                             <!--<div class="row" id = "trg_list_pred_row">-->
+                                <!--<div class="col-md-12">-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-12">-->
+                                    <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                                   <!--<input type="text" onkeyup='filterListGroup(this,"trg_predicates_col")' placeholder="Search for names.." style='width: 93%'>-->
+                                   <!--</div>-->
+                                 <!--</div>-->
+                                 <!--<div class="row"> &nbsp </div>-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-7">-->
+                                         <!--<small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>-->
+                                             <!--</strong></small>-->
+                                     <!--</div>-->
+                                     <!--<div class="col-md-5" align="right">-->
+                                         <!--<small><div class="checkbox-inline" ><label><input type="checkbox" id="trg_enable_prop_path"-->
+                                            <!--onclick='resetDivSelectedEntity("button-trg-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>-->
+                                     <!--</div>-->
+                                 <!--</div>-->
+                                 <!--<div class="row">-->
+                                     <!--<div class="col-md-12 pred-list" id="trg_predicates_col"-->
+                                        <!--targetList="trg_predicates_col"-->
+                                        <!--targetTxt="trg_selected_pred"-->
+                                        <!--propPathCheckBok="trg_enable_prop_path"-->
+                                        <!--propPath="enabled"> </div>-->
+                                 <!--</div>-->
+                                <!--</div>-->
+                             <!--</div>-->
+                          <!--</div>   &lt;!&ndash; Panel body&ndash;&gt;-->
+                        <!--</div>   &lt;!&ndash; Panel &ndash;&gt;-->
+
+                       <!--</div>-->
+                      <!--</div>-->
+                     <!--</div>-->
+                  <!--</div>-->
+
+                  <!--&lt;!&ndash; METHOD OPTIONS &ndash;&gt;-->
+                  <!--<div class="col-md-4" id="creation_method_col">-->
+                      <!--<div class="row">-->
+                        <!--<div class="col-md-10">-->
+                          <!--<h3>Method</h3></div>-->
+                        <!--</div>-->
+                      <!--<div class="row">-->
+                        <!--<div class="col-md-3">-->
+                           <!--<span class="dropdown">-->
+                            <!--<button class="btn btn-primary btn-round dropdown-toggle" type="button" id="methodDropdown"-->
+                                    <!--data-toggle='dropdown'>Method<span class="caret"></span></button>-->
+                            <!--<ul class="dropdown-menu" role="menu" aria-labelledby="methodDropdown">-->
+                                <!--<li role="presentation">-->
+                                    <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                                        <!--label="Exact Match" uri="exactStrSim"-->
+                                        <!--onclick="methodClick(this);">Exact Match</a>-->
+                                    <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                                        <!--label="Geo Match" uri="geoSim"-->
+                                        <!--onclick="methodClick(this);">Geo Match</a>-->
+                                    <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                                        <!--label="Identifier Match" id = "item_identity" uri="identity"-->
+                                        <!--onclick="methodClick(this);">Identifier Match</a>-->
+                                    <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                                        <!--label="Approximate Match" uri="approxStrSim"-->
+                                        <!--onclick="methodClick(this);">Approximate String-based</a>-->
+
+                                    <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                                        <!--label="Approximate Number_Match" uri="approxNbrSim"-->
+                                        <!--onclick="methodClick(this);">Approximate Number-based</a>-->
+
+                                    <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                                        <!--label="Embeded Alignment Extraction" uri="embededAlignment"-->
+                                        <!--onclick="methodClick(this);">Embeded Alignment Extraction</a>-->
+                                    <!--<a href="javascript:void();" role="menuitem" tabindex="-1"-->
+                                        <!--label="Match via Intermediate Dataset" uri="intermediate"-->
+                                        <!--onclick="methodClick(this);">Match via Intermediate Dataset</a>-->
+                                    <!--&lt;!&ndash;<a href="javascript:void();" role="menuitem" tabindex="-1"&ndash;&gt;-->
+                                        <!--&lt;!&ndash;label="Load existing Linkset" uri=loadLinkset&ndash;&gt;-->
+                                        <!--&lt;!&ndash;onclick="methodClick(this);">Laod existing Linkset</a>&ndash;&gt;-->
+                                <!--</li>-->
+                            <!--</ul>-->
+                           <!--</span>-->
+                        <!--</div>-->
+                        <!--<div class="col-md-9">-->
+                           <!--<div class="well well-sm" id="selected_meth" label="">Select a Method</div>-->
+                        <!--</div>-->
+                     <!--</div>-->
+                     <!--<div class="row">-->
+                        <!--<div class="col-md-12">-->
+                           <!--<div class="well well-sm" id="selected_method_desc" label="">Method Description</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="row" id="aprox_settings_row" style='display:none'>-->
+                        <!--<div class="col-md-12">-->
+                          <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-heading"></div>-->
+                          <!--<div class="panel-body">-->
+                            <!--<div class="row">-->
+                                  <!--<div class="col-md-3">-->
+                                      <!--<h5>Threshold</h5>-->
+                                  <!--</div>-->
+                               <!--<div class="col-md-9">-->
+                                    <!--&lt;!&ndash;<input type="text" class="form-control" id="linkset_approx_threshold" value="0.8" readonly>&ndash;&gt;-->
+                                   <!--<input type="number"style='width: 100%;'  id="linkset_approx_threshold" min="0.70" max="1.00" step="0.01" value="0.80">-->
+                               <!--</div>-->
+                             <!--</div>-->
+                            <!--<div class="row">-->
+                                  <!--<div class="col-md-3">-->
+                                      <!--<h5>Symbols</h5>-->
+                                  <!--</div>-->
+                               <!--<div class="col-md-9">-->
+                                    <!--<input type="text" class="form-control" id="linkset_approx_symbols" value="\.\-\,\+'\?;()" readonly>-->
+                               <!--</div>-->
+                             <!--</div>-->
+                            <!--<div class="row">-->
+                                  <!--<div class="col-md-3" style="padding-right: 0px;">-->
+                                      <!--<h5>Stop-words</h5>-->
+                                  <!--</div>-->
+                               <!--<div class="col-md-9"  >-->
+                                    <!--<input type="text" class="form-control" id="linkset_approx_stop_words" value="THE FOR IN THAT AND OF ON DE LA LES INC">-->
+                               <!--</div>-->
+                             <!--</div>-->
+
+                          <!--</div>   &lt;!&ndash; Panel body&ndash;&gt;-->
+                          <!--</div>   &lt;!&ndash; Panel &ndash;&gt;-->
+                      <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="row" id="aprox_nbr_settings_row" style='display:none' >-->
+                        <!--<div class="col-md-12">-->
+                          <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-heading"></div>-->
+                          <!--<div class="panel-body">-->
+                           <!--<div class="row">-->
+                                  <!--<div class="col-md-3" style="padding-right: 0px;">-->
+                                      <!--<h5>Delta</h5>-->
+                                  <!--</div>-->
+                               <!--<div class="col-md-9"  >-->
+                                    <!--<input type="text" class="form-control" id="linkset_approx_delta" value="0">-->
+                               <!--</div>-->
+                             <!--</div>-->
+                            <!--<div class="row">-->
+                                  <!--<div class="col-md-3" style="padding-right: 0px;">-->
+                                      <!--<h5>Number Type</h5>-->
+                                  <!--</div>-->
+                               <!--<div class="col-md-9"  >-->
+                                    <!--&lt;!&ndash;<input type="text" class="form-control" id="linkset_approx_num_type" value="number">&ndash;&gt;-->
+                                    <!--<div class="form-group">-->
+                                        <!--&lt;!&ndash;<label for="sel1">Select list:</label>&ndash;&gt;-->
+                                        <!--<select class="form-control" id="linkset_approx_num_type">-->
+                                        <!--<option>number</option>-->
+                                        <!--<option>date</option>-->
+                                        <!--</select>-->
+                                    <!--</div>-->
+                               <!--</div>-->
+                             <!--</div>-->
+                          <!--</div>-->
+                          <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="row" id="geo_match_settings_row" style='display:none' >-->
+                        <!--<div class="col-md-12">-->
+                          <!--<div class="panel panel-default">-->
+                          <!--<div class="panel-heading"></div>-->
+                          <!--<div class="panel-body">-->
+                           <!--<div class="row">-->
+                                  <!--<div class="col-md-3" style="padding-right: 0px;">-->
+                                      <!--<h5>Geo distance</h5>-->
+                                  <!--</div>-->
+                               <!--<div class="col-md-9"  >-->
+                                    <!--<input type="text" class="form-control" id="linkset_geo_match_nbr" value="1">-->
+                               <!--</div>-->
+                             <!--</div>-->
+                            <!--<div class="row">-->
+                                  <!--<div class="col-md-3" style="padding-right: 0px;">-->
+                                      <!--<h5>Unit</h5>-->
+                                  <!--</div>-->
+                               <!--<div class="col-md-9"  >-->
+                                    <!--<div class="form-group">-->
+                                        <!--<select class="form-control" id="linkset_geo_match_unit">-->
+                                        <!--<option>Kilometer</option>-->
+                                        <!--<option>Meter</option>-->
+                                        <!--<option>Centimeter</option>-->
+                                        <!--<option>MileUSStatute</option>-->
+                                        <!--<option>Yard</option>-->
+                                        <!--<option>Foot</option>-->
+                                        <!--<option>Inch</option>-->
+                                        <!--</select>-->
+                                    <!--</div>-->
+                               <!--</div>-->
+                             <!--</div>-->
+                          <!--</div>-->
+                          <!--</div>-->
+                        <!--</div>-->
+                    <!--</div>-->
+                    <!--<div class="row" id="int_red_graph_row">-->
+                     <!--&lt;!&ndash;<div class="row" >&ndash;&gt;-->
+                        <!--<div class="col-md-4 graph-list" id="button_int_red_graph"-->
+                              <!--targetTxt="selected_int_red_graph" targetBtn="" targetList="">-->
+                          <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                              <!--<button class="btn btn-primary dropdown-toggle" type="button"-->
+                                <!--data-toggle='dropdown'>dataset<span class="caret"></span></button>-->
+                        <!--</div>-->
+                        <!--<div class="col-md-8">-->
+                           <!--&lt;!&ndash;<div class="row" style='scroll: both; overflow: auto'>&ndash;&gt;-->
+                            <!--<div class="well well-sm" style='display: inline-block;' id="selected_int_red_graph"-->
+                                <!--uri="">Select a Dataset</div>-->
+                           <!--&lt;!&ndash;</div>&ndash;&gt;-->
+                        <!--</div>-->
+                     <!--&lt;!&ndash;</div>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<div class="row" >&ndash;&gt;-->
+                        <!--<div class="col-md-12" align="right">-->
+                            <!--<small><div class="checkbox-inline" >-->
+                                <!--<label><input type="checkbox" id="int_red_graph_mult_entries" value="" unchecked>Multiple entries per entity (duplicates)</label>-->
+                            <!--</div></small>-->
+                        <!--</div>-->
+                    <!--&lt;!&ndash;</div>&ndash;&gt;-->
+                    <!--</div>-->
+                  <!--</div>-->
+                <!--</div>-->
+               <!--</div> &lt;!&ndash; Panel Body &ndash;&gt;-->
+           <!--</div>  &lt;!&ndash; Panel Collapse &ndash;&gt;-->
+
+           <div id="collapse_linkset_cluster_create" class="panel-collapse collapse in"
+             target="link_collapse_linkset_cluster_create">
+
+             <div class="panel-body" id="create_linkset_cluster_panel_body">
+
+                <div class="row creation" id="create_linkset_clusters_row" style='display:none'>
+                  <div class="col-md-12">
+                      <div class="row" style='width: 100%;'>
+                        <div class="col-md-4">
+                          <div class="row">
+                            <div class="col-md-12">
+                                <h4>Cluster Reference</h4>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <!--<div class="col-md-12" id="create_linkset_clusters_reference_selection_col"></div>-->
+                            <div class="co-md-12">
+                              <!--<div class="row">-->
+                            <!-- will be rendered via server -->
+                                <div class="list-group" id="create_linkset_clusters_reference_selection_col"
+                                     style='scroll: both; overflow: auto; height: 15em; width: 100%; margin-left: 0.3cm;'>
+                                </div>
+                              <!--</div>-->
+                            </div>
+
+                            <!-- will be rendered via server -->
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="row">
+                            <div class="col-md-12">
+                                <h4>Clusters</h4>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-12" id="create_linkset_clusters_selection_col" style='width: 100%;'>
+                            <!-- will be rendered via server -->
+                            </div>
+                          </div>
+                        </div>
+                        <!--<div class="col-md-4">-->
+                          <!--<div class="row">-->
+                            <!--<div class="co-md-12"  style='width: 100%;'>-->
+                            <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
+                                <!--<div class="list-group" id="create_linkset_clusters_details_col"-->
+                                     <!--style='scroll: both; overflow: auto; height: 15em; width: 100%;'></div>-->
+                            <!--</div>-->
+                          <!--</div>-->
+                        <!--</div>-->
+                      </div>
+
+                  </div>
+                 </div>
+
+             </div>
+           </div>
+        <!-- Modal -->
+          <div class="modal fade" id="labelLinksetClusterModal" role="dialog">
+            <div class="modal-dialog">  <!--modal-sm">-->
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Edit Linkset Label</h4>
+                </div>
+                <div class="modal-body">
+                    <form role="form">
+                        <div class="form-group">
+                          <label for="linksetClusterLabel"><span class="glyphicon glyphicon glyphicon-tag"></span> Linkset Label</label>
+                          <input type="text" class="form-control" name="linksetClusterLabel" id="linksetClusterLabel" placeholder="Enter label">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                  <!--<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>-->
+                  <button type="submit" class="btn btn-success pull-right" data-dismiss="modal"
+                        onclick='editLabelClick($("#linksetClusterLabel").val(),type="linksetCluster")'> Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+      </div> <!-- Panel -->
+
+      <div class="panel panel-default" id="panel_cluster_prop_selection">
+       <div class="panel-heading">
+          <div class="row">
+              <div class="col-md-12">
+                <h4 class="panel-title">
+                  <a id="link_collapse_linkset_cluster_props"
+                     data-toggle="collapse" href="#collapse_linkset_cluster_props">
+                      <span class="badge alert-info"><strong>+</strong></span></a>
+                  Property Selection <small> (select a dataset to see its attributes)</small>
+                </h4>
+              </div>
+          </div>
+
+       </div>
+
+      <div id="collapse_linkset_cluster_props" class="panel-collapse collapse in" target="link_collapse_linkset_cluster_props">
+          <div class="panel-body">
+          <div class="row">
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Datasets</h4></div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">Select from the list:</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12" >
+                    <div class="list-group" id="linkset_cluster_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                            <div class="col-md-12">
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                         </strong></small>
+                                 </div>
+                                 <div class="col-md-5" align="right">
+                                     <small><div class="checkbox-inline" ><label><input type="checkbox" id="linkset_cluster_enable_prop_path"
+                                            onclick='resetDivSelectedEntity("linkset_cluster_dataset_col","predicate")' >Enable Prop. Path</label></div></small>
+                                 </div>
+                             </div>
+                            </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12" id="creation_linkset_cluster_predicates_msg_col"></div>
+                </div>
+                <div class="row"> &nbsp </div>
+             <div class="row">
+                 <div class="col-md-12">
+                <span class="glyphicon glyphicon glyphicon-search"></span>
+               <input type="text" onkeyup='filterListGroup(this,"creation_linkset_cluster_predicates_col","linkset_cluster_pred_counter")'
+                      placeholder="Search for names.." style='width: 83%'>
+                  <span id="linkset_cluster_pred_counter" class="badge"></span>
+               </div>
+             </div>
+             <div class="row"> &nbsp </div>
+             <!--<div class="row" id = "cluster_selected_pred_row">-->
+                 <!--<div class="col-md-12">-->
+                     <!--<div class="well well-sm" id="cluster_selected_pred" uri="" >-->
+                         <!--Select a Property + <span style="color:blue"><strong> example value </strong></span>-->
+                     <!--</div>-->
+                 <!--</div>-->
+             <!--</div>-->
+             <div class="row">
+                  <div class="col-md-12" id="creation_linkset_cluster_predicates_col"
+                                      badge_counter="linkset_cluster_pred_counter"
+                                      targetList="creation_linkset_cluster_predicates_col"
+                                      accumPath=""
+                                      accumPathLabel=""
+                                      propPathCheckBok="linkset_cluster_enable_prop_path"
+                                      propPath="enabled"> </div>
+
+             </div>
+            </div>
+
+            <div class="col-md-4" >
+                <div class="row">
+                  <div class="col-md-12"><h4>Selected Attributes</h4>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="list-group" id="creation_linkset_cluster_selected_predicates_group"
+                            style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                    </div>
+                  </div>
+                </div>
+            </div>
+          </div>
+          </div>
+       </div>
+
+
+      </div>
+
+      </div> <!-- Col -->
+     </div> <!-- Row -->
+
+
+
+     <div class="row creation" id="creation_linkset_cluster_filter_row" style='display:none'>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+        <div class="panel-heading" id="linkset_filter_heading_panel">
+         <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_linkset_filter"
+                     data-toggle="collapse" href="#collapse_linkset_filter">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Filter Linkset Correspondences
+              </h4>
+          </div>
+          <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="linkset_add_filter_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="btn_add_filter_linkset"
+                                class="btn btn-primary"
+                                onclick='addFilterLinksetClick()'
+                                >Add filter</button>
+                          <button type="button" id="btn_apply_filter_linkset"
+                                class="btn btn-primary"
+                                onclick='applyFilterLinksetClick()'
+                                >Apply Filter(s)
+                          <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                          </button>
+                          <button type="button" id="btn_delete_filter_linkset"
+                                class="btn btn-primary"
+                                onclick='deleteFilterLinksetClick()'
+                                >Delete Filter(s)
+                          <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                          </button>
+                       </td>
+               </table>
+              </div>
+         </div>
+        </div>
+        <div id="collapse_linkset_filter" class="panel-collapse collapse in" target="link_collapse_linkset_filter">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <!--<label for="sel1">Select list:</label>-->
+                        <select class="form-control" id="linkset_filter_property">
+                        <option>--Select a Property--</option>
+                        <option>Threshold</option>
+                        <option>Accept</option>
+                        <option>Reject</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <table>
+                        <TR>
+                            <TD>
+                                <input type="text" class="form-control" style='width:5em' id="linkset_filter_value1">
+                            </TD>
+                            <TD width="20"></TD>
+                            <TD>
+                                <input type="text" class="form-control" style='width:5em' id="linkset_filter_value2">
+                            </TD>
+                        <TR>
+                            <TD>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="value1_greater" value=">">></label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="value1_equal" value="=">=</label></div>
+                            </TD>
+                            <TD></TD>
+                            <TD>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="value2_smaller" value="<"><</label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="value2_equal" value="=">=</label></div>
+                            </TD>
+                    </table>
+                </div>
+              </div>
+              <!--<div class="row">-->
+                <!--<div class="col-md-6">-->
+                    <!--<input type="text" class="form-control" id="linkset_filter_text" value="&#45;&#45; Type a term for search & filter &#45;&#45;">-->
+                <!--</div>-->
+              <!--</div>-->
+            </div>
+            <div class="col-md-6" id="linkset_filter_col">
+                <div class="list-group" id="linkset_filter_list" style='scroll: horizontal; overflow: auto; height: 10em; width: 100%;'>
+                    <li class="list-group-item list-group-item-warning" uri="none" id="no_filter_linkset"><span class="list-group-item-heading"> None </span></li>'
+                    <!-- To be loaded by the server -->
+                </div>
+            </div>
+          </div>
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+     <div class="row creation" id="creation_linkset_cluster_search_row" style='display:none'>
+      <div class="col-md-12">
+        <div class="panel panel-default">
+        <div class="panel-heading" id="linkset_search_heading_panel">
+         <div class="row">
+          <div class="col-md-5">
+              <h4 class="panel-title">
+                  <span class="badge alert-info"><strong>-</strong></span>
+                  Search Linkset Correspondences
+              </h4>
+          </div>
+          <div class="col-md-7 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="linkset_add_search_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right">
+                           <input type="text" class="form-control" id="linkset_filter_text"
+                                  onfocus='if ($(this).val() == "-- Type a term --") {$(this).val("")}'
+                                  onblur='if ($(this).val() == "") {$(this).val("-- Type a term --")}'
+                                  value="-- Type a term --">
+                       </td>
+                       <td align="right"> &nbsp; </td>
+                       <td align="right">
+                          <button type="button" id="btn_apply_search_linkset"
+                                class="btn btn-primary"
+                                onclick='applyFilterLinksetClick()'
+                                >Search
+                          <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                          </button>
+                        </td>
+               </table>
+              </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+     <div class="row creation" id="creation_linkset_cluster_correspondence_row" style='display:none'>
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" id="linkset_investigation_heading_panel">
+              <h4 class="panel-title">
+                  <a id="link_collapse_linkset_corresp_investigation"
+                     data-toggle="collapse" href="#collapse_linkset_corresp_investigation">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Investigate Linkset Correspondences
+              </h4>
+        </div>
+        <div id="collapse_linkset_corresp_investigation" class="panel-collapse collapse in" target="link_collapse_linkset_corresp_investigation">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12" id="creation_linkset_correspondence_col" style='display:none'>
+
+                <div class="row">
+                    <div class="col-md-4" style='border-right: 1px solid grey; height: 73em;'>
+
+                      <div class="panel panel-primary">
+
+                        <div class="panel-heading" style='scroll: both; overflow: auto;'>
+
+                        </div>
+
+                        <div class="panel-body" style='scroll: both; overflow: auto; height: 64em;'>
+                        </div>
+
+                      </div>
+
+                    </div>
+
+
+                    <div class="col-md-8" id="details_list_col">
+                    </div>
+
+                    <div class="col-md-8 evidence_col" id="evidence_list_col" type="linkset">
+                    </div>
+
+
+                </div>
+
+            </div>
+          </div>
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+  </div>
+</div>
