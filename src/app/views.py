@@ -590,11 +590,12 @@ def linksetdetails():
 
     # RETRIEVE VARIABLES
     linkset = request.args.get('linkset', '')
+    lkst_type = request.args.get('lkst_type', 'oneAligns')
     template = request.args.get('template', 'linksetDetails_list.html')
     rq_uri = request.args.get('rq_uri', '')
     filter_uri = request.args.get('filter_uri', '')
 
-    query = Qry.get_linkset_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri )
+    query = Qry.get_linkset_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri, type=lkst_type )
     metadata = sparql(query, strip=True)
 
     if metadata:
@@ -609,8 +610,8 @@ def linksetdetails():
         query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
         details = sparql(query, strip=True)
 
-        #if PRINT_RESULTS:
-        print "\n\nDETAILS:", details
+        if PRINT_RESULTS:
+            print "\n\nDETAILS:", details
 
         if len(details) > 1 and details[0]['crossCheck']['value'] and details[0]['crossCheck']['value'] == 'True':
             s_property_crossCheck = md['s_property_stripped']['value']
@@ -618,7 +619,6 @@ def linksetdetails():
         else:
             s_property_crossCheck = md['s_property_list_stripped']['value']
             o_property_crossCheck = md['o_property_list_stripped']['value']
-            
 
         data = render_template(template,
             details = details,
