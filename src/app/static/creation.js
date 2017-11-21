@@ -959,6 +959,7 @@ function inspect_linkset_activate(mode='default')
           if (mode == 'inspect_linkset_cluster')
           {
             var linkset_uri = $(this).attr('uri');
+            var linkset_type = $(this).attr('lkst_type');
 
             // load the panel describing the linkset sample
             $('#inspect_linkset_linkset_details_col').show();
@@ -992,11 +993,12 @@ function inspect_linkset_activate(mode='default')
           if (selection)
           {
             var linkset_uri = $(this).attr('uri');
+            var linkset_type = $(this).attr('lkst_type');
 
             // load the panel describing the linkset sample
             $('#inspect_linkset_linkset_details_col').show();
             $('#inspect_linkset_linkset_details_col').html('Loading...');
-            $.get('/getlinksetdetails',data={'linkset': linkset_uri},function(data)
+            $.get('/getlinksetdetails',data={'linkset': linkset_uri, 'lkst_type': linkset_type},function(data)
             {
                 var obj = JSON.parse(data);
                 $('#inspect_linkset_linkset_details_col').html(obj.data);

@@ -292,7 +292,36 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
         { ?uri   rdf:type	void:Linkset } UNION
         { ?uri   rdf:type	bdb:Lens } . """
     elif type == "linkset":
-        type_filter = "?uri   rdf:type	void:Linkset ."
+        type_filter = """?uri   rdf:type	void:Linkset .
+            { 	 ?uri
+                       alivocab:alignsSubjects ?s_prop ;
+                       alivocab:alignsObjects ?o_prop .
+
+                BIND('oneAligns' as ?lkst_type_)
+                filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+            }
+
+            ### SELECTING CREATED LENS OR LINKSETS
+          	UNION
+            {
+                 ?uri
+                       alivocab:alignsSubjects ?s_prop ;
+                       alivocab:alignsObjects ?o_prop .
+                BIND("success" as ?mode)
+                BIND('multipleAligns' as ?lkst_type_)
+                filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
+
+            }
+            UNION
+
+			### SELECTING CREATED LENS OR LINKSETS
+            {
+                 ?uri
+                       alivocab:hasAlignmentTarget  ?target  .
+
+                    BIND('multidimensional' as ?lkst_type_)
+            }
+        """
     elif type == "lens":
         type_filter = "?uri   rdf:type	bdb:Lens ."
     elif type == "view":
@@ -308,9 +337,14 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?uri ?mode ?label
+    SELECT DISTINCT ?uri ?mode ?label ?lkst_type
     WHERE
     {{
+
+        ### FILTER THE TYPE OF GRAPH
+        {1}
+        BIND (IF(bound(?lkst_type_), ?lkst_type_ , "-") AS ?lkst_type)
+
         GRAPH <{0}>
         {{
             ### SELECTING THE DATASETS
@@ -338,10 +372,8 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
             {2}
             OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
             BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
-        }}
 
-        ### FILTER THE TYPE OF GRAPH
-        {1}
+        }}
 
         ### FILTER THE ALIGNED DATASET
         {3}
@@ -1324,7 +1356,251 @@ def get_linksetCluster_corresp_sample_details(linkset, limit=1, crossCheck=True)
     return query
 
 
-def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
+def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filter_term='', type='oneAligns', count=True):
+
+    filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
+    # print 'FILTERS:', filters
+
+    count_query = ''
+    if count is True:
+        count_query = """
+                    SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
+                    {{
+                        GRAPH <{0}> {{ ?sub ?pred ?obj }}
+                        GRAPH <{5}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
+                                   ?pred2 ?p ?o .
+                            # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+                            {3}
+                        }}
+
+                        # FILTER BY CONDITION
+                        {1}
+
+                        # FILTER BY TERM MATCH
+                        {4}
+
+                    }}
+                    # FILTER BY COUNT
+                    {2}
+        """.format(linkset, filters['filter_condition'],
+                   filters['filter_count'], filters['filter_count_aux'],
+                   filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
+
+    if type == 'oneAligns':
+        query = PREFIX + """
+        ### LINKSET DETAILS
+
+        SELECT DISTINCT
+        (GROUP_CONCAT(DISTINCT ?s_prop; SEPARATOR=" | ") as ?s_property_list)
+        (GROUP_CONCAT(DISTINCT ?o_prop; SEPARATOR=" | ") as ?o_property_list)
+        (GROUP_CONCAT(?mec; SEPARATOR=" | ") as ?mechanism_list)
+        #(GROUP_CONCAT(?triple; SEPARATOR=" | ") as ?triples)
+        ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
+        ?threshold ?delta ?dist ?dist_unit
+        ?s_property ?o_property ?mechanism
+        ?s_crossCheck_property ?o_crossCheck_property
+        WHERE {{
+            bind (<{0}> as ?graph)
+            ?graph
+                (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
+                alivocab:alignsSubjects     ?s_property;
+                alivocab:alignsObjects      ?o_property ;
+                alivocab:alignsMechanism    ?mechanism .
+            ?linkset
+                alivocab:alignsMechanism    ?mec ;
+                void:subjectsTarget         ?subTarget ;
+                bdb:subjectsDatatype        ?s_datatype ;
+                alivocab:alignsSubjects     ?s_prop;
+                void:objectsTarget          ?objTarget ;
+                bdb:objectsDatatype         ?o_datatype ;
+                alivocab:alignsObjects      ?o_prop .
+                #void:triples               ?triple .
+
+            OPTIONAL {{
+                <{0}>
+                alivocab:threshold          ?threshold_ .
+            }}
+            OPTIONAL {{
+                <{0}>
+                alivocab:delta              ?delta_ .
+            }}
+
+                BIND (IF(bound(?s_crossCheck_property_), ?s_crossCheck_property_ , '') AS ?s_crossCheck_property)
+                BIND (IF(bound(?o_crossCheck_property_), ?o_crossCheck_property_ , '') AS ?o_crossCheck_property)
+
+                BIND (IF(bound(?threshold_), ?threshold_ , 0) AS ?threshold)
+                BIND (IF(bound(?delta_), ?delta_ , '') AS ?delta)
+                BIND (IF(bound(?unit_), ?unit_ , '') AS ?dist_unit)
+                BIND (IF(bound(?unit_value_), ?unit_value_ , '') AS ?dist)
+                BIND ("" AS ?operator)
+
+                # COUNT TRIPLES ACCORDING TO FILTER
+                {{ {2} }}
+
+            }}
+        GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples
+        ?operator
+        ?s_property ?o_property ?mechanism ?threshold ?delta ?dist ?dist_unit
+        ?s_crossCheck_property ?o_crossCheck_property
+        # LIMIT {1}
+        """.format(linkset, limit, count_query)
+    else:
+        query = PREFIX + """
+        ### LINKSET DETAILS
+
+        SELECT DISTINCT
+        (GROUP_CONCAT(DISTINCT ?s_prop; SEPARATOR=" | ") as ?s_property_list)
+        (GROUP_CONCAT(DISTINCT ?o_prop; SEPARATOR=" | ") as ?o_property_list)
+        (GROUP_CONCAT(?mec; SEPARATOR=" | ") as ?mechanism_list)
+        #(GROUP_CONCAT(?triple; SEPARATOR=" | ") as ?triples)
+        ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
+        #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
+        ?threshold ?delta ?dist ?dist_unit
+        ?s_property ?o_property ?mechanism
+        ?s_crossCheck_property ?o_crossCheck_property
+        WHERE {{
+            bind (<{0}> as ?graph)
+            ?graph
+                # (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
+                # Temporarilly changed due to strange result in windows computer
+                # after adding the union for addressing list of aligns-properties.
+                # To be further checked because this affects the visulisation of
+                # linkset that are derived from other alignments,
+                # e.g. showing several times the mechanism
+                prov:wasDerivedFrom*/void:target*/prov:wasDerivedFrom*       ?linkset ;
+                alivocab:alignsMechanism    ?mechanism .
+            ?linkset
+                alivocab:alignsMechanism    ?mec ;
+                void:subjectsTarget         ?subTarget ;
+                bdb:subjectsDatatype        ?s_datatype ;
+                void:objectsTarget          ?objTarget ;
+                bdb:objectsDatatype         ?o_datatype .
+
+          {{ select ?graph ?linkset
+                        (GROUP_CONCAT(DISTINCT ?s_prop_; SEPARATOR=" | ") as ?s_prop)
+                        (GROUP_CONCAT(DISTINCT ?o_prop_; SEPARATOR=" | ") as ?o_prop)
+                         ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
+          {{
+            ?linkset    alivocab:alignsSubjects     ?SRC_onj .
+            ?SRC_onj    rdf:rest*/rdf:first         ?s_prop_ .
+            ?graph      alivocab:crossCheckSubject  ?s_property .
+            ?graph      alivocab:crossCheckSubject  ?s_crossCheck_property_ .
+
+            ?linkset    alivocab:alignsObjects      ?trg_onj .
+            ?trg_onj    rdf:rest*/rdf:first         ?o_prop_ .
+            ?graph      alivocab:crossCheckObject   ?o_property .
+            ?graph      alivocab:crossCheckObject   ?o_crossCheck_property_ .
+
+             filter (isBlank(?s_prop_) = "FALSE"^^xsd:boolean) .
+             filter (isBlank(?o_prop_) = "FALSE"^^xsd:boolean) .
+          }} GROUP BY ?graph ?linkset ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
+          }}
+
+
+            OPTIONAL {{
+                <{0}>
+                alivocab:threshold          ?threshold_ .
+            }}
+            OPTIONAL {{
+                <{0}>
+                alivocab:delta              ?delta_ .
+            }}
+            OPTIONAL {{
+                <{0}>
+                alivocab:unit                   ?unit_ .
+            }}
+            OPTIONAL {{
+                <{0}>
+                alivocab:unitValue              ?unit_value_ .
+            }}
+
+                BIND (IF(bound(?s_crossCheck_property_), ?s_crossCheck_property_ , '') AS ?s_crossCheck_property)
+                BIND (IF(bound(?o_crossCheck_property_), ?o_crossCheck_property_ , '') AS ?o_crossCheck_property)
+
+                BIND (IF(bound(?threshold_), ?threshold_ , 0) AS ?threshold)
+                BIND (IF(bound(?delta_), ?delta_ , '') AS ?delta)
+                BIND (IF(bound(?unit_), ?unit_ , '') AS ?dist_unit)
+                BIND (IF(bound(?unit_value_), ?unit_value_ , '') AS ?dist)
+                BIND ("" AS ?operator)
+
+                # COUNT TRIPLES ACCORDING TO FILTER
+                {{ {2} }}
+
+            }}
+        GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples
+        #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
+        ?operator
+        ?s_property ?o_property ?mechanism ?threshold ?delta ?dist ?dist_unit
+        ?s_crossCheck_property ?o_crossCheck_property
+        # LIMIT {1}
+        """.format(linkset, limit, count_query)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_linksetCluster_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
+
+    filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
+    # print 'FILTERS:', filters
+
+    count_query = """
+                SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
+                {{
+                    GRAPH <{0}> {{ ?sub ?pred ?obj }}
+                    GRAPH <{5}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
+                               ?pred2 ?p ?o .
+                        # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+                        {3}
+                    }}
+
+                    # FILTER BY CONDITION
+                    {1}
+
+                    # FILTER BY TERM MATCH
+                    {4}
+
+                }}
+                # FILTER BY COUNT
+                {2}
+    """.format(linkset, filters['filter_condition'],
+               filters['filter_count'], filters['filter_count_aux'],
+               filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
+
+    query = PREFIX + """
+    ### LINKSET DETAILS
+
+     SELECT DISTINCT ?mechanism ?triples
+	(GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
+		?dataset ?datatype
+    WHERE {{
+        bind (<{0}> as ?graph)
+        ?graph
+            (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
+            alivocab:alignsMechanism    ?mechanism .
+        ?linkset
+            alivocab:alignsMechanism    ?mec ;
+            alivocab:hasAlignmentTarget  ?target .
+		?target
+                alivocab:hasTarget  	?dataset ;
+                alivocab:hasDatatype   	?datatype ;
+                alivocab:aligns		    ?property .
+
+            # COUNT TRIPLES ACCORDING TO FILTER
+            {{ {2} }}
+
+        }}
+    GROUP BY ?triples ?mechanism ?linkset ?dataset ?datatype
+    # LIMIT {1}
+    """.format(linkset, limit, count_query)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_linkset_corresp_details_old(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
 
     filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
     # print 'FILTERS:', filters
@@ -1384,7 +1660,7 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
             bdb:subjectsDatatype        ?s_datatype ;
             #alivocab:alignsSubjects     ?s_prop;
             void:objectsTarget          ?objTarget ;
-            bdb:objectsDatatype         ?o_datatype ;
+            bdb:objectsDatatype         ?o_datatype .
             #alivocab:alignsObjects      ?o_prop .
             #void:triples               ?triple .
 
@@ -1482,68 +1758,7 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
         print query
     return query
 
-
-def get_linksetCluster_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
-
-    filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
-    # print 'FILTERS:', filters
-
-    count_query = """
-                SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
-                {{
-                    GRAPH <{0}> {{ ?sub ?pred ?obj }}
-                    GRAPH <{5}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
-                               ?pred2 ?p ?o .
-                        # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
-                        {3}
-                    }}
-
-                    # FILTER BY CONDITION
-                    {1}
-
-                    # FILTER BY TERM MATCH
-                    {4}
-
-                }}
-                # FILTER BY COUNT
-                {2}
-    """.format(linkset, filters['filter_condition'],
-               filters['filter_count'], filters['filter_count_aux'],
-               filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
-
-    query = PREFIX + """
-    ### LINKSET DETAILS
-
-     SELECT DISTINCT ?mechanism ?triples
-	(GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
-		?dataset ?datatype
-    WHERE {{
-        bind (<{0}> as ?graph)
-        ?graph
-            (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
-            alivocab:alignsMechanism    ?mechanism .
-        ?linkset
-            alivocab:alignsMechanism    ?mec ;
-            alivocab:hasAlignmentTarget  ?target .
-		?target
-                alivocab:hasTarget  	?dataset ;
-                alivocab:hasDatatype   	?datatype ;
-                alivocab:aligns		    ?property .
-
-            # COUNT TRIPLES ACCORDING TO FILTER
-            {{ {2} }}
-
-        }}
-    GROUP BY ?triples ?mechanism ?linkset ?dataset ?datatype
-    # LIMIT {1}
-    """.format(linkset, limit, count_query)
-
-    if DETAIL:
-        print query
-    return query
-
-
-def get_linkset_corresp_details_old(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
+def get_linkset_corresp_details_even_older(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
 
     filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
     # print 'FILTERS:', filters

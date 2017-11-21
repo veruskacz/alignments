@@ -10,7 +10,9 @@
                 {% else %}
                     label='{{ l.uri_stripped.value }}'
                 {% endif %}
-                >
+                {% if (l.lkst_type) %}
+                    lkst_type = '{{ l.lkst_type.value }}'
+                {% endif %} >
                 <span class="list-group-item-heading">
                 {% if (l.mode.value == 'info') or (l.mode.value == 'warning') or
                       (l.mode.value == 'danger') or (l.mode.value == 'success')%}
