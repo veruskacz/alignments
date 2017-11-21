@@ -806,7 +806,7 @@ def load_triple_store(graph_uri, directory, data):
     return {"result": triples, "message": "{} inserted".format(triples)}
 
 
-def listening(directory):
+def listening(directory, sleep_time=10):
 
     # run indefinitely
     print directory
@@ -817,15 +817,29 @@ def listening(directory):
 
         # print the most recent listing
         for lock in lock_file:
-            print"{} is active".format(lock)
+            print"\t>>> {} is active".format(lock)
 
-        if len(lock_file) > 0:
-            print "THE SERVER IS ON."
+        try:
+            response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
+        except Exception as err:
+            response = str(err)
+
+        if str(response).__contains__("10061"):
+            print "\t>>> The connection has not been established yet with the stardog server..."
+
+        if len(lock_file) > 0 and str(response).__contains__("401"):
+            print "\t>>> THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
+            return "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
+
+        if len(lock_file) > 0 and (str(response).__contains__("200") or
+                str(response).__contains__("No connection") is False):
+            print "\t>>> >>> THE SERVER IS ON."
             return "THE SERVER IS ON."
-        print "Listening for \"system.lock\" file..."
+
+        print "\nListening for \"system.lock\" file and checking whether a connection to the server is established..."
         # wait a little bit before getting the next listing
         # if you want near instantaneous updates, make the sleep value small.
-        time.sleep(5)
+        time.sleep(sleep_time)
 
 
 def stardog_on(bat_path):
@@ -887,6 +901,7 @@ def stardog_on(bat_path):
                     response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
                 except Exception as err:
                     response = str(err)
+
                 if str(response).__contains__("200"):
                     print ">>> THE SERVER IS ON."
                 return "THE SERVER IS ON"

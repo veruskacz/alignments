@@ -198,3 +198,11 @@ crossCheck = "crossCheck"
 unit = "unit"
 unit_value = "unit_value"
 
+
+# CLUSTERING
+child = "children"
+children = "children"
+matrix = "matrix"
+column = "column"
+
+
