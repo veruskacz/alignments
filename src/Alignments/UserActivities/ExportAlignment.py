@@ -119,10 +119,11 @@ def export_alignment(alignment):
     # GET THE METADATA OF THE ALIGNMENT: THE QUERY
     meta = """
     PREFIX ll: <{0}>
-    CONSTRUCT {{ {1} ?y ?z }}
+    CONSTRUCT {{ {1} ?y ?z. ?z ?p ?o . }}
     WHERE
     {{
-        {1} ?y ?z
+        {1} ?y ?z .
+        #?z ?p ?o .
     }} order by ?y
     """.format(Ns.alivocab, alignment)
     # print meta
@@ -131,6 +132,7 @@ def export_alignment(alignment):
     meta_construct = Qry.endpointconstruct(meta, clean=False)
     meta_construct = meta_construct.replace("{", "").replace("}", "")
     print meta_construct
+
 
     # LOAD THE METADATA USING RDFLIB
     sg = rdflib.Graph()
