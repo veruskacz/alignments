@@ -904,8 +904,8 @@ def create_clusters(initial_dataset_uri, property_uri,
             create_cluster(constraint_table[i], initial_dataset_uri, property_uri, count=i,
                            reference=reference_uri, group_name=group_name, strong=strong, activated=True)
 
-        if i == 3:
-            break
+        # if i == 3:
+        #     break
 
     # print "reference_uri:",
 
@@ -1293,8 +1293,8 @@ def add_to_clusters(reference, dataset_uri, property_uri, activated=False):
             # print "cluster_table[i][0]:", cluster_table[0]
             add_to_cluster(cluster_table[i][0], reference, dataset_uri, property_uri, count=i, activated=True)
 
-            if i == 3:
-                break
+            # if i == 3:
+            #     break
 
     # ----------------------------------------------------------------
     # >>> PHASE 2: CREATION OF NEW CLUSTERS
@@ -1645,8 +1645,8 @@ def linkset_from_clusters(specs, activated=False):
     for i in range(1, len(cluster_table)):
         result = linkset_from_cluster(specs, cluster_table[i][0], linkset_name, count=i, activated=activated)
         correspondences += int(result["correspondences"])
-        if i == 1:
-            break
+        # if i == 1:
+        #     break
 
     if correspondences > 0:
         print "\nINSERTING THE GENERIC METADATA AS A TOTAL OF {} CORRESPONDENCE(S) WERE INSERTED.".format(
