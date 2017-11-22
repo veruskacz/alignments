@@ -1566,7 +1566,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
                Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.alignmentTarget,
                # 12                        13
                re_writer_1["insert_list"], re_writer_2["insert_list"])
-    print query
+    # print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
     print "\t{:20}: {}".format("STARTED ON", datetime.datetime.today().strftime(_format))
@@ -1645,8 +1645,8 @@ def linkset_from_clusters(specs, activated=False):
     for i in range(1, len(cluster_table)):
         result = linkset_from_cluster(specs, cluster_table[i][0], linkset_name, count=i, activated=activated)
         correspondences += int(result["correspondences"])
-        # if i == 1:
-        #     break
+        if i == 1:
+            break
 
     if correspondences > 0:
         print "\nINSERTING THE GENERIC METADATA AS A TOTAL OF {} CORRESPONDENCE(S) WERE INSERTED.".format(
