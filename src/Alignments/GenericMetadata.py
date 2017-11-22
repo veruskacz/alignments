@@ -696,4 +696,7 @@ def cluster_2_linkset_metadata(specs):
     """.format(Ns.alivocab, Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.linkset, Ns.alignmentTarget,
                # 8                      9            10                       11
                specs[St.linkset_name], Ns.mechanism, alignment_targets["list"], alignment_targets["binds"])
+
+    specs["metadata"] = query
     Qry.boolean_endpoint_response(query)
+
