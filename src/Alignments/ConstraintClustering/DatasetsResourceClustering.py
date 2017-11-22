@@ -1648,8 +1648,8 @@ def linkset_from_clusters(specs, activated=False):
     for i in range(1, len(cluster_table)):
         result = linkset_from_cluster(specs, cluster_table[i][0], linkset_name, count=i, activated=activated)
         correspondences += int(result["correspondences"])
-        if i == 1:
-            break
+        # if i == 1:
+        #     break
 
     if correspondences > 0:
         print "\nINSERTING THE GENERIC METADATA AS A TOTAL OF {} CORRESPONDENCE(S) WERE INSERTED.".format(
