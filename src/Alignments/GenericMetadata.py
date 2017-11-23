@@ -643,14 +643,14 @@ def target_datatype_properties(model, label, linkset_label):
             # LIST OF PROPERTIES
             for i in range(0, len(properties)):
                 property = properties[i] if Ut.is_nt_format(properties[i]) else "<{}>".format(data[i][St.properties][i])
-                property_list += "?property_{}_{} ".format(count, i) if i == 0 \
-                    else ",\n{}?property_{}_{} ".format(tabs, count, i)
+                property_list += "?property_{}_{}_{} ".format(count, n, i) if i == 0 \
+                    else ",\n{}?property_{}_{}_{} ".format(tabs, count, n, i)
 
                 if i == 0 and count == 1:
-                    property_list_bind += """BIND( IRI("{}") AS ?property_{}_{})""".format(property, count, i)
+                    property_list_bind += """BIND( IRI("{}") AS ?property_{}_{}_{})""".format(property, count, n, i)
                 else:
-                    property_list_bind += """\n{}BIND( IRI("{}") AS ?property_{}_{})""".format(
-                        main_tabs, property, count, i)
+                    property_list_bind += """\n{}BIND( IRI("{}") AS ?property_{}_{}_{})""".format(
+                        main_tabs, property, count, n, i)
 
             triples = """
     {5}linkset:{4}  ll:hasAlignmentTarget  {0} .
@@ -696,4 +696,7 @@ def cluster_2_linkset_metadata(specs):
     """.format(Ns.alivocab, Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.linkset, Ns.alignmentTarget,
                # 8                      9            10                       11
                specs[St.linkset_name], Ns.mechanism, alignment_targets["list"], alignment_targets["binds"])
+
+    specs["metadata"] = query
     Qry.boolean_endpoint_response(query)
+

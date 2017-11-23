@@ -7,6 +7,9 @@ import datetime
 import time
 import re
 from Alignments.GenericMetadata import cluster_2_linkset_metadata as metadata
+import Alignments.Server_Settings as Ss
+from Alignments.Linksets.Linkset import writelinkset
+DIRECTORY = Ss.settings[St.linkset_Exact_dir]
 
 
 """
@@ -1566,7 +1569,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
                Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.alignmentTarget,
                # 12                        13
                re_writer_1["insert_list"], re_writer_2["insert_list"])
-    print query
+    # print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
     print "\t{:20}: {}".format("STARTED ON", datetime.datetime.today().strftime(_format))
@@ -1652,6 +1655,12 @@ def linkset_from_clusters(specs, activated=False):
         print "\nINSERTING THE GENERIC METADATA AS A TOTAL OF {} CORRESPONDENCE(S) WERE INSERTED.".format(
             correspondences)
         metadata(specs)
+
+        src = ["source", "", "entity_ns"]
+        trg = ["target", "graph_name", "", "St.entity_ns"]
+        linkset_path = DIRECTORY
+        writelinkset(src, trg, specs[St.linkset_name], linkset_path, specs["metadata"])
+
 
     return result
 
