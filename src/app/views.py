@@ -1454,17 +1454,12 @@ def spa_linkset():
             'entity_datatype': request.args.get('trg_entity_datatype', '')
         },
 
-        'mechanism': request.args.get('mechanism', ''),
-
-        St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
-
-        St.unit: Ns.meter.rsplit('#', 1)[0] + '#' + request.args.get('geo_unit', ''),
-        St.unit_value: request.args.get('geo_dist', '')
+        'mechanism': request.args.get('mechanism', '')
     }
 
     if request.args.get('delta', ''):
         specs[St.delta] = request.args.get('delta', '')
-        # print specs[St.delta]
+        print specs[St.delta]
 
     if len(request.args.get('intermediate_graph', '')) > 0:
         specs[St.intermediate_graph] = request.args.get('intermediate_graph', '')
@@ -1493,8 +1488,17 @@ def spa_linkset():
 
     if len(request.args.get('trg_long', '')) > 0:
         specs[St.target][St.longitude] = request.args.get('trg_long', '')
-    #
-    # print specs
+
+    if request.args.get('numeric_approx_type', ''):
+        specs[St.numeric_approx_type] = request.args.get('numeric_approx_type', '')
+
+    if request.args.get('geo_unit', ''):
+        specs[St.unit] = Ns.meter.rsplit('#', 1)[0] + '#' + request.args.get('geo_unit', '')
+
+    if request.args.get('geo_dist', ''):
+        specs[St.unit_value] = request.args.get('geo_dist', '')
+
+    print specs
     # return json.dumps('')
 
     check_type = "linkset"
@@ -1508,6 +1512,9 @@ def spa_linkset():
         # print threshold
         stop_words = request.args.get('stop_words', '')
         stop_symbols = request.args.get('stop_symbols', '')
+
+        print threshold, stop_words, stop_symbols
+        # return json.dumps('')
 
         if CREATION_ACTIVE:
 
@@ -1526,15 +1533,16 @@ def spa_linkset():
                 linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
 
             elif specs['mechanism'] == 'approxStrSim':
+                print 1
                 linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
             elif specs['mechanism'] == 'approxNbrSim':
 
                 try:
-                    print "2"
+                    # print "2"
                     delta = float(specs[St.delta])
                     specs[St.delta] = delta
-                    print "2"
+                    # print "2"
                     linkset_result = spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
                                                                   activated=FUNCTION_ACTIVATED)
                 except:
@@ -1546,10 +1554,10 @@ def spa_linkset():
 
             elif specs['mechanism'] == 'geoSim':
                 # linkset_result = None
-                print 'HERE', specs
+                # print 'HERE', specs
                 specs['mechanism'] = 'nearbyGeoSim'
                 linkset_result = spa_linkset2.geo_specs_2_linkset(specs, activated=FUNCTION_ACTIVATED)
-                print linkset_result
+                # print linkset_result
 
             else:
                 linkset_result = None

@@ -291,7 +291,7 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
         type_filter = """
         { ?uri   rdf:type	void:Linkset } UNION
         { ?uri   rdf:type	bdb:Lens } . """
-    elif type == "linkset":
+    elif type == "linksetBiD":
         type_filter = """?uri   rdf:type	void:Linkset .
             { 	 ?uri
                        alivocab:alignsSubjects ?s_prop ;
@@ -312,16 +312,16 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
                 filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
 
             }
-            UNION
-
-			### SELECTING CREATED LENS OR LINKSETS
-            {
+        """
+    elif type == "linksetMultiD":
+        type_filter = """?uri   rdf:type	void:Linkset .
                  ?uri
                        alivocab:hasAlignmentTarget  ?target  .
 
-                    BIND('multidimensional' as ?lkst_type_)
-            }
+                 BIND('multidimensional' as ?lkst_type_)
         """
+    elif type == "linkset":
+        type_filter = "?uri   rdf:type	void:Linkset ."
     elif type == "lens":
         type_filter = "?uri   rdf:type	bdb:Lens ."
     elif type == "view":
