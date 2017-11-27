@@ -2249,7 +2249,7 @@ def get_lens_corresp_details(lens, limit=1):
 
     SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property
     ?objTarget ?o_datatype ?o_property ?s_PredValue ?o_PredValue ?triples ?operator
-    ?s_property_list ?o_property_list
+    ?s_property_list ?o_property_list ?s_crossCheck_property ?o_crossCheck_property
     WHERE
     {{
 
@@ -2294,6 +2294,8 @@ def get_lens_corresp_details(lens, limit=1):
 
         BIND (IF(bound(?mec), ?mec , "") AS ?mechanism)
         BIND (IF(bound(?op), ?op , "") AS ?operator)
+        BIND ("" AS ?s_crossCheck_property)
+        BIND ("" AS ?o_crossCheck_property)
     }}
     LIMIT {1}""".format(lens, limit)
     if DETAIL:

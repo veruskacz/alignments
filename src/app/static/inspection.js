@@ -16,7 +16,6 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
   var crossCheckSubject = detailsDict.s_crossCheck_property.value
   var crossCheckObject = detailsDict.o_crossCheck_property.value
 
-
   hideColDiv('divInvestigation');
 
   if (operator) // THEN IT IS A LENS
@@ -75,6 +74,9 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
 
               $('#inspect_linkset_linkset_details_col').html('');
               $('#inspect_linkset_linkset_details_col').hide();
+              $('#inspect_linkset_cluster_details_col').html('');
+              $('#inspect_linkset_cluster_details_col').hide();
+              $('#inspect_lens_lens_details_col').show();
 
               $('#lens_details_list_col').html('Loading...');
               $.get('/getLensDetail1',data=data,function(data)
@@ -113,9 +115,15 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
 
               });
           }
-          else
-          {
+          else {
               var evidence_div = '#evidence_list_col';
+
+              $('#inspect_linkset_cluster_details_col').html('');
+              $('#inspect_linkset_cluster_details_col').hide();
+              $('#inspect_lens_lens_details_col').html('');
+              $('#inspect_lens_lens_details_col').hide();
+              $('#inspect_linkset_linkset_details_col').show();
+
               // GEt CORRESPONDENCE DETAILS
               $('#details_list_col').html('Loading...');
               $.get('/getdetails',data=data,function(data)
@@ -157,6 +165,127 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
           {
               $(evidence_div).html(data);
           });
+
+      });
+
+  });
+}
+
+function showDetailsLinksetCluster(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term='')
+{
+  var graph_label = graph_uri;
+//  var subjectTarget = detailsDict.subTarget_stripped.value;
+//  var objectTarget = detailsDict.objTarget_stripped.value;
+//  var subjectTarget_uri = detailsDict.subTarget.value;
+//  var objectTarget_uri = detailsDict.objTarget.value;
+  var graph_triples = detailsDict.triples.value;
+//  var alignsSubjects = detailsDict.s_property.value;
+//  var alignsObjects = detailsDict.o_property.value;
+  var alignsMechanism = detailsDict.mechanism.value;
+//  var operator = detailsDict.operator.value;
+//  var alignsSubjectsList = detailsDict.s_property_list.value
+//  var alignsObjectsList = detailsDict.o_property_list.value
+//  var crossCheckSubject = detailsDict.s_crossCheck_property.value
+//  var crossCheckObject = detailsDict.o_crossCheck_property.value
+
+  hideColDiv('divInvestigation');
+
+  div = 'creation_linkset_cluster_correspondence_col';
+  graph_menu = 'linkset';
+
+  $('#'+div).show();
+  $('#'+div).html('Loading...');
+
+  // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
+  $.get('/getcorrespondences2',data={'rq_uri': rq_uri,
+                                    'graph_uri': graph_uri,
+                                    'filter_uri': filter_uri,
+                                    'filter_term': filter_term,
+                                    'label': graph_label,
+                                    'graph_menu': graph_menu,
+                                    'graph_triples': graph_triples,
+//                                    'operator': operator,
+                                    'alignsMechanism': alignsMechanism},function(data)
+  {
+//      console.log(data);
+      // LOAD THE CORRESPONDENCES DIV WITH THE LIST OF CORRESPONDENCES
+      $('#'+div).html(data);
+
+      // CLICK ON INDIVIDUAL CORRESPONDENCE TO READ DETAILS ABOUT WHY IT
+      // WAS CREATED AND VALIDATE OR REJECTS IT
+      $('#'+div+" a").on('click', function()
+      {
+          var item_id = $(this).attr('id');
+          var uri = $(this).attr('uri');
+          var sub_uri = $(this).attr('sub_uri');
+          var obj_uri = $(this).attr('obj_uri');
+          var source = $(this).attr('source');
+          var target = $(this).attr('target');
+          var source_aligns = $(this).attr('source_aligns');
+          var target_aligns = $(this).attr('target_aligns');
+
+          //HANDLING THE SELECTION/DE-SELECTION OF CLICKED CORRESPONDENCES
+          selectListItemUniqueWithTarget(this);
+
+          var data = {'uri': uri, 'graph_uri': graph_uri,
+                            'sub_uri': sub_uri, 'obj_uri': obj_uri,
+                            'subjectTarget': source,
+                            'objectTarget': target,
+                            'alignsSubjects': source_aligns,
+                            'alignsObjects': target_aligns,
+                            'alignsSubjectsList': [source_aligns],
+                            'alignsObjectsList': [target_aligns],
+                            'crossCheckSubject': source_aligns,
+                            'crossCheckObject': target_aligns
+                            }
+
+          var evidence_div = '#evidence_linkset_cluster_list_col';
+
+          $('#inspect_linkset_linkset_details_col').html('');
+          $('#inspect_linkset_linkset_details_col').hide();
+          $('#inspect_lens_lens_details_col').html('');
+          $('#inspect_lens_lens_details_col').hide();
+          $('#inspect_linkset_cluster_details_col').show();
+
+          // GEt CORRESPONDENCE DETAILS
+          $('#details_linkset_cluster_list_col').html('Loading...');
+          $.get('/getdetails',data=data,function(data)
+          {
+              // DETAIL liST COLUMN
+              $('#details_linkset_cluster_list_col').html(data);
+//
+//              // SOURCE CLICK
+//              $("#srcDatasetLI").on('click', function()
+//              {
+//                $('#srcDetails').html('Loading...');
+//                $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
+//                {
+//                  $('#srcDetails').html(data);
+//                  $("#srcDetails li").on('click', function()
+//                  {  selectListItemUniqueWithTarget(this);
+//                  });
+//                });
+//              });
+//
+//               // TARGET CLICK
+//              $("#trgDatasetLI").on('click', function()
+//              {
+//                $('#trgDetails').html('Loading...');
+//                $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
+//                {
+//                  $('#trgDetails').html(data);
+//                  $("#trgDetails li").on('click', function()
+//                  {  selectListItemUniqueWithTarget(this);
+//                  });
+//                });
+//              });
+          });
+//
+//          $(evidence_div).html('Loading...');
+//          $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
+//          {
+//              $(evidence_div).html(data);
+//          });
 
       });
 

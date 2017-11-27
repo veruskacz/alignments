@@ -664,8 +664,8 @@ function inspect_linkset_cluster_activate(mode='default')
                 {
 //                   $('#creation_linkset_cluster_filter_row').show();
 //                   $('#creation_linkset_cluster_search_row').show();
-//                   $('#creation_linkset_cluster_correspondence_row').show();
-                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
+                   $('#creation_linkset_cluster_correspondence_row').show();
+                   showDetailsLinksetCluster(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
                 }
             });
 
@@ -809,8 +809,6 @@ function create_linkset_cluster_activate(mode='default')
 }
 
 
-
-
 function linkset_cluster_load_datasets(rq_uri)
 {
 // Load into div the selected datasets for a certain research question
@@ -912,6 +910,90 @@ function linkset_cluster_load_predicates(rq_uri, source)
 }
 
 
+function createLinksetClusterClick()
+{
+    $('#linkset_cluster_creation_message_col').html("");
+
+    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
+
+    var elems = selectedElemsInGroupList('create_linkset_clusters_reference_selection_col');
+    var reference_uri = ''
+    if (elems.length > 0) reference_uri = $(elems[0]).attr('uri');
+
+    elems = selectedElemsInGroupList('create_linkset_clusters_selection_col');
+    var cluster_uri = ''
+    if (elems.length > 0) cluster_uri = $(elems[0]).attr('uri');
+
+    if ((reference_uri) || (cluster_uri))
+    {
+//        alert(reference_uri);
+//        alert(cluster_uri);
+
+        var targets = []
+        elems = []
+        var elem = document.getElementById('creation_linkset_cluster_selected_predicates_group');
+        if (elem) {
+            elems = elem.getElementsByClassName('list-group-item');
+        }
+        var dict = {};
+        for (i = 0; i < elems.length; i++) {
+
+            var entityType = $(elems[i]).attr('type_uri');
+            if (!entityType) {entityType = 'no_type'};
+            dict = {'ds': $(elems[i]).attr('graph_uri'),
+                    'type': entityType,
+                    'att': $(elems[i]).attr('pred_uri') };
+            targets.push( JSON.stringify(dict));
+        }
+
+        if (targets.length > 0)
+        {
+         var specs = {'cluster_uri': cluster_uri,
+                      'reference_uri': reference_uri,
+                      'mechanism': "exactStrSim",
+                      'rq_uri': rq_uri,
+                      'targets[]': targets};
+
+            chronoReset();
+            $('#linkset_cluster_creation_message_col').html(addNote('The linkset is being created',cl='warning'));
+            loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2);
+//            $.get('/createLinksetFromCluster', specs, function(data)
+//            {
+//                 var obj = JSON.parse(data);
+//
+//                 if (obj.result)
+//                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='info'));
+//                 else
+//                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='warning'));
+//
+//                 loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2, show = false);
+//            });
+
+            $.ajax(
+            {
+                url: '/createLinksetFromCluster',
+                data: specs,
+                type: "GET",
+                timeout: 0,
+                success: function(data){
+                 var obj = JSON.parse(data);
+                 if (obj.result)
+                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='info'));
+                 else
+                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='warning'));
+                 loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2, show = false);
+                }
+            });
+
+        }
+        else {
+            $('#linkset_cluster_creation_message_col').html(addNote(missing_feature));
+        }
+    }
+    else {
+        $('#linkset_cluster_creation_message_col').html(addNote(missing_feature));
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in linksetsCreation.html
@@ -3208,90 +3290,6 @@ function addToClusterClick()
 }
 
 
-function createLinksetClusterClick()
-{
-    $('#linkset_cluster_creation_message_col').html("");
-
-    var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
-
-    var elems = selectedElemsInGroupList('create_linkset_clusters_reference_selection_col');
-    var reference_uri = ''
-    if (elems.length > 0) reference_uri = $(elems[0]).attr('uri');
-
-    elems = selectedElemsInGroupList('create_linkset_clusters_selection_col');
-    var cluster_uri = ''
-    if (elems.length > 0) cluster_uri = $(elems[0]).attr('uri');
-
-    if ((reference_uri) || (cluster_uri))
-    {
-//        alert(reference_uri);
-//        alert(cluster_uri);
-
-        var targets = []
-        elems = []
-        var elem = document.getElementById('creation_linkset_cluster_selected_predicates_group');
-        if (elem) {
-            elems = elem.getElementsByClassName('list-group-item');
-        }
-        var dict = {};
-        for (i = 0; i < elems.length; i++) {
-
-            var entityType = $(elems[i]).attr('type_uri');
-            if (!entityType) {entityType = 'no_type'};
-            dict = {'ds': $(elems[i]).attr('graph_uri'),
-                    'type': entityType,
-                    'att': $(elems[i]).attr('pred_uri') };
-            targets.push( JSON.stringify(dict));
-        }
-
-        if (targets.length > 0)
-        {
-         var specs = {'cluster_uri': cluster_uri,
-                      'reference_uri': reference_uri,
-                      'mechanism': "exactStrSim",
-                      'rq_uri': rq_uri,
-                      'targets[]': targets};
-
-            chronoReset();
-            $('#linkset_cluster_creation_message_col').html(addNote('The linkset is being created',cl='warning'));
-            loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2);
-//            $.get('/createLinksetFromCluster', specs, function(data)
-//            {
-//                 var obj = JSON.parse(data);
-//
-//                 if (obj.result)
-//                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='info'));
-//                 else
-//                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='warning'));
-//
-//                 loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2, show = false);
-//            });
-
-            $.ajax(
-            {
-                url: '/createLinksetFromCluster',
-                data: specs,
-                type: "GET",
-                timeout: 0,
-                success: function(data){
-                 var obj = JSON.parse(data);
-                 if (obj.result)
-                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='info'));
-                 else
-                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='warning'));
-                 loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2, show = false);
-                }
-            });
-
-        }
-        else {
-            $('#linkset_cluster_creation_message_col').html(addNote(missing_feature));
-        }
-    }
-    else {
-        $('#linkset_cluster_creation_message_col').html(addNote(missing_feature));
-    }
-}
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called at onclick of the buttons in viewsCreation.html
 ///////////////////////////////////////////////////////////////////////////////

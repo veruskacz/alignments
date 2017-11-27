@@ -467,6 +467,56 @@ def correspondences2():
                             alignsMechanism = get_URI_local_name(alignsMechanism))
 
 
+@app.route('/getcorrespondences3', methods=['GET'])
+def correspondences3():
+    """
+    This function is called due to request /getcorrespondences
+    It queries the dataset for both all the correspondences in a certain graph URI
+    Expected Input: uri, label (for the graph)
+    The results, ...,
+        are passed as parameters to the template correspondences_list.html
+    """
+    graph_menu = request.args.get('graph_menu', '')
+    rq_uri = request.args.get('rq_uri', '')
+    graph_uri = request.args.get('graph_uri', '')
+    filter_uri = request.args.get('filter_uri', '')
+    filter_term = request.args.get('filter_term', '')
+    graph_label = request.args.get('label','')
+    graph_triples = request.args.get('graph_triples','')
+    alignsMechanism = request.args.get('alignsMechanism', '')
+    operator = request.args.get('operator', '')
+
+    # Try first to query using stardog approximate search.
+    # If this does not work, then try exact string match
+    try:
+        query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
+        correspondences = sparql(query, strip=True)
+        # print ">>>> Results corr", correspondences, type(correspondences)
+        if correspondences == [{}]:
+            correspondences = []
+        elif (str(correspondences).find('com.complexible.stardog.plan.eval.ExecutionException') >= 0):
+            # print 'TEST'
+            raise Exception(correspondences)
+    except:
+        try:
+            query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=False)
+            correspondences = sparql(query, strip=True)
+        except:
+            correspondences = []
+
+    if PRINT_RESULTS:
+        print "\n\nCORRESPONDENCES:", correspondences
+
+    return render_template('correspondences_list3.html',
+                            operator = operator,
+                            graph_menu = graph_menu,
+                            correspondences = correspondences,
+                            graph_uri = graph_uri,
+                            graph_label = get_URI_local_name(graph_label.replace("_()","")).replace("_"," "),
+                            graph_triples = graph_triples,
+                            alignsMechanism = get_URI_local_name(alignsMechanism))
+
+
 @app.route('/setlinkesetfilter', methods=['GET'])
 def setlinkesetfilter():
     rq_uri = request.args.get('rq_uri', '')
@@ -531,8 +581,8 @@ def details():
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
     objectTarget = request.args.get('objectTarget', '')
-    # alignsSubjects = request.args.get('alignsSubjectsList', '')
-    # alignsObjects = request.args.get('alignsObjectsList', '')
+    alignsSubjects = request.args.get('alignsSubjectsList', '')
+    alignsObjects = request.args.get('alignsObjectsList', '')
     alignsSubjectsList = map((lambda x: x.strip()),request.args.get('alignsSubjectsList', '').split('|'))
     alignsObjectsList = map((lambda x: x.strip()),request.args.get('alignsObjectsList', '').split('|'))
     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
@@ -555,8 +605,6 @@ def details():
     if o_crossCheck_property != '':
         alignsObjectsList += [o_crossCheck_property]
 
-    print s_crossCheck_property, alignsSubjectsList
-    print o_crossCheck_property, alignsObjectsList
     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
     # print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
     # print query
@@ -576,6 +624,56 @@ def details():
                             objectTarget = objectTarget,
                             alignsSubjects = alignsSubjects,
                             alignsObjects = alignsObjects)
+
+
+@app.route('/getdetailslkstcluster', methods=['GET'])
+def getdetailslkstcluster():
+    """
+    This function is called due to request /getdetails
+    It queries the dataset for both all the correspondences in a certain graph URI
+    Expected Input: uri, label (for the graph)
+    The results, ...,
+        are passed as parameters to the template details_list.html
+    """
+
+    # RETRIEVE VARIABLES
+    sub_uri = request.args.get('sub_uri', '')
+    obj_uri = request.args.get('obj_uri', '')
+    # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
+
+    if len(alignsSubjectsList) > 1:
+        alignsSubjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsSubjectsList)
+    else:
+        alignsSubjects = Ut.get_uri_local_name(request.args.get('alignsSubjectsList', ''))
+
+    if len(alignsObjectsList) > 1:
+        alignsObjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsObjectsList)
+    else:
+        alignsObjects = Ut.get_uri_local_name(request.args.get('alignsObjectsList', ''))
+
+    s_crossCheck_property = request.args.get('crossCheckSubject', '')
+    if s_crossCheck_property != '':
+        alignsSubjectsList += [s_crossCheck_property]
+
+    o_crossCheck_property = request.args.get('crossCheckObject', '')
+    if o_crossCheck_property != '':
+        alignsObjectsList += [o_crossCheck_property]
+
+    query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
+    details = sparql(query, strip=True)
+
+    if PRINT_RESULTS:
+        print "\n\nDETAILS:", details
+
+    return render_template('details_list.html',
+                            details = details,
+                            sub_uri = sub_uri,
+                            obj_uri = obj_uri,
+                            subjectTarget = subjectTarget,
+                            objectTarget = objectTarget,
+                            alignsSubjects = alignsSubjects,
+                            alignsObjects = alignsObjects)
+
 
 
 @app.route('/getlinksetdetails', methods=['GET'])
