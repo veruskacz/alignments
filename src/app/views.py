@@ -48,7 +48,7 @@ if CREATION_ACTIVE:
     import Alignments.UserActivities.ExportAlignment as Ex
     from Alignments.SimilarityAlgo.Analysis import ds_stats
     from kitchen.text.converters import to_bytes, to_unicode
-    import Alignments.UserActivities.Clustering as Clt
+    # import Alignments.UserActivities.Clustering as Clt
 
     import Alignments.Server_Settings as Svr
 
@@ -489,7 +489,7 @@ def correspondences3():
     # Try first to query using stardog approximate search.
     # If this does not work, then try exact string match
     try:
-        query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
+        query = Qry.get_correspondences3(rq_uri, graph_uri, filter_uri, filter_term)
         correspondences = sparql(query, strip=True)
         # print ">>>> Results corr", correspondences, type(correspondences)
         if correspondences == [{}]:
@@ -499,7 +499,7 @@ def correspondences3():
             raise Exception(correspondences)
     except:
         try:
-            query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=False)
+            query = Qry.get_correspondences3(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=False)
             correspondences = sparql(query, strip=True)
         except:
             correspondences = []
@@ -581,8 +581,8 @@ def details():
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
     objectTarget = request.args.get('objectTarget', '')
-    alignsSubjects = request.args.get('alignsSubjectsList', '')
-    alignsObjects = request.args.get('alignsObjectsList', '')
+    # alignsSubjects = request.args.get('alignsSubjectsList', '')
+    # alignsObjects = request.args.get('alignsObjectsList', '')
     alignsSubjectsList = map((lambda x: x.strip()),request.args.get('alignsSubjectsList', '').split('|'))
     alignsObjectsList = map((lambda x: x.strip()),request.args.get('alignsObjectsList', '').split('|'))
     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
