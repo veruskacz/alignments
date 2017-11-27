@@ -197,7 +197,7 @@ function showDetailsLinksetCluster(rq_uri, graph_uri, detailsDict, filter_uri=''
   $('#'+div).html('Loading...');
 
   // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
-  $.get('/getcorrespondences2',data={'rq_uri': rq_uri,
+  $.get('/getcorrespondences3',data={'rq_uri': rq_uri,
                                     'graph_uri': graph_uri,
                                     'filter_uri': filter_uri,
                                     'filter_term': filter_term,
@@ -233,8 +233,8 @@ function showDetailsLinksetCluster(rq_uri, graph_uri, detailsDict, filter_uri=''
                             'objectTarget': target,
                             'alignsSubjects': source_aligns,
                             'alignsObjects': target_aligns,
-                            'alignsSubjectsList': [source_aligns],
-                            'alignsObjectsList': [target_aligns],
+                            'alignsSubjectsList': source_aligns,
+                            'alignsObjectsList': target_aligns,
                             'crossCheckSubject': source_aligns,
                             'crossCheckObject': target_aligns
                             }
@@ -246,46 +246,48 @@ function showDetailsLinksetCluster(rq_uri, graph_uri, detailsDict, filter_uri=''
           $('#inspect_lens_lens_details_col').html('');
           $('#inspect_lens_lens_details_col').hide();
           $('#inspect_linkset_cluster_details_col').show();
+          $('#details_linkset_cluster_list_col').show();
 
           // GEt CORRESPONDENCE DETAILS
           $('#details_linkset_cluster_list_col').html('Loading...');
           $.get('/getdetails',data=data,function(data)
           {
               // DETAIL liST COLUMN
+//              console.log(data)
               $('#details_linkset_cluster_list_col').html(data);
-//
-//              // SOURCE CLICK
-//              $("#srcDatasetLI").on('click', function()
-//              {
-//                $('#srcDetails').html('Loading...');
-//                $.get('/getdatadetails',data={'dataset_uri': subjectTarget_uri, 'resource_uri': sub_uri},function(data)
-//                {
-//                  $('#srcDetails').html(data);
-//                  $("#srcDetails li").on('click', function()
-//                  {  selectListItemUniqueWithTarget(this);
-//                  });
-//                });
-//              });
-//
-//               // TARGET CLICK
-//              $("#trgDatasetLI").on('click', function()
-//              {
-//                $('#trgDetails').html('Loading...');
-//                $.get('/getdatadetails',data={'dataset_uri': objectTarget_uri, 'resource_uri': obj_uri},function(data)
-//                {
-//                  $('#trgDetails').html(data);
-//                  $("#trgDetails li").on('click', function()
-//                  {  selectListItemUniqueWithTarget(this);
-//                  });
-//                });
-//              });
+
+              // SOURCE CLICK
+              $("#srcDatasetLI").on('click', function()
+              {
+                $('#srcDetails').html('Loading...');
+                $.get('/getdatadetails',data={'dataset_uri': source, 'resource_uri': sub_uri},function(data)
+                {
+                  $('#srcDetails').html(data);
+                  $("#srcDetails li").on('click', function()
+                  {  selectListItemUniqueWithTarget(this);
+                  });
+                });
+              });
+
+               // TARGET CLICK
+              $("#trgDatasetLI").on('click', function()
+              {
+                $('#trgDetails').html('Loading...');
+                $.get('/getdatadetails',data={'dataset_uri': target, 'resource_uri': obj_uri},function(data)
+                {
+                  $('#trgDetails').html(data);
+                  $("#trgDetails li").on('click', function()
+                  {  selectListItemUniqueWithTarget(this);
+                  });
+                });
+              });
           });
-//
-//          $(evidence_div).html('Loading...');
-//          $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
-//          {
-//              $(evidence_div).html(data);
-//          });
+
+          $(evidence_div).html('Loading...');
+          $.get('/getevidence',data={'singleton_uri': uri, 'graph_uri': graph_uri},function(data)
+          {
+              $(evidence_div).html(data);
+          });
 
       });
 

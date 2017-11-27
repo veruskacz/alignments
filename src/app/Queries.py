@@ -638,6 +638,43 @@ def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=
     return query
 
 
+def get_correspondences3(rq_uri, graph_uri, filter_uri='', filter_term='', limit=100, useStardogApprox=True):
+
+    filters = get_filter_conditions(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=useStardogApprox)
+
+    query = PREFIX + """
+    ### GET CORRESPONDENCES
+    SELECT DISTINCT ?sub ?pred ?obj ?source ?target ?source_aligns ?target_aligns
+    {{
+        GRAPH <{1}> {{ ?sub ?pred ?obj }}
+        GRAPH <{6}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
+                  ?pred2 ?p ?o ;
+                  void:subjectsTarget ?source ;
+                  void:objectsTarget ?target ;
+                  alivocab:alignsSubjects ?source_aligns ;
+                  alivocab:alignsObjects ?target_aligns .
+            # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+            {4}
+        }}
+
+        # FILTER BY CONDITION
+        {2}
+
+        # FILTER BY TERM MATCH
+        {5}
+
+    }}
+    # FILTER BY COUNT
+    {3}
+    limit {0}
+    """.format(limit, graph_uri, filters['filter_condition'],
+               filters['filter_count'], filters['filter_count_aux'],
+               filters['filter_term_match'], Ut.from_alignment2singleton(graph_uri))
+    if DETAIL:
+        print query
+    return query
+
+
 def get_target_datasets(graph_uri='', singleton_uri=''):
     query = """
     ### GET TARGET DATASETS
