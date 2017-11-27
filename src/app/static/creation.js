@@ -3281,7 +3281,7 @@ function createLinksetClusterClick()
                      $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='warning'));
                  loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2, show = false);
                 }
-            }
+            });
 
         }
         else {
