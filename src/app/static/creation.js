@@ -617,7 +617,7 @@ function inspect_linkset_cluster_activate(mode='default')
      $.get('/getgraphsperrqtype',
                   data={'rq_uri': rq_uri,
                         'mode': mode,
-                        'type': 'linkset',
+                        'type': 'linksetMultiD',
                         'template': 'list_group.html'},
                   function(data)
      {
@@ -643,8 +643,8 @@ function inspect_linkset_cluster_activate(mode='default')
             var linkset_uri = $(this).attr('uri');
 
             // load the panel describing the linkset sample
-            $('#inspect_linkset_linkset_details_col').show();
-            $('#inspect_linkset_linkset_details_col').html('Loading...');
+            $('#inspect_linkset_cluster_details_col').show();
+            $('#inspect_linkset_cluster_details_col').html('Loading...');
             $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri},function(data)
             {
                 var obj = JSON.parse(data);
@@ -933,7 +933,7 @@ function inspect_linkset_activate(mode='default')
      $.get('/getgraphsperrqtype',
                   data={'rq_uri': rq_uri,
                         'mode': mode,
-                        'type': 'linkset',
+                        'type': 'linksetBiD',
                         'template': 'list_group.html'},
                   function(data)
      {
@@ -1356,10 +1356,13 @@ function createLinksetClick()
 
           'stop_words': $('#linkset_approx_stop_words').val(),
           'stop_symbols': $('#linkset_approx_symbols').val(),
-          'threshold': $('#linkset_approx_threshold').val(),
+          'threshold': $('#linkset_approx_threshold').val()
+        }
 
-          'geo_dist': $('#linkset_geo_match_nbr').val() ,
-          'geo_unit': $('#linkset_geo_match_unit').find("option:selected").text(),
+        if ($('#selected_meth').attr('uri') == 'geoSim')
+        {
+          specs['geo_dist'] = $('#linkset_geo_match_nbr').val() ;
+          specs['geo_unit'] = $('#linkset_geo_match_unit').find("option:selected").text();
         }
 
         if ($('#selected_meth').attr('uri') == 'approxNbrSim')
@@ -1388,7 +1391,6 @@ function createLinksetClick()
         // call function that creates the linkset
         // HERE!!!!
         $.ajax(
-
         {
             url: '/createLinkset',
             data: specs,
@@ -3253,17 +3255,34 @@ function createLinksetClusterClick()
             chronoReset();
             $('#linkset_cluster_creation_message_col').html(addNote('The linkset is being created',cl='warning'));
             loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2);
-            $.get('/createLinksetFromCluster', specs, function(data)
-            {
-                 var obj = JSON.parse(data);
+//            $.get('/createLinksetFromCluster', specs, function(data)
+//            {
+//                 var obj = JSON.parse(data);
+//
+//                 if (obj.result)
+//                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='info'));
+//                 else
+//                     $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='warning'));
+//
+//                 loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2, show = false);
+//            });
 
+            $.ajax(
+            {
+                url: '/createLinksetFromCluster',
+                data: specs,
+                type: "GET",
+                timeout: 0,
+                success: function(data){
+                 var obj = JSON.parse(data);
                  if (obj.result)
                      $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='info'));
                  else
                      $('#linkset_cluster_creation_message_col').html(addNote(obj.message,cl='warning'));
-
                  loadingGif(document.getElementById('linkset_cluster_creation_message_col'), 2, show = false);
+                }
             });
+
         }
         else {
             $('#linkset_cluster_creation_message_col').html(addNote(missing_feature));
