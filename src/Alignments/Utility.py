@@ -100,7 +100,7 @@ def get_uri_local_name(uri, sep="_"):
         return name
 
     else:
-        non_alphanumeric_str = re.sub('[ \w]', '', uri)
+        non_alphanumeric_str = re.sub('[ \w\.]', '', uri)
         if non_alphanumeric_str == "":
             return uri
         else:

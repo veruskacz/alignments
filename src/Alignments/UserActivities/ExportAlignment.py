@@ -101,7 +101,9 @@ def export_flat_alignment_and_metadata(alignment):
 
 
 # ALIGNMENT FOR VISUALISATION
-def export_alignment(alignment):
+def export_alignment(alignment, limit=5000):
+
+    # COMMENT THE LIMKT OIT IF IT IS EQUAL TO NONE
 
     # This function returns all the links + some metadata about the alignment.
     # METADATA: source dataset, target dataset and mechanism
@@ -173,6 +175,7 @@ def export_alignment(alignment):
             mec_dataset = item
 
     # CONSTRUCT QUERY FOR EXTRACTING HE CORRESPONDENCES
+    comment = "" if limit else "#"
     query = """
     PREFIX ll: <{}>
     CONSTRUCT {{ ?x ?y ?z }}
@@ -182,8 +185,8 @@ def export_alignment(alignment):
         {{
             ?x ?y ?z
         }}
-    }} order by ?x #LIMIT 100
-    """.format(Ns.alivocab, alignment)
+    }} order by ?x {}LIMIT {}
+    """.format(Ns.alivocab, alignment, comment, limit)
     # print query
 
     # FIRE THE CONSTRUCT FOR CORRESPONDENCES AGAINST THE TRIPLE STORE
