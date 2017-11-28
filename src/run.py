@@ -6,6 +6,9 @@ import Alignments.Utility as Ut
 import Alignments.Query as Qry
 import Alignments.Server_Settings as Svr
 
+# https://github.com/CLARIAH/grlc/blob/master/docker-assets/entrypoint.sh
+# https://github.com/CLARIAH/grlc/blob/master/gunicorn_config.py
+
 # https://docupub.com/pdfmerge/
 print "\nRUNNING THE LENTICULAR LENS SERVER"
 if __name__ == "__main__":
@@ -24,11 +27,11 @@ if __name__ == "__main__":
     if str(response).__contains__("401"):
         print "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
 
-    if len(lock_file) > 0 and (
+    elif len(lock_file) > 0 and (
                 str(response).__contains__("200") or
                 str(response).__contains__("401") or
                 str(response).__contains__("No connection") is False):
-        "NOTHING TO DO AS THE SERVER IS STILL ON."
+        print "THE STARDOG SERVER IS ALREADY ON."
 
     else:
         print "\n>>> ", response
