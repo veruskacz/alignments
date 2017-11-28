@@ -2437,7 +2437,8 @@ def get_clusters_table(reference_uri):
 				(GROUP_CONCAT(distinct ?dataset; SEPARATOR=" | ") AS ?datasets)
 				(GROUP_CONCAT(distinct ?property; SEPARATOR=" | ") AS ?properties)
 				(GROUP_CONCAT(distinct ?label; SEPARATOR=" | ") AS ?labels)
-				(count(distinct ?o) as ?count)
+				(count(?o) as ?count)
+				#(count(distinct ?o) as ?count)
     {{
         GRAPH  ?uri
         {{
