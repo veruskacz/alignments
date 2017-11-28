@@ -133,8 +133,7 @@ def export_alignment(alignment, limit=5000):
     # GET THE METADATA OF THE ALIGNMENT: RUN THE QUERY
     meta_construct = Qry.endpointconstruct(meta, clean=False)
     meta_construct = meta_construct.replace("{", "").replace("}", "")
-    print meta_construct
-
+    # print meta_construct
 
     # LOAD THE METADATA USING RDFLIB
     sg = rdflib.Graph()
