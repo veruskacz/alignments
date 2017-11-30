@@ -1361,6 +1361,13 @@ def get_linksetCluster_corresp_sample_details(linkset, limit=1, crossCheck=True)
     # t_ds = "<{}>".format(prop_matrix[1][4])
     # crossCheck = prop_matrix[1][5]
 
+    # REMOVED
+    # """
+    # ;
+    #                      alivocab:alignsSubjects			?alignsSubjects;
+    #                      alivocab:alignsObjects			?alignsObjects
+    # """
+
     query = PREFIX + """
     #### CORRESPONDENCE DETAIL SAMPLE
 
@@ -1374,9 +1381,7 @@ def get_linksetCluster_corresp_sample_details(linkset, limit=1, crossCheck=True)
         GRAPH <{1}> {{
 
               ?singProp  void:subjectsTarget		?subjectsTarget;
-                         void:objectsTarget			?objectsTarget;
-                         alivocab:alignsSubjects			?alignsSubjects;
-                         alivocab:alignsObjects			?alignsObjects.
+                         void:objectsTarget			?objectsTarget.
             }}
 
 			GRAPH ?subjectsTarget

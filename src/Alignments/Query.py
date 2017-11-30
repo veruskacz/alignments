@@ -14,6 +14,7 @@ import Alignments.ErrorCodes as Ec
 import Alignments.Server_Settings as Svr
 from cStringIO import StringIO
 from kitchen.text.converters import to_bytes  # to_unicode
+import cStringIO as Buffer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -1081,18 +1082,18 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
                 break
 
 
-def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
+def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', is_activated=False):
 
     limit = limit
-
+    table = Buffer.StringIO()
     if is_activated is True:
 
         line = ""
-        for space in range(50):
+        for space in range(spacing):
             line += "#"
 
         # logger.info(display_result)
-        my_format = "{{:.<{}}}".format(spacing)
+        my_format = "{{:{}<{}}}".format(line_feed, spacing)
         my_format2 = "{{:<{}}}".format(spacing)
 
         if matrix[St.message] == "NO RESPONSE":
@@ -1104,12 +1105,12 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
             return None
 
         message = """
-        ####################################################################################
-        TABLE OF {} Row(S) AND {} Columns LIMIT={}
-        ####################################################################################
+    ####################################################################################
+    TABLE OF {} Row(S) AND {} Columns LIMIT={}
+    ####################################################################################
          """.format(len(matrix[St.result]) - 1, len(matrix[St.result][0]), limit)
 
-        print message
+        table.write(message)
 
         count = 0
         for r in range(len(matrix[St.result])):
@@ -1118,27 +1119,36 @@ def display_matrix(matrix, spacing=50, limit=100, is_activated=False):
 
             row = ""
 
+            # SUBJECT
             if r == 0:
                 for c in range(len(matrix[St.result][0])):
                     formatted = my_format2.format(to_bytes(matrix[St.result][r][c]))
-                    row = row + formatted + " "
+                    row = "{}{} ".format(row, formatted)
 
-            if r == 1:
+            # SUBJECT LINE
+            elif r == 1:
                 for c in range(len(matrix[St.result][0])):
                     formatted = my_format2.format(line)
-                    row = row + formatted + " "
-                row += "\n"
+                    row = "{}{} ".format(row, formatted)
+                row += "\n\t"
 
             if r >= 1:
                 for c in range(len(matrix[St.result][0])):
                     formatted = my_format.format(to_bytes(matrix[St.result][r][c]))
-                    row = row + formatted + " "
+                    row = "{}{} ".format(row, formatted)
 
-            print row
+            table.write("\n\t{}".format(row))
 
             if count == limit + 1:
-                break
+                if output is False:
+                    print table.getvalue()
+                else:
+                    return table.getvalue()
 
+    if output is False:
+        print table.getvalue()
+    else:
+        return table.getvalue()
 
 #######################################################################################
 # GET QUERY AND EXECUTION

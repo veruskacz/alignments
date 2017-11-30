@@ -100,7 +100,7 @@ def get_uri_local_name(uri, sep="_"):
         return name
 
     else:
-        non_alphanumeric_str = re.sub('[ \w\.]', '', uri)
+        non_alphanumeric_str = re.sub('[ \w\.-]', '', uri)
         if non_alphanumeric_str == "":
             return uri
         else:
@@ -634,9 +634,9 @@ def write_to_file(graph_name, directory, metadata=None, correspondences=None, si
     try:
         date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
         dir_name = directory  # write_to_path os.path.dirname(f_path)
-        linkset_file = "{}(Linksets)-{}.trig".format(graph_name, date)
-        metadata_file = "{}(Metadata)-{}.trig".format(graph_name, date)
-        singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(graph_name, date)
+        linkset_file = "{}-Linksets-{}.trig".format(graph_name, date)
+        metadata_file = "{}-Metadata-{}.trig".format(graph_name, date)
+        singleton_metadata_file = "{}-SingletonMetadata-{}.trig".format(graph_name, date)
         dir_name = dir_name.replace("\\", "/")
 
         linkset_output = "{}/{}".format(dir_name, linkset_file)
@@ -689,6 +689,23 @@ def write_to_file(graph_name, directory, metadata=None, correspondences=None, si
 
     except Exception as err:
         print err
+
+def write_2_disc(file_directory, file_name, data, extension="txt"):
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    file_path = join(file_directory, file_name)
+    file_path = "{}_{}.{}".format(file_path, date, extension)
+    if file_name is not None and data:
+        document = None
+        try:
+            if not os.path.exists(file_directory):
+                os.makedirs(file_directory)
+            document = codecs.open(file_path, "wb", "utf-8")
+            document.write(to_unicode(data))
+            document.close()
+        except Exception as err:
+            print err
+            if document:
+                document.close()
 
 
 def get_writers(graph_name, directory):
