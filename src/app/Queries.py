@@ -441,10 +441,42 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
         UNION
         { ?uri   rdf:type	 void:Lens }
          """
+    elif type == "linksetBiD":
+        type_filter = """?uri   rdf:type	void:Linkset .
+                { 	 ?uri
+                           alivocab:alignsSubjects ?s_prop ;
+                           alivocab:alignsObjects ?o_prop .
+
+                    BIND('oneAligns' as ?lkst_type_)
+                    filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+                }
+
+                ### SELECTING CREATED LENS OR LINKSETS
+              	UNION
+                {
+                     ?uri
+                           alivocab:alignsSubjects ?s_prop ;
+                           alivocab:alignsObjects ?o_prop .
+
+                    BIND('multipleAligns' as ?lkst_type_)
+                    filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
+
+                }
+            """
+    elif type == "linksetMultiD":
+        type_filter = """?uri   rdf:type	void:Linkset .
+                     ?uri
+                           alivocab:hasAlignmentTarget  ?target  .
+
+                     BIND('multidimensional' as ?lkst_type_)
+            """
     elif type == "linkset":
         type_filter = """
         # THAT ARE OF TYPE LINKSET
-        ?uri  rdf:type	void:Linkset """
+        ?uri  rdf:type	void:Linkset
+        BIND('oneAligns' as ?lkst_type_)
+        #filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+    """
     elif type == "lens":
         type_filter = """
         # THAT ARE OF TYPE LENS '
@@ -473,13 +505,122 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
 
     query = PREFIX + """
     ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?uri ?mode ?label
+    SELECT DISTINCT ?uri ?mode ?label ?lkst_type
     WHERE
     {{
         # GRAPH-TYPE FILTER
         {0}
         OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
         BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
+        BIND (IF(bound(?lkst_type_), ?lkst_type_ , "-") AS ?lkst_type)
+
+        # GRAPH-TYPE CONDITION
+        {1}
+
+        # AND WHICH ARE NOT ASSOCIATED TO THE RESEARCH QUESTION
+        FILTER NOT EXISTS
+        {{
+            GRAPH <{2}>
+            {{
+                {{
+                  <{2}>  alivocab:created*/alivocab:created   ?uri .
+                }}
+                UNION
+                {{
+                  <{2}>  alivocab:created*/prov:used  ?uri.
+                }}
+            }}
+        }}
+
+      BIND("no-mode" as ?mode)
+    }}
+    """.format(type_filter, type_condition, rq_uri)
+    if DETAIL:
+        print query
+    return query
+
+
+def get_graphs_related_to_rq_type_old(rq_uri, type=None):
+
+    if type == "linkset&lens":
+        type_filter = """
+        # THAT ARE OF TYPE LINKSET OR LENS
+        { ?uri  rdf:type	void:Linkset }
+        UNION
+        { ?uri   rdf:type	 void:Lens }
+         """
+    # elif type == "linksetBiD":
+    #     type_filter = """?uri   rdf:type	void:Linkset .
+    #             { 	 ?uri
+    #                        alivocab:alignsSubjects ?s_prop ;
+    #                        alivocab:alignsObjects ?o_prop .
+    #
+    #                 BIND('oneAligns' as ?lkst_type_)
+    #                 filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+    #             }
+    #
+    #             ### SELECTING CREATED LENS OR LINKSETS
+    #           	UNION
+    #             {
+    #                  ?uri
+    #                        alivocab:alignsSubjects ?s_prop ;
+    #                        alivocab:alignsObjects ?o_prop .
+    #                 BIND("success" as ?mode)
+    #                 BIND('multipleAligns' as ?lkst_type_)
+    #                 filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
+    #
+    #             }
+    #         """
+    elif type == "linksetMultiD":
+        type_filter = """?uri   rdf:type	void:Linkset .
+                     ?uri
+                           alivocab:hasAlignmentTarget  ?target  .
+
+                     BIND('multidimensional' as ?lkst_type_)
+            """
+    elif type == "linkset" or type == "linksetBiD":
+        type_filter = """
+        # THAT ARE OF TYPE LINKSET
+        ?uri  rdf:type	void:Linkset
+        BIND('oneAligns' as ?lkst_type_)
+        #filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+    """
+    elif type == "lens":
+        type_filter = """
+        # THAT ARE OF TYPE LENS '
+        ?uri   rdf:type	 bdb:Lens .
+        """
+    elif type == "view":
+        type_filter = "?uri   rdf:type	 void:View ."
+    else:
+        type_filter = ""
+
+    type_condition = """
+    # WHICH ARE NOT A LINKSET WHOSE TARGET DATASETS (SOURCE OR OBJECT)
+    # OR ARE NOT A LENS THAT TARGETS A LINKSET (THROUGH ZERO OR MORE LENSES) WHOSE TARGET DATASETS (SOURCE OR OBJECT)
+    FILTER NOT EXISTS
+    {{  ?uri  void:target*/(void:subjectsTarget|void:objectsTarget) ?dataset
+
+        # ARE NOT WITHIN THE SELECTED DATASETS FOR A CERTAIN RESEARCH QUESTION
+        FILTER NOT EXISTS
+        {{
+            GRAPH <{0}>
+            {{
+                <{0}>  alivocab:selected ?dataset  .
+            }}
+        }}
+    }} """.format(rq_uri)
+
+    query = PREFIX + """
+    ### GET DISTINCT GRAPHS
+    SELECT DISTINCT ?uri ?mode ?label ?lkst_type
+    WHERE
+    {{
+        # GRAPH-TYPE FILTER
+        {0}
+        OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
+        BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
+        BIND (IF(bound(?lkst_type_), ?lkst_type_ , "-") AS ?lkst_type)
 
         # GRAPH-TYPE CONDITION
         {1}
@@ -1380,8 +1521,8 @@ def get_linksetCluster_corresp_sample_details(linkset, limit=1, crossCheck=True)
 
         GRAPH <{1}> {{
 
-              ?singProp  void:subjectsTarget		?subjectsTarget;
-                         void:objectsTarget			?objectsTarget.
+              ?singProp  void:subjectsTarget		?subjectsTarget ;
+                         void:objectsTarget			?objectsTarget .
             }}
 
 			GRAPH ?subjectsTarget

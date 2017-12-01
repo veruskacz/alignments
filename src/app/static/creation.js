@@ -1602,7 +1602,7 @@ function exportPlotLinksetClick(elem)
 {
 //    var credentials = { 'user': $("#modalPlotPass #usrname").val().trim(),
 //                        'password': $("#modalPlotPass #pssw").val().trim()}
-    exportLinksetClick("export.ttl",mode="vis", user= $("#modalPlotPass #usrname").val().trim(), psswd=$("#modalPlotPass #pssw").val().trim() );
+    exportLinksetClick("exportPlot.ttl",mode="vis", user= $("#modalPlotPass #usrname").val().trim(), psswd=$("#modalPlotPass #pssw").val().trim() );
 //    $(elem).dialog("close");
 }
 
@@ -1611,13 +1611,17 @@ function exportPlotLensClick(elem)
 {
 //    var credentials = { 'user': $("#modalPlotPass #usrname").val().trim(),
 //                        'password': $("#modalPlotPass #pssw").val().trim()}
-    exportLensClick("export.ttl",mode="vis", user= $("#modalLensPlotPass #LensUsrname").val().trim(), psswd=$("#modalLensPlotPass #LensPssw").val().trim() );
+    exportLensClick("exportPlot.ttl",mode="vis", user= $("#modalLensPlotPass #LensUsrname").val().trim(), psswd=$("#modalLensPlotPass #LensPssw").val().trim() );
 //    $(elem).dialog("close");
 }
 
 
 function exportLinksetClick(filename, mode='flat', user='', psswd='')
 {
+    if (mode=='flat')
+        filename = 'exportFlat.trig'
+    else if (mode=='md')
+        filename = 'exportFlatMeta.trig'
     var linkset = '';
     var elems = selectedElemsInGroupList('inspect_linkset_selection_col');
     if (elems.length > 0) // if any element is selected
@@ -1648,25 +1652,76 @@ function exportLinksetClick(filename, mode='flat', user='', psswd='')
             dataType: "text",
             success: function(data){
 
-            var obj = JSON.parse(data);
-            loadingGif(document.getElementById('linkset_export_message_col'), 2, show=false);
+                var obj = JSON.parse(data);
+                loadingGif(document.getElementById('linkset_export_message_col'), 2, show=false);
 
-            $('#linkset_export_message_col').html(addNote(obj.message,cl='info'));
-            csv = obj.result;
+                $('#linkset_export_message_col').html(addNote(obj.message,cl='info'));
+                if (mode!='all')
+                { csv = obj.result;
 
-             var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                        var link = document.createElement("a");
-                        if (link.download !== undefined) { // feature detection
-                            // Browsers that support HTML5 download attribute
-                            var url = URL.createObjectURL(blob);
-                            link.setAttribute("href", url);
-                            link.setAttribute("download", filename);
-                            link.style.visibility = 'hidden';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                        }
+                    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    var link = document.createElement("a");
+                    if (link.download !== undefined) { // feature detection
+                        // Browsers that support HTML5 download attribute
+                        var url = URL.createObjectURL(blob);
+                        link.setAttribute("href", url);
+                        link.setAttribute("download", filename);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
 
+                }
+                else
+                {
+                  csv_1 = obj.result.generic_metadata;
+                  csv_2 = obj.result.specific_metadata;
+                  csv_3 = obj.result.data;
+
+//                    var blob = new Blob([csv_1], { type: 'text/csv;charset=utf-8;' });
+//                    var link = document.createElement("a");
+//                    if (link.download !== undefined) { // feature detection
+//                        // Browsers that support HTML5 download attribute
+//                        var url = URL.createObjectURL(blob);
+//                        link.setAttribute("href", url);
+//                        link.setAttribute("download", filename+'1');
+//                        link.style.visibility = 'hidden';
+//                        document.body.appendChild(link);
+//                        link.click();
+//                        document.body.removeChild(link);
+//                    }
+
+                    var blob2 = new Blob([csv_2], { type: 'text/csv;charset=utf-8;' });
+                    var link2 = document.createElement("a");
+                    if (link2.download !== undefined) { // feature detection
+                        // Browsers that support HTML5 download attribute
+                        var url2 = URL.createObjectURL(blob2);
+                        link2.setAttribute("href", url2);
+                        link2.setAttribute("download", filename+'2');
+                        link2.style.visibility = 'hidden';
+                        document.body.appendChild(link2);
+                        link2.click();
+                        alert('1');
+//                        document.body.removeChild(link2);
+                        alert('3');
+//                    }
+
+                        alert('4');
+                    var blob3 = new Blob([csv_3], { type: 'text/csv;charset=utf-8;' });
+//                    var link3 = document.createElement("a");
+//                    if (link3.download !== undefined) { // feature detection
+                        // Browsers that support HTML5 download attribute
+                        alert('5');
+                        var url3 = URL.createObjectURL(blob3);
+                        link2.setAttribute("href", url3);
+                        link2.setAttribute("download", filename+'3');
+                        link2.style.visibility = 'hidden';
+//                        document.body.appendChild(link2);
+                        link2.click();
+                        document.body.removeChild(link2);
+                    }
+                }
             }
         });
     }

@@ -48,7 +48,7 @@ if CREATION_ACTIVE:
     import Alignments.UserActivities.ExportAlignment as Ex
     from Alignments.SimilarityAlgo.Analysis import ds_stats
     from kitchen.text.converters import to_bytes, to_unicode
-    # import Alignments.UserActivities.Clustering as Clt
+    import Alignments.UserActivities.Clustering as Clt
 
     import Alignments.Server_Settings as Svr
 
@@ -626,54 +626,54 @@ def details():
                             alignsObjects = alignsObjects)
 
 
-@app.route('/getdetailslkstcluster', methods=['GET'])
-def getdetailslkstcluster():
-    """
-    This function is called due to request /getdetails
-    It queries the dataset for both all the correspondences in a certain graph URI
-    Expected Input: uri, label (for the graph)
-    The results, ...,
-        are passed as parameters to the template details_list.html
-    """
-
-    # RETRIEVE VARIABLES
-    sub_uri = request.args.get('sub_uri', '')
-    obj_uri = request.args.get('obj_uri', '')
-    # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
-
-    if len(alignsSubjectsList) > 1:
-        alignsSubjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsSubjectsList)
-    else:
-        alignsSubjects = Ut.get_uri_local_name(request.args.get('alignsSubjectsList', ''))
-
-    if len(alignsObjectsList) > 1:
-        alignsObjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsObjectsList)
-    else:
-        alignsObjects = Ut.get_uri_local_name(request.args.get('alignsObjectsList', ''))
-
-    s_crossCheck_property = request.args.get('crossCheckSubject', '')
-    if s_crossCheck_property != '':
-        alignsSubjectsList += [s_crossCheck_property]
-
-    o_crossCheck_property = request.args.get('crossCheckObject', '')
-    if o_crossCheck_property != '':
-        alignsObjectsList += [o_crossCheck_property]
-
-    query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
-    details = sparql(query, strip=True)
-
-    if PRINT_RESULTS:
-        print "\n\nDETAILS:", details
-
-    return render_template('details_list.html',
-                            details = details,
-                            sub_uri = sub_uri,
-                            obj_uri = obj_uri,
-                            subjectTarget = subjectTarget,
-                            objectTarget = objectTarget,
-                            alignsSubjects = alignsSubjects,
-                            alignsObjects = alignsObjects)
-
+# @app.route('/getdetailslkstcluster', methods=['GET'])
+# def getdetailslkstcluster():
+#     """
+#     This function is called due to request /getdetails
+#     It queries the dataset for both all the correspondences in a certain graph URI
+#     Expected Input: uri, label (for the graph)
+#     The results, ...,
+#         are passed as parameters to the template details_list.html
+#     """
+#
+#     # RETRIEVE VARIABLES
+#     sub_uri = request.args.get('sub_uri', '')
+#     obj_uri = request.args.get('obj_uri', '')
+#     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
+#
+#     if len(alignsSubjectsList) > 1:
+#         alignsSubjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsSubjectsList)
+#     else:
+#         alignsSubjects = Ut.get_uri_local_name(request.args.get('alignsSubjectsList', ''))
+#
+#     if len(alignsObjectsList) > 1:
+#         alignsObjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsObjectsList)
+#     else:
+#         alignsObjects = Ut.get_uri_local_name(request.args.get('alignsObjectsList', ''))
+#
+#     s_crossCheck_property = request.args.get('crossCheckSubject', '')
+#     if s_crossCheck_property != '':
+#         alignsSubjectsList += [s_crossCheck_property]
+#
+#     o_crossCheck_property = request.args.get('crossCheckObject', '')
+#     if o_crossCheck_property != '':
+#         alignsObjectsList += [o_crossCheck_property]
+#
+#     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
+#     details = sparql(query, strip=True)
+#
+#     if PRINT_RESULTS:
+#         print "\n\nDETAILS:", details
+#
+#     return render_template('details_list.html',
+#                             details = details,
+#                             sub_uri = sub_uri,
+#                             obj_uri = obj_uri,
+#                             subjectTarget = subjectTarget,
+#                             objectTarget = objectTarget,
+#                             alignsSubjects = alignsSubjects,
+#                             alignsObjects = alignsObjects)
+#
 
 
 @app.route('/getlinksetdetails', methods=['GET'])
@@ -692,6 +692,8 @@ def linksetdetails():
     template = request.args.get('template', 'linksetDetails_list.html')
     rq_uri = request.args.get('rq_uri', '')
     filter_uri = request.args.get('filter_uri', '')
+
+    print '###', lkst_type
 
     query = Qry.get_linkset_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri, type=lkst_type )
     metadata = sparql(query, strip=True)
@@ -1379,6 +1381,7 @@ def graphsperrqtype():
     template = request.args.get('template', 'list_dropdown.html')
     dataset = request.args.get('dataset', None)
 
+    print type
     if (mode == 'import'):
         graphs_query = Qry.get_graphs_related_to_rq_type(rq_uri,type)
     else:
@@ -2603,6 +2606,8 @@ def exportAlignment():
 
         elif mode == 'vis':
             result = Ex.visualise(graphs, PLOTS_FOLDER, {'user': user, 'password': psswd })
+        elif mode == 'all':
+            result = Ex.export_alignment_all(graph_uri)
         # print "\n after:", result
 
     except Exception as error:
