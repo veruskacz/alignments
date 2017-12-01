@@ -15,6 +15,128 @@ import Alignments.Server_Settings as Svr
 from kitchen.text.converters import to_unicode, to_bytes
 
 
+# ALIGNMENT FOR VISUALISATION
+def export_alignment_all(alignment, limit=5000):
+
+    # COMMENT THE LIMKT OIT IF IT IS EQUAL TO NONE
+
+    # This function returns all the links + some metadata about the alignment.
+    # METADATA: source dataset, target dataset and mechanism
+
+    use = alignment
+    alignment = str(alignment).strip()
+    row_alignment = alignment
+    alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
+
+    # ****************************************************
+    # 1. ET THE METADATA OF THE ALIGNMENT: THE QUERY
+    # ****************************************************
+    meta = """
+    PREFIX ll: <{0}>
+    CONSTRUCT {{ {1} ?y ?z. ?z ?p ?o . }}
+    WHERE
+    {{
+        {1} ?y ?z .
+        OPTIONAL{{ ?z ?p ?o . }}
+        OPTIONAL{{ ?O ?Q ?R . }}
+    }} order by ?y
+    """.format(Ns.alivocab, alignment)
+    # print meta
+
+    # GET THE METADATA OF THE ALIGNMENT: RUN THE QUERY
+    meta_construct = Qry.endpointconstruct(meta, clean=False)
+    meta_construct = meta_construct.replace("{", "").replace("}", "")
+    print meta_construct
+
+    # ****************************************************
+    # 2. GET THE CORRESPONDENCES OF THE LINKSET
+    # ****************************************************
+    # CONSTRUCT QUERY FOR EXTRACTING HE CORRESPONDENCES
+    comment = "" if limit else "#"
+    query = """
+        PREFIX ll: <{}>
+        CONSTRUCT {{ ?x ?y ?z }}
+        WHERE
+        {{
+            GRAPH {}
+            {{
+                ?x ?y ?z
+            }}
+        }} order by ?x {}LIMIT {}
+        """.format(Ns.alivocab, alignment, comment, limit)
+    # print query
+
+    # FIRE THE CONSTRUCT FOR CORRESPONDENCES AGAINST THE TRIPLE STORE
+    alignment_construct = Qry.endpointconstruct(query, clean=False)
+    if alignment_construct:
+        alignment_construct = alignment_construct.replace("{", "{}\n{{".format(alignment))
+    print alignment_construct
+
+    # ****************************************************
+    # 3. GET THE METADATA CORRESPONDENCES' PREDICATES
+    # ****************************************************
+    singleton_graph_uri = Ut.from_alignment2singleton(alignment)
+    singleton_query = """
+    PREFIX ll: <{0}>
+    PREFIX singletons: <{1}>
+    CONSTRUCT {{ ?predicate ?x  ?y }}
+    WHERE
+    {{
+        {{
+            SELECT ?predicate
+            {{
+                GRAPH {2}
+                {{
+                    ?subject ?predicate ?object
+                }}
+            }} order by ?x {3}LIMIT {4}
+        }}
+        GRAPH {5}
+        {{
+            ?predicate ?x  ?y
+        }}
+    }}
+    """.format(Ns.alivocab, Ns.singletons, alignment, comment, limit, singleton_graph_uri)
+    # print singleton_query
+
+    # FIRE THE CONSTRUCT FOR SINGLETON AGAINST THE TRIPLE STORE
+    singleton_construct = Qry.endpointconstruct(singleton_query, clean=False)
+    if singleton_construct:
+        singleton_construct = singleton_construct.replace("{", "{}\n{{".format(singleton_graph_uri))
+    print singleton_construct
+
+    # LOAD THE METADATA USING RDFLIB
+    sg = rdflib.Graph()
+    sg.parse(data=meta_construct, format="turtle")
+
+    # EXTRACT FROM THE RESPONSE: THE SOURCE AND TARGET DATASETS AND THE ALIGNMENT
+    sbj = rdflib.URIRef(use)
+    triples_uri = rdflib.URIRef("http://rdfs.org/ns/void#triples")
+
+    # EXTRACT THE ALIGNMENT TYPE
+    triples = ""
+    for item in sg.objects(sbj, triples_uri):
+        triples = item
+        print "TRIPLES: ", triples
+
+    if alignment_construct is not None:
+        links = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
+        links = links.replace("{", "").replace("}", "")
+    message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
+        row_alignment, triples)
+
+    # result = result
+    # print result
+    print "Done with graph: {}".format(alignment)
+
+    return {'result': {
+        "generic_metadata": meta_construct,
+        'specific_metadata': singleton_construct,
+        'data': alignment_construct}, 'message': message}
+
+# export_alignment_all("http://risis.eu/linkset/eter_2014_grid_20170712_exactStrSim_University_Institution_Name_P1884421363", limit=5000)
+#
+
 # FLAT ALIGNMENT
 def export_flat_alignment(alignment):
 
@@ -79,7 +201,7 @@ def export_flat_alignment_and_metadata(alignment):
             ?srcCorr ?singleton ?trgCorr .
         }}
 
-         # THE METADATA
+        # THE METADATA
         ?alignment  ?pred  ?obj .
         OPTIONAL {{ ?obj  ?predicate ?object . }}
     }} #LIMIT 10
