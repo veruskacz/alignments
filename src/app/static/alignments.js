@@ -78,6 +78,14 @@ function enableButtons(container, enable=true)
     }
 }
 
+function getEnabledButton(container)
+{
+    var elems = container.getElementsByClassName('btn-success');
+    if (elems.length > 0)
+        return elems[0];
+    return null;
+}
+
 function enableButton(button_name, enable=true)
 {
     var elem = document.getElementById(button_name);

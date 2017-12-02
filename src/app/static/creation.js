@@ -711,7 +711,7 @@ function inspect_linkset_cluster_activate(mode='default')
   $('#panel_cluster_prop_selection').hide();
   if (mode == 'import') {
     $('#import_linkset_cluster_heading_panel').show();
-    $('#inspect_cluster_heading_panel').hide();
+    $('#inspect_linkset_cluster_heading_panel').hide();
   }
   else {
 
@@ -816,6 +816,10 @@ function linkset_cluster_load_datasets(rq_uri)
      $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'cluster'},function(data)
      {
        $('#linkset_cluster_dataset_col').html(data);
+       var ul = document.getElementById('linkset_cluster_dataset_col');
+       var li = ul.getElementsByTagName('li');
+       var num = ('0000' + String(li.length)).substr(-4);
+       $('#linkset_cluster_dataset_counter').html(num);
 
        // when a dataset from the list is selected, its list of predicates will be loaded
        $('#linkset_cluster_dataset_col li').on('click',function()
@@ -897,17 +901,23 @@ function linkset_cluster_load_predicates(rq_uri, source)
                        var item = '<li class="list-group-item" pred_uri="' + pred_uri
                                 + '" graph_uri="' + graph_uri
                                 + '" type_uri="' + type_uri
-                                + '" onclick= "this.parentElement.removeChild(this);"'
+                                + '" onclick= "aux_count_delete(this);"'
+                                + '  counter = "linkset_cluster_selected_pred_counter"'
                                 + '><span class="list-group-item-heading"><b>'
                                 + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
                        $('#creation_linkset_cluster_selected_predicates_group').prepend(item);
                     }
                 }
             }
+
+            var li = elem.getElementsByTagName('li');
+            var num = ('0000' + String(li.length)).substr(-4);
+            $('#linkset_cluster_selected_pred_counter').html(num);
           });
       });
-
 }
+
+
 
 
 function createLinksetClusterClick()
@@ -926,16 +936,13 @@ function createLinksetClusterClick()
 
     if ((reference_uri) || (cluster_uri))
     {
-//        alert(reference_uri);
-//        alert(cluster_uri);
-
-        var targets = []
         elems = []
         var elem = document.getElementById('creation_linkset_cluster_selected_predicates_group');
         if (elem) {
             elems = elem.getElementsByClassName('list-group-item');
         }
         var dict = {};
+        var targets = []
         for (i = 0; i < elems.length; i++) {
 
             var entityType = $(elems[i]).attr('type_uri');
@@ -1653,11 +1660,12 @@ function exportLinksetClick(filename, mode='flat', user='', psswd='')
             success: function(data){
 
                 var obj = JSON.parse(data);
+                console.log(obj);
                 loadingGif(document.getElementById('linkset_export_message_col'), 2, show=false);
 
                 $('#linkset_export_message_col').html(addNote(obj.message,cl='info'));
                 if (mode!='all')
-                { csv = obj.result;
+                {   csv = obj.result;
 
                     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     var link = document.createElement("a");
@@ -1675,51 +1683,30 @@ function exportLinksetClick(filename, mode='flat', user='', psswd='')
                 }
                 else
                 {
-                  csv_1 = obj.result.generic_metadata;
-                  csv_2 = obj.result.specific_metadata;
-                  csv_3 = obj.result.data;
-
-//                    var blob = new Blob([csv_1], { type: 'text/csv;charset=utf-8;' });
-//                    var link = document.createElement("a");
-//                    if (link.download !== undefined) { // feature detection
-//                        // Browsers that support HTML5 download attribute
-//                        var url = URL.createObjectURL(blob);
-//                        link.setAttribute("href", url);
-//                        link.setAttribute("download", filename+'1');
-//                        link.style.visibility = 'hidden';
-//                        document.body.appendChild(link);
-//                        link.click();
-//                        document.body.removeChild(link);
-//                    }
-
+                    csv_1 = obj.result.generic_metadata;
+                    var blob1 = new Blob([csv_1], { type: 'text/csv;charset=utf-8;' });
+                    var url1 = URL.createObjectURL(blob1);
+                    csv_2 = obj.result.specific_metadata;
                     var blob2 = new Blob([csv_2], { type: 'text/csv;charset=utf-8;' });
-                    var link2 = document.createElement("a");
-                    if (link2.download !== undefined) { // feature detection
-                        // Browsers that support HTML5 download attribute
-                        var url2 = URL.createObjectURL(blob2);
-                        link2.setAttribute("href", url2);
-                        link2.setAttribute("download", filename+'2');
-                        link2.style.visibility = 'hidden';
-                        document.body.appendChild(link2);
-                        link2.click();
-                        alert('1');
-//                        document.body.removeChild(link2);
-                        alert('3');
-//                    }
-
-                        alert('4');
+                    var url2 = URL.createObjectURL(blob2);
+                    csv_3 = obj.result.data;
                     var blob3 = new Blob([csv_3], { type: 'text/csv;charset=utf-8;' });
-//                    var link3 = document.createElement("a");
-//                    if (link3.download !== undefined) { // feature detection
-                        // Browsers that support HTML5 download attribute
-                        alert('5');
-                        var url3 = URL.createObjectURL(blob3);
-                        link2.setAttribute("href", url3);
-                        link2.setAttribute("download", filename+'3');
-                        link2.style.visibility = 'hidden';
-//                        document.body.appendChild(link2);
-                        link2.click();
-                        document.body.removeChild(link2);
+                    var url3 = URL.createObjectURL(blob3);
+
+                    hrefList=[url1, url2, url3];
+                    filenameList=['exportGenericMetadata.ttl','exportSpecificMetadata.trig','exportAlignmentData.trig']
+
+                    for(var i=0; i<hrefList.length; i++){
+                        var link = document.createElement("a");
+                        if (link.download !== undefined) { // feature detection
+                            // Browsers that support HTML5 download attribute
+                            link.setAttribute("href", hrefList[i]);
+                            link.setAttribute("download", filenameList[i]);
+                            link.style.visibility = 'hidden';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }
                     }
                 }
             }
@@ -3115,7 +3102,13 @@ function cluster_load_datasets(rq_uri)
      $('#creation_cluster_dataset_col').html('Loading...');
      $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'cluster'},function(data)
      {
-       $('#creation_cluster_dataset_col').html(data);
+        $('#creation_cluster_dataset_col').html(data);
+        var ul = document.getElementById('creation_cluster_dataset_col');
+        var li = ul.getElementsByTagName('li');
+        var num = ('0000' + String(li.length)).substr(-4);
+        $('#creation_cluster_dataset_counter').html(num);
+        $('#cluster_pred_counter').html('0000');
+        $('#cluster_selected_pred_counter').html('0000');
 
        // when a dataset from the list is selected, its list of predicates will be loaded
        $('#creation_cluster_dataset_col li').on('click',function()
@@ -3165,6 +3158,7 @@ function cluster_load_predicates(rq_uri, source)
           // set actions after clicking one of the predicates
           $('#creation_cluster_predicates_col li').on('click',function()
           {
+            var elem = document.getElementById('creation_cluster_selected_predicates_group');
             var pred_uri = $(this).attr('uri');
             var pred_label = $(this).attr('label');
             if ($('#creation_cluster_predicates_col').attr('accumPath') != '')
@@ -3182,7 +3176,7 @@ function cluster_load_predicates(rq_uri, source)
             {
                 var i;
                 var check = false;
-                var elem = document.getElementById('creation_cluster_selected_predicates_group');
+
                 if (elem) {
                     var elems = elem.getElementsByClassName('list-group-item');
                     for (i = 0; i < elems.length; i++) {
@@ -3197,18 +3191,29 @@ function cluster_load_predicates(rq_uri, source)
                        var item = '<li class="list-group-item" pred_uri="' + pred_uri
                                 + '" graph_uri="' + graph_uri
                                 + '" type_uri="' + type_uri
-                                + '" onclick= "this.parentElement.removeChild(this);"'
+                                + '" onclick= "aux_count_delete(this)" '
+                                + '  counter = "cluster_selected_pred_counter"'
                                 + '><span class="list-group-item-heading"><b>'
                                 + graph_label + ' | ' + type_label + '</b>: ' + pred_label + '</span></li>';
                        $('#creation_cluster_selected_predicates_group').prepend(item);
                     }
                 }
             }
+            var li = elem.getElementsByTagName('li');
+            var num = ('0000' + String(li.length)).substr(-4);
+            $('#cluster_selected_pred_counter').html(num);
           });
       });
-
 }
 
+
+function aux_count_delete(elem)
+{
+    var li = elem.parentElement.getElementsByTagName('li');
+    var num = ('0000' + String(li.length-1)).substr(-4);
+    $('#'+$(elem).attr('counter')).html(num);
+    elem.parentElement.removeChild(elem);
+}
 
 function createClusterClick()
 {
@@ -3793,6 +3798,8 @@ function rqClick(th, mode)
   // get the values of the selected rq
   var rq_uri = $(th).attr('uri');
   var rq_label = $(th).attr('label');
+  var btn = null;
+  var elem = null;
 
   switch (mode) {
       case 'linkset':
@@ -3800,15 +3807,22 @@ function rqClick(th, mode)
 
           // get the datasets for the selected rq
           // show the creation_linkset_row with a loading message
-          var btn = document.getElementById('btn_inspect_linkset');
+//          var btn = document.getElementById('btn_inspect_linkset');
+          elem = document.getElementById('creation_linkset_buttons_col');
+          btn = getEnabledButton(elem);
 
           break;
       case 'linksetCluster':
           enableButtons(document.getElementById('creation_linkset_cluster_buttons_col'));
+          $('#btn_edit_linkset_cluster').addClass('disabled');
+          $('#btn_refine_linkset_cluster').addClass('disabled');
 
           // get the datasets for the selected rq
           // show the creation_linkset_row with a loading message
-          var btn = document.getElementById('btn_inspect_linkset_cluster');
+//          var btn = document.getElementById('btn_inspect_linkset_cluster');
+          elem = document.getElementById('creation_linkset_cluster_buttons_col');
+          btn = getEnabledButton(elem);
+//          alert(btn);
 
           break;
       case 'lens':
@@ -3816,11 +3830,14 @@ function rqClick(th, mode)
 
           // get the datasets for the selected rq
           // show the creation_linkset_row with a loading message
-          var btn = document.getElementById('btn_inspect_lens');
+//          var btn = document.getElementById('btn_inspect_lens');
+          elem = document.getElementById('creation_lens_buttons_col');
+          btn = getEnabledButton(elem);
           break;
+
       case 'idea':
-          var btn = document.getElementById('btn_inspect_idea');
-          var btn2 = document.getElementById('btn_create_idea');
+//          var btn = document.getElementById('btn_inspect_idea');
+//          var btn2 = document.getElementById('btn_create_idea');
           update_idea_enable(rq_uri);
           overview_idea_enable(rq_uri);
           if ( selectedButton(btn) )
@@ -3829,17 +3846,24 @@ function rqClick(th, mode)
           { $('#overview_idea_row').hide();
           } else
           { $('#creation_idea_update_col').hide(); }
-          btn = null;
+//          btn = null;
           break;
       case 'view':
           enableButtons(document.getElementById('creation_views_buttons_col'));
           refresh_create_view();
-          var btn = document.getElementById('btn_inspect_view');
+          elem = document.getElementById('creation_views_buttons_col');
+          btn = getEnabledButton(elem);
+
+//          var btn = document.getElementById('btn_inspect_view');
           break;
       case 'cluster':
           enableButtons(document.getElementById('creation_clusters_buttons_col'));
+          $('#btn_edit_cluster').addClass('disabled');
+          elem = document.getElementById('creation_clusters_buttons_col');
+          btn = getEnabledButton(elem);
+
           //refresh_create_cluster();
-          var btn = document.getElementById('btn_inspect_cluster');
+//          var btn = document.getElementById('btn_inspect_cluster');
           break;
       case 'dataset':
           inspect_dataset_activate(rq_uri);
@@ -3889,9 +3913,9 @@ function rqClick(th, mode)
   setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
 
-//  if (btn)  //inital button selected
-//  {  btn.onclick();
-//  }
+  if (btn)  //inital button selected
+  {  btn.onclick();
+  }
 }
 
 function intRedGraphClick(th)

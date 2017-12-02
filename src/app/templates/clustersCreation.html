@@ -25,10 +25,10 @@
                 add_clusters_activate();'
                 >Add to Clusters</button>
         <button type="button" class="btn btn-primary disabled" id="btn_edit_cluster"
-                onclick='newSelectButton(this);
-                activateTargetDiv(targetId="inspect_clusters_row",cl="row creation");
-                inspect_clusters_activate(mode="edit")'
                 >Edit</button></h4>
+          <!--onclick='newSelectButton(this);-->
+                <!--activateTargetDiv(targetId="inspect_clusters_row",cl="row creation");-->
+                <!--inspect_clusters_activate(mode="edit")'-->
       </div>
      </div>
 
@@ -377,10 +377,20 @@
                 <div class="row">
                   <div class="col-md-12"><h4>Datasets</h4></div>
                 </div>
+                 <div class="row"> &nbsp </div>
+                 <div class="row">
+                     <div class="col-md-12">
+                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                   <input type="text" onkeyup='filterListGroup(this,"creation_cluster_dataset_col","creation_cluster_dataset_counter")'
+                          placeholder="Search for names.." style='width: 83%'>
+                      <span id="creation_cluster_dataset_counter" class="badge"></span>
+                   </div>
+                 </div>
+                 <div class="row"> &nbsp </div>
                 <div class="row">
                   <div class="col-md-12">Select from the list:</div>
                 </div>
-                <div id="loading3" style='display:none'> Loading... </div>
+                <!--<div id="loading3" style='display:none'> Loading... </div>-->
                 <div class="row">
                   <div class="col-md-12" >
                     <div class="list-group" id="creation_cluster_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
@@ -407,7 +417,8 @@
                 <div class="row">
                   <div class="col-md-12" id="creation_cluster_predicates_msg_col"></div>
                 </div>
-                <div class="row"> &nbsp </div>
+
+             <div class="row"> &nbsp </div>
              <div class="row">
                  <div class="col-md-12">
                 <span class="glyphicon glyphicon glyphicon-search"></span>
@@ -441,6 +452,16 @@
                   <div class="col-md-12"><h4>Selected Attributes</h4>
                   </div>
                 </div>
+                 <div class="row"> &nbsp </div>
+                 <div class="row">
+                     <div class="col-md-12">
+                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                   <input type="text" onkeyup='filterListGroup(this,"creation_cluster_selected_predicates_group","cluster_selected_pred_counter")'
+                          placeholder="Search for names.." style='width: 83%'>
+                      <span id="cluster_selected_pred_counter" class="badge"></span>
+                   </div>
+                 </div>
+                 <div class="row"> &nbsp </div>
                 <div class="row">
                   <div class="col-md-12">
                     <div class="list-group" id="creation_cluster_selected_predicates_group"
