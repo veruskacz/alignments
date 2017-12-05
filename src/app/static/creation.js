@@ -642,10 +642,13 @@ function inspect_linkset_cluster_activate(mode='default')
 
             var linkset_uri = $(this).attr('uri');
 
+            var load_samples = 'no';
+            if ($('#linkset_cluster_details_checkbox').is(':checked')) load_samples = 'yes';
+
             // load the panel describing the linkset sample
             $('#inspect_linkset_cluster_details_col').show();
             $('#inspect_linkset_cluster_details_col').html('Loading...');
-            $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri},function(data)
+            $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri, 'load_samples':load_samples},function(data)
             {
                 var obj = JSON.parse(data);
                 $('#inspect_linkset_cluster_details_col').html(obj.data);
@@ -1038,56 +1041,57 @@ function inspect_linkset_activate(mode='default')
           if ((mode == 'export') && ($('#exportLinksetButton').attr('mode')=='vis'))
           {
             var selection = selectListItem(this);
-//            alert(selection);
           }
           else
           {
             var selection = selectListItemUnique(this, 'inspect_linkset_selection_col')
           }
-
-          if (mode == 'inspect_linkset_cluster')
-          {
-            var linkset_uri = $(this).attr('uri');
-            var linkset_type = $(this).attr('lkst_type');
-
-            // load the panel describing the linkset sample
-            $('#inspect_linkset_linkset_details_col').show();
-            $('#inspect_linkset_linkset_details_col').html('Loading...');
-            $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri},function(data)
-            {
-                var obj = JSON.parse(data);
-                $('#inspect_linkset_linkset_details_col').html(obj.data);
-
-                get_filter(rq_uri, linkset_uri);
-
-                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
-                {
-                   $('#creation_linkset_row').show();
-                   loadEditPanel(obj.metadata, mode);
-                   enableButton('deleteLinksetButton');
-                   enableButton('exportLinksetButton');
-                   enableButton('exportPlotLinksetButton');
-                }
-                else if (mode == 'inspect')
-                {
-                   $('#creation_linkset_filter_row').show();
-                   $('#creation_linkset_search_row').show();
-                   $('#creation_linkset_correspondence_row').show();
-                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
-                }
-            });
-
-          }
-          else
+//          if (mode == 'inspect_linkset_cluster')
+//          {
+//            var linkset_uri = $(this).attr('uri');
+//            var linkset_type = $(this).attr('lkst_type');
+//
+//            // load the panel describing the linkset sample
+//            $('#inspect_linkset_linkset_details_col').show();
+//            $('#inspect_linkset_linkset_details_col').html('Loading...');
+//            $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri},function(data)
+//            {
+//                var obj = JSON.parse(data);
+//                $('#inspect_linkset_linkset_details_col').html(obj.data);
+//
+//                get_filter(rq_uri, linkset_uri);
+//
+//                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
+//                {
+//                   $('#creation_linkset_row').show();
+//                   loadEditPanel(obj.metadata, mode);
+//                   enableButton('deleteLinksetButton');
+//                   enableButton('exportLinksetButton');
+//                   enableButton('exportPlotLinksetButton');
+//                }
+//                else if (mode == 'inspect')
+//                {
+//                   $('#creation_linkset_filter_row').show();
+//                   $('#creation_linkset_search_row').show();
+//                   $('#creation_linkset_correspondence_row').show();
+//                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
+//                }
+//            });
+//
+//          }
+//          else
           if (selection)
           {
             var linkset_uri = $(this).attr('uri');
             var linkset_type = $(this).attr('lkst_type');
 
+            var load_samples = 'no';
+            if ($('#linkset_details_checkbox').is(':checked')) load_samples = 'yes';
+
             // load the panel describing the linkset sample
             $('#inspect_linkset_linkset_details_col').show();
             $('#inspect_linkset_linkset_details_col').html('Loading...');
-            $.get('/getlinksetdetails',data={'linkset': linkset_uri, 'lkst_type': linkset_type},function(data)
+            $.get('/getlinksetdetails',data={'linkset': linkset_uri, 'lkst_type': linkset_type, 'load_samples': load_samples},function(data)
             {
                 var obj = JSON.parse(data);
                 $('#inspect_linkset_linkset_details_col').html(obj.data);
@@ -2249,8 +2253,10 @@ function applyFilterLensClick()
     if (filter_term == "-- Type a term --")
         { filter_term = ''; }
 
-    $.get('/getlensdetails',data={'lens': lens_uri,
-                                                'template': 'none'},function(data)
+    var load_samples = 'no';
+    if ($('#lens_details_checkbox').is(':checked')) load_samples = 'yes';
+
+    $.get('/getlensdetails',data={'lens': lens_uri, 'template': 'none', 'load_samples': load_samples},function(data)
     {
        var obj = JSON.parse(data);
 
