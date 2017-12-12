@@ -89,6 +89,9 @@ def set_linkset_name(specs, inverse=False):
     if St.reducer in source:
         reducer += source[St.reducer]
 
+    # GEO DATA
+    unit_value = ""
+
     if St.longitude in source:
         geo += source[St.longitude]
 
@@ -100,6 +103,13 @@ def set_linkset_name(specs, inverse=False):
 
     if St.latitude in source:
         geo += target[St.latitude]
+
+    if St.unit in specs:
+        geo += str(specs[St.unit])
+
+    if St.unit_value in specs:
+        geo += str(specs[St.unit_value])
+        unit_value = str(specs[St.unit_value])
 
     if St.reducer in specs[St.target]:
         reducer += target[St.reducer]
@@ -113,11 +123,6 @@ def set_linkset_name(specs, inverse=False):
     if St.delta in specs:
         delta += str(specs[St.delta])
 
-    if St.unit  in specs:
-        geo += str(specs[St.unit ])
-
-    if St.unit_value  in specs:
-        geo += str(specs[St.unit_value ])
 
     if St.aligns_name in source:
         src_aligns += source[St.aligns_name]
@@ -149,9 +154,9 @@ def set_linkset_name(specs, inverse=False):
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}_{}_{}_{}".format(
+        specs[St.linkset_name] = "{}_{}_{}{}_{}_{}_{}".format(
             source[St.graph_name], target[St.graph_name],
-            specs[St.mechanism], source[St.entity_name], src_aligns, append)
+            specs[St.mechanism], unit_value, source[St.entity_name], src_aligns, append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -163,15 +168,15 @@ def set_linkset_name(specs, inverse=False):
                  target[St.graph_name] + trg_aligns + \
                  source[St.graph_name] + src_aligns + \
                  target[St.entity_datatype] + source[St.entity_datatype] + "2" +\
-                 reducer  + intermediate + threshold + delta
+                 reducer  + intermediate + threshold + delta + geo
 
         hashed = hash(h_name)
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}_{}_{}_()".format(
+        specs[St.linkset_name] = "{}_{}_{}{}_{}_{}_()".format(
             target[St.graph_name], source[St.graph_name],
-            specs[St.mechanism], target[St.entity_name], trg_aligns, append)
+            specs[St.mechanism], unit_value, target[St.entity_name], trg_aligns, append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
         print "specs[St.linkset]", specs[St.linkset]
