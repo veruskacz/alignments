@@ -20,6 +20,7 @@
     </div>
 
         <div class="panel-body" style='height: 14em;'>
+        {% if details|length > 1 %}
         <TABLE style='width: 100%;'>
           <TR>
              <TH style='width: 50%;'>
@@ -31,6 +32,7 @@
                      <span class="badge alert-default"> Object </span>
              </TH>
         </TABLE>
+        {% endif %}
 
         <div class="list-group" style='scroll: both; overflow: auto; height: 10em; width: 100%;'>
           <TABLE style='width: 100%;'>

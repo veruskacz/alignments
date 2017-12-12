@@ -692,8 +692,9 @@ def linksetdetails():
     template = request.args.get('template', 'linksetDetails_list.html')
     rq_uri = request.args.get('rq_uri', '')
     filter_uri = request.args.get('filter_uri', '')
+    load_samples = request.args.get('load_samples', 'yes')
 
-    print '###', lkst_type
+    # print '###', lkst_type
 
     query = Qry.get_linkset_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri, type=lkst_type )
     metadata = sparql(query, strip=True)
@@ -707,8 +708,11 @@ def linksetdetails():
     if (template == 'none'):
         return json.dumps(md)
     else:
-        query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
-        details = sparql(query, strip=True)
+        if (load_samples == 'yes'):
+            query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
+            details = sparql(query, strip=True)
+        else:
+            details = []
 
         if PRINT_RESULTS:
             print "\n\nDETAILS:", details
@@ -739,6 +743,7 @@ def linksetdetails():
         )
 
         return json.dumps({'metadata': md, 'data': data})
+
 
 # @app.route('/getlinksetdetailssample', methods=['GET'])
 # def linksetdetailssample():
@@ -802,6 +807,7 @@ def linksetdetailsCluster():
     template = request.args.get('template', 'linksetDetailsCluster_list.html')
     rq_uri = request.args.get('rq_uri', '')
     filter_uri = request.args.get('filter_uri', '')
+    load_samples = request.args.get('load_samples', 'yes')
 
     query = Qry.get_linksetCluster_corresp_details(linkset, limit=1, rq_uri = rq_uri, filter_uri = filter_uri )
     alignments = sparql(query, strip=True)
@@ -815,9 +821,11 @@ def linksetdetailsCluster():
     if (template == 'none'):
         return json.dumps(md)
     else:
-        query = Qry.get_linksetCluster_corresp_sample_details(linkset, limit=10)
-        print query
-        details = sparql(query, strip=True)
+        if (load_samples == 'yes'):
+            query = Qry.get_linksetCluster_corresp_sample_details(linkset, limit=10)
+            details = sparql(query, strip=True)
+        else:
+            details = []
 
         # print md['alignments_stripped']['value']
         data = render_template(template,
@@ -879,6 +887,7 @@ def lensdetails():
     # RETRIEVE VARIABLES
     lens = request.args.get('lens', '')
     template = request.args.get('template', 'lensDetails_list.html')
+    # load_samples = request.args.get('load_samples', '')
     query = Qry.get_lens_corresp_details(lens, limit=10)
 
     details = sparql(query, strip=True)
@@ -895,6 +904,12 @@ def lensdetails():
     if (template == 'none'):
         return json.dumps(d)
     else:
+        # if (load_samples == 'yes'):
+        #     query = ...
+        #     details = sparql(query, strip=True)
+        # else:
+        #     details = []
+
         return render_template(template,
                             details = details,
                             s_datatype = d['s_datatype_stripped']['value'],
