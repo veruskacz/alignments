@@ -690,6 +690,7 @@ def write_to_file(graph_name, directory, metadata=None, correspondences=None, si
     except Exception as err:
         print err
 
+
 def write_2_disc(file_directory, file_name, data, extension="txt"):
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
     file_path = join(file_directory, file_name)
@@ -754,6 +755,16 @@ def normalise_path(file_path):
 
     file_path = re.sub('[\']', "\\\\", file_path)
     file_path = re.sub('[\"]', "\\\\", file_path)
+    file_path = re.sub('[\1]', "\\\\7", file_path)
+    file_path = re.sub('[\2]', "\\\\7", file_path)
+    file_path = re.sub('[\3]', "\\\\7", file_path)
+    file_path = re.sub('[\4]', "\\\\7", file_path)
+    file_path = re.sub('[\5]', "\\\\7", file_path)
+    file_path = re.sub('[\6]', "\\\\7", file_path)
+    file_path = re.sub('[\7]', "\\\\7", file_path)
+    file_path = re.sub('[\8]', "\\\\7", file_path)
+    file_path = re.sub('[\9]', "\\\\7", file_path)
+    file_path = re.sub('[\0]', "\\\\7", file_path)
     file_path = re.sub('[\a]', "\\\\a", file_path)
     file_path = re.sub('[\b]', "\\\\b", file_path)
     file_path = re.sub('[\f]', "\\\\f", file_path)
