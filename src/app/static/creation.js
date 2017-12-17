@@ -3871,9 +3871,10 @@ function rqClick(th, mode)
           //refresh_create_cluster();
 //          var btn = document.getElementById('btn_inspect_cluster');
           break;
-      case 'dataset':
-          inspect_dataset_activate(rq_uri);
-          break;
+//      case 'dataset':
+//          alert(rq_uri);
+//          inspect_dataset_activate(rq_uri);
+//          break;
   }
 
   //set target div with selected RQ
@@ -3918,6 +3919,7 @@ function rqClick(th, mode)
   setAttr(target,'label',rq_label);
   setAttr(target,'style','background-color:lightblue');
   $('#'+target).html(rq_label);
+  inspect_dataset_activate(rq_uri);
 
   if (btn)  //inital button selected
   {  btn.onclick();
