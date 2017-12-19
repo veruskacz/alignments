@@ -776,7 +776,12 @@ function create_linkset_cluster_activate(mode='default')
         // Load into div all the existing views for a certain research question
         $.get('/getClusterReferences', function(data)
         {
-          $('#create_linkset_clusters_reference_selection_col').html(data);
+           $('#create_linkset_clusters_reference_selection_col').html(data);
+           var ul = document.getElementById('create_linkset_clusters_reference_selection_col');
+           var li = ul.getElementsByTagName('li');
+           var num = ('0000' + String(li.length)).substr(-4);
+           $('#linkset_clusters_reference_selection_counter').html(num);
+
           // set actions after clicking a graph in the list
           $('#create_linkset_clusters_reference_selection_col li').on('click',function()
            {
@@ -793,6 +798,11 @@ function create_linkset_cluster_activate(mode='default')
                               function(data)
                 {
                   $('#create_linkset_clusters_selection_col').html(data);
+                   var ul = document.getElementById('create_linkset_clusters_selection_col');
+                   var li = ul.getElementsByTagName('a');
+                   var num = ('0000' + String(li.length)).substr(-4);
+                   $('#create_linkset_clusters_selection_counter').html(num);
+
                   // set actions after clicking a graph in the list
                   $('#create_linkset_clusters_selection_col a').on('click',function()
                   {
@@ -3258,35 +3268,54 @@ function createClusterClick()
      $('#'+message_col).html(addNote('The proposed cluster is being processed',cl='warning'));
      loadingGif(document.getElementById(message_col), 2);
 
-     $.get('/createClusterContraint', specs, function(data)
-     {
-         var obj = JSON.parse(data);
-         //{"metadata": metadata, "query": '', "table": []}
-//         $('#queryView').val(obj.query);
-//         $('#inspect_clusters_row').show();
-         $('#inspect_cluster_references_row').show();
-
-         if (obj.reference)
-             $('#'+message_col).html(addNote(obj.message,cl='info'));
-         else
-             $('#'+message_col).html(addNote(obj.message,cl='warning'));
-
-         loadingGif(document.getElementById(message_col), 2, show = false);
-
-//         if (obj.sparql_issue)
-//         {   var message = 'We cannot run the query because at least one non-optional property is required for each dataset in the select clause.'
-//             $('#'+message_col).html(addNote(message,cl='warning'));
-//             enableButton('view_run_button', enable=false);
-//             loadingGif(document.getElementById(message_col), 2, show = false);
-//         }
+//     $.get('/createClusterContraint', specs, function(data)
+//     {
+//         var obj = JSON.parse(data);
+//         //{"metadata": metadata, "query": '', "table": []}
+////         $('#queryView').val(obj.query);
+////         $('#inspect_clusters_row').show();
+//         $('#inspect_cluster_references_row').show();
+//
+//         if (obj.reference)
+//             $('#'+message_col).html(addNote(obj.message,cl='info'));
 //         else
-//         {   //enableButton('view_run_button');
-//             $('#'+message_col).html(addNote(obj.metadata.message,cl='info'));
-//             loadingGif(document.getElementById(message_col), 2, show = false);
-////             runViewClick();
-//         }
+//             $('#'+message_col).html(addNote(obj.message,cl='warning'));
+//
+//         loadingGif(document.getElementById(message_col), 2, show = false);
+//
+////         if (obj.sparql_issue)
+////         {   var message = 'We cannot run the query because at least one non-optional property is required for each dataset in the select clause.'
+////             $('#'+message_col).html(addNote(message,cl='warning'));
+////             enableButton('view_run_button', enable=false);
+////             loadingGif(document.getElementById(message_col), 2, show = false);
+////         }
+////         else
+////         {   //enableButton('view_run_button');
+////             $('#'+message_col).html(addNote(obj.metadata.message,cl='info'));
+////             loadingGif(document.getElementById(message_col), 2, show = false);
+//////             runViewClick();
+////         }
+//
+//     });
 
-     });
+        $.ajax(
+        {
+            url: '/createClusterContraint',
+            data: specs,
+            type: "GET",
+            timeout: 0,
+            success: function(data){
+             var obj = JSON.parse(data);
+             $('#inspect_cluster_references_row').show();
+
+             if (obj.reference)
+                 $('#'+message_col).html(addNote(obj.message,cl='info'));
+             else
+                 $('#'+message_col).html(addNote(obj.message,cl='warning'));
+
+             loadingGif(document.getElementById(message_col), 2, show = false);
+            }
+        });
     }
     else {
         $('#'+message_col).html(addNote(missing_feature));
@@ -3337,18 +3366,37 @@ function addToClusterClick()
      $('#'+message_col).html(addNote('The proposed cluster is being processed',cl='warning'));
      loadingGif(document.getElementById(message_col), 2);
 
-     $.get('/addClusterContraint', specs, function(data)
-     {
-         var obj = JSON.parse(data);
-         $('#inspect_cluster_references_row').show();
+//     $.get('/addClusterContraint', specs, function(data)
+//     {
+//         var obj = JSON.parse(data);
+//         $('#inspect_cluster_references_row').show();
+//
+//         if (obj.reference)
+//             $('#'+message_col).html(addNote(obj.message,cl='info'));
+//         else
+//             $('#'+message_col).html(addNote(obj.message,cl='warning'));
+//
+//         loadingGif(document.getElementById(message_col), 2, show = false);
+//     });
 
-         if (obj.reference)
-             $('#'+message_col).html(addNote(obj.message,cl='info'));
-         else
-             $('#'+message_col).html(addNote(obj.message,cl='warning'));
+        $.ajax(
+        {
+            url: '/addClusterContraint',
+            data: specs,
+            type: "GET",
+            timeout: 0,
+            success: function(data){
+             var obj = JSON.parse(data);
+             $('#inspect_cluster_references_row').show();
 
-         loadingGif(document.getElementById(message_col), 2, show = false);
-     });
+             if (obj.reference)
+                 $('#'+message_col).html(addNote(obj.message,cl='info'));
+             else
+                 $('#'+message_col).html(addNote(obj.message,cl='warning'));
+
+             loadingGif(document.getElementById(message_col), 2, show = false);
+            }
+        });
     }
     else {
         $('#'+message_col).html(addNote(missing_feature));
