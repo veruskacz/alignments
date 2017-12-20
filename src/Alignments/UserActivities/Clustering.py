@@ -11,8 +11,8 @@ import networkx as nx
 # import matplotlib.pyplot as plt
 import Alignments.Utility as Ut
 import cStringIO as Buffer
-import Alignments.Server_Settings as Svr
-from os.path import join
+# import Alignments.Server_Settings as Svr
+# from os.path import join
 # import numpy
 
 
@@ -896,34 +896,28 @@ def cluster_links(graph, limit=1000):
     g = rdflib.Graph()
     g.parse(data=links, format="turtle")
     # g = [
-    #     ("<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
-    #     ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
-    #     ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgreg.2>"),
-    #     ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://h2020.2> "),
-    #     ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://eter.2>"),
-    #     ("<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
+    #     ("<http://grid.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgref.2>"),
+    #     ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://grid.2>"),
+    #     ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgreg.2>"),
+    #     ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/sameAs>", "<http://h2020.2> "),
+    #     ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://eter.2>"),
+    #     ("<http://eter.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://leiden.2>"),
     # ]
     #
     g = [
-        (
-        "<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
-        (
-        "<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
-        ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>",
-         "<http://h2020.2> "),
-        (
-        "<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
-        ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/SAMEAS>",
-         "<http://orgreg.2>"),
-        ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://eter.2>"),
-    ]
+        ("<http://grid.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgref.2>"),
+        ("<http://eter.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://leiden.2>"),
+        ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/sameAs>", "<http://h2020.2> "),
+        ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://grid.2>"),
+        ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgreg.2>"),
+        ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://eter.2>")]
 
     # g = [
-    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/SAMEAS>",
+    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/sameAs>",
     #      "<http://www.grid.ac/institutes/grid.10493.3f>"),
-    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/SAMEAS>",
+    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/sameAs>",
     #      "<http://risis.eu/eter_2014/resource/DE0056>"),
-    #     ("<http://www.grid.ac/institutes/grid.10493.3f> ", "<http://risis.eu/alignment/predicate/SAMEAS>",
+    #     ("<http://www.grid.ac/institutes/grid.10493.3f> ", "<http://risis.eu/alignment/predicate/sameAs>",
     #      "<http://risis.eu/eter_2014/resource/DE0056> ") ]
 
     def merge_matrices(parent, pop_parent):
@@ -966,7 +960,7 @@ def cluster_links(graph, limit=1000):
     def cluster_helper(counter):
 
         counter += 1
-        parent = None
+        # parent = None
         # child_1 = subject.n3().strip()
         # child_2 = obj.n3().strip()
         child_1 = subject.strip()
@@ -1035,7 +1029,6 @@ def cluster_links(graph, limit=1000):
                 for row in range(1, clusters[root[child_1]][St.row]):
                     if cur_mx[row][0] == child_1:
                         row_1 = row
-
 
                 for col in range(1, clusters[root[child_1]][St.row]):
                     if cur_mx[0][col] == child_2:
@@ -1250,6 +1243,15 @@ def draw_graph(graph, file_path=None, show_image=False):
     for edge in graph:
         g.add_edge(edge[0], edge[1])
 
+    node_count = len(nodes)
+    edge_discovered = len(graph)
+    edge_derived = node_count * (node_count - 1) / 2
+
+
+    # d_centrality = nx.degree_centrality(g)
+    # b_centrality = nx.edge_betweenness_centrality(g)
+    diameter = nx.diameter(g)  # / float(node_count - 1)
+
     # draw graph
     # pos = nx.shell_layout(g)
     # print edge_count
@@ -1257,7 +1259,8 @@ def draw_graph(graph, file_path=None, show_image=False):
     pos = nx.spring_layout(g)
     try:
         nx.draw(g, pos, with_labels=True, font_weight='bold', node_size=800, edge_color=colors, width=2)
-    except:
+    except Exception as error:
+        "{}".format(error)
         nx.draw(g, pos, with_labels=True, font_weight='bold', node_size=800, edge_color="b", width=2)
 
     bridges = list(nx.bridges(g))
@@ -1265,32 +1268,35 @@ def draw_graph(graph, file_path=None, show_image=False):
     # G = nx.connectivity.build_auxiliary_node_connectivity(G)
     # cycles = nx.cycle_basis(G)
     # cycles = nx.simple_cycles(G)
-    cycles = list(nx.simple_cycles(g.to_directed()))
+
+    # cycles = list(nx.simple_cycles(g.to_directed()))
     average_node_connectivity = nx.average_node_connectivity(g)
-    nbr_cycles = len(list(filter(lambda x: len(x) > 2, cycles)))/2
+    # nbr_cycles = len(list(filter(lambda x: len(x) > 2, cycles)))/2
     # biggest_ring = reduce((lambda x, y: x if len(x) > len(y) else y), cycles)
 
-    set_cycles = []
+    # set_cycles = []
 
-    size = 0
-    for item in cycles:
-        if len(item) > size:
-            size = len(item)
+    # size = 0
+    # for item in cycles:
+    #     if len(item) > size:
+    #         size = len(item)
+    #
+    # for item in cycles:
+    #     if len(item) == size:
+    #         set_cycles += [frozenset(item)]
 
-    for item in cycles:
-        if len(item) == size:
-            set_cycles += [frozenset(item)]
-
+    closure = round(float(edge_discovered) / float(edge_derived), 3)
     ratio = average_node_connectivity / (len(nodes) - 1)
     analysis_builder.write("\n\nNETWORK ANALYSIS")
     analysis_builder.write("\n\tNETWORK {}".format(graph))
-    analysis_builder.write("\n\t{:31} : {}".format("CYCLES", nbr_cycles))
-    if cycles > 0:
-        analysis_builder.write("\n\t{:31} : {}".format("BIGGEST CYCLES", set(set_cycles)))
+    analysis_builder.write("\n\t{:31} : {}".format("MAX DISTANCE:", closure))
+    # analysis_builder.write("\n\t{:31} : {}".format("CYCLES", nbr_cycles))
+    # if cycles > 0:
+    #     analysis_builder.write("\n\t{:31} : {}".format("BIGGEST CYCLES", set(set_cycles)))
     analysis_builder.write("\n\t{:31} : {}".format("BRIDGES", bridges))
     analysis_builder.write("\n\t{:31} : {}".format("MAXIMUM POSSIBLE CONNECTIVITY", len(nodes) - 1))
     analysis_builder.write("\n\t{:31} : {}".format("AVERAGE NODE CONNECTIVITY", average_node_connectivity))
-    analysis_builder.write("\n\t{:31} : {}".format( "AVERAGE NODE CONNECTIVITY RATIO", ratio))
+    analysis_builder.write("\n\t{:31} : {}".format("AVERAGE NODE CONNECTIVITY RATIO", ratio))
 
     # test = dict()
     # for item in cycles:
@@ -1302,15 +1308,29 @@ def draw_graph(graph, file_path=None, show_image=False):
 
     # show graph
 
-    analysis_builde_2.write("\nCycles [{}] Bridges [{}]".format(nbr_cycles, len(bridges)))
-    analysis_builde_2.write("\nConnectivity: Average [{}] Max [{}] Ratio [{}]".format(
-        average_node_connectivity, len(nodes) - 1, ratio) )
+    # conclusion = (1 - closure) * (diameter - 1) + len(bridges)
+    normalised_closure  = round(1 - closure, 2)
+    normalised_diameter = round((float(diameter - 1)/float(len(nodes) - 2)), 3)
+    normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
+    conclusion = round((normalised_closure * normalised_diameter + normalised_bridge)/2, 3)
+    interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
+
+    # analysis_builde_2.write("\nCycles [{}] Bridges [{}]".format(nbr_cycles, len(bridges)))
+    analysis_builde_2.write("\nAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
+                            "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [I_1={}] [I_2={}]".format(
+        average_node_connectivity, len(bridges), normalised_bridge,  diameter, normalised_diameter,
+        edge_discovered, edge_derived, closure, normalised_closure, conclusion, interpretation))
+
+    # analysis_builde_2.write("\nConnectivity: AverageDegree [{}] MaxDegree [{}] "
+    #                         "TransitivityClosure [{}] Bridges [{}] Diameter [{}]".format(
+    #     average_node_connectivity, len(nodes) - 1, max_distance, len(bridges), diameter))
+
     if ratio == 1:
         analysis_builde_2.write("\n\nDiagnose: VERY GOOD")
     elif average_node_connectivity == 2 or len(bridges) == 0:
         analysis_builde_2.write("\n\nDiagnose: ACCEPTABLE")
-    elif nbr_cycles == 0:
-        analysis_builde_2.write("\n\nDiagnose: NEED INVESTIGATION")
+    # elif nbr_cycles == 0:
+    #     analysis_builde_2.write("\n\nDiagnose: NEED INVESTIGATION")
     elif len(bridges) > 0:
         analysis_builde_2.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
 
@@ -1328,7 +1348,6 @@ def draw_graph(graph, file_path=None, show_image=False):
         plt.show()
 
     return analysis_builder.getvalue()
-
 
 
 # QUERY TO HELP DISAMBIGUATING A NETWORK OF RESOURCES
@@ -1349,6 +1368,7 @@ def disambiguate_network(linkset, resource_list, output=True):
 
     response = Qry.sparql_xml_to_matrix(metadata_query)
     result = response[St.result]
+    # print result
 
     if result:
         dataset = ""
@@ -1392,8 +1412,67 @@ def disambiguate_network(linkset, resource_list, output=True):
         return Qry.display_matrix(response, spacing=uri_size, output=output, line_feed='.', is_activated=True)
 
     print "\t>>> NO RESULT FOR THE QUERY BECAUSE NO METADATA COULD BE EXTRACTED FOR THE PROVIDED LINKSET..."
-    # print metadata_query
+    print metadata_query
     return "NO RESULT FOR THE QUERY..."
+
+
+# QUERY TO HELP DISAMBIGUATING A NETWORK OF RESOURCES
+def disambiguate_network_2(lookup_resource_list, targets, output=True):
+
+    # GATHER SOME DATA ABOUT THE LINKSET
+
+    # print metadata_query
+    uri_size = 0
+    dataset = ""
+    bind = ""
+    property_or = ""
+    dataset_count = 0
+    resources = ""
+
+    for resource in lookup_resource_list:
+        use = "<{}>".format(resource) if Ut.is_nt_format(resource) is not True else resource
+        resources += "\n\t\t{}".format(use)
+        if len(resource) > uri_size:
+            uri_size = len(resource)
+
+    for i in range(len(targets)):
+        if dataset != targets[i][St.graph]:
+            dataset_count += 1
+            union = "UNION " if dataset_count > 1 else ""
+            dataset = targets[i][St.graph]
+            bind += """\n\tBIND(IRI("{}") as ?dataset_{})""".format(
+                dataset, str(dataset_count))
+            data = targets[i][St.data]
+
+            for dt_dic in data:
+                properties = dt_dic[St.properties]
+                for index in range(len(properties)):
+                    if index == 0:
+                        prop_1 = "<{}>".format(properties[index]) if Ut.is_nt_format(properties[index]) is not True \
+                            else properties[index]
+                        property_or += "\n\t{}{{\n\t\tGRAPH ?dataset_{}\n\t\t{{\n\t\t\t?subject {}".format(
+                            union, dataset_count, prop_1)
+                    else:
+
+                        prop_2 = "<{}>".format(properties[index]) if Ut.is_nt_format(properties[index]) is not True \
+                            else properties[index]
+                        property_or += "\n\t\t\t\t| {}".format(prop_2)
+
+            property_or += "  ?object .\n\t\t}\n\t}"
+
+    final_query = "SELECT DISTINCT ?subject ?object\n{{\n\tVALUES ?subject {{{}\n\t}}{}{}\n}}".format(
+        resources, bind, property_or)
+    # print final_query
+    response = Qry.sparql_xml_to_matrix(final_query)
+
+    if output is False:
+        return response[St.result]
+
+    return Qry.display_matrix(response, spacing=uri_size, output=output, line_feed='.', is_activated=True)
+
+    # print "\t>>> NO RESULT FOR THE QUERY BECAUSE NO METADATA COULD BE EXTRACTED FOR THE PROVIDED LINKSET..."
+    # print metadata_query
+    # return "NO RESULT FOR THE QUERY..."
 
 
 # TESTING THE CLUSTER ANALYSIS
@@ -1557,11 +1636,12 @@ def cluster_test(linkset, network_size=3, greater_equal=True, limit=5000):
 #     if len(item['cluster']) > 1:
 #         print "\n{:10}\t{:3}\t{}".format(item['parent'], len(item['cluster']), item['sample'])
 
+
 # WORKING ONE
 def links_clustering(graph, limit=1000):
 
     count = 0
-    matrix_size = 240
+    # matrix_size = 240
     clusters = dict()
     root = dict()
 
@@ -1642,7 +1722,7 @@ def links_clustering(graph, limit=1000):
     def cluster_helper(counter, annotate=False):
 
         counter += 1
-        parent = None
+        # parent = None
         child_1 = subject.n3().strip()
         child_2 = obj.n3().strip()
         # child_1 = subject.strip()
@@ -1662,7 +1742,8 @@ def links_clustering(graph, limit=1000):
             # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count) + graph)
+            # hash_value = hash(date + str(count) + graph)
+            hash_value = hash(child_1 + child_2 + graph)
             parent = "{}".format(str(hash_value).replace("-", "N")) if str(
                 hash_value).startswith("-") \
                 else "P{}".format(hash_value)
@@ -1884,7 +1965,7 @@ def links_clustering(graph, limit=1000):
                     cur_mxd[(row_1 - 1, col)] = 1
                     if annotate:
                         clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
-                        child_1, child_2)
+                            child_1, child_2)
 
         elif has_parent_2 is True:
 
@@ -1929,7 +2010,7 @@ def links_clustering(graph, limit=1000):
                     cur_mxd[(row_2 - 1, col)] = 1
                     if annotate:
                         clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
-                        child_2, child_1)
+                            child_2, child_1)
 
         return counter
 
@@ -1944,7 +2025,13 @@ def links_clustering(graph, limit=1000):
     return clusters
 
 
-def cluster_d_test(linkset, network_size=3, directory=None, greater_equal=True, print_it=False, limit=5000):
+def cluster_d_test(linkset, network_size=3, targets=None,
+                   directory=None, greater_equal=True, print_it=False, limit=5000, activated=False):
+
+    print "\nLINK NETWORK INVESTIGATION"
+    if activated is False:
+        print "\tTHE FUNCTION I NOT ACTIVATED"
+        return ""
 
     count_1 = 0
     count_2 = 0
@@ -1959,7 +2046,9 @@ def cluster_d_test(linkset, network_size=3, directory=None, greater_equal=True, 
 
     for i_cluster in clusters_0.items():
 
-        network = []
+        # network = []
+        resources = ""
+        uri_size = 0
         count_1 += 1
         children = i_cluster[1][St.children]
         # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
@@ -1969,15 +2058,58 @@ def cluster_d_test(linkset, network_size=3, directory=None, greater_equal=True, 
 
         if check:
             count_2 += 1
-            file_name = i_cluster[0]
+            # file_name = i_cluster[0]
+
+            # 2: FETCHING THE CORRESPONDENTS
+            smallest_hash = float('inf')
+            for child in children:
+                hashed = hash(child)
+                if hashed <= smallest_hash:
+                    smallest_hash = hashed
+                analysis_builder.write("\t{}\n".format(child))
+                use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
+                resources += "\n\t\t{}".format(use)
+                if len(child) > uri_size:
+                    uri_size = len(child)
+
+            # MAKE SURE THE FILE NAME OF THE CLUSTER IS ALWAYS THE SAME
+            file_name = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                smallest_hash).startswith("-") \
+                else "P{}".format(smallest_hash)
+
+            # 1 GENERAL INFO
             info = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, len(children))
             print "{:>5} {}".format(count_2, info)
             analysis_builder.write("\n{}\n".format(info))
-            for child in children:
-                analysis_builder.write("\t{}\n".format(child))
 
-            analysis_builder.write("\nDISAMBIGUATION HELPER ")
-            analysis_builder.write(disambiguate_network(linkset, children))
+            analysis_builder.write("\nCORRESPONDENT FOUND ")
+            query = """
+            SELECT DISTINCT ?lookup ?object
+            {{
+                VALUES ?lookup{{ {0} }}
+
+                {{
+                    GRAPH <{1}>
+                    {{ ?lookup ?predicate ?object .}}
+                }} UNION
+                {{
+                    GRAPH <{1}>
+                    {{?object ?predicate ?lookup . }}
+                }}
+            }}
+                        """.format(resources, linkset)
+            # print query
+
+            response = Qry.sparql_xml_to_matrix(query)
+            analysis_builder.write(
+                Qry.display_matrix(response, spacing=uri_size, output=True, line_feed='.', is_activated=True))
+
+            # INFO TYPE 2: PROPERTY VALUES
+            analysis_builder.write("\n\nDISAMBIGUATION HELPER ")
+            if targets is None:
+                analysis_builder.write(disambiguate_network(linkset, children))
+            else:
+                analysis_builder.write(disambiguate_network_2(children, targets))
 
             position = i_cluster[1][St.row]
             if St.annotate in i_cluster[1]:
@@ -2015,8 +2147,10 @@ def cluster_d_test(linkset, network_size=3, directory=None, greater_equal=True, 
 
             # SETTING THE DIRECTORY
             if directory:
+                linkset_name = Ut.get_uri_local_name(linkset)
                 date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-                temp_directory = "{}{}".format(directory, "\Analysis_{}\{}_{}\\".format(date, len(children), file_name))
+                temp_directory = "{}{}".format(directory, "\{}_Analysis_{}\{}\{}_{}\\".format(
+                    network_size, date, linkset_name, len(children), file_name))
                 if not os.path.exists(temp_directory):
                     os.makedirs(temp_directory)
 
@@ -2036,11 +2170,17 @@ def cluster_d_test(linkset, network_size=3, directory=None, greater_equal=True, 
     print ">>> FOUND: {}".format(count_2)
 
 
-def resource_stat(alignment, dataset, resource_type=None, output=True):
+def resource_stat(alignment, dataset, resource_type=None, output=True, activated=False):
 
     # OUTPUT FALSE RETURNS THE MATRIX WHILE OUTPUT TRUE RETURNS THE DISPLAY MATRIX IN A TABLE FORMAT
 
-    # STATS ON MATCHED
+    print "\nCOMPUTING STATISTICS ON ALIGNMENT"
+    if activated is False:
+        print "\tTHE FUNCTION I NOT ACTIVATED"
+        return [None, None]
+    print "\tSTATISTICS FOR {}".format(alignment)
+
+    # STATS ON DISCOVERED RESOURCES
     matched = dict()
     matched_resp = resources_matched(alignment, dataset, resource_type=resource_type, matched=True, stat=True)
     matched_res = matched_resp["result"]
@@ -2048,8 +2188,11 @@ def resource_stat(alignment, dataset, resource_type=None, output=True):
         for c in range(len(matched_res[r])):
             matched[matched_res[0][c]] = matched_res[r][c]
 
+    print ">>> DISCOVERED"
+    for key, value in matched.items():
+        print "\t{:21} : {}".format(key, value)
 
-    # STATS ON NOT MATCHED
+    # STATS ON RESOURCES NOT DISCOVERED
     lost = dict()
     lost_rep = resources_matched(alignment, dataset, resource_type=resource_type, matched=False, stat=True)
     lost_res = lost_rep["result"]
@@ -2066,6 +2209,11 @@ def resource_stat(alignment, dataset, resource_type=None, output=True):
     # print matched
     # print lost
     # print [matched, lost]
+
+    print ">>> NOT DISCOVERED"
+    for key, value in lost.items():
+        print "\t{:21} : {}".format(key, value)
+
     return [matched, lost]
 
 
@@ -2149,5 +2297,3 @@ def resources_matched(alignment, dataset, resource_type=None, matched=True, stat
     # print query
     # print Qry.sparql_xml_to_matrix(query)
     return Qry.sparql_xml_to_matrix(query)
-
-
