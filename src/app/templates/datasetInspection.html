@@ -211,7 +211,7 @@
                      <div class="row">
                       <div class="col-md-4">
                         <a id="link_collapse_dataset_linking_stats_table" data-toggle="collapse" href="#collapse_dataset_linking_stats_table">
-                        <span class="badge alert-info"><strong>+</strong></span></a>Summary
+                        <span class="badge alert-info"><strong>+</strong></span></a>Summary Stats 1
                             <small>
                                  <label> &nbsp &nbsp
                                     <input type="checkbox" id="computeClusterCheckBok" checked="checked">
@@ -300,6 +300,47 @@
                   </div>
                   </div>
                 </div>
+
+                <div class="row" id="dataset_linking_stats2_row">
+                  <div class="col-md-12">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                     <div class="row">
+                      <div class="col-md-4">
+                        <a id="link_collapse_dataset_linking_stats2" data-toggle="collapse" href="#collapse_dataset_linking_stats2">
+                        <span class="badge alert-info"><strong>+</strong></span></a>Summary  Stats 2
+                      </div>
+                      <div class="col-md-8 text-right">
+                                <table align="right">
+                                   <tr align="right">
+                                       <td align="right"><div id="dataset_linking_stats2_message_col"></div></td>
+                                       <td valign="center"><div class="loading"></div></td>
+                                       <td align="right">
+                                            <button type="button" class="btn btn-primary"
+                                            onclick='calculateDatasetStats2();'
+                                            >Compute Stats
+                                            <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                                            </button>
+                                           <br/>
+                                       </td>
+                                </table>
+                      </div>
+                     </div>
+                    </div>
+                    <div id="collapse_dataset_linking_stats2" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats2">
+                    <div class="panel-body">
+                      <div class="row">
+                        <div class="col-md-12">
+                            <textarea readonly id='dataset_linking_stats2_results' class='sparql' style='width: 100%; background-color:lightblue; font-size: 12pt;' rows='12'>
+                              </textarea>
+                        </div>
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                  </div>
+                </div>
+
 
                 <div class="row" id="dataset_linking_stats_selection_prop_row">
                     <div class="col-md-12">
@@ -452,17 +493,36 @@
                       </div>
                     </div>
 
+                    <div class="row">
+                        <style>
+                        .links line {
+                          stroke: #999;
+                          stroke-opacity: 0.6;
+                        }
+
+                        .nodes circle {
+                          stroke: #fff;
+                          stroke-width: 1.5px;
+                        }
+
+                        text {
+                          font-family: sans-serif;
+                          font-size: 10px;
+                        }
+
+                        </style>
+                        <!--<script src="https://d3js.org/d3.v4.min.js"></script>-->
+                        <svg class="plot" id="graph_cluster" width="960" height="600" >
+
+                        </svg>
+                    </div>
+
                     </div>
                     </div>
                   </div>
                   </div>
                 </div>
-
-
-
             </div>
-
-
         </div>
       </div>
 
