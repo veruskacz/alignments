@@ -1678,9 +1678,9 @@ def specs_2_linkset_intermediate(specs, display=False, activated=False):
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
 
 
-########################################################################################
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # NUMERICAL APPROXIMATION
-########################################################################################
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
 def insert_query_numeric_reduce(specs):
