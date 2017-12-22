@@ -6,7 +6,7 @@ import Alignments.UserActivities.ExportAlignment as Exp
 from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
-import Alignments.UserActivities.Plots as Plt
+# import Alignments.UserActivities.Plots as Plt
 
 
 _format = "%a %b %d %H:%M:%S:%f %Y"
@@ -1055,70 +1055,70 @@ def disambiguate_network_2(lookup_resource_list, targets, output=True):
 
 
 # TESTING THE CLUSTER ANALYSIS
-def cluster_test(linkset, network_size=3, greater_equal=True, limit=5000):
-
-    count_1 = 0
-    count_2 = 0
-
-    print ""
-
-    linkset = linkset.strip()
-
-    # RUN THE CLUSTER
-    clusters_0 = cluster_links(linkset, limit)
-
-    for i_cluster in clusters_0.items():
-
-        network = []
-        count_1 += 1
-        children = i_cluster[1][St.children]
-        # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
-        #     continue
-
-        check = len(children) >= network_size if greater_equal else len(children) == network_size
-
-        if check:
-            count_2 += 1
-
-            print "\nCLUSTER {:>3}: {}: with size: {}".format(count_1, i_cluster[0], len(children))
-            for child in children:
-                print "\t{}".format(child)
-
-            print "\nDISAMBIGUATION HELPER"
-            disambiguate_network(linkset, children)
-
-            position = i_cluster[1][St.row]
-            print "\nANNOTATED CLUSTER PROCESS"
-            print i_cluster[1][St.annotate]
-
-            # THE CLUSTER
-            # print "POSITION: {}".format(position)
-            print "\nMATRIX DISPLAY\n"
-            for i in range(0, position):
-                resource = (i_cluster[1][St.matrix])[i]
-                print "\t{}".format(resource[:position])
-                # print "\t{}".format(resource)
-
-            # THE MATRIX
-            for i in range(1, position):
-                for j in range(1, position):
-                    if (i_cluster[1][St.matrix])[i][j] != 0:
-                        r = (i_cluster[1][St.matrix])[i][0]
-                        c = (i_cluster[1][St.matrix])[0][j]
-                        # r_name = r[-25:]
-                        # c_name = c[-25:]
-                        r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
-                        c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
-                        # r_smart = {"key": i, "name": r_name}
-                        # c_smart = {"key": j, "name": c_name}
-                        network += [(r_name, c_name)]
-                        # network += [(r_smart, c_smart)]
-
-            print ""
-            # print "\tNETWORK", network
-            Plt.draw_graph(network)
-
-    print "FOUND: {}".format(count_2)
+# def cluster_test(linkset, network_size=3, greater_equal=True, limit=5000):
+#
+#     count_1 = 0
+#     count_2 = 0
+#
+#     print ""
+#
+#     linkset = linkset.strip()
+#
+#     # RUN THE CLUSTER
+#     clusters_0 = cluster_links(linkset, limit)
+#
+#     for i_cluster in clusters_0.items():
+#
+#         network = []
+#         count_1 += 1
+#         children = i_cluster[1][St.children]
+#         # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
+#         #     continue
+#
+#         check = len(children) >= network_size if greater_equal else len(children) == network_size
+#
+#         if check:
+#             count_2 += 1
+#
+#             print "\nCLUSTER {:>3}: {}: with size: {}".format(count_1, i_cluster[0], len(children))
+#             for child in children:
+#                 print "\t{}".format(child)
+#
+#             print "\nDISAMBIGUATION HELPER"
+#             disambiguate_network(linkset, children)
+#
+#             position = i_cluster[1][St.row]
+#             print "\nANNOTATED CLUSTER PROCESS"
+#             print i_cluster[1][St.annotate]
+#
+#             # THE CLUSTER
+#             # print "POSITION: {}".format(position)
+#             print "\nMATRIX DISPLAY\n"
+#             for i in range(0, position):
+#                 resource = (i_cluster[1][St.matrix])[i]
+#                 print "\t{}".format(resource[:position])
+#                 # print "\t{}".format(resource)
+#
+#             # THE MATRIX
+#             for i in range(1, position):
+#                 for j in range(1, position):
+#                     if (i_cluster[1][St.matrix])[i][j] != 0:
+#                         r = (i_cluster[1][St.matrix])[i][0]
+#                         c = (i_cluster[1][St.matrix])[0][j]
+#                         # r_name = r[-25:]
+#                         # c_name = c[-25:]
+#                         r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
+#                         c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
+#                         # r_smart = {"key": i, "name": r_name}
+#                         # c_smart = {"key": j, "name": c_name}
+#                         network += [(r_name, c_name)]
+#                         # network += [(r_smart, c_smart)]
+#
+#             print ""
+#             # print "\tNETWORK", network
+#             Plt.draw_graph(network)
+#
+#     print "FOUND: {}".format(count_2)
 
 
 # WORKING ONE
