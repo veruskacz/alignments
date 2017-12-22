@@ -3,7 +3,7 @@ import datetime
 import networkx as nx
 import cStringIO as Buffer
 import Alignments.Query as Qry
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.UserActivities.Clustering as Cls
