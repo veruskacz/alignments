@@ -2367,7 +2367,7 @@ def datasetLinkingStats():
                 else:
                     results += [temp]
                     plotdata += [{'name': 'A'+str(i+1), 'label': temp[5], 'freq': float(temp[4]), 'clust': 0 } if len(row)>=5 else {}]
-            print plotdata
+            # print plotdata
 
         # print '\n\n', results
         if len(response) > 1:
@@ -2390,6 +2390,25 @@ def datasetLinkingStats():
     # return json.dumps({'message': '', 'result': None})
 
 
+@app.route('/getDatasetLinkingStats2')
+def datasetLinkingStats2():
+    dataset = request.args.get('dataset', '')
+    entityType = request.args.get('entityType', '')
+    alignments = request.args.getlist('alignments[]')
+
+    print "\nPROCESSING THE RESULT..."
+    print '\n\nSTART\n\n'
+    # print alignments[0], dataset, entityType
+    result_list = Clt.resource_stat(alignments[0], dataset, entityType, activated=True)
+    print result_list
+    print '\n\nEND\n\n'
+
+    if len(result_list) >= 2:
+        return result_list[2]
+    else:
+        return ''
+
+
 @app.route('/getDatasetLinkingClusters')
 def datasetLinkingClusters():
     dataset = request.args.get('dataset', '')
@@ -2410,7 +2429,7 @@ def datasetLinkingClusters():
     clustersList = []
     for parent, cluster in clusters.items():
         if len(cluster) > 2:
-            print "\n{:10}\t{:3}".format(parent, len(cluster))
+            # print "\n{:10}\t{:3}".format(parent, len(cluster))
             clustersList += [cluster]
             # SAMPLE OF THE CLUSTER
             index = 0
@@ -2459,19 +2478,43 @@ def datasetLinkingClusterDetails():
     cluster = clusterStr[1:-1].replace('rdflib.term.URIRef(u\'','').replace('\')','').split(', ')
     # print cluster[0]
     # results = []
+
     response = Clt.cluster_values2(cluster, properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
         # print response['result']
         header = response['result'][0]
-        results = response['result'][1:]
+        # results = response['result'][1:]
+        results_x = response['result'][1:]
+
+        results = []
+        plot_graph = {}
+        nodes = []
+        links = []
+        group = []
+        for r in results_x:
+            results += [[r[0]]+map(process_table_columns, r[1:])]
+            dataset = results[-1][2]
+            try:
+                index = group.index(dataset)
+            except:
+                index = len(group)
+                group += [dataset]
+            nodes += [{"id": results[-1][3]+"("+results[-1][1]+")", "group": index}]
+            for n in nodes[:-1]:
+                links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4}]
+
+        if len(nodes) > 0 and len(links) > 0:
+            plot_graph = {'nodes': nodes, 'links': links}
+
         message = "Have a look at the result in the table below"
         return json.dumps({'message': message,
-                           'result': render_template('viewsDetails_list.html', header = header, results = results)})
+                           'result': render_template('viewsDetails_list.html', header = header, results = results),
+                           'graph': plot_graph})
     else:
         message = "The query was successfully run with no result to show. " \
                   "<br/>Probably the selected properties need some revising."
         print "NO RESULT FOR THIS QUERY..."
-        return json.dumps({'message': message, 'result': None})
+        return json.dumps({'message': message, 'result': None, 'graph': {}})
 
 
 # TODO: REMOVE

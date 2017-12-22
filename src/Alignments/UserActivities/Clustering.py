@@ -195,8 +195,8 @@ def cluster_triples(graph):
 
             # POP THE PARENT WITH THE LESSER CHILD
             clusters.pop(pop_parent)
-            print clusters["{}_M".format(pop_parent)]
-            print clusters["{}_M".format(parent)]
+            # print clusters["{}_M".format(pop_parent)]
+            # print clusters["{}_M".format(parent)]
 
         elif has_parent_1 is True:
 
@@ -1355,14 +1355,16 @@ def disambiguate_network(linkset, resource_list, output=True):
 
     # GATHER SOME DATA ABOUT THE LINKSET
     metadata_query = """
+    PREFIX ll:  <{1}>
+
     SELECT ?target ?aligns
     {{
-        <{}> ll:hasAlignmentTarget ?alignmentTarget .
+        <{0}> ll:hasAlignmentTarget ?alignmentTarget .
         ?alignmentTarget
             ll:hasTarget 	?target ;
             ll:aligns		?aligns .
     }} order by ?alignmentTarget
-    """.format(linkset)
+    """.format(linkset, Ns.alivocab)
     # print metadata_query
     uri_size = 0
 
@@ -2179,6 +2181,8 @@ def resource_stat(alignment, dataset, resource_type=None, output=True, activated
         print "\tTHE FUNCTION I NOT ACTIVATED"
         return [None, None]
     print "\tSTATISTICS FOR {}".format(alignment)
+    message = "\tSTATISTICS FOR {}\n".format(alignment)
+
 
     # STATS ON DISCOVERED RESOURCES
     matched = dict()
@@ -2189,8 +2193,10 @@ def resource_stat(alignment, dataset, resource_type=None, output=True, activated
             matched[matched_res[0][c]] = matched_res[r][c]
 
     print ">>> DISCOVERED"
+    message += ">>> DISCOVERED\n"
     for key, value in matched.items():
         print "\t{:21} : {}".format(key, value)
+        message += "\t{:21} : {}\n".format(key, value)
 
     # STATS ON RESOURCES NOT DISCOVERED
     lost = dict()
@@ -2211,10 +2217,12 @@ def resource_stat(alignment, dataset, resource_type=None, output=True, activated
     # print [matched, lost]
 
     print ">>> NOT DISCOVERED"
+    message += ">>> NOT DISCOVERED\n"
     for key, value in lost.items():
         print "\t{:21} : {}".format(key, value)
+        message += "\t{:21} : {}\n".format(key, value)
 
-    return [matched, lost]
+    return [matched, lost, message]
 
 
 def resources_matched(alignment, dataset, resource_type=None, matched=True, stat=True):

@@ -5427,7 +5427,6 @@ function calculateDatasetStats()
     $('#dataset_linking_stats_results').html('');
     $("#collapse_dataset_linking_stats_graphic").collapse("hide");
 
-
     var checkOptionalLabel = document.getElementById('optionalLabelCheckBok');
     if (checkOptionalLabel.checked)
         var optionalLabel = 'no';
@@ -5453,30 +5452,85 @@ function calculateDatasetStats()
 
     if (alignments.length > 0)
     {
-      $.get('/getDatasetLinkingStats',data={'dataset': $('#selected_dataset').attr('uri'),
+        $.ajax(
+            {
+                url: '/getDatasetLinkingStats',
+                data: {'dataset': $('#selected_dataset').attr('uri'),
                                      'entityType': $('#dts_selected_entity-type').attr('uri'),
                                      'optionalLabel': optionalLabel,
                                      'computeCluster': computeCluster,
-                                     'alignments[]': alignments}, function(data)
-      {
-        var obj = JSON.parse(data);
-        $('#dataset_linking_stats_results').html(obj.result);
-        $("#collapse_dataset_linking_stats_table").collapse("show");
-        $('#dataset_linking_stats_message_col').html(addNote(obj.message,cl='info'));
+                                     'alignments[]': alignments},
+                type: "GET",
+                timeout: 0,
+                success: function(data){
+                  var obj = JSON.parse(data);
+                $('#dataset_linking_stats_results').html(obj.result);
+                $("#collapse_dataset_linking_stats_table").collapse("show");
+                $('#dataset_linking_stats_message_col').html(addNote(obj.message,cl='info'));
 
-        if (checkComputerCluster.checked)
-            plotDatasetLinkingStats4(obj.plotdata);
-        else
-            plotDatasetLinkingStats3(obj.plotdata);
-        $("#collapse_dataset_linking_stats_graphic").collapse("show");
+                if (checkComputerCluster.checked)
+                    plotDatasetLinkingStats4(obj.plotdata);
+                else
+                    plotDatasetLinkingStats3(obj.plotdata);
+                $("#collapse_dataset_linking_stats_graphic").collapse("show");
 
-        loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
+                loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
 
-      });
+                }
+            });
     }
     else
     {
         $('#dataset_linking_stats_message_col').html(addNote(missing_feature));
+    }
+}
+
+
+function calculateDatasetStats2()
+{
+
+    $('#dataset_linking_stats2_results').val('');
+
+    var elems = selectedElemsInGroupList('dataset_linking_stats_selection_linkset_col');
+    var i;
+    var alignments = []
+    for (i = 0; i < elems.length; i++) {
+        alignments.push($(elems[i]).attr('uri'));
+    }
+    elems = selectedElemsInGroupList('dataset_linking_stats_selection_lens_col');
+    for (i = 0; i < elems.length; i++) {
+        alignments.push($(elems[i]).attr('uri'));
+    }
+
+    if (alignments.length == 1)
+    {
+        $('#dataset_linking_stats2_message_col').html(addNote('The query is running.',cl='warning'));
+        loadingGif(document.getElementById('dataset_linking_stats2_message_col'), 2);
+        $.ajax(
+            {
+                url: '/getDatasetLinkingStats2',
+                data: {'dataset': $('#selected_dataset').attr('uri'),
+                       'entityType': $('#dts_selected_entity-type').attr('uri'),
+                       'alignments[]': alignments},
+                type: "GET",
+                timeout: 0,
+                success: function(data){
+                      $('#dataset_linking_stats2_results').val(data);
+                      $("#collapse_dataset_linking_stats2").collapse("show");
+                      $('#dataset_linking_stats2_message_col').html('');
+
+                    loadingGif(document.getElementById('dataset_linking_stats2_message_col'), 2, show = false);
+
+                }
+            });
+    }
+    else if (alignments.length > 1)
+    {
+        $('#dataset_linking_stats2_message_col').html(addNote('Please select only one alignemtnt!'));
+    }
+    else
+    {
+        $('#dataset_linking_stats2_message_col').html(addNote(missing_feature));
     }
 }
 
@@ -5509,8 +5563,8 @@ function calculateDatasetCluster()
 
     if ((alignments.length > 0) && (properties.length > 0))
     {
-        $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
-        loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
+      $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
+      loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
 
       $.get('/getDatasetLinkingClusters',data={'dataset': $('#selected_dataset').attr('uri'),
                                      'entityType': $('#dts_selected_entity-type').attr('uri'),
@@ -5523,8 +5577,8 @@ function calculateDatasetCluster()
         $('#dataset_linking_cluster_message_col').html(addNote(obj.message,cl='info'));
         loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2, show = false);
 
-       // set actions after clicking a graph in the list
-       $('#dataset_linking_stats_cluster_results TR').on('click',function(e){
+        // set actions after clicking a graph in the list
+        $('#dataset_linking_stats_cluster_results TR').on('click',function(e){
             var checkboxGroupDistValues = document.getElementById('checkboxGroupDistValues');
             if (checkboxGroupDistValues.checked)
                 var groupDistValues = 'yes';
@@ -5537,6 +5591,9 @@ function calculateDatasetCluster()
             var obj = JSON.parse(data);
             $('#dataset_linking_stats_cluster_results_details').html(obj.result);
             $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
+
+            $('#graph_cluster').html('');
+            plotClusterGraph(obj.graph);
 
             });
         });
@@ -5646,7 +5703,7 @@ var chart = d3.select(".chart")
 
 
 function plotDatasetLinkingStats4(data){
-
+//https://github.com/liufly/Dual-scale-D3-Bar-Chart
 var margin = {top: 20, right: 30, bottom: 30, left: 40},
     width = 1040 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
@@ -5738,6 +5795,107 @@ var svg = d3.select(".chart")
 }
 
 
+function plotDatasetLinkingStats4_2(data){
+//https://github.com/liufly/Dual-scale-D3-Bar-Chart
+
+var margin = {top: 20, right: 30, bottom: 30, left: 40},
+    width = 1040 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+//var x = d3.scale.ordinal()
+//    .rangeRoundBands([0, width], .1);
+var x = d3.scaleBand()
+    .rangeRound([0, width], .1);
+var y0 = d3.scaleLinear().range([height, 0]),
+y1 = d3.scaleLinear().range([height, 0]);
+
+//var xAxis = d3.svg.axis()
+//    .scale(x)
+//    .orient("bottom");
+//// create left yAxis
+//var yAxisLeft = d3.svg.axis().scale(y0).ticks(4).orient("left");
+//// create right yAxis
+//var yAxisRight = d3.svg.axis().scale(y1).ticks(6).orient("right");
+var xAxis = d3.axisBottom(x);
+// create left yAxis
+var yAxisLeft = d3.axisLeft(y0).tickFormat(4);
+// create right yAxis
+var yAxisRight = d3.axisRight(y1).tickFormat(6)
+
+var svg = d3.select(".chart")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("class", "graph")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  x.domain(data.map(function(d) { return d.name; }));
+  y0.domain([0, d3.max(data, function(d) { return Math.min(Math.max(1.5*d.freq, 1.5*d.clust), 100); })]);
+  y1.domain([0, d3.max(data, function(d) { return Math.min(Math.max(1.5*d.freq, 1.5*d.clust), 100); })]);
+//y1.domain([0, d3.max(data, function(d) { return Math.max(d.freq, d.clust); })]);
+
+//  x.domain(data.map(function(d) { return d.year; }));
+//  y0.domain([0, d3.max(data, function(d) { return d.money; })]);
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .selectAll(".tick text")
+      .call(wrap, x.bandwidth());
+
+  svg.append("g")
+	  .attr("class", "y axis axisLeft")
+	  .attr("transform", "translate(0,0)")
+	  .call(yAxisLeft)
+	.append("text")
+      .attr("transform", "rotate(-90)")
+	  .attr("y", 6)
+      .attr("dy", ".9em")
+	  .attr("dx", "2em")
+	  .style("text-anchor", "end")
+	  .text("Frequency %");
+
+  svg.append("g")
+	  .attr("class", "y axis axisRight")
+	  .attr("transform", "translate(" + (width) + ",0)")
+	  .call(yAxisRight)
+	.append("text")
+      .attr("transform", "rotate(-90)")
+	  .attr("y", 6)
+	  .attr("dy", "-2em")
+	  .attr("dx", "2em")
+	  .style("text-anchor", "end")
+	  .text("Clusters %");
+
+  bars = svg.selectAll(".bar").data(data).enter();
+  bars.append("rect")
+      .attr("class", "bar1")
+      .attr("x", function(d) { return x(d.name); })
+      .attr("width", x.bandwidth()/2)
+      .attr("y", function(d) { return y0(d.freq); })
+	  .attr("height", function(d,i,j) { return height - y0(d.freq); })
+	  .on("click",function(d){
+	    alert(d.freq)
+       });
+
+  bars.append("rect")
+      .attr("class", "bar2")
+      .attr("x", function(d) { return x(d.name) + x.bandwidth()/2; })
+      .attr("width", x.bandwidth() / 2)
+      .attr("y", function(d) { return y1(d.clust); })
+	  .attr("height", function(d,i,j) { return height - y1(d.clust); });
+
+//  bars = svg.selectAll(".bar1").data(data)
+//    .append("text")
+//      .attr("x", x(d.name) / 2 )
+//      .attr("y", function(d) { return y0(d.freq) + 3; })
+//      .attr("dy", ".75em")
+//      .text(function(d) { return d.freq; });
+
+}
+
+
 function wrap(text, width) {
   text.each(function() {
     var text = d3.select(this),
@@ -5761,5 +5919,98 @@ function wrap(text, width) {
     }
   });
 }
+
+
+function plotClusterGraph(graph)
+{
+//https://bl.ocks.org/heybignick/3faf257bbbbc7743bb72310d03b86ee8
+//<script src="https://d3js.org/d3.v4.min.js"></script>
+
+    var svg = d3.select(".plot"), graph_cluster
+
+    svg.selectAll("*").remove();
+
+    var width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
+//    var color = d3.scale.ordinal(d3.schemeCategory20)
+
+    var simulation = d3.forceSimulation()
+        .force("link", d3.forceLink().id(function(d) { return d.id; }))
+        .force("charge", d3.forceManyBody())
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+    function dragstarted(d) {
+      if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+      if (!d3.event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+  var link = svg.append("g")
+      .attr("class", "links")
+    .selectAll("line")
+    .data(graph.links)
+    .enter().append("line")
+      .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+  var node = svg.append("g")
+      .attr("class", "nodes")
+    .selectAll("g")
+    .data(graph.nodes)
+    .enter().append("g")
+
+  var circles = node.append("circle")
+      .attr("r", 5)
+      .attr("fill", function(d) { return color(d.group); })
+      .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+  var lables = node.append("text")
+      .text(function(d) {
+        return d.id;
+      })
+      .attr('x', 6)
+      .attr('y', 3);
+
+  node.append("title")
+      .text(function(d) { return d.id; });
+
+  simulation
+      .nodes(graph.nodes)
+      .on("tick", ticked);
+
+  simulation.force("link")
+      .links(graph.links);
+
+  function ticked() {
+    link
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node
+        .attr("transform", function(d) {
+          return "translate(" + d.x + "," + d.y + ")";
+        })
+  }
+
+
+}
+
 
 
