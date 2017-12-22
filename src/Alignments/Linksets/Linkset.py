@@ -14,6 +14,7 @@ import re
 import codecs
 import logging
 import datetime
+import Alignments.Utility as Ut
 import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
@@ -82,6 +83,7 @@ def set_linkset_name(specs, inverse=False):
     threshold = ""
     delta = ""
     geo = ""
+    unit = ""
 
     source = specs[St.source]
     target = specs[St.target]
@@ -106,6 +108,7 @@ def set_linkset_name(specs, inverse=False):
 
     if St.unit in specs:
         geo += str(specs[St.unit])
+        unit = Ut.get_uri_local_name(str(specs[St.unit]))
 
     if St.unit_value in specs:
         geo += str(specs[St.unit_value])
@@ -154,9 +157,9 @@ def set_linkset_name(specs, inverse=False):
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}{}_{}_{}_{}".format(
+        specs[St.linkset_name] = "{}_{}_{}{}{}_{}_{}_{}".format(
             source[St.graph_name], target[St.graph_name],
-            specs[St.mechanism], unit_value, source[St.entity_name], src_aligns, append)
+            specs[St.mechanism], unit_value, unit, source[St.entity_name], src_aligns, append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -174,9 +177,9 @@ def set_linkset_name(specs, inverse=False):
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}{}_{}_{}_()".format(
+        specs[St.linkset_name] = "{}_{}_{}{}{}_{}_{}_()".format(
             target[St.graph_name], source[St.graph_name],
-            specs[St.mechanism], unit_value, target[St.entity_name], trg_aligns, append)
+            specs[St.mechanism], unit_value, unit, target[St.entity_name], trg_aligns, append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
         print "specs[St.linkset]", specs[St.linkset]
