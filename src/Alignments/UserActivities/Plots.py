@@ -3,9 +3,9 @@ import datetime
 import networkx as nx
 import cStringIO as Buffer
 import Alignments.Query as Qry
-# import matplotlib.pyplot as plt
 import Alignments.Utility as Ut
 import Alignments.Settings as St
+# import matplotlib.pyplot as plt
 import Alignments.UserActivities.Clustering as Cls
 
 
@@ -139,7 +139,7 @@ def draw_graph(graph, file_path=None, show_image=False):
 
 
 def cluster_d_test(linkset, network_size=3, targets=None,
-                   directory=None, greater_equal=True, print_it=False, limit=5000, activated=False):
+                   directory=None, greater_equal=True, print_it=False, limit=None, activated=False):
 
     print "\nLINK NETWORK INVESTIGATION"
     if activated is False:
@@ -169,6 +169,7 @@ def cluster_d_test(linkset, network_size=3, targets=None,
 
         check = len(children) >= network_size if greater_equal else len(children) == network_size
 
+        # NETWORK OF A PARTICULAR SIZE
         if check:
             count_2 += 1
             # file_name = i_cluster[0]
@@ -179,6 +180,7 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                 hashed = hash(child)
                 if hashed <= smallest_hash:
                     smallest_hash = hashed
+                # GENERAL INFO 1: RESOURCES INVOLVED
                 analysis_builder.write("\t{}\n".format(child))
                 use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
                 resources += "\n\t\t{}".format(use)
@@ -190,12 +192,7 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                 smallest_hash).startswith("-") \
                 else "P{}".format(smallest_hash)
 
-            # 1 GENERAL INFO
-            info = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, len(children))
-            print "{:>5} {}".format(count_2, info)
-            analysis_builder.write("\n{}\n".format(info))
-
-            analysis_builder.write("\nCORRESPONDENT FOUND ")
+            # QUERY FOR FETCHING ALL LINKED RESOURCES FROM THE LINKSET
             query = """
             SELECT DISTINCT ?lookup ?object
             {{
@@ -213,11 +210,18 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                         """.format(resources, linkset)
             # print query
 
+            # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
             response = Qry.sparql_xml_to_matrix(query)
+
+            # GENERAL INFO 2:
+            info = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, len(children))
+            print "{:>5} {}".format(count_2, info)
+            analysis_builder.write("\n{}\n".format(info))
+            analysis_builder.write("\nCORRESPONDENT FOUND ")
             analysis_builder.write(
                 Qry.display_matrix(response, spacing=uri_size, output=True, line_feed='.', is_activated=True))
 
-            # INFO TYPE 2: PROPERTY VALUES
+            # INFO TYPE 3: PROPERTY-VALUES OF THE RESOURCES INVOLVED
             analysis_builder.write("\n\nDISAMBIGUATION HELPER ")
             if targets is None:
                 analysis_builder.write(Cls.disambiguate_network(linkset, children))
@@ -237,6 +241,7 @@ def cluster_d_test(linkset, network_size=3, targets=None,
             #     print "\t{}".format(resource[:position])
                 # print "\t{}".format(resource)
 
+            # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
             network = []
             for i in range(1, position):
                 for j in range(1, position):
@@ -251,9 +256,8 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                         # c_smart = {"key": j, "name": c_name}
                         network += [(r_name, c_name)]
                         # network += [(r_smart, c_smart)]
-
             # print "\tNETWORK", network
-            # Supported formats: eps, pdf, pgf, png, ps, raw, rgba, svg, svgz.
+
             if print_it:
                 print ""
                 print analysis_builder.getvalue()
@@ -267,7 +271,7 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                 if not os.path.exists(temp_directory):
                     os.makedirs(temp_directory)
 
-                # FIRE THE DRAWING
+                # FIRE THE DRAWING: Supported formats: eps, pdf, pgf, png, ps, raw, rgba, svg, svgz.
                 analysis_builder.write(
                     draw_graph(graph=network,
                                file_path="{}{}.{}".format(temp_directory, "cluster_{}".format(file_name), "pdf"),

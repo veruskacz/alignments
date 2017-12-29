@@ -48,7 +48,6 @@ orgreg_org_type = "http://risis.eu/orgreg_20170718/resource/organization"
 orgreg_link_org_props = ["http://risis.eu/orgreg_20170718/ontology/predicate/Name_of_entity",
                          "http://risis.eu/orgreg_20170718/ontology/predicate/English_name_of_entity",
                          "http://risis.eu/orgreg_20170718/ontology/predicate/Entity_current_name_English",
-                         "http://risis.eu/orgreg_20170718/ontology/predicate/Country_of_establishment",
                          "http://risis.eu/orgreg_20170718/ontology/predicate/Website_of_entity"]
 orgreg_main_dict = {St.graph: orgreg_GRAPH,
                     St.data: [{St.entity_datatype: orgreg_org_type, St.properties: orgreg_link_org_props}]}
@@ -78,6 +77,11 @@ openaire_link_org_props = ["http://www.w3.org/2004/02/skos/core#prefLabel",
                            "http://lod.openaire.eu/vocab/webSiteUrl"]
 openaire_main_dict = {St.graph: openaire_GRAPH,
                       St.data: [{St.entity_datatype: openaire_org_type, St.properties: openaire_link_org_props}]}
+
+# builder = Dcs.property_builder(grid_link_org_props, "resource_1", "obj_1")
+# for item in builder:
+#     print item
+# exit(0)
 
 targets = [
     grid_main_dict,
