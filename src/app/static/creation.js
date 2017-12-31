@@ -5566,7 +5566,7 @@ function calculateDatasetCluster()
       $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
       loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
 
-      $.get('/getDatasetLinkingClusters',data={'dataset': $('#selected_dataset').attr('uri'),
+      $.get('/getDatasetLinkingClusters2',data={'dataset': $('#selected_dataset').attr('uri'),
                                      'entityType': $('#dts_selected_entity-type').attr('uri'),
                                      'alignments[]': alignments,
                                      'properties[]': properties}, function(data)
@@ -5584,7 +5584,7 @@ function calculateDatasetCluster()
                 var groupDistValues = 'yes';
             else
                 var groupDistValues = 'no';
-            $.get('/getDatasetLinkingClusterDetails',data={'cluster': $(this).attr('cluster'),
+            $.get('/getDatasetLinkingClusterDetails2',data={'cluster': $(this).attr('cluster'),
                                                            'groupDistValues': groupDistValues,
                                                            'properties[]': properties }, function(data)
             {
@@ -5926,7 +5926,7 @@ function plotClusterGraph(graph)
 //https://bl.ocks.org/heybignick/3faf257bbbbc7743bb72310d03b86ee8
 //<script src="https://d3js.org/d3.v4.min.js"></script>
 
-    var svg = d3.select(".plot"), graph_cluster
+    var svg = d3.select(".plot")
 
     svg.selectAll("*").remove();
 
@@ -5937,9 +5937,15 @@ function plotClusterGraph(graph)
 //    var color = d3.scale.ordinal(d3.schemeCategory20)
 
     var simulation = d3.forceSimulation()
-        .force("link", d3.forceLink().id(function(d) { return d.id; }))
+        .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(function(d) {return d.distance;}))
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2));
+//        .force("link", d3.forceLink().distance(function(d) {return d.distance;}).strength(0.1));
+//        .force("link", d3.forceLink().distance(function(d) {return d.distance;}).strength(0.1));
+//        .linkDistance([linkDistance])
+//        .charge([-500])
+//        .theta(0.1)
+//        .gravity(0.05)
 
     function dragstarted(d) {
       if (!d3.event.active) simulation.alphaTarget(0.3).restart();

@@ -2501,10 +2501,163 @@ def datasetLinkingClusterDetails():
                 group += [dataset]
             nodes += [{"id": results[-1][3]+"("+results[-1][1]+")", "group": index}]
             for n in nodes[:-1]:
-                links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4}]
+                links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150}]
 
         if len(nodes) > 0 and len(links) > 0:
             plot_graph = {'nodes': nodes, 'links': links}
+
+        message = "Have a look at the result in the table below"
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results),
+                           'graph': plot_graph})
+    else:
+        message = "The query was successfully run with no result to show. " \
+                  "<br/>Probably the selected properties need some revising."
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': message, 'result': None, 'graph': {}})
+
+
+@app.route('/getDatasetLinkingClusters2')
+def datasetLinkingClusters2():
+    # dataset = request.args.get('dataset', '')
+    # entityType = request.args.get('entityType', '')
+    properties = request.args.getlist('properties[]')
+    alignments = request.args.getlist('alignments[]')
+    # print alignments
+
+    print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+    # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
+    clusters = Clt.links_clustering(alignments[0])
+    print clusters
+
+    # for each cluster-matrix
+    counter = 0
+    header = ['id', 'size', 'prop', 'sample']
+    results = []
+    clustersList = []
+    for i_cluster in clusters.items():
+        nodes = []
+        links = []
+
+        # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
+        position = i_cluster[1][St.row]
+        network = []
+        for i in range(1, position):
+            r = (i_cluster[1][St.matrix_d])[(i, 0)][1:-1]
+            r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
+            # nodes += [{"id": r_name, 'uri':r, "group": 1}]
+            if not r in nodes:
+                nodes += [r]
+
+            for j in range(1, position):
+                if (i, j) in (i_cluster[1][St.matrix_d]) and (i_cluster[1][St.matrix_d])[(i, j)] != 0:
+
+                    c = (i_cluster[1][St.matrix_d])[(0, j)][1:-1]
+
+                    c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
+                    network += [(r_name, c_name)]
+                    # links += [{"source": r_name, "target": c_name, "value": 4, "distance": 150}]
+                    if not (r,c) in links:
+                        links += [(r,c)]
+
+        clustersList += [{'nodes': nodes, 'links': links}]
+
+        # index = 0
+        sample = Clt.cluster_values2(nodes, properties, distinct_values=False, display=False)
+
+        # print "sample['result']", sample['result']
+        # TRY MORE ROWS TO FINALLY GET A SAMPLE
+        # while index + 1 < len(cluster) and (sample['result'] is None or len(sample['result'])) < 2:
+        #     index += 1
+        #     sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
+        #     if sample['result'] and len(sample['result']) > 1:
+        #         break
+
+        # print cluster[0]
+        # if counter > 50:
+        #     break
+        counter +=1
+        if sample['result'] and len(sample['result']) > 1:
+            # print response['result']
+            results += [[str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+        else:
+            results += [[str(counter), str(len(nodes)), "-", "No value found"]]
+
+    if len(results) > 1:
+        message = "Have a look at the result in the table below"
+        print 'before', clustersList
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
+    else:
+        message = "The query was successfully run with no result to show. " \
+                  "<br/>Probably the selected properties need some revising."
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': message, 'result': None})
+
+
+
+@app.route('/getDatasetLinkingClusterDetails2')
+def datasetLinkingClusterDetails2():
+    distinctValues = request.args.get('groupDistValues','yes')
+    properties = request.args.getlist('properties[]')
+    cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
+    # print properties
+
+    # print 'after', type(cluster_json)
+    cluster = ast.literal_eval(cluster_json)
+    print '\n\n'
+    print cluster
+    # print properties
+    print cluster['nodes']
+    print cluster['links']
+
+    response = Clt.cluster_values2(cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
+    if response['result'] and len(response['result']) > 1:
+        # print response['result']
+        header = response['result'][0]
+        results_x = response['result'][1:]
+
+        results = []
+        plot_graph = {}
+        nodes = []
+        links = []
+        group = []
+        for r in results_x:
+            results += [map(process_table_columns, r)]
+            dataset = results[-1][2]
+            try:
+                index = group.index(dataset)
+            except:
+                index = len(group)
+                group += [dataset]
+
+            nodes += [{"id": results[-1][3]+"("+results[-1][1]+")", 'uri':r[1] , "group": index}]
+            # nodes += [{"id": results[-1][3], 'uri':r[1] , "group": index}]
+
+            for n in nodes[:-1]:
+                if (nodes[-1]['uri'], n['uri']) in cluster['links']:
+                    print (nodes[-1]['uri'], n['uri'])
+                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150}]
+                elif (n['uri'], nodes[-1]['uri']) in cluster['links']:
+                    print (n['uri'], nodes[-1]['uri'])
+                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150}]
+                # else:
+                #     print 'attempt', (nodes[-1]['uri'], n['uri'])
+
+            # for (a,b) in cluster['links']:
+            #     if a == r[1]:
+            #         for r2 in results_x:
+            #             print b, r2[1]
+            #             if b == r2[1]:
+            #                 links += [{"source": nodes[-1]['id'], "target": r2[3]+"("+r2[1]+")", "value": 4, "distance": 150}]
+            #                 break
+
+        if len(nodes) > 0 and len(links) > 0:
+            plot_graph = {'nodes': nodes, 'links': links}
+            print plot_graph
+        # else:
+        #     print nodes
+        #     print links
 
         message = "Have a look at the result in the table below"
         return json.dumps({'message': message,
