@@ -13,6 +13,8 @@ import collections
 import Queries as Qry
 import os.path as path
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
+import networkx as nx
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -2542,8 +2544,8 @@ def datasetLinkingClusters2():
         links = []
 
         # print i_cluster
-        (k,v) = i_cluster
-        children = len(v['children'])
+        (cluster_id,values) = i_cluster
+        children = len(values['children'])
         # print children, network_size
         if (network_size != -1) and not ((children >= network_size and greater_equal) or (children == network_size)):
             # print 'HERE!!!'
@@ -2570,7 +2572,7 @@ def datasetLinkingClusters2():
                     if not (r,c) in links:
                         links += [(r,c)]
 
-        clustersList += [{'nodes': nodes, 'links': links}]
+        clustersList += [{'id': cluster_id, 'nodes': nodes, 'links': links}]
 
         # index = 0
         sample = Clt.cluster_values2(nodes, properties, distinct_values=False, display=False)
@@ -2616,11 +2618,47 @@ def datasetLinkingClusterDetails2():
 
     # print 'after', type(cluster_json)
     cluster = ast.literal_eval(cluster_json)
-    print '\n\n'
-    print cluster
+    print '\n'
+    print cluster['id']
     # print properties
     print cluster['nodes']
     print cluster['links']
+
+    # """""""""""""""""""""""""""""""""""""""
+    # MATRIX COMPUTATIONS
+    # """""""""""""""""""""""""""""""""""""""
+    # nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
+    #
+    # # create networkx graph
+    # g = nx.Graph()
+    #
+    # # add nodes
+    # for node in nodes:
+    #     g.add_node(node)
+    #
+    # # add edges
+    # for edge in graph:
+    #     g.add_edge(edge[0], edge[1])
+    #
+    # node_count = len(nodes)
+    # average_node_connectivity = nx.average_node_connectivity(g)
+    # ratio = average_node_connectivity / (len(nodes) - 1)
+    #
+    # edge_discovered = len(graph)
+    # edge_derived = node_count * (node_count - 1) / 2
+    #
+    # diameter = nx.diameter(g)  # / float(node_count - 1)
+    # normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+    #
+    # bridges = list(nx.bridges(g))
+    # normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
+    #
+    # closure = round(float(edge_discovered) / float(edge_derived), 3)
+    # normalised_closure = round(1 - closure, 2)
+    #
+    # conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
+    # interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
+
 
     response = Clt.cluster_values2(cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
@@ -2643,32 +2681,16 @@ def datasetLinkingClusterDetails2():
                 group += [dataset]
 
             nodes += [{"id": results[-1][3]+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
-            # nodes += [{"id": results[-1][3], 'uri':r[1] , "group": index}]
 
             for n in nodes[:-1]:
                 if (nodes[-1]['uri'], n['uri']) in cluster['links']:
-                    print (nodes[-1]['uri'], n['uri'])
                     links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150}]
                 elif (n['uri'], nodes[-1]['uri']) in cluster['links']:
-                    print (n['uri'], nodes[-1]['uri'])
                     links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150}]
-                # else:
-                #     print 'attempt', (nodes[-1]['uri'], n['uri'])
-
-            # for (a,b) in cluster['links']:
-            #     if a == r[1]:
-            #         for r2 in results_x:
-            #             print b, r2[1]
-            #             if b == r2[1]:
-            #                 links += [{"source": nodes[-1]['id'], "target": r2[3]+"("+r2[1]+")", "value": 4, "distance": 150}]
-            #                 break
 
         if len(nodes) > 0 and len(links) > 0:
-            plot_graph = {'nodes': nodes, 'links': links}
+            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links}
             print plot_graph
-        # else:
-        #     print nodes
-        #     print links
 
         message = "Have a look at the result in the table below"
         return json.dumps({'message': message,
