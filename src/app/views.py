@@ -2642,7 +2642,7 @@ def datasetLinkingClusterDetails2():
                 index = len(group)
                 group += [dataset]
 
-            nodes += [{"id": results[-1][3]+"("+results[-1][1]+")", 'uri':r[1] , "group": index}]
+            nodes += [{"id": results[-1][3]+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
             # nodes += [{"id": results[-1][3], 'uri':r[1] , "group": index}]
 
             for n in nodes[:-1]:
