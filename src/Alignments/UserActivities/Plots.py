@@ -152,6 +152,7 @@ def draw_graph(graph, file_path=None, show_image=False):
     return analysis_builder.getvalue()
 
 
+# METRIC DESCRIBING THE QUALITY OF A LINKED NETWORK
 def metric(graph):
 
     # THE GRAPH IN AN ARRAY OF TUPLE
