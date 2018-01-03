@@ -11,13 +11,14 @@ import Alignments.UserActivities.Clustering as Cls
 
 # DRAWING THE NETWORK WITH MATPLOT
 def draw_graph(graph, file_path=None, show_image=False):
+
     import matplotlib.pyplot as plt
     # https://networkx.github.io/documentation/latest/auto_examples/drawing/
     # plot_node_colormap.html#sphx-glr-auto-examples-drawing-plot-node-colormap-py
     # extract nodes from graph
     # print "GRAPH:", graph
     analysis_builder = Buffer.StringIO()
-    analysis_builde_2 = Buffer.StringIO()
+    analysis_builder_2 = Buffer.StringIO()
     nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
 
     # create networkx graph
@@ -112,7 +113,7 @@ def draw_graph(graph, file_path=None, show_image=False):
     """""""""""""""""""""""""""""""""""""""
     PRINTING MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
-    analysis_builde_2.write(
+    analysis_builder_2.write(
         "\nAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
         "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [I_1={}] [I_2={}]".
         format(average_node_connectivity, len(bridges), normalised_bridge,  diameter, normalised_diameter,
@@ -123,20 +124,20 @@ def draw_graph(graph, file_path=None, show_image=False):
     #     average_node_connectivity, len(nodes) - 1, max_distance, len(bridges), diameter))
 
     if ratio == 1:
-        analysis_builde_2.write("\n\nDiagnose: VERY GOOD")
+        analysis_builder_2.write("\n\nDiagnose: VERY GOOD")
     elif average_node_connectivity == 2 or len(bridges) == 0:
-        analysis_builde_2.write("\n\nDiagnose: ACCEPTABLE")
+        analysis_builder_2.write("\n\nDiagnose: ACCEPTABLE")
     # elif nbr_cycles == 0:
     #     analysis_builde_2.write("\n\nDiagnose: NEED INVESTIGATION")
     elif len(bridges) > 0:
-        analysis_builde_2.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
+        analysis_builder_2.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
 
 
     """""""""""""""""""""""""""""""""""""""
     DRAWING THE NETWORK WITH MATPLOTLIB
     """""""""""""""""""""""""""""""""""""""
     if file_path:
-        plt.title("LINKED RESOURCES NETWORK TOPOLOGY ANALYSIS\n{}".format(analysis_builde_2.getvalue()))
+        plt.title("LINKED RESOURCES NETWORK TOPOLOGY ANALYSIS\n{}".format(analysis_builder_2.getvalue()))
         # plt.legend("TEXT")
         # plt.text(-1.3, 1, "NETWORK ANALYSIS")
         # plt.show()
@@ -147,6 +148,76 @@ def draw_graph(graph, file_path=None, show_image=False):
 
     if show_image:
         plt.show()
+
+    return analysis_builder.getvalue()
+
+
+def metric(graph):
+
+    analysis_builder = Buffer.StringIO()
+    nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
+
+    # create networkx graph
+    g = nx.Graph()
+
+    # add nodes
+    for node in nodes:
+        g.add_node(node)
+
+    # add edges
+    for edge in graph:
+        g.add_edge(edge[0], edge[1])
+
+    # draw graph
+    # pos = nx.shell_layout(g)
+    # print edge_count
+    colors = range(len(graph))
+    pos = nx.spring_layout(g)
+    try:
+        nx.draw(g, pos, with_labels=True, font_weight='bold', node_size=800, edge_color=colors, width=2)
+    except Exception as error:
+        "{}".format(error)
+        nx.draw(g, pos, with_labels=True, font_weight='bold', node_size=800, edge_color="b", width=2)
+
+    """""""""""""""""""""""""""""""""""""""
+    MATRIX COMPUTATIONS
+    """""""""""""""""""""""""""""""""""""""
+
+    node_count = len(nodes)
+    average_node_connectivity = nx.average_node_connectivity(g)
+    ratio = average_node_connectivity / (len(nodes) - 1)
+
+    edge_discovered = len(graph)
+    edge_derived = node_count * (node_count - 1) / 2
+
+    diameter = nx.diameter(g)  # / float(node_count - 1)
+    normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+
+    bridges = list(nx.bridges(g))
+    normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
+
+    closure = round(float(edge_discovered) / float(edge_derived), 3)
+    normalised_closure = round(1 - closure, 2)
+
+    conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
+    interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
+
+    """""""""""""""""""""""""""""""""""""""
+    PRINTING MATRIX COMPUTATIONS
+    """""""""""""""""""""""""""""""""""""""
+    analysis_builder.write(
+        "\nAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
+        "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [I_1={}] [I_2={}]".
+        format(average_node_connectivity, len(bridges), normalised_bridge,  diameter, normalised_diameter,
+               edge_discovered, edge_derived, closure, normalised_closure, conclusion, interpretation))
+
+    if ratio == 1:
+        analysis_builder.write("\n\nDiagnose: VERY GOOD")
+    elif average_node_connectivity == 2 or len(bridges) == 0:
+        analysis_builder.write("\n\nDiagnose: ACCEPTABLE")
+    elif len(bridges) > 0:
+        analysis_builder.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
+
 
     return analysis_builder.getvalue()
 
