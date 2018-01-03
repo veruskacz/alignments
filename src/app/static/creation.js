@@ -2166,7 +2166,7 @@ function applyFilterLinksetClick()
     if (elems.length > 0)
         { filter_uri = $(elems[0]).attr('uri'); }
     var filter_term =  $('#linkset_filter_text').val();
-    if (filter_term == "-- Type a term for search & filter --")
+    if (filter_term == "-- Type a term --")
         { filter_term = ''; }
 
     $.get('/getlinksetdetails',data={'linkset': linkset_uri,
@@ -5534,6 +5534,10 @@ function calculateDatasetStats2()
     }
 }
 
+function isInt(value) {
+  var x;
+  return isNaN(value) ? !1 : (x = parseFloat(value), (0 | x) === x);
+}
 
 function calculateDatasetCluster()
 {
@@ -5561,7 +5565,19 @@ function calculateDatasetCluster()
         alignments.push($(elems[i]).attr('uri'));
     }
 
-    if ((alignments.length > 0) && (properties.length > 0))
+    var cluster_limit =  $('#cluster_limit_text').val();
+    if (cluster_limit == "-- Type limit --")
+        { cluster_limit = '-1'; }
+    if (cluster_limit != '-1')
+        {
+            var greater_equal = 'false'; // it will be false (only equal) if anything but greater is checked
+            if ($('#cluster1_greater').is(':checked'))
+            {
+                var greater_equal = 'true';
+            }
+        }
+
+    if ((alignments.length > 0) && (properties.length > 0) && ((cluster_limit == '')||(isInt(cluster_limit))))
     {
       $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
       loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
@@ -5569,7 +5585,9 @@ function calculateDatasetCluster()
       $.get('/getDatasetLinkingClusters2',data={'dataset': $('#selected_dataset').attr('uri'),
                                      'entityType': $('#dts_selected_entity-type').attr('uri'),
                                      'alignments[]': alignments,
-                                     'properties[]': properties}, function(data)
+                                     'properties[]': properties,
+                                     'network_size': cluster_limit,
+                                     'greater_equal': greater_equal}, function(data)
       {
         var obj = JSON.parse(data);
         $('#dataset_linking_stats_cluster_results').html(obj.result);
@@ -5584,9 +5602,10 @@ function calculateDatasetCluster()
                 var groupDistValues = 'yes';
             else
                 var groupDistValues = 'no';
+
             $.get('/getDatasetLinkingClusterDetails2',data={'cluster': $(this).attr('cluster'),
                                                            'groupDistValues': groupDistValues,
-                                                           'properties[]': properties }, function(data)
+                                                           'properties[]': properties}, function(data)
             {
             var obj = JSON.parse(data);
             $('#dataset_linking_stats_cluster_results_details').html(obj.result);

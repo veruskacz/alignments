@@ -2523,12 +2523,14 @@ def datasetLinkingClusters2():
     # entityType = request.args.get('entityType', '')
     properties = request.args.getlist('properties[]')
     alignments = request.args.getlist('alignments[]')
+    network_size = int(request.args.get('network_size', '-1'))
+    greater_equal = (request.args.get('greater_equal', 'false')) == 'true'
     # print alignments
 
     print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
     clusters = Clt.links_clustering(alignments[0])
-    print clusters
+    # print clusters
 
     # for each cluster-matrix
     counter = 0
@@ -2538,6 +2540,14 @@ def datasetLinkingClusters2():
     for i_cluster in clusters.items():
         nodes = []
         links = []
+
+        # print i_cluster
+        (k,v) = i_cluster
+        children = len(v['children'])
+        # print children, network_size
+        if (network_size != -1) and not ((children >= network_size and greater_equal) or (children == network_size)):
+            # print 'HERE!!!'
+            continue
 
         # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
         position = i_cluster[1][St.row]
@@ -2601,6 +2611,7 @@ def datasetLinkingClusterDetails2():
     distinctValues = request.args.get('groupDistValues','yes')
     properties = request.args.getlist('properties[]')
     cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
+
     # print properties
 
     # print 'after', type(cluster_json)
