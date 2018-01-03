@@ -5566,7 +5566,7 @@ function calculateDatasetCluster()
     }
 
     var cluster_limit =  $('#cluster_limit_text').val();
-    if (cluster_limit == "-- Type limit --")
+    if (cluster_limit == "-- Type size --")
         { cluster_limit = '-1'; }
     if (cluster_limit != '-1')
         {
@@ -5577,7 +5577,7 @@ function calculateDatasetCluster()
             }
         }
 
-    if ((alignments.length > 0) && (properties.length > 0) && ((cluster_limit == '')||(isInt(cluster_limit))))
+    if ((alignments.length > 0) && (properties.length > 0) && ((cluster_limit == '-1')||(isInt(cluster_limit))))
     {
       $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
       loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
@@ -5608,7 +5608,9 @@ function calculateDatasetCluster()
                                                            'properties[]': properties}, function(data)
             {
             var obj = JSON.parse(data);
+
             $('#dataset_linking_stats_cluster_results_details').html(obj.result);
+            $('#test').html(obj.graph.id);
             $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
 
             $('#graph_cluster').html('');
