@@ -11,7 +11,7 @@ import Alignments.UserActivities.Clustering as Cls
 
 # DRAWING THE NETWORK WITH MATPLOT
 def draw_graph(graph, file_path=None, show_image=False):
-
+    import matplotlib.pyplot as plt
     # https://networkx.github.io/documentation/latest/auto_examples/drawing/
     # plot_node_colormap.html#sphx-glr-auto-examples-drawing-plot-node-colormap-py
     # extract nodes from graph
@@ -31,14 +31,6 @@ def draw_graph(graph, file_path=None, show_image=False):
     for edge in graph:
         g.add_edge(edge[0], edge[1])
 
-    node_count = len(nodes)
-    edge_discovered = len(graph)
-    edge_derived = node_count * (node_count - 1) / 2
-
-    # d_centrality = nx.degree_centrality(g)
-    # b_centrality = nx.edge_betweenness_centrality(g)
-    diameter = nx.diameter(g)  # / float(node_count - 1)
-
     # draw graph
     # pos = nx.shell_layout(g)
     # print edge_count
@@ -50,19 +42,39 @@ def draw_graph(graph, file_path=None, show_image=False):
         "{}".format(error)
         nx.draw(g, pos, with_labels=True, font_weight='bold', node_size=800, edge_color="b", width=2)
 
-    bridges = list(nx.bridges(g))
-
+    # d_centrality = nx.degree_centrality(g)
+    # b_centrality = nx.edge_betweenness_centrality(g)
     # G = nx.connectivity.build_auxiliary_node_connectivity(G)
     # cycles = nx.cycle_basis(G)
     # cycles = nx.simple_cycles(G)
-
     # cycles = list(nx.simple_cycles(g.to_directed()))
-    average_node_connectivity = nx.average_node_connectivity(g)
     # nbr_cycles = len(list(filter(lambda x: len(x) > 2, cycles)))/2
     # biggest_ring = reduce((lambda x, y: x if len(x) > len(y) else y), cycles)
 
-    # set_cycles = []
+    """""""""""""""""""""""""""""""""""""""
+    MATRIX COMPUTATIONS
+    """""""""""""""""""""""""""""""""""""""
 
+    node_count = len(nodes)
+    average_node_connectivity = nx.average_node_connectivity(g)
+    ratio = average_node_connectivity / (len(nodes) - 1)
+
+    edge_discovered = len(graph)
+    edge_derived = node_count * (node_count - 1) / 2
+
+    diameter = nx.diameter(g)  # / float(node_count - 1)
+    normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+
+    bridges = list(nx.bridges(g))
+    normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
+
+    closure = round(float(edge_discovered) / float(edge_derived), 3)
+    normalised_closure = round(1 - closure, 2)
+
+    conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
+    interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
+
+    # set_cycles = []
     # size = 0
     # for item in cycles:
     #     if len(item) > size:
@@ -72,8 +84,9 @@ def draw_graph(graph, file_path=None, show_image=False):
     #     if len(item) == size:
     #         set_cycles += [frozenset(item)]
 
-    closure = round(float(edge_discovered) / float(edge_derived), 3)
-    ratio = average_node_connectivity / (len(nodes) - 1)
+    """""""""""""""""""""""""""""""""""""""
+    RETURN MATRIX COMPUTATIONS
+    """""""""""""""""""""""""""""""""""""""
     analysis_builder.write("\n\nNETWORK ANALYSIS")
     analysis_builder.write("\n\tNETWORK {}".format(graph))
     analysis_builder.write("\n\t{:31} : {}".format("MAX DISTANCE:", closure))
@@ -92,17 +105,13 @@ def draw_graph(graph, file_path=None, show_image=False):
     #             test[set(item)] = item
     #
     # print test
-
     # show graph
-
     # conclusion = (1 - closure) * (diameter - 1) + len(bridges)
-    normalised_closure = round(1 - closure, 2)
-    normalised_diameter = round((float(diameter - 1)/float(len(nodes) - 2)), 3)
-    normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
-    conclusion = round((normalised_closure * normalised_diameter + normalised_bridge)/2, 3)
-    interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
-
     # analysis_builde_2.write("\nCycles [{}] Bridges [{}]".format(nbr_cycles, len(bridges)))
+
+    """""""""""""""""""""""""""""""""""""""
+    PRINTING MATRIX COMPUTATIONS
+    """""""""""""""""""""""""""""""""""""""
     analysis_builde_2.write(
         "\nAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
         "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [I_1={}] [I_2={}]".
@@ -122,6 +131,10 @@ def draw_graph(graph, file_path=None, show_image=False):
     elif len(bridges) > 0:
         analysis_builde_2.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
 
+
+    """""""""""""""""""""""""""""""""""""""
+    DRAWING THE NETWORK WITH MATPLOTLIB
+    """""""""""""""""""""""""""""""""""""""
     if file_path:
         plt.title("LINKED RESOURCES NETWORK TOPOLOGY ANALYSIS\n{}".format(analysis_builde_2.getvalue()))
         # plt.legend("TEXT")
