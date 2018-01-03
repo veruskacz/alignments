@@ -5610,7 +5610,8 @@ function calculateDatasetCluster()
             var obj = JSON.parse(data);
 
             $('#dataset_linking_stats_cluster_results_details').html(obj.result);
-            $('#test').html(obj.graph.id);
+            $('#cluster_id_col').html(obj.graph.id);
+            $('#cluster_metrics_col').html(obj.graph.metrics);
             $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
 
             $('#graph_cluster').html('');

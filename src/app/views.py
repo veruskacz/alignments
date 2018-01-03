@@ -13,7 +13,6 @@ import collections
 import Queries as Qry
 import os.path as path
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
-import networkx as nx
 
 
 logger = logging.getLogger(__name__)
@@ -55,6 +54,8 @@ if CREATION_ACTIVE:
     import Alignments.Server_Settings as Svr
 
     import Alignments.ConstraintClustering.DatasetsResourceClustering as DRC
+
+    import Alignments.UserActivities.Plots as plots
 
 else:
     from app import app
@@ -2624,42 +2625,6 @@ def datasetLinkingClusterDetails2():
     print cluster['nodes']
     print cluster['links']
 
-    # """""""""""""""""""""""""""""""""""""""
-    # MATRIX COMPUTATIONS
-    # """""""""""""""""""""""""""""""""""""""
-    # nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
-    #
-    # # create networkx graph
-    # g = nx.Graph()
-    #
-    # # add nodes
-    # for node in nodes:
-    #     g.add_node(node)
-    #
-    # # add edges
-    # for edge in graph:
-    #     g.add_edge(edge[0], edge[1])
-    #
-    # node_count = len(nodes)
-    # average_node_connectivity = nx.average_node_connectivity(g)
-    # ratio = average_node_connectivity / (len(nodes) - 1)
-    #
-    # edge_discovered = len(graph)
-    # edge_derived = node_count * (node_count - 1) / 2
-    #
-    # diameter = nx.diameter(g)  # / float(node_count - 1)
-    # normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
-    #
-    # bridges = list(nx.bridges(g))
-    # normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
-    #
-    # closure = round(float(edge_discovered) / float(edge_derived), 3)
-    # normalised_closure = round(1 - closure, 2)
-    #
-    # conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
-    # interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
-
-
     response = Clt.cluster_values2(cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
         # print response['result']
@@ -2688,8 +2653,24 @@ def datasetLinkingClusterDetails2():
                 elif (n['uri'], nodes[-1]['uri']) in cluster['links']:
                     links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150}]
 
+        metrics = plots.metric(cluster['links']).replace('\n','</br>')
+        # call plots.metric(array of tuples)
+        # network = []
+        # for i in range(1, position):
+        #     for j in range(1, position):
+        #         if (i, j) in (i_cluster[1][St.matrix_d]) and (i_cluster[1][St.matrix_d])[(i, j)] != 0:
+        #             r = (i_cluster[1][St.matrix_d])[(i, 0)]
+        #             c = (i_cluster[1][St.matrix_d])[(0, j)]
+        #             # r_name = r[-25:]
+        #             # c_name = c[-25:]
+        #             r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
+        #             c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
+        #             # r_smart = {"key": i, "name": r_name}
+        #             # c_smart = {"key": j, "name": c_name}
+        #             network += [(r_name, c_name)]
+
         if len(nodes) > 0 and len(links) > 0:
-            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links}
+            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': metrics}
             print plot_graph
 
         message = "Have a look at the result in the table below"

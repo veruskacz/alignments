@@ -185,7 +185,10 @@ def metric(graph):
     edge_derived = node_count * (node_count - 1) / 2
 
     diameter = nx.diameter(g)  # / float(node_count - 1)
-    normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+    if len(nodes) > 2:
+        normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+    else:
+        normalised_diameter = diameter
 
     bridges = list(nx.bridges(g))
     normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
