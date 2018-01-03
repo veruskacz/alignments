@@ -154,6 +154,10 @@ def draw_graph(graph, file_path=None, show_image=False):
 
 def metric(graph):
 
+    # THE GRAPH IN AN ARRAY OF TUPLE
+    # WHERE THE TUPLE IS A SET OF NODES IN A BINARY RELATIONSHIP
+    # network += [(r_name, c_name)]
+
     analysis_builder = Buffer.StringIO()
     nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
 
@@ -206,7 +210,6 @@ def metric(graph):
         analysis_builder.write("\n\nDiagnose: ACCEPTABLE")
     elif len(bridges) > 0:
         analysis_builder.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
-
 
     return analysis_builder.getvalue()
 
