@@ -168,17 +168,6 @@ def metric(graph):
     for edge in graph:
         g.add_edge(edge[0], edge[1])
 
-    # draw graph
-    # pos = nx.shell_layout(g)
-    # print edge_count
-    colors = range(len(graph))
-    pos = nx.spring_layout(g)
-    try:
-        nx.draw(g, pos, with_labels=True, font_weight='bold', node_size=800, edge_color=colors, width=2)
-    except Exception as error:
-        "{}".format(error)
-        nx.draw(g, pos, with_labels=True, font_weight='bold', node_size=800, edge_color="b", width=2)
-
     """""""""""""""""""""""""""""""""""""""
     MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
