@@ -2529,7 +2529,7 @@ def datasetLinkingClusters2():
 
     print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
-    clusters = Clt.links_clustering(alignments[0])
+    clusters = Clt.links_clustering(alignments[0], limit=None)
     # print clusters
 
     # for each cluster-matrix
