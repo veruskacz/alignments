@@ -290,6 +290,10 @@ def update_specification(specs):
         specs[St.linkset_name] = get_uri_local_name(specs[St.linkset])
         specs[St.linkset_ns] = str(specs[St.linkset]).replace(specs[St.linkset_name], '')
 
+    if St.refined in specs:
+        specs[St.refined_name] = get_uri_local_name(specs[St.refined])
+        specs[St.refined_ns] = str(specs[St.refined]).replace(specs[St.refined_name], '')
+
     # print "DONE WITH SPECS UPDATE"
 
 
