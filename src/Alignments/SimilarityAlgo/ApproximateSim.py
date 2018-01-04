@@ -333,8 +333,8 @@ def edit_distance(token_x, token_y):
 # print temp
 
 
-def prefixed_inverted_index(specs, theta, check_type="linkset", reorder=True, stop_words_string=None, stop_symbols_string=None):
-
+def prefixed_inverted_index(specs, theta, check_type="linkset",
+                            reorder=True, stop_words_string=None, stop_symbols_string=None):
 
     #################################################################
     # BACKGROUND
@@ -636,6 +636,7 @@ def prefixed_inverted_index(specs, theta, check_type="linkset", reorder=True, st
             return text
 
     def get_corr_reducer(graph):
+
         query = """
         SELECT ?uri1 ?uri2
         {{
@@ -644,15 +645,17 @@ def prefixed_inverted_index(specs, theta, check_type="linkset", reorder=True, st
                 ?uri1    ?p    ?uri2 .
             }}
         }}""".format(graph)
+
         alignment = Qry.sparql_xml_to_matrix(query)
         table_matrix = alignment[St.result]
         reducer_dict = {}
         if len(table_matrix) > 0:
-            for row in table_matrix[1:]:
-                src_uri = row[0].strip()
-                trg_uri = row[1].strip()
-                if len(row) == 2 and (src_uri, trg_uri) not in reducer_dict:
-                    reducer_dict[(src_uri, trg_uri)] = 1
+            for i_row in table_matrix[1:]:
+                s_uri = i_row[0].strip()
+                t_uri = i_row[1].strip()
+                if len(i_row) == 2 and (s_uri, t_uri) not in reducer_dict:
+                    reducer_dict[(s_uri, t_uri)] = 1
+
         return reducer_dict
 
     #################################################################
