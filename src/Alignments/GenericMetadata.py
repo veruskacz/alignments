@@ -2,7 +2,7 @@ import Alignments.NameSpace as Ns
 import Alignments.Settings as St
 import Alignments.Query as Qry
 import Alignments.Linksets.Linkset as Ls
-import numbers
+# import numbers
 import math
 import Alignments.Utility as Ut
 
@@ -75,7 +75,6 @@ def linkset_metadata(specs, display=False):
         specs[St.linkset_comment] = "Linking <{}> to <{}> based on their approximate string similarity" \
                                     " using the mechanism: {}". \
             format(source[St.graph], target[St.graph], specs[St.mechanism])
-
 
     elif str(specs[St.mechanism]).lower() == "nearbygeosim":
         specs[St.link_name] = "Near by Geo-Similarity"
@@ -171,11 +170,11 @@ def linkset_geo_metadata(specs, display=False):
     source = specs[St.source]
     target = specs[St.target]
 
-    src_crossCheck = Ls.format_aligns(source[St.crossCheck])
+    src_cross_check = Ls.format_aligns(source[St.crossCheck])
     src_long = Ls.format_aligns(source[St.longitude])
     src_lat = Ls.format_aligns(source[St.latitude])
 
-    trg_crossCheck = Ls.format_aligns(target[St.crossCheck])
+    trg_cross_check = Ls.format_aligns(target[St.crossCheck])
     trg_long = Ls.format_aligns(target[St.longitude])
     trg_lat = Ls.format_aligns(target[St.latitude])
 
@@ -187,7 +186,6 @@ def linkset_geo_metadata(specs, display=False):
     specs[St.link_comment] = "The predicate <{}> used in this linkset is a property that reflects an entity " \
                              "linking approach based on the <{}{}> mechanism.". \
         format(specs[St.link], Ns.mechanism, specs[St.mechanism])
-
 
     if str(specs[St.mechanism]).lower() == "nearbygeosim":
         specs[St.link_name] = "Near by Geo-Similarity"
@@ -260,8 +258,8 @@ def linkset_geo_metadata(specs, display=False):
 
                "WHERE",
                "{",
-               "    BIND(iri({}) AS ?src_crossCheck)".format(src_crossCheck),
-               "    BIND(iri({}) AS ?trg_crossCheck)".format(trg_crossCheck),
+               "    BIND(iri({}) AS ?src_crossCheck)".format(src_cross_check),
+               "    BIND(iri({}) AS ?trg_crossCheck)".format(trg_cross_check),
 
                "    BIND(iri({}) AS ?src_long)".format(src_long),
                "    BIND(iri({}) AS ?src_lat)".format(src_lat),
@@ -642,15 +640,16 @@ def target_datatype_properties(model, label, linkset_label):
 
             # LIST OF PROPERTIES
             for i in range(0, len(properties)):
-                property = properties[i] if Ut.is_nt_format(properties[i]) else "<{}>".format(data[i][St.properties][i])
+                i_property = properties[i] if Ut.is_nt_format(
+                    properties[i]) else "<{}>".format(data[i][St.properties][i])
                 property_list += "?property_{}_{}_{} ".format(count, n, i) if i == 0 \
                     else ",\n{}?property_{}_{}_{} ".format(tabs, count, n, i)
 
                 if i == 0 and count == 1:
-                    property_list_bind += """BIND( IRI("{}") AS ?property_{}_{}_{})""".format(property, count, n, i)
+                    property_list_bind += """BIND( IRI("{}") AS ?property_{}_{}_{})""".format(i_property, count, n, i)
                 else:
                     property_list_bind += """\n{}BIND( IRI("{}") AS ?property_{}_{}_{})""".format(
-                        main_tabs, property, count, n, i)
+                        main_tabs, i_property, count, n, i)
 
             triples = """
     {5}linkset:{4}  ll:hasAlignmentTarget  {0} .
@@ -699,4 +698,3 @@ def cluster_2_linkset_metadata(specs):
 
     specs["metadata"] = query
     Qry.boolean_endpoint_response(query)
-
