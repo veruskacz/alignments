@@ -333,7 +333,7 @@ def edit_distance(token_x, token_y):
 # print temp
 
 
-def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None):
+def prefixed_inverted_index(specs, theta, check_type="linkset", reorder=True, stop_words_string=None, stop_symbols_string=None):
 
 
     #################################################################
@@ -676,6 +676,9 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     Ut.update_specification(source)
     Ut.update_specification(target)
     Ls.set_linkset_name(specs)
+    if check_type.lower() == "refine":
+        Ls.set_refined_name(specs)
+
     print "LINKSET: {}".format(specs[St.linkset_name])
 
     specs[St.graph] = specs[St.linkset]
@@ -700,7 +703,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
         corr_reducer = None
 
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
-    check = Ls.run_checks(specs, check_type="linkset")
+    check = Ls.run_checks(specs, check_type=check_type)
     if check[St.result] != "GOOD TO GO":
         return check
     # print "LINKSET: {}".format(specs[St.linkset_name])
@@ -710,19 +713,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
              "@prefix linkset:\t<{}> .\n" \
              "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
 
-    # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
-    # Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
-    # Ut.write_to_path = DIRECTORY
-    writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY)
-    for key, writer in writers.items():
-        # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
-        if type(writer) is not str:
-            if key is not St.batch_writer and key is not St.meta_writer:
-                writer.write(prefix)
-            if key is St.crpdce_writer:
-                writer.write("\nlinkset:{}\n{{\n".format(specs[St.linkset_name]))
-            elif key is St.singletons_writer:
-                writer.write("\nsingletons:{}\n{{".format(specs[St.linkset_name]))
+
 # def get_tf(matrix, is_token=True):
 #
 #     term_frequency = dict()
@@ -766,6 +757,25 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
         trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=target[St.reducer])
 
     Ut.update_specification(specs)
+
+    if St.refined in specs:
+        specs[St.linkset] = specs[St.refined]
+        specs[St.linkset_name] = specs[St.refined_name]
+        specs[St.linkset_ns] = specs[St.refined_ns]
+
+    # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
+    # Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
+    # Ut.write_to_path = DIRECTORY
+    writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY)
+    for key, writer in writers.items():
+        # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
+        if type(writer) is not str:
+            if key is not St.batch_writer and key is not St.meta_writer:
+                writer.write(prefix)
+            if key is St.crpdce_writer:
+                writer.write("\nlinkset:{}\n{{\n".format(specs[St.linkset_name]))
+            elif key is St.singletons_writer:
+                writer.write("\nsingletons:{}\n{{".format(specs[St.linkset_name]))
 
     t_load = time()
     print "\n1. DATASETS LOADED.\n\t>>> IN {}".format(t_load - start)
