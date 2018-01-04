@@ -311,7 +311,8 @@ def set_refined_name(specs):
     if St.delta in specs:
         delta += str(specs[St.delta])
 
-    hashed = hash(reducer + extended_graph + intermediate + threshold + delta)
+    hashed = hash(reducer + extended_graph + intermediate + threshold + delta + specs[St.source][St.aligns_name]
+                  + specs[St.target][St.aligns_name])
 
     append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
