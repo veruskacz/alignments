@@ -333,7 +333,7 @@ def edit_distance(token_x, token_y):
 # print temp
 
 
-def prefixed_inverted_index(specs, theta, reorder=True,stop_words_string=None, stop_symbols_string=None):
+def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None):
 
 
     #################################################################

@@ -1,10 +1,11 @@
 import Alignments.UserActivities.Plots as Plt
 import Alignments.UserActivities.Clustering as Cls
 import Alignments.Settings as St
-from os import listdir
+from os import listdir, system, startfile
 from Alignments.Utility import normalise_path as nrm
 from os.path import join, isdir, isfile
-import codecs
+import codecs, subprocess
+import _winreg as winreg
 
 
 linkset_1 = "http://risis.eu/linkset/clustered_exactStrSim_N167245093"
@@ -74,55 +75,16 @@ targets = [
     eter_main_dict
 ]
 
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    COMPUTING AN ALIGNMENT STATISTICS
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# OUTPUT FALSE RETURNS THE MATRIX WHILE OUTPUT TRUE RETURNS THE DISPLAY MATRIX IN A TABLE FORMAT
-stats = Cls.resource_stat(alignment=linkset, dataset=ds, resource_type=org, output=True, activated=False)
-# for stat in stats:
-#     for key, value in stat.items():
-#         print "{:21} : {}".format(key, value)
-
-# Cls.disambiguate_network_2(["<http://www.grid.ac/institutes/grid.474119.e>",
-#                             "<http://risis.eu/orgreg_20170718/resource/HR1016>",
-#                             "<http://www.grid.ac/institutes/grid.4808.4>"], targets, output=True)
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    PLOT THE LINK NETWORK
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-size = 7
-ls_4 = "http://risis.eu/lens/union_Grid_20170712_Eter_2014_Orgreg_20170718_N1655042445"
-ls_5 = "http://risis.eu/lens/union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069"
-ls_1k = "http://risis.eu/lens/union_Eter_2014_Orgreg_20170718_Grid_20170712_P1640316176"
-directory = "C:\Users\Al\Videos\LinkMetric"
-
-# for i in range(3, 50):
-#
-#     size = i
-#
-#     Plt.cluster_d_test(ls_4, network_size=size,  targets=targets,
-#                        directory=directory, greater_equal=False, limit=70000, activated=True)
-#
-#     Plt.cluster_d_test(ls_5, network_size=size,  targets=targets,
-#                        directory=directory, greater_equal=False, limit=70000, activated=True)
-#
-#     Plt.cluster_d_test(ls_1k, network_size=size,  targets=targets,
-#                        directory=directory, greater_equal=False, limit=70000, activated=True)
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    ANALYSING THE LINKED NETWORK FILES
+    TEST FUNCTIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-# t50 = "C:\Users\Al\Videos\LinkMetric\7_Analysis_20171215\union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069"
-# t100 = "C:\Users\Al\Videos\LinkMetric\7_Analysis_20171215\union_Grid_20170712_Eter_2014_Orgreg_20170718_N1655042445"
-# t1000 = "C:\Users\Al\Videos\LinkMetric\7_Analysis_20171215\union_Eter_2014_Orgreg_20170718_Grid_20170712_P1640316176"
-t50 = "C:\Users\Al\Videos\LinkMetric\\3_Analysis_20171225\union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069"
-t100 = "C:\Users\Al\Videos\LinkMetric\\3_Analysis_20171225\union_Grid_20170712_Eter_2014_Orgreg_20170718_N1655042445"
-t1000 = "C:\Users\Al\Videos\LinkMetric\\3_Analysis_20171225\union_Eter_2014_Orgreg_20170718_Grid_20170712_P1640316176"
 
+def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
+                 tracking=None, track_dir=None, activated=False):
 
-def folder_check(file_1, file_2):
+    if activated is False:
+        return None
 
     folders_1 = [f for f in listdir(nrm(file_1)) if isdir(join(nrm(file_1), f))]
     folders_2 = [f for f in listdir(nrm(file_2)) if isdir(join(nrm(file_2), f))]
@@ -131,42 +93,65 @@ def folder_check(file_1, file_2):
     set_1 = set(folders_1)
     set_2 = set(folders_2)
 
-    diff = set_1 - set_2
-    print "\nDIFF(FOLDER_1 [{}] - FOLDER_2 [{}]) [{}]".format( len(folders_1) -1,  len(folders_2) -1, len(diff))
-    for item in diff:
-        print "\t{}".format(item)
-
-    # diff = set_2 - set_1
-    # print "\nDIFF(FOLDER_2 - FOLDER_1) [{}]".format(len(diff))
-    # for item in diff:
-    #     print "\t{}".format(item)
-    #
-    # diff = set_1.intersection(set_2)
-    # print "\nINTERSECTION(FOLDER_1 - FOLDER_2) [{}]".format(len(diff))
-    # for item in diff:
-    #     print "\t{}".format(item)
-    # print len(diff)
+    # Dynamically get path to AcroRD32.exe
+    # acro_read = winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, 'Software\\Adobe\\Acrobat\Exe')
 
 
+    if diff_1 is True:
+        diff = set_1 - set_2
+        print "\nDIFF(FOLDER_1 [{}] - FOLDER_2 [{}]) [{}]".format(len(folders_1) -1,  len(folders_2) -1, len(diff))
+        count = 0
+        for item in diff:
+            count += 1
+            print "\t>>> {}".format(item)
+            target = join(nrm(file_1), item)
+            doc = [f for f in listdir(nrm(target)) if join(nrm(target), f).endswith('.txt')]
+            doc2 = [f for f in listdir(nrm(target)) if join(nrm(target), f).endswith('.pdf')]
 
-import io
-directory = "C:\Users\Al\Videos\LinkMetric"
+            # OPEN THE PDF FROM DEFAULT READER
+            # target_path2 = join(nrm(target), doc2[0])
+            # system(target_path2)
+            # startfile(target_path2)
 
-# wr = codecs.open("C:\Users\Al\Videos\LinkMetric\\"
-#                  "7_Analysis_20171220\union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069\\"
-#                  "7_N2141339763\cluster_N2141339763_20171220.txt", "rb")
-# text = wr.read()
-# print text.__contains__("<http://www.grid.ac/institutes/grid.457417.4>")
-# wr.close()
-# print "DOE!"
+            # OPEN WITH ADOBE
+            # cmd = '{0} /N /T "{1}" ""'.format(acro_read, target_path2)
+            # print "PRINTING PDF"
+            # subprocess.Popen(cmd)
 
-# main folder
-#   Sub-Folders
-#       target folders
-#           Target file
-#               Comparison
 
-def track(directory, resource):
+            # reading = open(target_path2)
+            # print reading.read()
+            if doc and tracking is True:
+                target_path = join(nrm(target), doc[0])
+                read = open(target_path)
+                node = read.readline().strip()
+                print "\t{}-TRACKING {}".  format(count, node)
+                track(directory=track_dir, resource=node, activated=activated)
+                next_step = raw_input("\n\tCONTINUE?\t")
+                if next_step.lower() == "yes" or next_step.lower() == "y" or next_step.lower() == "1":
+                    continue
+                else:
+                    exit(0)
+
+    if diff_2 is True:
+        diff = set_2 - set_1
+        print "\nDIFF(FOLDER_2 - FOLDER_1) [{}]".format(len(diff))
+        for item in diff:
+            print "\t{}".format(item)
+
+    if intersection is True:
+        diff = set_1.intersection(set_2)
+        print "\nINTERSECTION(FOLDER_1 [{}] - FOLDER_2 [{}]) [{}]".format(
+            len(folders_1) -1, len(folders_2) -1, len(diff))
+        for item in diff:
+            print "\t{}".format(item)
+
+
+def track(directory, resource, activated=False):
+
+    if activated is False:
+        return None
+
     print "\nMAIN DIRECTORY {}".format(directory)
     # LOOK FOR MAIN FOLDERS IN MAIN DIRECTORY
     main_folders = [f for f in listdir(nrm(directory)) if isdir(join(nrm(directory), f))]
@@ -203,10 +188,111 @@ def track(directory, resource):
                             print "\t\tSUB-FOLDER: {}".format(sub_folder)
                             print "\t\t\tTARGET-FOLDER: {}".format(target)
                             print "\t\t\t\tTARGET FILE: {}".format(target_file)
-                            print "\tPATH: {}".format(join(main_path, sub_path, target))
+                            target = join(main_path, sub_path, target)
+                            print "\tPATH: {}".format(target)
+
+                            doc = [f for f in listdir(nrm(target)) if join(nrm(target), f).endswith('.pdf')]
+                            trg_path = join(nrm(target), doc[0])
+                            system(trg_path)
                             print "\t\t\t\t{}".format(result)
 
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    COMPUTING AN ALIGNMENT STATISTICS
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# OUTPUT FALSE RETURNS THE MATRIX WHILE OUTPUT TRUE RETURNS THE DISPLAY MATRIX IN A TABLE FORMAT
+stats = Cls.resource_stat(alignment=linkset, dataset=ds, resource_type=org, output=True, activated=False)
+# for stat in stats:
+#     for key, value in stat.items():
+#         print "{:21} : {}".format(key, value)
+
+# Cls.disambiguate_network_2(["<http://www.grid.ac/institutes/grid.474119.e>",
+#                             "<http://risis.eu/orgreg_20170718/resource/HR1016>",
+#                             "<http://www.grid.ac/institutes/grid.4808.4>"], targets, output=True)
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    PLOT THE LINK NETWORK
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+size = 7
+ls_4 = "http://risis.eu/lens/union_Grid_20170712_Eter_2014_Orgreg_20170718_N1655042445"
+ls_5 = "http://risis.eu/lens/union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069"
+ls_1k = "http://risis.eu/lens/union_Eter_2014_Orgreg_20170718_Grid_20170712_P1640316176"
+ls_app = "http://risis.eu/lens/union_Eter_2014_Orgreg_20170718_Grid_20170712_N1942436340"
+ls_app_50m = "http://risis.eu/lens/union_Grid_20170712_Eter_2014_Orgreg_20170718_P571882700"
+# GEO-SIMILARITY OF NEARBY 1 KILOMETER
+# REFINED BY EXACT MATCHED
+# ==> UNION OF SIX LINKSETS
+union = "http://risis.eu/lens/union_Eter_2014_Orgreg_20170718_Grid_20170712_P1476302481"
+directory = "C:\Users\Al\Videos\LinkMetric\Test-2"
+
+Plt.cluster_d_test(ls_app_50m, network_size=3,  targets=targets,
+                   directory=directory, greater_equal=False, limit=70000, activated=False)
+
+directory = "C:\Users\Al\Videos\LinkMetric\Test-3"
+Plt.cluster_d_test(union, network_size=3,  targets=targets,
+                   directory=directory, greater_equal=False, limit=70000, activated=False)
+
+track(directory, "Academy of Fine Arts Vienna", activated=False)
+
+# for i in range(3, 50):
+#
+#     size = i
+#
+#     Plt.cluster_d_test(ls_4, network_size=size,  targets=targets,
+#                        directory=directory, greater_equal=False, limit=70000, activated=True)
+#
+#     Plt.cluster_d_test(ls_5, network_size=size,  targets=targets,
+#                        directory=directory, greater_equal=False, limit=70000, activated=True)
+#
+#     Plt.cluster_d_test(ls_1k, network_size=size,  targets=targets,
+#                        directory=directory, greater_equal=False, limit=70000, activated=True)
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    ANALYSING THE LINKED NETWORK FILES TEST-1
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+TEST_1 = "C:\Users\Al\Videos\LinkMetric\Test-1"
+# CLUSTER USING NEARBY 50 METERS
+set_1 = join(TEST_1, "4_Analysis_20171225\union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069")
+# CLUSTER USING NEARBY 100 METERS
+set_2 = join(TEST_1, "4_Analysis_20171225\union_Grid_20170712_Eter_2014_Orgreg_20170718_N1655042445")
+# CLUSTER USING NEARBY 1000 METERS
+set_3 = join(TEST_1, "3_Analysis_20171225\union_Eter_2014_Orgreg_20170718_Grid_20170712_P1640316176")
+# CLUSTER USING NEARBY 1000 METERS and EXACT
+set_4 = join(TEST_1, "3_Analysis_20171225\union_Eter_2014_Orgreg_20170718_Grid_20170712_P1476302481")
+# LOOKING AT CLUSTERS THAT EVOLVED AS THE MATCHING METHOD LOOSENS UP
+# THE SET DIFFERENCE REVEALS THAT 26 CLUSTERS OF SIZE 3 EVOLVED
+folder_check(set_1, set_2, diff_1=True, tracking=True, track_dir=TEST_1, activated=False)
+# TRACKING THE CLUSTERS THAT EVOLVED
+# track(directory, track_3)
+folder_check(set_4, set_1, diff_1=True, tracking=True, track_dir=TEST_1, activated=True)
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    ANALYSING THE LINKED NETWORK FILES TEST-2
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+# t50 = "C:\Users\Al\Videos\LinkMetric\7_Analysis_20171215\union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069"
+# t100 = "C:\Users\Al\Videos\LinkMetric\7_Analysis_20171215\union_Grid_20170712_Eter_2014_Orgreg_20170718_N1655042445"
+# t1000 = "C:\Users\Al\Videos\LinkMetric\7_Analysis_20171215\union_Eter_2014_Orgreg_20170718_Grid_20170712_P1640316176"
+t50 = "C:\Users\Al\Videos\LinkMetric\Test-2\\3_Analysis_20171229\union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069"
+t100 = "C:\Users\Al\Videos\LinkMetric\Test-2\\3_Analysis_20171229\union_Grid_20170712_Eter_2014_Orgreg_20170718_N1655042445"
+t1000 = "C:\Users\Al\Videos\LinkMetric\Test-2\\3_Analysis_20171229\union_Eter_2014_Orgreg_20170718_Grid_20170712_P1640316176"
+app = "C:\Users\Al\Videos\LinkMetric\Test-2\\3_Analysis_20171229\union_Eter_2014_Orgreg_20170718_Grid_20170712_N1942436340"
+U_ap_50 = "C:\Users\Al\Videos\LinkMetric\Test-2\3_Analysis_20171229\union_Grid_20170712_Eter_2014_Orgreg_20170718_P571882700"
+
+
+# wr = codecs.open("C:\Users\Al\Videos\LinkMetric\\"
+#                  "7_Analysis_20171220\union_Eter_2014_Orgreg_20170718_Grid_20170712_N2030153069\\"
+#                  "7_N2141339763\cluster_N2141339763_20171220.txt", "rb")
+# text = wr.read()
+# print text.__contains__("<http://www.grid.ac/institutes/grid.457417.4>")
+# wr.close()
+# print "DOE!"
+
+# main folder
+#   Sub-Folders
+#       target folders
+#           Target file
+#               Comparison
 
 track_3 = "<http://risis.eu/eter_2014/resource/HU0023>"
 track_5 = "<http://www.grid.ac/institutes/grid.469502.c>"
@@ -215,5 +301,9 @@ track_5 = "<http://www.grid.ac/institutes/grid.469502.c>"
 
 folder_check(t50, t100)
 folder_check(t50, t1000)
+directory = "C:\Users\Al\Videos\LinkMetric\Test-1"
+# folder_check(t50, app, True)
+folder_check(app, t50)
+folder_check(U_ap_50, t50)
 track(directory, track_3)
 print "DONE!!!"

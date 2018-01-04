@@ -64,7 +64,10 @@ def draw_graph(graph, file_path=None, show_image=False):
     edge_derived = node_count * (node_count - 1) / 2
 
     diameter = nx.diameter(g)  # / float(node_count - 1)
-    normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+    if len(nodes) > 2:
+        normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+    else:
+        normalised_diameter = float(diameter - 1)
 
     bridges = list(nx.bridges(g))
     normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
@@ -188,7 +191,7 @@ def metric(graph):
     if len(nodes) > 2:
         normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
     else:
-        normalised_diameter = diameter
+        normalised_diameter = float(diameter - 1)
 
     bridges = list(nx.bridges(g))
     normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
@@ -196,17 +199,17 @@ def metric(graph):
     closure = round(float(edge_discovered) / float(edge_derived), 3)
     normalised_closure = round(1 - closure, 2)
 
-    conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
+    # conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
     interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
 
     """""""""""""""""""""""""""""""""""""""
     PRINTING MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
     analysis_builder.write(
-        "\nAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
-        "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [I_1={}] [I_2={}]".
-        format(average_node_connectivity, len(bridges), normalised_bridge,  diameter, normalised_diameter,
-               edge_discovered, edge_derived, closure, normalised_closure, conclusion, interpretation))
+        "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
+        "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [{}]".
+        format(average_node_connectivity, len(bridges), normalised_bridge, diameter, normalised_diameter,
+               edge_discovered, edge_derived, closure, normalised_closure, interpretation))
 
     if ratio == 1:
         analysis_builder.write("\n\nDiagnose: VERY GOOD")
