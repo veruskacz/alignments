@@ -599,7 +599,7 @@ def cluster_links(graph, limit=1000):
     links = response['result']
     # print links
 
-    # LOAD THE GRAPH
+    # LOAD THE GRAPH3
     print "1. LOADING THE GRAPH"
     g = rdflib.Graph()
     g.parse(data=links, format="turtle")
