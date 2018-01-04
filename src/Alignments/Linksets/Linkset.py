@@ -126,7 +126,6 @@ def set_linkset_name(specs, inverse=False):
     if St.delta in specs:
         delta += str(specs[St.delta])
 
-
     if St.aligns_name in source:
         src_aligns += source[St.aligns_name]
     elif St.latitude_name in source:
@@ -171,7 +170,7 @@ def set_linkset_name(specs, inverse=False):
                  target[St.graph_name] + trg_aligns + \
                  source[St.graph_name] + src_aligns + \
                  target[St.entity_datatype] + source[St.entity_datatype] + "2" +\
-                 reducer  + intermediate + threshold + delta + geo
+                 reducer + intermediate + threshold + delta + geo
 
         hashed = hash(h_name)
 
@@ -199,7 +198,6 @@ def set_cluster_linkset_name(specs):
         return element[St.graph]
 
     specs[St.targets].sort(key=sort_me)
-
 
     if St.intermediate_graph in specs:
         intermediate = str(specs[St.intermediate_graph])
@@ -631,18 +629,18 @@ def run_checks_cluster(specs, check_type):
         # print "ASK 2: CHECK WHETHER THE ALTERNATIVE LINKSET NAME EXIST"
         # if St.refined not in specs:
         #     print "\t- NOT REFINED"
-            # GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY TO SUBSET BECAUSE WE ASSUME
-            # A LINKSET BY SUBSET DOES NOT NEED THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
-            # counter_check = set_linkset_name(specs, inverse=True)
-
-            # CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
-            # ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
-
-            # if ask_2 == "true":
-            #     message = Ec.ERROR_CODE_3.replace('#', linkset).replace("@", counter_check)
-            #     print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS UNDER THE NAME {}".format(counter_check)
-            #     print message
-            #     return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
+        #     GENERATE ALTERNATIVE NAME. THIS DOS NOT APPLY TO SUBSET BECAUSE WE ASSUME
+        #     A LINKSET BY SUBSET DOES NOT NEED THE TARGET ALIGNS TO BE SET AS IT IS OFTEN UNKNOWN
+        #     counter_check = set_linkset_name(specs, inverse=True)
+        #
+        #     CHECK WHETHER THE CURRENT LINKSET EXIST UNDER A DIFFERENT NAME
+        #     ask_2 = Qry.boolean_endpoint_response(ask.replace("#", counter_check))
+        #
+        #     if ask_2 == "true":
+        #         message = Ec.ERROR_CODE_3.replace('#', linkset).replace("@", counter_check)
+        #         print "\n>>> NOT GOOD TO GO, IT ALREADY EXISTS UNDER THE NAME {}".format(counter_check)
+        #         print message
+        #         return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
     print "\t>>> NO IT DOES NOT EXIST YET..."
     if str(check_type).lower() == "subset":
@@ -791,5 +789,3 @@ def linkset_wasderivedfrom(refined_linkset_uri):
         if dictionary_result[St.result]:
             return dictionary_result[St.result][1][0]
     return None
-
-
