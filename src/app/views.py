@@ -1653,7 +1653,8 @@ def spa_linkset():
 
             elif specs['mechanism'] == 'approxStrSim':
                 print 1
-                linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+                linkset_result = prefixed_inverted_index(specs, threshold, check_type="linkset",
+                                                         stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
             elif specs['mechanism'] == 'approxNbrSim':
 
@@ -1793,7 +1794,15 @@ def refineLinkset():
             linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
 
         elif specs['mechanism'] == 'approxStrSim':
-            linkset_result = None
+            # linkset_result = None
+            threshold = request.args.get('threshold', '0.8')
+            threshold = float(threshold.strip())
+            stop_words = request.args.get('stop_words', '')
+            stop_symbols = request.args.get('stop_symbols', '')
+
+            print threshold, stop_words, stop_symbols
+            linkset_result = prefixed_inverted_index(specs, threshold, check_type="refine",
+                                                     stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
         elif specs['mechanism'] == 'geoSim':
             linkset_result = None
@@ -1939,6 +1948,8 @@ def refineAlignment():
         print specs
 
         if CREATION_ACTIVE:
+            print specs['mechanism']
+
             if specs['mechanism'] == 'exactStrSim':
                 result = refine.refine(specs, activated=True)
 
@@ -1946,7 +1957,16 @@ def refineAlignment():
                 result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
 
             elif specs['mechanism'] == 'approxStrSim':
-                result = None
+
+                # result = None
+                threshold = request.args.get('threshold', '0.8')
+                threshold = float(threshold.strip())
+                stop_words = request.args.get('stop_words', '')
+                stop_symbols = request.args.get('stop_symbols', '')
+
+                print threshold, stop_words, stop_symbols
+                result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words,
+                                        stop_symbols_string=stop_symbols)
 
             elif specs['mechanism'] == 'geoSim':
                 result = None
