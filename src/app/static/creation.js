@@ -1596,7 +1596,11 @@ function refineLinksetClick()
         'intermediate_graph': intermediate,
 
         'delta': $('#linkset_approx_delta').val() ,
-        'numeric_approx_type': $('#linkset_approx_num_type').val()
+        'numeric_approx_type': $('#linkset_approx_num_type').val(),
+
+        'stop_words': $('#linkset_approx_stop_words').val(),
+        'stop_symbols': $('#linkset_approx_symbols').val(),
+        'threshold': $('#linkset_approx_threshold').val()
       }
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
