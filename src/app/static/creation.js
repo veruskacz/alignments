@@ -4455,7 +4455,7 @@ function methodClick(th)
         else if (method == 'approxStrSim')
         {
           description = 'The method <b>APPROXIMATE STRING-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (string) values of the selected <b>properties</b> according to a threshold. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, which improves the efficiency when computing approximate similarity. This means unique resources already aligned will not be re-aligned. Instead, if entities are duplicated, then the checkbox <b>"duplicates"</b> should be selected, so that the effect of the reducer is restricted to only not recreating existing alignments.'
-          $('#selected_int_red_graph').html("Select an alingment as reducer");
+          $('#selected_int_red_graph').html("Select an alignment as reducer");
           setAttr( 'selected_int_red_graph','style','background-color:none;');
           $('#int_red_graph_row').show();
           $('#aprox_settings_row').show();
@@ -4480,7 +4480,7 @@ function methodClick(th)
         {
           description = 'The method <b>APPROXIMATE NUMBER-based SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by approximating the match of the (number/date) values of the selected <b>properties</b> according to a delta. </br> Optionally, an existing alignment can be provided as a <b>reducer</b>, i.e. the resources already aligned will not be included in the new alignment. It allows for more efficient use of approximate similarity.';
           $('#aprox_nbr_settings_row').show();
-//          $('#selected_int_red_graph').html("Select an alingment as reducer");
+//          $('#selected_int_red_graph').html("Select an alignment as reducer");
 //          setAttr( 'selected_int_red_graph','style','background-color:none;');
 //          $('#int_red_graph_row').show();
 //          $('#aprox_settings_row').show();
