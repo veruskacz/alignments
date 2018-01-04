@@ -177,12 +177,12 @@ def set_linkset_name(specs, inverse=False):
 
         append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-        specs[St.linkset_name] = "{}_{}_{}{}{}_{}_{}_()".format(
+        specs[St.linkset_name] = "{}_{}_{}{}{}_{}_{}_{}".format(
             target[St.graph_name], source[St.graph_name],
             specs[St.mechanism], unit_value, unit, target[St.entity_name], trg_aligns, append)
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
-        print "specs[St.linkset]", specs[St.linkset]
+        print "\t- specs[St.linkset]", specs[St.linkset]
         return specs[St.linkset]
 
 
@@ -319,6 +319,7 @@ def set_refined_name(specs):
     specs[St.refined_name] = "refined_{}_{}_{}_{}".format(
         specs[St.linkset_name], specs[St.mechanism], specs[St.source][St.aligns_name], append)
     specs[St.refined] = specs[St.linkset].replace(specs[St.linkset_name], specs[St.refined_name])
+    print "\t-  specs[St.refined]",  specs[St.refined]
 
 
 def run_checks(specs, check_type):
@@ -421,13 +422,13 @@ def run_checks(specs, check_type):
                 return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
     if str(check_type).lower() == "subset":
-        print "ASK 3: IT IS A SUBSET"
+        print "ASK 3:\n\t- IT IS A SUBSET"
         set_subset_name(specs, inverse=False)
     elif str(check_type).lower() == "linkset":
-        print "ASK 3: IT IS A LINKSET"
+        print "ASK 3:\n\t- IT IS A LINKSET"
         set_linkset_name(specs, inverse=False)
     elif str(check_type).lower() == "refine":
-        print "ASK 3: IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
+        print "ASK 3:\n\t- IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
         set_refined_name(specs)
 
     print ">>> GOOD TO GO WITH LINKSET {}.".format(linkset)
