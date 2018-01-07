@@ -41,7 +41,7 @@ if CREATION_ACTIVE:
     import Alignments.UserActivities.User_Validation as UVld
     from Alignments.UserActivities import Import_Data as Ipt
     import Alignments.Linksets.SPA_LinksetSubset as spa_subset
-    from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index
+    from Alignments.SimilarityAlgo.ApproximateSim import prefixed_inverted_index, refine_approx
     from Alignments.SimilarityAlgo.Analysis import get_tf
     from Alignments.Manage.DatasetStats import stats_optimised as stats
     from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
@@ -1801,8 +1801,10 @@ def refineLinkset():
             stop_symbols = request.args.get('stop_symbols', '')
 
             print threshold, stop_words, stop_symbols
-            linkset_result = prefixed_inverted_index(specs, threshold, check_type="refine",
-                                                     stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+            # linkset_result = prefixed_inverted_index(specs, threshold, check_type="refine",
+            #                                          stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+
+            linkset_result = refine_approx(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
         elif specs['mechanism'] == 'geoSim':
             linkset_result = None
