@@ -23,7 +23,7 @@ def diff_lens_name(specs):
     #           "_refined_eter_2014_orgreg_20170718_nearbyGeoSim1Kilometer_University_LatitudeLongitude_P871330770"
     #           "_approxStrSim_English_Institution_Name_P255977302-Metadata-20180107.t")
     src_name = Ut.hash_it(get_uri_local_name(specs[St.subjectsTarget]))
-    trg_name =  Ut.hash_it(get_uri_local_name(specs[St.objectsTarget]))
+    trg_name = Ut.hash_it(get_uri_local_name(specs[St.objectsTarget]))
     specs[St.lens] = "{}diff_{}_{}".format(Ns.lens, src_name, trg_name)
     update_specification(specs)
 
@@ -171,4 +171,3 @@ def generate_lens_name(datasets):
     # print query
     # print hash(name)
     return {"name": name, "query": query}
-# 
