@@ -13,11 +13,13 @@ from time import time, ctime, gmtime
 import Alignments.GenericMetadata as Gn
 import Alignments.Linksets.Linkset as Ls
 import Alignments.UserActivities.UserRQ as Urq
+import Alignments.Lenses.Lens_Difference as Df
 from kitchen.text.converters import to_unicode, to_bytes
 from Alignments.CheckRDFFile import check_rdf_file
 import Alignments.Server_Settings as Svr
 import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.linkset_Approx_dir]
+import Alignments.ErrorCodes as Ec
 
 
 LIMIT = ""
@@ -332,9 +334,12 @@ def edit_distance(token_x, token_y):
 # temp = re.sub(pattern, "", "aL. KOUDOUSS-KAR; INE, (LE+VOILA?ICI)")
 # print temp
 
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    GENERATE LINKSET USING APPROXIMATE SIMILARITY
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-def prefixed_inverted_index(specs, theta, check_type="linkset",
-                            reorder=True, stop_words_string=None, stop_symbols_string=None):
+
+def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None):
 
     #################################################################
     # BACKGROUND
@@ -602,7 +607,7 @@ def prefixed_inverted_index(specs, theta, check_type="linkset",
                 three = " {} ".format(stop_key)
                 if str(text).startswith(one):
                     text = str(text).replace(one, "")
-                elif str(text).endswith(two):
+                if str(text).endswith(two):
                     text = str(text).replace(two, "")
                 text = str(text).replace(three, " ")
             # print text
@@ -679,8 +684,6 @@ def prefixed_inverted_index(specs, theta, check_type="linkset",
     Ut.update_specification(source)
     Ut.update_specification(target)
     Ls.set_linkset_name(specs)
-    if check_type.lower() == "refine":
-        Ls.set_refined_name(specs)
 
     print "LINKSET: {}".format(specs[St.linkset_name])
 
@@ -706,7 +709,7 @@ def prefixed_inverted_index(specs, theta, check_type="linkset",
         corr_reducer = None
 
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
-    check = Ls.run_checks(specs, check_type=check_type)
+    check = Ls.run_checks(specs, check_type="linkset")
     if check[St.result] != "GOOD TO GO":
         return check
     # print "LINKSET: {}".format(specs[St.linkset_name])
@@ -715,7 +718,6 @@ def prefixed_inverted_index(specs, theta, check_type="linkset",
     prefix = "@prefix alivocab:\t<{}> .\n" \
              "@prefix linkset:\t<{}> .\n" \
              "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
-
 
 # def get_tf(matrix, is_token=True):
 #
@@ -760,11 +762,6 @@ def prefixed_inverted_index(specs, theta, check_type="linkset",
         trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=target[St.reducer])
 
     Ut.update_specification(specs)
-
-    if St.refined in specs:
-        specs[St.linkset] = specs[St.refined]
-        specs[St.linkset_name] = specs[St.refined_name]
-        specs[St.linkset_ns] = specs[St.refined_ns]
 
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
     # Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
@@ -1097,3 +1094,639 @@ def prefixed_inverted_index(specs, theta, check_type="linkset",
         print message
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    REFINE LINKSET USING APPROXIMATE SIMILARITY
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
+# HELPER FOR CREATING A CORRESPONDENCE
+def correspondence(description, in_writers, counter):
+
+    # GENERATE CORRESPONDENCE
+    in_crpdce = "\n\t### Instance [{5}]\n\t<{0}> \t\t{1}_{2}_{3} \t\t<{4}> .\n".format(
+        description[St.src_resource], description[St.link],
+        description[St.row], description[St.inv_index], description[St.trg_resource], counter)
+    # WRITE CORRESPONDENCE TO FILE
+    in_writers[St.crpdce_writer].write(to_unicode(in_crpdce))
+
+    # GENERATE SINGLETONS METADATA
+    singleton = "\n\t### Instance [{8}]\n\t{1}_{2}_{3}\n\t\t" \
+                "alivocab:hasStrength \t\t{5} ;" \
+                "\n\t\talivocab:hasEvidence  \t\t\"\"\"[{6}] was compared to [{7}]\"\"\" .\n".\
+        format(description[St.src_resource], description[St.link], description[St.row],
+               description[St.inv_index], description[St.trg_resource], description[St.sim],
+               description[St.src_value], description[St.trg_value], counter)
+    in_writers[St.singletons_writer].write(to_unicode(singleton))
+    # WRITE SINGLETON EVIDENCE TO FILE
+    return in_crpdce + singleton
+
+
+# HELPER FOR EXTRACTING SPA VALUES FROM A GRAPH
+def get_table(dataset_specs, reducer=None):
+
+        # ADD THE REDUCER IF SET. THE REDUCER OR (DATASET REDUCER) HELPS ELIMINATING
+        # THE COMPUTATION OF SIMILARITY FOR INSTANCES THAT WHERE ALREADY MATCHED
+
+        if reducer is None:
+            reducer_comment = "#"
+            reducer = ""
+        else:
+            reducer_comment = ""
+            reducer = reducer
+        aligns = dataset_specs[St.aligns] if Ut.is_nt_format(dataset_specs[St.aligns]) \
+            else "<{}>".format(dataset_specs[St.aligns])
+        query = """
+        SELECT DISTINCT *
+        {{
+            GRAPH <{0}>
+            {{
+                ?subject
+                    a       <{1}> ;
+                    {2}    ?object .
+            }}
+            {4}FILTER NOT EXISTS
+            {4}{{
+            {4}    GRAPH <{3}>
+            {4}    {{
+            {4}        {{ ?subject   ?pred   ?obj . }}
+            {4}        UNION
+            {4}        {{ ?obj   ?pred   ?subject. }}
+            {4}    }}
+            {4}}}
+        }} {5}
+        """.format(
+            dataset_specs[St.graph], dataset_specs[St.entity_datatype], aligns,
+            reducer, reducer_comment, LIMIT)
+        table_matrix = Qry.sparql_xml_to_matrix(query)
+        # Qry.display_matrix(table_matrix, is_activated=True)
+        # print table_matrix
+        # print query
+        return table_matrix[St.result]
+
+
+def get_tf(datasets, stop_word, stop_symbols_string):
+
+    # Qry.display_matrix(matrix, is_activated=True)
+    # print matrix
+    # datasets = [matrix_src, matrix_trg]
+    term_frequency = dict()
+    for matrix in datasets:
+        # print "DATASETS:", matrix
+        for r in range(1, len(matrix)):
+
+            # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+            # print "PROCESS IN TF!!!!!!!!!!!!!!"
+            in_tokens = process_input((matrix[r][1]), stop_word, stop_symbols_string)
+
+            # TOKENIZE
+            in_tokens = in_tokens.split(" ")
+
+            # COMPUTE FREQUENCY
+            for t in in_tokens:
+                if t not in term_frequency:
+                    term_frequency[t] = 1
+                else:
+                    term_frequency[t] += 1
+
+    return term_frequency
+
+
+def remove_info_in_bracket(text):
+
+    # text = "(Germany) 3M (United Kingdom) (Israel) in  (Canada) (France)"
+
+    temp = str(text)
+
+    if temp:
+
+        pattern = re.findall('( *\(.*?\) *)', temp, re.S)
+
+        for item in pattern:
+
+            # print temp
+
+            if item.endswith(" ") and item.startswith(" "):
+                temp = str(temp).replace(item, " ", 1)
+                # print "both sides"
+                # print text
+
+            elif item.startswith(" ") is not True and item.endswith(" "):
+                temp = str(temp).replace(item, "", 1)
+                # print "right side"
+                # print text
+
+            elif item.startswith(" ") is True and item.endswith(" ") is not True:
+                temp = str(temp).replace(item, "", 1)
+                # print "left side"
+                # print text
+
+            else:
+                temp = str(temp).replace(item, "", 1)
+                # print "None"
+                # print text
+
+        temp = str(temp).strip()
+
+    return temp
+
+
+def remove_stop_words(text, stop_word):
+
+    if len(stop_word) > 0:
+        for stop_key, value in stop_word.items():
+            two = " {}".format(stop_key)
+            one = "{} ".format(stop_key)
+            three = " {} ".format(stop_key)
+            if str(text).startswith(one):
+                text = str(text).replace(one, "")
+            if str(text).endswith(two):
+                text = str(text).replace(two, "")
+            text = str(text).replace(three, " ")
+            text = str(text).replace("  ", " ").replace("\t", " ")
+    return text
+
+
+def get_inverted_index(matrix, tf, threshold, stop_word, stop_symbols_string):
+
+        # INVERTED INDEX DICTIONARY
+        inv_index = dict()
+
+        for in_row in range(1, len(matrix)):
+
+            # GET THE VALUE
+            value = str(matrix[in_row][1])
+
+            # REMOVE DATA IN BRACKETS
+            # REMOVE (....) FROM THE VALUE
+            # value = remove_info_in_bracket(value)
+
+            # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+            value = process_input(value, stop_word, stop_symbols_string)
+
+            # GET THE TOKENS
+            in_tokens = value.split(" ")
+
+            # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
+            included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
+
+            # UPDATE THE TOKENS WITH THEIR FREQUENCY
+            # print "1", in_tokens
+            for n in range(len(in_tokens)):
+                # print value + " | +" + tokens[i]
+                in_tokens[n] = [in_tokens[n], tf[in_tokens[n]]]
+
+            # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
+            in_tokens = sorted(in_tokens, key=itemgetter(1))
+            # print "{} {}".format(in_row, in_tokens)
+            # print "2", in_tokens
+
+            # INSERTING included TOKENS IN THE INVERTED INDEX
+            for t in in_tokens[:included]:
+                if t[0] not in inv_index:
+                    # THE INVERTED INDEX DICTIONARY HAS A TUPLE OF AN [ARRAY OF INDEXES] AND A [TERM FREQUENCY]
+                    inv_index[t[0]] = [in_row]
+                elif in_row not in inv_index[t[0]]:
+                    # UPDATE THE INDEX ARRAY AND INCREMENT THE TERM FREQUENCY
+                    inv_index[t[0]] += [in_row]
+
+        return inv_index
+
+
+def process_input(text, stop_word, stop_symbols_string):
+
+    try:
+
+        # temp = to_bytes(text.lower())
+        temp = text.lower()
+        # temp = str(temp).decode(encoding="utf-8")
+
+        # REMOVE DATA IN BRACKETS
+        # REMOVE (....) FROM THE VALUE
+        temp = remove_info_in_bracket(temp)
+
+        # REMOVE STOP WORLD
+        if len(stop_word) > 0:
+            temp = remove_stop_words(temp, stop_word)
+
+        # REMOVE SYMBOLS OR CHARACTER
+        if stop_symbols_string is not None and len(stop_symbols_string) > 0:
+            pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
+            temp = re.sub(pattern, "", temp)
+
+        return temp.strip()
+
+    except Exception as error:
+        print "!!!!!!!!!!!!! PROBLEM !!!!!!!!!!!!!!!!!!!"
+        print str(error.message)
+        # return text
+
+
+def swap(array, find, swap_index):
+    for i in range(len(array)):
+        if array[i] == find:
+            temp = array[swap_index]
+            array[swap_index] = find
+            array[i] = temp
+
+
+# temp2 = re.sub("[\.\-\,\+'\?;()]", "", "+university -vienna.")
+# print temp2
+
+def get_tokens_to_include(string, threshold, tf, stop_word, stop_symbols_string):
+
+    # GET THE TOKENS
+    stg = str(string).lower()
+    # print stg
+
+    # REMOVE DATA IN BRACKETS
+    # stg = remove_info_in_bracket(stg)
+
+    # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+    stg = process_input(stg, stop_word, stop_symbols_string)
+    in_tokens = stg.split(" ")
+
+    # if stg != to_unicode(string):
+    #     print stg + "!!!!!!!!!"
+
+    # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
+    included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1) \
+        if int(threshold * len(in_tokens)) > 1 else len(in_tokens)
+    # included = len(in_tokens)
+
+    # UPDATE THE TOKENS WITH THEIR FREQUENCY
+    for k in range(len(in_tokens)):
+        in_tokens[k] = [in_tokens[k], tf[in_tokens[k]]]
+
+    # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
+    in_tokens = sorted(in_tokens, key=itemgetter(1))
+    return in_tokens[:included]
+
+
+def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None, activated=True):
+
+    debug = False
+    sim = 0
+    count_link_found = 0
+    row = 0
+    correspondences = []
+    prepped_sim = theta
+    universe_tf = None
+    # writer = Buffer.StringIO()
+    message = ""
+    link = "alivocab:approxStrSim"
+    prefix = "@prefix alivocab:\t<{}> .\n" \
+             "@prefix linkset:\t<{}> .\n" \
+             "@prefix singletons:\t<{}> .\n".format(Ns.alivocab, Ns.linkset, Ns.singletons)
+
+    # SET THE RESULT ASSUMING IT WENT WRONG
+    refined = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+    diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+
+    print specs
+    # return {St.message: "Its working"}
+
+    specs[St.graph] = specs[St.linkset]
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+    specs[St.insert_query] = "The generated triple file was uploaded to the server."
+    specs[St.threshold] = theta
+
+    source = specs[St.source]
+    target = specs[St.target]
+    src_aligns = source[St.aligns] if Ut.is_nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+    trg_aligns = target[St.aligns] if Ut.is_nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+    Ut.update_specification(specs)
+    Ut.update_specification(source)
+    Ut.update_specification(target)
+    Ls.set_refined_name(specs)
+
+    # 1. CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
+    check = Ls.run_checks(specs, check_type="REFINE")
+    if check[St.result] != "GOOD TO GO":
+        return check
+
+    # 2. SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
+    # Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
+    # Ut.write_to_path = DIRECTORY
+    writers = Ut.get_writers(specs[St.refined_name], directory=DIRECTORY)
+    for key, writer in writers.items():
+        # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
+        if type(writer) is not str:
+            if key is not St.batch_writer and key is not St.meta_writer:
+                writer.write(prefix)
+            if key is St.crpdce_writer:
+                writer.write("\nlinkset:{}\n{{\n".format(specs[St.refined_name]))
+            elif key is St.singletons_writer:
+                writer.write("\nsingletons:{}\n{{".format(specs[St.refined_name]))
+
+    # 3. STOP WORD DICTIONARY
+    print "\n3. STOP WORD DICTIONARY"
+    stop_word = dict()
+    stop_words_string = stop_words_string.lower()
+    if stop_words_string is not None and len(stop_words_string) > 0:
+        stw_split = str(stop_words_string).split(' ')
+        for stop in stw_split:
+            if stop not in stop_word:
+                stop_word[stop] = stop
+
+    # 4. THINGS TO SET IF REORDER IS TRUE
+    print "4. THINGS TO SET IF REORDER IS TRUE"
+    if reorder is True:
+
+        source = specs[St.source]
+        target = specs[St.target]
+
+        # 3.1 CHECK WHETHER THE SOURCE IS THE SAME AS THE TARGET (DE-DUPLICATION)
+        is_equal_inputs = source[St.graph] == target[St.graph] and source[St.entity_datatype] == target[
+            St.entity_datatype]
+
+        # 3.2 LOADING THE DATASETS
+        src_dataset = get_table(source) if St.reducer not in source else get_table(source, reducer=source[St.reducer])
+        if is_equal_inputs:
+            trg_dataset = src_dataset
+        else:
+            trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=target[
+                St.reducer])
+
+        # 3.3 GENERATE THE UNIVERSE OF TERM FREQUENCY (SOURCE + TARGET)
+        if is_equal_inputs:
+            universe_tf = get_tf([src_dataset], stop_word, stop_symbols_string)
+        else:
+            universe_tf = get_tf([src_dataset, trg_dataset], stop_word, stop_symbols_string)
+        print "\tTHE UNIVERSE OF TERMS CONTAINS {} WORDS.".format(len(universe_tf))
+
+        # GENERATE THE INVERTED INDEX OF THE TARGET DATASET USING THE FILTERED PREFIX APPROACH"
+        # trg_inv_index = get_inverted_index(trg_dataset, universe_tf, theta)
+
+    # 5. GET THE LINKSET TO REFINE AND FORMAT IT AS AN ARRAY OF DICTIONARIES AS FOLLOW:
+    # {LINK: <SOURCE> <SAME-AS> <TARGET>, SRC-VALUE:"VU UNIVERSITY", TRG-VALUE:"VU UNIVERSITEIT"}
+    print "5. GET THE LINKSET TO REFINE AND FORMAT IT AS AN ARRAY OF DICTIONARIES "
+    # print "specs[St.linkset]", specs[St.linkset]
+    query = """
+    SELECT ?sub ?pred ?obj ?src_value ?trg_value
+    {{
+        # APPARENTLY, THE ORDER MATTERS
+
+        # TARGET PREDICATE VALUE
+        graph <{2}>
+        {{
+            ?obj {4} ?trg_value .
+        }}
+
+        # SOURCE PREDICATE VALUE
+        graph <{1}>
+        {{
+            ?sub {3} ?src_value .
+        }}
+
+        # LINKSET
+        graph <{0}>
+        {{
+            ?sub ?pred ?obj.
+        }}
+    }}
+    """.format(specs[St.linkset], source[St.graph], target[St.graph], src_aligns, trg_aligns)
+    # print query
+    response = Qry.sparql_xml_to_matrix(query)
+    matrix = response[St.result]
+    for i in range(1, len(matrix)):
+        link_row = matrix[i]
+        correspondences += [
+            {"link": "<{}> <{}> <{}>".format(link_row[0], link_row[1], link_row[2]), "src_value": link_row[3],
+             "trg_value": link_row[4], "src_uri":link_row[0], "trg_uri":link_row[2]}
+        ]
+        # if i == 50:
+        #     break
+
+    # 6. ITERATE THROUGH THE LIST AND FOR EACH ITEM:
+    # FOR EACH ITEM" COMPUTE THE edit_distance(token_x, token_y)
+    #   IF THE VALUE IS GREATER OR EQUAL TO THE THRESHOLD, ADD THE LINK TO THE REFINED LINKSET
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    print "6. ITERATING THROUGH THE LIST OF CORRESPONDENCES"
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    for item in correspondences:
+
+        row += 1
+        src_input = process_input(item["src_value"], stop_word, stop_symbols_string)
+        trg_input = process_input(item["trg_value"], stop_word, stop_symbols_string)
+        # print '\n\tSOURCE:', src_input, "TARGET:", trg_input
+
+        # GO TO THE NEXT SOURCE TOKEN IF THE CURRENT TOKEN IS EMPTY
+        if not src_input.strip():
+            continue
+
+        # GO TO THE NEXT TARGET TOKEN IF THE CURRENT TOKEN IS EMPTY
+        if not trg_input.strip():
+            continue
+
+        # APPLICABLE ONLY IF REORDER IS TRUE
+        if reorder is True:
+
+            # TOKENIZE INPUTS
+            tokens_src = src_input.split(" ")
+            tokens_trg = trg_input.split(" ")
+
+            # TOKENS IN THE CURRENT PREDICATE VALUE
+            # tokens = get_tokens_to_include(src_input, theta, universe_tf, stop_word, stop_symbols_string)
+            # print tokens
+
+            # SMALL: COMPUTE THE TOKEN TO INCLUDE FOR
+            # THE INPUT WITH THE SMALLEST NUMBER OF TOKEN
+            if len(tokens_src) < len(tokens_trg):
+                tokens_1 = tokens_src
+                tokens_2 = tokens_trg
+                # TOKEN TO INCLUDE
+                token2include = get_tokens_to_include(src_input, theta, universe_tf, stop_word, stop_symbols_string)
+            else:
+                tokens_1 = tokens_trg
+                tokens_2 = tokens_src
+                # TOKEN TO INCLUDE
+                token2include = get_tokens_to_include(trg_input, theta, universe_tf, stop_word, stop_symbols_string)
+
+            # UPDATE THE TOKENS WITH THEIR FREQUENCY IN ORDER TO SORT THEM
+            token2tf = []
+            for i in range(len(tokens_2)):
+                token2tf += [[tokens_2[i], universe_tf[tokens_2[i]]]]
+
+            token1tf = []
+            for i in range(len(tokens_1)):
+                token1tf += [[tokens_1[i], universe_tf[tokens_1[i]]]]
+
+            # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
+            # THIS SORTING WILL HELP COMPUTE THE SIMILARITY OF A
+            # REORDERED STRING INSTEAD OF USING THE ORIGINAL STRING
+            tokens_1_sorted = sorted(token1tf, key=itemgetter(1))
+            tokens_2_sorted = sorted(token2tf, key=itemgetter(1))
+
+            # COMPUTE SIM OF THE IMPORTANT TOKENS (TOKENS TO INCLUDE)
+            value_1 = " - "
+            value_2 = " - "
+            # print "token2include:", token2include
+            # print "tokens_2_sorted", tokens_2_sorted
+            to_use = tokens_2_sorted[:len(token2include)]
+            for i in range(len(token2include)):
+                # print token2include[i], token2include[i] in tokens_2
+
+                # if token2include[i] in to_use:
+                #     "DO NOTHING"
+                # else:
+                value_1 += token2include[i][0] + " "
+
+                if token2include[i] in tokens_2_sorted:
+                    value_2 += token2include[i][0] + " "
+                    swap(array=tokens_2_sorted, find=token2include[i], swap_index=i)
+                else:
+                    value_2 += to_use[i][0] + " "
+
+            value_1 = (value_1.replace(" - ", "") if value_1 != " - " else value_1).strip()
+            value_2 = (value_2.replace(" - ", "") if value_2 != " - " else value_2).strip()
+
+            # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
+            prepped_sim = edit_distance(value_1, value_2) if value_1 and value_2 else 0
+            # print "\tprepped_sim({} | {}) = {}".format(value_1, value_2, prepped_sim)
+
+        # IF IMPORTANT BIGGER THAN THRESHOLD CONTINUE
+        if prepped_sim >= theta:
+
+            # IF REORDER IS TRUE REORDERING THE STRINGS TO MATCH BASED ON THEIR OCCURRENCES FREQUENCY
+            if reorder is True:
+                sim_val_1 = ""
+                sim_val_2 = ""
+                for i in range(len(tokens_1_sorted)):
+                    sim_val_1 += tokens_1_sorted[i][0] if i == 0 else " {}".format(tokens_1_sorted[i][0])
+
+                for i in range(len(tokens_2_sorted)):
+                    sim_val_2 += tokens_2_sorted[i][0] if i == 0 else " {}".format(tokens_2_sorted[i][0])
+
+                # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
+                sim = edit_distance(sim_val_1, sim_val_2) if sim_val_1 and sim_val_2 else 0
+
+                if sim >= 0.6:
+                    count_link_found += 1
+                    if debug:
+                        sim2 = edit_distance(src_input, trg_input) if src_input and trg_input else 0
+                        print "\n\t{:5} SOURCE {}".format(count_link_found, src_input)
+                        print "\t{:5} TARGET {}".format("", trg_input)
+                        print "\tedit({} | {}) = {} / [{}]".format(sim_val_1, sim_val_2, sim, sim2)
+
+            else:
+                # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
+                count_link_found += 1
+                sim = edit_distance(src_input, trg_input) if src_input and trg_input else 0
+                if debug:
+                    print "\tedit({} | {}) = {}".format(src_input, trg_input, sim)
+
+        # GENERATE CORRESPONDENCES ONLY IF THE EDIT DISTANCE MATCH IS GREATER OR EQUAL TO THE THRESHOLD
+        if sim >= 0.6:
+            # linked = item["link"]
+            # print linked
+            crpdce = dict()
+            crpdce[St.sim] = sim
+            crpdce[St.src_value] = src_input
+            crpdce[St.trg_value] = trg_input
+            crpdce[St.src_resource] = item["src_uri"]
+            crpdce[St.trg_resource] = item["trg_uri"]
+            crpdce[St.link] = link
+            crpdce[St.row] = row
+            crpdce[St.inv_index] = 0
+
+            if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
+                print correspondence(crpdce, writers, count_link_found)
+            else:
+                correspondence(crpdce, writers, count_link_found)
+
+        # REFRESH THE COMPUTED SIMILARITY VALUE
+        sim = 0
+
+    # 7. GENERATE THE BATCH FILE FOR LOADING THE GENERATED LINKSET AND THE SINGLETONS (METADATA)
+    print "7. GENERATE THE BATCH FILE FOR LOADING THE GENERATED LINKSET AND THE SINGLETONS (METADATA)"
+    path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+    load = """
+    echo "Loading data"
+    {}stardog data add {} "{}" "{}"
+    """.format(path, Ss.DATABASE, writers[St.crpdce_writer_path], writers[St.singletons_writer_path])
+
+    # ADD ACCESS WRITE FOR MAC FOLDER
+    if Ut.OPE_SYS != 'windows':
+        print "MAC BATCH: {}".format(writers[St.batch_output_path])
+        os.chmod(writers[St.batch_output_path], 0o777)
+
+    # GENERATE THE BATCH FILE
+    writers[St.batch_writer].write(to_unicode(load))
+
+    # 8. CLOSE THE WRITERS
+    print "8. CLOSE THE WRITERS"
+    print writers[St.crpdce_writer_path]
+    for key, writer in writers.items():
+        if type(writer) is not str:
+            if key is St.crpdce_writer:
+                writer.write("}")
+            elif key is St.singletons_writer:
+                writer.write("}")
+            if key is not St.meta_writer:
+                writer.close()
+
+    # 9. TO DO ONLY IF MATCH ARE FOUND
+    print "9. TO DO ONLY IF MATCH ARE FOUND"
+    if count_link_found > 0:
+        print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THE TRIPLE STORE\n\t\t{}", writers[
+            St.batch_output_path]
+
+        if Svr.settings[St.split_sys] is True:
+            print "THE DATA IS BEING LOADED OVER HTTP POST."
+        else:
+            print "THE DATA IS BEING LOADED AT THE STARDOG LOCAL HOST FROM BATCH."
+            Ut.batch_load(writers[St.batch_output_path])
+
+        # GENERATE THE METADATA AND CHECK WHETHER LINKS WHERE LOADED
+        print "\tGENERATE THE METADATA AND CHECK WHETHER LINKS WHERE LOADED"
+        metadata = Gn.linkset_refined_metadata(specs, display=False)
+        metadata = metadata["query"].replace("INSERT DATA", "")
+        writers[St.meta_writer].write(to_unicode(metadata))
+
+        # IF LINKS WHERE LOADED TO THE TRIPLE STORE SERVER, THEN...
+        print "\tIF LINKS WHERE LOADED TO THE TRIPLE STORE SERVER, THEN..."
+        if int(specs[St.triples]) > 0:
+
+            # LOAD THE METADATA
+            print "\t\tLOAD THE METADATA"
+            Qry.boolean_endpoint_response(metadata)
+            writers[St.meta_writer].close()
+
+            # REGISTER THE ALIGNMENT
+            print "\t\tREGISTER THE ALIGNMENT"
+            if check[St.result].__contains__("ALREADY EXISTS"):
+                Urq.register_alignment_mapping(specs, created=False)
+            else:
+                Urq.register_alignment_mapping(specs, created=True)
+
+            try:
+                # "COMPUTE THE DIFFERENCE AND DOCUMENT IT"
+                diff_lens_specs = {
+                    St.researchQ_URI: specs[St.researchQ_URI],
+                    St.subjectsTarget: specs[St.linkset],
+                    St.objectsTarget: specs[St.refined]
+                }
+                diff = Df.difference(diff_lens_specs, activated=activated)
+                message_2 = "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
+                print message_2
+            except Exception as err:
+                print "THE DIFFERENCE FAILED: ", str(err.message)
+
+            # UPDATE THE REFINED VARIABLE AS THE INSERTION WAS SUCCESSFUL
+            refined = {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+            # WRITE TO FILE
+            print "\t\tCHECKING RDF FILE SYNTAX"
+            check_rdf_file(writers[St.crpdce_writer_path])
+            check_rdf_file(writers[St.meta_writer_path])
+            check_rdf_file(writers[St.singletons_writer_path])
+
+        print "\tLinkset created as: ", specs[St.refined_name]
+        print "\t*** JOB DONE! ***"
+
+        message = "The linkset was created as {} with {} triples. " \
+                  "<br/>{}".format(specs[St.refined], count_link_found,diff[St.message],)
+
+    # return {'refined': refined, 'difference': diff}
+    return {St.message: message, St.error_code: 0, St.result: specs[St.refined]}
