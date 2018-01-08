@@ -643,9 +643,9 @@ def write_to_file(graph_name, directory, metadata=None, correspondences=None, si
         singleton_metadata_file = "{}-SingletonMetadata-{}.trig".format(graph_name, date)
         dir_name = dir_name.replace("\\", "/")
 
-        linkset_output = "{}/{}".format(dir_name, linkset_file)
-        metadata_output = "{}/{}".format(dir_name, metadata_file)
-        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+        linkset_output = "{}/{}".format(dir_name, linkset_file).replace("//", "/")
+        metadata_output = "{}/{}".format(dir_name, metadata_file).replace("//", "/")
+        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file).replace("\\", "/")
         try:
             if not os.path.exists(dir_name):
                 os.makedirs(dir_name)
@@ -657,10 +657,11 @@ def write_to_file(graph_name, directory, metadata=None, correspondences=None, si
         """
             3. WRITE LINKSET TO FILE
         """
-
+        print "\tDIRECTORY NAME:", path.dirname(metadata_output)
         if metadata is not None:
             document = None
             try:
+                print "\t\tMETADATA FILE:", path.basename(metadata_output)
                 document = codecs.open(metadata_output, "wb", "utf-8")
                 document.write(to_unicode(metadata))
                 document.close()
@@ -672,6 +673,7 @@ def write_to_file(graph_name, directory, metadata=None, correspondences=None, si
         if correspondences is not None:
             document = None
             try:
+                print "\t\tLINKSET FILE:", path.basename(linkset_output)
                 document = codecs.open(linkset_output, "wb", "utf-8")
                 document.write(to_unicode(correspondences))
                 document.close()
@@ -683,6 +685,7 @@ def write_to_file(graph_name, directory, metadata=None, correspondences=None, si
         if singletons is not None:
             document = None
             try:
+                print "\t\tSINGLETON METADATA FILE:", path.basename(singleton_metadata_output)
                 document = codecs.open(singleton_metadata_output, "wb", "utf-8")
                 document.write(to_unicode(singletons))
                 document.close()
