@@ -864,8 +864,8 @@ def listening(directory, sleep_time=10):
             print "\t>>> THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
             return "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
 
-        if len(lock_file) > 0 and (str(response).__contains__("200") or
-                str(response).__contains__("No connection") is False):
+        if len(lock_file) > 0 and \
+                (str(response).__contains__("200") or str(response).__contains__("No connection") is False):
             print "\t>>> >>> THE SERVER IS ON."
             return "THE SERVER IS ON."
 
