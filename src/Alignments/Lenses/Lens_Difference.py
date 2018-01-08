@@ -106,7 +106,8 @@ def difference(specs, activated=False):
                       correspondences=construct_response, singletons=None, directory=DIRECTORY)
 
         server_message = "LENS created as: {}".format(specs[St.lens])
-        message = "The LENS was created!<br/>URI = {}".format(specs[St.lens])
+        message = "The LENS DIFFERENCE was created as<br/> {}" \
+                  "<br/>with {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(specs[St.lens], specs[St.triples])
         print "\t", server_message
         print "\t*** JOB DONE! ***"
 
