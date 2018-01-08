@@ -2558,7 +2558,7 @@ def datasetLinkingClusters2():
 
     # for each cluster-matrix
     counter = 0
-    header = ['id', 'size', 'prop', 'sample']
+    header = ['count', 'ID', 'size', 'prop', 'sample']
     results = []
     clustersList = []
     for i_cluster in clusters.items():
@@ -2613,9 +2613,9 @@ def datasetLinkingClusters2():
         counter +=1
         if sample['result'] and len(sample['result']) > 1:
             # print response['result']
-            results += [[str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+            results += [[cluster_id, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
         else:
-            results += [[str(counter), str(len(nodes)), "-", "No value found"]]
+            results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
 
     if len(results) > 1:
         message = "Have a look at the result in the table below"
