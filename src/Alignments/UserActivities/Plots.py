@@ -218,7 +218,7 @@ def metric(graph):
     elif len(bridges) > 0:
         analysis_builder.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
 
-    return analysis_builder.getvalue()
+    return {'message':analysis_builder.getvalue(), 'decision':interpretation}
 
 
 def cluster_d_test(linkset, network_size=3, targets=None,

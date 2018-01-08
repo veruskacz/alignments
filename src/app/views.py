@@ -2694,7 +2694,8 @@ def datasetLinkingClusterDetails2():
                 elif (n['uri'], nodes[-1]['uri']) in cluster['links']:
                     links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150}]
 
-        metrics = plots.metric(cluster['links']).replace('\n','</br>')
+        obj_metrics = plots.metric(cluster['links'])
+        message = obj_metrics['message'].replace('\n','</br>')
         # call plots.metric(array of tuples)
         # network = []
         # for i in range(1, position):
@@ -2711,7 +2712,7 @@ def datasetLinkingClusterDetails2():
         #             network += [(r_name, c_name)]
 
         if len(nodes) > 0 and len(links) > 0:
-            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': metrics}
+            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision']}
             print plot_graph
 
         message = "Have a look at the result in the table below"

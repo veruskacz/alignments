@@ -5620,6 +5620,7 @@ function calculateDatasetCluster()
 
             $('#graph_cluster').html('');
             plotClusterGraph(obj.graph);
+            plot_Cluster_Scale(obj.graph.decision);
 
             });
         });
@@ -6044,5 +6045,52 @@ function plotClusterGraph(graph)
 
 }
 
+
+function plot_Cluster_Scale(decision)
+{
+var data = [0, 1];
+var extent = d3.extent(data);
+
+var linearScale = d3.scaleLinear()
+  .domain(extent)
+  .range([0, 600]);
+
+linearScale.nice();
+
+var axis = d3.axisBottom(linearScale);
+
+d3.select('.axis')
+	.call(axis);
+
+var quantizeScale = d3.scaleQuantize()
+  .domain([0, 100])
+  .range(['red', 'orange', 'yellow', 'green']);
+
+quantizeScale(10);   // returns 'lightblue'
+quantizeScale(30);  // returns 'orange'
+quantizeScale(90);  // returns 'pink'
+
+var linearScale2 = d3.scaleLinear()
+	.domain([0, 100])
+	.range([0, 600]);
+
+var myData = d3.range(0, decision*100, 1);
+
+d3.select('#wrapper')
+	.selectAll('rect')
+	.data(myData)
+	.enter()
+	.append('rect')
+	.attr('x', function(d) {
+		return linearScale2(d);
+	})
+	.attr('width', 5)
+	.attr('height', 30)
+	.style('fill', function(d) {
+		return quantizeScale(d);
+	});
+
+
+}
 
 
