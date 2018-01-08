@@ -2567,9 +2567,10 @@ def datasetLinkingClusters2():
 
         # print i_cluster
         (cluster_id,values) = i_cluster
-        children = len(values['children'])
+        children = values['children']
+        n_children = len(children)
         # print children, network_size
-        if (network_size != -1) and not ((children >= network_size and greater_equal) or (children == network_size)):
+        if (network_size != -1) and not ((n_children >= network_size and greater_equal) or (n_children == network_size)):
             # print 'HERE!!!'
             continue
 
@@ -2594,7 +2595,24 @@ def datasetLinkingClusters2():
                     if not (r,c) in links:
                         links += [(r,c)]
 
-        clustersList += [{'id': cluster_id, 'nodes': nodes, 'links': links}]
+        smallest_hash = float('inf')
+        for child in children:
+            hashed = hash(child)
+            if hashed <= smallest_hash:
+                smallest_hash = hashed
+            # GENERAL INFO 1: RESOURCES INVOLVED
+            # analysis_builder.write("\t{}\n".format(child))
+            # use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
+            # resources += "\n\t\t{}".format(use)
+            # if len(child) > uri_size:
+            #     uri_size = len(child)
+
+        smallest_hash = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                smallest_hash).startswith("-") \
+                else "P{}".format(smallest_hash)
+
+        # clustersList += [{'id': cluster_id, 'nodes': nodes, 'links': links}]
+        clustersList += [{'id': smallest_hash, 'nodes': nodes, 'links': links}]
 
         # index = 0
         sample = Clt.cluster_values2(nodes, properties, distinct_values=False, display=False)
@@ -2613,9 +2631,11 @@ def datasetLinkingClusters2():
         counter +=1
         if sample['result'] and len(sample['result']) > 1:
             # print response['result']
-            results += [[cluster_id, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+            # results += [[cluster_id, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+            results += [[smallest_hash, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
         else:
-            results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
+            # results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
+            results += [[smallest_hash, str(counter), str(len(nodes)), "-", "No value found"]]
 
     if len(results) > 1:
         message = "Have a look at the result in the table below"
