@@ -1653,8 +1653,7 @@ def spa_linkset():
 
             elif specs['mechanism'] == 'approxStrSim':
                 print 1
-                linkset_result = prefixed_inverted_index(specs, threshold, check_type="linkset",
-                                                         stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+                linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
 
             elif specs['mechanism'] == 'approxNbrSim':
 
