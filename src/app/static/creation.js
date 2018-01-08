@@ -6062,9 +6062,11 @@ var axis = d3.axisBottom(linearScale);
 d3.select('.axis')
 	.call(axis);
 
+//axis.selectAll("*").remove();
+
 var quantizeScale = d3.scaleQuantize()
   .domain([0, 100])
-  .range(['red', 'orange', 'yellow', 'green']);
+  .range(['green', 'yellow', 'orange', 'red']);
 
 quantizeScale(10);   // returns 'lightblue'
 quantizeScale(30);  // returns 'orange'
@@ -6076,8 +6078,11 @@ var linearScale2 = d3.scaleLinear()
 
 var myData = d3.range(0, decision*100, 1);
 
-d3.select('#wrapper')
-	.selectAll('rect')
+var p = d3.select('#wrapper');
+
+p.selectAll("*").remove();
+
+	p.selectAll('rect')
 	.data(myData)
 	.enter()
 	.append('rect')
