@@ -2558,7 +2558,7 @@ def datasetLinkingClusters2():
 
     # for each cluster-matrix
     counter = 0
-    header = ['count', 'ID', 'size', 'prop', 'sample']
+    header = ['ID', 'count', 'size', 'prop', 'sample']
     results = []
     clustersList = []
     for i_cluster in clusters.items():
