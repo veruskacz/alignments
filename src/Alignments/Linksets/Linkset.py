@@ -160,6 +160,9 @@ def set_linkset_name(specs, inverse=False):
             source[St.graph_name], target[St.graph_name],
             specs[St.mechanism], unit_value, unit, source[St.entity_name], src_aligns, append)
 
+        if len(specs[St.linkset_name]) > 255:
+            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
+
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
         return specs[St.linkset]
@@ -179,6 +182,9 @@ def set_linkset_name(specs, inverse=False):
         specs[St.linkset_name] = "{}_{}_{}{}{}_{}_{}_{}".format(
             target[St.graph_name], source[St.graph_name],
             specs[St.mechanism], unit_value, unit, target[St.entity_name], trg_aligns, append)
+
+        if len(specs[St.linkset_name]) > 255:
+            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
         print "\t- specs[St.linkset]", specs[St.linkset]
@@ -236,6 +242,9 @@ def set_linkset_identity_name(specs, inverse=False):
             specs[St.source][St.graph_name], specs[St.target][St.graph_name], specs[St.mechanism],
             specs[St.source][St.entity_name], append)
 
+        if len(specs[St.linkset_name]) > 255:
+            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
+
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
         return specs[St.linkset]
@@ -252,6 +261,9 @@ def set_linkset_identity_name(specs, inverse=False):
         specs[St.linkset_name] = "{}_{}_{}_{}_{}".format(
             specs[St.target][St.graph_name], specs[St.source][St.graph_name], specs[St.mechanism],
             specs[St.target][St.entity_name], append)
+
+        if len(specs[St.linkset_name]) > 255:
+            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -274,6 +286,9 @@ def set_subset_name(specs, inverse=False):
         specs[St.linkset_name] = "subset_{}_{}_{}_{}_{}_{}".format(
             specs[St.source][St.graph_name], specs[St.target][St.graph_name],
             specs[St.mechanism], specs[St.source][St.entity_name], specs[St.source][St.link_old_name], append)
+
+        if len(specs[St.linkset_name]) > 255:
+            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -316,6 +331,10 @@ def set_refined_name(specs):
 
     specs[St.refined_name] = "refined_{}_{}_{}_{}".format(
         specs[St.linkset_name], specs[St.mechanism], specs[St.source][St.aligns_name], append)
+
+    if len(specs[St.refined_name]) > 255:
+        specs[St.refined_name] = Ut.hash_it(specs[St.refined_name])
+
     specs[St.refined] = specs[St.linkset].replace(specs[St.linkset_name], specs[St.refined_name])
     print "\t-  specs[St.refined]",  specs[St.refined]
 

@@ -17,8 +17,13 @@ PREFIX = """
 
 def diff_lens_name(specs):
     specs[St.lens_operation] = Ns.lensOpd
-    src_name = get_uri_local_name(specs[St.subjectsTarget])
-    trg_name = get_uri_local_name(specs[St.objectsTarget])
+    # THE NAMES ARE HASHED AS THEY APPEAR TO BE TOO LONG FOR A FILE NAME
+    # THIS IS AN EXAMPLE
+    # print len("diff_eter_2014_orgreg_20170718_nearbyGeoSim1Kilometer_University_LatitudeLongitude_P871330770"
+    #           "_refined_eter_2014_orgreg_20170718_nearbyGeoSim1Kilometer_University_LatitudeLongitude_P871330770"
+    #           "_approxStrSim_English_Institution_Name_P255977302-Metadata-20180107.t")
+    src_name = Ut.hash_it(get_uri_local_name(specs[St.subjectsTarget]))
+    trg_name =  Ut.hash_it(get_uri_local_name(specs[St.objectsTarget]))
     specs[St.lens] = "{}diff_{}_{}".format(Ns.lens, src_name, trg_name)
     update_specification(specs)
 
@@ -28,6 +33,8 @@ def composition_lens_name(specs):
     src_name = get_uri_local_name(specs[St.subjectsTarget])
     trg_name = get_uri_local_name(specs[St.objectsTarget])
     specs[St.lens] = "{}comp_{}_{}".format(Ns.lens, src_name, trg_name)
+    if len(specs[St.lens]) > 255:
+        specs[St.lens] = "{}comp_{}_{}".format(Ns.lens, Ut.hash_it(src_name), Ut.hash_it(trg_name))
     update_specification(specs)
 
 
@@ -164,3 +171,4 @@ def generate_lens_name(datasets):
     # print query
     # print hash(name)
     return {"name": name, "query": query}
+# 
