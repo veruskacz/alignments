@@ -6076,7 +6076,7 @@ var linearScale2 = d3.scaleLinear()
 	.domain([0, 100])
 	.range([0, 600]);
 
-var myData = d3.range(0, decision*100, 1);
+var myData = d3.range(0, decision*100 +1, 1);
 
 var p = d3.select('#wrapper');
 
