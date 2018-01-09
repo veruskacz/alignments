@@ -298,7 +298,7 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
                        alivocab:alignsObjects ?o_prop .
 
                 BIND('oneAligns' as ?lkst_type_)
-                filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+                #filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
             }
 
             ### SELECTING CREATED LENS OR LINKSETS
