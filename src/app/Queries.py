@@ -293,25 +293,25 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
         { ?uri   rdf:type	bdb:Lens } . """
     elif type == "linksetBiD":
         type_filter = """?uri   rdf:type	void:Linkset .
-            { 	 ?uri
-                       alivocab:alignsSubjects ?s_prop ;
-                       alivocab:alignsObjects ?o_prop .
+        { 	 ?uri
+                   alivocab:alignsSubjects ?s_prop ;
+                   alivocab:alignsObjects ?o_prop .
 
-                BIND('oneAligns' as ?lkst_type_)
-                #filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
-            }
+            BIND('oneAligns' as ?lkst_type_)
+            #filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+        }
 
-            ### SELECTING CREATED LENS OR LINKSETS
-          	UNION
-            {
-                 ?uri
-                       alivocab:alignsSubjects ?s_prop ;
-                       alivocab:alignsObjects ?o_prop .
-                BIND("success" as ?mode)
-                BIND('multipleAligns' as ?lkst_type_)
-                filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
+        ### SELECTING CREATED LENS OR LINKSETS
+        UNION
+        {
+             ?uri
+                   alivocab:alignsSubjects ?s_prop ;
+                   alivocab:alignsObjects ?o_prop .
+            BIND("success" as ?mode)
+            BIND('multipleAligns' as ?lkst_type_)
+            filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
 
-            }
+        }
         """
     elif type == "linksetMultiD":
         type_filter = """?uri   rdf:type	void:Linkset .
