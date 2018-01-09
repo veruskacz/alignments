@@ -6066,7 +6066,7 @@ d3.select('.axis')
 
 var quantizeScale = d3.scaleQuantize()
   .domain([0, 100])
-  .range(['green', 'red', 'red', 'red', 'red']);
+  .range(['green', 'orange', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red']);
 
 quantizeScale(10);   // returns 'lightblue'
 quantizeScale(30);  // returns 'orange'
