@@ -489,38 +489,43 @@
 
                       <div class="col-md-12">
                       <div class="panel panel-default">
-                        <div class="panel-heading"><a id="link_collapse_dataset_linking_stats_cluster_plot"
-                         data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster_plot">
-                          <span class="badge alert-info"><strong>-</strong></span></a>Cluster Network
+                        <div class="panel-heading">
+
                                         <!--<div class="checkbox-inline" ><label>-->
                                         <!--<input type="checkbox" id="checkboxGroupDistValuesPlot">Group Distinct Values </label>-->
                                         <!--</div>-->
-                        </div>
-                        <div id="collapse_dataset_linking_stats_cluster_plot" class="panel-collapse collapse in" target="link_collapse_dataset_linking_stats_cluster_plot">
-                        <div class="panel-body" >
-                        <div class="row" >
-                            <div class="col-md-12" id="cluster_id_col" >
+                            <div class="row">
+                            <div class="col-md-2">
+                                <a id="link_collapse_dataset_linking_stats_cluster_plot"
+                                data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster_plot">
+                                <span class="badge alert-info"><strong>-</strong></span></a>Cluster Network
                             </div>
-                        </div>
+                            <div class="col-md-2" id="cluster_id_col" >
+                            </div>
 
-                        <div class="row" >
-                            <div class="col-md-4" id="cluster_metrics_col" >
-                            </div>
                             <div class="col-md-8" id="cluster_metrics_scale_col" >
 
                                 <div class="row" >
-                                        <svg width="700" height="100">
-                                        <g class="axis" transform="translate(20,60)">
+                                        <svg width="700" height="60">
+                                        <g class="axis" transform="translate(20,40)">
                                         </g>
-                                        <g id="wrapper" transform="translate(20,30)">
+                                        <g id="wrapper" transform="translate(20,10)">
                                         </g>
                                        </svg>
                                 </div>
                             </div>
+                            </div>
+
                         </div>
+                        <div id="collapse_dataset_linking_stats_cluster_plot" class="panel-collapse collapse in" target="link_collapse_dataset_linking_stats_cluster_plot">
+                        <div class="panel-body" >
+
 
                         <div class="row" >
-                            <div class="col-md-12" >
+                            <div class="col-md-4" id="cluster_metrics_col" >
+                            </div>
+
+                            <div class="col-md-8" style='height: 30em; width:100%, scroll: both; overflow: auto;' >
 
                             <style>
                             .links line {
@@ -540,7 +545,7 @@
 
                             </style>
                             <!--<script src="https://d3js.org/d3.v4.min.js"></script>-->
-                            <svg class="plot" id="graph_cluster" width="960" height="400" style="overflow-x: auto; overflow-y: auto;">
+                            <svg class="plot" id="graph_cluster" width="750" height="450">
 
                             </svg>
                             </div>

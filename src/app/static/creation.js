@@ -5601,28 +5601,31 @@ function calculateDatasetCluster()
 
         // set actions after clicking a graph in the list
         $('#dataset_linking_stats_cluster_results TR').on('click',function(e){
-            var checkboxGroupDistValues = document.getElementById('checkboxGroupDistValues');
-            if (checkboxGroupDistValues.checked)
-                var groupDistValues = 'yes';
-            else
-                var groupDistValues = 'no';
 
-            $.get('/getDatasetLinkingClusterDetails2',data={'cluster': $(this).attr('cluster'),
-                                                           'groupDistValues': groupDistValues,
-                                                           'properties[]': properties}, function(data)
-            {
-            var obj = JSON.parse(data);
+                $(this).addClass('warning').siblings().removeClass('warning');
+                var checkboxGroupDistValues = document.getElementById('checkboxGroupDistValues');
+                if (checkboxGroupDistValues.checked)
+                    var groupDistValues = 'yes';
+                else
+                    var groupDistValues = 'no';
 
-            $('#dataset_linking_stats_cluster_results_details').html(obj.result);
-            $('#cluster_id_col').html(obj.graph.id);
-            $('#cluster_metrics_col').html(obj.graph.metrics);
-            $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
+                $.get('/getDatasetLinkingClusterDetails2',data={'cluster': $(this).attr('cluster'),
+                                                               'groupDistValues': groupDistValues,
+                                                               'properties[]': properties}, function(data)
+                {
+                var obj = JSON.parse(data);
 
-            $('#graph_cluster').html('');
-            plotClusterGraph(obj.graph);
-            plot_Cluster_Scale(obj.graph.decision);
+                $('#dataset_linking_stats_cluster_results_details').html(obj.result);
+                $('#cluster_id_col').html(obj.graph.id);
+                $('#cluster_metrics_col').html(obj.graph.metrics);
+                $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
 
-            });
+                $('#graph_cluster').html('');
+                plotClusterGraph(obj.graph);
+                plot_Cluster_Scale(obj.graph.decision);
+
+                });
+
         });
       });
     }
