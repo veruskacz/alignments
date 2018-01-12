@@ -5602,6 +5602,8 @@ function calculateDatasetCluster()
         // set actions after clicking a graph in the list
         $('#dataset_linking_stats_cluster_results TR').on('click',function(e){
 
+            if (this.rowIndex > 0)
+            {
                 $(this).addClass('warning').siblings().removeClass('warning');
                 var checkboxGroupDistValues = document.getElementById('checkboxGroupDistValues');
                 if (checkboxGroupDistValues.checked)
@@ -5625,7 +5627,7 @@ function calculateDatasetCluster()
                 plot_Cluster_Scale(obj.graph.decision);
 
                 });
-
+            }
         });
       });
     }
