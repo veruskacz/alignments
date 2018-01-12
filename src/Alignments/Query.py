@@ -2556,7 +2556,7 @@ def linkset_aligns_prop(linkset_uri, crossCheck=False):
     else:
         # TODO: make the code dynamic for any amount of properties (for now works only for two, latitude and longitude)
         prop_aligns = """
-              {?linkset ll:alignsSubjects ?SRC_onj ;
+              ?linkset ll:alignsSubjects ?SRC_onj ;
                        ll:alignsObjects ?trg_onj .
               {
               ?SRC_onj  rdf:first ?s_prop .

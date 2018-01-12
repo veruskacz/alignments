@@ -452,7 +452,7 @@ def correspondences2():
             raise Exception(correspondences)
     except:
         try:
-            query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=False)
+            query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=False, graph_type=graph_menu)
             correspondences = sparql(query, strip=True)
         except:
             correspondences = []

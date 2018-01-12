@@ -648,7 +648,7 @@ def get_graphs_related_to_rq_type_old(rq_uri, type=None):
     return query
 
 
-def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True, graph_type='linkset'):
+def get_filter_conditions_old(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True, graph_type='linkset'):
     # ADD FILTER CONDITIONS
     filter_condition = ""
     filter_count = ""
@@ -681,6 +681,35 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
                 elif method == "strength":
                     filter_count_aux = """
                     OPTIONAL {{ ?pred prov:wasDerivedFrom ?derivedFrom. }}"""
+
+    # if propPath:
+    #     propPath_query = '?sub {} ?s .'.format(propPath)
+    # else:
+    #     propPath_query = ''
+    #
+    # if (search_pred) and (search_text):
+    #     search_query = """
+    #     ## TEXT SEARCH
+    #     ?s    <{}>     ?Svalue .
+    #     (?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{}\"\"\".
+    #     """.format(search_pred, search_text)
+    # else:
+    #     search_query = ''
+    #
+    # if sub_uri:
+    #     if propPath:
+    #         bind_query = """
+    #         ## BIND
+    #         BIND (<{}> AS  ?sub )
+    #         """.format(sub_uri)
+    #     else:
+    #         bind_query = """
+    #         ## BIND
+    #         BIND (<{}> AS  ?s )
+    #         """.format(sub_uri)
+    # else:
+    #     bind_query = ''
+# get_target_datasets
 
     # ADD FILTER TERM MATCH
     filter_term_match = ''
@@ -749,6 +778,111 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
             }}
         }}
         """.format(filter_term)
+
+    return {'filter_condition': filter_condition,
+            'filter_count': filter_count,
+            'filter_count_aux': filter_count_aux,
+            'filter_term_match': filter_term_match}
+
+
+def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True, graph_type='linkset'):
+    # ADD FILTER CONDITIONS
+    filter_condition = ""
+    filter_count = ""
+    filter_count_aux = ""
+
+    if (rq_uri != '') and (graph_uri != ''):
+        result = get_graph_filter(rq_uri, graph_uri, filter_uri)
+        print result
+        if result["result"]:
+            method = result["result"][1][1]
+            if method == "threshold":
+                filter_condition = result["result"][1][0]
+            else:
+                filter_count = " GROUP BY ?sub ?pred ?obj "
+                filter_count += result["result"][1][0]
+                if method == "accept":
+                    filter_count_aux = """
+                    OPTIONAL {{ ?pred2 <http://risis.eu/alignment/predicate/hasValidation> ?accept.
+                                ?accept rdf:type <http://www.w3.org/ns/prov#Accept> .
+                             }}"""
+                # TODO: CHANGE RISIS PREDICATE TO RISIS CLASS FOR REJECT
+                elif method == "reject":
+                    filter_count_aux = """
+                    OPTIONAL {{?pred2 <http://risis.eu/alignment/predicate/hasValidation> ?reject.
+                                ?reject rdf:type <http://risis.eu/alignment/predicate/Reject> .
+                             }}"""
+                elif method == "strength":
+                    filter_count_aux = """
+                    OPTIONAL {{ ?pred prov:wasDerivedFrom ?derivedFrom. }}"""
+
+    # ADD FILTER TERM MATCH
+    filter_term_match = ''
+    if (filter_term != '') and (graph_uri != '') and (filter_term.__contains__("Type a term ") is False):
+
+        if graph_type == 'linkset': ## Todo: check if it's enough
+            prop_query = linkset_aligns_prop(graph_uri)
+            prop_matrix = sparql_matrix(prop_query)["result"]
+            if len(prop_matrix) > 1:
+                alignsSubjects = "<{}>".format(prop_matrix[1][0]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][0]
+                alignsObjects = "<{}>".format(prop_matrix[1][1]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][1]
+                subjectsTarget = "<{}>".format(prop_matrix[1][3]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][3]
+                objectsTarget = "<{}>".format(prop_matrix[1][4]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][4]
+            else:
+                print 'Problems getting metadata for linkset'
+                return {}
+        else:
+            prop_query = get_target_datasets(graph_uri, Ut.from_alignment2singleton(graph_uri))
+            prop_matrix = sparql_matrix(prop_query)["result"]
+            if len(prop_matrix) > 1:
+                subjectsTarget = "<{}>".format(prop_matrix[1][0]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][0]
+                objectsTarget = "<{}>".format(prop_matrix[1][1]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][1]
+                alignsSubjects = "<{}>".format(prop_matrix[1][2]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][2]
+                alignsObjects = "<{}>".format(prop_matrix[1][3]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][3]
+            else:
+                print 'Problems getting metadata for lens'
+                return {}
+
+        if useStardogApprox:
+            filter_term_match += """
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
+        GRAPH {1}
+            {{
+                ?sub    {3}     ?Svalue .
+                #(?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
+                FILTER REGEX (?Svalue, "{0}", "i" )
+            }}
+        }}
+        UNION
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE OBJECT-DATASET
+        GRAPH {2}
+            {{
+                ?obj    {4}     ?Ovalue .
+                #(?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
+                FILTER REGEX (?Ovalue, "{0}", "i" )
+            }}
+        }}
+        """.format(filter_term, subjectsTarget, objectsTarget, alignsSubjects, alignsObjects)
+        else:
+            filter_term_match += """
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
+        GRAPH {1}
+            {{
+                ?sub    {3}     \"\"\"{0}\"\"\".
+            }}
+        }}
+        UNION
+        {{
+        ## MATCH USING ALIGNED PROPERTY IN THE OBJECT-DATASET
+        GRAPH {2}
+            {{
+                ?obj    {4}     \"\"\"{0}\"\"\".
+            }}
+        }}
+        """.format(filter_term, subjectsTarget, objectsTarget, alignsSubjects, alignsObjects)
 
     return {'filter_condition': filter_condition,
             'filter_count': filter_count,
@@ -853,7 +987,7 @@ def get_correspondences3(rq_uri, graph_uri, filter_uri='', filter_term='', limit
     return query
 
 
-def get_target_datasets(graph_uri='', singleton_uri=''):
+def get_target_datasets_old2(graph_uri='', singleton_uri=''):
     query = """
     ### GET TARGET DATASETS
     ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
@@ -891,6 +1025,47 @@ def get_target_datasets(graph_uri='', singleton_uri=''):
         {{
             ?obj ?p2 ?o2
         }}
+
+        FILTER NOT EXISTS {{
+              {{ ?DatasetsSub  a  void:Linkset }}
+               UNION
+               {{ ?DatasetsSub  a  bdb:Lens }} }}
+        FILTER NOT EXISTS {{
+              {{ ?DatasetsObj  a  void:Linkset }}
+               UNION
+               {{ ?DatasetsObj  a  bdb:Lens }} }}
+    }}
+    """.format(PREFIX, graph_uri, singleton_uri)  # union)
+
+    if DETAIL:
+        print query
+    return query
+
+
+def get_target_datasets(graph_uri='', singleton_uri=''):
+    query = """
+    ### GET TARGET DATASETS
+    ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
+    {0}
+    SELECT DISTINCT ?DatasetsSub ?DatasetsObj ?alignsSubjects ?alignsObjects ?alignsMechanism
+    where
+    {{
+        ### Retrieves the lens
+        <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph1.
+
+        {{ ?graph1
+           void:subjectsTarget 			?DatasetsSub ;
+           alivocab:alignsSubjects   	?alignsSubjects .
+        ?graph1
+           void:objectsTarget  			?DatasetsObj ;
+            OPTIONAL {{ ?graph1    alivocab:alignsObjects    ?alignsObj }}
+        }}
+
+
+        BIND (IF(bound(?alignsObj), ?alignsObj , "resource identifier") AS ?alignsObjects)
+
+        OPTIONAL {{ ?graph1	  alivocab:alignsMechanism  ?alignsMechanism1 }}
+
 
         FILTER NOT EXISTS {{
               {{ ?DatasetsSub  a  void:Linkset }}
