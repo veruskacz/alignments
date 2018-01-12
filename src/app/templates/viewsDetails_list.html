@@ -6,7 +6,7 @@
  {% endfor %}
  </thead>
  <tbody>
- {% for row in results|sort %}
+ {% for row in results %}
  <TR {% if (clustersList) %}
          cluster="{{ clustersList[loop.index0] }}"
     {% endif %} >
