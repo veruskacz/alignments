@@ -442,7 +442,7 @@ def correspondences2():
     # Try first to query using stardog approximate search.
     # If this does not work, then try exact string match
     try:
-        query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term)
+        query = Qry.get_correspondences(rq_uri, graph_uri, filter_uri, filter_term, graph_type=graph_menu)
         correspondences = sparql(query, strip=True)
         # print ">>>> Results corr", correspondences, type(correspondences)
         if correspondences == [{}]:

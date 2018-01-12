@@ -648,7 +648,7 @@ def get_graphs_related_to_rq_type_old(rq_uri, type=None):
     return query
 
 
-def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True):
+def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True, graph_type='linkset'):
     # ADD FILTER CONDITIONS
     filter_condition = ""
     filter_count = ""
@@ -685,18 +685,29 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
     # ADD FILTER TERM MATCH
     filter_term_match = ''
     if (filter_term != '') and (graph_uri != '') and (filter_term.__contains__("Type a term ") is False):
-        filter_term_match = """
+        if graph_type == 'linkset': ## Todo: check if it's enough
+            filter_term_match = """
 
-        ### GETTING THE LINKSET TARGETS AND FOR BOTH LINKSET AND LENS
-        <{0}>
-                (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*        ?graph_uri .
+            ### GETTING THE LINKSET TARGETS
+            <{0}>
+                   void:subjectsTarget     ?subjectsTarget ;
+                   void:objectsTarget           ?objectsTarget ;
+                   alivocab:alignsSubjects      ?alignsSubjects ;
+                   alivocab:alignsObjects       ?alignsObjects .
+            """.format(graph_uri)
+        else:
+            filter_term_match = """
 
-        ### GET METADATA IN THE DEFAULT GRAPH
-        ?graph_uri  void:subjectsTarget     ?subjectsTarget ;
-               void:objectsTarget           ?objectsTarget ;
-               alivocab:alignsSubjects      ?alignsSubjects ;
-               alivocab:alignsObjects       ?alignsObjects .
-        """.format(graph_uri)
+            ### GETTING THE TARGETS FOR LENS
+            <{0}>
+                    (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*        ?graph_uri .
+
+            ### GET METADATA IN THE DEFAULT GRAPH
+            ?graph_uri  void:subjectsTarget     ?subjectsTarget ;
+                   void:objectsTarget           ?objectsTarget ;
+                   alivocab:alignsSubjects      ?alignsSubjects ;
+                   alivocab:alignsObjects       ?alignsObjects .
+            """.format(graph_uri)
 
         if useStardogApprox:
             filter_term_match += """
@@ -745,35 +756,61 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
             'filter_term_match': filter_term_match}
 
 
-def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=100, useStardogApprox=True):
+def get_correspondences(rq_uri, graph_uri, filter_uri='', filter_term='', limit=100, useStardogApprox=True, graph_type='linkset'):
 
-    filters = get_filter_conditions(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=useStardogApprox)
+    filters = get_filter_conditions(rq_uri, graph_uri, filter_uri, filter_term, useStardogApprox=useStardogApprox, graph_type=graph_type)
     # print 'FILTERS:', filters
 
-    query = PREFIX + """
-    ### GET CORRESPONDENCES
-    SELECT DISTINCT ?sub ?pred ?obj 
-    {{
-        GRAPH <{1}> {{ ?sub ?pred ?obj }}
-        GRAPH <{6}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
-                   ?pred2 ?p ?o .
-            # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
-            {4}
+    if graph_type == 'linkset':
+        query = PREFIX + """
+        ### GET CORRESPONDENCES
+        SELECT DISTINCT ?sub ?pred ?obj
+        {{
+            GRAPH <{1}> {{ ?sub ?pred ?obj }}
+            GRAPH <{6}> {{ ?pred ?p ?o .
+                # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+                {4}
+            }}
+
+            # FILTER BY CONDITION
+            {2}
+
+            # FILTER BY TERM MATCH
+            {5}
+
         }}
-                
-        # FILTER BY CONDITION
-        {2}
-        
-        # FILTER BY TERM MATCH
-        {5}
-        
-    }} 
-    # FILTER BY COUNT
-    {3}
-    limit {0}
-    """.format(limit, graph_uri, filters['filter_condition'],
+        # FILTER BY COUNT
+        {3}
+        limit {0}
+        """.format(limit, graph_uri, filters['filter_condition'],
                filters['filter_count'], filters['filter_count_aux'],
                filters['filter_term_match'], Ut.from_alignment2singleton(graph_uri))
+    else:
+        query = PREFIX + """
+        ### GET CORRESPONDENCES
+        SELECT DISTINCT ?sub ?pred ?obj
+        {{
+            GRAPH <{1}> {{ ?sub ?pred ?obj }}
+            GRAPH <{6}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
+                       ?pred2 ?p ?o .
+                # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
+                {4}
+            }}
+
+            # FILTER BY CONDITION
+            {2}
+
+            # FILTER BY TERM MATCH
+            {5}
+
+        }}
+        # FILTER BY COUNT
+        {3}
+        limit {0}
+        """.format(limit, graph_uri, filters['filter_condition'],
+               filters['filter_count'], filters['filter_count_aux'],
+               filters['filter_term_match'], Ut.from_alignment2singleton(graph_uri))
+
     if DETAIL:
         print query
     return query
