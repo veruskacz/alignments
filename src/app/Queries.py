@@ -826,8 +826,8 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
             if len(prop_matrix) > 1:
                 alignsSubjects = "<{}>".format(prop_matrix[1][0]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][0]
                 alignsObjects = "<{}>".format(prop_matrix[1][1]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][1]
-                subjectsTarget = "<{}>".format(prop_matrix[1][3]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][3]
-                objectsTarget = "<{}>".format(prop_matrix[1][4]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][4]
+                subjectsTarget = "<{}>".format(prop_matrix[1][3]) if prop_matrix[1][3].__contains__(">/<") is False else prop_matrix[1][3]
+                objectsTarget = "<{}>".format(prop_matrix[1][4]) if prop_matrix[1][4].__contains__(">/<") is False else prop_matrix[1][4]
             else:
                 print 'Problems getting metadata for linkset'
                 return {}
@@ -837,8 +837,8 @@ def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useS
             if len(prop_matrix) > 1:
                 subjectsTarget = "<{}>".format(prop_matrix[1][0]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][0]
                 objectsTarget = "<{}>".format(prop_matrix[1][1]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][1]
-                alignsSubjects = "<{}>".format(prop_matrix[1][2]) if prop_matrix[1][0].__contains__(">/<") is False else prop_matrix[1][2]
-                alignsObjects = "<{}>".format(prop_matrix[1][3]) if prop_matrix[1][1].__contains__(">/<") is False else prop_matrix[1][3]
+                alignsSubjects = "<{}>".format(prop_matrix[1][2]) if prop_matrix[1][2].__contains__(">/<") is False else prop_matrix[1][2]
+                alignsObjects = "<{}>".format(prop_matrix[1][3]) if prop_matrix[1][3].__contains__(">/<") is False else prop_matrix[1][3]
             else:
                 print 'Problems getting metadata for lens'
                 return {}
