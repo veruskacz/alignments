@@ -45,14 +45,25 @@ def lens_targets_unique(unique_list, graph):
         ### GET LINKSET METADATA
         SELECT DISTINCT ?g
         WHERE
-        {
-                { <""" + graph_uri + """> <http://rdfs.org/ns/void#subjectsTarget>                ?g }
-                UNION
-                { <""" + graph_uri + """> <http://rdfs.org/ns/void#objectsTarget>                 ?g }
-                UNION
-                { <""" + graph_uri + """> void:target                                             ?g }
-        }
-        """
+        {{
+            {{
+                <{0}> void:subjectsTarget  ?g .
+            }}
+            UNION
+            {{
+                <{0}> void:objectsTarget  ?g .
+            }}
+            UNION
+            {{
+                <{0}> void:target  ?g .
+            }}
+            UNION
+            {{
+                <{0}> alivocab:hasAlignmentTarget  ?alignmentTarget  .
+                ?alignmentTarget   alivocab:hasTarget    ?g .
+            }}
+        }}
+        """.format(graph_uri)
 
         return target_query
 
@@ -60,7 +71,11 @@ def lens_targets_unique(unique_list, graph):
         u_query = PREFIX + """
         select *
         {{
-            <{}> void:target ?target .
+            {{ <{0}> void:target ?target . }} UNION
+            {{
+                <{0}> alivocab:hasAlignmentTarget  ?alignmentTarget  .
+                ?alignmentTarget   alivocab:hasTarget    ?target .
+            }}
         }}
         """.format(lens)
 
