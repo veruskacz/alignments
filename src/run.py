@@ -3,12 +3,10 @@ import os
 import requests
 import Alignments.Settings as St
 import Alignments.Utility as Ut
-import Alignments.Query as Qry
 import Alignments.Server_Settings as Svr
 
 # https://github.com/CLARIAH/grlc/blob/master/docker-assets/entrypoint.sh
 # https://github.com/CLARIAH/grlc/blob/master/gunicorn_config.py
-
 # https://docupub.com/pdfmerge/
 print "\nRUNNING THE LENTICULAR LENS SERVER"
 if __name__ == "__main__":
