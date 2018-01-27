@@ -104,6 +104,7 @@ def union(specs, activated=False):
 
     # SET THE NAME OF THE UNION-LENS
     info = Lu.generate_lens_name(specs[St.datasets])
+
     specs[St.lens] = "{}{}".format(Ns.lens, info["name"])
     print "LENS: ", info["name"]
 
@@ -135,6 +136,8 @@ def union(specs, activated=False):
 
         # LOAD ALL GRAPHS IN LOAD00
         specs[St.insert_query] += "DROP SILENT GRAPH <{}{}> ;\n".format(Ns.tmpgraph, "load00")
+
+        # ITERATE THROUGH THE PROVIDED GRAPHS
         for linkset in specs[St.datasets]:
 
             # print "TARGET: ", linkset
@@ -142,12 +145,15 @@ def union(specs, activated=False):
 
             # GET THE TOTAL NUMBER OF CORRESPONDENCE TRIPLES INSERTED
             curr_triples = Qry.get_triples(linkset)
+            # PROBABLY THE LINKSET HAS NO SUCH PROPERTY " void:triples  ?triples ."
+
+            if curr_triples is None:
+                curr_triples = Qry.get_triples_count(linkset)
+
             total_size += int(curr_triples)
             print "{} Contains {} triples".format(linkset, curr_triples)
 
-            # print "Current triples: ", curr_triples
             if curr_triples is not None:
-                # print "Current triples: ", curr_triples
                 specs[St.expectedTriples] += int(curr_triples)
             else:
                 # THE IS A PROBLEM WITH THE GRAPH FOR SEVERAL POSSIBLE REASONS
