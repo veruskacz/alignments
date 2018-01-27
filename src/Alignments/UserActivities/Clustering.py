@@ -106,7 +106,7 @@ def cluster_triples(graph):
     root = dict()
 
     # DOWNLOAD THE GRAPH
-    print "\n0. DOWNLOADING THE GRAPH"
+    print "0. DOWNLOADING THE GRAPH"
     response = Exp.export_alignment(graph)
     links = response['result']
     # print links
@@ -206,6 +206,7 @@ def cluster_triples(graph):
             clusters[parent] += [child_1]
 
         # print "{} Clusters but the current is: {}\n".format(len(clusters), clusters[parent])
+
     print "3. NUMBER OF CLUSTER FOND: {}".format(len(clusters))
     return clusters
 
@@ -935,7 +936,6 @@ def disambiguate_network(linkset, resource_list, output=True):
     # GATHER SOME DATA ABOUT THE LINKSET
     metadata_query = """
     PREFIX ll:  <{1}>
-
     SELECT ?target ?aligns
     {{
         <{0}> ll:hasAlignmentTarget ?alignmentTarget .
@@ -1045,7 +1045,7 @@ def disambiguate_network_2(lookup_resource_list, targets, output=True):
         resources, bind, property_or)
     # print final_query
     response = Qry.sparql_xml_to_matrix(final_query)
-
+    # print "RESPONSE", response
     if output is False:
         return response[St.result]
 
@@ -1132,13 +1132,13 @@ def links_clustering(graph, limit=1000):
     root = dict()
 
     # DOWNLOAD THE GRAPH
-    print "\n0. DOWNLOADING THE GRAPH"
+    print "\n0. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE"
     response = Exp.export_alignment(graph, limit=limit)
     links = response['result']
     # print links
 
     # LOAD THE GRAPH
-    print "1. LOADING THE GRAPH"
+    print "1. LOADING THE GRAPH USING RDFLIB"
     g = rdflib.Graph()
     g.parse(data=links, format="turtle")
     # g = [
