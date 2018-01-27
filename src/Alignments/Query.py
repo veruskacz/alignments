@@ -1498,7 +1498,7 @@ def get_triples(linkset):
     # print "TRIPLE COUNT:", triples
 
     if triples[St.result] is None:
-        return
+        return None
 
     if len(triples[St.result]) > 1:
         # print "FOUND SOME RESULTS", triples[St.result]
@@ -1522,13 +1522,16 @@ def get_triples_count(graph):
     # print query
 
     triples = sparql_xml_to_matrix(query)
-    # print triples
+
 
     if triples is None:
-        return
+        return None
 
-    if len(triples) > 1:
-        return dict(triples[1][0]).items()[1][1]
+    if len(triples[St.result]) > 1:
+        # print triples
+        # final_result = triples[St.result][1][0]
+        # print  final_result
+        return triples[St.result][1][0]
 
     return None
 
