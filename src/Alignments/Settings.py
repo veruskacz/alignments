@@ -146,8 +146,11 @@ alignsSubjects = "alignsSubjects"
 alignsObjects = "alignsObjects"
 subjectsTarget = "subjectsTarget"
 objectsTarget = "objectsTarget"
+
 refined = "refined"
 refined_name = "refined_name"
+refined_ns = "refined_ns"
+
 derivedfrom = "derived from"
 
 
