@@ -1561,7 +1561,8 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
         {2}
         # FIND THE SAME INFORMATION ABOUT RESOURCE_1 WITHIN A DIFFERENT RANDOM GRAPH 2
         {5}
-        FILTER(str(?dataset_1) > str(?dataset_2))
+        #FILTER(str(?dataset_1) > str(?dataset_2))
+        FILTER(str(?resource_1) > str(?resource_2))
     }}
     """.format(Ns.alivocab, cluster_uri, re_writer_1["query"],
                Ns.linkset, label, re_writer_2["query"],
@@ -1572,6 +1573,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     # print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
+    print "\t{:20}: {}".format("CLUSTER SIZE ", Qry.get_namedgraph_size(cluster_uri))
     print "\t{:20}: {}".format("STARTED ON", datetime.datetime.today().strftime(_format))
     print "\t{:20}: {}".format("LINKSET", label)
     print "\t{:20}: {}".format("LINKSET SIZE BEFORE", Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label)))
