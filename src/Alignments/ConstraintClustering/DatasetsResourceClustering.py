@@ -135,7 +135,7 @@ def property_builder(properties, resource="resource", rs_object="value", tab_cou
     rsc_plan = Buffer.StringIO()
     bind_plan = Buffer.StringIO()
     filter_plan = Buffer.StringIO()
-    filter_plan.write("\n\t\tFILTER( ")
+    filter_plan.write("\n\t\t\t\tFILTER( ")
     compatibility = []
     pattern_count = 0
 
@@ -1374,32 +1374,33 @@ def helper(specs, is_source=True):
 
             union = "\n\t\t\t\tUNION " if is_empty is False else ""
             sub = """{3}{{
-                    BIND(<{2}> AS ?dataset_{0})
-                    ?resource_{0} {1} ?obj_{0} .
+                BIND(<{2}#copy> AS ?datasetCopy_{0})
+                BIND(<{2}> AS ?dataset_{0})
+                ?resource_{0} {1} ?obj_{0} .
 
-                    #?resource_{0} ?property_{0} ?obj_{0} .
-                    {6}
-                    {7}
+                #?resource_{0} ?property_{0} ?obj_{0} .
+                {6}
+                {7}
 
-                    {8}
-                    # TO STRING AND TO LOWER CASE
-                    BIND(lcase(str(?obj_{0})) as ?label_{0})
+                {8}
+                # TO STRING AND TO LOWER CASE
+                BIND(lcase(str(?obj_{0})) as ?label_{0})
 
-                    # VALUE TRIMMING
-                    BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-                    BIND(REPLACE(?label_{0}, ?regexp, '$1$2') AS ?trimmed_label){5}
-                    {9}
-                }} """.format(number, property_list(properties), graph, union, Ns.alivocab, singleton,
-                              string_bind, pattern, pattern_bind, p_filter)
+                # VALUE TRIMMING
+                BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+                BIND(REPLACE(?label_{0}, ?regexp, '$1$2') AS ?trimmed_label){5}
+                {9}
+            }} """.format(number, property_list(properties), graph, union, Ns.alivocab, singleton,
+                          string_bind, pattern, pattern_bind, p_filter)
             is_empty = False
 
             builder.write(sub)
 
     # # FIND SOME INFORMATION ABOUT RESOURCE_O WITHIN A RANDOM GRAPH {0}
-    query = """GRAPH ?dataset_{0}
-            {{
-                {1}
-            }}
+    query = """GRAPH ?datasetCopy_{0}
+        {{
+            {1}
+        }}
     """.format(number, builder.getvalue())
     # print query
 
@@ -1570,7 +1571,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
                Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.alignmentTarget,
                # 12                        13
                re_writer_1["insert_list"], re_writer_2["insert_list"])
-    # print query
+    print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
     print "\t{:20}: {}".format("CLUSTER SIZE ", Qry.get_namedgraph_size(cluster_uri))
@@ -1646,12 +1647,58 @@ def linkset_from_clusters(specs, activated=False):
     # CREATE AND ADD RESOURCES TO THE LINKSET
     result = {St.message: "The linkset was not created.", St.result: None}
     linkset_name = specs[St.linkset_name]
+
+    # DATASET SUBSET COPY: MAKE A COPY OF THE DATASETS TO IMPROVE EFFICIENCY
+    print ""
+    drop_count = 0
+    drop_dataset_copies = ""
+    for dataset in specs[St.targets]:
+        triples_insert = ""
+        triples_where = ""
+        graph = dataset[St.graph]
+        if drop_count == 0:
+            drop_dataset_copies = "DROP SILENT GRAPH <{}#copy>".format(graph)
+        else:
+            drop_dataset_copies += ";\nDROP SILENT GRAPH <{}#copy>".format(graph)
+
+        # print graph
+        data = dataset[St.data]
+
+        count = 0
+        for detail in data:
+            properties = detail[St.properties]
+            for property in properties:
+                count += 1
+                # print "\t {}".format(property)
+                triples_insert += "\n\t\t\t?subject {} ?value_{} .".format(property, count)
+                triples_where += "\n\t\t\tOptional {{ ?subject {} ?value_{} }} .".format(property, count)
+
+        query_copy = """
+    INSERT
+    {{
+        GRAPH <{0}#copy>
+        {{{1}
+        }}
+    }}
+    WHERE
+    {{
+        GRAPH <{0}>
+        {{
+            ?subject a ?type .{2}
+        }}
+    }}
+    """.format(graph, triples_insert, triples_where)
+        print query_copy
+        # print Qry.boolean_endpoint_response(query_copy)
+        drop_count += 1
+
+
     correspondences = 0
     for i in range(1, len(cluster_table)):
         result = linkset_from_cluster(specs, cluster_table[i][0], linkset_name, count=i, activated=activated)
         correspondences += int(result["correspondences"])
-        # if i == 1:
-        #     break
+        if i == 10:
+            break
 
     if correspondences > 0:
         print "\nINSERTING THE GENERIC METADATA AS A TOTAL OF {} CORRESPONDENCE(S) WERE INSERTED.".format(
@@ -1663,6 +1710,9 @@ def linkset_from_clusters(specs, activated=False):
         linkset_path = DIRECTORY
         writelinkset(src, trg, specs[St.linkset_name], linkset_path, specs["metadata"])
 
+    print "\nDROP THE DATASET COPIES"
+    print drop_dataset_copies
+    # print Qry.boolean_endpoint_response(drop_dataset_copies)
 
     return result
 

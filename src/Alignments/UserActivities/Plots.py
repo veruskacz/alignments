@@ -6,8 +6,15 @@ import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
 # import matplotlib.pyplot as plt
+import math
 import Alignments.UserActivities.Clustering as Cls
 
+
+def sigmoid(x):
+    # return math.exp(x)/ (math.exp(x) + 1)
+    # return x / float(math.fabs(x) + 1)
+    # return math.exp(x) / (math.exp(x) + 10)
+    return x / float(math.fabs(x) + 1.6)
 
 # DRAWING THE NETWORK WITH MATPLOT
 def draw_graph(graph, file_path=None, show_image=False):
@@ -55,28 +62,49 @@ def draw_graph(graph, file_path=None, show_image=False):
     """""""""""""""""""""""""""""""""""""""
     MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
+    ratio = 0
+    bridges = 0
+    closure = 0
+    diameter = 0
+    nb_used = 0
+    nd_used = 0
+    edge_discovered = 0
+    edge_derived = 0
+    interpretation = 0
+    estimated_quality  = 0
+    average_node_connectivity = 0
+    normalised_diameter = 0
+    normalised_bridge = 0
+    normalised_closure = 0
 
-    node_count = len(nodes)
-    average_node_connectivity = nx.average_node_connectivity(g)
-    ratio = average_node_connectivity / (len(nodes) - 1)
+    try:
+        node_count = len(nodes)
+        average_node_connectivity = nx.average_node_connectivity(g)
+        ratio = average_node_connectivity / (len(nodes) - 1)
 
-    edge_discovered = len(graph)
-    edge_derived = node_count * (node_count - 1) / 2
+        edge_discovered = len(graph)
+        edge_derived = node_count * (node_count - 1) / 2
 
-    diameter = nx.diameter(g)  # / float(node_count - 1)
-    if len(nodes) > 2:
-        normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
-    else:
-        normalised_diameter = float(diameter - 1)
+        diameter = nx.diameter(g)  # / float(node_count - 1)
+        if len(nodes) > 2:
+            normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
+        else:
+            normalised_diameter = float(diameter - 1)
 
-    bridges = list(nx.bridges(g))
-    normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
+        bridges = len(list(nx.bridges(g)))
+        normalised_bridge = round(float(bridges / float(len(nodes) - 1)), 3)
 
-    closure = round(float(edge_discovered) / float(edge_derived), 3)
-    normalised_closure = round(1 - closure, 2)
+        closure = round(float(edge_discovered) / float(edge_derived), 3)
+        normalised_closure = round(1 - closure, 2)
 
-    conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
-    interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
+        conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
+        interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
+
+        nb_used = round(sigmoid(bridges) if sigmoid(bridges) > normalised_bridge else normalised_bridge, 3)
+        nd_used = round(sigmoid(diameter - 1) if sigmoid(diameter) - 1 > normalised_diameter else normalised_diameter)
+        estimated_quality = round((nb_used + nd_used + normalised_closure) / float(3), 3)
+    except Exception as error:
+        print "There was a problem:\n{}".format(error.message)
 
     # set_cycles = []
     # size = 0
@@ -97,10 +125,18 @@ def draw_graph(graph, file_path=None, show_image=False):
     # analysis_builder.write("\n\t{:31} : {}".format("CYCLES", nbr_cycles))
     # if cycles > 0:
     #     analysis_builder.write("\n\t{:31} : {}".format("BIGGEST CYCLES", set(set_cycles)))
-    analysis_builder.write("\n\t{:31} : {}".format("BRIDGES", bridges))
+
     analysis_builder.write("\n\t{:31} : {}".format("MAXIMUM POSSIBLE CONNECTIVITY", len(nodes) - 1))
     analysis_builder.write("\n\t{:31} : {}".format("AVERAGE NODE CONNECTIVITY", average_node_connectivity))
     analysis_builder.write("\n\t{:31} : {}".format("AVERAGE NODE CONNECTIVITY RATIO", ratio))
+
+    analysis_builder.write("\n\t{:31} : {} {} []".format("BRIDGES", bridges, normalised_bridge, nb_used))
+    analysis_builder.write("\n\t{:31} : {} [{}]".format("CLOSURE", closure, normalised_closure))
+    analysis_builder.write("\n\t{:31} : {} {} [{}]".format("DIAMETER", diameter, normalised_diameter, nd_used))
+    analysis_builder.write("\n\t{:31} : {}".format("QUALITY", interpretation))
+    analysis_builder.write("\n\t{:31} : {}".format("QUALITY USED", estimated_quality))
+    analysis_builder.write("\n\tSUMMARY: BRIDGE {} CLOSURE {} DIAMETER {} QUALITY {} QUALITY USED {}".format(
+        normalised_bridge,normalised_closure, normalised_diameter, interpretation, estimated_quality))
 
     # test = dict()
     # for item in cycles:
@@ -114,26 +150,31 @@ def draw_graph(graph, file_path=None, show_image=False):
     # analysis_builde_2.write("\nCycles [{}] Bridges [{}]".format(nbr_cycles, len(bridges)))
 
     """""""""""""""""""""""""""""""""""""""
-    PRINTING MATRIX COMPUTATIONS
+    PRINTING MATRIX COMPUTATIONS IN PLOT
     """""""""""""""""""""""""""""""""""""""
     analysis_builder_2.write(
-        "\nAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
-        "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [I_1={}] [I_2={}]".
-        format(average_node_connectivity, len(bridges), normalised_bridge,  diameter, normalised_diameter,
-               edge_discovered, edge_derived, closure, normalised_closure, conclusion, interpretation))
+        "\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}] [{}]\nDiameter [{}]  normalised to [{}] [{}]"
+        "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Estimated Quality [{}] {}"
+        "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER".
+            format(average_node_connectivity, bridges, normalised_bridge, nb_used,
+                   diameter, normalised_diameter, nd_used,
+                   edge_discovered, edge_derived, closure, normalised_closure, interpretation, estimated_quality))
 
-    # analysis_builde_2.write("\nConnectivity: AverageDegree [{}] MaxDegree [{}] "
-    #                         "TransitivityClosure [{}] Bridges [{}] Diameter [{}]".format(
-    #     average_node_connectivity, len(nodes) - 1, max_distance, len(bridges), diameter))
-
-    if ratio == 1:
+    if estimated_quality <= 0.1:
         analysis_builder_2.write("\n\nDiagnose: VERY GOOD")
-    elif average_node_connectivity == 2 or len(bridges) == 0:
-        analysis_builder_2.write("\n\nDiagnose: ACCEPTABLE")
-    # elif nbr_cycles == 0:
-    #     analysis_builde_2.write("\n\nDiagnose: NEED INVESTIGATION")
-    elif len(bridges) > 0:
-        analysis_builder_2.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
+    elif estimated_quality > 0.1 and estimated_quality < 0.25:
+        analysis_builder_2.write("\n\nDiagnose: UNCERTAIN")
+    else:
+        analysis_builder_2.write("\n\nDiagnose: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
+
+    # if ratio == 1:
+    #     analysis_builder_2.write("\n\nDiagnose: VERY GOOD")
+    # elif average_node_connectivity == 2 or bridges == 0:
+    #     analysis_builder_2.write("\n\nDiagnose: ACCEPTABLE")
+    # # elif nbr_cycles == 0:
+    # #     analysis_builde_2.write("\n\nDiagnose: NEED INVESTIGATION")
+    # elif bridges > 0:
+    #     analysis_builder_2.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
 
 
     """""""""""""""""""""""""""""""""""""""
@@ -193,8 +234,8 @@ def metric(graph):
     else:
         normalised_diameter = float(diameter - 1)
 
-    bridges = list(nx.bridges(g))
-    normalised_bridge = round(float(len(bridges) / float(len(nodes) - 1)), 3)
+    bridges = len(list(nx.bridges(g)))
+    normalised_bridge = round(float(bridges / float(len(nodes) - 1)), 3)
 
     closure = round(float(edge_discovered) / float(edge_derived), 3)
     normalised_closure = round(1 - closure, 2)
@@ -202,40 +243,98 @@ def metric(graph):
     # conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
     interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
 
+    nb_used = round(sigmoid(bridges) if sigmoid(bridges) > normalised_bridge else normalised_bridge, 3)
+    nd_used = round(sigmoid(diameter - 1) if sigmoid(diameter - 1) > normalised_diameter else normalised_diameter, 3)
+    estimated_quality = round((nb_used + nd_used + normalised_closure) / float(3), 3)
+
     """""""""""""""""""""""""""""""""""""""
     PRINTING MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
     analysis_builder.write(
-        "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}]\nDiameter [{}]  normalised to [{}]"
-        "\nClosure [{}/{}][{}] normalised to [{}]\n>>> Decision Support [{}]".
-        format(average_node_connectivity, len(bridges), normalised_bridge, diameter, normalised_diameter,
-               edge_discovered, edge_derived, closure, normalised_closure, interpretation))
+        "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n"
+        "\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}] {}\nDiameter [{}]  normalised to [{}] {}"
+        "\nClosure [{}/{}][{}] normalised to [{}]\n\n>>> Decision Support [{}] {} <<<".
+        format(average_node_connectivity, bridges, normalised_bridge, nb_used,
+               diameter, normalised_diameter, nd_used,
+               edge_discovered, edge_derived, closure, normalised_closure, interpretation, estimated_quality))
 
-    if ratio == 1:
-        analysis_builder.write("\n\nDiagnose: VERY GOOD")
-    elif average_node_connectivity == 2 or len(bridges) == 0:
-        analysis_builder.write("\n\nDiagnose: ACCEPTABLE")
-    elif len(bridges) > 0:
-        analysis_builder.write("\n\nDiagnose: NEED BRIDGE INVESTIGATION")
+    # if ratio == 1:
+    #     analysis_builder.write("\n\nDiagnose: VERY GOOD")
+    # elif average_node_connectivity == 2 or bridges == 0:
+    #     analysis_builder.write("\n\nDiagnose: ACCEPTABLE")
+    # elif bridges > 0:
+    #     analysis_builder.write("\n\nDiagnose : NEED BRIDGE INVESTIGATION")
 
-    return {'message':analysis_builder.getvalue(), 'decision':interpretation}
+
+    if estimated_quality <= 0.1:
+        analysis_builder.write("\n\nInterpretation: VERY GOOD")
+    elif estimated_quality > 0.1 and estimated_quality < 0.25:
+        analysis_builder.write("\n\nInterpretation: UNCERTAIN")
+        if bridges == 0 and diameter <= 2:
+            analysis_builder.write(", YET ACCEPTABLE")
+    else:
+        analysis_builder.write("\n\nInterpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
+
+    if bridges > 0:
+        analysis_builder.write("\n\nEvidence: NEED BRIDGE INVESTIGATION")
+
+    if diameter > 2:
+        analysis_builder.write("\n\nEvidence:  TOO MANY INTERMEDIATES")
+
+    if bridges == 0 and diameter <= 2:
+        analysis_builder.write("\n\nEvidence:  LESS INTERMEDIATES AND NO BRIDGE")
+
+    return {'message':analysis_builder.getvalue(), 'decision':estimated_quality}
+
+
+def eval_sheet(targets, count, smallest_hash, a_builder, alignment, children):
+    first = False
+    a_builder.write("\n{:<5}\t{:<20}{:12}{:20}{:20}".format(count, smallest_hash, "", "", ""))
+    if targets is None:
+        a_builder.write(Cls.disambiguate_network(alignment, children))
+    else:
+        response = Cls.disambiguate_network_2(children, targets, output=False)
+        if response:
+            temp = ""
+            dataset = ""
+            # for line in response:
+            #     print line
+
+            for i in range(1, len(response)):
+                if i == 1:
+                    temp = response[i][1]
+
+                elif dataset == response[i][0]:
+                    temp = "{} | {}".format(temp, response[i][1])
+
+                else:
+                    if first is False:
+                        a_builder.write("{}\n".format(temp))
+                    else:
+                        a_builder.write("{:80}{}\n".format("", temp))
+                    first = True
+                    temp = response[i][1]
+
+                dataset = response[i][0]
+            a_builder.write("{:80}{}\n".format("", temp))
 
 
 def cluster_d_test(linkset, network_size=3, targets=None,
                    directory=None, greater_equal=True, print_it=False, limit=None, activated=False):
 
-    print "\nLINK NETWORK INVESTIGATION"
+    print "LINK NETWORK INVESTIGATION"
     if activated is False:
         print "\tTHE FUNCTION I NOT ACTIVATED"
         return ""
-
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    linkset_name = Ut.get_uri_local_name(linkset)
     count_1 = 0
     count_2 = 0
+    sheet_builder = Buffer.StringIO()
     analysis_builder = Buffer.StringIO()
-
-    print "\n"
-
+    sheet_builder.write("Count	ID					STRUCTURE	E-STRUCTURE-SIZE	NETWORK QUALITY		REFERENCE\n")
     linkset = linkset.strip()
+    check = False
 
     # RUN THE CLUSTER
     clusters_0 = Cls.links_clustering(linkset, limit)
@@ -247,10 +346,11 @@ def cluster_d_test(linkset, network_size=3, targets=None,
         uri_size = 0
         count_1 += 1
         children = i_cluster[1][St.children]
+        cluster_size = len(children)
         # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
         #     continue
 
-        check = len(children) >= network_size if greater_equal else len(children) == network_size
+        check = cluster_size >= network_size if greater_equal else cluster_size == network_size
 
         # NETWORK OF A PARTICULAR SIZE
         if check:
@@ -259,12 +359,14 @@ def cluster_d_test(linkset, network_size=3, targets=None,
 
             # 2: FETCHING THE CORRESPONDENTS
             smallest_hash = float('inf')
+            child_list = ""
             for child in children:
                 hashed = hash(child)
                 if hashed <= smallest_hash:
                     smallest_hash = hashed
                 # GENERAL INFO 1: RESOURCES INVOLVED
-                analysis_builder.write("\t{}\n".format(child))
+                child_list += "\t{}\n".format(child)
+
                 use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
                 resources += "\n\t\t{}".format(use)
                 if len(child) > uri_size:
@@ -274,6 +376,8 @@ def cluster_d_test(linkset, network_size=3, targets=None,
             file_name = "{}".format(str(smallest_hash).replace("-", "N")) if str(
                 smallest_hash).startswith("-") \
                 else "P{}".format(smallest_hash)
+
+            eval_sheet(targets, count_2, "{}_{}".format(cluster_size, file_name), sheet_builder, linkset, children)
 
             # QUERY FOR FETCHING ALL LINKED RESOURCES FROM THE LINKSET
             query = """
@@ -297,9 +401,13 @@ def cluster_d_test(linkset, network_size=3, targets=None,
             response = Qry.sparql_xml_to_matrix(query)
 
             # GENERAL INFO 2:
-            info = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, len(children))
-            print "{:>5} {}".format(count_2, info)
-            analysis_builder.write("\n{}\n".format(info))
+            info = "SIZE    {}   \nCLUSTER {} \nNAME    {}\n".format(cluster_size, count_1, file_name)
+            info2 = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, cluster_size)
+            analysis_builder.write("{}\n".format(info))
+            print "{:>5} {}".format(count_2, info2)
+
+            analysis_builder.write("RESOURCES INVOLVED\n")
+            analysis_builder.write(child_list)
             analysis_builder.write("\nCORRESPONDENT FOUND ")
             analysis_builder.write(
                 Qry.display_matrix(response, spacing=uri_size, output=True, line_feed='.', is_activated=True))
@@ -347,13 +455,14 @@ def cluster_d_test(linkset, network_size=3, targets=None,
 
             # SETTING THE DIRECTORY
             if directory:
-                linkset_name = Ut.get_uri_local_name(linkset)
-                date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+                # linkset_name = Ut.get_uri_local_name(linkset)
+                # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
                 temp_directory = "{}{}".format(directory, "\{}_Analysis_{}\{}\{}_{}\\".format(
-                    network_size, date, linkset_name, len(children), file_name))
+                    network_size, date, linkset_name, cluster_size, file_name))
                 if not os.path.exists(temp_directory):
                     os.makedirs(temp_directory)
 
+                """""""""""""  PLOTTING """""""""""""
                 # FIRE THE DRAWING: Supported formats: eps, pdf, pgf, png, ps, raw, rgba, svg, svgz.
                 analysis_builder.write(
                     draw_graph(graph=network,
@@ -361,10 +470,19 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                                show_image=False)
                 )
 
+                """""""""""""  WRITING TO DISC """""""""""""
                 # WRITE TO DISC
                 Ut.write_2_disc(file_directory=temp_directory, file_name="cluster_{}".format(file_name, ),
                                 data=analysis_builder.getvalue(), extension="txt")
                 analysis_builder = Buffer.StringIO()
-                # exit(0)
 
+                # exit(0)
+        if len(sheet_builder.getvalue()) > 150 and len(clusters_0) == count_1:
+            tmp_directory = "{}{}".format(directory, "\{}_Analysis_{}\{}\\".format(
+                network_size, date, linkset_name))
+            print "WRITING CLUSTER SHEET AT\n\t{}".format(tmp_directory)
+            Ut.write_2_disc(file_directory=tmp_directory, file_name="{}_ClusterSheet".format(cluster_size),
+                            data=sheet_builder.getvalue(), extension="txt")
     print ">>> FOUND: {}".format(count_2)
+
+    # print sheet_builder.getvalue()
