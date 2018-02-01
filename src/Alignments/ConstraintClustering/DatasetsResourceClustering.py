@@ -1571,7 +1571,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
                Ns.void, Ns.rdfs, Ns.bdb, Ns.prov, Ns.singletons, Ns.alignmentTarget,
                # 12                        13
                re_writer_1["insert_list"], re_writer_2["insert_list"])
-    print query
+    # print query
 
     print "\nRUN {}: {}".format(count, cluster_uri)
     print "\t{:20}: {}".format("CLUSTER SIZE ", Qry.get_namedgraph_size(cluster_uri))
@@ -1653,6 +1653,7 @@ def linkset_from_clusters(specs, activated=False):
     drop_count = 0
     drop_dataset_copies = ""
     for dataset in specs[St.targets]:
+
         triples_insert = ""
         triples_where = ""
         graph = dataset[St.graph]
@@ -1688,8 +1689,11 @@ def linkset_from_clusters(specs, activated=False):
         }}
     }}
     """.format(graph, triples_insert, triples_where)
-        print query_copy
-        # print Qry.boolean_endpoint_response(query_copy)
+        # print query_copy
+        print "\nDROP THE DATASET COPIES IF EXISTS: ", graph
+        print Qry.boolean_endpoint_response("DROP SILENT GRAPH <{}#copy>".format(graph))
+        print "COPY: ", graph
+        print Qry.boolean_endpoint_response(query_copy)
         drop_count += 1
 
 
@@ -1697,8 +1701,8 @@ def linkset_from_clusters(specs, activated=False):
     for i in range(1, len(cluster_table)):
         result = linkset_from_cluster(specs, cluster_table[i][0], linkset_name, count=i, activated=activated)
         correspondences += int(result["correspondences"])
-        if i == 10:
-            break
+        # if i == 10:
+        #     break
 
     if correspondences > 0:
         print "\nINSERTING THE GENERIC METADATA AS A TOTAL OF {} CORRESPONDENCE(S) WERE INSERTED.".format(
@@ -1712,7 +1716,7 @@ def linkset_from_clusters(specs, activated=False):
 
     print "\nDROP THE DATASET COPIES"
     print drop_dataset_copies
-    # print Qry.boolean_endpoint_response(drop_dataset_copies)
+    print Qry.boolean_endpoint_response(drop_dataset_copies)
 
     return result
 
