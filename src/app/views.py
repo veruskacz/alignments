@@ -2584,6 +2584,8 @@ def datasetLinkingClusters2():
             if not r in nodes:
                 nodes += [r]
 
+
+
             for j in range(1, position):
                 if (i, j) in (i_cluster[1][St.matrix_d]) and (i_cluster[1][St.matrix_d])[(i, j)] != 0:
 
@@ -2596,6 +2598,7 @@ def datasetLinkingClusters2():
                         links += [(r,c)]
 
         smallest_hash = float('inf')
+        resources = ""
         for child in children:
             hashed = hash(child)
             if hashed <= smallest_hash:
@@ -2606,6 +2609,52 @@ def datasetLinkingClusters2():
             # resources += "\n\t\t{}".format(use)
             # if len(child) > uri_size:
             #     uri_size = len(child)
+
+            use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
+            resources += "\n\t\t\t\t{}".format(use)
+
+        # QUERY FOR FETCHING ALL LINKED RESOURCES FROM THE LINKSET
+        query = """
+                PREFIX prov: <{3}>
+                PREFIX ll: <{4}>
+                SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
+                {{
+                    VALUES ?lookup{{ {0} }}
+
+                    {{
+                        GRAPH <{1}>
+                        {{ ?lookup ?predicate ?object .}}
+                    }} UNION
+                    {{
+                        GRAPH <{1}>
+                        {{?object ?predicate ?lookup . }}
+                    }}
+
+                    GRAPH <{2}>
+                    {{
+                        ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
+                        OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
+                        OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
+                    }}
+                }}
+                            """.format(resources, alignments[0], alignments[0].replace("lens", "singletons"),
+                                       Ns.prov, Ns.alivocab)
+        # print query
+
+        # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+        response = sparql2matrix(query)
+
+        # A DICTIONARY OF KEY: (SUBJECT-OBJECT) VALUE:STRENGTH
+        response_dic = dict()
+        result = response[St.result]
+        if result:
+            for i in range(1, len(result)):
+                key = (result[i][0], result[i][1])
+                if key not in response_dic:
+                    response_dic[key] = result[i][2]
+
+        # print "!!!!!!!!!!!!!!!", response_dic
+
 
         smallest_hash = "{}".format(str(smallest_hash).replace("-", "N")) if str(
                 smallest_hash).startswith("-") \
@@ -2639,7 +2688,7 @@ def datasetLinkingClusters2():
 
     if len(results) > 1:
         message = "Have a look at the result in the table below"
-        print 'before', clustersList
+        # print 'before', clustersList
         return json.dumps({'message': message,
                            'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
     else:
