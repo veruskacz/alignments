@@ -1143,3 +1143,4 @@ def prep_4_uri(input_text):
 
     # Only alpha numeric
     return to_alphanumeric(mapping)
+
