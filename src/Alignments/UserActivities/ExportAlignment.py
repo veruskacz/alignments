@@ -225,7 +225,7 @@ def export_flat_alignment_and_metadata(alignment):
 # ALIGNMENT FOR VISUALISATION
 def export_alignment(alignment, limit=5000):
 
-    # COMMENT THE LIMKT OIT IF IT IS EQUAL TO NONE
+    # COMMENT THE LINKSET IF IT IS EQUAL TO NONE
 
     # This function returns all the links + some metadata about the alignment.
     # METADATA: source dataset, target dataset and mechanism
@@ -279,7 +279,9 @@ def export_alignment(alignment, limit=5000):
         # EXTRACT THE SOURCE DATASET
         for item in sg.objects(sbj, lens_uri_targets):
             lens_targets += [str(item)]
-        print "TARGETS: ", lens_targets
+        print "{} TARGETS in {}".format(len(lens_targets), alignment)
+        for trg_item in lens_targets:
+            print "\t- {}".format(trg_item)
 
     else:
 

@@ -1,5 +1,6 @@
 
 import os
+from numpy import median, mean, std
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -12,72 +13,159 @@ import Alignments.UserActivities.UserRQ as Urq
 import Alignments.SimilarityAlgo.SimHelpers as Helper
 from kitchen.text.converters import to_unicode  # , to_bytes
 
+#################################################################################################
+#################################################################################################
 
 theta = 0.5
 count = 0
+frq_limit = 10
 
-#################################################################################################
-# gender C
-#################################################################################################
-
-# source_specs = {
-#     St.graph: "http://risis.eu/dataset/genderc",
-#     St.aligns: "http://risis.eu/genderc/vocab/affiliation",
-#     St.entity_datatype: "http://risis.eu/genderc/vocab/Applicant"}
-#
-# target_specs = {
-#     St.graph: "http://risis.eu/dataset/genderc",
-#     St.aligns: "http://risis.eu/Panellists/ontology/predicate/Name_of_home_institution",
-#     St.entity_datatype: "http://risis.eu/Panellists/ontology/class/Panelists"}
-#
-# specs = {
-#     St.source: source_specs,
-#     St.target: target_specs,
-#     St.linkset_name: "InvTest",
-#     St.sameAsCount: 1,
-#     St.mechanism: "approxStrSim",
-#     St.linkset: "http://risis.eu/linkset/InvTest",
-#     St.threshold: 1,
-#     St.insert_query: "",
-#     St.researchQ_URI: "http://risis.eu/activity/idea_8b78a8"}
-#
-# src_dataset = Helper.get_table(source_specs)
-# trg_dataset = Helper.get_table(target_specs)
-# universe_tf = Helper.get_tf_2([src_dataset, trg_dataset])
-# trg_inv_index = Helper.get_inverted_index(trg_dataset, universe_tf, theta)
-# Helper.data['delta'] = int(Helper.data['biggest_freq']/10)
-# t2r_dict = Helper.term_2_remove(universe_tf)
-
-#################################################################################################
-# AMADEUS
+# gender C#######################################################################################
 #################################################################################################
 
 source_specs = {
-    St.graph: "http://risis.eu/dataset/amadeus",
-    St.aligns: "http://risis.eu/amadeus/ontology/predicate/Country",
-    St.entity_datatype: "http://risis.eu/amadeus/ontology/class/Organisation"}
+    St.graph: "http://risis.eu/dataset/genderc",
+    St.aligns: "http://risis.eu/Panellists/ontology/predicate/Name_of_home_institution",
+    St.entity_datatype: "http://risis.eu/Panellists/ontology/class/Panelists"}
 
 target_specs = {
-    St.graph: "http://risis.eu/dataset/grid_20170712",
-    St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
-    St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"}
+    St.graph: "http://risis.eu/dataset/genderc",
+    St.aligns: "http://risis.eu/genderc/vocab/affiliation",
+    St.entity_datatype: "http://risis.eu/genderc/vocab/Applicant"}
 
 specs = {
     St.source: source_specs,
     St.target: target_specs,
-    St.sameAsCount: 5,
+    St.linkset_name: "InvTest",
+    St.sameAsCount: 1,
     St.mechanism: "approxStrSim",
-    St.linkset_name: "InvTestAmadeus4",
-    St.linkset: "http://risis.eu/linkset/InvTestAmadeus4",
+    St.linkset: "http://risis.eu/linkset/InvTest",
     St.threshold: 1,
     St.insert_query: "",
-    St.researchQ_URI: "http://risis.eu/activity/idea_13e5bc"}
+    St.researchQ_URI: "http://risis.eu/activity/idea_8b78a8"}
 
 src_dataset = Helper.get_table(source_specs)
 trg_dataset = Helper.get_table(target_specs)
 universe_tf = Helper.get_tf([src_dataset, trg_dataset])
 trg_inv_index = Helper.get_inverted_index(trg_dataset, universe_tf, theta)
-Helper.data['delta'] = int(Helper.data['biggest_freq']/3)
+Helper.data['delta'] = int(Helper.data['mode']/10)
+t2r_dict = Helper.term_2_remove(universe_tf)
+exit(0)
+
+
+# AMADEUS #######################################################################################
+#################################################################################################
+
+# source_specs = {
+#     St.graph: "http://risis.eu/dataset/amadeus",
+#     St.aligns: "http://risis.eu/amadeus/ontology/predicate/Companyname",
+#     St.entity_datatype: "http://risis.eu/amadeus/ontology/class/Organisation"}
+#
+# target_specs = {
+#     St.graph: "http://risis.eu/dataset/grid_20170712",
+#     St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
+#     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"}
+#
+# specs = {
+#     St.source: source_specs,
+#     St.target: target_specs,
+#     St.sameAsCount: frq_limit,
+#     St.mechanism: "approxStrSim",
+#     St.linkset_name: "InvTestAmadeus{}".format(frq_limit),
+#     St.linkset: "http://risis.eu/linkset/InvTestAmadeus{}".format(frq_limit),
+#     St.threshold: 1,
+#     St.insert_query: "",
+#     St.researchQ_URI: "http://risis.eu/activity/idea_13e5bc"}
+
+# GRID - ORGREF #################################################################################
+#################################################################################################
+
+# research_question = "http://risis.eu/activity/idea_341982"
+#
+# source_specs = {
+#     St.graph: "http://risis.eu/dataset/orgref_20170703",
+#     St.aligns: "http://risis.eu/orgref_20170703/ontology/predicate/Name",
+#     St.entity_datatype: "http://risis.eu/orgref_20170703/ontology/class/Organisation"}
+#
+# target_specs = {
+#     St.graph: "http://risis.eu/dataset/grid_20170712",
+#     St.aligns: "http://www.w3.org/2000/01/rdf-schema#label",
+#     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"}
+#
+# specs = {
+#     St.source: source_specs,
+#     St.target: target_specs,
+#     St.sameAsCount: frq_limit,
+#     St.mechanism: "approxStrSim",
+#     St.linkset_name: "InvTestAmadeus{}".format(frq_limit),
+#     St.linkset: "http://risis.eu/linkset/InvTestAmadeus{}".format(frq_limit),
+#     St.threshold: 1,
+#     St.insert_query: "",
+#     St.researchQ_URI: research_question}
+
+# Helper.stop_words_string =  "THE FOR IN THAT AND OF ON DE LA LES INC"
+Helper.stop_symbols_string = "\.\-\,\+'\?;()"
+Helper.set_stop_word_dic()
+writers = Helper.set_writers(specs)
+Helper.remove_term_in_bracket = False
+
+# DOWNLOAD THE DATA
+src_dataset = Helper.get_table(source_specs)
+trg_dataset = Helper.get_table(target_specs)
+
+# COMPUTE THE UNIVERSE OF FREQUENCY
+universe_tf = Helper.get_tf([src_dataset, trg_dataset])
+sorted_universe_tf = sorted(universe_tf.values())
+
+# TERMS WITH FREQUENCY GREATER THAN DELTA ARE NOT CONSIDERED
+Helper.data['delta'] = int(Helper.data['mode'] / frq_limit)
+
+# if (len(sorted_universe_tf)/2) % 2 > 0:
+#     median = sorted_universe_tf[len(sorted_universe_tf)/2]
+# else:
+#     middle = len(sorted_universe_tf)/2
+#     left = sorted_universe_tf[middle]
+#     right = sorted_universe_tf[middle + 1]
+#     print left, "|", right
+#     median = (sorted_universe_tf[middle] + sorted_universe_tf[middle + 1])/2
+
+i_median = median(sorted_universe_tf)
+i_mean = mean(sorted_universe_tf)
+i_std = std(sorted_universe_tf)
+mode = sorted_universe_tf[len(sorted_universe_tf) - 1]
+
+ic_median = ic_mean = ic_std = 0
+ic_std_plus = c_frq_limit = ic_std_minus = 0
+
+for i in range(0, len(sorted_universe_tf)):
+
+    if sorted_universe_tf[i] <= i_median:
+        ic_median += 1
+    if sorted_universe_tf[i] <= i_mean:
+        ic_mean += 1
+    if sorted_universe_tf[i] <= i_std:
+        ic_std += 1
+    if sorted_universe_tf[i] <= i_std - i_mean:
+        ic_std_minus += 1
+    if sorted_universe_tf[i] <= i_std + i_mean:
+        ic_std_plus += 1
+    if sorted_universe_tf[i] <= Helper.data['delta']:
+        c_frq_limit += 1
+
+print "SIZE      : {:>28}".format(str(len(sorted_universe_tf)))
+print "MODE      : {:>28}".format(mode)
+print "MEDIAN    : {:13} includes {} instances".format(median(sorted_universe_tf), str(ic_median))
+print "MEAN      : {:13} includes {} instances".format(mean(sorted_universe_tf), str(ic_mean))
+print "STD-      : {:13} includes {} instances".format(std(sorted_universe_tf) - i_mean, str(ic_std_minus))
+print "STD       : {:13} includes {} instances".format(std(sorted_universe_tf), str(ic_std))
+print "STD+      : {:13} includes {} instances".format(std(sorted_universe_tf) + i_mean, str(ic_std_plus))
+print "LIMIT     : {:>13} includes {} instances".format(Helper.data['delta'], str(c_frq_limit))
+
+exit(0)
+# COMPUTE THE INVERTED INDEX
+trg_inv_index = Helper.get_inverted_index(trg_dataset, universe_tf, theta)
+
+
 t2r_dict = Helper.term_2_remove(universe_tf)
 
 # target_specs = {
@@ -86,21 +174,15 @@ t2r_dict = Helper.term_2_remove(universe_tf)
 #     St.entity_datatype: "http://xmlns.com/foaf/0.1/Organization"
 # }
 
-#################################################################################################
-#################################################################################################
-# Helper.stop_words_string =  "THE FOR IN THAT AND OF ON DE LA LES INC"
-Helper.stop_symbols_string = "\.\-\,\+'\?;()"
-Helper.set_stop_word_dic()
-writers = Helper.set_writers(specs)
-Helper.remove_term_in_bracket = False
+
 link = "alivocab:invertedIndexStrSim"
 
 # print writers[St.batch_output_path]
 # exit(0)
-
+# print "test", universe_tf["rollsroyce"]
 print "TARGET INVERTED INDEX SIZE          : {}".format(len(universe_tf))
-print "TARGET INVERTED INDEX MAX FREQ      : {}".format(Helper.data['biggest_freq'])
-print "TARGET INVERTED INDEX MAX FREQ TERM : {}".format(Helper.data['biggest_freq_token'])
+print "TARGET INVERTED INDEX MODE          : {}".format(Helper.data['mode'])
+print "TARGET INVERTED INDEX MODE TERM     : {}".format(Helper.data['mode_token'])
 print "TARGET INVERTED MAX DELTA FREQUENCY : {}".format(Helper.data['delta'])
 print "TARGET INVERTED INDEX TERM 2 REMOVE : {}".format(len(t2r_dict))
 for key, value in t2r_dict.items():
@@ -111,13 +193,14 @@ for key, value in t2r_dict.items():
 #         count2 += 1
 #         if len(key) > 3:
 #             print "\t", key, value
-#     if value > biggest:
-#         biggest = value
+#     if value > mode:
+#         mode = value
 #     sum_up +=  value
 # print count2
 # exit(0)
 # ITERATE THROUGH THE SOURCE
 for row in range(1, len(src_dataset)):
+
     src_uri = src_dataset[row][0].strip()
     src_input = Helper.process_input(str(src_dataset[row][1]))
 
@@ -154,6 +237,8 @@ for row in range(1, len(src_dataset)):
         crpdce[St.link] = link
         crpdce[St.row] = row
         crpdce[St.inv_index] = idx
+
+        # print >> sys.stderr, count, crpdce[St.src_value], "\r",
 
         if gmtime(time()).tm_min % 10 == 0 and gmtime(time()).tm_sec % 60 == 0:
             print Helper.correspondence(crpdce, writers, count)
@@ -194,6 +279,7 @@ if Ut.OPE_SYS != 'windows':
 
 if count > 0:
 
+    print "\n{} INSTANCES FOUND.".format(count)
     print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THE TRIPLE STORE\n\t\t{}", writers[
         St.batch_output_path]
 
@@ -229,6 +315,9 @@ if count > 0:
     print "\t*** JOB DONE! ***"
 
     message = "The linkset was created as {} with {} triples.".format(specs[St.linkset], count)
+
+else:
+    print "NO LINK WAS CREATED"
 
 # print "\n>>> STARTED ON {}".format(ctime(start))
 # print ">>> FINISHED ON {}".format(ctime(t_sim))

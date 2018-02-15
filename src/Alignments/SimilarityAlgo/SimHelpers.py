@@ -28,8 +28,8 @@ stop_symbols_string = ""
 remove_term_in_bracket = False
 
 data = {
-    'biggest_freq': 0,
-    'biggest_freq_token': "",
+    'mode': 0,
+    'mode_token': "",
     'delta': 0}
 
 
@@ -70,9 +70,10 @@ def set_stop_word_dic():
 
 # HELPER FOR EXTRACTING SPA VALUES FROM A GRAPH
 def get_table(dataset_specs, reducer=None):
+
     # ADD THE REDUCER IF SET. THE REDUCER OR (DATASET REDUCER) HELPS ELIMINATING
     # THE COMPUTATION OF SIMILARITY FOR INSTANCES THAT WHERE ALREADY MATCHED
-    print "LOADING: {}".format(dataset_specs[St.graph])
+    print "\nLOADING: {} {}".format(dataset_specs[St.graph], dataset_specs[St.entity_datatype])
     if reducer is None:
         reducer_comment = "#"
         reducer = ""
@@ -107,6 +108,8 @@ def get_table(dataset_specs, reducer=None):
     # Qry.display_matrix(table_matrix, is_activated=True)
     # print table_matrix
     # print query
+    if table_matrix[St.result]:
+        print "\tINPUT SIZE: {}".format(str(len(table_matrix[St.result]) - 1))
     return table_matrix[St.result]
 
 
@@ -134,31 +137,34 @@ def correspondence(description, in_writers, counter):
 
 
 def get_tf(datasets):
-    print "COMPUTING TERM FREQUENCY"
+
+    print "\nCOMPUTING TERM FREQUENCY"
     # Qry.display_matrix(matrix, is_activated=True)
     # print matrix
     # datasets = [matrix_src, matrix_trg]
     term_frequency = dict()
+
     for matrix in datasets:
-        # print "DATASETS:", matrix
-        for r in range(1, len(matrix)):
-            # print "matrix[row]:", matrix[row]
+        if matrix:
+            # print "DATASETS: {}".format(len(matrix) -1 )
+            for r in range(1, len(matrix)):
+                # print "matrix[row]:", matrix[row]
 
-            # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
-            in_tokens = process_input((matrix[r][1]))
+                # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+                in_tokens = process_input((matrix[r][1]))
 
-            # TOKENIZE
-            in_tokens = in_tokens.split(" ")
+                # TOKENIZE
+                in_tokens = in_tokens.split(" ")
 
-            # COMPUTE FREQUENCY
-            for t in in_tokens:
-                if t not in term_frequency:
-                    term_frequency[t] = 1
-                else:
-                    term_frequency[t] += 1
-                    if term_frequency[t] > data['biggest_freq']:
-                        data['biggest_freq'] = term_frequency[t]
-                        data['biggest_freq_token'] = t
+                # COMPUTE FREQUENCY
+                for t in in_tokens:
+                    if t not in term_frequency:
+                        term_frequency[t] = 1
+                    else:
+                        term_frequency[t] += 1
+                        if term_frequency[t] > data['mode']:
+                            data['mode'] = term_frequency[t]
+                            data['mode_token'] = t
 
     return term_frequency
 
@@ -168,39 +174,40 @@ def get_inverted_index(matrix, tf, threshold):
     # INVERTED INDEX DICTIONARY
     inv_index = dict()
 
-    for in_row in range(1, len(matrix)):
+    if matrix:
+        for in_row in range(1, len(matrix)):
 
-        # GET THE VALUE
-        value = str(matrix[in_row][1])
+            # GET THE VALUE
+            value = str(matrix[in_row][1])
 
-        # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
-        value = process_input(value)
+            # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+            value = process_input(value)
 
-        # GET THE TOKENS
-        in_tokens = value.split(" ")
+            # GET THE TOKENS
+            in_tokens = value.split(" ")
 
-        # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
-        included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
+            # COMPUTE THE NUMBER OF TOKENS TO INCLUDE
+            included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
 
-        # UPDATE THE TOKENS WITH THEIR FREQUENCY
-        # print "1", in_tokens
-        for n in range(len(in_tokens)):
-            # print value + " | +" + tokens[i]
-            in_tokens[n] = [in_tokens[n], tf[in_tokens[n]]]
+            # UPDATE THE TOKENS WITH THEIR FREQUENCY
+            # print "1", in_tokens
+            for n in range(len(in_tokens)):
+                # print value + " | +" + tokens[i]
+                in_tokens[n] = [in_tokens[n], tf[in_tokens[n]]]
 
-        # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
-        in_tokens = sorted(in_tokens, key=itemgetter(1))
-        # print "{} {}".format(in_row, in_tokens)
-        # print "2", in_tokens
+            # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
+            in_tokens = sorted(in_tokens, key=itemgetter(1))
+            # print "{} {}".format(in_row, in_tokens)
+            # print "2", in_tokens
 
-        # INSERTING included TOKENS IN THE INVERTED INDEX
-        for t in in_tokens[:included]:
-            if t[0] not in inv_index:
-                # THE INVERTED INDEX DICTIONARY HAS A TUPLE OF AN [ARRAY OF INDEXES] AND A [TERM FREQUENCY]
-                inv_index[t[0]] = [in_row]
-            elif in_row not in inv_index[t[0]]:
-                # UPDATE THE INDEX ARRAY AND INCREMENT THE TERM FREQUENCY
-                inv_index[t[0]] += [in_row]
+            # INSERTING included TOKENS IN THE INVERTED INDEX
+            for t in in_tokens[:included]:
+                if t[0] not in inv_index:
+                    # THE INVERTED INDEX DICTIONARY HAS A TUPLE OF AN [ARRAY OF INDEXES] AND A [TERM FREQUENCY]
+                    inv_index[t[0]] = [in_row]
+                elif in_row not in inv_index[t[0]]:
+                    # UPDATE THE INDEX ARRAY AND INCREMENT THE TERM FREQUENCY
+                    inv_index[t[0]] += [in_row]
 
     return inv_index
 
@@ -289,7 +296,11 @@ def remove_stop_words(text):
 def process_input(text):
 
     try:
-        temp = to_bytes(text.lower())
+        # DIACRITIC CHARACTERS MAPPING
+        temp = Ut.character_mapping(text)
+
+        # temp = to_bytes(text.lower())
+        temp = temp.lower()
 
         # temp = str(temp).decode(encoding="utf-8")
 
@@ -303,8 +314,9 @@ def process_input(text):
             temp = remove_stop_words(temp)
 
         # REMOVE SYMBOLS OR CHARACTER
+        stop_symbols = to_bytes(stop_symbols_string).replace("–", "\xe2\x80\x93")
         if stop_symbols_string is not None and len(stop_symbols_string) > 0:
-            pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
+            pattern = str("[{}]".format(stop_symbols.strip())).replace(" ", "")
             temp = re.sub(pattern, "", temp)
 
         return temp.strip()
