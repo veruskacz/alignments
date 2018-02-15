@@ -117,6 +117,7 @@ def cluster_triples(graph):
     g.parse(data=links, format="turtle")
 
     print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(g))
+
     for subject, predicate, obj in g:
 
         count += 1
@@ -921,10 +922,18 @@ def cluster_links(graph, limit=1000):
 
     print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(g))
 
+
+    standard = 10
+    check =  1
+    iteration = 1
     for subject, predicate, obj in g:
-        # print "RESOURCE {:>4}: {} {}".format(count, subject.n3() , obj)
+        print "\tRESOURCE {:>4}: {} {}".format(count, subject.n3() , obj)
 
         count = cluster_helper(count)
+        if iteration == check:
+            print "1- ", count
+            check = check + standard
+        iteration += 1
 
     print "3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
     return clusters
@@ -1502,10 +1511,18 @@ def links_clustering(graph, limit=1000):
 
     print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(g))
 
+    standard = 100000
+    check = 1
+    iteration = 1
+
     for subject, predicate, obj in g:
-        # print "RESOURCE {:>4}: {} {}".format(count, subject.n3() , obj)
 
         count = cluster_helper(count)
+        # data = "\tRESOURCE {:>7}:   {} {}".format(count, subject.n3(), obj)
+        if iteration == check:
+            print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
+            check = check + standard
+        iteration += 1
 
     print "3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
     return clusters
