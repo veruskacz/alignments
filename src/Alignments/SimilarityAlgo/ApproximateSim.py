@@ -535,13 +535,14 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
 
         # GET THE TOKENS
         stg = str(string).lower()
-        # print stg
+        # print "INPUT TO INCLUDE: {}".format(stg)
 
         # REMOVE DATA IN BRACKETS
         # stg = remove_info_in_bracket(stg)
 
         # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
         stg = process_input(stg)
+        # print "INPUT AFTER PROCESS: {}".format(stg)
 
         # if stg != to_unicode(string):
         #     print stg + "!!!!!!!!!"
@@ -616,7 +617,12 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     def process_input(text):
 
         try:
-            temp = to_bytes(text.lower())
+
+            # DIACRITIC CHARACTERS MAPPING
+            temp = Ut.character_mapping(to_unicode(text))
+            # print "PROCESSED INPUT: {}".format(temp)
+
+            temp = to_bytes(temp.lower())
 
             # temp = str(temp).decode(encoding="utf-8")
 
@@ -625,19 +631,23 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
             temp = remove_info_in_bracket(temp)
 
             # REMOVE STOP WORLD
-            if len(stop_word) > 0:
+            if stop_word is not None and len(stop_word) > 0:
                 temp = remove_stop_words(temp)
 
             # REMOVE SYMBOLS OR CHARACTER
+            stop_symbols = to_bytes(stop_symbols_string).replace("–", "\xe2\x80\x93")
             if stop_symbols_string is not None and len(stop_symbols_string) > 0:
-                pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
+                pattern = str("[{}]".format(stop_symbols.strip())).replace(" ", "")
                 temp = re.sub(pattern, "", temp)
+                # print pattern
+                # print temp
 
             return temp.strip()
 
         except Exception as error:
             print "!!!!!!!!!!!!! PROBLEM !!!!!!!!!!!!!!!!!!!"
-            print str(error.message)
+            print str(error)
+            print text
             return text
 
     def get_corr_reducer(graph):
@@ -873,7 +883,9 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
                 continue
 
             # TOKENIZE TARGET INPUT AND PROCESS IT ACCORDINGLY
+            # print "TARGET BEFOREE PROCESS: {}".format(trg_dataset[idx][1])
             trg_input = process_input(trg_dataset[idx][1])
+            # print "TARGET AFTER PROCESS: {}".format(trg_input)
 
             # GO TO THE NEXT TARGET TOKEN IF THE CURRENT TOKEN IS EMPTY
             if not trg_input.strip():
@@ -882,8 +894,8 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
             tokens_trg = trg_input.split(" ")
             # print "1", src_input
             # print "2", trg_input
-            # print u"SOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
-            # print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), sim_val_2)
+            # print u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), src_input)
+            # print u"TARGET [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(trg_dataset[idx][1]), trg_input)
 
             # SMALL: COMPUTE THE TOKEN TO INCLUDE FOR
             # THE INPUT WITH THE SMALLEST NUMBER OF TOKEN
@@ -934,6 +946,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
 
             # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
             sim = edit_distance(value_1, value_2) if value_1 and value_2 else 0
+
             # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
             # if row == 560000:
             #     print u"\nSOURCE [ORIGINAL] [TEMPERED]: [{}] [{}]".format(to_unicode(src_dataset[row][1]), sim_val_1)
@@ -962,6 +975,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
 
                 # REORDERING THE STRINGS TO MATCH BASED ON THEIR OCCURRENCES FREQUENCY
                 if reorder is True:
+
                     sim_val_1 = ""
                     sim_val_2 = ""
                     for i in range(len(tokens_1_sorted)):
@@ -984,7 +998,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
                         writer.write("> FINAL COMPARING : {} and {} ==> {}\n".format(src_input, trg_input, sim))
 
                 # PRODUCE A CORRESPONDENCE IF A MATCH GREATER THAN THETA IS FOUND
-                if sim >= theta:
+                if sim >= theta :
                     if debug is True:
                         writer.write("                   WINNER!!!!!!!!!!!")
                     count += 1
@@ -1297,9 +1311,11 @@ def get_inverted_index(matrix, tf, threshold, stop_word, stop_symbols_string):
 def process_input(text, stop_word, stop_symbols_string):
 
     try:
+        # DIACRITIC CHARACTERS MAPPING
+        temp = Ut.character_mapping(text)
 
         # temp = to_bytes(text.lower())
-        temp = text.lower()
+        temp = temp.lower()
         # temp = str(temp).decode(encoding="utf-8")
 
         # REMOVE DATA IN BRACKETS
@@ -1307,12 +1323,14 @@ def process_input(text, stop_word, stop_symbols_string):
         temp = remove_info_in_bracket(temp)
 
         # REMOVE STOP WORLD
-        if len(stop_word) > 0:
+        if stop_word is not None and len(stop_word) > 0:
             temp = remove_stop_words(temp, stop_word)
 
         # REMOVE SYMBOLS OR CHARACTER
+        stop_symbols = to_bytes(stop_symbols_string).replace("–", "\xe2\x80\x93")
         if stop_symbols_string is not None and len(stop_symbols_string) > 0:
-            pattern = str("[{}]".format(str(stop_symbols_string).strip())).replace(" ", "")
+            pattern = str("[{}]".format(stop_symbols.strip())).replace(" ", "")
+            print pattern
             temp = re.sub(pattern, "", temp)
 
         return temp.strip()
@@ -1330,9 +1348,6 @@ def swap(array, find, swap_index):
             array[swap_index] = find
             array[i] = temp
 
-
-# temp2 = re.sub("[\.\-\,\+'\?;()]", "", "+university -vienna.")
-# print temp2
 
 def get_tokens_to_include(string, threshold, tf, stop_word, stop_symbols_string):
 
@@ -1602,7 +1617,7 @@ def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbo
                 # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
                 sim = edit_distance(sim_val_1, sim_val_2) if sim_val_1 and sim_val_2 else 0
 
-                if sim >= 0.6:
+                if sim >= theta:
                     count_link_found += 1
                     if debug:
                         sim2 = edit_distance(src_input, trg_input) if src_input and trg_input else 0
@@ -1618,7 +1633,7 @@ def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbo
                     print "\tedit({} | {}) = {}".format(src_input, trg_input, sim)
 
         # GENERATE CORRESPONDENCES ONLY IF THE EDIT DISTANCE MATCH IS GREATER OR EQUAL TO THE THRESHOLD
-        if sim >= 0.6:
+        if sim >= theta:
             # linked = item["link"]
             # print linked
             crpdce = dict()
@@ -1726,7 +1741,7 @@ def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbo
         print "\t*** JOB DONE! ***"
 
         message = "The linkset was created as {} with {} triples. " \
-                  "<br/>{}".format(specs[St.refined], count_link_found,diff[St.message],)
+                  "<br/>{}".format(specs[St.refined], count_link_found, diff[St.message],)
 
     # return {'refined': refined, 'difference': diff}
     return {St.message: message, St.error_code: 0, St.result: specs[St.refined]}
