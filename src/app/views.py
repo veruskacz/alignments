@@ -2574,44 +2574,20 @@ def datasetLinkingClusters2():
             # print 'HERE!!!'
             continue
 
-        # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
-        position = i_cluster[1][St.row]
-        network = []
-        for i in range(1, position):
-            r = (i_cluster[1][St.matrix_d])[(i, 0)][1:-1]
-            r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
-            # nodes += [{"id": r_name, 'uri':r, "group": 1}]
-            if not r in nodes:
-                nodes += [r]
-
-
-
-            for j in range(1, position):
-                if (i, j) in (i_cluster[1][St.matrix_d]) and (i_cluster[1][St.matrix_d])[(i, j)] != 0:
-
-                    c = (i_cluster[1][St.matrix_d])[(0, j)][1:-1]
-
-                    c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
-                    network += [(r_name, c_name)]
-                    # links += [{"source": r_name, "target": c_name, "value": 4, "distance": 150}]
-                    if not (r,c) in links:
-                        links += [(r,c)]
-
+        # Calculate hash and fech resource ids
         smallest_hash = float('inf')
         resources = ""
         for child in children:
             hashed = hash(child)
             if hashed <= smallest_hash:
                 smallest_hash = hashed
-            # GENERAL INFO 1: RESOURCES INVOLVED
-            # analysis_builder.write("\t{}\n".format(child))
-            # use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
-            # resources += "\n\t\t{}".format(use)
-            # if len(child) > uri_size:
-            #     uri_size = len(child)
 
             use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
             resources += "\n\t\t\t\t{}".format(use)
+
+        smallest_hash = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                smallest_hash).startswith("-") \
+                else "P{}".format(smallest_hash)
 
         # QUERY FOR FETCHING ALL LINKED RESOURCES FROM THE LINKSET
         query = """
@@ -2637,7 +2613,9 @@ def datasetLinkingClusters2():
                         OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
                     }}
                 }}
-                            """.format(resources, alignments[0], alignments[0].replace("lens", "singletons"),
+                            """.format(resources, alignments[0],
+                                       Ut.from_alignment2singleton(alignments[0]),
+                                       # alignments[0].replace("lens", "singletons"),
                                        Ns.prov, Ns.alivocab)
         # print query
 
@@ -2653,15 +2631,33 @@ def datasetLinkingClusters2():
                 if key not in response_dic:
                     response_dic[key] = result[i][2]
 
-        # print "!!!!!!!!!!!!!!!", response_dic
+        print "!!!!!!!!!!!!!!!", response_dic
 
 
-        smallest_hash = "{}".format(str(smallest_hash).replace("-", "N")) if str(
-                smallest_hash).startswith("-") \
-                else "P{}".format(smallest_hash)
+        # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
+        position = i_cluster[1][St.row]
+        # network = []
+        for i in range(1, position):
+            r = (i_cluster[1][St.matrix_d])[(i, 0)][1:-1]
+            # r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
+            # nodes += [{"id": r_name, 'uri':r, "group": 1}]
+            if not r in nodes:
+                nodes += [r]
+
+            for j in range(1, position):
+                if (i, j) in (i_cluster[1][St.matrix_d]) and (i_cluster[1][St.matrix_d])[(i, j)] != 0:
+
+                    c = (i_cluster[1][St.matrix_d])[(0, j)][1:-1]
+
+                    # c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
+                    # network += [(r_name, c_name)]
+                    # links += [{"source": r_name, "target": c_name, "value": 4, "distance": 150}]
+                    if not (r,c) in links:
+                        links += [(r,c)]
+
 
         # clustersList += [{'id': cluster_id, 'nodes': nodes, 'links': links}]
-        clustersList += [{'id': smallest_hash, 'nodes': nodes, 'links': links}]
+        clustersList += [{'id': smallest_hash, 'nodes': nodes, 'links': links, 'dict': response_dic}]
 
         # index = 0
         sample = Clt.cluster_values2(nodes, properties, distinct_values=False, display=False)
@@ -2703,7 +2699,8 @@ def datasetLinkingClusters2():
 def datasetLinkingClusterDetails2():
     distinctValues = request.args.get('groupDistValues','yes')
     properties = request.args.getlist('properties[]')
-    cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
+    cluster_json = request.args.get('cluster') #{id, nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
+    # cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
 
     # print properties
 
@@ -2714,6 +2711,7 @@ def datasetLinkingClusterDetails2():
     # print properties
     print cluster['nodes']
     print cluster['links']
+    print cluster['dict']
 
     response = Clt.cluster_values2(cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
@@ -2737,31 +2735,19 @@ def datasetLinkingClusterDetails2():
 
             nodes += [{"id": results[-1][3]+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
 
+            dict = cluster['dict']
             for n in nodes[:-1]:
-                if (nodes[-1]['uri'], n['uri']) in cluster['links']:
-                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150}]
+                if (nodes[-1]['uri'], n['uri']) in dict:
+                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": dict[(nodes[-1]['uri'], n['uri'])]}]
                 elif (n['uri'], nodes[-1]['uri']) in cluster['links']:
-                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150}]
+                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": dict[(n['uri'], nodes[-1]['uri'])]}]
 
         obj_metrics = plots.metric(cluster['links'])
         message = obj_metrics['message'].replace('\n','</br>')
-        # call plots.metric(array of tuples)
-        # network = []
-        # for i in range(1, position):
-        #     for j in range(1, position):
-        #         if (i, j) in (i_cluster[1][St.matrix_d]) and (i_cluster[1][St.matrix_d])[(i, j)] != 0:
-        #             r = (i_cluster[1][St.matrix_d])[(i, 0)]
-        #             c = (i_cluster[1][St.matrix_d])[(0, j)]
-        #             # r_name = r[-25:]
-        #             # c_name = c[-25:]
-        #             r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
-        #             c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
-        #             # r_smart = {"key": i, "name": r_name}
-        #             # c_smart = {"key": j, "name": c_name}
-        #             network += [(r_name, c_name)]
 
+        confidence = min(cluster['dict'].items(), key=lambda value: value[1])[1]
         if len(nodes) > 0 and len(links) > 0:
-            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision']}
+            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(float(confidence),2)}
             print plot_graph
 
         message = "Have a look at the result in the table below"

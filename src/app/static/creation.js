@@ -5618,13 +5618,14 @@ function calculateDatasetCluster()
                 var obj = JSON.parse(data);
 
                 $('#dataset_linking_stats_cluster_results_details').html(obj.result);
-                $('#cluster_id_col').html(obj.graph.id);
+                $('#cluster_id_col').html(obj.graph.id + '<b>' + '</br>Confidence: ' + String(obj.graph.confidence) + '</b>');
                 $('#cluster_metrics_col').html(obj.graph.metrics);
                 $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
 
                 $('#graph_cluster').html('');
                 plotClusterGraph(obj.graph);
                 plot_Cluster_Scale(obj.graph.decision);
+//                plot_Cluster_Scale2(obj.graph.confidence, axisName='axis2', wraperName='wraper2');
 
                 });
             }
@@ -6001,7 +6002,14 @@ function plotClusterGraph(graph)
     .selectAll("line")
     .data(graph.links)
     .enter().append("line")
-      .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+      .style("stroke-width", function(d) { return Math.sqrt(d.value); })
+//      .style("stroke", "red")
+      .style("stroke", function(d) { if (d.strenght < 1)
+                                        return "red";
+                                    return "black"; })
+      .style("stroke-dasharray", function(d) {  var space = String(20*(1-d.strenght));
+                                                return ("3," + space ) } );
+//      .style("stroke-dasharray", ("3, 0.5"));
 
   var node = svg.append("g")
       .attr("class", "nodes")
@@ -6051,7 +6059,7 @@ function plotClusterGraph(graph)
 }
 
 
-function plot_Cluster_Scale(decision)
+function plot_Cluster_Scale(value)
 {
 var data = [0, 1];
 var extent = d3.extent(data);
@@ -6071,18 +6079,21 @@ d3.select('.axis')
 
 var quantizeScale = d3.scaleQuantize()
   .domain([0, 100])
+//  .range(['red', 'red', 'red', 'red', 'red',
+//  'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'orange', 'orange', 'orange', 'green', 'green']);
   .range(['green', 'green', 'orange', 'orange', 'orange', 'red', 'red', 'red', 'red', 'red',
   'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red']);
 
-quantizeScale(10);   // returns 'lightblue'
-quantizeScale(30);  // returns 'orange'
-quantizeScale(90);  // returns 'pink'
+//quantizeScale(10);   // returns 'lightblue'
+//quantizeScale(30);  // returns 'orange'
+//quantizeScale(90);  // returns 'pink'
 
 var linearScale2 = d3.scaleLinear()
 	.domain([0, 100])
 	.range([0, 600]);
 
-var myData = d3.range(0, decision*100 +1, 1);
+//var myData = d3.range(0, value*100, 1);
+var myData = d3.range(0, value*100 +1, 1);
 
 var p = d3.select('#wrapper');
 
@@ -6095,6 +6106,9 @@ p.selectAll("*").remove();
 	.attr('x', function(d) {
 		return linearScale2(d);
 	})
+//	.attr('y', function(d) {
+//		return 0.8;
+//	})
 	.attr('width', 5)
 	.attr('height', 30)
 	.style('fill', function(d) {
@@ -6104,4 +6118,57 @@ p.selectAll("*").remove();
 
 }
 
+function plot_Cluster_Scale2(value, axisName='axis1', wraperName='wraper1')
+{
+var data = [0, 1];
+var extent = d3.extent(data);
+
+var linearScale = d3.scaleLinear()
+  .domain(extent)
+  .range([0, 600]);
+
+linearScale.nice();
+
+var axis = d3.axisBottom(linearScale);
+
+d3.select('#'+axisName)
+	.call(axis);
+
+axis.selectAll("*").remove();
+
+var quantizeScale = d3.scaleQuantize()
+  .domain([0, 100])
+  .range(['red', 'red', 'red', 'red', 'red',
+  'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'red', 'orange', 'orange', 'orange', 'green', 'green']);
+
+
+var linearScale2 = d3.scaleLinear()
+	.domain([0, 100])
+	.range([0, 600]);
+
+var myData = d3.range(0, value*100, 1);
+//var myData = d3.range(0, value*100 +1, 1);
+
+var p = d3.select('#'+wraperName);
+
+p.selectAll("*").remove();
+
+	p.selectAll('rect')
+	.data(myData)
+	.enter()
+	.append('rect')
+	.attr('x', function(d) {
+		return linearScale2(d);
+	})
+//	.attr('y', function(d) {
+//		return 0.8;
+//	})
+	.attr('width', 5)
+	.attr('height', 30)
+	.style('fill', function(d) {
+		return quantizeScale(d);
+	});
+
+
+}
 
