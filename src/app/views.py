@@ -2631,7 +2631,7 @@ def datasetLinkingClusters2():
                 if key not in response_dic:
                     response_dic[key] = result[i][2]
 
-        print "!!!!!!!!!!!!!!!", response_dic
+        # print "!!!!!!!!!!!!!!!", response_dic
 
 
         # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
