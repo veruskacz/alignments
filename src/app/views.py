@@ -2631,7 +2631,7 @@ def datasetLinkingClusters2():
                 if key not in response_dic:
                     response_dic[key] = result[i][2]
 
-        print "!!!!!!!!!!!!!!!", response_dic
+        # print "!!!!!!!!!!!!!!!", response_dic
 
 
         # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
@@ -2745,9 +2745,25 @@ def datasetLinkingClusterDetails2():
         obj_metrics = plots.metric(cluster['links'])
         message = obj_metrics['message'].replace('\n','</br>')
 
+        # confidence = min(cluster['dict'].items(), key=lambda value: value[1])[1]
+        # confidence = min(cluster['dict'].items(), key=lambda value: value[1] if len(value[1]) > 0 else 2)[1]
+        messageConf = ''
+        for k, value in cluster['dict'].items():
+            # print 'V', value[1], type(value[1]), len(value[1])
+            if len(value) == 0:
+                cluster['dict'][k] = 0.5
+                messageConf = 'Some links have no strenght, those are set to 0.5'
         confidence = min(cluster['dict'].items(), key=lambda value: value[1])[1]
+
         if len(nodes) > 0 and len(links) > 0:
-            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(float(confidence),2)}
+            # print cluster['dict'].items()
+            # print 'Conf.', confidence
+            try:
+                confidence = float(confidence)
+            except:
+                print 'Missing confidence value, set to 1.'
+                confidence = 1
+            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
             print plot_graph
 
         message = "Have a look at the result in the table below"
