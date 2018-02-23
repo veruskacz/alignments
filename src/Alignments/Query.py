@@ -3200,8 +3200,8 @@ def virtuoso_request(query):
     """
         Authentication
     """
-    user = "admin"
-    password = "adminT314a"
+    user = Svr.settings[St.stardog_user]
+    password = Svr.settings[St.stardog_pass]
     # password = "admin"
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
@@ -3254,16 +3254,7 @@ def remote_endpoint_request(query, endpoint_url):
     """
 
     q = to_bytes(query)
-    # print query
-    # Content-Type: application/json
-    # b"Accept": b"text/json"
-    # 'output': 'application/sparql-results+json'
-    # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
-    # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
-    #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
-
     url = endpoint_url
-
     params = urllib.urlencode(
         {b'query': q, b'default-graph-uri': '', b'format': b'text/turtle',
          b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
@@ -3272,9 +3263,8 @@ def remote_endpoint_request(query, endpoint_url):
     """
         Authentication
     """
-    user = "admin"
-    password = "adminT314a"
-    # password = "admin"
+    user = Svr.settings[St.stardog_user]
+    password = Svr.settings[St.stardog_pass]
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
@@ -3283,11 +3273,7 @@ def remote_endpoint_request(query, endpoint_url):
 
     try:
         response = urllib2.urlopen(request)
-        # print "RESPONSE CODE:", response.code
         result = response.read()
-        # print result
-        # print "NONE", result is None
-        # print "EMPTY", len(result)
         return {St.message: "OK", St.result: result, "response_code": response.code}
 
     except urllib2.HTTPError, err:
@@ -3300,8 +3286,6 @@ def remote_endpoint_request(query, endpoint_url):
     except Exception as err:
 
         if str(err).__contains__("No connection") is True:
-            # logger.warning(err)
-            # print ERROR
             return {St.message: ERROR, St.result: None}
 
         elif str(err.message).__contains__("timeout") is True:
@@ -3315,7 +3299,9 @@ def remote_endpoint_request(query, endpoint_url):
         return {St.message: err, St.result: None}
 
 
-def remote_stardog(query):
+
+
+def remote_stardog(query, endpoint, user, password):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
@@ -3324,29 +3310,15 @@ def remote_stardog(query):
         return              : returns the result of the query in the default format of the endpoint.
                             In the case of STARDOG, the sever returns an XML result.
     """
-
-    q = to_bytes(query)
-    # print query
-    # Content-Type: application/json
-    # b"Accept": b"text/json"
-    # 'output': 'application/sparql-results+json'
-    # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
-    # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
-    #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
-
-    url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
-    # print url
+    url = endpoint
     params = urllib.urlencode(
-        {b'query': q, b'format': b'application/sparql-results+json',
+        {b'query':  to_bytes(query), b'format': b'application/sparql-results+json',
          b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
     headers = {b"Content-Type": b"application/x-www-form-urlencoded"}
 
     """
         Authentication
     """
-    user = "admin"
-    password = "adminT314a"
-    # password = "admin"
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
@@ -3355,9 +3327,6 @@ def remote_stardog(query):
     try:
         response = urllib2.urlopen(request)
         result = response.read()
-        # print result
-        # print "NONE", result is None
-        # print "EMPTY", len(result)
         return {St.message: "OK", St.result: result}
 
     except urllib2.HTTPError, err:
@@ -3370,8 +3339,6 @@ def remote_stardog(query):
     except Exception as err:
 
         if str(err).__contains__("No connection") is True:
-            # logger.warning(err)
-            # print ERROR
             return {St.message: ERROR, St.result: None}
 
         elif str(err.message).__contains__("timeout") is True:
