@@ -650,6 +650,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
                 f_writer.write(response)
             else:
                 f_writer.write((response.strip())[1:-1])
+                response = response.replace("<<", "<").replace(">>",">")
             f_writer.close()
 
         # if i == 1:
