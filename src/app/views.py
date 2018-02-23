@@ -2590,33 +2590,77 @@ def datasetLinkingClusters2():
                 else "P{}".format(smallest_hash)
 
         # QUERY FOR FETCHING ALL LINKED RESOURCES FROM THE LINKSET
+        # EXAMPLE
+        # PREFIX prov: <http://www.w3.org/ns/prov#>
+        # PREFIX ll: <http://risis.eu/alignment/predicate/>
+        # SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
+        # {
+        #     VALUES ?lookup{
+        #         <http://www.grid.ac/institutes/grid.411798.2>
+        #         <http://risis.eu/orgreg_20170718/resource/CH2004>
+        #         <http://www.grid.ac/institutes/grid.150338.c> }
+        #
+        #     {
+        #         GRAPH <http://risis.eu/linkset/grid_20170712_orgreg_20170718_approxStrSim_Organization_label_P384246094>
+        #         { ?lookup ?predicate ?object .}
+        #     } UNION
+        #     {
+        #         GRAPH <http://risis.eu/linkset/grid_20170712_orgreg_20170718_approxStrSim_Organization_label_P384246094>
+        #         {?object ?predicate ?lookup . }
+        #     }
+        #
+        #     {
+        #         GRAPH <http://risis.eu/singletons/grid_20170712_orgreg_20170718_approxStrSim_Organization_label_P384246094>
+        #         {
+        #             ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
+        #             OPTIONAL { ?DerivedFrom  ll:hasStrength  ?Strength . }
+        #             OPTIONAL { ?DerivedFrom  ll:hasEvidence  ?Evidence . }
+        #         }
+        #     } UNION
+        #     {
+        #     GRAPH <http://risis.eu/singletons/grid_20170712_orgreg_20170718_approxStrSim_Organization_label_P384246094>
+        #         {
+        #             ?predicate  ll:hasStrength  ?Strength .
+        #         }
+        #     }
+        # }
+
+
         query = """
-                PREFIX prov: <{3}>
-                PREFIX ll: <{4}>
-                SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
+        PREFIX prov: <{3}>
+        PREFIX ll: <{4}>
+        SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
+        {{
+            VALUES ?lookup{{ {0} }}
+
+            {{
+                GRAPH <{1}>
+                {{ ?lookup ?predicate ?object .}}
+            }} UNION
+            {{
+                GRAPH <{1}>
+                {{?object ?predicate ?lookup . }}
+            }}
+
+            {{
+                GRAPH <{2}>
                 {{
-                    VALUES ?lookup{{ {0} }}
-
-                    {{
-                        GRAPH <{1}>
-                        {{ ?lookup ?predicate ?object .}}
-                    }} UNION
-                    {{
-                        GRAPH <{1}>
-                        {{?object ?predicate ?lookup . }}
-                    }}
-
-                    GRAPH <{2}>
-                    {{
-                        ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
-                        OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
-                        OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
-                    }}
+                    ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
+                    OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
+                    OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
                 }}
-                            """.format(resources, alignments[0],
-                                       Ut.from_alignment2singleton(alignments[0]),
-                                       # alignments[0].replace("lens", "singletons"),
-                                       Ns.prov, Ns.alivocab)
+            }} UNION
+            {{
+            GRAPH <{2}>
+                {{
+                    ?predicate  ll:hasStrength  ?Strength .
+                }}
+            }}
+        }}
+                    """.format(resources, alignments[0],
+                               Ut.from_alignment2singleton(alignments[0]),
+                               # alignments[0].replace("lens", "singletons"),
+                               Ns.prov, Ns.alivocab)
         # print query
 
         # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
