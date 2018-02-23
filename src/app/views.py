@@ -2656,9 +2656,7 @@ def datasetLinkingClusters2():
                     ?predicate  ll:hasStrength  ?Strength .
                 }}
             }}
-        }}
-                    """.format(resources, alignments[0],
-                               Ut.from_alignment2singleton(alignments[0]),
+        }}""".format(resources, alignments[0], Ut.from_alignment2singleton(alignments[0]),
                                # alignments[0].replace("lens", "singletons"),
                                Ns.prov, Ns.alivocab)
         # print query
