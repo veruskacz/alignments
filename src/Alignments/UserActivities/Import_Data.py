@@ -754,7 +754,7 @@ def download_research_question(research_question):
     # **************************************************
     # 2. ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
     # **************************************************
-    #
+
     linkset_query = """
     CONSTRUCT {{ ?subject  ?predicate ?object. }}
     WHERE
@@ -779,8 +779,8 @@ def download_research_question(research_question):
 	{{
 		graph <{}>
 		{{
-			?mappings  a riclass:AlignmentMapping .
-			?mappings  ll:created ?linkset .
+			?mappings  a <http://risis.eu/class/AlignmentMapping> .
+			?mappings  <http://risis.eu/alignment/predicate/created> ?linkset .
 		}}
 	}}
     """.format(research_question)
@@ -872,6 +872,10 @@ def download_research_question(research_question):
                                   directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
                                   main_query=current_ls_query, count_query=current_ls_query_count, activated=True)
 
+
+    # **************************************************
+    # 2. ALL LENSES CREATED FOR THE RESEARCH QUESTION
+    # **************************************************
 
 
     # download_stardog_data(endpoint, entity_type="Research Question", graph=research_question,
