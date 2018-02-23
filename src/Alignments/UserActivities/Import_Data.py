@@ -639,28 +639,35 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
 
         if len(response) > 0 and str(response).__contains__("{"):
             #  CREATE THE FILE
-            f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i + 1))
+            if create_graph is True:
+                f_path = "{}/{}_{}.trig".format(directory, entity_type, str(i + 1))
+            else:
+                f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i + 1))
+
             f_writer = open(f_path, "wb")
             if create_graph is True:
                 f_writer.write("<{}>".format(graph))
-            f_writer.write(response)
+                f_writer.write(response)
+            else:
+                f_writer.write((response.strip())[1:-1])
             f_writer.close()
 
         # if i == 1:
         #     break
 
     print ""
-    # GENERATE THE BATCH FILE AND LOAD THE DATA
-    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
-    b_file = "{}/{}{}".format(directory, entity_type, Ut.batch_extension())
-    b_writer = open(b_file, "wb")
-    load_text = """echo "Loading data"
-    {}stardog data add {} -g {} "{}/"*.ttl
-    """.format(stardog_path, Svr.DATABASE, graph, directory)
-    b_writer.write(load_text)
-    b_writer.close()
-    os.chmod(b_file, 0o777)
     if load is True:
+        # GENERATE THE BATCH FILE AND LOAD THE DATA
+        stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+        b_file = "{}/{}{}".format(directory, entity_type, Ut.batch_extension())
+        b_writer = open(b_file, "wb")
+        load_text = """echo "Loading data"
+        {}stardog data add {} -g {} "{}/"*.ttl
+        """.format(stardog_path, Svr.DATABASE, graph, directory)
+        b_writer.write(load_text)
+        b_writer.close()
+        os.chmod(b_file, 0o777)
+
         Ut.batch_load(b_file)
 
         message = "You have just successfully downloaded [{}] triples." \
