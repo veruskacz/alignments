@@ -434,6 +434,33 @@ def import_graph(file_path, upload_folder, upload_archive, parent_predicate_inde
 def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
                   start_at=0, main_query=None, count_query=None, activated=False):
 
+    # ENTITY TYPE IS USED ONLY FOR THE FILE NAME
+    # EXAMPLE
+    # endpoint      = "http://145.100.59.37:8891/sparql"
+    # graph         = "https://www.openaire.eu"
+    # e_type        = "OrganizationEntity"
+    # directory     = "D:\Linking2GRID\Data\OpenAire_20180219"
+    #
+    # main_query    = """CONSTRUCT {?organisation ?predicate ?object.}
+    # WHERE
+    # {
+    #   GRAPH <https://www.openaire.eu>
+    #   {
+    #     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+    #     ?organisation ?predicate ?object.
+    #   }
+    # }"""
+    #
+    # count_query = """SELECT(COUNT(?organisation) AS ?Total)
+    # WHERE
+    # {
+    #   GRAPH <https://www.openaire.eu>
+    #   {
+    #     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+    #     ?organisation ?predicate ?object.
+    #   }
+    # }"""
+
     if activated is False:
         print "\nTHE FUNCTION IS NOT ACTIVATED"
         return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
@@ -513,13 +540,139 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
     if load is True:
         Ut.batch_load(b_file)
 
-    message = "You have just successfully downloaded [{}] triples." \
-              "\n{} files where created in the folder [{}] and loaded " \
-              "into the [{}] dataset. ".format(triples, iterations, directory, Svr.DATABASE)
+        message = "You have just successfully downloaded [{}] triples." \
+                  "\n\t{} files where created in the folder [{}] and loaded " \
+                  "into the [{}] dataset. ".format(triples, iterations, directory, Svr.DATABASE)
+    else:
+        message = "You have just successfully downloaded [{}] triples." \
+                  "\n\t{} files where created in the folder [{}].".format(triples, iterations, directory)
 
     print "\n\t{}".format(message)
 
     print "\n\tJOB DONE!!!"
+
+    return {St.message: message, St.result: True}
+
+
+def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=False,
+                  start_at=0, main_query=None, count_query=None, create_graph=True, activated=False):
+
+    # ENTITY TYPE IS USED ONLY FOR THE FILE NAME
+    # EXAMPLE
+    # endpoint      = "http://145.100.59.37:8891/sparql"
+    # graph         = "https://www.openaire.eu"
+    # e_type        = "OrganizationEntity"
+    # directory     = "D:\Linking2GRID\Data\OpenAire_20180219"
+    #
+    # main_query    = """CONSTRUCT {?organisation ?predicate ?object.}
+    # WHERE
+    # {
+    #   GRAPH <https://www.openaire.eu>
+    #   {
+    #     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+    #     ?organisation ?predicate ?object.
+    #   }
+    # }"""
+    #
+    # count_query = """SELECT(COUNT(?organisation) AS ?Total)
+    # WHERE
+    # {
+    #   GRAPH <https://www.openaire.eu>
+    #   {
+    #     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+    #     ?organisation ?predicate ?object.
+    #   }
+    # }"""
+
+    if activated is False:
+        print "\nTHE FUNCTION IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
+
+    user = Svr.settings[St.stardog_user]
+    password = Svr.settings[St.stardog_pass]
+
+    # MAKE SURE THE FOLDER EXISTS
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError as err:
+        print "\n\t[download_data:]", err
+        return
+
+    triples = 0
+    print "\n\tENDPOINT  : {}\n\tDIRECTORY : {}".format(endpoint, directory)
+
+
+    # COUNT TRIPLES
+    count_res = Qry.sparql_xml_to_matrix(count_query)
+    result = count_res['result']
+
+    # GET THE TOTAL NUMBER OF TRIPLES
+    if result is None:
+        print "NO RESULT FOR THIS ENRICHMENT."
+        return count_res
+
+    if len(result) > 1:
+        triples =  int (result[1][0])
+
+    # NUMBER OF REQUEST NEEDED
+    iterations = triples / limit if triples % limit == 0 else triples / limit + 1
+    print "\n\tTOTAL TRIPLES TO RETREIVE  : {}\n\tTOTAL NUMBER OF ITERATIONS : {}\n".format(triples, iterations)
+
+    # ITERATIONS
+    for i in range(start_at, iterations):
+
+        if i == 0:
+            offset = 0
+        else:
+            offset = i * limit + 1
+
+        print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
+        current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
+        # print current_q
+        response = Qry.endpointconstruct(current_q)
+
+        # GET THE TOTAL NUMBER OF TRIPLES
+        if response is None:
+            print "NO RESULT FOR THIS ENRICHMENT."
+            return count_res
+
+        if len(response) > 0 and str(response).__contains__("{"):
+            #  CREATE THE FILE
+            f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i + 1))
+            f_writer = open(f_path, "wb")
+            if create_graph is True:
+                f_writer.write("<{}>".format(graph))
+            f_writer.write(response)
+            f_writer.close()
+
+        # if i == 1:
+        #     break
+
+    print ""
+    # GENERATE THE BATCH FILE AND LOAD THE DATA
+    stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
+    b_file = "{}/{}{}".format(directory, entity_type, Ut.batch_extension())
+    b_writer = open(b_file, "wb")
+    load_text = """echo "Loading data"
+    {}stardog data add {} -g {} "{}/"*.ttl
+    """.format(stardog_path, Svr.DATABASE, graph, directory)
+    b_writer.write(load_text)
+    b_writer.close()
+    os.chmod(b_file, 0o777)
+    if load is True:
+        Ut.batch_load(b_file)
+
+        message = "You have just successfully downloaded [{}] triples." \
+                  "\n\t{} files where created in the folder [{}] and loaded " \
+                  "into the [{}] dataset. ".format(triples, iterations, directory, Svr.DATABASE)
+    else:
+        message = "You have just successfully downloaded [{}] triples." \
+                  "\n\t{} files where created in the folder [{}].".format(triples, iterations, directory)
+
+    print "\n\t{}".format(message)
+
+    print "\n\tDOWNLOAD DONE!!!"
 
     return {St.message: message, St.result: True}
 
@@ -534,3 +687,195 @@ file_3 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\LODmapping.ttl"
 # import_graph(file_path=file_1, parent_predicate_index=0, detail=False)
 
 # extract_predicates(file_1)
+
+# DOWNLOADING OPENAIRE FORM
+# endpoint = "http://145.100.59.37:8891/sparql"
+# graph =  "https://www.openaire.eu"
+# e_type = "OrganizationEntity"
+# directory = "D:\Linking2GRID\Data\OpenAire_20180219"
+# main_query = """CONSTRUCT {?organisation ?predicate ?object.}
+# WHERE
+# {
+#   GRAPH <https://www.openaire.eu>
+#   {
+#     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+#     ?organisation ?predicate ?object.
+#   }
+# }"""
+#
+# count_query = """SELECT(COUNT(?organisation) AS ?Total)
+# WHERE
+# {
+#   GRAPH <https://www.openaire.eu>
+#   {
+#     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+#     ?organisation ?predicate ?object.
+#   }
+# }"""
+#
+# download_data(endpoint=endpoint, entity_type=e_type, graph=graph, directory=directory,  limit=10000, load=False,
+#                   start_at=0, main_query=main_query, count_query=count_query, activated=True)
+
+
+def download_research_question(research_question):
+
+    DATABASE = Svr.DATABASE
+    HOST = Svr.settings[St.stardog_host_name]
+    endpoint = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
+
+    # **************************************************
+    # 1. DOWNLOAD ALL TRIPLES IN THE IDEA GRAPH
+    # **************************************************
+
+    idea_query = """
+    CONSTRUCT {{ ?idea ?predicate ?objects. }} WHERE
+    {{
+        graph <{}>
+        {{
+            ?idea ?predicate ?objects
+        }}
+    }}
+    """.format(research_question)
+
+    idea_total = """
+    SELECT (count(?idea) as ?total)
+	{
+		graph <http://risis.eu/activity/idea_3944ec>
+		{
+			?idea ?predicate ?objects
+		}
+	}
+    """
+
+    download_stardog_data(endpoint, entity_type="Research Question", graph=research_question,
+                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+                  main_query=idea_query, count_query=idea_total, activated=True)
+
+    # **************************************************
+    # 2. ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
+    # **************************************************
+    #
+    linkset_query = """
+    CONSTRUCT {{ ?subject  ?predicate ?object. }}
+    WHERE
+    {{
+        graph <{}>
+        {{
+            ?subject  ?predicate ?object.
+        }}
+    }}"""
+
+    linkset_count_query = """
+    SELECT ( count(?subject) as ?total)
+    {{
+        graph <{}>
+        {{
+            ?subject  ?predicate ?object.
+        }}
+    }}"""
+
+    linksets_query = """
+    SELECT DISTINCT ?linkset
+	{{
+		graph <{}>
+		{{
+			?mappings  a riclass:AlignmentMapping .
+			?mappings  ll:created ?linkset .
+		}}
+	}}
+    """.format(research_question)
+
+    linkset_sing_q = """
+    CONSTRUCT {{ ?subject ?predicate  ?object . }}
+    WHERE
+    {{
+        GRAPH <{}>
+        {{
+            ?subject ?predicate  ?object .
+        }}
+    }}"""
+
+    linkset_sing_COUNT = """
+    SELECT ( COUNT(?subject) AS ?total )
+    {{
+        GRAPH <{}>
+        {{
+            ?subject ?predicate  ?object .
+        }}
+    }}"""
+
+    linkset_gen_q = """
+    CONSTRUCT
+    {{
+        <{0}>  ?pre_1 ?obj_1 .
+        ?object_1 ?pred_2 ?object_2 .
+        ?object_2 ?pred_3 ?object_3 .
+    }}
+    WHERE
+	{{
+        <{0}>
+            ?pre_1 ?obj_1 .
+
+        OPTIONAL
+        {{
+            ?object_1 ?pred_2 ?object_2
+            OPTIONAL{{ ?object_2 ?pred_3 ?object_3 }}.
+        }}
+	}}
+    """
+
+    linkset_gen_c = """
+    SELECT ( COUNT(?object_1) AS ?total)
+	{{
+        <{}>
+            ?pre_1 ?object_1 .
+
+        OPTIONAL
+        {{
+            ?object_1 ?pred_2 ?object_2
+            OPTIONAL{{ ?object_2 ?pred_3 ?object_3 . }}
+        }}
+	}}
+    """
+
+    linkset = Qr.sparql_xml_to_matrix(linksets_query)
+    linkset_result = linkset[St.result]
+    if len(linkset_result) > 1:
+        for i in range(1, len(linkset_result)):
+
+            linkset_graph = linkset_result[i][0]
+            print "\n\tDOWNLOAD {:6}: {}".format(i, linkset_graph)
+
+            current_ls_query_count = linkset_count_query.format(linkset_graph)
+            current_ls_query = linkset_query.format(linkset_graph)
+
+            current_singleton_graph = Ut.from_alignment2singleton(linkset_graph)
+            current_singleton_q = linkset_sing_q.format(current_singleton_graph)
+            current_singleton_c = linkset_sing_COUNT.format(current_singleton_graph)
+
+            current_gen_q = linkset_gen_q.format(linkset_graph)
+            current_gen_c = linkset_gen_c.format(linkset_graph)
+
+            # DOWNLOAD THE GENERIC METADATA
+            download_stardog_data(endpoint, entity_type="general_ls_meta_{}".format(i), graph=linkset_graph,
+                                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+                                  main_query=current_gen_q, count_query=current_gen_c, create_graph=False,
+                                  activated=True)
+
+            # DOWNLOAD THE SINGLETON METADATA
+            download_stardog_data(endpoint, entity_type="singletons_{}".format(i), graph=current_singleton_graph,
+                                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+                                  main_query=current_singleton_q, count_query=current_singleton_c, activated=True)
+
+            # DOWNLOAD THE LINKSET
+            download_stardog_data(endpoint, entity_type="linkset_{}".format(i), graph=linkset_graph,
+                                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+                                  main_query=current_ls_query, count_query=current_ls_query_count, activated=True)
+
+
+
+    # download_stardog_data(endpoint, entity_type="Research Question", graph=research_question,
+    #                       directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+    #                       main_query=linksets_query, count_query=linkset_count_query, activated=True)
+
+download_research_question("http://risis.eu/activity/idea_3944ec")
