@@ -817,14 +817,14 @@ def download_research_question(research_question):
     linkset_gen_q = """
     CONSTRUCT
     {{
-        <{0}>  ?pre_1 ?obj_1 .
+        <{0}>  ?pre_1 ?object_1 .
         ?object_1 ?pred_2 ?object_2 .
         ?object_2 ?pred_3 ?object_3 .
     }}
     WHERE
 	{{
         <{0}>
-            ?pre_1 ?obj_1 .
+            ?pre_1 ?object_1 .
 
         OPTIONAL
         {{
