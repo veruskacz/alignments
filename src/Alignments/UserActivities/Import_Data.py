@@ -642,16 +642,25 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
             #  CREATE THE FILE
             if create_graph is True:
                 f_path = "{}/{}_{}.trig".format(directory, entity_type, str(i + 1))
+            elif insert is True:
+                f_path = "{}/{}_{}.sparql".format(directory, entity_type, str(i + 1))
             else:
                 f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i + 1))
 
             f_writer = open(f_path, "wb")
-            if create_graph is True:
+
+            if create_graph is True and insert is False:
                 f_writer.write("<{}>".format(graph))
                 f_writer.write(response)
+                
+            elif create_graph is True and insert is True:
+
+                response = response.replace("INSERT", "INSERT {{ GRAPH <{}>".format(graph) )
+                response = response.replace("WHERE", "} WHERE")
+                f_writer.write(response)
             else:
-                response = (response.strip())[1:-1]
-                response = response.replace("<<", "<").replace(">>", ">")
+                # response = (response.strip())[1:-1]
+                # response = response.replace("<<", "<").replace(">>", ">")
                 f_writer.write(response)
 
             f_writer.close()
@@ -869,12 +878,13 @@ def download_research_question(research_question, directory):
             download_stardog_data(endpoint, entity_type="general_ls_meta_{}".format(i), graph=linkset_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,
                                   main_query=current_gen_q, count_query=current_gen_c, create_graph=False,
-                                  cleanup=False, insert=True, activated=True)
+                                  cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE SINGLETON METADATA
             download_stardog_data(endpoint, entity_type="singletons_{}".format(i), graph=current_singleton_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,
-                                  main_query=current_singleton_q, count_query=current_singleton_c, activated=True)
+                                  main_query=current_singleton_q, count_query=current_singleton_c, create_graph=False,
+                                  cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE LINKSET
             download_stardog_data(endpoint, entity_type="linkset_{}".format(i), graph=linkset_graph,
