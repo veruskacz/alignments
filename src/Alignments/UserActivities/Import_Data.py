@@ -658,9 +658,13 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
 
             elif create_graph is True and insert is True:
 
-                response = response.replace("INSERT", "INSERT {{ GRAPH <{}>".format(graph) )
-                response = response.replace("WHERE", "} WHERE")
-                f_writer.write(response)
+                if response.__contains__("INSERT DATA"):
+                    response = response.replace("INSERT DATA", "INSERT DATA {{ GRAPH <{}> ".format(graph)) + "}"
+                    f_writer.write(response)
+                else:
+                    response = response.replace("INSERT", "INSERT {{ GRAPH <{}>".format(graph) )
+                    response = response.replace("WHERE", "} WHERE")
+                    f_writer.write(response)
             else:
                 # response = (response.strip())[1:-1]
                 # response = response.replace("<<", "<").replace(">>", ">")
@@ -762,17 +766,18 @@ def download_research_question(research_question, directory):
 
     idea_total = """
     SELECT (count(?idea) as ?total)
-	{
-		graph <http://risis.eu/activity/idea_3944ec>
-		{
+	{{
+		graph <{}>
+		{{
 			?idea ?predicate ?objects
-		}
-	}
-    """
+		}}
+	}}
+    """.format(research_question)
 
     download_stardog_data(endpoint, entity_type="Research Question", graph=research_question,
-                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
-                  main_query=idea_query, count_query=idea_total, activated=True)
+                  directory=directory, limit=10000, load=False, start_at=0,
+                  main_query=idea_query, count_query=idea_total, create_graph=True,
+                          cleanup=True, insert=True,activated=True,  )
 
     # **************************************************
     # 2. ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
@@ -904,4 +909,4 @@ def download_research_question(research_question, directory):
     #                       directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
     #                       main_query=linksets_query, count_query=linkset_count_query, activated=True)
 
-# download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
+download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")

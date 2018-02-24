@@ -462,7 +462,8 @@ def endpointconstruct(query, clean=True, insert=False):
                     inserting.write("WHERE {{\n{}}}".format(bind))
                     return inserting.getvalue()
 
-
+            elif insert is True:
+                result = "INSERT DATA {}".format(result)
 
         return result
 
