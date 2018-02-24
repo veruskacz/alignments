@@ -416,7 +416,33 @@ def endpointconstruct(query, clean=True, insert=False):
             # <<http://dbpedia.org/ontology/author\>/<http://dbpedia.org/property/name\>>
             regex_result = re.findall("<(<[^<>]*\\\\*>)>", result)
 
+            # if len(regex_result) > 0:
+            #
+            #     # CLEANING UP THE  MESS
+            #     bind = "\t### BINDING THIS BECAUSE STARDOG MESSES UP THE RESULT WHEN USING PROPERTY PATH\n"
+            #     for i in range(len(regex_result)):
+            #         # SOLVING THE PROBLEM BY INSERTING SOME VARIABLE BINDINGS
+            #         result = result.replace("<{}>".format(regex_result[i]), "?LINK_{}".format(i))
+            #         bind += "\tBIND( IRI(\"{}\") AS ?LINK_{} )\n".format(regex_result[i].replace("\>", ">"), i)
+            #
+            #     # FINAL CLEANING
+            #     if insert is False:
+            #         result = result.replace("{", "{{\n{}".format(bind))
+            #         # print "RESPONSE RESULT ALTERED:", result
+            #     else:
+            #         inserting = Buffer.StringIO()
+            #         inserting.write("INSERT\n")
+            #         inserting.write(result)
+            #         inserting.write("WHERE {{\n{}}}".format(bind))
+            #         return inserting.getvalue()
+
+
+
+
             if len(regex_result) > 0:
+
+                # remove duplicates
+                regex_result = list(set(regex_result))
 
                 # CLEANING UP THE  MESS
                 bind = "\t### BINDING THIS BECAUSE STARDOG MESSES UP THE RESULT WHEN USING PROPERTY PATH\n"
@@ -435,6 +461,8 @@ def endpointconstruct(query, clean=True, insert=False):
                     inserting.write(result)
                     inserting.write("WHERE {{\n{}}}".format(bind))
                     return inserting.getvalue()
+
+
 
         return result
 

@@ -640,10 +640,13 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
 
         if len(response) > 0 and str(response).__contains__("{"):
             #  CREATE THE FILE
-            if create_graph is True:
-                f_path = "{}/{}_{}.trig".format(directory, entity_type, str(i + 1))
-            elif insert is True:
+
+            if insert is True:
                 f_path = "{}/{}_{}.sparql".format(directory, entity_type, str(i + 1))
+
+            elif create_graph is True:
+                f_path = "{}/{}_{}.trig".format(directory, entity_type, str(i + 1))
+
             else:
                 f_path = "{}/{}_{}.ttl".format(directory, entity_type, str(i + 1))
 
@@ -652,7 +655,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
             if create_graph is True and insert is False:
                 f_writer.write("<{}>".format(graph))
                 f_writer.write(response)
-                
+
             elif create_graph is True and insert is True:
 
                 response = response.replace("INSERT", "INSERT {{ GRAPH <{}>".format(graph) )
@@ -883,7 +886,7 @@ def download_research_question(research_question, directory):
             # DOWNLOAD THE SINGLETON METADATA
             download_stardog_data(endpoint, entity_type="singletons_{}".format(i), graph=current_singleton_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,
-                                  main_query=current_singleton_q, count_query=current_singleton_c, create_graph=False,
+                                  main_query=current_singleton_q, count_query=current_singleton_c, create_graph=True,
                                   cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE LINKSET
