@@ -110,6 +110,43 @@ def get_uri_local_name(uri, sep="_"):
             return name
 
 
+def get_uri_local_name_plus(uri, sep="_"):
+    # print "URI: {}".format(uri)
+    # print type(uri)
+
+    if uri is None:
+        return None
+
+    if len(uri) == 0:
+        return None
+
+    # if type(uri) is not str:
+    #     return None
+
+    check = re.findall("<([^<>]*)>/*", uri)
+
+    if is_property_path(uri) or is_nt_format(uri) or len(check) > 0:
+
+        name = ""
+        pro_list = check
+
+        for i in range(len(pro_list)):
+            local = get_uri_local_name_plus(pro_list[i])
+            if i == 0:
+                name = local
+            else:
+                name = "{}{}{}".format(name, sep, local)
+                # print ">>>> name: ", name
+        return name
+
+    else:
+        local = re.findall(".*[\/\#](.*)$", uri)
+        if len(local) > 0 and len(local[0]) > 0 :
+            return local[0]
+        else:
+            return uri
+
+
 def split_property_path(property_path):
 
     # example = """(" <http://www.grid.ac/ontology/hasAddress>  / <http://www.grid.ac/ontology/countryCode>")"""

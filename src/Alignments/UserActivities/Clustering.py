@@ -557,7 +557,7 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
     PREFIX dataset: <http://risis.eu/dataset/>
     PREFIX foaf: <http://xmlns.com/foaf/0.1/>
     PREFIX ll: <http://risis.eu/alignment/predicate/>
-    PREFIX skos:        <http://www.w3.org/2004/02/skos/core#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 
     SELECT DISTINCT {}
     {{
@@ -565,11 +565,70 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
         {}
     }} {} """.format(select, prop, union, group_by)
 
-    # print query
+    print query
     response = sparql2matrix(query)
     if display is True:
         Qry.display_matrix(response, spacing=50, is_activated=True)
     return response
+
+
+def cluster_values_plus(g_cluster, properties, distinct_values=True, display=False, limit_resources=100):
+
+    """
+    :param g_cluster: A LIST OF CLUSTERED RESOURCES
+    :param properties: A LIST OF PROPERTIES OF INTEREST
+    :param distinct_values: return distinct resources
+    :param display: display the matrix as a table
+    :param limit_resources: limit the number of resources to include in the cluster
+    :return: A DICTIONARY WHERE THE RESULT OF THE QUERY IS OBTAINED USING THE KEY: result
+    """
+    prop = ""
+    union = ""
+    # print "\nCLUSTER SIZE: {}".format(len(g_cluster))
+
+    for uri in properties:
+        prop += " <{}>".format(uri.strip())
+
+    for x in range(0, len(g_cluster)):
+        if limit_resources != 0 and x > limit_resources:
+            break
+        if x > 0:
+            append = "UNION"
+        else:
+            append = ""
+        union += """ {}
+        {{
+            bind(<{}> as ?resource)
+            graph ?dataset {{ ?resource ?property ?value . }}
+        }}""".format(append, g_cluster[x])
+
+    if distinct_values is True:
+        select = '?dataset ?value (count(distinct ?resource) as ?count)'
+        group_by = 'group by ?value ?dataset order by desc(?count)'
+    else:
+        select = '?dataset ?resource (GROUP_CONCAT(?property; SEPARATOR=" | ") as ?properties) (concat("[", ?temp ,"]") as ?values) (GROUP_CONCAT(?value; SEPARATOR="] [") as ?temp)'
+        group_by = 'group by ?dataset ?resource order by ?dataset ?resource '
+
+    query = """
+    PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
+    PREFIX dataset: <http://risis.eu/dataset/>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX ll: <http://risis.eu/alignment/predicate/>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+    SELECT DISTINCT {}
+    {{
+        values ?property {{{} }}
+        {}
+    }} {} """.format(select, prop, union, group_by)
+
+    print query
+    response = sparql2matrix(query)
+    if display is True:
+        Qry.display_matrix(response, spacing=50, is_activated=True)
+    return response
+
 
 
 def linkset_from_cluster():

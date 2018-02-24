@@ -2541,6 +2541,7 @@ def datasetLinkingClusterDetails():
         return json.dumps({'message': message, 'result': None, 'graph': {}})
 
 
+
 @app.route('/getDatasetLinkingClusters2')
 def datasetLinkingClusters2():
     # dataset = request.args.get('dataset', '')
@@ -2649,6 +2650,12 @@ def datasetLinkingClusters2():
                     OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
                     OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
                 }}
+                GRAPH ?g
+                {{
+                  	?DerivedFrom  ll:hasStrength  ?Strength ;
+                                  ll:hasEvidence  ?Evidence .
+                }}
+
             }} UNION
             {{
             GRAPH <{2}>
@@ -2659,7 +2666,7 @@ def datasetLinkingClusters2():
         }}""".format(resources, alignments[0], Ut.from_alignment2singleton(alignments[0]),
                                # alignments[0].replace("lens", "singletons"),
                                Ns.prov, Ns.alivocab)
-        # print query
+        print query
 
         # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
         response = sparql2matrix(query)
@@ -2755,10 +2762,10 @@ def datasetLinkingClusterDetails2():
     print cluster['links']
     print cluster['dict']
 
-    response = Clt.cluster_values2(cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
+    response = Clt.cluster_values_plus(cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
         # print response['result']
-        header = response['result'][0]
+        header = response['result'][0][:-1]
         results_x = response['result'][1:]
 
         results = []
@@ -2767,15 +2774,30 @@ def datasetLinkingClusterDetails2():
         links = []
         group = []
         for r in results_x:
-            results += [map(process_table_columns, r)]
-            dataset = results[-1][2]
+            results += [map(process_table_columns, r[:-1]) ]
+            dataset = results[-1][0]
+            node_names = results[-1][3]
+            node_names = node_names[1:-1].split('] [')
+            node_name = 'None'
+            for i in range(len(node_names)):
+                n = node_names[i]
+                if i == len(node_names)-1: # if it is the last/unique then take it
+                    node_name = n
+                else: # then there can always be another option (the bigger the better)
+                    if n.startswith("http") or n.startswith("<http") or n.startswith("www"):
+                        pass
+                    elif len(n) < len(node_names[i+1]):
+                        pass
+                    else:
+                        node_name = n
+                        break
             try:
                 index = group.index(dataset)
             except:
                 index = len(group)
                 group += [dataset]
 
-            nodes += [{"id": results[-1][3]+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
+            nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
 
             dict = cluster['dict']
             for n in nodes[:-1]:
@@ -3266,14 +3288,20 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-def process_table_columns(text):
+def process_table_columns(text, get_local_name=True):
     #text = 'http://goldenagents.org/datasets/Ecartico | http://goldenagents.org/datasets/BaptismRegistries002'
     if text.startswith("http") or text.startswith("<http"):
         ll = text.split("|")
         #ll = ll.sort()
         result = " ,"
         for l in ll:
-            result += Ut.get_uri_local_name(l.strip()) + ", "
+            l = l.strip()
+            if get_local_name:
+                result += Ut.get_uri_local_name_plus(l) + ", "
+            elif str(l):
+                result += l.decode('utf-8') + ", "
+            else:
+                result += l + ", "
         return result[2:-2]
     elif str(text):
         return text.decode('utf-8')
