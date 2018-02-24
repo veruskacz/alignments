@@ -555,7 +555,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
 
 
 def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=False,
-                  start_at=0, main_query=None, count_query=None, create_graph=True, activated=False):
+                  start_at=0, main_query=None, count_query=None, create_graph=True, cleanup=True, activated=False):
 
     # ENTITY TYPE IS USED ONLY FOR THE FILE NAME
     # EXAMPLE
@@ -630,7 +630,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
         print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
         current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
         # print current_q
-        response = Qry.endpointconstruct(current_q)
+        response = Qry.endpointconstruct(current_q, clean=cleanup)
 
         # GET THE TOTAL NUMBER OF TRIPLES
         if response is None:
@@ -829,7 +829,7 @@ def download_research_question(research_question):
         OPTIONAL
         {{
             ?object_1 ?pred_2 ?object_2
-            OPTIONAL{{ ?object_2 ?pred_3 ?object_3 }}.
+           e
         }}
 	}}
     """
@@ -870,7 +870,7 @@ def download_research_question(research_question):
             download_stardog_data(endpoint, entity_type="general_ls_meta_{}".format(i), graph=linkset_graph,
                                   directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
                                   main_query=current_gen_q, count_query=current_gen_c, create_graph=False,
-                                  activated=True)
+                                  cleanup=False, activated=True)
 
             # DOWNLOAD THE SINGLETON METADATA
             download_stardog_data(endpoint, entity_type="singletons_{}".format(i), graph=current_singleton_graph,
@@ -892,4 +892,4 @@ def download_research_question(research_question):
     #                       directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
     #                       main_query=linksets_query, count_query=linkset_count_query, activated=True)
 
-download_research_question("http://risis.eu/activity/idea_3944ec")
+# download_research_question("http://risis.eu/activity/idea_3944ec")

@@ -413,14 +413,16 @@ def endpointconstruct(query, clean=True):
         # <<http://dbpedia.org/ontology/author\>/<http://dbpedia.org/property/name\>>
         regex_result = re.findall("<(<.*>)>", result)
 
-        # CLEANING UP THE  MESS
-        bind = "\t### BINDING THIS BECAUSE STARDOG MESSES UP THE RESULT WHEN USING PROPERTY PATH\n"
-        for i in range(len(regex_result)):
-            # SOLVING THE PROBLEM BY INSERTING SOME VARIABLE BINDINGS
-            result = result.replace("<{}>".format(regex_result[i]), "?LINK_{}".format(i))
-            bind += "\tBIND( IRI(\"{}\") AS ?LINK_{} )\n".format(regex_result[i].replace("\>", ">"), i)
 
         if clean is True:
+
+            # CLEANING UP THE  MESS
+            bind = "\t### BINDING THIS BECAUSE STARDOG MESSES UP THE RESULT WHEN USING PROPERTY PATH\n"
+            for i in range(len(regex_result)):
+                # SOLVING THE PROBLEM BY INSERTING SOME VARIABLE BINDINGS
+                result = result.replace("<{}>".format(regex_result[i]), "?LINK_{}".format(i))
+                bind += "\tBIND( IRI(\"{}\") AS ?LINK_{} )\n".format(regex_result[i].replace("\>", ">"), i)
+
             # FINAL CLEANING
             if len(regex_result) > 0:
                 result = result.replace("{", "{{\n{}".format(bind))
