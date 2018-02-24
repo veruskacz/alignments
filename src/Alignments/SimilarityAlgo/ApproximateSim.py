@@ -327,7 +327,7 @@ def edit_distance(token_x, token_y):
         return 0
 
 
-# print edit_distance("", "")
+# print edit_distance("Porto".lower(), "Parma".lower())
 
 
 # pattern = str("[{}]".format(str("\.\-\,\+'\?;()").strip())).replace(" ", "")
@@ -678,16 +678,18 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     #################################################################
 
     # stop_words_string = "THE FOR IN THAT AND OF ON DE LA LES INC"
-    # stop_symbols_string = "\.\-\,\+'\?;()"
+    # stop_symbols_string = "\.\-\,\+'\?;()–"
 
     specs["specs"] = theta
     specs["stop_words_string"] = stop_words_string
     specs["stop_symbols_string"] = stop_symbols_string
+    specs[St.threshold] = theta
 
     debug = False
     start = time()
     print "\nStarted at {}".format(ctime(start))
     count = 0
+
 
     source = specs[St.source]
     target = specs[St.target]
@@ -700,7 +702,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     specs[St.graph] = specs[St.linkset]
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
     specs[St.insert_query] = "The generated triple file was uploaded to the server."
-    specs[St.threshold] = theta
+
 
     # STOP WORD DICTIONARY
     stop_word = dict()
@@ -719,7 +721,9 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
         corr_reducer = None
 
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
+    # print "BEFORE CHECK {}".format(specs[St.linkset])
     check = Ls.run_checks(specs, check_type="linkset")
+    # print "AFTER CHECK {}".format(specs[St.linkset])
     if check[St.result] != "GOOD TO GO":
         return check
     # print "LINKSET: {}".format(specs[St.linkset_name])
@@ -959,7 +963,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
             #         to_bytes(value_1), to_bytes(value_2), sim)
 
             # IF IMPORTANT BIGGER THAN THRESHOLD CONTINUE
-            if sim >= theta:
+            if sim >= theta * 0.75:
 
                 if debug is True:
                     writer.write("\nSOURCE:{} TARGET:{}".format(str(row), str(idx)))
