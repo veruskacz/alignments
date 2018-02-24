@@ -128,7 +128,7 @@ def stats(graph, display_table=False, display_text=False):
     return optional
 
 
-def stats_optimised(graph, display_table=False, display_text=False):
+def stats_optimised(graph, display_table=False, display_text=False, boolean=True):
 
     optional = dict()
     stat = {}
@@ -145,6 +145,7 @@ def stats_optimised(graph, display_table=False, display_text=False):
         }}
     }} GROUP by ?Types ?EntityType ORDER BY ?Graph
     """.format(graph)
+    # print qry_types
     types_matrix = sparql_xml_to_matrix(qry_types)
     # print types_matrix
     # if display_table:
@@ -201,7 +202,10 @@ def stats_optimised(graph, display_table=False, display_text=False):
                     for i in range(1, len(Occurrences)):
 
                         # THE PROPERTY IS THE KEY OF THE DICTIONARY
-                        cur_dic[Occurrences[i][0]] = int(Occurrences[i][1]) % float(instances) != 0
+                        if boolean is True:
+                            cur_dic[Occurrences[i][0]] = int(Occurrences[i][1]) % float(instances) != 0
+                        else:
+                            cur_dic[Occurrences[i][0]] = round(100 * int(Occurrences[i][1]) / float(instances),0)
 
     text.write("\nGRAPH: {}".format(graph))
     for key, value in optional.items():
@@ -228,5 +232,5 @@ def stats_optimised(graph, display_table=False, display_text=False):
 # stats("http://risis.eu/dataset/grid_20170522", display_table=False, display_text=True)
 # stats("http://risis.eu/dataset/Panellists", display_table=False, display_text=True)
 # stats("http://risis.eu/genderc/Applicant", display_table=True, display_text=True)
-# stats_optimised("http://risis.eu/dataset/grid", display_table=False, display_text=True)
+stats_optimised("http://risis.eu/dataset/grid_20170712", display_table=False, display_text=True)
 
