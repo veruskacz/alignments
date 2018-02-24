@@ -2666,7 +2666,7 @@ def datasetLinkingClusters2():
         }}""".format(resources, alignments[0], Ut.from_alignment2singleton(alignments[0]),
                                # alignments[0].replace("lens", "singletons"),
                                Ns.prov, Ns.alivocab)
-        print query
+        # print query
 
         # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
         response = sparql2matrix(query)
@@ -2746,6 +2746,7 @@ def datasetLinkingClusters2():
 
 @app.route('/getDatasetLinkingClusterDetails2')
 def datasetLinkingClusterDetails2():
+    research_question = request.args.get('research_question', '')
     distinctValues = request.args.get('groupDistValues','yes')
     properties = request.args.getlist('properties[]')
     cluster_json = request.args.get('cluster') #{id, nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
@@ -2762,7 +2763,7 @@ def datasetLinkingClusterDetails2():
     print cluster['links']
     print cluster['dict']
 
-    response = Clt.cluster_values_plus(cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
+    response = Clt.cluster_values_plus(research_question, cluster['nodes'], properties, distinct_values=(distinctValues=='yes'), limit_resources=0)
     if response['result'] and len(response['result']) > 1:
         # print response['result']
         header = response['result'][0][:-1]
