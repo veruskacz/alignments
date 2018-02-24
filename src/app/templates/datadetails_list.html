@@ -24,7 +24,11 @@
                       style="color:blue"
                       {% endif %}
                     >
-                  <strong> {{ e.obj.value }}</strong>
+                  <strong> {{ e.obj.value }}
+                  {% if (e.ratio) %}
+                      ({{ e.ratio.value }}%)
+                  {% endif %}
+                  </strong>
                 </span>
                 {% endif %}
             </li>

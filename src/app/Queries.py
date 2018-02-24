@@ -1323,7 +1323,8 @@ def get_predicates(graph, type=None, total=None, propPath=None, sub_uri='', sear
 
     # print "TOTAL:", total
     if total:
-        opt_query = '(count(distinct ?s)/{} as ?ratio) (((?ratio)-floor(?ratio))>0 as ?optional)'.format(str(total))
+        opt_query = '(floor(count(distinct ?s)/{}*100) as ?ratio) ((?ratio)<100 as ?optional)'.format(str(total))
+        # opt_query = '(count(distinct ?s)/{} as ?ratio) (((?ratio)-floor(?ratio))>0 as ?optional)'.format(str(total))
     else:
         opt_query = ''
 
