@@ -565,14 +565,14 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
         {}
     }} {} """.format(select, prop, union, group_by)
 
-    print query
+    # print query
     response = sparql2matrix(query)
     if display is True:
         Qry.display_matrix(response, spacing=50, is_activated=True)
     return response
 
 
-def cluster_values_plus(g_cluster, properties, distinct_values=True, display=False, limit_resources=100):
+def cluster_values_plus(rq_uri, g_cluster, properties, distinct_values=True, display=False, limit_resources=100):
 
     """
     :param g_cluster: A LIST OF CLUSTERED RESOURCES
@@ -621,9 +621,16 @@ def cluster_values_plus(g_cluster, properties, distinct_values=True, display=Fal
     {{
         values ?property {{{} }}
         {}
-    }} {} """.format(select, prop, union, group_by)
+        {{
+            graph <{}>
+            {{
+                ?idea   ll:selected ?dataset .
+                ?dataset a <http://risis.eu/class/Dataset> ;
+            }}
+        }}
+    }} {} """.format(select, prop, union, rq_uri, group_by)
 
-    print query
+    # print query
     response = sparql2matrix(query)
     if display is True:
         Qry.display_matrix(response, spacing=50, is_activated=True)
