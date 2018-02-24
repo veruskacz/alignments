@@ -909,4 +909,4 @@ def download_research_question(research_question, directory):
     #                       directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
     #                       main_query=linksets_query, count_query=linkset_count_query, activated=True)
 
-download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
+# download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
