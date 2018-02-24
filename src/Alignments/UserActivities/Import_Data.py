@@ -555,7 +555,8 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
 
 
 def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=False,
-                  start_at=0, main_query=None, count_query=None, create_graph=True, cleanup=True, activated=False):
+                  start_at=0, main_query=None, count_query=None, create_graph=True,
+                          cleanup=True, insert=False, activated=False):
 
     # ENTITY TYPE IS USED ONLY FOR THE FILE NAME
     # EXAMPLE
@@ -630,7 +631,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
         print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
         current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
         # print current_q
-        response = Qry.endpointconstruct(current_q, clean=cleanup)
+        response = Qry.endpointconstruct(current_q, clean=cleanup, insert=insert)
 
         # GET THE TOTAL NUMBER OF TRIPLES
         if response is None:
@@ -727,7 +728,7 @@ file_3 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\LODmapping.ttl"
 #                   start_at=0, main_query=main_query, count_query=count_query, activated=True)
 
 
-def download_research_question(research_question):
+def download_research_question(research_question, directory):
 
     DATABASE = Svr.DATABASE
     HOST = Svr.settings[St.stardog_host_name]
@@ -828,8 +829,7 @@ def download_research_question(research_question):
 
         OPTIONAL
         {{
-            ?object_1 ?pred_2 ?object_2
-           e
+            ?object_1 ?pred_2 ?object_2 .
         }}
 	}}
     """
@@ -847,7 +847,6 @@ def download_research_question(research_question):
         }}
 	}}
     """
-
     linkset = Qr.sparql_xml_to_matrix(linksets_query)
     linkset_result = linkset[St.result]
     if len(linkset_result) > 1:
@@ -868,18 +867,18 @@ def download_research_question(research_question):
 
             # DOWNLOAD THE GENERIC METADATA
             download_stardog_data(endpoint, entity_type="general_ls_meta_{}".format(i), graph=linkset_graph,
-                                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+                                  directory=directory, limit=10000, load=False, start_at=0,
                                   main_query=current_gen_q, count_query=current_gen_c, create_graph=False,
-                                  cleanup=False, activated=True)
+                                  cleanup=False, insert=True, activated=True)
 
             # DOWNLOAD THE SINGLETON METADATA
             download_stardog_data(endpoint, entity_type="singletons_{}".format(i), graph=current_singleton_graph,
-                                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+                                  directory=directory, limit=10000, load=False, start_at=0,
                                   main_query=current_singleton_q, count_query=current_singleton_c, activated=True)
 
             # DOWNLOAD THE LINKSET
             download_stardog_data(endpoint, entity_type="linkset_{}".format(i), graph=linkset_graph,
-                                  directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
+                                  directory=directory, limit=10000, load=False, start_at=0,
                                   main_query=current_ls_query, count_query=current_ls_query_count, activated=True)
 
 
@@ -892,4 +891,4 @@ def download_research_question(research_question):
     #                       directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
     #                       main_query=linksets_query, count_query=linkset_count_query, activated=True)
 
-# download_research_question("http://risis.eu/activity/idea_3944ec")
+# download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")

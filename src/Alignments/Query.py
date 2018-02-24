@@ -21,6 +21,7 @@ logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
+
 DATABASE = Svr.DATABASE
 HOST = Svr.settings[St.stardog_host_name]
 
@@ -378,7 +379,7 @@ def boolean_endpoint_response(query, display=False):
     return result
 
 
-def endpointconstruct(query, clean=True):
+def endpointconstruct(query, clean=True, insert=False):
 
     q = to_bytes(query)
     # print q
@@ -409,24 +410,31 @@ def endpointconstruct(query, clean=True):
         # print "RESPONSE RESULT:", result
         # result = str(result).replace("<<", "<").replace(">>", ">").replace("\
 
-        # REGULAR EXPRESSION FOR FIRST EXTRACTION OF STARDOG MESS
-        # <<http://dbpedia.org/ontology/author\>/<http://dbpedia.org/property/name\>>
-        regex_result = re.findall("<(<.*>)>", result)
-
-
         if clean is True:
 
-            # CLEANING UP THE  MESS
-            bind = "\t### BINDING THIS BECAUSE STARDOG MESSES UP THE RESULT WHEN USING PROPERTY PATH\n"
-            for i in range(len(regex_result)):
-                # SOLVING THE PROBLEM BY INSERTING SOME VARIABLE BINDINGS
-                result = result.replace("<{}>".format(regex_result[i]), "?LINK_{}".format(i))
-                bind += "\tBIND( IRI(\"{}\") AS ?LINK_{} )\n".format(regex_result[i].replace("\>", ">"), i)
+            # REGULAR EXPRESSION FOR FIRST EXTRACTION OF STARDOG MESS
+            # <<http://dbpedia.org/ontology/author\>/<http://dbpedia.org/property/name\>>
+            regex_result = re.findall("<(<[^<>]*\\\\*>)>", result)
 
-            # FINAL CLEANING
             if len(regex_result) > 0:
-                result = result.replace("{", "{{\n{}".format(bind))
-                # print "RESPONSE RESULT ALTERED:", result
+
+                # CLEANING UP THE  MESS
+                bind = "\t### BINDING THIS BECAUSE STARDOG MESSES UP THE RESULT WHEN USING PROPERTY PATH\n"
+                for i in range(len(regex_result)):
+                    # SOLVING THE PROBLEM BY INSERTING SOME VARIABLE BINDINGS
+                    result = result.replace("<{}>".format(regex_result[i]), "?LINK_{}".format(i))
+                    bind += "\tBIND( IRI(\"{}\") AS ?LINK_{} )\n".format(regex_result[i].replace("\>", ">"), i)
+
+                # FINAL CLEANING
+                if insert is False:
+                    result = result.replace("{", "{{\n{}".format(bind))
+                    # print "RESPONSE RESULT ALTERED:", result
+                else:
+                    inserting = Buffer.StringIO()
+                    inserting.write("INSERT\n")
+                    inserting.write(result)
+                    inserting.write("WHERE {{\n{}}}".format(bind))
+                    return inserting.getvalue()
 
         return result
 
