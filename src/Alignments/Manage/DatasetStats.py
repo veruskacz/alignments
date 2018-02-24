@@ -205,7 +205,7 @@ def stats_optimised(graph, display_table=False, display_text=False, boolean=True
                         if boolean is True:
                             cur_dic[Occurrences[i][0]] = int(Occurrences[i][1]) % float(instances) != 0
                         else:
-                            cur_dic[Occurrences[i][0]] = round(100 * int(Occurrences[i][1]) / float(instances),0)
+                            cur_dic[Occurrences[i][0]] = math.floor(100 * int(Occurrences[i][1]) / float(instances))
 
     text.write("\nGRAPH: {}".format(graph))
     for key, value in optional.items():
@@ -232,5 +232,8 @@ def stats_optimised(graph, display_table=False, display_text=False, boolean=True
 # stats("http://risis.eu/dataset/grid_20170522", display_table=False, display_text=True)
 # stats("http://risis.eu/dataset/Panellists", display_table=False, display_text=True)
 # stats("http://risis.eu/genderc/Applicant", display_table=True, display_text=True)
-stats_optimised("http://risis.eu/dataset/grid_20170712", display_table=False, display_text=True)
+# stats_optimised("http://risis.eu/dataset/grid_20170712", display_table=False, display_text=True)
+# stats_optimised("http://risis.eu/dataset/openAire_20180219", display_table=False, display_text=True, boolean=False)
+
+
 
