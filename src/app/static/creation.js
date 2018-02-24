@@ -5611,7 +5611,8 @@ function calculateDatasetCluster()
                 else
                     var groupDistValues = 'no';
 
-                $.get('/getDatasetLinkingClusterDetails2',data={'cluster': $(this).attr('cluster'),
+                $.get('/getDatasetLinkingClusterDetails2',data={'research_question': $('#dataset_inspection_selected_RQ').attr('uri'),
+                                                               'cluster': $(this).attr('cluster'),
                                                                'groupDistValues': groupDistValues,
                                                                'properties[]': properties}, function(data)
                 {
