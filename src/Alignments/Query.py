@@ -28,6 +28,15 @@ HOST = Svr.settings[St.stardog_host_name]
 ERROR = "No connection could be made because the target machine actively refused it"
 ERROR_2 = 'The query was successfully executed but no feedback was returned'
 
+def from_alignment2singleton(alignment):
+
+    if str(alignment).__contains__(Ns.linkset):
+        return str(alignment).replace(Ns.linkset, Ns.singletons)
+    elif str(alignment).__contains__(Ns.lens):
+        return str(alignment).replace(Ns.lens, Ns.singletons)
+    else:
+        return alignment
+
 
 def linkset_evidence(linkset, display=False):
 
@@ -412,10 +421,14 @@ def endpointconstruct(query, clean=True, insert=False):
 
         if clean is True:
 
+            pattern_1 = "<(<.*>\/<.*>)>"
+            pattern_2 = "<(<[^<>]*\\\\*>)>"
+
             # REGULAR EXPRESSION FOR FIRST EXTRACTION OF STARDOG MESS
             # <<http://dbpedia.org/ontology/author\>/<http://dbpedia.org/property/name\>>
-            regex_result = re.findall("<(<[^<>]*\\\\*>)>", result)
-
+            regex_result = re.findall(pattern_1, result)
+            regex_result += re.findall(pattern_2, result)
+            
             # if len(regex_result) > 0:
             #
             #     # CLEANING UP THE  MESS
@@ -435,9 +448,6 @@ def endpointconstruct(query, clean=True, insert=False):
             #         inserting.write(result)
             #         inserting.write("WHERE {{\n{}}}".format(bind))
             #         return inserting.getvalue()
-
-
-
 
             if len(regex_result) > 0:
 
@@ -464,6 +474,8 @@ def endpointconstruct(query, clean=True, insert=False):
 
             elif insert is True:
                 result = "INSERT DATA {}".format(result)
+
+
 
         return result
 
@@ -1188,6 +1200,97 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
         print table.getvalue()
     else:
         return table.getvalue()
+
+
+def get_cluster_rsc_strengths(resources, alignments):
+
+    query = """
+    PREFIX prov: <{3}>
+    PREFIX ll: <{4}>
+    SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
+    {{
+        VALUES ?lookup{{ {0} }}
+
+        {{
+            GRAPH <{1}>
+            {{ ?lookup ?predicate ?object .}}
+        }} UNION
+        {{
+            GRAPH <{1}>
+            {{?object ?predicate ?lookup . }}
+        }}
+
+        {{
+            GRAPH <{2}>
+            {{
+                ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
+                OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
+                OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
+            }}
+            GRAPH ?g
+            {{
+                ?DerivedFrom  ll:hasStrength  ?Strength ;
+                              ll:hasEvidence  ?Evidence .
+            }}
+
+        }} UNION
+        {{
+        GRAPH <{2}>
+            {{
+                ?predicate  ll:hasStrength  ?Strength .
+            }}
+        }}
+    }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab)
+    # print query
+    # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+    response = sparql_xml_to_matrix(query)
+    result = response[St.result]
+
+    display_matrix(response, is_activated=True)
+
+
+def cluster_rsc_strengths_query(resources, alignments):
+
+    query = """
+    PREFIX prov: <{3}>
+    PREFIX ll: <{4}>
+    SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
+    {{
+        VALUES ?lookup{{ {0} }}
+
+        {{
+            GRAPH <{1}>
+            {{ ?lookup ?predicate ?object .}}
+        }} UNION
+        {{
+            GRAPH <{1}>
+            {{?object ?predicate ?lookup . }}
+        }}
+
+        {{
+            GRAPH <{2}>
+            {{
+                ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
+                OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
+                OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
+            }}
+            GRAPH ?g
+            {{
+                ?DerivedFrom  ll:hasStrength  ?Strength ;
+                              ll:hasEvidence  ?Evidence .
+            }}
+
+        }} UNION
+        {{
+        GRAPH <{2}>
+            {{
+                ?predicate  ll:hasStrength  ?Strength .
+            }}
+        }}
+    }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab)
+    # print query
+    return query
+
 
 #######################################################################################
 # GET QUERY AND EXECUTION
@@ -2658,7 +2761,7 @@ def linkset_aligns_prop(linkset_uri, crossCheck=False):
     return query
 
 
-def linksetCluster_aligns_prop(linkset_uri):
+def linksetCluster_aligns_prop(linkset_uri, prop_aligns):
 
     query = """
         ################################################################
