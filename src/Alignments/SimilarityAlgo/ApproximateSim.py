@@ -541,6 +541,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
         # stg = remove_info_in_bracket(stg)
 
         # REMOVE DATA IN BRACKETS, STOP WORDS, AND STOP SYMBOLS
+        # print "INPUT AFTER PROCESS: {}".format(stg)
         stg = process_input(stg)
         # print "INPUT AFTER PROCESS: {}".format(stg)
 
@@ -600,19 +601,13 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
         return temp
 
     def remove_stop_words(text):
-        # print text
-        if len(stop_word) > 0:
-            for stop_key, value in stop_word.items():
-                two = " {}".format(stop_key)
-                one = "{} ".format(stop_key)
-                three = " {} ".format(stop_key)
-                if str(text).startswith(one):
-                    text = str(text).replace(one, "")
-                if str(text).endswith(two):
-                    text = str(text).replace(two, "")
-                text = str(text).replace(three, " ")
-            # print text
-            return text
+
+        result = ""
+        tokens = text.split(" ")
+        for token in tokens:
+            if token not in stop_word:
+                result += token if len(result) == 0 else " {}".format(token)
+        return result
 
     def process_input(text):
 
@@ -704,14 +699,14 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     specs[St.insert_query] = "The generated triple file was uploaded to the server."
 
 
-    # STOP WORD DICTIONARY
-    stop_word = dict()
+    # STOP WORD LIST
     stop_words_string = stop_words_string.lower()
-    if stop_words_string is not None and len(stop_words_string) > 0:
-        stw_split = str(stop_words_string).split(' ')
-        for stop in stw_split:
-            if stop not in stop_word:
-                stop_word[stop] = stop
+    stop_word = stop_words_string.split(" ")
+    # if stop_words_string is not None and len(stop_words_string) > 0:
+    #     stw_split = str(stop_words_string).split(' ')
+    #     for stop in stw_split:
+    #         if stop not in stop_word:
+    #             stop_word[stop] = stop
 
     # GENERATE THE ALIGNMENT REDUCER IF PROVIDED. IT WILL HELP IN
     # REDUCING TIME COMPLEXITY BY AVOIDING REESTABLISHING EQUIVALENCE
@@ -842,7 +837,9 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
 
         src_uri = src_dataset[row][0].strip()
         src_input = str(src_dataset[row][1])
+        # print "BEFORE PROCESS: {}".format(src_input)
         src_input = process_input(src_input)
+        # print "AFTER PROCESS: {}".format(src_input)
 
         # GO TO THE NEXT SOURCE TOKEN IF THE CURRENT TOKEN IS EMPTY
         if not src_input.strip():
@@ -1252,19 +1249,14 @@ def remove_info_in_bracket(text):
 
 def remove_stop_words(text, stop_word):
 
-    if len(stop_word) > 0:
-        for stop_key, value in stop_word.items():
-            two = " {}".format(stop_key)
-            one = "{} ".format(stop_key)
-            three = " {} ".format(stop_key)
-            if str(text).startswith(one):
-                text = str(text).replace(one, "")
-            if str(text).endswith(two):
-                text = str(text).replace(two, "")
-            text = str(text).replace(three, " ")
-            text = str(text).replace("  ", " ").replace("\t", " ")
-    return text
+    result = ""
+    tokens = text.split(" ")
+    for token in tokens:
+        if token not in stop_word:
+            result += token if len(result) == 0 else " {}".format(token)
+    return result
 
+# print remove_stop_word(INPUT, STOP)
 
 def get_inverted_index(matrix, tf, threshold, stop_word, stop_symbols_string):
 
