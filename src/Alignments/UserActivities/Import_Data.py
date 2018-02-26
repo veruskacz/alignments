@@ -554,7 +554,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
     return {St.message: message, St.result: True}
 
 
-def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=False,
+def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count=1, load=False,
                   start_at=0, main_query=None, count_query=None, create_graph=True,
                           cleanup=True, insert=False, activated=False):
 
@@ -601,7 +601,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
         return
 
     triples = 0
-    print "\n\tENDPOINT  : {}\n\tDIRECTORY : {}".format(endpoint, directory)
+    print "\n\tENDPOINT    : {}\n\tDIRECTORY   : {}\n\tGRAPH  {:4} : {}".format(endpoint, directory, count, graph)
 
 
     # COUNT TRIPLES
@@ -618,7 +618,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
 
     # NUMBER OF REQUEST NEEDED
     iterations = triples / limit if triples % limit == 0 else triples / limit + 1
-    print "\n\tTOTAL TRIPLES TO RETREIVE  : {}\n\tTOTAL NUMBER OF ITERATIONS : {}\n".format(triples, iterations)
+    print "\tTOTAL TRIPLES TO RETREIVE  : {}\n\tTOTAL NUMBER OF ITERATIONS : {}".format(triples, iterations)
 
     # ITERATIONS
     for i in range(start_at, iterations):
@@ -675,7 +675,6 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
         # if i == 1:
         #     break
 
-    print ""
     if load is True:
         # GENERATE THE BATCH FILE AND LOAD THE DATA
         stardog_path = '' if Ut.OPE_SYS == "windows" else Svr.settings[St.stardog_path]
@@ -691,15 +690,15 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, load=
         Ut.batch_load(b_file)
 
         message = "You have just successfully downloaded [{}] triples." \
-                  "\n\t{} files where created in the folder [{}] and loaded " \
+                  "\n\t{} file(s) created in the folder [{}] and loaded " \
                   "into the [{}] dataset. ".format(triples, iterations, directory, Svr.DATABASE)
     else:
         message = "You have just successfully downloaded [{}] triples." \
-                  "\n\t{} files where created in the folder [{}].".format(triples, iterations, directory)
+                  "\n\t{} file(s) created in the folder [{}].".format(triples, iterations, directory)
 
-    print "\n\t{}".format(message)
+    print "\t{}".format(message)
 
-    print "\n\tDOWNLOAD DONE!!!"
+    print "\tDOWNLOAD DONE!!!"
 
     return {St.message: message, St.result: True}
 
@@ -750,9 +749,9 @@ def download_research_question(research_question, directory):
     HOST = Svr.settings[St.stardog_host_name]
     endpoint = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
 
-    # **************************************************
-    # 1. DOWNLOAD ALL TRIPLES IN THE IDEA GRAPH
-    # **************************************************
+    # **************************************************************
+    # 1. DOWNLOAD ALL TRIPLES (metadata) IN THE IDEA GRAPH
+    # **************************************************************
 
     idea_query = """
     CONSTRUCT {{ ?idea ?predicate ?objects. }} WHERE
@@ -774,16 +773,57 @@ def download_research_question(research_question, directory):
 	}}
     """.format(research_question)
 
+    print "\n1. DOWNLOAD ALL TRIPLES (metadata) IN THE IDEA GRAPH"
     download_stardog_data(endpoint, entity_type="Research Question", graph=research_question,
                   directory=directory, limit=10000, load=False, start_at=0,
                   main_query=idea_query, count_query=idea_total, create_graph=True,
                           cleanup=True, insert=True,activated=True,  )
 
-    # **************************************************
-    # 2. ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
-    # **************************************************
+    # **************************************************************
+    # 2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
+    # **************************************************************
 
-    linkset_query = """
+    print "\n2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING"
+    linksets_query = """
+    SELECT DISTINCT ?linkset
+    {{
+        graph <{}>
+        {{
+            ?mappings  a <http://risis.eu/class/AlignmentMapping> .
+            ?mappings  <http://risis.eu/alignment/predicate/created> ?linkset .
+        }}
+    }}
+    """.format(research_question)
+    linksets_response = Qr.sparql_xml_to_matrix(linksets_query)
+    linksets = linksets_response[St.result]
+    print "\t There are {} linksets".format(len(linksets) - 1)
+
+    # **************************************************************
+    # 3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING
+    # **************************************************************
+
+    print "\n3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING"
+    lenses_query = """
+        PREFIX ll: <http://risis.eu/alignment/predicate/>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        SELECT DISTINCT ?subject
+        {{
+            graph <{0}>
+            {{
+                ?subject  a <http://vocabularies.bridgedb.org/ops#Lens> .
+                <{0}> ll:created|prov:used ?subject .
+            }}
+        }}
+        """.format(research_question)
+    lenses_response = Qr.sparql_xml_to_matrix(lenses_query)
+    lenses = lenses_response[St.result]
+    print "\t There are {} lenses".format(len(lenses) - 1)
+
+    # **************************************************************
+    # 4. DOWNLOAD ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
+    # **************************************************************
+
+    graph_query = """
     CONSTRUCT {{ ?subject  ?predicate ?object. }}
     WHERE
     {{
@@ -793,7 +833,7 @@ def download_research_question(research_question, directory):
         }}
     }}"""
 
-    linkset_count_query = """
+    graph_count_query = """
     SELECT ( count(?subject) as ?total)
     {{
         graph <{}>
@@ -802,18 +842,7 @@ def download_research_question(research_question, directory):
         }}
     }}"""
 
-    linksets_query = """
-    SELECT DISTINCT ?linkset
-	{{
-		graph <{}>
-		{{
-			?mappings  a <http://risis.eu/class/AlignmentMapping> .
-			?mappings  <http://risis.eu/alignment/predicate/created> ?linkset .
-		}}
-	}}
-    """.format(research_question)
-
-    linkset_sing_q = """
+    sing_query = """
     CONSTRUCT {{ ?subject ?predicate  ?object . }}
     WHERE
     {{
@@ -823,7 +852,7 @@ def download_research_question(research_question, directory):
         }}
     }}"""
 
-    linkset_sing_COUNT = """
+    sing_count = """
     SELECT ( COUNT(?subject) AS ?total )
     {{
         GRAPH <{}>
@@ -840,20 +869,21 @@ def download_research_question(research_question, directory):
         ?object_2 ?pred_3 ?object_3 .
     }}
     WHERE
-	{{
+    {{
         <{0}>
             ?pre_1 ?object_1 .
 
         OPTIONAL
         {{
             ?object_1 ?pred_2 ?object_2 .
+            OPTIONAL{{ ?object_2 ?pred_3 ?object_3 . }}
         }}
-	}}
+    }}
     """
 
     linkset_gen_c = """
     SELECT ( COUNT(?object_1) AS ?total)
-	{{
+    {{
         <{}>
             ?pre_1 ?object_1 .
 
@@ -862,51 +892,118 @@ def download_research_question(research_question, directory):
             ?object_1 ?pred_2 ?object_2
             OPTIONAL{{ ?object_2 ?pred_3 ?object_3 . }}
         }}
-	}}
+    }}
     """
-    linkset = Qr.sparql_xml_to_matrix(linksets_query)
-    linkset_result = linkset[St.result]
-    if len(linkset_result) > 1:
-        for i in range(1, len(linkset_result)):
 
-            linkset_graph = linkset_result[i][0]
-            print "\n\tDOWNLOAD {:6}: {}".format(i, linkset_graph)
+    print "\n4. DOWNLOAD ALL LINKSETS"
+    if len(linksets) > 1:
+        for i in range(1, len(linksets)):
 
-            current_ls_query_count = linkset_count_query.format(linkset_graph)
-            current_ls_query = linkset_query.format(linkset_graph)
+            linkset_graph = linksets[i][0]
+            print "\n\tDOWNLOAD LINKSET {:6}/{:<6}: {}".format(i, len(linksets) - 1, linkset_graph)
+
+            current_ls_query_count = graph_count_query.format(linkset_graph)
+            current_ls_query = graph_query.format(linkset_graph)
 
             current_singleton_graph = Ut.from_alignment2singleton(linkset_graph)
-            current_singleton_q = linkset_sing_q.format(current_singleton_graph)
-            current_singleton_c = linkset_sing_COUNT.format(current_singleton_graph)
+            current_singleton_q = sing_query.format(current_singleton_graph)
+            current_singleton_c = sing_count.format(current_singleton_graph)
 
             current_gen_q = linkset_gen_q.format(linkset_graph)
             current_gen_c = linkset_gen_c.format(linkset_graph)
 
             # DOWNLOAD THE GENERIC METADATA
-            download_stardog_data(endpoint, entity_type="general_ls_meta_{}".format(i), graph=linkset_graph,
-                                  directory=directory, limit=10000, load=False, start_at=0,
+            download_stardog_data(endpoint, entity_type="linkset{}_general_meta".format(i), graph=linkset_graph,
+                                  directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_gen_q, count_query=current_gen_c, create_graph=False,
                                   cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE SINGLETON METADATA
-            download_stardog_data(endpoint, entity_type="singletons_{}".format(i), graph=current_singleton_graph,
-                                  directory=directory, limit=10000, load=False, start_at=0,
+            download_stardog_data(endpoint, entity_type="linkset{}_singletons".format(i), graph=current_singleton_graph,
+                                  directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_singleton_q, count_query=current_singleton_c, create_graph=True,
                                   cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE LINKSET
             download_stardog_data(endpoint, entity_type="linkset_{}".format(i), graph=linkset_graph,
-                                  directory=directory, limit=10000, load=False, start_at=0,
+                                  directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_ls_query, count_query=current_ls_query_count, activated=True)
 
+    # **************************************************************
+    # 3. DOWNLOAD ALL LENSES IN THE IDEA GRAPH
+    # **************************************************************
 
-    # **************************************************
-    # 2. ALL LENSES CREATED FOR THE RESEARCH QUESTION
-    # **************************************************
+    lenses_gen_q = """
+    CONSTRUCT
+    {{
+        <{0}>  ?pre_1 ?object_1 .
+        ?object_1 ?pred_2 ?object_2 .
+        ?object_2 ?pred_3 ?object_3 .
+    }}
+    WHERE
+    {{
+        <{0}>
+            ?pre_1 ?object_1 .
 
+        OPTIONAL
+        {{
+            ?object_1 ?pred_2 ?object_2 .
+        }}
+    }}
+    """
 
-    # download_stardog_data(endpoint, entity_type="Research Question", graph=research_question,
-    #                       directory="C:\Productivity\RQT", limit=10000, load=False, start_at=0,
-    #                       main_query=linksets_query, count_query=linkset_count_query, activated=True)
+    lenses_gen_c = """
+    SELECT ( COUNT(?object_1) AS ?total)
+    WHERE
+    {{
+        <{0}>
+            ?pre_1 ?object_1 .
+
+        OPTIONAL
+        {{
+            ?object_1 ?pred_2 ?object_2 .
+            OPTIONAL{{ ?object_2 ?pred_3 ?object_3 . }}
+        }}
+    }}
+    """
+
+    print "\n5. DOWNLOAD ALL LENSES"
+    if len(lenses) > 1:
+        for i in range(1, len(lenses)):
+
+            lens_graph = lenses[i][0]
+            print "\n\tDOWNLOAD LENS    {:6}/{:<6}: {}".format(i, len(lenses) - 1, lens_graph)
+
+            # GENERAL LENS METADATA
+            current_lens_gen_q = lenses_gen_q.format(lens_graph)
+            current_lens_gen_c = lenses_gen_c.format(lens_graph)
+
+            # LENS SINGLETON METADATA
+            current_lens_singleton_graph = Ut.from_alignment2singleton(lens_graph)
+            current_singleton_q = sing_query.format(current_lens_singleton_graph)
+            current_singleton_c = sing_count.format(current_lens_singleton_graph)
+
+            # LENS DATA
+            current_lens_query_count = graph_count_query.format(lens_graph)
+            current_lens_query = graph_query.format(lens_graph)
+            # print current_lens_query_count
+            # print current_lens_query
+
+            # DOWNLOAD THE GENERIC METADATA
+            download_stardog_data(endpoint, entity_type="len{}_general_meta".format(i), graph=lens_graph,
+                                  directory=directory, limit=10000, load=False, start_at=0,  count=i,
+                                  main_query=current_lens_gen_q, count_query=current_lens_gen_c, create_graph=False,
+                                  cleanup=True, insert=True, activated=True)
+
+            # DOWNLOAD THE SINGLETON METADATA
+            download_stardog_data(endpoint, entity_type="lens{}_singletons".format(i),  count=i,
+                                  graph=current_lens_singleton_graph, directory=directory, limit=10000, load=False,
+                                  start_at=0, main_query=current_singleton_q, count_query=current_singleton_c,
+                                  create_graph=True, cleanup=True, insert=True, activated=True)
+
+            # DOWNLOAD THE LENS
+            download_stardog_data(endpoint, entity_type="lens_{}".format(i), graph=lens_graph,
+                                  directory=directory, limit=10000, load=False, start_at=0,  count=i,
+                                  main_query=current_lens_query, count_query=current_lens_query_count, activated=True)
 
 # download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
