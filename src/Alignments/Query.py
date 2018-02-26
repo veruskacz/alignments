@@ -428,7 +428,7 @@ def endpointconstruct(query, clean=True, insert=False):
             # <<http://dbpedia.org/ontology/author\>/<http://dbpedia.org/property/name\>>
             regex_result = re.findall(pattern_1, result)
             regex_result += re.findall(pattern_2, result)
-            
+
             # if len(regex_result) > 0:
             #
             #     # CLEANING UP THE  MESS
@@ -1202,92 +1202,74 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
         return table.getvalue()
 
 
+#######################################################################################
+# GET QUERY AND EXECUTION
+#######################################################################################
+
+
 def get_cluster_rsc_strengths(resources, alignments):
 
-    query = """
-    PREFIX prov: <{3}>
-    PREFIX ll: <{4}>
-    SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
-    {{
-        VALUES ?lookup{{ {0} }}
-
-        {{
-            GRAPH <{1}>
-            {{ ?lookup ?predicate ?object .}}
-        }} UNION
-        {{
-            GRAPH <{1}>
-            {{?object ?predicate ?lookup . }}
-        }}
-
-        {{
-            GRAPH <{2}>
-            {{
-                ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
-                OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
-                OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
-            }}
-            GRAPH ?g
-            {{
-                ?DerivedFrom  ll:hasStrength  ?Strength ;
-                              ll:hasEvidence  ?Evidence .
-            }}
-
-        }} UNION
-        {{
-        GRAPH <{2}>
-            {{
-                ?predicate  ll:hasStrength  ?Strength .
-            }}
-        }}
-    }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab)
+    query = cluster_rsc_strengths_query(resources, alignments)
     # print query
     # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
     response = sparql_xml_to_matrix(query)
     result = response[St.result]
 
-    display_matrix(response, is_activated=True)
+    # DICTIONARY KEY: (SUBJECT, OBJECT) VALUE: LIST OF STRENGTHS
+    response_dic = dict()
+    if result:
+        for i in range(1, len(result)):
+            # print result[i]
+            key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
+            if key not in response_dic:
+                response_dic[key] = [result[i][2]]
+            else:
+                response_dic[key] += [result[i][2]]
 
+    # display_matrix(response, is_activated=True)
+    return response_dic
 
 def cluster_rsc_strengths_query(resources, alignments):
 
+    check = resources is None or len(resources) == 0
+    comment = "#" if check is True else ""
     query = """
-    PREFIX prov: <{3}>
-    PREFIX ll: <{4}>
-    SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
-    {{
-        VALUES ?lookup{{ {0} }}
+        PREFIX prov: <{3}>
+        PREFIX ll: <{4}>
+        SELECT DISTINCT ?lookup ?object ?Strength {5}?Evidence
+        {{
+            {5}VALUES ?lookup{{ {0} }}
 
-        {{
-            GRAPH <{1}>
-            {{ ?lookup ?predicate ?object .}}
-        }} UNION
-        {{
-            GRAPH <{1}>
-            {{?object ?predicate ?lookup . }}
-        }}
+            {{
+                GRAPH <{1}>
+                {{ ?lookup ?predicate ?object .}}
+            }} UNION
+            {{
+                GRAPH <{1}>
+                {{?object ?predicate ?lookup . }}
+            }}
 
-        {{
+            {{
+                GRAPH <{2}>
+                {{
+                    ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
+                    OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
+                    OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
+                }}
+                GRAPH ?g
+                {{
+                    ?DerivedFrom  ll:hasStrength  ?Strength ;
+                                  ll:hasEvidence  ?Evidence .
+                }}
+
+            }} UNION
+            {{
             GRAPH <{2}>
-            {{
-                ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
-                OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
-                OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
+                {{
+                    ?predicate  ll:hasStrength  ?Strength .
+                }}
             }}
-            GRAPH ?g
-            {{
-                ?DerivedFrom  ll:hasStrength  ?Strength ;
-                              ll:hasEvidence  ?Evidence .
-            }}
-
-        }} UNION
-        {{
-        GRAPH <{2}>
-            {{
-                ?predicate  ll:hasStrength  ?Strength .
-            }}
-        }}
-    }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab)
+        }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab, comment)
     # print query
     return query
 

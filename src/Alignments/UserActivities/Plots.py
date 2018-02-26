@@ -752,6 +752,7 @@ def cluster_d_test(linkset, network_size=3, targets=None,
         uri_size = 0
         count_1 += 1
         children = list(cluster_val["nodes"])
+        strengths = cluster_val["strengths"]
         cluster_size = len(children)
         # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
         #     continue
@@ -784,8 +785,10 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                 smallest_hash).startswith("-") \
                 else "P{}".format(smallest_hash)
             # print "children", children
-            # print "file_name", file_name
-
+            # print "\t file_name", file_name
+            # print "\t strengths: {}"
+            # for item in strengths.items():
+            #     print "\t\t", item
 
 
             # Qry.cluster_rsc_strengths(resources, linkset)
@@ -817,24 +820,25 @@ def cluster_d_test(linkset, network_size=3, targets=None,
             #                        Ns.prov, Ns.alivocab)
             # # print query
 
-            # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+            # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
             query = Qry.cluster_rsc_strengths_query(resources, linkset)
             response = Qry.sparql_xml_to_matrix(query)
+            #
+            # # A DICTIONARY OF KEY: (SUBJECT-OBJECT) VALUE:STRENGTH
+            # response_dic = dict()
+            # result = response[St.result]
+            # if result:
+            #     for i in range(1, len(result)):
+            #         # print result[i]
+            #         key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
+            #         if key not in response_dic:
+            #             response_dic[key] = [result[i][2]]
+            #         else:
+            #             response_dic[key] += [result[i][2]]
 
-            # A DICTIONARY OF KEY: (SUBJECT-OBJECT) VALUE:STRENGTH
-            response_dic = dict()
-            result = response[St.result]
-            if result:
-                for i in range(1, len(result)):
-                    print result[i]
-                    key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
-                    if key not in response_dic:
-                        response_dic[key] = [result[i][2]]
-                    else:
-                        response_dic[key] += [result[i][2]]
-            for item in response_dic.items():
-                print "\t", item
-            return
+            # for item in response_dic.items():
+            #     print "\t", item
+            # return
             # GENERAL INFO 2:
             info = "SIZE    {}   \nCLUSTER {} \nNAME    {}\n".format(cluster_size, count_1, file_name)
             info2 = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, cluster_size)

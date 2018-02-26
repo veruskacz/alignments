@@ -606,7 +606,8 @@ def cluster_values_plus(rq_uri, g_cluster, properties, distinct_values=True, dis
         select = '?dataset ?value (count(distinct ?resource) as ?count)'
         group_by = 'group by ?value ?dataset order by desc(?count)'
     else:
-        select = '?dataset ?resource (GROUP_CONCAT(?property; SEPARATOR=" | ") as ?properties) (concat("[", ?temp ,"]") as ?values) (GROUP_CONCAT(?value; SEPARATOR="] [") as ?temp)'
+        select = '?dataset ?resource (GROUP_CONCAT(?property; SEPARATOR=" | ") ' \
+                 'as ?properties) (concat("[", ?temp ,"]") as ?values) (GROUP_CONCAT(?value; SEPARATOR="] [") as ?temp)'
         group_by = 'group by ?dataset ?resource order by ?dataset ?resource '
 
     query = """
@@ -988,7 +989,7 @@ def cluster_links(graph, limit=1000):
     print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(g))
 
     standard = 10
-    check =  1
+    check = 1
     iteration = 1
     for subject, predicate, obj in g:
         print "\tRESOURCE {:>4}: {} {}".format(count, subject.n3() , obj)
@@ -2520,7 +2521,7 @@ def links_clustering_BUG(graph, limit=1000):
 
 
 # USING SET
-def links_clustering(graph, limit=1000):
+def links_clustering_improved(graph, limit=1000):
 
 
     # ROOT = KEY:CHILD VALUE:PARENT
@@ -3029,6 +3030,604 @@ def links_clustering(graph, limit=1000):
             print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
             check = check + standard
         iteration += 1
+
+    # sizes = set()
+    # sizes2 = set()
+    # for p, c in clusters.items():
+    #     # {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
+    #     # print c
+    #     mdx = c[St.matrix_d]
+    #     countLinks = 0
+    #     for x, y in mdx.items():
+    #         if y == 1:
+    #             countLinks += 1
+    #     sizes.add((len(c[St.children]), countLinks))
+    # for p, c in clusters2.items():
+    #     sizes2.add((len(c['nodes']), len(c['links'])))
+    #
+    # sizes = sorted(sizes)
+    # sizes2 = sorted(sizes2)
+    # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
+
+    print "3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
+    return clusters
+
+
+
+# USING SET AND THE TABLE OF RESOURCES AND THEIR STRENGTHS
+def links_clustering(graph, limit=1000):
+
+    # ***************************************************************************
+    # USING SET OPERATOR FOR GENERATING THE LINK CLUSTERS OF RESOURCES AND ALSO
+    # USING TABLE AND NOT TRIPLES AS THE TABLE OF RESOURCES AND THEIR STRENGTHS
+    # ***************************************************************************
+
+    # g = [
+    #     ("<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
+    #     ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
+    #     ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgreg.2>"),
+    #     ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://h2020.2> "),
+    #     ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://eter.2>"),
+    #     ("<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
+    # ]
+
+    # g = [
+    #     ( "<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
+    #     ( "<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
+    #     ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://h2020.2> "),
+    #     ( "<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
+    #     ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgreg.2>"),
+    #     ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://eter.2>"),
+    # ]
+
+    # g = [
+    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/SAMEAS>",
+    #      "<http://www.grid.ac/institutes/grid.10493.3f>"),
+    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/SAMEAS>",
+    #      "<http://risis.eu/eter_2014/resource/DE0056>"),
+    #     ("<http://www.grid.ac/institutes/grid.10493.3f> ", "<http://risis.eu/alignment/predicate/SAMEAS>",
+    #      "<http://risis.eu/eter_2014/resource/DE0056> ") ]
+
+
+    # DOWNLOAD THE GRAPH
+
+
+    # ROOT = KEY:CHILD VALUE:PARENT
+    root = dict()
+    count = 0
+    clusters = dict()
+
+    root_mtx = {}
+    # count_mtx = 0
+    clusters_mtx = {}
+
+    def merge_d_matrices(parent, pop_parent):
+
+        # COPYING LESSER MATRIX TO BIGGER MATRIX
+
+        index = parent[St.row]
+        pop_row = pop_parent[St.row]
+        cur_mxd = parent[St.matrix_d]
+        pop_mxd = pop_parent[St.matrix_d]
+        # position_add = clusters[parent][St.row] - 1
+
+        # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
+        # print "\tADD VALUE: {}".format(position_add)
+
+        # COPY MATRIX
+        # print "\tPOP HEADER: {}".format(pop_mx[0][:])
+        for row in range(1, pop_row):
+
+            # ADD HEADER IF NOT ALREADY IN
+            # print "\tCURRENT HEADER ADDED: {}".format(cur_mx[0:])
+            if pop_mxd[(row, 0)] not in cur_mxd:
+                pop_item_row = pop_mxd[(row, 0)]
+                cur_mxd[(index, 0)] = pop_item_row
+                cur_mxd[(0, index)] = pop_item_row
+                index += 1
+                parent[St.row] = index
+                # print "\tHEADER ADDED: {}".format(pop_item_row)
+
+                # FOR THAT HEADER, COPY THE SUB-MATRIX
+                for col in range(1, pop_row):
+
+                    # THE HEADER ARE ALREADY IN THERE
+                    if (row, col) in pop_mxd and pop_mxd[(row, col)] != 0:
+                        # find header in current matrix
+                        for col_item in range(1, len(cur_mxd)):
+                            if (0, col_item) in cur_mxd and (0, col) in pop_mxd and \
+                                            cur_mxd[(0, col_item)] == pop_mxd[(0, col)]:
+                                # print "\tIN2 ({}, {})".format(index - 1, col_item)
+                                cur_mxd[(index - 1, col_item)] = 1
+
+    def cluster_helper_mtx(counter, annotate=False):
+
+        counter += 1
+        child_1 = subject.n3().strip()
+        child_2 = obj.n3().strip()
+        # child_1 = subject.strip()
+        # child_2 = obj.strip()
+
+        # DATE CREATION
+        # date = "{}".format(datetime.datetime.today().strftime(_format))
+
+        # CHECK WHETHER A CHILD HAS A PARENT
+        has_parent_1 = True if child_1 in root_mtx else False
+        has_parent_2 = True if child_2 in root_mtx else False
+        # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
+
+        # 1. START BOTH CHILD ARE ORPHANS
+        if has_parent_1 is False and has_parent_2 is False:
+
+            # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+            # GENERATE THE PARENT
+            # hash_value = hash(date + str(count) + graph)
+            hash_value = hash(child_1 + child_2 + graph)
+            parent = "{}".format(str(hash_value).replace("-", "N")) if str(
+                hash_value).startswith("-") \
+                else "P{}".format(hash_value)
+
+            # ASSIGN A PARENT TO BOTH CHILD
+            root[child_1] = parent
+            root[child_2] = parent
+
+            # CREATE A CLUSTER
+            if parent not in clusters:
+                # MATRIX
+                # mx = matrix(matrix_size, matrix_size)
+                mxd = dict()
+                # ROW
+                # mx[0][1] = child_1
+                # mx[0][2] = child_2
+
+                mxd[(0, 1)] = child_1
+                mxd[(0, 2)] = child_2
+
+                # COLUMNS
+                # mx[1][0] = child_1
+                # mx[2][0] = child_2
+
+                mxd[(1, 0)] = child_1
+                mxd[(2, 0)] = child_2
+
+                # RELATION
+                # mx[1][2] = 1
+                # mx[2][1] = 1
+                mxd[(2, 1)] = 1
+
+                clusters[parent] = {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
+                if annotate:
+                    clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
+
+            # print "\tPOSITION: {}".format(3)
+            # print "\tIT WILL BE PRINTED AT: ({}, {})".format(2, 1)
+
+        # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
+        elif has_parent_1 is True and has_parent_2 is True:
+
+            # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+            if root_mtx[child_1] == root_mtx[child_2]:
+                # print "CLUSTER SIZE IS {} BUT THERE IS NOTHING TO DO\n".format(len(clusters))
+                # print "\nSAME PARENTS {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+                # cur_mx = clusters[root[child_1]][St.matrix]
+                cur_mxd = clusters[root[child_1]][St.matrix_d]
+
+                row_1 = 0
+                row_2 = 0
+
+                # FIND ROW
+                # row_1 = clusters[root[child_1]][St.row]
+                # for row in range(1, clusters[root[child_1]][St.row]):
+                #     if cur_mx[row][0] == child_1:
+                #         row_1 = row
+                #
+                # for col in range(1, clusters[root[child_1]][St.row]):
+                #     if cur_mx[0][col] == child_2:
+                #         row_2 = col
+
+                for row in range(1, clusters[root[child_1]][St.row]):
+                    if (row, 0) in cur_mxd and cur_mxd[(row, 0)] == child_1:
+                        row_1 = row
+
+                for col in range(1, clusters[root[child_1]][St.row]):
+                    if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
+                        row_2 = col
+
+                # row_2 = clusters[root[child_2]][St.row]
+
+                # print "\tPOSITIONS: {} | {}".format(row_2, row_1)
+                # cur_mx[row_2][row_1] = 1
+                cur_mxd[(row_2, row_1)] = 1
+
+                if annotate:
+                    clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1, child_2)
+
+                # COPY THE SUB-MATRIX
+                # for col in range(1, row_1):
+                #     if cur_mx[0][col] == child_2:
+                #         print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+                #         print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
+                #         cur_mx[row_1 - 1][col] = 1
+
+                # continue
+                return counter
+
+            # THE PARENT WITH THE MOST CHILD GET THE CHILD OF THE OTHER PARENT
+            # fFETCHING THE RESOURCES IN THE CLUSTER (CHILDREN)
+            # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+            children_1 = (clusters_mtx[root_mtx[child_1]])[St.children]
+            children_2 = (clusters_mtx[root_mtx[child_2]])[St.children]
+
+            # 2.2 CHOOSE A PARENT
+            if len(children_1) >= len(children_2):
+                # print "\tPARENT 1"
+                parent = root_mtx[child_1]
+                pop_parent = root_mtx[child_2]
+                # root[child_2] = parent
+
+            else:
+                # print "\tPARENT 2"
+                parent = root_mtx[child_2]
+                pop_parent = root_mtx[child_1]
+                # root[child_1] = parent
+
+            # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+            for offspring in clusters_mtx[pop_parent][St.children]:
+                root_mtx[offspring] = parent
+                clusters_mtx[parent][St.children] += [offspring]
+
+            # MERGE CURRENT WITH LESSER (CHILDREN) MATRICES, ANNOTATE AND POOP LESSER (CHILDREN) MATRICES
+            merge_d_matrices(clusters_mtx[parent], clusters_mtx[pop_parent])
+
+            if annotate:
+                clusters_mtx[parent][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
+            cluster_helper_mtx(count)
+            # cluster_helper(count)
+
+            # COPYING LESSER MATRIX TO BIGGER MATRIX
+            # index = clusters[parent][St.row]
+            # pop_row = clusters[pop_parent][St.row]
+            # cur_mx = clusters[parent][St.matrix]
+            # pop_mx = clusters[pop_parent][St.matrix]
+            # # position_add = clusters[parent][St.row] - 1
+            #
+            # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
+            # # print "\tADD VALUE: {}".format(position_add)
+            #
+            # # # ADD HEADER
+            # # for x in range(1, pop_index):
+            # #     cur_mx[0][index - 1 + x] = pop_mx[0][x]
+            # #     cur_mx[index - 1 + x][0] = pop_mx[0][x]
+            # #     clusters[parent][St.row] += 1
+            #
+            # # COPY MATRIX
+            # print "\tPOP HEADER: {}".format(pop_mx[0][:])
+            # for row in range(1, pop_row):
+            #
+            #     # ADD HEADER IF NOT ALREADY IN
+            #     # print "\tCURREENT HEADER ADDED: {}".format(cur_mx[0:])
+            #     if pop_mx[row][0] not in cur_mx[0:]:
+            #         pop_item_row = pop_mx[row][0]
+            #         cur_mx[index][0] = pop_item_row
+            #         cur_mx[0][index] = pop_item_row
+            #         index += 1
+            #         clusters[parent][St.row] = index
+            #         print "\tHEADER ADDED: {}".format(pop_item_row)
+            #
+            #
+            #         # FOR THAT HEADER, COPY THE SUB-MATRIX
+            #         for col in range(1, pop_row):
+            #
+            #             # THE HEADER IS NOT IN
+            #             if pop_mx[row][col] != 0 and pop_mx[row][0] not in cur_mx[1:-1]:
+            #                 print "\tIN ({}, {})".format(index-1, col )
+            #                 # index += 1
+            #                 # clusters[parent][St.row] = index
+            #
+            #             # THE HEADER ARE ALREADY IN THERE
+            #             if pop_mx[row][col] != 0:
+            #                 # find header in current matrix
+            #                 for col_item in range(1, len(cur_mx[1:-1])):
+            #                     if cur_mx[0][col_item] == pop_mx[0][col]:
+            #                         print "\tIN2 ({}, {})".format(index-1, col_item)
+            # cur_mx[row + position_add][col + position_add] = pop_mx[row][col]
+
+            # cur_mx[0][position_add+ row] = pop_mx[row][0]
+
+            # cur_mx[y + position_add][x + position_add] = pop_mx[y][x]
+
+            # POP THE PARENT WITH THE LESSER CHILD
+
+            if annotate:
+                clusters_mtx[parent][St.annotate] += clusters_mtx[pop_parent][St.annotate]
+            clusters_mtx.pop(pop_parent)
+
+        # 3. ONE CHILD [CHILD 1] HAVE A PARENT OF HIS OWN
+        elif has_parent_1 is True:
+
+            # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+            # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+            parent = root[child_1]
+            root[child_2] = parent
+            clusters[parent][St.children] += [child_2]
+            # print "\t>>> {} is in root {}".format(child_2, child_2 in root)
+
+            # cur_mx = clusters[parent][St.matrix]
+            cur_mxd = clusters[parent][St.matrix_d]
+            row_1 = clusters[parent][St.row]
+
+            # ADD HEADER
+            # cur_mx[row_1][0] = child_2
+            # cur_mx[0][row_1] = child_2
+
+            cur_mxd[(row_1, 0)] = child_2
+            cur_mxd[(0, row_1)] = child_2
+
+            # INCREMENT POSITION
+            row_1 += 1
+            # print "\tPOSITION: {}".format(row_1)
+            clusters[parent][St.row] = row_1
+
+            # COPY MATRIX
+            # for col in range(1, row_1):
+            #     # print cur_mx[0][x], child_1
+            #     if cur_mx[0][col] == child_1:
+            #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+            #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
+            #         # cur_mx[position_1 - 1][x] = 1
+            #         cur_mx[row_1 - 1][col] = 1
+            #         clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+            #             child_1, child_2)
+
+            for col in range(1, row_1):
+                if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_1:
+                    cur_mxd[(row_1 - 1, col)] = 1
+                    if annotate:
+                        clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                            child_1, child_2)
+
+        # 4. ONE CHILD [CHILD 2] HAVE A PARENT OF HIS OWN
+        elif has_parent_2 is True:
+
+            # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+            # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+            parent = root[child_2]
+            root[child_1] = parent
+            clusters[parent][St.children] += [child_1]
+            # print "\t>>> {} is in root {}".format(child_1, child_1 in root)
+
+            # cur_mx = clusters[parent][St.matrix]
+            cur_mxd = clusters[parent][St.matrix_d]
+            row_2 = clusters[parent][St.row]
+
+            # ADD HEADER
+            # print row_2
+            # cur_mx[row_2][0] = child_1
+            # cur_mx[0][row_2] = child_1
+
+            cur_mxd[(row_2, 0)] = child_1
+            cur_mxd[(0, row_2)] = child_1
+
+            # INCREMENT POSITION
+            row_2 += 1
+            # print "\tPOSITION: {}".format(row_2)
+            clusters[parent][St.row] = row_2
+
+            # COPY MATRIX
+            # for col in range(1, row_2):
+            #     # print cur_mx[0][x], child_1
+            #     if cur_mx[0][col] == child_2:
+            #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+            #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_2 - 1, col)
+            #         # cur_mx[position_2 - 1][x] = 1
+            #         cur_mx[row_2 - 1][col] = 1
+            #         clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+            #             child_2, child_1)
+
+            for col in range(1, row_2):
+                if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
+                    cur_mxd[(row_2 - 1, col)] = 1
+                    if annotate:
+                        clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                            child_2, child_1)
+
+        return counter
+
+    def cluster_helper_set(counter, annotate=False):
+
+        counter += 1
+        # child_1 = subject.strip()
+        # child_2 = obj.strip()
+
+        child_1 = subject.strip()
+        child_2 = object.strip()
+        child_1 = child_1 if Ut.is_nt_format(child_1) else "<{}>".format(child_1)
+        child_2 = child_2 if Ut.is_nt_format(child_2) else "<{}>".format(child_2)
+
+        # DATE CREATION
+        date = "{}".format(datetime.datetime.today().strftime(_format))
+
+        # CHECK WHETHER A CHILD HAS A PARENT
+        has_parent_1 = True if child_1 in root else False
+        has_parent_2 = True if child_2 in root else False
+        # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
+
+        # *******************************************
+        # 1. START BOTH CHILD ARE ORPHANS
+        # *******************************************
+        if has_parent_1 is False and has_parent_2 is False:
+
+            # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+            # GENERATE THE PARENT
+            hash_value = hash(date + str(count) + graph)
+            parent = "{}".format(str(hash_value).replace("-", "N")) if str(
+                hash_value).startswith("-") \
+                else "P{}".format(hash_value)
+
+            # ASSIGN A PARENT TO BOTH CHILD
+            root[child_1] = parent
+            root[child_2] = parent
+
+            # THE SUBJECT AND OBJECT LINK
+            link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+
+            # THE CLUSTER COMPOSED OF NODES, LINKS AND STRENGTHS
+            clusters[parent] = {'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {link: strength}}
+            # print "1",clusters[parent]
+
+            # print parent, child_1, child_2
+            if annotate:
+                clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
+
+        # *******************************************
+        # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
+        # *******************************************
+        elif has_parent_1 is True and has_parent_2 is True:
+
+            # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+            if root[child_1] != root[child_2]:
+
+                parent1 = root[child_1]
+                parent2 = root[child_2]
+                # root2[child_2] = parent1
+
+                if annotate:
+                    clusters[parent1][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
+                # print parent1, parent2
+
+                if parent2 in clusters:
+                    # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+                    for child in clusters[parent2]['nodes']: ### check this
+                        root[child] = parent1
+
+                    # print 'before', clusters2[parent1]['nodes']
+                    # RE-ASSIGNING THE NODES OF CHILD 2
+                    clusters[parent1]['nodes'] = clusters[parent1]['nodes'].union(clusters[parent2]['nodes'])
+                    # RE-ASSIGNING THE LINKS OF CHILD 2
+
+                    clusters[parent1]['links'] = clusters[parent1]['links'].union(clusters[parent2]['links'])
+
+                    # RE-ASSIGNING THE STRENGTHS OF CHILD 2
+                    for key, link_strengths in clusters[parent2]['strengths'].items():
+                        if key not in clusters[parent1]['strengths']:
+                            clusters[parent1]['strengths'][key] = link_strengths
+                        else:
+                            clusters[parent1]['strengths'][key] += link_strengths
+
+                    # print 'after', clusters2[parent1]['nodes']
+
+                    #add the current link (child_1, child_2)  ### check this
+                    link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                    clusters[parent1]['links'].add(link)
+
+                    if link in clusters[parent1]['strengths']:
+                        clusters[parent1]['strengths'][link] += strength
+                    else:
+                        clusters[parent1]['strengths'][link] = strength
+
+                    clusters.pop(parent2)
+            else:
+                parent = root[child_1]
+                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                clusters[parent]['links'].add(link)
+
+                if link in clusters[parent]['strengths']:
+                    clusters[parent]['strengths'][link] += strength
+                else:
+                    clusters[parent]['strengths'][link] = strength
+
+                if annotate:
+                    clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1, child_2)
+
+        # *******************************************
+        # 3. BOTH CHILD HAVE DIFFERENT PARENTS
+        # *******************************************
+        elif has_parent_1 is True:
+
+            # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+            # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+            parent = root[child_1]
+            root[child_2] = parent
+
+            link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+            clusters[parent]['links'].add(link)
+            clusters[parent]['nodes'].add(child_2)
+
+            if link in clusters[parent]['strengths']:
+                clusters[parent]['strengths'][link] += strength
+            else:
+                clusters[parent]['strengths'][link] = strength
+
+            if annotate:
+                clusters[parent][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                            child_1, child_2)
+
+        # *******************************************
+        # 4. BOTH CHILD HAVE DIFFERENT PARENTS
+        # *******************************************
+        elif has_parent_2 is True:
+
+            # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+            # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+            parent = root[child_2]
+            root[child_1] = parent
+
+            link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+            clusters[parent]['links'].add(link)
+            clusters[parent]['nodes'].add(child_1)
+
+
+            if link in clusters[parent]['strengths']:
+                clusters[parent]['strengths'][link] += strength
+            else:
+                clusters[parent]['strengths'][link] = strength
+
+            if annotate:
+                clusters[parent][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                            child_2, child_1)
+
+        return counter
+
+    # *******************************************
+    # RUN THE LINK CLUSTER
+    # *******************************************
+    standard = 50000
+    check = 1
+    iteration = 1
+
+    print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE"
+    data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph)
+
+    print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
+    for (subject, object), strength in data.items():
+
+        # CALLING THE MAIN HELPER FUNCTION
+        count = cluster_helper_set(count, annotate=False)
+
+        # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN
+        if iteration == check:
+            print "\tRESOURCE {:>10}:   {} {}".format(count, subject, object)
+            check = check + standard
+        iteration += 1
+        # print strength
+        # break
+
+    # COMPARING HELPERS
+    # for subject, predicate, obj in g:
+    #
+    #     count = cluster_helper_set(count, annotate=False)
+    #     # count_mtx = cluster_helper_mtx(count_mtx)
+    #     if iteration == check:
+    #         print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
+    #         check = check + standard
+    #     iteration += 1
 
     # sizes = set()
     # sizes2 = set()
