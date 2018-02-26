@@ -540,7 +540,7 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
             append = ""
         union += """ {}
         {{
-            bind(<{}> as ?resource)
+            bind({} as ?resource)
             graph ?dataset {{ ?resource ?property ?value . }}
         }}""".format(append, g_cluster[x])
 
@@ -598,7 +598,7 @@ def cluster_values_plus(rq_uri, g_cluster, properties, distinct_values=True, dis
             append = ""
         union += """ {}
         {{
-            bind(<{}> as ?resource)
+            bind({} as ?resource)
             graph ?dataset {{ ?resource ?property ?value . }}
         }}""".format(append, g_cluster[x])
 
