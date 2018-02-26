@@ -785,12 +785,15 @@ def download_research_question(research_question, directory):
 
     print "\n2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING"
     linksets_query = """
+    PREFIX class: <http://risis.eu/class/>
+    PREFIX ll: <http://risis.eu/alignment/predicate/>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
     SELECT DISTINCT ?linkset
     {{
         graph <{}>
         {{
-            ?mappings  a <http://risis.eu/class/AlignmentMapping> .
-            ?mappings  <http://risis.eu/alignment/predicate/created> ?linkset .
+            ?mappings  a class:AlignmentMapping .
+            ?mappings  ]]:created|prov:used ?linkset .
         }}
     }}
     """.format(research_question)
@@ -806,11 +809,12 @@ def download_research_question(research_question, directory):
     lenses_query = """
         PREFIX ll: <http://risis.eu/alignment/predicate/>
         PREFIX prov: <http://www.w3.org/ns/prov#>
+        PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
         SELECT DISTINCT ?subject
         {{
             graph <{0}>
             {{
-                ?subject  a <http://vocabularies.bridgedb.org/ops#Lens> .
+                ?subject  a bdb:Lens .
                 <{0}> ll:created|prov:used ?subject .
             }}
         }}
