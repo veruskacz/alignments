@@ -793,7 +793,7 @@ def download_research_question(research_question, directory):
         graph <{}>
         {{
             ?mappings  a class:AlignmentMapping .
-            ?mappings  ]]:created|prov:used ?linkset .
+            ?mappings  ll:created|prov:used ?linkset .
         }}
     }}
     """.format(research_question)
@@ -994,7 +994,7 @@ def download_research_question(research_question, directory):
             # print current_lens_query
 
             # DOWNLOAD THE GENERIC METADATA
-            download_stardog_data(endpoint, entity_type="len{}_general_meta".format(i), graph=lens_graph,
+            download_stardog_data(endpoint, entity_type="lens{}_general_meta".format(i), graph=lens_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_lens_gen_q, count_query=current_lens_gen_c, create_graph=False,
                                   cleanup=True, insert=True, activated=True)
