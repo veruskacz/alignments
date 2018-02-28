@@ -3041,6 +3041,26 @@ def overviewrq():
     return json.dumps(result)
 
 
+@app.route('/getexportrq')
+def getexportrq():
+    """
+    This function is called due to request /getrquestions
+    It queries ...
+    The result list is passed as parameters to the template list_dropdown.html
+    """
+    rq_uri = request.args.get('rq_uri', '')
+    result = {}
+    # result = mod_view.activity_overview(rq_uri, get_text=False)
+    result['fileName'] = Ut.get_uri_local_name(rq_uri)
+    print result['fileName']
+
+    # if PRINT_RESULTS:
+    # print "\n\nOverview:", result['idea']
+
+    # SEND BAK RESULTS
+    return json.dumps(result)
+
+
 @app.route('/adminDel')
 def adminDel():
     """
