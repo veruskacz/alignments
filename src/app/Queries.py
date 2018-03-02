@@ -1621,7 +1621,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1, crossCheck=True):
     source_bind = ""
     target = ""
     target_bind = ""
-    prop_query = linkset_aligns_prop(linkset, crossCheck=crossCheck)
+    prop_query = linkset_aligns_prop(linkset, cross_check=crossCheck)
     prop_matrix = sparql_matrix(prop_query)["result"]
 
     s_ds = "<{}>".format(prop_matrix[1][3])
