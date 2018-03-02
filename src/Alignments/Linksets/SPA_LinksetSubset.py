@@ -140,8 +140,9 @@ def spa_subset_insert(specs):
 
         GRAPH singleton:{}
         {{
-            ?singPre    rdf:singletonPropertyOf     alivocab:exactStrSim{} ;
-                        alivocab:hasEvidence        "Aligned by {} ." .
+            ?singPre    rdf:singletonPropertyOf     alivocab:exactStrSim{} .
+            ?singPre    alivocab:hasStrength        1 .
+            ?singPre    alivocab:hasEvidence        "Aligned by {} ." .
         }}
     }}
     WHERE
