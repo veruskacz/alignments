@@ -24,9 +24,9 @@ logger.addHandler(handler)
 
 DATABASE = Svr.DATABASE
 HOST = Svr.settings[St.stardog_host_name]
-
 ERROR = "No connection could be made because the target machine actively refused it"
 ERROR_2 = 'The query was successfully executed but no feedback was returned'
+
 
 def from_alignment2singleton(alignment):
 
@@ -316,7 +316,6 @@ def endpoint(query):
     """
     user = Svr.settings[St.stardog_user]
     password = Svr.settings[St.stardog_pass]
-    # password = "admin"
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
@@ -474,8 +473,6 @@ def endpointconstruct(query, clean=True, insert=False):
 
             elif insert is True:
                 result = "INSERT DATA {}".format(result)
-
-
 
         return result
 
@@ -1229,48 +1226,52 @@ def get_cluster_rsc_strengths(resources, alignments):
     # display_matrix(response, is_activated=True)
     return response_dic
 
+
 def cluster_rsc_strengths_query(resources, alignments):
 
     check = resources is None or len(resources) == 0
     comment = "#" if check is True else ""
     query = """
-        PREFIX prov: <{3}>
-        PREFIX ll: <{4}>
-        SELECT DISTINCT ?lookup ?object ?Strength {5}?Evidence
+    PREFIX prov: <{3}>
+    PREFIX ll: <{4}>
+    SELECT DISTINCT ?lookup ?object ?Strength {5}?Evidence
+    {{
+        {5}VALUES ?lookup{{ {0} }}
+
+        # FETCH CORRESPONDENCE IN BOTH DIRECTIONS
         {{
-            {5}VALUES ?lookup{{ {0} }}
+            GRAPH <{1}>
+            {{ ?lookup ?predicate ?object .}}
+        }}
+        UNION
+        {{
+            GRAPH <{1}>
+            {{?object ?predicate ?lookup . }}
+        }}
 
-            {{
-                GRAPH <{1}>
-                {{ ?lookup ?predicate ?object .}}
-            }} UNION
-            {{
-                GRAPH <{1}>
-                {{?object ?predicate ?lookup . }}
-            }}
-
-            {{
-                GRAPH <{2}>
-                {{
-                    ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
-                    OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
-                    OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
-                }}
-                GRAPH ?g
-                {{
-                    ?DerivedFrom  ll:hasStrength  ?Strength ;
-                                  ll:hasEvidence  ?Evidence .
-                }}
-
-            }} UNION
-            {{
+        # FETCH CORRESPONDENCE STRENGTH
+        {{
             GRAPH <{2}>
-                {{
-                    ?predicate  ll:hasStrength  ?Strength .
-                }}
+            {{
+                ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
+                OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
+                OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
             }}
-        }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab, comment)
-    # print query
+            GRAPH ?g
+            {{
+                ?DerivedFrom  ll:hasStrength  ?Strength ;
+                              ll:hasEvidence  ?Evidence .
+            }}
+
+        }} UNION
+        {{
+        GRAPH <{2}>
+            {{
+                ?predicate  ll:hasStrength  ?Strength .
+            }}
+        }} # CONSTRAINTS IF ANY
+    }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab, comment)
+    print query
     return query
 
 
@@ -1646,7 +1647,6 @@ def get_triples_count(graph):
     # print query
 
     triples = sparql_xml_to_matrix(query)
-
 
     if triples is None:
         return None
@@ -2670,9 +2670,9 @@ def construct_namedgraph(namedgraph):
     return query
 
 
-def linkset_aligns_prop(linkset_uri, crossCheck=False):
+def linkset_aligns_prop(linkset_uri, cross_check=False):
 
-    if crossCheck is True:
+    if cross_check is True:
         # read the property for cross checking instead of aligns
         prop_aligns = """
               {?linkset ll:crossCheckSubject ?s_prop ;
@@ -2743,37 +2743,34 @@ def linkset_aligns_prop(linkset_uri, crossCheck=False):
     return query
 
 
-def linksetCluster_aligns_prop(linkset_uri, prop_aligns):
+def linkset_cluster_aligns_prop(linkset_uri, prop_aligns):
 
     query = """
-        ################################################################
-        PREFIX ll:    <{}>
-        PREFIX prov:  <{}>
-        PREFIX void:  <{}>
+    ################################################################
+    PREFIX ll:    <{}>
+    PREFIX prov:  <{}>
+    PREFIX void:  <{}>
+    ### LINKSET ALIGNED PROPERTIES
 
-        ### LINKSET ALIGNED PROPERTIES
+    SELECT DISTINCT ?dataset ?datatype (GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
+    {{
+        ### RETRIEVING LINKSET METADATA
+        <{}>
+            (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*        ?linkset .
 
-        SELECT DISTINCT ?dataset ?datatype (GROUP_CONCAT(DISTINCT ?property; SEPARATOR=" | ") as ?properties)
-
-        {{
-            ### RETRIEVING LINKSET METADATA
-            <{}>
-                (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*        ?linkset .
-
-            ?linkset	ll:hasAlignmentTarget  ?target .
-			?target
-                ll:hasTarget  		?dataset ;
-                ll:hasDatatype   	?datatype ;
-                ll:aligns		    ?property .
-
-        }}
-        group by ?dataset ?datatype
+        ?linkset	ll:hasAlignmentTarget  ?target .
+        ?target
+            ll:hasTarget  		?dataset ;
+            ll:hasDatatype   	?datatype ;
+            ll:aligns		    ?property .
+    }}
+    group by ?dataset ?datatype
     """.format(Ns.alivocab, Ns.prov, Ns.void, linkset_uri, prop_aligns)
     print query
     return query
 
 
-def linkset_aligns_propOld(linkset_uri):
+def linkset_aligns_prop_old(linkset_uri):
     query = """
         ################################################################
         PREFIX ll:    <{}>
@@ -3423,9 +3420,7 @@ def remote_endpoint_request(query, endpoint_url):
         return {St.message: err, St.result: None}
 
 
-
-
-def remote_stardog(query, endpoint, user, password):
+def remote_stardog(query, endpoints, user, password):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
@@ -3434,7 +3429,7 @@ def remote_stardog(query, endpoint, user, password):
         return              : returns the result of the query in the default format of the endpoint.
                             In the case of STARDOG, the sever returns an XML result.
     """
-    url = endpoint
+    url = endpoints
     params = urllib.urlencode(
         {b'query':  to_bytes(query), b'format': b'application/sparql-results+json',
          b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
