@@ -14,6 +14,7 @@ import Queries as Qry
 import os.path as path
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
 
+from Alignments.UserActivities.Import_Data import download_research_question
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -3033,6 +3034,30 @@ def overviewrq():
     """
     rq_uri = request.args.get('rq_uri', '')
     result = mod_view.activity_overview(rq_uri, get_text=False)
+
+    # if PRINT_RESULTS:
+    # print "\n\nOverview:", result['idea']
+
+    # SEND BAK RESULTS
+    return json.dumps(result)
+
+
+@app.route('/getexportrq')
+def getexportrq():
+    """
+    This function is called due to request /getrquestions
+    It queries ...
+    The result list is passed as parameters to the template list_dropdown.html
+    """
+    rq_uri = request.args.get('rq_uri', '')
+    result = {}
+    # result = mod_view.activity_overview(rq_uri, get_text=False)
+    # print Svr.SRC_DIR
+    result['fileName'] = Ut.get_uri_local_name(rq_uri)
+    path = Svr.SRC_DIR + "app/static/data/" + result['fileName']
+    download_research_question(rq_uri, path)
+    # Ut.zipdir(path, result['fileName']+'.zip')
+    print result['fileName']
 
     # if PRINT_RESULTS:
     # print "\n\nOverview:", result['idea']

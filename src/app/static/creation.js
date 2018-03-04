@@ -165,6 +165,22 @@ function inspect_idea_button(th)
   }
 }
 
+function export_idea_button()//(uri, name)
+{
+    var uri = $('#creation_idea_selected_RQ').attr('uri');
+
+    $.get('/getexportrq', data = {'rq_uri': uri}, function(data)
+    {
+       var obj = JSON.parse(data);
+       var fileName = obj.fileName;
+       var link = document.createElement("a");
+       link.download = fileName + '.zip';
+       link.href = '/static/data/' + fileName + '.zip';
+       alert(link.href);
+       link.click();
+    });
+
+}
 
 function overview_idea_button(th)
 {
@@ -1754,28 +1770,6 @@ function exportLensClick(filename, mode='flat', user='', psswd='')
         var message = "Exporting Lens";
         $('#lens_export_message_col').html(addNote(message,cl='warning'));
         loadingGif(document.getElementById('lens_export_message_col'), 2);
-
-        // call function that creates the linkset
-//        $.get('/exportAlignment', data={'graph_uri':lens}, function(data)
-//        {
-//
-//            var obj = JSON.parse(data);
-//            loadingGif(document.getElementById('lens_export_message_col'), 2, show=false);
-//
-//            $('#lens_export_message_col').html(addNote(obj.message,cl='info'));
-//            csv = obj.result;
-//
-//            var element = document.createElement('a');
-//            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csv));
-//            element.setAttribute('download', filename);
-//
-//            element.style.display = 'none';
-//            document.body.appendChild(element);
-//
-//            element.click();
-//
-//            document.body.removeChild(element);
-//        });
 
         $.ajax({
             url: "/exportAlignment",

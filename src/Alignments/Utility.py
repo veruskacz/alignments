@@ -22,6 +22,7 @@ from os.path import isfile, join
 from unidecode import unidecode
 from kitchen.text.converters import to_bytes, to_unicode
 # write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
+import zipfile
 
 
 OPE_SYS = platform.system().lower()
@@ -33,6 +34,14 @@ mac_weird_name = "darwin"
     GENERIC FUNCTIONS
 """
 #################################################################
+
+
+
+def zipdir(path, zipname):
+    zipf = zipfile.ZipFile(zipname, 'w', zipfile.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            zipf.write(os.path.join(root, file))
 
 
 def hash_it(text):
