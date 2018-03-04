@@ -175,7 +175,7 @@ function export_idea_button()//(uri, name)
        var fileName = obj.fileName;
        var link = document.createElement("a");
        link.download = fileName + '.zip';
-       link.href = '/static/' + fileName + '.zip';
+       link.href = '/static/data/' + fileName + '.zip';
        alert(link.href);
        link.click();
     });

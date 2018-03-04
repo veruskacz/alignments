@@ -14,6 +14,7 @@ import Queries as Qry
 import os.path as path
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
 
+from Alignments.UserActivities.Import_Data import download_research_question
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -3051,7 +3052,11 @@ def getexportrq():
     rq_uri = request.args.get('rq_uri', '')
     result = {}
     # result = mod_view.activity_overview(rq_uri, get_text=False)
+    # print Svr.SRC_DIR
     result['fileName'] = Ut.get_uri_local_name(rq_uri)
+    path = Svr.SRC_DIR + "app/static/data/" + result['fileName']
+    download_research_question(rq_uri, path)
+    # Ut.zipdir(path, result['fileName']+'.zip')
     print result['fileName']
 
     # if PRINT_RESULTS:
