@@ -167,11 +167,19 @@ function inspect_idea_button(th)
 
 function export_idea_button()//(uri, name)
 {
-    var link = document.createElement("a");
-    link.download = 'test.md';
-    link.href = '../Alignments/Data/rq/readme.md';
-//    link.href = '/static/idea_0ecf51.zip';
-    link.click();
+    var uri = $('#creation_idea_selected_RQ').attr('uri');
+
+    $.get('/getexportrq', data = {'rq_uri': uri}, function(data)
+    {
+       var obj = JSON.parse(data);
+       var fileName = obj.fileName;
+       var link = document.createElement("a");
+       link.download = fileName + '.zip';
+       link.href = '/static/' + fileName + '.zip';
+       alert(link.href);
+       link.click();
+    });
+
 }
 
 function overview_idea_button(th)
