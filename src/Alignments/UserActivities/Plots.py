@@ -7,6 +7,8 @@ import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 # import matplotlib.pyplot as plt
+import Alignments.Server_Settings as Srv
+
 import math
 import Alignments.UserActivities.Clustering as Cls
 
@@ -517,7 +519,7 @@ def cluster_d_test_mtx(linkset, network_size=3, targets=None,
     # print sheet_builder.getvalue()
 
 
-def cluster_d_test_stats(linkset, network_size=3, targets=None,
+def cluster_d_test_statss(linkset, network_size=3, targets=None,
                    directory=None, greater_equal=True, print_it=False, limit=None, activated=False):
     network = []
     print "LINK NETWORK INVESTIGATION"
@@ -723,9 +725,8 @@ def cluster_d_test_stats(linkset, network_size=3, targets=None,
     # print sheet_builder.getvalue()
 
 
-def cluster_d_test(linkset, network_size=3, targets=None,
+def cluster_d_test_stats(linkset, network_size=3, targets=None,
                    directory=None, greater_equal=True, print_it=False, limit=None, activated=False):
-
     network = []
     print "LINK NETWORK INVESTIGATION"
     if activated is False:
@@ -780,117 +781,46 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                 if len(child) > uri_size:
                     uri_size = len(child)
 
-            # MAKE SURE THE FILE NAME OF THE CLUSTER IS ALWAYS THE SAME
-            file_name = "{}".format(str(smallest_hash).replace("-", "N")) if str(
-                smallest_hash).startswith("-") \
-                else "P{}".format(smallest_hash)
-            # print "children", children
-            # print "\t file_name", file_name
-            # print "\t strengths: {}"
-            # for item in strengths.items():
-            #     print "\t\t", item
+            if directory:
+                # MAKE SURE THE FILE NAME OF THE CLUSTER IS ALWAYS THE SAME
+                file_name = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                    smallest_hash).startswith("-") \
+                    else "P{}".format(smallest_hash)
 
 
-            # Qry.cluster_rsc_strengths(resources, linkset)
-            # QUERY FOR FETCHING ALL LINKED RESOURCES FROM THE LINKSET
-            # query = """
-            # PREFIX prov: <{3}>
-            # PREFIX ll: <{4}>
-            # SELECT DISTINCT ?lookup ?object ?Strength ?Evidence
-            # {{
-            #     VALUES ?lookup{{ {0} }}
-            #
-            #     {{
-            #         GRAPH <{1}>
-            #         {{ ?lookup ?predicate ?object .}}
-            #     }} UNION
-            #     {{
-            #         GRAPH <{1}>
-            #         {{?object ?predicate ?lookup . }}
-            #     }}
-            #
-            #     GRAPH <{2}>
-            #     {{
-            #         ?predicate  prov:wasDerivedFrom  ?DerivedFrom  .
-            #         OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
-            #         OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
-            #     }}
-            # }}
-            #             """.format(resources, linkset, linkset.replace("lens", "singletons"),
-            #                        Ns.prov, Ns.alivocab)
-            # # print query
+                # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+                query = Qry.cluster_rsc_strengths_query(resources, linkset)
+                response = Qry.sparql_xml_to_matrix(query)
 
-            # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
-            query = Qry.cluster_rsc_strengths_query(resources, linkset)
-            response = Qry.sparql_xml_to_matrix(query)
-            #
-            # # A DICTIONARY OF KEY: (SUBJECT-OBJECT) VALUE:STRENGTH
-            # response_dic = dict()
-            # result = response[St.result]
-            # if result:
-            #     for i in range(1, len(result)):
-            #         # print result[i]
-            #         key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
-            #         if key not in response_dic:
-            #             response_dic[key] = [result[i][2]]
-            #         else:
-            #             response_dic[key] += [result[i][2]]
+                # GENERAL INFO 2:
+                info = "SIZE    {}   \nCLUSTER {} \nNAME    {}\n".format(cluster_size, count_1, file_name)
+                info2 = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, cluster_size)
+                analysis_builder.write("{}\n".format(info))
+                print "{:>5} {}".format(count_2, info2)
 
-            # for item in response_dic.items():
-            #     print "\t", item
-            # return
-            # GENERAL INFO 2:
-            info = "SIZE    {}   \nCLUSTER {} \nNAME    {}\n".format(cluster_size, count_1, file_name)
-            info2 = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, cluster_size)
-            analysis_builder.write("{}\n".format(info))
-            print "{:>5} {}".format(count_2, info2)
+                analysis_builder.write("RESOURCES INVOLVED\n")
+                analysis_builder.write(child_list)
+                analysis_builder.write("\nCORRESPONDENT FOUND ")
+                analysis_builder.write(
+                    Qry.display_matrix(response, spacing=uri_size, output=True, line_feed='.', is_activated=True))
 
-            analysis_builder.write("RESOURCES INVOLVED\n")
-            analysis_builder.write(child_list)
-            analysis_builder.write("\nCORRESPONDENT FOUND ")
-            analysis_builder.write(
-                Qry.display_matrix(response, spacing=uri_size, output=True, line_feed='.', is_activated=True))
-
-            # INFO TYPE 3: PROPERTY-VALUES OF THE RESOURCES INVOLVED
-            analysis_builder.write("\n\nDISAMBIGUATION HELPER ")
-            if targets is None:
-                analysis_builder.write(Cls.disambiguate_network(linkset, children))
-            else:
-                analysis_builder.write(Cls.disambiguate_network_2(children, targets))
-
-            # position = i_cluster[1][St.row]
-            # if St.annotate in i_cluster[1]:
-            #     analysis_builder.write("\n\nANNOTATED CLUSTER PROCESS")
-            #     analysis_builder.write(i_cluster[1][St.annotate])
-
-            # THE CLUSTER
-            # print "POSITION: {}".format(position)
-            # print "\nMATRIX DISPLAY\n"
-            # for i in range(0, position):
-            #     resource = (i_cluster[1][St.matrix])[i]
-            #     print "\t{}".format(resource[:position])
-                # print "\t{}".format(resource)
-
-            # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
-            network = []
-            link_count = 0
-            for link in cluster_val["links"]:
-                link_count += 1
-                name_1 = "{}".format(Ut.get_uri_local_name(link[0]))
-                name_2 = "{}".format(Ut.get_uri_local_name(link[1]))
-                network += [(name_1, name_2)]
+                # INFO TYPE 3: PROPERTY-VALUES OF THE RESOURCES INVOLVED
+                analysis_builder.write("\n\nDISAMBIGUATION HELPER ")
+                if targets is None:
+                    analysis_builder.write(Cls.disambiguate_network(linkset, children))
+                else:
+                    analysis_builder.write(Cls.disambiguate_network_2(children, targets))
 
 
-            # for i in range(1, position):
-            #     for j in range(1, position):
-            #         if (i, j) in (i_cluster[1][St.matrix_d]) and (i_cluster[1][St.matrix_d])[(i, j)] != 0:
-            #             r = (i_cluster[1][St.matrix_d])[(i, 0)]
-            #             c = (i_cluster[1][St.matrix_d])[(0, j)]
-            #             r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
-            #             c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
-            #             network += [(r_name, c_name)]
-                        # network += [(r_smart, c_smart)]
-            # print "\tNETWORK", network
+                # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
+                network = []
+                link_count = 0
+                for link in cluster_val["links"]:
+                    link_count += 1
+                    name_1 = "{}".format(Ut.get_uri_local_name(link[0]))
+                    name_2 = "{}".format(Ut.get_uri_local_name(link[1]))
+                    network += [(name_1, name_2)]
+
 
             if print_it:
                 print ""
@@ -937,12 +867,244 @@ def cluster_d_test(linkset, network_size=3, targets=None,
                 Ut.write_2_disc(file_directory=tmp_directory, file_name="{}_ClusterSheet".format(cluster_size),
                                 data=sheet_builder.getvalue(), extension="txt")
 
-        # if count_2 == 2:
-        #     break
+                # if count_2 == 2:
+                #     break
 
     print ">>> FOUND: {}".format(count_2)
 
     if directory is None:
         return "{}\t{}".format(network_size, count_2)
 
-    # print sheet_builder.getvalue()
+
+def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, constraint_targets=None,
+                   constraint_text="", directory=None, greater_equal=True, print_it=False, limit=None,
+                   only_good=False, activated=False):
+
+    network = []
+    print "\nLINK NETWORK INVESTIGATION"
+    if activated is False:
+        print "\tTHE FUNCTION I NOT ACTIVATED"
+        return ""
+
+    elif network_size > network_size_max:
+        print "\t[network_size] SHOULD BE SMALLER THAN [network_size_max]"
+        return ""
+
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    linkset_name = Ut.get_uri_local_name(linkset)
+    linkset = linkset.strip()
+
+    if network_size_max - network_size == 0:
+        greater_equal = False
+    else:
+        greater_equal = False
+
+    check = False
+
+    # RUN THE CLUSTER
+    clusters_0 = Cls.links_clustering(linkset, limit)
+
+    def check_constraint():
+
+        text = constraint_text.lower()
+        text = text.split(",")
+
+        # CONSTRAINT BUILDER
+        c_builder = Buffer.StringIO()
+        if constraint_targets is not None:
+            for dictionary in constraint_targets:
+                graph = dictionary[St.graph]
+                data_list = dictionary[St.data]
+                properties = data_list[0][St.properties]
+                prop = properties[0] if Ut.is_nt_format(properties[0]) else "<{}>".format(properties[0])
+
+                # WRITING THE CONSTRAINT ON THE GRAPH
+                graph_q = """
+       {{
+           GRAPH <{0}>
+           {{
+               ?lookup {1} ?constraint .
+           }}
+       }}
+       """.format(graph, prop)
+                c_builder.write(graph_q) if len(c_builder.getvalue()) == 0  else \
+                    c_builder.write("UNION {}".format(graph_q))
+
+            # WRITING THE FILTER
+            if len(c_builder.getvalue()) > 0:
+                for i in range(0, len(text)):
+                    if i == 0 :
+                        c_builder.write("""
+       FILTER (LCASE(STR(?constraint)) = "{}" """.format(text[i].strip()))
+                    else:
+                        c_builder.write("""
+       || LCASE(STR(?constraint)) = "{}" """.format(text[i].strip()))
+                c_builder.write(")")
+
+
+        # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+        query = Qry.cluster_rsc_strengths_query(resources, linkset)
+        query = query.replace("# CONSTRAINTS IF ANY", c_builder.getvalue())
+        # print query
+        response = Qry.sparql_xml_to_matrix(query)
+        if response[St.result] is None:
+            return False
+        return True
+
+    for index in range(network_size, network_size_max + 1):
+
+        count_1 = 0
+        count_2 = 0
+        curr_network_size = index
+        print "\nCLUSTERS OF SISE {}".format(index)
+        sheet_builder = Buffer.StringIO()
+        analysis_builder = Buffer.StringIO()
+        sheet_builder.write("Count	ID					STRUCTURE	E-STRUCTURE-SIZE	A. NETWORK QUALITY"
+                            "		M. NETWORK QUALITY		REFERENCE\n")
+
+        for cluster, cluster_val in clusters_0.items():
+
+            # network = []
+            resources = ""
+            uri_size = 0
+            count_1 += 1
+            children = list(cluster_val["nodes"])
+            strengths = cluster_val["strengths"]
+            cluster_size = len(children)
+            # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
+            #     continue
+
+            check = cluster_size >= curr_network_size if greater_equal else cluster_size == curr_network_size
+
+            # NETWORK OF A PARTICULAR SIZE
+            if check:
+
+                # file_name = i_cluster[0]
+
+                # 2: FETCHING THE CORRESPONDENTS
+                smallest_hash = float('inf')
+                child_list = ""
+                for child in children:
+
+                    # CREATE THE HASHED ID AS THE CLUSTER NAME
+                    hashed = hash(child)
+                    if hashed <= smallest_hash:
+                        smallest_hash = hashed
+
+                    # GENERAL INFO 1: RESOURCES INVOLVED
+                    child_list += "\t{}\n".format(child)
+
+                    # LIST OF RESOURCES IN THE CLUTER
+                    use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
+                    resources += "\n\t\t\t\t{}".format(use)
+                    if len(child) > uri_size:
+                        uri_size = len(child)
+
+                # MAKE SURE THE FILE NAME OF THE CLUSTER IS ALWAYS THE SAME
+                file_name = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                    smallest_hash).startswith("-") \
+                    else "P{}".format(smallest_hash)
+
+                if constraint_targets is not None and check_constraint() is False:
+                    continue
+
+                count_2 += 1
+
+                # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+                query = Qry.cluster_rsc_strengths_query(resources, linkset)
+                response = Qry.sparql_xml_to_matrix(query)
+
+                # GENERAL INFO 2:
+                info = "SIZE    {}   \nCLUSTER {} \nNAME    {}\n".format(cluster_size, count_1, file_name)
+                info2 = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, cluster_size)
+                analysis_builder.write("{}\n".format(info))
+
+
+                analysis_builder.write("RESOURCES INVOLVED\n")
+                analysis_builder.write(child_list)
+                analysis_builder.write("\nCORRESPONDENT FOUND ")
+                analysis_builder.write(
+                    Qry.display_matrix(response, spacing=uri_size, output=True, line_feed='.', is_activated=True))
+
+                # INFO TYPE 3: PROPERTY-VALUES OF THE RESOURCES INVOLVED
+                analysis_builder.write("\n\nDISAMBIGUATION HELPER ")
+                if targets is None:
+                    analysis_builder.write(Cls.disambiguate_network(linkset, children))
+                else:
+                    report = Cls.disambiguate_network_2(children, targets)
+                    if report is not None:
+                        analysis_builder.write(report)
+
+                # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
+                network = []
+                link_count = 0
+                for link in cluster_val["links"]:
+                    link_count += 1
+                    name_1 = "{}-{}".format(Ut.hash_it(link[0]), Ut.get_uri_local_name(link[0]))
+                    name_2 = "{}-{}".format(Ut.hash_it(link[1]), Ut.get_uri_local_name(link[1]))
+                    network += [(name_1, name_2)]
+
+                #  GET THE AUTOMATED FLAG
+
+
+                if print_it:
+                    print ""
+                    print analysis_builder.getvalue()
+
+                # SETTING THE DIRECTORY
+                if directory:
+
+                    if network:
+                        automated_decision = metric(network)["AUTOMATED_DECISION"]
+                        if only_good is True and automated_decision.startswith("GOOD") is not True:
+                            count_2 -= 1
+                            continue
+
+                        print "{:>5} {}".format(count_2, info2)
+
+                        eval_sheet(targets, count_2, "{}_{}".format(cluster_size, file_name),
+                                   sheet_builder, linkset, children, automated_decision)
+                    else:
+                        print network
+
+
+                    # linkset_name = Ut.get_uri_local_name(linkset)
+                    # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+                    temp_directory = "{}{}".format(directory, "\{}_Analysis_{}\{}\{}_{}\\".format(
+                        curr_network_size, date, linkset_name, cluster_size, file_name))
+                    if not os.path.exists(temp_directory):
+                        os.makedirs(temp_directory)
+
+                    """""""""""""  PLOTTING """""""""""""
+                    # FIRE THE DRAWING: Supported formats: eps, pdf, pgf, png, ps, raw, rgba, svg, svgz.
+                    analysis_builder.write(
+                        draw_graph(graph=network,
+                                   file_path="{}{}.{}".format(temp_directory, "cluster_{}".format(file_name), "pdf"),
+                                   show_image=False)
+                    )
+
+                    """""""""""""  WRITING TO DISC """""""""""""
+                    # WRITE TO DISC
+                    Ut.write_2_disc(file_directory=temp_directory, file_name="cluster_{}".format(file_name, ),
+                                    data=analysis_builder.getvalue(), extension="txt")
+                    analysis_builder = Buffer.StringIO()
+
+            if directory:
+                # if len(sheet_builder.getvalue()) > 150 and count_2 == 2:
+                if len(sheet_builder.getvalue()) > 150 and len(clusters_0) == count_1:
+                    tmp_directory = "{}{}".format(directory, "\{}_Analysis_{}\{}\\".format(
+                        curr_network_size, date, linkset_name))
+
+                    """""""""""""  WRITING CLUSTER SHEET TO DISC """""""""""""
+                    print "\n\tWRITING CLUSTER SHEET AT\n\t{}".format(tmp_directory)
+                    Ut.write_2_disc(file_directory=tmp_directory, file_name="{}_ClusterSheet".format(cluster_size),
+                                    data=sheet_builder.getvalue(), extension="txt")
+
+            # if count_2 == 2:
+            #     break
+
+        print "\t>>> FOUND: {} CLUSTERS OF SIZE {}".format(count_2, curr_network_size)
+
+        if directory is None:
+            return "{}\t{}".format(curr_network_size, count_2)
+
