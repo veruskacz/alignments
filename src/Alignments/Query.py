@@ -1271,7 +1271,7 @@ def cluster_rsc_strengths_query(resources, alignments):
             }}
         }} # CONSTRAINTS IF ANY
     }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab, comment)
-    print query
+    # print query
     return query
 
 
