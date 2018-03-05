@@ -3,6 +3,7 @@
 
 import re
 import os
+import sys
 import time
 import rdflib
 import codecs
@@ -10,9 +11,10 @@ import datetime
 import platform
 import cStringIO
 import xmltodict
-import subprocess
-from os import listdir
 import requests
+import subprocess
+import zipfile as Zip
+from os import listdir
 import os.path as path
 import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
@@ -22,7 +24,6 @@ from os.path import isfile, join
 from unidecode import unidecode
 from kitchen.text.converters import to_bytes, to_unicode
 # write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
-import zipfile
 
 
 OPE_SYS = platform.system().lower()
@@ -37,11 +38,12 @@ mac_weird_name = "darwin"
 
 
 
-def zipdir(path, zipname):
-    zipf = zipfile.ZipFile(zipname, 'w', zipfile.ZIP_DEFLATED)
+def zip_dir(path, zip_name):
+
+    zip_f = Zip.ZipFile(zip_name, 'w', Zip.ZIP_DEFLATED)
     for root, dirs, files in os.walk(path):
         for file in files:
-            zipf.write(os.path.join(root, file))
+            zip_f.write(os.path.join(root, file))
 
 
 def hash_it(text):
@@ -1190,3 +1192,59 @@ def prep_4_uri(input_text):
     # Only alpha numeric
     return to_alphanumeric(mapping)
 
+
+def zip_folder(input_folder_path, output_file_path=None):
+
+    """
+    Zip the contents of an entire folder (with that folder included
+    in the archive). Empty sub-folders will be included in the archive
+    as well.
+    """
+
+
+    if path.isfile(output_file_path) is not True :
+        output_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "export.zip")
+
+    parent_dir = os.path.abspath(os.path.join(input_folder_path, os.pardir))
+
+    file_name = os.path.basename(output_file_path)
+    (short_name, extension) = os.path.splitext(file_name)
+
+    # Retrieve the paths of the folder contents.
+    contents = os.walk(input_folder_path)
+    zip_file = None
+
+    try:
+
+        zip_file = Zip.ZipFile(output_file_path, 'w', Zip.ZIP_DEFLATED)
+
+        for root, folders, files in contents:
+
+            # Include all sub-folders, including empty ones.
+            for folder_name in folders:
+                absolute_path = os.path.join(root, folder_name)
+                # print "Adding '%s' to archive." % absolute_path
+                zip_file.write(absolute_path, "C:{0}{0}{1}{0}{0}{2}".format(os.path.sep, short_name, file_name))
+
+            for file_name in files:
+                absolute_path = os.path.join(root, file_name)
+                # print "Adding '%s' to archive." % absolute_path
+                zip_file.write(absolute_path, "C:{0}{0}{1}{0}{0}{2}".format(os.path.sep, short_name, file_name))
+
+        print "\n\t'%s' created successfully." % output_file_path
+        return output_file_path
+
+    except IOError, message:
+        print message
+        sys.exit(1)
+    except OSError, message:
+        print message
+        sys.exit(1)
+    except Zip.BadZipfile, message:
+        print message
+        sys.exit(1)
+    finally:
+        if zip_file is not None:
+            zip_file.close()
+
+# zip_folder("C:\Productivity\LinkAnalysis\TRIAL\\6_Analysis_20180202\\", "C:\Productivity\LinkAnalysis\TRIAL\TEXT")
