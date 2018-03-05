@@ -1,3 +1,5 @@
+# encoding=utf-8
+
 import re
 import os
 import codecs
@@ -743,7 +745,11 @@ file_3 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\LODmapping.ttl"
 #                   start_at=0, main_query=main_query, count_query=count_query, activated=True)
 
 
-def download_research_question(research_question, directory):
+def download_research_question(research_question, directory, activated=False):
+
+    if activated is False:
+        print "\nTHE FUNCTION IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
 
     DATABASE = Svr.DATABASE
     HOST = Svr.settings[St.stardog_host_name]
@@ -917,13 +923,13 @@ def download_research_question(research_question, directory):
             current_gen_c = linkset_gen_c.format(linkset_graph)
 
             # DOWNLOAD THE GENERIC METADATA
-            download_stardog_data(endpoint, entity_type="linkset{}_general_meta".format(i), graph=linkset_graph,
+            download_stardog_data(endpoint, entity_type="linkset_{}_general_meta".format(i), graph=linkset_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_gen_q, count_query=current_gen_c, create_graph=False,
                                   cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE SINGLETON METADATA
-            download_stardog_data(endpoint, entity_type="linkset{}_singletons".format(i), graph=current_singleton_graph,
+            download_stardog_data(endpoint, entity_type="linkset_{}_singletons".format(i), graph=current_singleton_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_singleton_q, count_query=current_singleton_c, create_graph=True,
                                   cleanup=True, insert=True, activated=True)
@@ -994,13 +1000,13 @@ def download_research_question(research_question, directory):
             # print current_lens_query
 
             # DOWNLOAD THE GENERIC METADATA
-            download_stardog_data(endpoint, entity_type="lens{}_general_meta".format(i), graph=lens_graph,
+            download_stardog_data(endpoint, entity_type="lens_{}_general_meta".format(i), graph=lens_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_lens_gen_q, count_query=current_lens_gen_c, create_graph=False,
                                   cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE SINGLETON METADATA
-            download_stardog_data(endpoint, entity_type="lens{}_singletons".format(i),  count=i,
+            download_stardog_data(endpoint, entity_type="lens_{}_singletons".format(i),  count=i,
                                   graph=current_lens_singleton_graph, directory=directory, limit=10000, load=False,
                                   start_at=0, main_query=current_singleton_q, count_query=current_singleton_c,
                                   create_graph=True, cleanup=True, insert=True, activated=True)
@@ -1010,4 +1016,102 @@ def download_research_question(research_question, directory):
                                   directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_lens_query, count_query=current_lens_query_count, activated=True)
 
+    local_name = Ut.get_uri_local_name_plus(research_question)
+    file_at_parent_directory = os.path.join(os.path.abspath(
+        os.path.join(directory, os.pardir)), "{}.zip".format(local_name))
+
+    return Ut.zip_folder(directory, output_file_path=file_at_parent_directory)
+
 # download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
+
+
+def download_research_question_link_Stats(research_question, directory, activated=False):
+
+    if activated is False:
+        print "\nTHE FUNCTION IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
+
+    DATABASE = Svr.DATABASE
+    HOST = Svr.settings[St.stardog_host_name]
+    graph_count_query = """
+    SELECT ( count(?subject) as ?total)
+    {{
+        graph <{}>
+        {{
+            ?subject  ?predicate ?object.
+        }}
+    }}"""
+    endpoint = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
+
+    # **************************************************************
+    # 2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
+    # **************************************************************
+
+    print "\n2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING"
+    linksets_query = """
+    PREFIX class: <http://risis.eu/class/>
+    PREFIX ll: <http://risis.eu/alignment/predicate/>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
+    SELECT DISTINCT ?linkset
+    {{
+        graph <{}>
+        {{
+            ?mappings  a class:AlignmentMapping .
+            ?mappings  ll:created|prov:used ?linkset .
+        }}
+    }}
+    """.format(research_question)
+    linksets_response = Qr.sparql_xml_to_matrix(linksets_query)
+    linksets = linksets_response[St.result]
+
+    if linksets is not None:
+        print "\tThere are {} linksets".format(len(linksets) - 1)
+        if len(linksets) > 1:
+            for i in range(1, len(linksets)):
+                linkset_graph = linksets[i][0]
+                count_response = Qry.sparql_xml_to_matrix(graph_count_query.format(linkset_graph))
+                count_result = count_response[St.result]
+                if count_result is not None and len(count_result) > 1:
+                    triples = count_result[1][0]
+                    print "\t\tLINKSET {:6}/{:<6} {:12} triples : {}".format(i, len(linksets) - 1, triples, linkset_graph)
+
+
+    # **************************************************************
+    # 3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING
+    # **************************************************************
+
+    print "\n3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING"
+    lenses_query = """
+        PREFIX ll: <http://risis.eu/alignment/predicate/>
+        PREFIX prov: <http://www.w3.org/ns/prov#>
+        PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
+        SELECT DISTINCT ?subject
+        {{
+            graph <{0}>
+            {{
+                ?subject  a bdb:Lens .
+                <{0}> ll:created|prov:used ?subject .
+            }}
+        }}
+        """.format(research_question)
+    lenses_response = Qr.sparql_xml_to_matrix(lenses_query)
+    lenses = lenses_response[St.result]
+
+    if lenses is not None and len(lenses) > 1:
+        print "\t There are {} lenses".format(len(lenses) - 1)
+        for i in range(1, len(lenses)):
+            lens_graph = lenses[i][0]
+            count_response = Qry.sparql_xml_to_matrix(graph_count_query.format(lens_graph))
+            count_result = count_response[St.result]
+            if count_result is not None and len(count_result) > 1:
+                triples = count_result[1][0]
+                print "\t\tLENS {:6}/{:<6} {:12} triples : {}".format(i, len(lenses) - 1, triples, lens_graph)
+
+
+# download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
+# download_research_question("http://risis.eu/activity/idea_da1b1e", "C:\Users\Al\Documents\Tobias\\nano")
+"http://risis.eu/activity/idea_a5791d"
+
+
+
+# endpoint d2s http://risis.eu/activity/idea_a5791d
