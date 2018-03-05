@@ -51,7 +51,7 @@ if CREATION_ACTIVE:
     from Alignments.SimilarityAlgo.Analysis import ds_stats
     from kitchen.text.converters import to_bytes, to_unicode
     import Alignments.UserActivities.Clustering as Clt
-
+    from shutil import rmtree
     import Alignments.Server_Settings as Svr
 
     import Alignments.ConstraintClustering.DatasetsResourceClustering as DRC
@@ -3003,7 +3003,7 @@ def rquestions():
     The result list is passed as parameters to the template list_dropdown.html
     """
     try:
-        query = Qry.get_rqs();
+        query = Qry.get_rqs()
         result = sparql(query, strip=False)
         # print result
 
@@ -3054,10 +3054,26 @@ def getexportrq():
     # result = mod_view.activity_overview(rq_uri, get_text=False)
     # print Svr.SRC_DIR
     result['fileName'] = Ut.get_uri_local_name(rq_uri)
-    path = Svr.SRC_DIR + "app/static/data/" + result['fileName']
-    download_research_question(rq_uri, path)
+    directory = os.path.join(Svr.SRC_DIR, "app", "static", "data", result['fileName'])
+
+    # print "DIRECTORY:", directory
+    # CREATE THE DIRECTORY IF IT DOES NOT EXIT
+    if os.path.exists(directory) is False:
+        os.makedirs(directory)
+
+    # DOWNLOAD THE FILE
+    zip_file = download_research_question(rq_uri, directory, activated=True)
+
+    # REMOVE THE DIRECTORY
+    rmtree(directory)
+
+    # REMOVE THE ZIP FILE
+    # os.remove(zip_file)
+
+    # DELETE THE DIRECTORY AND THE FILE
+
     # Ut.zipdir(path, result['fileName']+'.zip')
-    print result['fileName']
+    # print result['fileName']
 
     # if PRINT_RESULTS:
     # print "\n\nOverview:", result['idea']
