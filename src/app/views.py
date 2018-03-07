@@ -3503,7 +3503,7 @@ def getClustersTable():
 
     # GET QUERY
     query = Qry.get_clusters_table(reference_uri)
-    print query
+    # print query
 
     # RUN QUERY AGAINST ENDPOINT
     try:

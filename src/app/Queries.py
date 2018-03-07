@@ -298,15 +298,47 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
                    alivocab:alignsObjects ?o_prop .
 
             BIND('oneAligns' as ?lkst_type_)
-            #filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
-        }
+            filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+            filter not exists
+            {
+			?uri
+                    prov:wasDerivedFrom*/void:target*/prov:wasDerivedFrom*       ?graph .
 
+            ?graph
+                   alivocab:alignsSubjects ?s_prop2 ;
+                   alivocab:alignsObjects ?o_prop2 .
+            filter (isBlank(?s_prop2) = "TRUE"^^xsd:boolean || isBlank(?o_prop2) = "TRUE"^^xsd:boolean)
+            }
+        }
+        UNION
+        { 	?uri
+                   alivocab:alignsSubjects ?s_prop ;
+                   alivocab:alignsObjects ?o_prop .
+
+            BIND('multipleAligns' as ?lkst_type_)
+            filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
+
+            ?uri
+                    prov:wasDerivedFrom*/void:target*/prov:wasDerivedFrom*       ?graph .
+
+            ?graph
+                   alivocab:alignsSubjects ?s_prop2 ;
+                   alivocab:alignsObjects ?o_prop2 .
+            filter (isBlank(?s_prop2) = "TRUE"^^xsd:boolean || isBlank(?o_prop2) = "TRUE"^^xsd:boolean)
+
+        }
         ### SELECTING CREATED LENS OR LINKSETS
         UNION
         {
              ?uri
                    alivocab:alignsSubjects ?s_prop ;
                    alivocab:alignsObjects ?o_prop .
+
+            # ?s_prop ?x ?y .
+            # ?o_prop ?z ?w .
+            # filter (isBlank(?y) = "TRUE"^^xsd:boolean)
+            # filter (isBlank(?w) = "TRUE"^^xsd:boolean)
+
             BIND("success" as ?mode)
             BIND('multipleAligns' as ?lkst_type_)
             filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
@@ -1883,13 +1915,13 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
           {{
             ?linkset    alivocab:alignsSubjects     ?SRC_onj .
             ?SRC_onj    rdf:rest*/rdf:first         ?s_prop_ .
-            ?graph      alivocab:crossCheckSubject  ?s_property .
-            ?graph      alivocab:crossCheckSubject  ?s_crossCheck_property_ .
+            ?linkset      alivocab:crossCheckSubject  ?s_property .
+            ?linkset      alivocab:crossCheckSubject  ?s_crossCheck_property_ .
 
             ?linkset    alivocab:alignsObjects      ?trg_onj .
             ?trg_onj    rdf:rest*/rdf:first         ?o_prop_ .
-            ?graph      alivocab:crossCheckObject   ?o_property .
-            ?graph      alivocab:crossCheckObject   ?o_crossCheck_property_ .
+            ?linkset      alivocab:crossCheckObject   ?o_property .
+            ?linkset      alivocab:crossCheckObject   ?o_crossCheck_property_ .
 
              filter (isBlank(?s_prop_) = "FALSE"^^xsd:boolean) .
              filter (isBlank(?o_prop_) = "FALSE"^^xsd:boolean) .
