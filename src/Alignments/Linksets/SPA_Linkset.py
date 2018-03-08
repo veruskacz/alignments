@@ -2167,6 +2167,7 @@ def geo_match_query(specs):
         {{
             ?singPre rdf:singletonPropertyOf     ll:nearbyGeoSim{10} .
             ?singPre ll:hasEvidence             "Near each other by at most {3} {9}" .
+            ?singPre ll:hasStrength             1 .
         }}
     }}
     WHERE
@@ -2376,3 +2377,4 @@ ls_specs_2 = {
 # geo_match(ls_specs_1)
 
 # geo_specs_2_linkset(ls_specs_1, activated=True)
+# update with link strength of 1 for near by geo-sim
