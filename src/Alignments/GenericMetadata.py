@@ -149,6 +149,173 @@ def linkset_metadata(specs, display=False):
     return query
 
 
+def linkset_refined_metadata(specs, display=False):
+
+    # CONDITIONAL METADATA TO APPEND TO THE REFINED LINKSET
+
+    extra = ""
+
+    if St.extended_graph in specs[St.source] and len(specs[St.source][St.extended_graph]) > 0:
+        extra += "\n        alivocab:subjectsExtended    <{}> ;".format(specs[St.source][St.extended_graph])
+
+    if St.extended_graph in specs[St.target] and len(specs[St.target][St.extended_graph]) > 0:
+        extra += "\n        alivocab:objectsExtended     <{}> ;".format(specs[St.target][St.extended_graph])
+
+    if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
+        extra += "\n        alivocab:subjectsReducer     <{}> ;".format(specs[St.source][St.reducer])
+
+    if St.reducer in specs[St.target] and len(specs[St.target][St.reducer]) > 0:
+        extra += "\n        alivocab:objectsReducer      <{}> ;".format(specs[St.target][St.reducer])
+
+    if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
+        extra += "\n        alivocab:intermediatesTarget <{}> ;".format(specs[St.intermediate_graph])
+
+    if St.threshold in specs and len(str(specs[St.threshold])) > 0:
+        extra += "\n        alivocab:threshold           {} ;".format(str(specs[St.threshold]))
+
+    if St.delta in specs and str(specs[St.delta]) != "0":
+        converted = convert_to_float(str(specs[St.delta]))
+        if math.isnan(converted) is False:
+            extra += "\n        alivocab:delta               {} ;".format(converted)
+
+    source = specs[St.source]
+    target = specs[St.target]
+    src_aligns = Ls.format_aligns(source[St.aligns])
+    trg_aligns = Ls.format_aligns(target[St.aligns])
+
+    specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.refined_name])
+    specs[St.link] = "{}{}{}".format(Ns.alivocab, "exactStrSim", specs[St.sameAsCount])
+    specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.refined_name])
+    specs[St.justification] = "{}{}".format(Ns.justification, specs[St.refined_name])
+    specs[St.link_comment] = "The predicate <{}> used in this linkset is a property that reflects an entity " \
+                             "linking approach based on the <{}{}> mechanism.". \
+        format(specs[St.link], Ns.mechanism, specs[St.mechanism])
+
+    if str(specs[St.mechanism]).lower() == "exactstrsim":
+        specs[St.link_name] = "Exact String Similarity"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "We assume that entities with the aligned predicates sharing the " \
+                                          "exact same content are same. This assumption applies when dealing " \
+                                          "with entities such as Organisation."
+        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
+
+    elif str(specs[St.mechanism]).lower() == "identity":
+        specs[St.link_name] = "Same URI"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "We assume that entities with the same URI are identical."
+        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their identical URI using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], specs[St.mechanism])
+
+    elif str(specs[St.mechanism]).lower() == "approxnbrsim":
+        specs[St.link_name] = "Approximate Number Similarity"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "This includes entities with an approximate number similarity" \
+                                          " in the interval [0 {}].".format(specs[St.delta])
+        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their approximate number similarity" \
+                                    " using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], specs[St.mechanism])
+
+    elif str(specs[St.mechanism]).lower() == "approxstrsim":
+        specs[St.link_name] = "Approximate String Similarity"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "This includes entities with a string similarity in the interval [{} 1[.".\
+            format(specs[St.threshold])
+        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their approximate string similarity" \
+                                    " using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], specs[St.mechanism])
+
+    elif str(specs[St.mechanism]).lower() == "intermediate":
+        specs[St.link_name] = "Exact String Similarity"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "This is an implementation of the Exact String Similarity Mechanism over " \
+                                          "the aligned predicates."
+        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
+
+    # CHECKING WHETHER THE REFINED HAS SOME TRIPLES INSERTED
+    specs[St.triples] = Qry.get_namedgraph_size(specs[St.refined], isdistinct=False)
+
+    triples = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
+    print "\t>>> {} CORRESPONDENCES IN THE SOURCE".format(triples)
+    print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
+    print "\t>>> {} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(
+        str(int(triples) - int(specs[St.triples])))
+
+    message = "{}<br/>{}<br/>{}".format(
+        "{} CORRESPONDENCES IN THE SOURCE".format(triples),
+        "{} CORRESPONDENCES INSERTED".format(specs[St.triples]),
+        "{} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(str(int(triples) - int(specs[St.triples]))))
+
+    if int(specs[St.triples]) > 0:
+        derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
+        intermediate = "\n        alivocab:intermediatesTarget    <{}> ;".format(specs[St.intermediate_graph]) \
+            if str(specs[St.mechanism]).lower() == "intermediate" else ""
+
+        query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}" \
+                "\n{}\n{}\n{}\n{}\n{}". \
+            format("##################################################################",
+                   "### METADATA FOR {}".format(specs[St.refined]),
+                   "##################################################################",
+                   "PREFIX prov:        <{}>".format(Ns.prov),
+                   "PREFIX alivocab:    <{}>".format(Ns.alivocab),
+                   "PREFIX rdfs:        <{}>".format(Ns.rdfs),
+                   "PREFIX void:        <{}>".format(Ns.void),
+                   "PREFIX bdb:         <{}>".format(Ns.bdb),
+
+                   "INSERT",
+                   "{",
+                   "    <{}>".format(specs[St.refined]),
+                   "        a                               void:Linkset ;\n{}".format(derived_from),
+                   "        rdfs:label                      \"{}\" ; ".format(specs[St.refined_name]),
+                   "        void:triples                    {} ;".format(specs[St.triples]),
+                   "        alivocab:sameAsCount            {} ;".format(specs[St.sameAsCount]),
+                   "        alivocab:alignsMechanism        <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),
+                   "        void:subjectsTarget             <{}> ;{}".format(source[St.graph], intermediate),
+                   "        void:objectsTarget              <{}> ;".format(target[St.graph]),
+                   "        void:linkPredicate              <{}> ;".format(specs[St.link]),
+                   "        bdb:subjectsDatatype            <{}> ;".format(source[St.entity_datatype]),
+                   "        bdb:objectsDatatype             <{}> ;".format(target[St.entity_datatype]),
+                   "        alivocab:singletonGraph         <{}> ;".format(specs[St.singleton]),
+                   "        bdb:assertionMethod             <{}> ;".format(specs[St.assertion_method]),
+                   "        bdb:linksetJustification        <{}> ;{}".format(specs[St.justification], extra),
+                   "        alivocab:alignsSubjects         ?src_aligns ;",
+                   "        alivocab:alignsObjects          ?trg_aligns ;",
+                   "        rdfs:comment                    \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
+
+                   "\n    ### METADATA ABOUT THE LINKTYPE",
+                   "      <{}>".format(specs[St.link]),
+                   "        rdfs:comment                \"\"\"{}\"\"\" ;".format(specs[St.link_comment]),
+                   "        rdfs:label                  \"{} {}\" ;".format(specs[St.link_name], specs[St.sameAsCount]),
+                   "        rdfs:subPropertyOf          <{}> .".format(specs[St.link_subpropertyof]),
+
+                   "\n    ### METADATA ABOUT THE LINKSET JUSTIFICATION",
+                   "    <{}>".format(specs[St.justification]),
+                   "        rdfs:comment              \"\"\"{}\"\"\" .".format(specs[St.justification_comment]),
+
+                   "\n    ### ASSERTION METHOD",
+                   "    <{}>".format(specs[St.assertion_method]),
+                   "        alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
+                   "}",
+
+                   "WHERE",
+                   "{",
+                   "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
+                   "    BIND(iri({}) AS ?trg_aligns)".format(trg_aligns),
+                   "}")
+
+        if display is True:
+            print query
+        print "\t>>> Done generating the metadata"
+        return {"query": query, "message": message}
+    else:
+        return {"query": None, "message": message}
+
+
 def linkset_geo_metadata(specs, display=False):
 
     extra = ""
@@ -440,173 +607,6 @@ def diff_meta(specs):
 
     # print metadata
     return metadata
-
-
-def linkset_refined_metadata(specs, display=False):
-
-    # CONDITIONAL METADATA TO APPEND TO THE REFINED LINKSET
-
-    extra = ""
-
-    if St.extended_graph in specs[St.source] and len(specs[St.source][St.extended_graph]) > 0:
-        extra += "\n        alivocab:subjectsExtended    <{}> ;".format(specs[St.source][St.extended_graph])
-
-    if St.extended_graph in specs[St.target] and len(specs[St.target][St.extended_graph]) > 0:
-        extra += "\n        alivocab:objectsExtended     <{}> ;".format(specs[St.target][St.extended_graph])
-
-    if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
-        extra += "\n        alivocab:subjectsReducer     <{}> ;".format(specs[St.source][St.reducer])
-
-    if St.reducer in specs[St.target] and len(specs[St.target][St.reducer]) > 0:
-        extra += "\n        alivocab:objectsReducer      <{}> ;".format(specs[St.target][St.reducer])
-
-    if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
-        extra += "\n        alivocab:intermediatesTarget <{}> ;".format(specs[St.intermediate_graph])
-
-    if St.threshold in specs and len(str(specs[St.threshold])) > 0:
-        extra += "\n        alivocab:threshold           {} ;".format(str(specs[St.threshold]))
-
-    if St.delta in specs and str(specs[St.delta]) != "0":
-        converted = convert_to_float(str(specs[St.delta]))
-        if math.isnan(converted) is False:
-            extra += "\n        alivocab:delta               {} ;".format(converted)
-
-    source = specs[St.source]
-    target = specs[St.target]
-    src_aligns = Ls.format_aligns(source[St.aligns])
-    trg_aligns = Ls.format_aligns(target[St.aligns])
-
-    specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.refined_name])
-    specs[St.link] = "{}{}{}".format(Ns.alivocab, "exactStrSim", specs[St.sameAsCount])
-    specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.refined_name])
-    specs[St.justification] = "{}{}".format(Ns.justification, specs[St.refined_name])
-    specs[St.link_comment] = "The predicate <{}> used in this linkset is a property that reflects an entity " \
-                             "linking approach based on the <{}{}> mechanism.". \
-        format(specs[St.link], Ns.mechanism, specs[St.mechanism])
-
-    if str(specs[St.mechanism]).lower() == "exactstrsim":
-        specs[St.link_name] = "Exact String Similarity"
-        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
-        specs[St.justification_comment] = "We assume that entities with the aligned predicates sharing the " \
-                                          "exact same content are same. This assumption applies when dealing " \
-                                          "with entities such as Organisation."
-        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
-
-    elif str(specs[St.mechanism]).lower() == "identity":
-        specs[St.link_name] = "Same URI"
-        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
-        specs[St.justification_comment] = "We assume that entities with the same URI are identical."
-        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their identical URI using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], specs[St.mechanism])
-
-    elif str(specs[St.mechanism]).lower() == "approxnbrsim":
-        specs[St.link_name] = "Approximate Number Similarity"
-        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
-        specs[St.justification_comment] = "This includes entities with an approximate number similarity" \
-                                          " in the interval [0 {}].".format(specs[St.delta])
-        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their approximate number similarity" \
-                                    " using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], specs[St.mechanism])
-
-    elif str(specs[St.mechanism]).lower() == "approxstrsim":
-        specs[St.link_name] = "Approximate String Similarity"
-        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
-        specs[St.justification_comment] = "This includes entities with a string similarity in the interval [{} 1[.".\
-            format(specs[St.threshold])
-        specs[St.linkset_comment] = "Linking <{}> to <{}> based on their approximate string similarity" \
-                                    " using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], specs[St.mechanism])
-
-    elif str(specs[St.mechanism]).lower() == "intermediate":
-        specs[St.link_name] = "Exact String Similarity"
-        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
-        specs[St.justification_comment] = "This is an implementation of the Exact String Similarity Mechanism over " \
-                                          "the aligned predicates."
-        specs[St.linkset_comment] = "Linking <{}> to <{}> by aligning {} with {} using the mechanism: {}". \
-            format(source[St.graph], target[St.graph], src_aligns, trg_aligns, specs[St.mechanism])
-
-    # CHECKING WHETHER THE REFINED HAS SOME TRIPLES INSERTED
-    specs[St.triples] = Qry.get_namedgraph_size(specs[St.refined], isdistinct=False)
-
-    triples = Qry.get_namedgraph_size(specs[St.linkset], isdistinct=False)
-    print "\t>>> {} CORRESPONDENCES IN THE SOURCE".format(triples)
-    print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
-    print "\t>>> {} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(
-        str(int(triples) - int(specs[St.triples])))
-
-    message = "{}<br/>{}<br/>{}".format(
-        "{} CORRESPONDENCES IN THE SOURCE".format(triples),
-        "{} CORRESPONDENCES INSERTED".format(specs[St.triples]),
-        "{} CORRESPONDENCES DO NOT COMPLY WITH THE NEW CONDITION".format(str(int(triples) - int(specs[St.triples]))))
-
-    if int(specs[St.triples]) > 0:
-        derived_from = specs[St.derivedfrom] if St.derivedfrom in specs else ""
-        intermediate = "\n        alivocab:intermediatesTarget    <{}> ;".format(specs[St.intermediate_graph]) \
-            if str(specs[St.mechanism]).lower() == "intermediate" else ""
-
-        query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-                "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-                "\n{}\n{}\n{}\n{}\n{}" \
-                "\n{}\n{}\n{}" \
-                "\n{}\n{}\n{}\n{}\n{}" \
-                "\n{}\n{}\n{}\n{}\n{}". \
-            format("##################################################################",
-                   "### METADATA FOR {}".format(specs[St.refined]),
-                   "##################################################################",
-                   "PREFIX prov:        <{}>".format(Ns.prov),
-                   "PREFIX alivocab:    <{}>".format(Ns.alivocab),
-                   "PREFIX rdfs:        <{}>".format(Ns.rdfs),
-                   "PREFIX void:        <{}>".format(Ns.void),
-                   "PREFIX bdb:         <{}>".format(Ns.bdb),
-
-                   "INSERT",
-                   "{",
-                   "    <{}>".format(specs[St.refined]),
-                   "        a                               void:Linkset ;\n{}".format(derived_from),
-                   "        rdfs:label                      \"{}\" ; ".format(specs[St.refined_name]),
-                   "        void:triples                    {} ;".format(specs[St.triples]),
-                   "        alivocab:sameAsCount            {} ;".format(specs[St.sameAsCount]),
-                   "        alivocab:alignsMechanism        <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),
-                   "        void:subjectsTarget             <{}> ;{}".format(source[St.graph], intermediate),
-                   "        void:objectsTarget              <{}> ;".format(target[St.graph]),
-                   "        void:linkPredicate              <{}> ;".format(specs[St.link]),
-                   "        bdb:subjectsDatatype            <{}> ;".format(source[St.entity_datatype]),
-                   "        bdb:objectsDatatype             <{}> ;".format(target[St.entity_datatype]),
-                   "        alivocab:singletonGraph         <{}> ;".format(specs[St.singleton]),
-                   "        bdb:assertionMethod             <{}> ;".format(specs[St.assertion_method]),
-                   "        bdb:linksetJustification        <{}> ;{}".format(specs[St.justification], extra),
-                   "        alivocab:alignsSubjects         ?src_aligns ;",
-                   "        alivocab:alignsObjects          ?trg_aligns ;",
-                   "        rdfs:comment                    \"\"\"{}\"\"\" .".format(specs[St.linkset_comment]),
-
-                   "\n    ### METADATA ABOUT THE LINKTYPE",
-                   "      <{}>".format(specs[St.link]),
-                   "        rdfs:comment                \"\"\"{}\"\"\" ;".format(specs[St.link_comment]),
-                   "        rdfs:label                  \"{} {}\" ;".format(specs[St.link_name], specs[St.sameAsCount]),
-                   "        rdfs:subPropertyOf          <{}> .".format(specs[St.link_subpropertyof]),
-
-                   "\n    ### METADATA ABOUT THE LINKSET JUSTIFICATION",
-                   "    <{}>".format(specs[St.justification]),
-                   "        rdfs:comment              \"\"\"{}\"\"\" .".format(specs[St.justification_comment]),
-
-                   "\n    ### ASSERTION METHOD",
-                   "    <{}>".format(specs[St.assertion_method]),
-                   "        alivocab:sparql           \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
-                   "}",
-
-                   "WHERE",
-                   "{",
-                   "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
-                   "    BIND(iri({}) AS ?trg_aligns)".format(trg_aligns),
-                   "}")
-
-        if display is True:
-            print query
-        print "\t>>> Done generating the metadata"
-        return {"query": query, "message": message}
-    else:
-        return {"query": None, "message": message}
 
 
 def convert_to_float(value):
