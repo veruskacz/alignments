@@ -34,7 +34,7 @@ logger.addHandler(handler)
 write_to_path = Ss.settings[St.linkset_Exact_dir]
 # print  write_to_path
 # "C:\Users\Al\Dropbox\Linksets\ExactName"
-
+DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 
 #################################################################
 """
@@ -144,12 +144,16 @@ def set_linkset_name(specs, inverse=False):
             # trg_aligns += target[St.longitude_name]
             trg_aligns += "Longitude"
 
+    dir_name = DIRECTORY
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+
+
     if inverse is False:
 
         h_name = specs[St.mechanism] + \
                  source[St.graph_name] + src_aligns + \
                  target[St.graph_name] + trg_aligns + \
-                 source[St.entity_datatype] + target[St.entity_datatype] + "2" +\
+                 source[St.entity_datatype] + target[St.entity_datatype] + "-" +\
                  reducer + intermediate + threshold + delta + geo
 
         hashed = hash(h_name)
@@ -160,8 +164,17 @@ def set_linkset_name(specs, inverse=False):
             source[St.graph_name], target[St.graph_name],
             specs[St.mechanism], unit_value, unit, source[St.entity_name], src_aligns, append)
 
-        if len(specs[St.linkset_name]) > 255:
-            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
+        singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(specs[St.linkset_name], date)
+        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+        future_path = os.path.join(DIRECTORY, singleton_metadata_output)
+        future_path = future_path.replace("\\", "/").replace("//", "/")
+
+        if len(future_path) > 255:
+            full_hashed = Ut.hash_it(specs[St.linkset_name])
+            specs[St.linkset_name] = "{}_{}_{}".format(source[St.graph_name], specs[St.mechanism], full_hashed)
+
+        # if len(specs[St.linkset_name]) > 255:
+        #     specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -172,7 +185,7 @@ def set_linkset_name(specs, inverse=False):
         h_name = specs[St.mechanism] + \
                  target[St.graph_name] + trg_aligns + \
                  source[St.graph_name] + src_aligns + \
-                 target[St.entity_datatype] + source[St.entity_datatype] + "2" +\
+                 target[St.entity_datatype] + source[St.entity_datatype] + "-" +\
                  reducer + intermediate + threshold + delta + geo
 
         hashed = hash(h_name)
@@ -183,8 +196,17 @@ def set_linkset_name(specs, inverse=False):
             target[St.graph_name], source[St.graph_name],
             specs[St.mechanism], unit_value, unit, target[St.entity_name], trg_aligns, append)
 
-        if len(specs[St.linkset_name]) > 255:
-            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
+        singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(specs[St.linkset_name], date)
+        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+        future_path = os.path.join(DIRECTORY, singleton_metadata_output)
+        future_path = future_path.replace("\\", "/").replace("//", "/")
+
+        if len(future_path) > 255:
+            full_hashed = Ut.hash_it(specs[St.linkset_name])
+            specs[St.linkset_name] = "{}_{}_{}".format(target[St.graph_name], specs[St.mechanism], full_hashed)
+
+        # if len(specs[St.linkset_name]) > 255:
+        #     specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
         print "\t- specs[St.linkset]", specs[St.linkset]
@@ -229,6 +251,9 @@ def set_cluster_linkset_name(specs):
 
 def set_linkset_identity_name(specs, inverse=False):
 
+    dir_name = DIRECTORY
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+
     if inverse is False:
 
         h_name = specs[St.mechanism] + specs[St.source][St.graph_name] + specs[St.target][St.graph_name] + \
@@ -242,8 +267,18 @@ def set_linkset_identity_name(specs, inverse=False):
             specs[St.source][St.graph_name], specs[St.target][St.graph_name], specs[St.mechanism],
             specs[St.source][St.entity_name], append)
 
-        if len(specs[St.linkset_name]) > 255:
-            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
+        singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(specs[St.linkset_name], date)
+        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+        future_path = os.path.join(DIRECTORY, singleton_metadata_output)
+        future_path = future_path.replace("\\", "/").replace("//", "/")
+
+        if len(future_path) > 255:
+            full_hashed = Ut.hash_it(specs[St.linkset_name])
+            specs[St.linkset_name] = "{}_{}_{}".format(
+                specs[St.source][St.graph_name], specs[St.mechanism], full_hashed)
+
+        # if len(specs[St.linkset_name]) > 255:
+        #     specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -262,8 +297,18 @@ def set_linkset_identity_name(specs, inverse=False):
             specs[St.target][St.graph_name], specs[St.source][St.graph_name], specs[St.mechanism],
             specs[St.target][St.entity_name], append)
 
-        if len(specs[St.linkset_name]) > 255:
-            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
+        singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(specs[St.linkset_name], date)
+        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+        future_path = os.path.join(DIRECTORY, singleton_metadata_output)
+        future_path = future_path.replace("\\", "/").replace("//", "/")
+
+        if len(future_path) > 255:
+            full_hashed = Ut.hash_it(specs[St.linkset_name])
+            specs[St.linkset_name] = "{}_{}_{}".format(
+                specs[St.target][St.graph_name], specs[St.mechanism], full_hashed)
+
+        # if len(specs[St.linkset_name]) > 255:
+        #     specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -287,8 +332,20 @@ def set_subset_name(specs, inverse=False):
             specs[St.source][St.graph_name], specs[St.target][St.graph_name],
             specs[St.mechanism], specs[St.source][St.entity_name], specs[St.source][St.link_old_name], append)
 
-        if len(specs[St.linkset_name]) > 255:
-            specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
+        dir_name = DIRECTORY
+        date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+        singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(specs[St.linkset_name], date)
+        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+        future_path = os.path.join(DIRECTORY, singleton_metadata_output)
+        future_path = future_path.replace("\\", "/").replace("//", "/")
+
+        if len(future_path) > 255:
+            full_hashed = Ut.hash_it(specs[St.linkset_name])
+            specs[St.linkset_name] = "{}_{}_{}".format(
+                specs[St.source][St.graph_name], specs[St.mechanism], full_hashed)
+
+        # if len(specs[St.linkset_name]) > 255:
+        #     specs[St.linkset_name] = Ut.hash_it(specs[St.linkset_name])
 
         specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
 
@@ -329,11 +386,20 @@ def set_refined_name(specs):
 
     append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
+
     specs[St.refined_name] = "refined_{}_{}_{}_{}".format(
         specs[St.linkset_name], specs[St.mechanism], specs[St.source][St.aligns_name], append)
 
-    if len(specs[St.refined_name]) > 255:
-        specs[St.refined_name] = Ut.hash_it(specs[St.refined_name])
+    dir_name = DIRECTORY
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(specs[St.refined_name], date)
+    singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+    future_path = os.path.join(DIRECTORY, singleton_metadata_output)
+    future_path = future_path.replace("\\", "/").replace("//", "/")
+
+    if len(future_path) > 255:
+        full_hashed = Ut.hash_it(specs[St.refined_name])
+        specs[St.refined_name] = "refined_{}_{}".format(specs[St.mechanism], full_hashed)
 
     specs[St.refined] = specs[St.linkset].replace(specs[St.linkset_name], specs[St.refined_name])
     print "\t-  specs[St.refined]",  specs[St.refined]
@@ -414,7 +480,8 @@ def run_checks(specs, check_type):
                 # REGISTER THE LENS
                 Ura.register_lens(diff_lens_specs, is_created=False)
 
-                return {St.message: "NOT GOOD TO GO", 'refined': refined, 'difference': difference}
+                return {St.message: "NOT GOOD TO GO", St.result: "NOT GOOD TO GO",
+                        'refined': refined, 'difference': difference}
         print message
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset}
 
@@ -440,17 +507,22 @@ def run_checks(specs, check_type):
                 return {St.message: message.replace("\n", "<br/>"), St.error_code: 3, St.result: counter_check}
 
     print "\t- THE ALTERNATIVE LINKSET NAME DOES NOT EXIST"
+
     if str(check_type).lower() == "subset":
         print "\nASK 3:\n\t- IT IS A SUBSET"
         set_subset_name(specs, inverse=False)
+        print "\n>>> GOOD TO GO WITH LINKSET {}.".format(specs[St.linkset])
+
     elif str(check_type).lower() == "linkset":
         print "\nASK 3:\n\t- IT IS A LINKSET"
         set_linkset_name(specs, inverse=False)
+        print "\n>>> GOOD TO GO WITH LINKSET {}.".format(specs[St.linkset])
+
     elif str(check_type).lower() == "refine":
         print "\nASK 3:\n\t- IT IS ANYTHING ELSE BUT A LINKSET OR A SUBSET"
         set_refined_name(specs)
+        print "\n>>> GOOD TO GO WITH LINKSET {}.".format(specs[St.refined])
 
-    print "\n>>> GOOD TO GO WITH LINKSET {}.".format(linkset)
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 
