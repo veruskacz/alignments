@@ -1247,5 +1247,3 @@ def zip_folder(input_folder_path, output_file_path=None):
     finally:
         if zip_file is not None:
             zip_file.close()
-
-# zip_folder("C:\Productivity\LinkAnalysis\TRIAL\\6_Analysis_20180202\\", "C:\Productivity\LinkAnalysis\TRIAL\TEXT")
