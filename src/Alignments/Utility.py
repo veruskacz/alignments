@@ -775,6 +775,7 @@ def get_writers(graph_name, directory):
     metadata_file = "{}(Metadata)-{}.sparql".format(graph_name, date)
     singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(graph_name, date)
     dir_name = dir_name.replace("\\", "/")
+    dir_name = dir_name.replace("//", "/")
 
     batch_output = "{}/{}".format(dir_name, batch_file)
     linkset_output = "{}/{}".format(dir_name, linkset_file)
