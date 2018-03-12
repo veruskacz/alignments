@@ -3219,7 +3219,7 @@ def links_clustering(graph, limit=1000):
     check = 1
     iteration = 1
 
-    print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE"
+    print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE: {}".format(graph)
     data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph)
 
     print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
