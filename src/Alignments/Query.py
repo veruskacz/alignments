@@ -1200,7 +1200,7 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
 
 
 #######################################################################################
-# GET QUERY AND EXECUTION
+# GET QUERY AND EXECUTION FOR CLUSTERING
 #######################################################################################
 
 
