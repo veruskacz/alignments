@@ -13,9 +13,11 @@ import cStringIO
 import xmltodict
 import requests
 import subprocess
+
 import zipfile as Zip
 from os import listdir
 import os.path as path
+import cStringIO as Buffer
 import Alignments.NameSpace as Ns
 import Alignments.Query as Qry
 import Alignments.Settings as St
@@ -72,6 +74,20 @@ def is_nt_format(resource):
     except Exception as err:
         print "Exception:", err
         return False
+
+
+def to_nt_format(resource):
+
+    try:
+        if is_nt_format(resource) is True:
+            return resource
+        else:
+            return "<{}>".format(resource)
+
+    except Exception as err:
+        print "Exception:", err
+        return resource
+
 
 
 def is_property_path(resource):
@@ -1202,7 +1218,6 @@ def zip_folder(input_folder_path, output_file_path=None):
     as well.
     """
 
-
     if path.isfile(output_file_path) is not True :
         output_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "export.zip")
 
@@ -1247,3 +1262,41 @@ def zip_folder(input_folder_path, output_file_path=None):
     finally:
         if zip_file is not None:
             zip_file.close()
+
+
+def get_resource_value(resources, targets):
+
+    rsc_builder = Buffer.StringIO()
+    if type(resources) is str:
+        rsc_builder.write("\t\t{}\n".format(to_nt_format(resources)))
+    else:
+        for resource in resources:
+            rsc_builder.write("\t{}\n".format(to_nt_format(resource)))
+
+    i_format = """
+        {{
+            GRAPH <{}>
+            {{
+                ?resource a <{}> .
+                ?resource {} ?value
+            }}
+        }}
+    """
+    query = Buffer.StringIO()
+    empty = True
+    for dictionary in targets:
+        graph = dictionary[St.graph]
+        data = dictionary[St.data]
+        for types in data:
+            data_type = types[St.entity_datatype]
+            properties = types[St.properties]
+            for i_property in properties:
+                p_formatted = to_nt_format(i_property)
+                if empty is True:
+                    query.write("\t\tVALUES ?resource \n\t\t{{\n\t\t {} \t\t}}".format(rsc_builder.getvalue()))
+                    query.write(i_format.format(graph, data_type, p_formatted))
+                    empty = False
+                else:
+                    query.write("\tUNION" + i_format.format(graph, data_type, p_formatted))
+
+    return query.getvalue()
