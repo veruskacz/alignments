@@ -1275,10 +1275,12 @@ def get_resource_value(resources, targets):
 
     i_format = """
         {{
-            GRAPH <{}>
+            GRAPH <{0}>
             {{
-                ?resource a <{}> .
-                ?resource {} ?value
+                BIND({2} AS ?property)
+                BIND({0} AS ?dataset)
+                ?resource a <{1}> .
+                ?resource {2} ?value
             }}
         }}
     """
