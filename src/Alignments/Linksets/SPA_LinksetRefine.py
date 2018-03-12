@@ -262,10 +262,13 @@ def refine_exact_query(specs):
         {{
             ?newSingletons
                 rdf:singletonPropertyOf     alivocab:{}{} ;
+
                 ## THIS IS THE TRAIL
                 prov:wasDerivedFrom         ?singleton ;
+
                 ## BUT THIS IS ADDED FOR QUERY SIMPLICITY AND EFFICIENCY
                 ?sP ?sO ;
+
                 ## THIS IS ITS OWN EVIDENCE
                 alivocab:hasEvidence        ?trimmed .
         }}
