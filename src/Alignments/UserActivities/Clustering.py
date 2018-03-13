@@ -572,7 +572,7 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
     return response
 
 
-def cluster_values_plus(rq_uri, g_cluster, properties, distinct_values=True, display=False, limit_resources=100):
+def cluster_values_plus_Old(rq_uri, g_cluster, properties, distinct_values=True, display=False, limit_resources=0):
 
     """
     :param g_cluster: A LIST OF CLUSTERED RESOURCES
@@ -636,6 +636,71 @@ def cluster_values_plus(rq_uri, g_cluster, properties, distinct_values=True, dis
     if display is True:
         Qry.display_matrix(response, spacing=50, is_activated=True)
     return response
+
+
+def cluster_values_plus(rq_uri, g_cluster, targets, distinct_values=True, display=False, limit_resources=100):
+
+    """
+    :param g_cluster: A LIST OF CLUSTERED RESOURCES
+    :param properties: A LIST OF PROPERTIES OF INTEREST
+    :param distinct_values: return distinct resources
+    :param display: display the matrix as a table
+    :param limit_resources: limit the number of resources to include in the cluster
+    :return: A DICTIONARY WHERE THE RESULT OF THE QUERY IS OBTAINED USING THE KEY: result
+    """
+
+    # print "\nCLUSTER SIZE: {}".format(len(g_cluster))
+
+    if limit_resources > 0 and len(g_cluster) > limit_resources:
+        query_body = Ut.get_resource_value(g_cluster[0:limit_resources], targets)
+    else:
+        query_body = Ut.get_resource_value(g_cluster, targets)
+
+    if distinct_values is True:
+        select = '?dataset ?value (count(distinct ?resource) as ?count)'
+        group_by = 'group by ?value ?dataset order by desc(?count)'
+    else:
+        select = '?dataset ?resource (GROUP_CONCAT(?property; SEPARATOR=" | ") ' \
+                 'as ?properties) (concat("[", ?temp ,"]") as ?values) (GROUP_CONCAT(?value; SEPARATOR="] [") as ?temp)'
+        group_by = 'group by ?dataset ?resource order by ?dataset ?resource '
+
+    if rq_uri:
+        query_rq = """
+        {{
+            graph <{}>
+            {{
+                ?idea   ll:selected ?dataset .
+                ?dataset a <http://risis.eu/class/Dataset> ;
+            }}
+        }}
+        """.format(rq_uri)
+    else:
+        query_rq = ''
+
+    query = """
+    PREFIX void: <http://rdfs.org/ns/void#>
+    PREFIX bdb: <http://vocabularies.bridgedb.org/ops#>
+    PREFIX dataset: <http://risis.eu/dataset/>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    PREFIX ll: <http://risis.eu/alignment/predicate/>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+    SELECT DISTINCT {}
+    {{
+        {}
+        {}
+    }} {} """.format(select, query_body, query_rq, group_by)
+
+    # print query
+    response = sparql2matrix(query)
+    # Qry.display_matrix(response, spacing=50, is_activated=True)
+    # exit()
+    if display is True:
+        Qry.display_matrix(response, spacing=50, is_activated=True)
+    return response
+
+
+
 
 
 def linkset_from_cluster():

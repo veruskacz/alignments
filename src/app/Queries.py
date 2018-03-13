@@ -1913,7 +1913,8 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
                         (GROUP_CONCAT(DISTINCT ?o_prop_; SEPARATOR=" | ") as ?o_prop)
                          ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
           {{
-            ?linkset    alivocab:alignsSubjects     ?SRC_onj .
+
+            {{ ?linkset    alivocab:alignsSubjects     ?SRC_onj .
             ?SRC_onj    rdf:rest*/rdf:first         ?s_prop_ .
             ?linkset      alivocab:crossCheckSubject  ?s_property .
             ?linkset      alivocab:crossCheckSubject  ?s_crossCheck_property_ .
@@ -1923,8 +1924,22 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
             ?linkset      alivocab:crossCheckObject   ?o_property .
             ?linkset      alivocab:crossCheckObject   ?o_crossCheck_property_ .
 
-             filter (isBlank(?s_prop_) = "FALSE"^^xsd:boolean) .
-             filter (isBlank(?o_prop_) = "FALSE"^^xsd:boolean) .
+            }}
+            UNION
+            {{
+              ?linkset    alivocab:alignsSubjects     ?s_prop_ .
+              OPTIONAL {{?linkset      alivocab:crossCheckSubject  ?s_property }} .
+              OPTIONAL {{?linkset      alivocab:crossCheckSubject  ?s_crossCheck_property_ }} .
+
+              ?linkset    alivocab:alignsObjects      ?o_prop_ .
+              OPTIONAL {{?linkset      alivocab:crossCheckObject   ?o_property}} .
+              OPTIONAL {{?linkset      alivocab:crossCheckObject   ?o_crossCheck_property_ }} .
+            }}
+
+            filter (isBlank(?s_prop_) = "FALSE"^^xsd:boolean) .
+            filter (isBlank(?o_prop_) = "FALSE"^^xsd:boolean) .
+
+
           }} GROUP BY ?graph ?linkset ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
           }}
 
@@ -1967,7 +1982,7 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
         # LIMIT {1}
         """.format(linkset, limit, count_query)
 
-    if DETAIL:
+    if True:
         print query
     return query
 

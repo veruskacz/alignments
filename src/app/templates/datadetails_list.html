@@ -4,13 +4,18 @@
                 onclick='{{ function }}'
                 label='{{ e.pred_stripped.value }}'
                 value = '{{ e.obj.value }}'
+                enable_pp = 'false'
                 obj_type="{{ e.obj.type }}"
                 {% if (e.optional) %}
                     optional = '{{ e.optional.value }}'
                 {% else %}
                     optional = ''
                 {% endif %}>
-                <span class="list-group-item-heading">{{ e.pred_stripped.value }}</span>
+                <span class="list-group-item-heading">
+                    {% if (e.obj.type == "uri") %}
+                    <a onclick=' setAttr("DT{{e.pred.value }}","enable_pp", "true") '>>></a>
+                    {% endif %}
+                    {{ e.pred_stripped.value }}</span>
                 {% if (e.obj) %}
                 :
                 <span class="list-group-item-heading"
