@@ -203,6 +203,26 @@ def pipe_split(text, sep="_"):
     return altered
 
 
+def pipe_split_plus(text, sep="_"):
+
+    # print pipe_split("[rembrandt van rijn] aligns with [rembrandt van rijn]")
+
+    altered = ""
+    split = str(to_bytes(text)).split("|")
+
+    for i in range(len(split)):
+        item = split[i].strip()
+        item = get_uri_local_name_plus(item, sep)
+        if i == 0:
+            altered = item
+        else:
+            altered += " | {}".format(item)
+
+    if altered is None or len(altered) == 0:
+        return text
+
+    return altered
+
 def get_uri_ns_local_name(uri):
     if (uri is None) or (uri == ""):
         return None
@@ -1277,8 +1297,8 @@ def get_resource_value(resources, targets):
         {{
             GRAPH <{0}>
             {{
-                BIND({2} AS ?property)
-                BIND({0} AS ?dataset)
+                BIND("{2}" AS ?property)
+                BIND(<{0}> AS ?dataset)
                 ?resource a <{1}> .
                 ?resource {2} ?value
             }}
