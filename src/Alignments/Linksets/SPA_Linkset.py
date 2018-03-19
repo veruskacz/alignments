@@ -90,23 +90,35 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             Qry.boolean_endpoint_response(insertqueries[0])
 
             ########################################################################
-            print """ 2. TEMPORARY GRAPHS                                        """
+            print """ 2.1 SOURCE TEMPORARY GRAPHS                                """
             ########################################################################
             ls_start = time.time()
             print insertqueries[1]
             Qry.boolean_endpoint_response(insertqueries[1])
 
             ########################################################################
-            print """ 3. LINKSET & METADATA                                      """
+            print """ 2.2 TARGET TEMPORARY GRAPHS                                """
             ########################################################################
             print insertqueries[2]
             Qry.boolean_endpoint_response(insertqueries[2])
 
             ########################################################################
-            print """ 4. DROPPING TEMPORARY GRAPHS                               """
+            print """ 2.3 TEMPORARY MATCH GRAPH                                  """
             ########################################################################
             print insertqueries[3]
             Qry.boolean_endpoint_response(insertqueries[3])
+
+            ########################################################################
+            print """ 3. LINKSET & METADATA                                      """
+            ########################################################################
+            print insertqueries[4]
+            Qry.boolean_endpoint_response(insertqueries[4])
+
+            ########################################################################
+            print """ 4. DROPPING TEMPORARY GRAPHS                               """
+            ########################################################################
+            print insertqueries[5]
+            Qry.boolean_endpoint_response(insertqueries[5])
 
             ########################################################################
             print """ 5. GENERATING LINKSET METADATA                             """
@@ -638,14 +650,16 @@ def insert_query_reduce(specs, match_numeric=False):
         match = match_numeric_query(specs)
 
     query_1 = drop_q1
-    query_2 = prefix + source_extract + target_extract + match[0]
-    query_3 = prefix + match[1]
-    query_4 = drop_q2
+    query_2 = prefix + source_extract
+    query_3 = prefix + target_extract
+    query_4 = prefix + match[0]
+    query_5 = prefix + match[1]
+    query_6 = drop_q2
     # print query_1
     # print query_2
     # print query_3
     # print query_4
-    return [query_1, query_2, query_3, query_4]
+    return [query_1, query_2, query_3, query_4, query_5, query_6]
 
 
 def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
