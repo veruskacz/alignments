@@ -1256,9 +1256,10 @@ def load_rq_from_batch(batch_file, zip_path):
             shutil.rmtree(zip_folder)
             print "{:19}: {}".format("ZIP FOLDER DELETED", zip_folder)
 
-    # return {"message": "OK", "result": output}
-    return output["result"]
+        # return {"message": "OK", "result": output}
+        return output["result"]
 
+    return "THE FILE DOES NOT EXIST"
 
 # endpoint d2s http://risis.eu/activity/idea_a5791d
 
