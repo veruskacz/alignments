@@ -78,7 +78,7 @@ else:
     ENRICHED_FOLDER = "{0}{1}{1}src{1}{1}EnrichedDatasets".format(os.getcwd(), os.path.sep)
     PLOTS_FOLDER = "{0}{1}{1}src{1}{1}Plots".format(os.getcwd(), os.path.sep)
 
-ALLOWED_EXTENSIONS = ['csv', 'txt','ttl','trig']
+ALLOWED_EXTENSIONS = ['csv', 'txt','ttl','trig','zip']
 
 
 # log = app.logger
@@ -196,6 +196,16 @@ def getupload():
         # print list
         return jsonify({"success": True, 'selectlist': select_list, 'original': original})
 
+    elif upload_type == 'rquestion':
+
+        list = Ut.dir_files(UPLOAD_FOLDER, [".zip"])
+
+        select_list = ""
+        for i in range(len(list)):
+            select_list += "<option>{}</option>".format(list[i])
+        print list, select_list
+        return jsonify({"success": True, 'selectlist': select_list, 'original': original})
+
     return ""
 
 
@@ -206,6 +216,15 @@ def userLinksetImport():
     result = Ipt.import_graph(file_path=original, upload_folder=UPLOAD_FOLDER, upload_archive=UPLOAD_ARCHIVE,
                               parent_predicate_index=int(index)-1, detail=False)
     return result["message"]
+
+
+@app.route('/userRQuestionImport')
+def userRQuestionImport():
+    batch_path = request.args.get('batch_path', '')
+    zip_path = request.args.get('zip_path', '')
+    #result = Ipt.import_research_question(path_to_zip_file, load=True, activated=True)
+    # print path_to_batch_file
+    return Ipt.load_rq_from_batch(batch_path, zip_path)
 
 
 @app.route("/", methods=['GET'])
@@ -3656,6 +3675,14 @@ def viewSampleFile():
     filePath = request.args.get('file', '')
     size = request.args.get('size', '10')
     return json.dumps(CSV.CSV.view_file(filePath, int(size)))
+
+
+@app.route('/viewRQuestionFile')
+def viewRQuestionFile():
+    print "VIEW SAMPLE FILE"
+    path_to_zip_file = request.args.get('file', '')
+    result = Ipt.import_research_question(path_to_zip_file, load=False, activated=True)
+    return json.dumps(result)
 
 
 @app.route('/viewSampleRDFFile')
