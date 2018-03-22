@@ -1253,6 +1253,7 @@ def load_rq_from_batch(batch_file, zip_path):
         if isdir(zip_folder):
             shutil.rmtree(zip_folder)
 
+    return output
 
 
 # endpoint d2s http://risis.eu/activity/idea_a5791d
