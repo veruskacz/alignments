@@ -224,7 +224,8 @@ def userRQuestionImport():
     zip_path = request.args.get('zip_path', '')
     #result = Ipt.import_research_question(path_to_zip_file, load=True, activated=True)
     # print path_to_batch_file
-    return Ipt.load_rq_from_batch(batch_path, zip_path)
+    result = Ipt.load_rq_from_batch(batch_path, zip_path)
+    return result
 
 
 @app.route("/", methods=['GET'])
