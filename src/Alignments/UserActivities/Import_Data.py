@@ -130,7 +130,7 @@ def load_copy_2_stardog(original_file, altered_file, upload_folder, upload_archi
         shutil.move(batch_path, batch_archive)
         # os.remove(batch_path)
 
-        return {"message": "OK", "result": loaded}
+        return loaded
 
     except Exception as err:
         return {"message": str(err.message)}

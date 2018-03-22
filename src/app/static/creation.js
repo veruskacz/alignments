@@ -5195,7 +5195,7 @@ function loadGraphClick()
                 loadingGif(document.getElementById('dataset_creation_message_col'), 2, show=false);
                   var obj = JSON.parse(data);
 //                  console.log(obj);
-                  $('#dataset_load').val(obj);
+                  $('#dataset_load').val(obj.result);
                   $('#dataset_creation_message_col').html(addNote(loaded_dataset,cl='success'));
 
             });
@@ -5276,8 +5276,9 @@ function importRQuestionClick()
             'zip_path': zip_path},
       function(data)
     {
+//          var obj = JSON.parse(data);
           $('#import_rquestion').val(data);
-          $('#import_rquestion_message_col').html(addNote('Success',cl='success'));
+          $('#import_rquestion_message_col').html(addNote('Files successfully loaded.',cl='success'));
     });
 
 }
