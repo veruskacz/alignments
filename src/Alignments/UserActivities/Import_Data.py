@@ -15,7 +15,7 @@ import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Ss
 import Alignments.Server_Settings as Svr
 from os import listdir, path
-from os.path import join, isfile
+from os.path import join, isfile, isdir
 from Alignments.Utility import normalise_path as nrm
 from kitchen.text.converters import to_bytes, to_unicode
 
@@ -1236,8 +1236,22 @@ def generate_win_bat_for_rq(directory):
     return batch.getvalue()
 
 
-def load_rq_from_batch(batch_file):
-    return Ut.batch_load(batch_file)
+def load_rq_from_batch(batch_file, zip_path):
+
+    # LOAD THE DATA TO THE TRIPLE STORE
+    output = Ut.batch_load(batch_file)
+
+    # CHECK THE ZIP FILE IF IT EXISTS
+    if isfile(zip_path) is True:
+        extension = os.path.splitext(zip_path)
+        
+        # REMOVE THE ZIP FILE
+        os.remove(zip_path)
+        zip_folder = zip_path.replace(extension[1])
+
+        # REMOVE THE UNZIP FOLDER
+        if isdir(zip_folder):
+            shutil.rmtree(zip_path.replace(extension[1], ""))
 
 
 
