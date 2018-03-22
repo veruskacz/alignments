@@ -1239,27 +1239,32 @@ def generate_win_bat_for_rq(directory):
 def load_rq_from_batch(batch_file, zip_path):
 
     # LOAD THE DATA TO THE TRIPLE STORE
-    print "ABOUT TO LOAD [{}]".format(batch_file)
-    output = Ut.batch_load(batch_file)
+    if isfile(batch_file) is True:
+        print "ABOUT TO LOAD [{}]".format(batch_file)
+        output = Ut.batch_load(batch_file)
 
-    # CHECK THE ZIP FILE IF IT EXISTS
-    if isfile(zip_path) is True:
-        extension = os.path.splitext(zip_path)
+        # CHECK THE ZIP FILE IF IT EXISTS
+        if isfile(zip_path) is True:
+            extension = os.path.splitext(zip_path)
 
-        # REMOVE THE ZIP FILE
-        os.remove(zip_path)
-        zip_folder = zip_path.replace(extension[1], "")
-        print "{:19}: {}".format("ZIP FILE DELETED", zip_path)
+            # REMOVE THE ZIP FILE
+            os.remove(zip_path)
+            zip_folder = zip_path.replace(extension[1], "")
+            print "{:19}: {}".format("ZIP FILE DELETED", zip_path)
 
-        # REMOVE THE UNZIP FOLDER
-        if isdir(zip_folder):
-            shutil.rmtree(zip_folder)
-            print "{:19}: {}".format("ZIP FOLDER DELETED", zip_folder)
+            # REMOVE THE UNZIP FOLDER
+            if isdir(zip_folder):
+                shutil.rmtree(zip_folder)
+                print "{:19}: {}".format("ZIP FOLDER DELETED", zip_folder)
 
-        # return {"message": "OK", "result": output}
-        return output["result"]
+            # return {"message": "OK", "result": output}
+            return output["result"]
 
-    return "THE FILE DOES NOT EXIST"
+        return "THE FILE DOES NOT EXIST"
+
+    else:
+        return "NO BATCH FILE"
+
 
 # endpoint d2s http://risis.eu/activity/idea_a5791d
 
