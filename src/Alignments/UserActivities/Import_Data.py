@@ -1257,7 +1257,7 @@ def load_rq_from_batch(batch_file, zip_path):
             print "{:19}: {}".format("ZIP FOLDER DELETED", zip_folder)
 
     # return {"message": "OK", "result": output}
-    return output
+    return output["result"]
 
 
 # endpoint d2s http://risis.eu/activity/idea_a5791d
