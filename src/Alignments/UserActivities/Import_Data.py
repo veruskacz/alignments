@@ -1129,23 +1129,16 @@ def import_research_question(zip_path, load=False, activated=False):
 
     bat_path = ""
     message = cStringIO.StringIO()
+    message2 = cStringIO.StringIO()
 
     extension = os.path.splitext(zip_path)
     file_name = os.path.basename(zip_path)
     file_short_name = file_name.replace(extension[1], "")
 
-    message.write("\n{}\n\n".format(">>> GENERAL INFO"))
-    message.write("\t{:20}: {}\n".format("Zip Short File Name", file_short_name))
-    message.write("\t{:20}: {}\n".format("Zip File Name", file_name))
-
     if len(extension) > 1 and str(extension[1]).lower() == ".zip":
 
         zip_folder = zip_path.replace(extension[1], "")
         data_folder = "{0}{1}{1}{2}{1}".format(zip_folder, os.path.sep, file_short_name)
-
-        message.write("\t{:20}: {}\n".format("Zip Folder", zip_folder))
-        message.write("\t{:20}: {}\n".format("Data Folder", os.path.abspath(data_folder)))
-        message.write("\t{:20}: {}\n".format("Unzipping", zip_path))
 
         zip_ref = zipfile.ZipFile(zip_path, 'r')
         zip_ref.extractall(zip_folder)
@@ -1158,11 +1151,19 @@ def import_research_question(zip_path, load=False, activated=False):
         writer.close()
         read_me = open("{0}{1}{1}{2}".format(data_folder, os.path.sep, "read_me.txt"))
 
+        message.write("\n{}\n\n".format(">>> GENERAL INFO"))
+        message.write("\t{:20}: {}\n".format("Zip Short File Name", file_short_name))
+        message.write("\t{:20}: {}\n".format("Zip File Name", file_name))
+        message.write("\t{:20}: {}\n".format("Zip Folder", zip_folder))
+        message.write("\t{:20}: {}\n".format("Data Folder", os.path.abspath(data_folder)))
+        message.write("\t{:20}: {}\n".format("Unzipping", zip_path))
         message.write("\t{:20}: {}\n\n".format("Bat File", bat_path))
         message.write("{}\n".format(">>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n"))
         message.write(read_me.read())
 
-        message.write("\n{}\n".format(">>> PLEASE, WAIT OR THE FEEDBACK"))
+        message2.write("{}\n".format(">>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n"))
+        message2.write(read_me.read())
+
         if Ut.OPE_SYS != "windows":
             os.chmod(bat_path, 0o777)
             print "MAC"
@@ -1170,21 +1171,22 @@ def import_research_question(zip_path, load=False, activated=False):
         if Ut.OPE_SYS == "windows":
 
             if load is True:
+                message.write("\n{}\n".format(">>> PLEASE, WAIT OR THE FEEDBACK"))
                 print "LOADING..."
                 Ut.bat_load(bat_path)
 
         else:
             if load is True:
+                message.write("\n{}\n".format(">>> PLEASE, WAIT OR THE FEEDBACK"))
                 print "LOADING..."
                 Ut.bat_load(bat_path)
 
-
-
     elif len(extension) > 1:
         message.write("THIS EXTENSION [{}] IS NOT SUPPORTED.\n".format(extension[1]))
+        message2.write("THIS EXTENSION [{}] IS NOT SUPPORTED.\n".format(extension[1]))
 
     print message.getvalue()
-    return  {St.message: message.getvalue(), "sh_bat":bat_path}
+    return  {St.message: message2.getvalue(), "sh_bat":bat_path}
 
 
 def generate_win_bat_for_rq(directory):
@@ -1212,7 +1214,7 @@ def generate_win_bat_for_rq(directory):
         else:
 
             stardog_path = Svr.settings[St.stardog_path]
-            cmd = "\n\t{} stardog".format(stardog_path)
+            cmd = "\n\t{}stardog".format(stardog_path)
 
             for i in range(0, len(files)):
 
@@ -1231,11 +1233,14 @@ def generate_win_bat_for_rq(directory):
     return batch.getvalue()
 
 
+def load_rq_from_batch(batch_file):
+    return Ut.batch_load(batch_file)
+
 
 
 # endpoint d2s http://risis.eu/activity/idea_a5791d
 
-file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
+file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" \
          "eter_eter_gadm_stat_identity_N307462801(Linksets)-20170526.trig"
 
 file_1 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\import_test_2.trig"
