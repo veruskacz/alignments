@@ -1127,49 +1127,64 @@ def import_research_question(zip_path, load=False, activated=False):
         print "THE FILE DOES NOT EXISTS"
         return
 
+    bat_path = ""
+    message = cStringIO.StringIO()
+
     extension = os.path.splitext(zip_path)
     file_name = os.path.basename(zip_path)
     file_short_name = file_name.replace(extension[1], "")
 
-    print "{}".format("\n>>> GENERAL INFO")
-    print "\n\t{:20}: {}".format("Zip Short File Name", file_short_name)
-    print "\t{:20}: {}".format("Zip File Name", file_name)
+    message.write("\n{}\n\n".format(">>> GENERAL INFO"))
+    message.write("\t{:20}: {}\n".format("Zip Short File Name", file_short_name))
+    message.write("\t{:20}: {}\n".format("Zip File Name", file_name))
 
     if len(extension) > 1 and str(extension[1]).lower() == ".zip":
 
         zip_folder = zip_path.replace(extension[1], "")
         data_folder = "{0}{1}{1}{2}{1}".format(zip_folder, os.path.sep, file_short_name)
 
-        print "\t{:20}: {}".format("Zip Folder", zip_folder)
-        print "\t{:20}: {}".format("Data Folder", os.path.abspath(data_folder))
+        message.write("\t{:20}: {}\n".format("Zip Folder", zip_folder))
+        message.write("\t{:20}: {}\n".format("Data Folder", os.path.abspath(data_folder)))
+        message.write("\t{:20}: {}\n".format("Unzipping", zip_path))
 
-        print "\t{:20}: {}".format("Unzipping", zip_path)
         zip_ref = zipfile.ZipFile(zip_path, 'r')
         zip_ref.extractall(zip_folder)
         zip_ref.close()
 
         bat_path = "{0}{1}{1}{2}{3}".format(zip_folder, os.path.sep, "load_to_server", Ut.batch_extension())
-        if Ut.OPE_SYS == "windows":
-            load_cmd = generate_win_bat_for_rq(data_folder)
-            # print "COMMAND: {}".format(load_cmd)
-            writer = codecs.open(bat_path, "wb", "utf-8")
-            writer.write(to_unicode(load_cmd))
-            writer.close()
-            print "\t{:20}: {}".format("Bat File", bat_path)
-            if load is True:
-                print "{}".format("\n>>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n")
-                read_me = open("{0}{1}{1}{2}".format(data_folder, os.path.sep, "read_me.txt"))
-                print read_me.read()
+        load_cmd = generate_win_bat_for_rq(data_folder)
+        writer = codecs.open(bat_path, "wb", "utf-8")
+        writer.write(to_unicode(load_cmd))
+        writer.close()
+        read_me = open("{0}{1}{1}{2}".format(data_folder, os.path.sep, "read_me.txt"))
 
-                print "{}".format(">>> PLEASE, WAIT OR THE FEEDBACK")
-                # Ut.bat_load(bat_path)
+        message.write("\t{:20}: {}\n\n".format("Bat File", bat_path))
+        message.write("{}\n".format(">>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n"))
+        message.write(read_me.read())
 
-        else:
+        message.write("\n{}\n".format(">>> PLEASE, WAIT OR THE FEEDBACK"))
+        if Ut.OPE_SYS != "windows":
             os.chmod(bat_path, 0o777)
             print "MAC"
 
+        if Ut.OPE_SYS == "windows":
+
+            if load is True:
+                print "LOADING..."
+                Ut.bat_load(bat_path)
+
+        else:
+            if load is True:
+                print "LOADING..."
+                Ut.bat_load(bat_path)
+
+
+
     elif len(extension) > 1:
-        print "THIS EXTENSION [{}] IS NOT SUPPORTED.".format(extension[1])
+        message.write("THIS EXTENSION [{}] IS NOT SUPPORTED.\n".format(extension[1]))
+
+    print message.getvalue()
+    return  {St.message: message.getvalue(), "sh_bat":bat_path}
 
 
 def generate_win_bat_for_rq(directory):
