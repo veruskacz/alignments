@@ -6,6 +6,7 @@ import codecs
 import shutil
 import rdflib
 import cStringIO
+import zipfile
 import Alignments.Query as Qr
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
@@ -13,7 +14,10 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Ss
 import Alignments.Server_Settings as Svr
-from kitchen.text.converters import to_bytes  # , to_unicode
+from os import listdir, path
+from os.path import join, isfile
+from Alignments.Utility import normalise_path as nrm
+from kitchen.text.converters import to_bytes, to_unicode
 
 # THE PROCESS OF IMPORTING AN ALIGNMENT
 #   1. SAVE THE TRIG FILE
@@ -707,12 +711,11 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
 def export_research_question(research_question, directory, activated=False):
 
     if activated is False:
-        print "\nTHE FUNCTION IS NOT ACTIVATED"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
+        print "\nTHE FUNCTION [export_research_question] IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION [export_research_question] IS NOT ACTIVATED.", St.result: None}
 
-    DATABASE = Svr.DATABASE
-    HOST = Svr.settings[St.stardog_host_name]
-    endpoint = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
+    host = Svr.settings[St.stardog_host_name]
+    endpoint = b"http://{}/annex/{}/sparql/query?".format(host, Svr.DATABASE)
 
     # **************************************************************
     # 1. DOWNLOAD ALL TRIPLES (metadata) IN THE IDEA GRAPH
@@ -730,19 +733,19 @@ def export_research_question(research_question, directory, activated=False):
 
     idea_total = """
     SELECT (count(?idea) as ?total)
-	{{
-		graph <{}>
-		{{
-			?idea ?predicate ?objects
-		}}
-	}}
+    {{
+        graph <{}>
+        {{
+            ?idea ?predicate ?objects
+        }}
+    }}
     """.format(research_question)
 
     print "\n1. DOWNLOAD ALL TRIPLES (metadata) IN THE IDEA GRAPH"
     download_stardog_data(endpoint, entity_type="Research Question", graph=research_question,
-                  directory=directory, limit=10000, load=False, start_at=0,
-                  main_query=idea_query, count_query=idea_total, create_graph=True,
-                          cleanup=True, insert=True,activated=True,  )
+                          directory=directory, limit=10000, load=False, start_at=0,
+                          main_query=idea_query, count_query=idea_total, create_graph=True,
+                          cleanup=True, insert=True, activated=True)
 
     # **************************************************************
     # 2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
@@ -888,7 +891,8 @@ def export_research_question(research_question, directory, activated=False):
                                   cleanup=True, insert=True, activated=True)
 
             # DOWNLOAD THE SINGLETON METADATA
-            download_stardog_data(endpoint, entity_type="linkset_{}_singletons".format(i), graph=current_singleton_graph,
+            download_stardog_data(endpoint, entity_type="linkset_{}_singletons".format(i),
+                                  graph=current_singleton_graph,
                                   directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_singleton_q, count_query=current_singleton_c, create_graph=True,
                                   cleanup=True, insert=True, activated=True)
@@ -975,6 +979,11 @@ def export_research_question(research_question, directory, activated=False):
                                   directory=directory, limit=10000, load=False, start_at=0,  count=i,
                                   main_query=current_lens_query, count_query=current_lens_query_count, activated=True)
 
+    read_me_path = os.path.join(directory, "read_me.txt")
+    f_writer = open(read_me_path, "wb")
+    f_writer.write(get_research_question_link_stats(research_question, indent=True, activated=activated))
+    f_writer.close()
+
     local_name = Ut.get_uri_local_name_plus(research_question)
     file_at_parent_directory = os.path.join(os.path.abspath(
         os.path.join(directory, os.pardir)), "{}.zip".format(local_name))
@@ -982,7 +991,7 @@ def export_research_question(research_question, directory, activated=False):
     return Ut.zip_folder(directory, output_file_path=file_at_parent_directory)
 
 
-def get_research_question_link_Stats(research_question, directory, activated=False):
+def get_research_question_link_stats(research_question, indent=True, activated=False):
 
     """ OUTPUT EXAMPLE
     2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
@@ -1003,11 +1012,28 @@ def get_research_question_link_Stats(research_question, directory, activated=Fal
     """
 
     if activated is False:
-        print "\nTHE FUNCTION IS NOT ACTIVATED"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
+        print "\nTHE FUNCTION [get_research_question_link_stats] IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION [get_research_question_link_stats] IS NOT ACTIVATED.", St.result: None}
 
-    DATABASE = Svr.DATABASE
-    HOST = Svr.settings[St.stardog_host_name]
+    read_me = cStringIO.StringIO()
+    idt = "\t" if indent is True else ""
+    # **************************************************************
+    # 1. GET THE RESEARCH QUESTION DESCRIPTION
+    # **************************************************************
+    description_query = """
+    select ?description
+    {{
+        graph <{}>
+        {{ ?researchQuestion rdfs:label ?description . }}
+    }}
+    """.format(research_question)
+    description_response = Qr.sparql_xml_to_matrix(description_query)
+    description = description_response[St.result]
+    read_me.write("{}1. RESEARCH QUESTION DESCRIPTION\n".format(idt))
+    read_me.write("\t{}{:12}: {}\n".format(idt, "URI", research_question))
+    if description is not None:
+        read_me.write("{}\t{:12}: {}\n\n".format(idt, "DESCRIPTION", description[1][0]))
+
     graph_count_query = """
     SELECT ( count(?subject) as ?total)
     {{
@@ -1016,13 +1042,16 @@ def get_research_question_link_Stats(research_question, directory, activated=Fal
             ?subject  ?predicate ?object.
         }}
     }}"""
-    endpoint = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
+    # DATABASE = Svr.DATABASE
+    # HOST = Svr.settings[St.stardog_host_name]
+    # endpoint = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
 
     # **************************************************************
     # 2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
     # **************************************************************
+    idt = "\t" if indent is True else ""
 
-    print "\n2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING"
+    read_me.write("{}2. LINKSETS CREATED FROM AN ALIGNMENT MAPPING\n".format(idt))
     linksets_query = """
     PREFIX class: <http://risis.eu/class/>
     PREFIX ll: <http://risis.eu/alignment/predicate/>
@@ -1040,8 +1069,8 @@ def get_research_question_link_Stats(research_question, directory, activated=Fal
     linksets = linksets_response[St.result]
 
     if linksets is not None:
-        print "\tPREFIX ls:<{}> ".format(Ns.linkset)
-        print "\tThere are {} linksets".format(len(linksets) - 1)
+        read_me.write("{}\tPREFIX ls:<{}> \n".format(idt, Ns.linkset))
+        read_me.write("{}\tThere are {} linksets\n".format(idt, len(linksets) - 1))
         if len(linksets) > 1:
             for i in range(1, len(linksets)):
                 linkset_graph = linksets[i][0]
@@ -1049,14 +1078,14 @@ def get_research_question_link_Stats(research_question, directory, activated=Fal
                 count_result = count_response[St.result]
                 if count_result is not None and len(count_result) > 1:
                     triples = count_result[1][0]
-                    print "\t\tLINKSET {:6}/{:}{:>9} triples in {}".format(
-                        i, len(linksets) - 1, triples, linkset_graph.replace(Ns.linkset, "ls:"))
+                    read_me.write("{}\t\tLINKSET {:6}/{:}{:>9} triples in {}\n".format(
+                        idt, i, len(linksets) - 1, triples, linkset_graph.replace(Ns.linkset, "ls:")))
 
     # **************************************************************
     # 3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING
     # **************************************************************
 
-    print "\n3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING"
+    read_me.write("\n{}3. LENSES CREATED FROM AN ALIGNMENT MAPPING\n".format(idt))
     lenses_query = """
         PREFIX ll: <http://risis.eu/alignment/predicate/>
         PREFIX prov: <http://www.w3.org/ns/prov#>
@@ -1074,21 +1103,121 @@ def get_research_question_link_Stats(research_question, directory, activated=Fal
     lenses = lenses_response[St.result]
 
     if lenses is not None and len(lenses) > 1:
-        print "\tPREFIX lens:<{}> ".format(Ns.linkset)
-        print "\t There are {} lenses".format(len(lenses) - 1)
+        read_me.write("{}\tPREFIX lens:<{}>\n".format(idt, Ns.linkset))
+        read_me.write("{}\t There are {} lenses\n".format(idt, len(lenses) - 1))
         for i in range(1, len(lenses)):
             lens_graph = lenses[i][0]
             count_response = Qry.sparql_xml_to_matrix(graph_count_query.format(lens_graph))
             count_result = count_response[St.result]
             if count_result is not None and len(count_result) > 1:
                 triples = count_result[1][0]
-                print "\t\tLENS    {:6}/{}{:>9} triples : {}".format(
-                    i, len(lenses) - 1, triples, lens_graph.replace(Ns.lens, "lens:"))
+                read_me.write("{}\t\tLENS    {:6}/{}{:>9} triples : {}\n".format(
+                    idt, i, len(lenses) - 1, triples, lens_graph.replace(Ns.lens, "lens:")))
 
-# download_research_question_link_Stats("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT2", activated=True)
-# download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
-# download_research_question("http://risis.eu/activity/idea_da1b1e", "C:\Users\Al\Documents\Tobias\\nano")
-# "http://risis.eu/activity/idea_a5791d"
+    return read_me.getvalue()
+
+
+def import_research_question(zip_path, load=False, activated=False):
+
+    if activated is False:
+        print "\nTHE FUNCTION [import_research_question] IS NOT ACTIVATED"
+        return {St.message: "THE FUNCTION [import_research_question] IS NOT ACTIVATED.", St.result: None}
+
+    if isfile(zip_path) is False:
+        print "THE FILE DOES NOT EXISTS"
+        return
+
+    extension = os.path.splitext(zip_path)
+    file_name = os.path.basename(zip_path)
+    file_short_name = file_name.replace(extension[1], "")
+
+    print "{}".format("\n>>> GENERAL INFO")
+    print "\n\t{:20}: {}".format("Zip Short File Name", file_short_name)
+    print "\t{:20}: {}".format("Zip File Name", file_name)
+
+    if len(extension) > 1 and str(extension[1]).lower() == ".zip":
+
+        zip_folder = zip_path.replace(extension[1], "")
+        data_folder = "{0}{1}{1}{2}{1}".format(zip_folder, os.path.sep, file_short_name)
+
+        print "\t{:20}: {}".format("Zip Folder", zip_folder)
+        print "\t{:20}: {}".format("Data Folder", os.path.abspath(data_folder))
+
+        print "\t{:20}: {}".format("Unzipping", zip_path)
+        zip_ref = zipfile.ZipFile(zip_path, 'r')
+        zip_ref.extractall(zip_folder)
+        zip_ref.close()
+
+        bat_path = "{0}{1}{1}{2}{3}".format(zip_folder, os.path.sep, "load_to_server", Ut.batch_extension())
+        if Ut.OPE_SYS == "windows":
+            load_cmd = generate_win_bat_for_rq(data_folder)
+            # print "COMMAND: {}".format(load_cmd)
+            writer = codecs.open(bat_path, "wb", "utf-8")
+            writer.write(to_unicode(load_cmd))
+            writer.close()
+            print "\t{:20}: {}".format("Bat File", bat_path)
+            if load is True:
+                print "{}".format("\n>>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n")
+                read_me = open("{0}{1}{1}{2}".format(data_folder, os.path.sep, "read_me.txt"))
+                print read_me.read()
+
+                print "{}".format(">>> PLEASE, WAIT OR THE FEEDBACK")
+                # Ut.bat_load(bat_path)
+
+        else:
+            os.chmod(bat_path, 0o777)
+            print "MAC"
+
+    elif len(extension) > 1:
+        print "THIS EXTENSION [{}] IS NOT SUPPORTED.".format(extension[1])
+
+
+def generate_win_bat_for_rq(directory):
+
+    batch = cStringIO.StringIO()
+    if path.isdir(directory):
+
+        files = [f for f in listdir(nrm(directory)) if isfile(join(nrm(directory), f))]
+
+        if Ut.OPE_SYS == "windows":
+
+            for i in range(0, len(files)):
+
+                if files[i].endswith(".trig") or files[i].endswith(".sparql"):
+                    batch.write("""echo Loading data {:6}: {}\n""".format(i, files[i]))
+
+                if files[i].endswith(".trig"):
+                    batch.write("""\tcall stardog data add {} "{}" \n\n""".format(
+                        Svr.DATABASE, join(nrm(directory), files[i])))
+
+                if files[i].endswith(".sparql"):
+                    batch.write("""\tcall stardog query {} "{}" \n\n""".format(
+                        Svr.DATABASE, join(nrm(directory), files[i])))
+
+        else:
+
+            stardog_path = Svr.settings[St.stardog_path]
+            cmd = "\n\t{} stardog".format(stardog_path)
+
+            for i in range(0, len(files)):
+
+                if files[i].endswith(".trig") or files[i].endswith(".sparql"):
+                    batch.write("""echo Loading data {:6}: {}""".format(i, files[i]))
+
+                if files[i].endswith(".trig"):
+                    batch.write("""\t{} data add {} "{}"; \n\n""".format(
+                        cmd, Svr.DATABASE, join(nrm(directory), files[i])))
+
+                if files[i].endswith(".sparql"):
+                    batch.write("""\t{} query {} "{}"; \n\n""".format(
+                        cmd, Svr.DATABASE, join(nrm(directory), files[i])))
+
+
+    return batch.getvalue()
+
+
+
+
 # endpoint d2s http://risis.eu/activity/idea_a5791d
 
 file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
