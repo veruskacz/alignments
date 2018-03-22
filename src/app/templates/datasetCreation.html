@@ -1,8 +1,8 @@
 <div class="panel panel-info">
 <div class="panel-heading">
    <div class="row">
-    <div id="import_title" class="col-md-9"><h3></h3></div>
-    <div class="col-md-3 text-right" id="creation_dataset_buttons_col">
+    <div id="import_title" class="col-md-7"><h3></h3></div>
+    <div class="col-md-5 text-right" id="creation_dataset_buttons_col">
       <h4>
       <button type="button" id="btn_import_dataset"
               class="btn btn-primary"
@@ -12,6 +12,10 @@
               class="btn btn-primary"
               onclick='newSelectButton(this);import_alignent_button(this);'
               >Alignment</button>
+      <button type="button" id="btn_import_rquestion"
+              class="btn btn-primary"
+              onclick='newSelectButton(this);import_rquestion_button(this);'
+              >Research Question</button>
       </h4>
     </div>
    </div>
@@ -66,7 +70,7 @@
                  data-toggle="collapse" href="#collapse_dataset_convert">
                  <span class="badge alert-info"><strong>-</strong></span>
               </a>
-              Dataset Sample
+              Sample
           </h4>
       </div>
       <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
@@ -85,7 +89,12 @@
                        </button>
                        <button type="button" id="viewAlignmentButton" class="btn btn-success"
                                style="display:none" file_path=""
-                          data-toggle="button" onclick = "viewSampleAlignFileClick();"> VIEW ALIGMENT FILE
+                          data-toggle="button" onclick = "viewSampleAlignFileClick();"> VIEW ALINGMENT FILE
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button>
+                       <button type="button" id="viewRQuestionButton" class="btn btn-success"
+                               style="display:none" file_path="" sh_batch=""
+                          data-toggle="button" onclick = "viewRQuestionFileClick();"> VIEW RESERACH QUESTION SUMMARY
                        <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                        </button>
                    </td>
@@ -383,6 +392,52 @@
                 <BR/>FILE SAMPLE
                <textarea readonly wrap='off' class="form-control" id="import_alignment"
                          style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>NO DATASET FILE SELECTED
+               </textarea>
+            </div>
+          </div>
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+ </div>
+
+ <div id="import_rquestion_div" style="display:none">
+    <div class="row creation" id="import_rquestion_row">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <div class="row">
+          <div class="col-md-4">
+              <h4 class="panel-title">
+                  <a id="link_collapse_import_rquestion"
+                     data-toggle="collapse" href="#collapse_import_rquestion">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Load the uploaded Research Question
+              </h4>
+          </div>
+          <!--<h5><div class="col-md-6 text-right" style="color:red" id="dataset_creation_message_col"></div></h5>-->
+          <div class="col-md-8 text-right">
+               <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="import_rquestion_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="importRQuestionButton" class="btn btn-success disabled"
+                              data-toggle="button" onclick = "importRQuestionClick();" batchFile="">
+                          IMPORT RESEARCH QUESTION
+                       <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                       </button></td>
+               </table>
+          </div>
+         </div>
+        </div>
+        <div id="collapse_import_rquestion" class="panel-collapse collapse in" target="link_collapse_import_rquestion">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12" id="import_rquestion_col">
+                <BR/>RESULT
+               <textarea readonly wrap='off' class="form-control" id="import_rquestion"
+                         style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'> - Click que import button to load the selected research question -
                </textarea>
             </div>
           </div>

@@ -4913,6 +4913,8 @@ function import_dataset_button(th)
     $('#viewDatasetButton').show();
     $('#import_alignment_div').hide();
     $('#viewAlignmentButton').hide();
+    $('#import_rquestion_div').hide();
+    $('#viewRQuestionButton').hide();
     refresh_import();
 }
 
@@ -4926,9 +4928,24 @@ function import_alignent_button(th)
     $('#viewAlignmentButton').show();
     $('#import_dataset_div').hide();
     $('#viewDatasetButton').hide();
+    $('#import_rquestion_div').hide();
+    $('#viewRQuestionButton').hide();
     refresh_import();
 }
 
+function import_rquestion_button(th)
+{
+    $('#import_title').html('<h3>Import Research Question</h3>');
+    $('#dataset_upload_row').show();
+    $('#dataset_convert_row').show();
+    $('#import_alignment_div').hide();
+    $('#viewAlignmentButton').hide();
+    $('#import_dataset_div').hide();
+    $('#viewDatasetButton').hide();
+    $('#import_rquestion_div').show();
+    $('#viewRQuestionButton').show();
+    refresh_import();
+}
 
 $(".panel-collapse").on('hidden.bs.collapse', function(){
     var target = document.getElementById($(this).attr('target'));
@@ -5084,6 +5101,28 @@ function viewSampleAlignFileClick()
     }
 }
 
+function viewRQuestionFileClick()
+{
+    var file = $('#viewRQuestionButton').attr('file_path');
+
+    if (file)
+    {
+        $.get('/viewRQuestionFile',
+              data={'file':  file},
+              function(data)
+        {
+            var obj = JSON.parse(data);
+            $('#upload_sample').val(obj.message);
+            setAttr('viewRQuestionButton','sh_batch', obj.sh_bat);
+            $('#dataset_upload_message_col').html(addNote("You can now import the Reserach Question!",cl='success'));
+        });
+    }
+    else
+    {
+        $('#dataset_upload_message_col').html(addNote(missing_feature));
+    }
+}
+
 
 function viewSampleRDFFile(th)
 {
@@ -5180,6 +5219,16 @@ $('#ds_files_list').change(function() {
         {   enableButton('importAlignmentButton', enable=false)
         }
     }
+    else if (selectedButton(document.getElementById('btn_import_rquestion')))
+    {
+        var selectedText = $(this).find("option:selected").text();
+        if (selectedText != "-- Select a file to view a summary --")
+        {   enableButton('importRQuestionButton')
+        }
+        else
+        {   enableButton('importRQuestionButton', enable=false)
+        }
+    }
 });
 
 
@@ -5213,6 +5262,24 @@ function importAlignmentClick()
 //        {
 //            var rdftype = [];
 //        }
+}
+
+
+function importRQuestionClick()
+{
+    var batch_path = $('#viewRQuestionButton').attr('sh_batch');
+    var zip_path = $('#viewRQuestionButton').attr('file_path');
+
+    $('#import_rquestion_message_col').html(addNote(loading_dataset,cl='warning'));
+    $.get('/userRQuestionImport',
+      data={'batch_path': batch_path,
+            'zip_path': zip_path},
+      function(data)
+    {
+          $('#import_rquestion').val(data);
+          $('#import_rquestion_message_col').html(addNote('Success',cl='success'));
+    });
+
 }
 
 
