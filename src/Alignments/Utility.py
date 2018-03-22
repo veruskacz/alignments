@@ -1260,12 +1260,12 @@ def zip_folder(input_folder_path, output_file_path=None):
             for folder_name in folders:
                 absolute_path = os.path.join(root, folder_name)
                 # print "Adding '%s' to archive." % absolute_path
-                zip_file.write(absolute_path, "C:{0}{0}{1}{0}{0}{2}".format(os.path.sep, short_name, file_name))
+                zip_file.write(absolute_path, "{0}{0}{1}{0}{0}{2}".format(os.path.sep, short_name, file_name))
 
             for file_name in files:
                 absolute_path = os.path.join(root, file_name)
                 # print "Adding '%s' to archive." % absolute_path
-                zip_file.write(absolute_path, "C:{0}{0}{1}{0}{0}{2}".format(os.path.sep, short_name, file_name))
+                zip_file.write(absolute_path, "{0}{0}{1}{0}{0}{2}".format(os.path.sep, short_name, file_name))
 
         print "\n\t'%s' created successfully." % output_file_path
         return output_file_path
