@@ -1239,6 +1239,7 @@ def generate_win_bat_for_rq(directory):
 def load_rq_from_batch(batch_file, zip_path):
 
     # LOAD THE DATA TO THE TRIPLE STORE
+    print "ABOUT TO LOAD [{}]".format(batch_file)
     output = Ut.batch_load(batch_file)
 
     # CHECK THE ZIP FILE IF IT EXISTS
@@ -1248,13 +1249,14 @@ def load_rq_from_batch(batch_file, zip_path):
         # REMOVE THE ZIP FILE
         os.remove(zip_path)
         zip_folder = zip_path.replace(extension[1], "")
-        print "ZIP FILE DELETED: {}".format(zip_path)
+        print "{:19}: {}".format("ZIP FILE DELETED", zip_path)
 
         # REMOVE THE UNZIP FOLDER
         if isdir(zip_folder):
             shutil.rmtree(zip_folder)
-            print "ZIP FOLDER DELETED: {}".format(zip_path)
+            print "{:19}: {}".format("ZIP FOLDER DELETED", zip_folder)
 
+    # return {"message": "OK", "result": output}
     return output
 
 
