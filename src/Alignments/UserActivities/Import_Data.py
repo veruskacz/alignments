@@ -557,7 +557,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
 
 
 def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count=1, load=False,
-                  start_at=0, main_query=None, count_query=None, create_graph=True,
+                          start_at=0, main_query=None, count_query=None, create_graph=True,
                           cleanup=True, insert=False, activated=False):
 
     # ENTITY TYPE IS USED ONLY FOR THE FILE NAME
@@ -591,8 +591,8 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
         print "\nTHE FUNCTION IS NOT ACTIVATED"
         return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.result: None}
 
-    user = Svr.settings[St.stardog_user]
-    password = Svr.settings[St.stardog_pass]
+    # user = Svr.settings[St.stardog_user]
+    # password = Svr.settings[St.stardog_pass]
 
     # MAKE SURE THE FOLDER EXISTS
     try:
@@ -605,7 +605,6 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
     triples = 0
     print "\n\tENDPOINT    : {}\n\tDIRECTORY   : {}\n\tGRAPH  {:4} : {}".format(endpoint, directory, count, graph)
 
-
     # COUNT TRIPLES
     count_res = Qry.sparql_xml_to_matrix(count_query)
     result = count_res['result']
@@ -616,7 +615,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
         return count_res
 
     if len(result) > 1:
-        triples =  int (result[1][0])
+        triples = int(result[1][0])
 
     # NUMBER OF REQUEST NEEDED
     iterations = triples / limit if triples % limit == 0 else triples / limit + 1
@@ -664,7 +663,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
                     response = response.replace("INSERT DATA", "INSERT DATA {{ GRAPH <{}> ".format(graph)) + "}"
                     f_writer.write(response)
                 else:
-                    response = response.replace("INSERT", "INSERT {{ GRAPH <{}>".format(graph) )
+                    response = response.replace("INSERT", "INSERT {{ GRAPH <{}>".format(graph))
                     response = response.replace("WHERE", "} WHERE")
                     f_writer.write(response)
             else:
@@ -705,47 +704,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
     return {St.message: message, St.result: True}
 
 
-file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
-         "eter_eter_gadm_stat_identity_N307462801(Linksets)-20170526.trig"
-
-file_1 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\import_test_2.trig"
-
-file_3 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\LODmapping.ttl"
-
-# import_graph(file_path=file_1, parent_predicate_index=0, detail=False)
-
-# extract_predicates(file_1)
-
-# DOWNLOADING OPENAIRE FORM
-# endpoint = "http://145.100.59.37:8891/sparql"
-# graph =  "https://www.openaire.eu"
-# e_type = "OrganizationEntity"
-# directory = "D:\Linking2GRID\Data\OpenAire_20180219"
-# main_query = """CONSTRUCT {?organisation ?predicate ?object.}
-# WHERE
-# {
-#   GRAPH <https://www.openaire.eu>
-#   {
-#     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
-#     ?organisation ?predicate ?object.
-#   }
-# }"""
-#
-# count_query = """SELECT(COUNT(?organisation) AS ?Total)
-# WHERE
-# {
-#   GRAPH <https://www.openaire.eu>
-#   {
-#     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
-#     ?organisation ?predicate ?object.
-#   }
-# }"""
-#
-# download_data(endpoint=endpoint, entity_type=e_type, graph=graph, directory=directory,  limit=10000, load=False,
-#                   start_at=0, main_query=main_query, count_query=count_query, activated=True)
-
-
-def download_research_question(research_question, directory, activated=False):
+def export_research_question(research_question, directory, activated=False):
 
     if activated is False:
         print "\nTHE FUNCTION IS NOT ACTIVATED"
@@ -905,7 +864,7 @@ def download_research_question(research_question, directory, activated=False):
     }}
     """
 
-    print "\n4. DOWNLOAD ALL LINKSETS"
+    print "\n4. DOWNLOADING ALL LINKSETS"
     if len(linksets) > 1:
         for i in range(1, len(linksets)):
 
@@ -977,7 +936,7 @@ def download_research_question(research_question, directory, activated=False):
     }}
     """
 
-    print "\n5. DOWNLOAD ALL LENSES"
+    print "\n5. DOWNLOADING ALL LENSES"
     if len(lenses) > 1:
         for i in range(1, len(lenses)):
 
@@ -1022,10 +981,26 @@ def download_research_question(research_question, directory, activated=False):
 
     return Ut.zip_folder(directory, output_file_path=file_at_parent_directory)
 
-# download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
 
+def get_research_question_link_Stats(research_question, directory, activated=False):
 
-def download_research_question_link_Stats(research_question, directory, activated=False):
+    """ OUTPUT EXAMPLE
+    2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
+    PREFIX ls:<http://risis.eu/linkset/>
+    There are 21 linksets
+        LINKSET      1/21      497 triples in ls:h2020_leidenRanking_2015_approxStrSim_Organization_name_N247890402
+        LINKSET      2/21      186 triples in ls:h2020_h2020_approxStrSim_Organization_name_N529851809
+        LINKSET      3/21      718 triples in ls:h2020_eter_2014_approxStrSim_Organization_name_P1029719164
+        LINKSET      4/21       61 triples in ls:eter_2014_eter_2014_approxStrSim_University_Institution_Name_P98241885
+        ...
+        LINKSET     20/21     2358 triples in ls:grid_20170712_h2020_approxStrSim_Organization_label_N1087999532
+
+    3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING
+    PREFIX lens:<http://risis.eu/linkset/>
+     There are 1 lenses
+        LENS         1/1    68145 triples : lens:union_E..._P1768695787
+
+    """
 
     if activated is False:
         print "\nTHE FUNCTION IS NOT ACTIVATED"
@@ -1065,6 +1040,7 @@ def download_research_question_link_Stats(research_question, directory, activate
     linksets = linksets_response[St.result]
 
     if linksets is not None:
+        print "\tPREFIX ls:<{}> ".format(Ns.linkset)
         print "\tThere are {} linksets".format(len(linksets) - 1)
         if len(linksets) > 1:
             for i in range(1, len(linksets)):
@@ -1073,8 +1049,8 @@ def download_research_question_link_Stats(research_question, directory, activate
                 count_result = count_response[St.result]
                 if count_result is not None and len(count_result) > 1:
                     triples = count_result[1][0]
-                    print "\t\tLINKSET {:6}/{:<6} {:12} triples : {}".format(i, len(linksets) - 1, triples, linkset_graph)
-
+                    print "\t\tLINKSET {:6}/{:}{:>9} triples in {}".format(
+                        i, len(linksets) - 1, triples, linkset_graph.replace(Ns.linkset, "ls:"))
 
     # **************************************************************
     # 3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING
@@ -1098,6 +1074,7 @@ def download_research_question_link_Stats(research_question, directory, activate
     lenses = lenses_response[St.result]
 
     if lenses is not None and len(lenses) > 1:
+        print "\tPREFIX lens:<{}> ".format(Ns.linkset)
         print "\t There are {} lenses".format(len(lenses) - 1)
         for i in range(1, len(lenses)):
             lens_graph = lenses[i][0]
@@ -1105,13 +1082,48 @@ def download_research_question_link_Stats(research_question, directory, activate
             count_result = count_response[St.result]
             if count_result is not None and len(count_result) > 1:
                 triples = count_result[1][0]
-                print "\t\tLENS {:6}/{:<6} {:12} triples : {}".format(i, len(lenses) - 1, triples, lens_graph)
+                print "\t\tLENS    {:6}/{}{:>9} triples : {}".format(
+                    i, len(lenses) - 1, triples, lens_graph.replace(Ns.lens, "lens:"))
 
-
+# download_research_question_link_Stats("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT2", activated=True)
 # download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
 # download_research_question("http://risis.eu/activity/idea_da1b1e", "C:\Users\Al\Documents\Tobias\\nano")
-"http://risis.eu/activity/idea_a5791d"
-
-
-
+# "http://risis.eu/activity/idea_a5791d"
 # endpoint d2s http://risis.eu/activity/idea_a5791d
+
+file_2 = "C:\Users\Al\PycharmProjects\AlignmentUI\src\Alignments\Data\Linkset\Exact\\" + \
+         "eter_eter_gadm_stat_identity_N307462801(Linksets)-20170526.trig"
+
+file_1 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\import_test_2.trig"
+
+file_3 = "C:\Users\Al\Dropbox\@VU\Ve\medical data\LODmapping.ttl"
+
+# import_graph(file_path=file_1, parent_predicate_index=0, detail=False)
+# extract_predicates(file_1)
+# DOWNLOADING OPENAIRE FORM
+# endpoint = "http://145.100.59.37:8891/sparql"
+# graph =  "https://www.openaire.eu"
+# e_type = "OrganizationEntity"
+# directory = "D:\Linking2GRID\Data\OpenAire_20180219"
+# main_query = """CONSTRUCT {?organisation ?predicate ?object.}
+# WHERE
+# {
+#   GRAPH <https://www.openaire.eu>
+#   {
+#     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+#     ?organisation ?predicate ?object.
+#   }
+# }"""
+#
+# count_query = """SELECT(COUNT(?organisation) AS ?Total)
+# WHERE
+# {
+#   GRAPH <https://www.openaire.eu>
+#   {
+#     ?organisation a <http://lod.openaire.eu/vocab/OrganizationEntity> .
+#     ?organisation ?predicate ?object.
+#   }
+# }"""
+#
+# download_data(endpoint=endpoint, entity_type=e_type, graph=graph, directory=directory,  limit=10000, load=False,
+#                   start_at=0, main_query=main_query, count_query=count_query, activated=True)

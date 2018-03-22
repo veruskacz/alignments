@@ -1322,3 +1322,10 @@ def get_resource_value(resources, targets):
                     query.write("\tUNION" + i_format.format(graph, data_type, p_formatted))
 
     return query.getvalue()
+#
+# # THIS NEED TO BE A STRING OTHERWISE IT DOES NOT WORK IN STARDOG
+#                 BIND("{2}" AS ?property)
+#                 # WE BIND THE DATASET TO EXTRACT IT IN THE SELECT
+#                 BIND(<{0}> AS ?dataset)
+#                 ?resource a <{1}> .
+#                 ?resource {2} ?value

@@ -14,7 +14,7 @@ import Queries as Qry
 import os.path as path
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
 
-from Alignments.UserActivities.Import_Data import download_research_question
+from Alignments.UserActivities.Import_Data import export_research_question
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -3322,7 +3322,7 @@ def getexportrq():
         os.makedirs(directory)
 
     # DOWNLOAD THE FILE
-    zip_file = download_research_question(rq_uri, directory, activated=True)
+    zip_file = export_research_question(rq_uri, directory, activated=True)
 
     # REMOVE THE DIRECTORY
     rmtree(directory)
