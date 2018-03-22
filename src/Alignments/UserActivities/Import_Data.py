@@ -1244,14 +1244,14 @@ def load_rq_from_batch(batch_file, zip_path):
     # CHECK THE ZIP FILE IF IT EXISTS
     if isfile(zip_path) is True:
         extension = os.path.splitext(zip_path)
-        
+
         # REMOVE THE ZIP FILE
         os.remove(zip_path)
-        zip_folder = zip_path.replace(extension[1])
+        zip_folder = zip_path.replace(extension[1], "")
 
         # REMOVE THE UNZIP FOLDER
         if isdir(zip_folder):
-            shutil.rmtree(zip_path.replace(extension[1], ""))
+            shutil.rmtree(zip_folder)
 
 
 
