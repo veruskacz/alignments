@@ -450,7 +450,7 @@ def win_bat(file_directory, file_name):
 
 def batch_extension():
 
-    print ">>> OPERATING SYSTEM:", OPE_SYS.upper()
+    # print ">>> OPERATING SYSTEM:", OPE_SYS.upper()
     # bat_ext = ""
 
     if OPE_SYS == "windows":
