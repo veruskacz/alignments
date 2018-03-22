@@ -1248,10 +1248,12 @@ def load_rq_from_batch(batch_file, zip_path):
         # REMOVE THE ZIP FILE
         os.remove(zip_path)
         zip_folder = zip_path.replace(extension[1], "")
+        print "ZIP FILE DELETED: {}".format(zip_path)
 
         # REMOVE THE UNZIP FOLDER
         if isdir(zip_folder):
             shutil.rmtree(zip_folder)
+            print "ZIP FOLDER DELETED: {}".format(zip_path)
 
     return output
 
