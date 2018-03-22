@@ -1104,7 +1104,7 @@ def get_research_question_link_stats(research_question, indent=True, activated=F
 
     if lenses is not None and len(lenses) > 1:
         read_me.write("{}\tPREFIX lens:<{}>\n".format(idt, Ns.linkset))
-        read_me.write("{}\t There are {} lenses\n".format(idt, len(lenses) - 1))
+        read_me.write("{}\tThere are {} lenses\n".format(idt, len(lenses) - 1))
         for i in range(1, len(lenses)):
             lens_graph = lenses[i][0]
             count_response = Qry.sparql_xml_to_matrix(graph_count_query.format(lens_graph))
@@ -1159,10 +1159,13 @@ def import_research_question(zip_path, load=False, activated=False):
         message.write("\t{:20}: {}\n".format("Unzipping", zip_path))
         message.write("\t{:20}: {}\n\n".format("Bat File", bat_path))
         message.write("{}\n".format(">>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n"))
-        message.write(read_me.read())
+        read_me_text = read_me.read()
+        message.write(read_me_text)
+
 
         message2.write("{}\n".format(">>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n"))
-        message2.write(read_me.read())
+        message2.write(read_me_text)
+        read_me.close()
 
         if Ut.OPE_SYS != "windows":
             os.chmod(bat_path, 0o777)
