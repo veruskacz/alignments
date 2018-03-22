@@ -1636,7 +1636,7 @@ def spa_linkset():
         stop_words = request.args.get('stop_words', '')
         stop_symbols = request.args.get('stop_symbols', '')
 
-        print threshold, stop_words, stop_symbols
+        # print threshold, stop_words, stop_symbols
         # return json.dumps('')
 
         if CREATION_ACTIVE:
