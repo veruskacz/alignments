@@ -162,7 +162,8 @@ def export_flat_alignment(alignment):
     alignment_construct = Qry.endpointconstruct(query)
 
     # REMOVE EMPTY LINES
-    triples = len(re.findall('ll:mySameAs', alignment_construct))
+    # COMMA IS COUNTED WHENEVER THERE ARE MORE OBJECTS FOR THE SUBJECT
+    triples = len(re.findall('ll:mySameAs', alignment_construct)) + len(re.findall(',', alignment_construct))
     alignment_construct = "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
 
     # RESULTS
@@ -170,11 +171,13 @@ def export_flat_alignment(alignment):
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
 
-    return {'result': result, 'message': message}
+    return {'result': result, 'message': message, "triples": triples}
 
 
 # EXPORT ALIGNMENT WITH GENERIC METADATA
 def export_flat_alignment_and_metadata(alignment):
+
+    flat = export_flat_alignment(alignment)
 
     alignment = str(alignment).strip()
     row_alignment = alignment
@@ -187,20 +190,11 @@ def export_flat_alignment_and_metadata(alignment):
     PREFIX singletons: <{3}>
     CONSTRUCT
     {{
-        ?srcCorr  ll:mySameAs ?trgCorr .
-        #?trgCorr  ll:mySameAs ?srcCorr .
         ?alignment ?pred  ?obj .
         ?obj  ?predicate ?object .
     }}
     WHERE
     {{
-        BIND( {4} as ?alignment )
-        # THE ALIGNMENT GRAPH WITH EXPLICIT SYMMETRY
-        GRAPH ?alignment
-        {{
-            ?srcCorr ?singleton ?trgCorr .
-        }}
-
         # THE METADATA
         ?alignment  ?pred  ?obj .
         OPTIONAL {{ ?obj  ?predicate ?object . }}
@@ -212,9 +206,12 @@ def export_flat_alignment_and_metadata(alignment):
     alignment_construct = Qry.endpointconstruct(query, clean=False)
 
     # REMOVE EMPTY LINES
-    triples = 0
+    triples = flat["triples"]
     # triples = len(re.findall('ll:mySameAs', alignment_construct))
-    alignment_construct = "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
+    alignment_construct = flat['result'] + \
+                          "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
+
+
     result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n{}".format(triples, alignment, alignment_construct)
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
