@@ -2,7 +2,7 @@ import Alignments.UserActivities.Import_Data as Imp
 
 
 rq1 = "http://risis.eu/activity/idea_3944ec"
-rq_folder = "C:\Productivity\Zip"
+rq_folder = "C:\Productivity\ZipTest\Zip"
 # download_research_question_link_Stats("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT2", activated=True)
 # download_research_question("http://risis.eu/activity/idea_3944ec", "C:\Productivity\RQT")
 # download_research_question("http://risis.eu/activity/idea_da1b1e", "C:\Users\Al\Documents\Tobias\\nano")
@@ -31,10 +31,13 @@ PREFIX lens:<http://risis.eu/linkset/>
 # Imp.export_research_question(rq1, rq_folder, activated=True)
 
 """LOAD THE RESEARCH QUESTION TO THE STARDOG TRIPLE STORE"""
-path_to_zip_file = "C:\Productivity\idea_3944ec.zip"
-# Imp.import_research_question(path_to_zip_file, load=True, activated=True)
+path_to_zip_file = "C:\Productivity\ZipTest\idea_3944ec.zip"
+# Imp.import_research_question(path_to_zip_file, load=False, activated=True)
 
-print Imp.generate_win_bat_for_rq("C:\Productivity\idea_3944ec\idea_3944ec")
+"""ANOTHER WAY TO CONTROL THE LOAD"""
+# Imp.load_rq_from_batch("", "C:\Productivity\ZipTest\idea_3944ec.zip")
+
+# print Imp.generate_win_bat_for_rq("C:\Productivity\idea_3944ec\idea_3944ec")
 # import zipfile
 # zip_ref = zipfile.ZipFile(path_to_zip_file, 'r')
 # zip_ref.extractall("C:\Productivity\Zip")
