@@ -165,9 +165,10 @@ def export_flat_alignment(alignment):
     # COMMA IS COUNTED WHENEVER THERE ARE MORE OBJECTS FOR THE SUBJECT
     triples = len(re.findall('ll:mySameAs', alignment_construct)) + len(re.findall(',', alignment_construct))
     alignment_construct = "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
+    alignment_construct = alignment_construct.replace("{", "{}\n{{".format(alignment))
 
     # RESULTS
-    result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n".format(triples, alignment) + alignment_construct
+    result = "### TRIPLE COUNT: {0}\n### LINKSET: {1}\n".format(triples, alignment) + alignment_construct
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
 
@@ -195,11 +196,12 @@ def export_flat_alignment_and_metadata(alignment):
     }}
     WHERE
     {{
+        BIND ({4} AS ?alignment)
         # THE METADATA
         ?alignment  ?pred  ?obj .
         OPTIONAL {{ ?obj  ?predicate ?object . }}
     }} #LIMIT 10
-    """.format(Ns.alivocab, Ns.linkset, Ns.lens, Ns.singletons, alignment, )
+    """.format(Ns.alivocab, Ns.linkset, Ns.lens, Ns.singletons, alignment)
     # print query
 
     # FIRE THE CONSTRUCT AGAINST THE TRIPLE STORE
@@ -208,11 +210,10 @@ def export_flat_alignment_and_metadata(alignment):
     # REMOVE EMPTY LINES
     triples = flat["triples"]
     # triples = len(re.findall('ll:mySameAs', alignment_construct))
-    alignment_construct = flat['result'] + \
-                          "\n".join([line for line in alignment_construct.splitlines() if line.strip()])
+    alignment_construct = "\n".join([line for line in alignment_construct.splitlines() if line.strip()]) + "\n\n" + \
+                          flat['result']
 
-
-    result = "### TRIPLE COUNT: {}\n### LINKSET: {}\n{}".format(triples, alignment, alignment_construct)
+    result = "### GENERIC METADATA FOR \n### LINKSET: {}\n\n{}".format( alignment, alignment_construct)
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
     print result
