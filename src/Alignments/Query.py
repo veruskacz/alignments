@@ -22,7 +22,7 @@ handler = logging.StreamHandler()
 logger.addHandler(handler)
 
 
-DATABASE = Svr.DATABASE
+DATABASE = Svr.settings[St.database]
 HOST = Svr.settings[St.stardog_host_name]
 ERROR = "No connection could be made because the target machine actively refused it"
 ERROR_2 = 'The query was successfully executed but no feedback was returned'

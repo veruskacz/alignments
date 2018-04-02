@@ -700,9 +700,6 @@ def cluster_values_plus(rq_uri, g_cluster, targets, distinct_values=True, displa
     return response
 
 
-
-
-
 def linkset_from_cluster():
 
     query = """

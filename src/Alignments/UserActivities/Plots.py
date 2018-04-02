@@ -886,7 +886,7 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
         print "\tTHE FUNCTION I NOT ACTIVATED"
         return ""
 
-    elif network_size > network_size_max:
+    elif network_size > network_size_max and greater_equal is False:
         print "\t[network_size] SHOULD BE SMALLER THAN [network_size_max]"
         return ""
 
@@ -896,13 +896,20 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
 
     if network_size_max - network_size == 0:
         greater_equal = False
-    else:
-        greater_equal = False
 
     check = False
 
     # RUN THE CLUSTER
     clusters_0 = Cls.links_clustering(linkset, limit)
+
+    if greater_equal is True:
+        temp_size = 0
+        for cluster, cluster_val in clusters_0.items():
+            new_size = len(list(cluster_val["nodes"]))
+            if new_size > temp_size:
+                temp_size = new_size
+        network_size_max = temp_size
+        print "THE BIGGEST NETWORK'S: {}".format(network_size_max)
 
     def check_constraint():
 
@@ -956,7 +963,7 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
         count_1 = 0
         count_2 = 0
         curr_network_size = index
-        print "\nCLUSTERS OF SISE {}".format(index)
+        print "\nCLUSTERS OF SIZE {}".format(index)
         sheet_builder = Buffer.StringIO()
         analysis_builder = Buffer.StringIO()
         sheet_builder.write("Count	ID					STRUCTURE	E-STRUCTURE-SIZE	A. NETWORK QUALITY"
@@ -1102,6 +1109,10 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
 
             # if count_2 == 2:
             #     break
+
+        if greater_equal is True:
+            # no need to continue as we already did all network greater of equal to "network-size" input
+            break
 
         print "\t>>> FOUND: {} CLUSTERS OF SIZE {}".format(count_2, curr_network_size)
 
