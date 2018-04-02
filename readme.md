@@ -32,42 +32,52 @@ This web application can show off the coolness of the Sngleton*** model develope
 	
 9. Expected database address/name: http://localhost:5820/risis
 
-
 10. Edit this file \src\Alignments\Server_Settings.py depending on whether you are a WINDOWs, MAC OR LINUX user
 
-	# EXAMPLE 1
+	* EXAMPLE 1
+	```
 	SERVER_MAC = "localhost:5820"
 	STARDOG_PATH_MAC = '/Applications/stardog-5.0.2/bin/'
 	STARDOG_DATA_PATH_MAC = "/Users/userX/data/"
-
-	# EXAMPLE 2
-	SERVER_LINUX = "stardog.server.d2s.labs.vu.nl"
-	STARDOG_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
+	```
+	
+	* EXAMPLE 2
+	```
+	SERVER_LINUX = "stardog.server.d2s.labs.vu.nl"	
+	STARDOG_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'	
 	STARDOG_DATA_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data/'
-
-	# EXAMPLE 3 IS CURRENTLY ACTIVATED
-	SERVER_WIN = "localhost:5820"
-	STARDOG_PATH_WIN= 'C:\\Program Files\\stardog-5.0.5.1\\bin\\'
+	```
+	
+	* EXAMPLE 3 IS CURRENTLY ACTIVATED
+	```
+	SERVER_WIN = "localhost:5820"	
+	STARDOG_PATH_WIN= 'C:\\Program Files\\stardog-5.0.5.1\\bin\\'	
 	STARDOG_DATA_PATH_WIN = "C:\\Productivity\\data\\stardog"
+	```
 	
 11. In the same file, depending on your choice above, uncomment the right option and comment the current option whenever necessary
-
+	
+	```
 	# STARDOG SERVER LOCAL HOST NAME
     # St.stardog_host_name: SERVER_LINUX,
     # St.stardog_host_name: SERVER_MAC,
     St.stardog_host_name: SERVER_WIN,
-
+	```
+	
+	```
     # STARDOG PATH
     # St.stardog_path: STARDOG_PATH_LINUX,
     # St.stardog_path: STARDOG_PATH_MAC,
     St.stardog_path: STARDOG_PATH_WIN,
-
+	```
+	
+	```
     # STARDOG DATA PATH
     # St.stardog_data_path: STARDOG_DATA_PATH_LINUX,
     # St.stardog_data_path: STARDOG_DATA_PATH_MAC,
     St.stardog_data_path: STARDOG_DATA_PATH_WIN,
+	```
+	
+12. Inside the `src` directory, run `python run.py`
 
-
-* Inside the `src` directory, run `python run.py`
-
-* Go to `http://localhost:5077` and have fun!
+13. Go to `http://localhost:5077` and have fun!
