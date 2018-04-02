@@ -8,22 +8,28 @@ DIR = "{0}{1}{1}Alignments{1}{1}Data".format(os.getcwd(), SEP)
 UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(), SEP)
 UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
 # "http://stardog.risis.d2s.labs.vu.nl/annex/risis/sparql/query"
-DATABASE = "risis"
-TEST_SERVER = "localhost:5820"
+DEFAULT_DATABASE = "risis"
+DEFAULT_SERVER = "localhost:5820"
 
-STARDOG_PATH_TEST_V = '/Applications/stardog-5.0.2/bin/'
-STARDOG_DATA_PATH_TEST_V = "/Users/veruskazanborlini/data/"
+# EXAMPLE 1
+SERVER_MAC = "localhost:5820"
+STARDOG_PATH_MAC = '/Applications/stardog-5.0.2/bin/'
+STARDOG_DATA_PATH_MAC = "/Users/userX/data/"
 
-STARDOG_PATH_TEST_A = 'C:\\Program Files\\stardog-4.1.3\\bin'
-STARDOG_DATA_PATH_TEST_A = "C:\Program Files\stardog-4.1.3\data"
+# EXAMPLE 2
+SERVER_LINUX = "stardog.server.d2s.labs.vu.nl"
+STARDOG_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
+STARDOG_DATA_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data/'
 
-PRODUCTION_SERVER = "stardog.risis.d2s.labs.vu.nl"
-STARDOG_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
-STARDOG_DATA_PATH_PRODUCTION = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data/'
+# EXAMPLE 3 IS CURRENTLY ACTIVATED
+SERVER_WIN = "localhost:5820"
+STARDOG_PATH_WIN= 'C:\\Program Files\\stardog-5.0.5.1\\bin\\'
+STARDOG_DATA_PATH_WIN = "C:\\Productivity\\data\\stardog"
 
 
 settings = {
 
+    St.database: DEFAULT_DATABASE,
     St.stardog_user: "admin",
     St.stardog_pass: "admin",
 
@@ -33,18 +39,19 @@ settings = {
     St.split_sys: False,
 
     # STARDOG SERVER LOCAL HOST NAME
-    St.stardog_host_name: PRODUCTION_SERVER,
-    # St.stardog_host_name: TEST_SERVER,
+    # St.stardog_host_name: SERVER_LINUX,
+    # St.stardog_host_name: SERVER_MAC,
+    St.stardog_host_name: SERVER_WIN,
 
     # STARDOG PATH
-    St.stardog_path: STARDOG_PATH_PRODUCTION,
-    # St.stardog_path: STARDOG_PATH_TEST_V,
-    # St.stardog_path: STARDOG_PATH_TEST_A,
+    # St.stardog_path: STARDOG_PATH_LINUX,
+    # St.stardog_path: STARDOG_PATH_MAC,
+    St.stardog_path: STARDOG_PATH_WIN,
 
     # STARDOG DATA PATH
-    St.stardog_data_path: STARDOG_DATA_PATH_PRODUCTION,
-    # St.stardog_data_path: STARDOG_DATA_PATH_TEST_V,
-    # St.stardog_data_path: STARDOG_DATA_PATH_TEST_A,
+    # St.stardog_data_path: STARDOG_DATA_PATH_LINUX,
+    # St.stardog_data_path: STARDOG_DATA_PATH_MAC,
+    St.stardog_data_path: STARDOG_DATA_PATH_WIN,
 
     # STARDOG 4 IS COMPATIBLE
     # STARDOG 5 IS NOT COMPATIBLE

@@ -61,7 +61,7 @@ if CREATION_ACTIVE:
 else:
     from app import app
 
-DATABASE = Svr.DATABASE
+DATABASE = Svr.settings[St.database]
 HOST = Svr.settings[St.stardog_host_name]
 ENDPOINT_URL = 'http://{}/{}/query'.format(HOST, DATABASE)
 UPDATE_URL = 'http://{}/{}/update'.format(HOST, DATABASE)

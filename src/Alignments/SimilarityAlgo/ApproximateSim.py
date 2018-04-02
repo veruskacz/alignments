@@ -685,7 +685,6 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     print "\nStarted at {}".format(ctime(start))
     count = 0
 
-
     source = specs[St.source]
     target = specs[St.target]
     Ut.update_specification(source)
@@ -697,7 +696,6 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     specs[St.graph] = specs[St.linkset]
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
     specs[St.insert_query] = "The generated triple file was uploaded to the server."
-
 
     # STOP WORD LIST
     stop_words_string = stop_words_string.lower()
@@ -1069,7 +1067,7 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     # if int(inserted[1]) > 0:
     if count > 0:
 
-        print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THE TRIPLE STORE\n\t\t{}", writers[
+        print "10. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THE TRIPLE STORE\n\t\t{}", writers[
             St.batch_output_path]
 
         if Svr.settings[St.split_sys] is True:
@@ -1326,7 +1324,7 @@ def process_input(text, stop_word, stop_symbols_string):
         stop_symbols = to_bytes(stop_symbols_string).replace("–", "\xe2\x80\x93")
         if stop_symbols_string is not None and len(stop_symbols_string) > 0:
             pattern = str("[{}]".format(stop_symbols.strip())).replace(" ", "")
-            print pattern
+            # print pattern
             temp = re.sub(pattern, "", temp)
 
         return temp.strip()
@@ -1416,6 +1414,10 @@ def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbo
     check = Ls.run_checks(specs, check_type="REFINE")
     if check[St.result] != "GOOD TO GO":
         return check
+
+    # POINT TO THE LINKSET THE CURRENT LINKSET WAS DERIVED FROM
+    print "1. wasDerivedFrom {}".format(specs[St.linkset])
+    specs[St.derivedfrom] = "\t\tprov:wasDerivedFrom\t\t\t<{}> ;".format(specs[St.linkset])
 
     # 2. SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
     # Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
@@ -1681,7 +1683,7 @@ def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbo
     # 9. TO DO ONLY IF MATCH ARE FOUND
     print "9. TO DO ONLY IF MATCH ARE FOUND"
     if count_link_found > 0:
-        print "6. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THE TRIPLE STORE\n\t\t{}", writers[
+        print "10. RUNNING THE BATCH FILE FOR LOADING THE CORRESPONDENCES INTO THE TRIPLE STORE\n\t\t{}", writers[
             St.batch_output_path]
 
         if Svr.settings[St.split_sys] is True:
