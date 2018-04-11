@@ -715,7 +715,7 @@ def export_research_question(research_question, directory, activated=False):
         return {St.message: "THE FUNCTION [export_research_question] IS NOT ACTIVATED.", St.result: None}
 
     host = Svr.settings[St.stardog_host_name]
-    endpoint = b"http://{}/annex/{}/sparql/query?".format(host, Svr.DATABASE)
+    endpoint = b"http://{}/annex/{}/sparql/query?".format(host, Svr.settings[St.database])
 
     # **************************************************************
     # 1. DOWNLOAD ALL TRIPLES (metadata) IN THE IDEA GRAPH
