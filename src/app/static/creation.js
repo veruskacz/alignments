@@ -118,6 +118,8 @@ function create_idea_button(th)
     resetButton(btn);
     btn = document.getElementById('btn_overview_idea');
     resetButton(btn);
+    btn = document.getElementById('btn_export_idea');
+    resetButton(btn);
   }
   else {
     $('#idea_create_row').hide();
@@ -138,6 +140,8 @@ function inspect_idea_button(th)
     var btn = document.getElementById('btn_create_idea');
     resetButton(btn);
     btn = document.getElementById('btn_overview_idea');
+    resetButton(btn);
+    btn = document.getElementById('btn_export_idea');
     resetButton(btn);
 
      $('#button_idea_RQ_col').html('Loading...');
@@ -165,9 +169,18 @@ function inspect_idea_button(th)
   }
 }
 
-function export_idea_button()//(uri, name)
+function export_idea_button(th)//(uri, name)
 {
+  if (selectMultiButton(th))
+  {
+
     var uri = $('#creation_idea_selected_RQ').attr('uri');
+    var btn = document.getElementById('btn_create_idea');
+    resetButton(btn);
+    btn = document.getElementById('btn_overview_idea');
+    resetButton(btn);
+    btn = document.getElementById('btn_inspect_idea');
+    resetButton(btn);
 
     $.get('/getexportrq', data = {'rq_uri': uri}, function(data)
     {
@@ -176,10 +189,10 @@ function export_idea_button()//(uri, name)
        var link = document.createElement("a");
        link.download = fileName + '.zip';
        link.href = '/static/data/' + fileName + '.zip';
-       alert(link.href);
+//       alert(link.href);
        link.click();
     });
-
+  }
 }
 
 function overview_idea_button(th)
