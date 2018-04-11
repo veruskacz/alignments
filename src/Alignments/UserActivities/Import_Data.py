@@ -512,7 +512,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
         else:
             offset = i * limit + 1
 
-        print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
+        print "\t\tROUND: {:9}/{:<9} OFFSET: {:<10}".format(i + 1, iterations, offset)
         current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
         # print current_q
         response = Qry.remote_endpoint_request(current_q, endpoint_url=endpoint)
@@ -633,7 +633,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
         else:
             offset = i * limit + 1
 
-        print "\t\tROUND: {} OFFSET: {}".format(i + 1, offset)
+        print "\t\tROUND: {:10}/{:<10} OFFSET: {:<10}".format(i + 1, iterations, offset)
         current_q = "{} LIMIT {} OFFSET {}".format(main_query, limit, offset)
         # print current_q
         response = Qry.endpointconstruct(current_q, clean=cleanup, insert=insert)
@@ -709,6 +709,8 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
 
 
 def export_research_question(research_question, directory, activated=False):
+
+    print "THE FILE COLD BE FOUND IN {}".format(directory)
 
     if activated is False:
         print "\nTHE FUNCTION [export_research_question] IS NOT ACTIVATED"
