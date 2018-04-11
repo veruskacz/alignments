@@ -17,9 +17,9 @@ import Alignments.Lenses.Lens_Difference as Df
 from kitchen.text.converters import to_unicode, to_bytes
 from Alignments.CheckRDFFile import check_rdf_file
 import Alignments.Server_Settings as Svr
-import Alignments.Server_Settings as Ss
-DIRECTORY = Ss.settings[St.linkset_Approx_dir]
 import Alignments.ErrorCodes as Ec
+DIRECTORY = Svr.settings[St.linkset_Approx_dir]
+
 
 
 LIMIT = ""
@@ -1033,11 +1033,12 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
     else:
         path = Svr.settings[St.stardog_path]
 
+    # STARDOG LOAD COMMAND
     load = """
     echo "Loading data"
     {}stardog data add {} "{}" "{}"
     """.format(
-        path, Ss.DATABASE, writers[St.crpdce_writer_path],
+        path, Svr.settings[St.stardog_uri], writers[St.crpdce_writer_path],
         writers[St.singletons_writer_path]
         # writers[St.meta_writer_path],
     )
@@ -1658,7 +1659,7 @@ def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbo
     load = """
     echo "Loading data"
     {}stardog data add {} "{}" "{}"
-    """.format(path, Ss.DATABASE, writers[St.crpdce_writer_path], writers[St.singletons_writer_path])
+    """.format(path, Svr.settings[St.database], writers[St.crpdce_writer_path], writers[St.singletons_writer_path])
 
     # ADD ACCESS WRITE FOR MAC FOLDER
     if Ut.OPE_SYS != 'windows':

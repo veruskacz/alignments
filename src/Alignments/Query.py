@@ -1134,6 +1134,12 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
 
     limit = limit
     table = Buffer.StringIO()
+    message = """
+    ####################################################################################
+    TABLE OF {} Row(S) AND {} Columns LIMIT={}
+    ####################################################################################
+         """.format(0, 0, limit)
+
     if is_activated is True:
 
         line = ""
@@ -1146,11 +1152,12 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
 
         if matrix[St.message] == "NO RESPONSE":
             print Ec.ERROR_CODE_1
-            return None
+            return message
 
         if matrix[St.result] is None:
             # logger.warning("\nTHE MATRIX IS EMPTY\n")
-            return None
+            print message
+            return message
 
         message = """
     ####################################################################################
@@ -1188,10 +1195,11 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
             table.write("\n\t{}".format(row))
 
             if count == limit + 1:
-                if output is False:
-                    print table.getvalue()
-                else:
-                    return table.getvalue()
+                # if output is False:
+                #     print table.getvalue()
+                # else:
+                #     return table.getvalue()
+                break
 
     if output is False:
         print table.getvalue()

@@ -46,7 +46,6 @@ if __name__ == "__main__":
             print "LISTENING AT: {}...".format(Svr.settings[St.stardog_data_path])
             Ut.listening(Svr.settings[St.stardog_data_path])
 
-        app.run(host="0.0.0.0", port=os.getenv("LL_PORT", 5077))
+        app.run(host="0.0.0.0", port=int(os.getenv("LL_PORT", 5077)))
 
-
-
+# LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py

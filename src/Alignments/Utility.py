@@ -406,12 +406,12 @@ def win_bat(file_directory, file_name):
     load_builder.write("""\n\techo "Loading data\"""")
 
     if OPE_SYS == 'windows':
-        load_builder.write("\n\tstardog data add risis")
+        load_builder.write("\n\tstardog data add {} ".format(Svr.settings[St.stardog_uri]))
 
     # if OPE_SYS.__contains__(mac_weird_name):
     else:
         stardog_path = Svr.settings[St.stardog_path]
-        load_builder.write("\n\t{}stardog data add risis".format(stardog_path))
+        load_builder.write("\n\t{}stardog data add {} ".format(stardog_path, Svr.settings[St.stardog_uri]))
 
     # LOAD ONLY .TRIG OR .TTL FILES
     print "\nTHESE FILES WILL BE USED FOR GENERATING A BAT FILE:"
@@ -902,10 +902,10 @@ def load_triple_store(graph_uri, directory, data):
 
     # GENERATE THE BATCH FILE
     if OPE_SYS == 'windows':
-        b_writer.write("\n\tstardog data add risis {}".format(insert_output))
+        b_writer.write("\n\tstardog data add {} {}".format(Svr.settings[St.stardog_uri], insert_output))
     else:
         stardog_path = Svr.settings[St.stardog_path]
-        b_writer.write("\n\t{}stardog data add risis {}".format(stardog_path, insert_output))
+        b_writer.write("\n\t{}stardog data add {} {}".format(stardog_path, Svr.settings[St.stardog_uri], insert_output))
     b_writer.close()
 
     # SET ACCESS RIGHT

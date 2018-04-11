@@ -10,15 +10,20 @@ from os import listdir, system, path  # , startfile
 from Alignments.Utility import normalise_path as nrm
 from os.path import join, isdir, isfile
 import codecs  # , subprocess
+import Alignments.Utility as Ut
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     TEST FUNCTIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
-def sigmoid(x):
+def sigmoid(x, par=1.6):
     # return math.exp(x)/ (math.exp(x) + 10)
-    return x / float(math.fabs(x) + 1.6)
+    return x / float(math.fabs(x) + par)
+
+
+# for i in range(11):
+#    print "{:14}  {:14} {:14}".format(sigmoid(i, 1.5), sigmoid(i, 1.6), sigmoid(i, 1.9))
 
 
 def folder_check0(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
@@ -210,7 +215,7 @@ def folder_check0(file_1, file_2, diff_1=False, diff_2=False, intersection=False
         print "GOOD {0}/{3} BAD {1}/{3} UNCERTAIN {2}/{3}".format(good, bad, uncertain, len(diff))
 
 
-def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
+def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False, save_in="",
                  tracking=None, track_dir=None, plot_dict=None, detailed=False, activated=False,):
 
     if activated is False:
@@ -224,6 +229,7 @@ def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
     set_b = set([])
     folders_1 = []
     folders_2 = []
+    builder = Buffer.StringIO()
 
     if path.isdir(file_1):
         folders_1 = [f for f in listdir(nrm(file_1)) if isdir(join(nrm(file_1), f))]
@@ -233,15 +239,15 @@ def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
         folders_2 = [f for f in listdir(nrm(file_2)) if isdir(join(nrm(file_2), f))]
         set_b = set(folders_2)
 
-    print "\nPATH 1: {}".format(len(folders_1))
-    print "PATH 2: {}".format(len(folders_2))
+    # print "\nPATH 1: {}".format(len(folders_1))
+    # print "PATH 2: {}".format(len(folders_2))
 
     # Dynamically get path to AcroRD32.exe
     # acro_read = winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, 'Software\\Adobe\\Acrobat\Exe')
     line = "========================================================================="
     output_format = "{:<22}{:12}{:12}{:12}{:12}"
     plot_format = "({},{})"
-    header = "{}\n\t{:<21}{:12}{:>12}{:>12}{:>12}\n{}".format(
+    header = "\n{}\n\t{:<21}{:12}{:>12}{:>12}{:>12}\n{}".format(
         line, "NETWORK", "QUALITY", "ESTIMATION", "BRIDGE", "DIAMETER", line)
 
     if diff_1 is True:
@@ -433,9 +439,10 @@ def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
 
     if intersection is True:
         diff = set_a.intersection(set_b)
-        print "\nINTERSECTION(FOLDER_1 [{}] - FOLDER_2 [{}]) [{}]".format(len(folders_1), len(folders_2), len(diff))
-        print "LOOKING INTO FILE-2:", file_2
-        print header
+        builder.write("\nINTERSECTION(FOLDER_1 [{}] - FOLDER_2 [{}]) [{}]\n".format(
+            len(folders_1), len(folders_2), len(diff)))
+        # builder.write("LOOKING INTO FILE-2: {}\n".format(file_2))
+        builder.write(header)
         good = 0
         acceptable = 0
         bad = 0
@@ -446,7 +453,7 @@ def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
         for item in diff:
 
             count += 1
-            output = "\t>>> {}".format(item)
+            output = "\n\t>>> {}".format(item)
 
             target = join(nrm(file_2), item)
             doc = [f for f in listdir(nrm(target)) if join(nrm(target), f).endswith('.txt')]
@@ -502,16 +509,15 @@ def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
                 read.close()
 
             if detailed is True:
-                print output
-                print line
+                builder.write("{}\n".format(output))
+                builder.write("{}".format(line))
 
-
-        print "TOTAL=[{3}]  GOOD=[{0}]  ACCEPTABLE=[{4}]    UNCERTAIN=[{2}]  BAD=[{1}]".format(
-            good, bad, uncertain, len(diff), acceptable)
+        builder.write("\nTOTAL=[{3}]  GOOD=[{0}]  ACCEPTABLE=[{4}]    UNCERTAIN=[{2}]  BAD=[{1}]\n".format(
+            good, bad, uncertain, len(diff), acceptable))
         if len(diff) > 0:
-            print "TOTAL=[{3}]  GOOD=[{0}%]  ACCEPTABLE=[{4}%]    UNCERTAIN=[{2}%]  BAD=[{1}%]\n".format(
+            builder.write("TOTAL=[{3}]  GOOD=[{0}%]  ACCEPTABLE=[{4}%]    UNCERTAIN=[{2}%]  BAD=[{1}%]\n".format(
                 round(float(good) / len(diff) * 100, 2), round(float(bad) / len(diff) * 100, 2),
-                round(float(uncertain) / len(diff) * 100, 2), len(diff), round(float(acceptable) / len(diff) * 100, 2))
+                round(float(uncertain) / len(diff) * 100, 2), len(diff), round(float(acceptable) / len(diff) * 100, 2)))
 
         #################
         # RANDOM CLUSTERS
@@ -546,17 +552,36 @@ def folder_check(file_1, file_2, diff_1=False, diff_2=False, intersection=False,
                     if int(machine_rank) != human_rank:
                         scatter += plot_format.format(count_in, human_rank)
                         human_plot += "\t\\addplot [black, dashed, dash pattern=on 1pt off 1pt, ->] " \
-                                      "coordinates {{ ({0},{1}) ({0},{2}) }};\n".format(
-                            count_in, machine_rank, human_rank)
+                                      "coordinates {{ ({0},{1}) ({0},{2}) }};\n".\
+                            format(count_in, machine_rank, human_rank)
                 else:
-                    print item[0], "???"
+                    builder.write("{} {}".format(item[0], "???"))
 
         sored_plot += "};"
         human_plot_1 += "};"
         scatter += "};"
         # print "\nORDERED LIST OF CLUSTERS FOR PLOT\n\t{}".format(sored_plot)
 
-        # print "\nORDERED HUMAN LIST OF CLUSTERS FOR PLOT\n{} \n{}".format(scatter, human_plot)
+        # print "\nORDERED HUMAN LIST OF CLUSTERS FOR PLOT\n{} \n{}".format(scatter, human_plot)=
+
+        comment = "\nDifference between FILE-1 and FILE-2 but looking into FILE-2.\n\t{}\n\t{}".format(file_1, file_2)
+        builder.write(comment)
+
+
+        if save_in is not None and len(save_in.strip()) > 0:
+
+            diff_path = "{}\Diff_{}_Found_{}.text".format(
+                save_in, Ut.hash_it(comment), len(diff))
+
+            if isdir(save_in) is False:
+                os.makedirs(save_in)
+
+            with open(diff_path, "wb") as new_file:
+                new_file.write(builder.getvalue())
+
+            print builder.getvalue()
+            print "file created at: {}".format(diff_path)
+            return diff_path
 
 
 def track(directory, resource, activated=False):
@@ -984,7 +1009,6 @@ def network_examples():
 def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
                      ground_truth_p=0, observations=0, latex=False, zero_rule=True):
 
-
     if zero_rule is True:
         if ground_truth_p > observations - ground_truth_p:
             confusion_matrix(true_p=ground_truth_p, false_p=observations - ground_truth_p, true_n=0, false_n=0,
@@ -1039,6 +1063,9 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     end_line = "{:19}{:->86}\n".format("", "")
     short_line_base = "{:^19}{:->35}\n".format("*** BASE LINE ***", "")
 
+    base = "\\tiny *** BASE" if zero_rule is False else ""
+    base_line = "\\tiny LINE ***" if zero_rule is False else ""
+
     # LINE 1
     confusion.write(short_line)
     confusion.write("{:>19}|{:^32} |\n".format("", "{} GROUND TRUTHS".format(observations)))
@@ -1065,14 +1092,14 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     confusion.write("{:8}| Negative | {:^14} | {:^14} | {:^19} | {:^25} |\n".format(
         "", "False Negative", "True Negative", "False omission rate", "Negative predictive value "))
     confusion.write("{:8}| {:^8} | {:^14} | {:^14} | {:^19} | {:^26} |\n".format(
-        "",negatives, false_n, true_n, omission, n_pred_value))
+        "", negatives, false_n, true_n, omission, n_pred_value))
 
     # LINE 5
     confusion.write(long_line)
     confusion.write("{:8}           | {:^14} | {:^14} |{:^20} | {:^13}{:^13} |\n".format(
         "", "Recall", "Fall-out", " P. Likelihood Ratio", "F1 score", "Accuracy"))
 
-    accuracy = round((true_p + true_n)/ float(observations), 3)
+    accuracy = round((true_p + true_n) / float(observations), 3)
 
     if precision != "-":
         confusion.write("{:8}           | {:^14} | {:^14} |{:^20} | {:^13}{:^13} |\n".format(
@@ -1093,7 +1120,6 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
         confusion.write("Positive likelihood ratio  LR+   = TPR / FPR\n")
         confusion.write("False positive rate        FPR   = Σ False positive / Σ Condition negative\n")
         confusion.write("FPR a.k.a Fall-out, probability of false alarm")
-
 
     latex_cmd = """
 \\newcolumntype{{s}}{{>{{\columncolor[HTML]{{AAACED}}}} p{{3cm}}}}
@@ -1118,13 +1144,13 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     % RAW 2 ************************************
     \cline{{3-4}} \cline{{3-4}}
     \cline{{3-4}}
-    &
+    & {18}
     & GT. Pos.
     & GT. neg.
     &
     & \\\\
     % RAW 3 ************************************
-    &
+    & {19}
     & {1}
     & {2}
     &
@@ -1184,8 +1210,7 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     """.format(observations, ground_truth_p, ground_truth_n, true_p, false_p,
                round(recall, 3) if recall != "-" else "-", f_disc_rate,
                false_n, true_n, omission, n_pred_value, round(precision, 3),
-               fall_out, likelihood_ratio, f_1, positives, negatives, accuracy)
-
+               fall_out, likelihood_ratio, f_1, positives, negatives, accuracy, base, base_line)
 
     print confusion.getvalue()
 
@@ -1272,38 +1297,48 @@ def generate_bat_for_RQ(directory):
 
 def get_cluster_id(file_path):
 
-    if isfile(file_path) is True:
-        file = open(file_path, "rb")
-        read = file.read()
-        file.close()
-        return re.findall("\d_.\d+", read)
+    if file_path is not None and isfile(file_path) is True:
+        new_file = open(file_path, "rb")
+        read = new_file.read()
+        new_file.close()
+        return re.findall(" (\d_.\d+)", read)
     return []
 
 
-def extract_cluster_stats(ids_file, file_path_to_extract):
+def extract_cluster_stats(ids_file, file_path_to_extract, save_in="", temporal="before"):
 
-    print "\nIDs FILE:", ids_file
-    print "EXTRACTION FILE:", file_path_to_extract
-    read = ""
+    # EXTRACT STATS BASED ON CLUSTER IDS
+    print "\n{:17} : {}".format("IDs FILE", ids_file)
+    print "{:17} : {}".format("EXTRACTION FILE", file_path_to_extract)
+    # read = ""
     pattern = "\d_.\d+"
     ids = get_cluster_id(ids_file)
-    print ""
-    print len(ids), "cluster IDs"
-
+    # print ids
+    print "{:17} : {}".format("cluster IDs found", len(ids))
+    builder = Buffer.StringIO()
     if isfile(file_path_to_extract) is True:
-        with open(file_path_to_extract, "rb") as file:
-            print file.readline()
-            for line in file:
+        with open(file_path_to_extract, "rb") as new_file:
+            builder.write("{}".format(new_file.readline()))
+            for line in new_file:
                 find = re.findall(pattern, line)
                 if len(find) == 1 and find[0] in ids:
-                    print line.strip('\n')
-                    for line in file:
-                        print line.strip('\n')
-                        if len(line.strip()) == 0:
+                    builder.write("{}\n".format(line.strip('\n')))
+                    for lines in new_file:
+                        builder.write("{}\n".format(lines.strip('\n')))
+                        if len(lines.strip()) == 0:
                             break
-            file.close()
+        new_file.close()
     else:
-        "THE FILE DOES NOT EXISTS"
+        print "THE FILE DOES NOT EXISTS: {}".format(file_path_to_extract)
 
+    # print builder.getvalue()
+    basename = path.basename(file_path_to_extract).replace(
+        "ClusterSheet", "ClusterSheet_netherlands_{}".format(temporal))
+    file_path = "{}\\{}".format(save_in, basename)
 
+    if isdir(save_in) is False:
+        os.makedirs(save_in)
+
+    with open(file_path, "wb") as new_file:
+        new_file.write(builder.getvalue())
 
