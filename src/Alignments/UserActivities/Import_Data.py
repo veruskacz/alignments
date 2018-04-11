@@ -539,7 +539,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
     b_writer = open(b_file, "wb")
     load_text = """echo "Loading data"
     {}stardog data add {} -g {} "{}/"*.ttl
-    """.format(stardog_path, Svr.DATABASE, graph, directory)
+    """.format(stardog_path, Svr.settings[St.stardog_uri], graph, directory)
     b_writer.write(load_text)
     b_writer.close()
     os.chmod(b_file, 0o777)
@@ -548,7 +548,7 @@ def download_data(endpoint, entity_type, graph, directory,  limit, load=False,
 
         message = "You have just successfully downloaded [{}] triples." \
                   "\n\t{} files where created in the folder [{}] and loaded " \
-                  "into the [{}] dataset. ".format(triples, iterations, directory, Svr.DATABASE)
+                  "into the [{}] dataset. ".format(triples, iterations, directory, Svr.settings[St.database])
     else:
         message = "You have just successfully downloaded [{}] triples." \
                   "\n\t{} files where created in the folder [{}].".format(triples, iterations, directory)
@@ -687,7 +687,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
         b_writer = open(b_file, "wb")
         load_text = """echo "Loading data"
         {}stardog data add {} -g {} "{}/"*.ttl
-        """.format(stardog_path, Svr.DATABASE, graph, directory)
+        """.format(stardog_path, Svr.settings[St.stardog_uri], graph, directory)
         b_writer.write(load_text)
         b_writer.close()
         os.chmod(b_file, 0o777)
@@ -696,7 +696,7 @@ def download_stardog_data(endpoint, entity_type, graph, directory,  limit, count
 
         message = "You have just successfully downloaded [{}] triples." \
                   "\n\t{} file(s) created in the folder [{}] and loaded " \
-                  "into the [{}] dataset. ".format(triples, iterations, directory, Svr.DATABASE)
+                  "into the [{}] dataset. ".format(triples, iterations, directory, Svr.settings[St.database])
     else:
         message = "You have just successfully downloaded [{}] triples." \
                   "\n\t{} file(s) created in the folder [{}].".format(triples, iterations, directory)
@@ -1164,7 +1164,6 @@ def import_research_question(zip_path, load=False, activated=False):
         read_me_text = read_me.read()
         message.write(read_me_text)
 
-
         message2.write("{}\n".format(">>> DESCRIPTION ON FILES TO LOAD TO THE SERVER\n"))
         message2.write(read_me_text)
         read_me.close()
@@ -1191,7 +1190,8 @@ def import_research_question(zip_path, load=False, activated=False):
         message2.write("THIS EXTENSION [{}] IS NOT SUPPORTED.\n".format(extension[1]))
 
     print message.getvalue()
-    return  {St.message: message2.getvalue(), "sh_bat":bat_path}
+
+    return {St.message: message2.getvalue(), "sh_bat": bat_path}
 
 
 def generate_win_bat_for_rq(directory):
@@ -1210,11 +1210,11 @@ def generate_win_bat_for_rq(directory):
 
                 if files[i].endswith(".trig"):
                     batch.write("""\tcall stardog data add {} "{}" \n\n""".format(
-                        Svr.DATABASE, join(nrm(directory), files[i])))
+                        Svr.settings[St.stardog_uri], join(nrm(directory), files[i])))
 
                 if files[i].endswith(".sparql"):
                     batch.write("""\tcall stardog query {} "{}" \n\n""".format(
-                        Svr.DATABASE, join(nrm(directory), files[i])))
+                        Svr.settings[St.stardog_uri], join(nrm(directory), files[i])))
 
         else:
 
@@ -1228,12 +1228,11 @@ def generate_win_bat_for_rq(directory):
 
                 if files[i].endswith(".trig"):
                     batch.write("""\t{} data add {} "{}"; \n\n""".format(
-                        cmd, Svr.DATABASE, join(nrm(directory), files[i])))
+                        cmd, Svr.settings[St.stardog_uri], join(nrm(directory), files[i])))
 
                 if files[i].endswith(".sparql"):
                     batch.write("""\t{} query {} "{}"; \n\n""".format(
-                        cmd, Svr.DATABASE, join(nrm(directory), files[i])))
-
+                        cmd, Svr.settings[St.stardog_uri], join(nrm(directory), files[i])))
 
     return batch.getvalue()
 
