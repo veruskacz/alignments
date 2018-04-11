@@ -767,7 +767,8 @@ def export_research_question(research_question, directory, activated=False):
     """.format(research_question)
     linksets_response = Qr.sparql_xml_to_matrix(linksets_query)
     linksets = linksets_response[St.result]
-    print "\t There are {} linksets".format(len(linksets) - 1)
+    if linksets:
+        print "\t There are {} linksets".format(len(linksets) - 1)
 
     # **************************************************************
     # 3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING
@@ -789,7 +790,8 @@ def export_research_question(research_question, directory, activated=False):
         """.format(research_question)
     lenses_response = Qr.sparql_xml_to_matrix(lenses_query)
     lenses = lenses_response[St.result]
-    print "\t There are {} lenses".format(len(lenses) - 1)
+    if lenses:
+        print "\t There are {} lenses".format(len(lenses) - 1)
 
     # **************************************************************
     # 4. DOWNLOAD ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
@@ -868,7 +870,7 @@ def export_research_question(research_question, directory, activated=False):
     """
 
     print "\n4. DOWNLOADING ALL LINKSETS"
-    if len(linksets) > 1:
+    if linksets and len(linksets) > 1:
         for i in range(1, len(linksets)):
 
             linkset_graph = linksets[i][0]
@@ -941,7 +943,7 @@ def export_research_question(research_question, directory, activated=False):
     """
 
     print "\n5. DOWNLOADING ALL LENSES"
-    if len(lenses) > 1:
+    if lenses and len(lenses) > 1:
         for i in range(1, len(lenses)):
 
             lens_graph = lenses[i][0]
