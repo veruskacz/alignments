@@ -53,6 +53,9 @@ settings = {
     # St.stardog_data_path: STARDOG_DATA_PATH_MAC,
     St.stardog_data_path: STARDOG_DATA_PATH_WIN,
 
+    # STARDOG URI STANDING FOR STARDOG DATABASE
+    St.stardog_uri:  b"http://{}/{}".format(St.stardog_host_name, St.database),
+
     # STARDOG 4 IS COMPATIBLE
     # STARDOG 5 IS NOT COMPATIBLE
     St.stardog_version: "NOT COMPATIBLE",

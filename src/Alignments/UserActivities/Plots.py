@@ -880,6 +880,8 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
                    constraint_text="", directory=None, greater_equal=True, print_it=False, limit=None,
                    only_good=False, activated=False):
 
+    # FOR CONSTRAINTS TO WORK, IT SHOULD NOT BE NONE
+
     network = []
     print "\nLINK NETWORK INVESTIGATION"
     if activated is False:

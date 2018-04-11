@@ -4,8 +4,8 @@ import Alignments.Examples.LinkValidation.Data as Data
 import Alignments.UserActivities.Plots as Plt
 import Alignments.Examples.LinkValidation.Functions as Functions
 from os.path import join
-import cStringIO as Buffer
-import Alignments.UserActivities.Import_Data as Im
+# import cStringIO as Buffer
+# import Alignments.UserActivities.Import_Data as Im
 
 
 net_size = 3
@@ -21,7 +21,7 @@ net_max_size = 2
 greater_equal = False
 
 # THE OUTPUT DIRECTORY
-directory = "C:\Productivity\LinkAnalysis\Netherlands-00"
+directory = "C:\Productivity\LinkAnalysis\ISWC2018\Netherlands_name"
 
 # THE LENS TO USE FOR NETWORK EXTRACTION
 lens = "union_Eter_2014_LeidenRanking_2015_Grid_20170712_H2020_Orgref_20170703_Orgreg_20170718_P1768695787"
@@ -77,11 +77,11 @@ for size in range(3, 11):
     doc_path = join(directory, "{0}_Analysis_{1}\{2}\{0}_2_ClusterSheet_{1}.txt".format(size, year, check_folder))
 
     doc_path1 = join(directory,
-                    "Peter - Link Validation Sample\{0}_2_ClusterSheet_{1}.txt".format(size, year))
+                     "Peter - Link Validation Sample\{0}_2_ClusterSheet_{1}.txt".format(size, year))
 
     doc_path2 = join(directory,
                      "Peter - Link Validation Sample - Corrected\{0}_2_ClusterSheet_{1}.txt".format(size, year))
 
     Functions.good_bad_count_stats(
         doc_path2, machine_bad=False, human_good=False, machine_good=False,
-        machine_acceptable=False, machine_uncertain=False, activated=True)
+        machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)

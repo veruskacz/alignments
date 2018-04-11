@@ -26,8 +26,8 @@ def sigmoid(x):
 
 
 lens_prefix = "http://risis.eu/lens/{}"
-directory = "C:\Productivity\LinkAnalysis\Geo_demo_1"
-directory_all = "C:\Productivity\LinkAnalysis\Geo_demo_2"
+directory = "C:\Productivity\LinkAnalysis\ISWC2018\Geo_demo_1"
+directory_all = "C:\Productivity\LinkAnalysis\ISWC2018\Geo_demo_2"
 line = "-------------------------------------------------------------------------------------------"
 header = "\n{}\n\t\t{}\n{}"
 
@@ -156,7 +156,7 @@ if run50 is True:
                 size, year, check_folder_b))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
-            machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
+            machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
         print "\n>>> AFTER -----------------------------------------------------------------------------------------------"
         print "---------------------------------------------------------------------------------------------------------"
@@ -165,12 +165,12 @@ if run50 is True:
                 size, year, check_folder_a))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
-            machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
+            machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     THE LINK NETWORK OF 500 METERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-run500 = True
+run500 = False
 if run500 is True:
 
     print header.format(line, "THE LINK NETWORK OF 500 METERS", line)
@@ -251,7 +251,7 @@ if run500 is True:
             size, year, check_folder_b))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
-            machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
+            machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
         print "\n>>> AFTER -----------------------------------------------------------------------------------------------"
         print "---------------------------------------------------------------------------------------------------------"
@@ -259,12 +259,12 @@ if run500 is True:
             size, year, check_folder_a))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
-            machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
+            machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     THE LINK NETWORK OF 2000 METERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-run2000 = True
+run2000 = False
 if run2000 is True:
 
     print header.format(line, "THE LINK NETWORK OF 2000 METERS", line)
@@ -360,7 +360,7 @@ if run2000 is True:
             "{0}_Analysis_{1}\{2}\\{0}_2000m_ClusterSheet_{1}.txt".format(size, year, check_folder_a))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
-            machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
+            machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -4,6 +4,7 @@
 #####################################################################################
 
 database = "database"
+stardog_uri = "stardog_uri"
 
 split_sys = "split_sys"
 data = "data"
