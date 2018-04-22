@@ -1328,14 +1328,143 @@ def spa_linkset_intermediate_query(specs):
         "prefix tmpgraph:   <{}>".format(Ns.tmpgraph),
         "prefix tmpvocab:   <{}>".format(Ns.tmpvocab))
 
-    query01 = """
+    early_drop_query = """
     DROP SILENT GRAPH <{0}load00> ;
     DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load02> ;
     DROP SILENT GRAPH <{1}{2}>
     """.format(Ns.tmpgraph, Ns.singletons, specs[St.linkset_name])
 
-    query02 = prefix + """
+    # query = prefix + """
+    #
+    # ### 1.1. LOADING SOURCE TO A TEMPORARY GRAPH
+    # INSERT
+    # {{
+    #     GRAPH <{0}load00>
+    #     {{
+    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+    #         ?{1}_1 <{8}relatesTo1> ?SRC_trimmed .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### SOURCE DATASET
+    #     graph <{6}>
+    #     {{
+    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+    #         ?{1}_1 {10} <{12}> .
+    #         ?{1}_1 {2} ?value_1 .
+    #
+    #         # LOWER CASE OF THE VALUE
+    #         BIND(lcase(str(?value_1)) as ?src_value)
+    #
+    #         # VALUE TRIMMING
+    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+    #         BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?SRC_trimmed)
+    #     }}
+    # }} ;
+    #
+    # ### 1.2. LOADING TARGET TO A TEMPORARY GRAPH
+    # INSERT
+    # {{
+    #     GRAPH <{0}load01>
+    #     {{
+    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
+    #         ?{3}_2 <{8}relatesTo3> ?TRG_trimmed .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### TARGET DATASET
+    #     graph <{7}>
+    #     {{
+    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
+    #         ?{3}_2 {11} <{13}> .
+    #         ?{3}_2 {4} ?value_2 .
+    #
+    #         # LOWER CASE OF THE VALUE
+    #         BIND(lcase(str(?value_2)) as ?trg_value)
+    #
+    #         # VALUE TRIMMING
+    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+    #         BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?TRG_trimmed)
+    #     }}
+    # }} ;
+    #
+    # ### 2. FINDING CANDIDATE MATCH [PART 1]
+    # INSERT
+    # {{
+    #     ### MATCH FOUND
+    #     GRAPH <{0}load02>
+    #     {{
+    #         ?{1}_1 <{8}relatesTo> ?intermediate_uri .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+    #     GRAPH <{0}load00>
+    #     {{
+    #         ?{1}_1 <{8}relatesTo1> ?SRC_trimmed .
+    #     }}
+    #
+    #     ### INTERMEDIATE DATASET VIA URI
+    #     graph <{9}>
+    #     {{
+    #         ?intermediate_uri ?intPred_1 ?value ;
+    #
+    #         # LOWER CASE OF THE VALUE
+    #         BIND(lcase(str(?value)) as ?INTERMEDIATE_val)
+    #
+    #         # VALUE TRIMMING
+    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+    #         BIND(REPLACE(?INTERMEDIATE_val, ?regexp, '$1$2') AS ?SRC_trimmed)
+    #     }}
+    # }} ;
+    #
+    # ### 3. FINDING CANDIDATE MATCH
+    # INSERT
+    # {{
+    #     ### MATCH FOUND
+    #     GRAPH <{0}load02>
+    #     {{
+    #         ?intermediate_uri <{8}relatesTo> ?{3}_2 .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+    #     GRAPH <{0}load02>
+    #     {{
+    #         ?{1}_1 <{8}relatesTo> ?intermediate_uri .
+    #     }}
+    #     GRAPH <{0}load01>
+    #     {{
+    #         ?{3}_2 <{8}relatesTo3> ?TRG_trimmed .
+    #     }}
+    #     ### INTERMEDIATE DATASET VIA URI
+    #     graph <{9}>
+    #     {{
+    #         ?intermediate_uri ?intPred_1 ?value .
+    #
+    #         # LOWER CASE OF THE VALUE
+    #         BIND(lcase(str(?value)) as ?INTERMEDIATE_val)
+    #
+    #         # VALUE TRIMMING
+    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+    #         BIND(REPLACE(?INTERMEDIATE_val, ?regexp, '$1$2') AS ?TRG_trimmed)
+    #     }}
+    # }}
+    # """.format(
+    #     # 0          1         2           3         4
+    #     Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
+    #     # 5                6        7        8            9
+    #     specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
+    #     # 10          11            12                          13
+    #     src_rdf_pred, trg_rdf_pred, source[St.entity_datatype], target[St.entity_datatype]
+    # )sou
+
+    src_query = prefix + """
 
     ### 1.1. LOADING SOURCE TO A TEMPORARY GRAPH
     INSERT
@@ -1343,16 +1472,16 @@ def spa_linkset_intermediate_query(specs):
         GRAPH <{0}load00>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1}_1 <{8}relatesTo1> ?SRC_trimmed .
+            ?{1}_1 <{4}relatesTo1> ?SRC_trimmed .
         }}
     }}
     WHERE
     {{
         ### SOURCE DATASET
-        graph <{6}>
+        graph <{3}>
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1}_1 {10} <{12}> .
+            ?{1}_1 {5} <{6}> .
             ?{1}_1 {2} ?value_1 .
 
             # LOWER CASE OF THE VALUE
@@ -1362,25 +1491,31 @@ def spa_linkset_intermediate_query(specs):
             BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
             BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?SRC_trimmed)
         }}
-    }} ;
+    }}
 
+    """.format(
+        # 0          1         2           3        4            5             6
+        Ns.tmpgraph, src_name, src_aligns, src_uri, Ns.tmpvocab, src_rdf_pred, source[St.entity_datatype])
+
+
+    trg_query = prefix + """
     ### 1.2. LOADING TARGET TO A TEMPORARY GRAPH
     INSERT
     {{
         GRAPH <{0}load01>
         {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3}_2 <{8}relatesTo3> ?TRG_trimmed .
+            ?{1}_2 <{2}relatesTo3> ?TRG_trimmed .
         }}
     }}
     WHERE
     {{
         ### TARGET DATASET
-        graph <{7}>
+        graph <{3}>
         {{
             ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3}_2 {11} <{13}> .
-            ?{3}_2 {4} ?value_2 .
+            ?{1}_2 {4} <{5}> .
+            ?{1}_2 {6} ?value_2 .
 
             # LOWER CASE OF THE VALUE
             BIND(lcase(str(?value_2)) as ?trg_value)
@@ -1389,7 +1524,13 @@ def spa_linkset_intermediate_query(specs):
             BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
             BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?TRG_trimmed)
         }}
-    }} ;
+    }}
+    """.format(
+        # 0          1         2            3         4            5                           6
+        Ns.tmpgraph, trg_name, Ns.tmpvocab, trg_uri, trg_rdf_pred, target[St.entity_datatype], trg_aligns)
+
+
+    match_query = prefix + """
 
     ### 2. FINDING CANDIDATE MATCH [PART 1]
     INSERT
@@ -1397,7 +1538,7 @@ def spa_linkset_intermediate_query(specs):
         ### MATCH FOUND
         GRAPH <{0}load02>
         {{
-            ?{1}_1 <{8}relatesTo> ?intermediate_uri .
+            ?{1}_1 <{3}relatesTo> ?intermediate_uri .
         }}
     }}
     WHERE
@@ -1405,11 +1546,11 @@ def spa_linkset_intermediate_query(specs):
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
         GRAPH <{0}load00>
         {{
-            ?{1}_1 <{8}relatesTo1> ?SRC_trimmed .
+            ?{1}_1 <{3}relatesTo1> ?SRC_trimmed .
         }}
 
         ### INTERMEDIATE DATASET VIA URI
-        graph <{9}>
+        graph <{4}>
         {{
             ?intermediate_uri ?intPred_1 ?value ;
 
@@ -1428,7 +1569,7 @@ def spa_linkset_intermediate_query(specs):
         ### MATCH FOUND
         GRAPH <{0}load02>
         {{
-            ?intermediate_uri <{8}relatesTo> ?{3}_2 .
+            ?intermediate_uri <{3}relatesTo> ?{2}_2 .
         }}
     }}
     WHERE
@@ -1436,14 +1577,14 @@ def spa_linkset_intermediate_query(specs):
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
         GRAPH <{0}load02>
         {{
-            ?{1}_1 <{8}relatesTo> ?intermediate_uri .
+            ?{1}_1 <{3}relatesTo> ?intermediate_uri .
         }}
         GRAPH <{0}load01>
         {{
-            ?{3}_2 <{8}relatesTo3> ?TRG_trimmed .
+            ?{2}_2 <{3}relatesTo3> ?TRG_trimmed .
         }}
         ### INTERMEDIATE DATASET VIA URI
-        graph <{9}>
+        graph <{4}>
         {{
             ?intermediate_uri ?intPred_1 ?value .
 
@@ -1456,15 +1597,11 @@ def spa_linkset_intermediate_query(specs):
         }}
     }}
     """.format(
-        # 0          1         2           3         4
-        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
-        # 5                6        7        8            9
-        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
-        # 10          11            12                          13
-        src_rdf_pred, trg_rdf_pred, source[St.entity_datatype], target[St.entity_datatype]
-    )
+        # 0          1         3  2        8 3        9 4
+        Ns.tmpgraph, src_name,  trg_name, Ns.tmpvocab, specs[St.intermediate_graph])
 
-    query03 = prefix + """
+
+    linkset_query = prefix + """
     ### 3. CREATING THE CORRESPONDENCES
     INSERT
     {{
@@ -1516,8 +1653,7 @@ def spa_linkset_intermediate_query(specs):
         # 0          1         2           3         4           5                  6
         Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns, specs[St.linkset], Ns.tmpvocab,
         # 7          8                    9                      10             11
-        Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name],
-    )
+        Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name])
     # insert = """
     # PREFIX alivocab:    <{16}>
     # PREFIX prov:        <{17}>
@@ -1634,7 +1770,7 @@ def spa_linkset_intermediate_query(specs):
     #     Ns.singletons, specs[St.linkset_name], Ns.alivocab, Ns.prov
     # )
 
-    query04 = """
+    drop_query = """
     DROP SILENT GRAPH <{0}load00> ;
     DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load02>
@@ -1643,7 +1779,7 @@ def spa_linkset_intermediate_query(specs):
     # print insert
     # return insert
     # print query01, query02, query03, query04
-    queries = [query01, query02, query03, query04]
+    queries = [early_drop_query, src_query, trg_query, match_query, linkset_query, drop_query]
     return queries
 
 

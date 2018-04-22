@@ -670,14 +670,22 @@ def sparql_xml_to_matrix(query):
                 # RECORDS
                 # print "UPDATING MATRIX WITH VARIABLES' VALUES"
                 for result in results:
+
                     # ROWS
                     if variables_size == 1:
                         for key, value in result.items():
                             row += 1
                             for c in range(variables_size):
                                 # print value.items()[1][1]
-                                item = value.items()[1][1]
-                                matrix[row][0] = to_bytes(item)
+
+                                # if type(c) is collections.OrderedDict:
+                                data = value.items()[1][1]
+                                if type(data) is collections.OrderedDict:
+                                    item = data.items()[1][1]
+                                    matrix[row][0] = item
+
+                                else:
+                                    matrix[row][0] = to_bytes(data)
                     else:
                         for key, value in result.items():
                             # COLUMNS
@@ -1068,7 +1076,7 @@ def sparql_xml_to_csv(query="SELECT * {?subject ?predicate ?object } LIMIT 2"):
 def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
 
     if is_activated is False:
-        print "The function is not activated!"
+        print "The function [display_result] is not activated!"
 
     limit = limit
     if info is not None:
