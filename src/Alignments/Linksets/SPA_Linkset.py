@@ -1624,14 +1624,10 @@ def spa_linkset_intermediate_query(specs):
         GRAPH <{0}load02>
         {{
             ?{1}_1 <{6}relatesTo> ?intermediate_uri .
-             bind( iri(replace("{7}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
-        }}
-
-        ### MATCH FOUND
-        GRAPH <{0}load02>
-        {{
             ?intermediate_uri <{6}relatesTo> ?{3}_2 .
         }}
+
+        bind( iri(replace("{7}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
 
         {{
             SELECT ?{1}_1 ?{3}_2 ?evidence
