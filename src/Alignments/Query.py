@@ -337,7 +337,11 @@ def endpoint(query):
         message = err.read()
         if len(message) == 0:
             message = err
-        print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, message)
+
+        if str(message).__contains__("Service Unavailable") or str(message).__contains__("Error 503"):
+            print "THE SERVER IS NOT ON"
+        else:
+            print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, message)
         return {St.message: message, St.result: None}
 
     except Exception as err:
@@ -1099,16 +1103,24 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
             logger.warning("\nTHE MATRIX IS EMPTY\n")
             return None
 
+        static_check = limit and limit > 0
+
         message = """
         ####################################################################################
         TABLE OF {} Row(S) AND {} Columns {}
         LIMIT IS SET TO {} BUT COULD BE CHANGED WITH THE LIMIT PARAMETER.
         ####################################################################################
-         """.format(len(res_matrix) - 1, len(res_matrix[0]), info, limit)
+         """.format(len(res_matrix) - 1, len(res_matrix[0]), info, limit) if static_check is True else """
+        ####################################################################################
+        TABLE OF {} Row(S) AND {} Columns {}
+        NO LIMIT IS SET BUT COULD BE CHANGED WITH THE LIMIT PARAMETER.
+        ####################################################################################
+         """.format(len(res_matrix) - 1, len(res_matrix[0]), info)
 
         print message
 
         count = 0
+
 
         for r in range(len(res_matrix)):
 
@@ -1134,7 +1146,7 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
 
             print row
 
-            if count == limit + 1:
+            if static_check and count == limit + 1:
                 break
 
 
@@ -3485,3 +3497,4 @@ def remote_stardog(query, endpoints, user, password):
         message = "\nOR MAYBE THERE IS AN ERROR IN THIS QUERY"
         print message + "\n" + query
         return {St.message: err, St.result: None}
+
