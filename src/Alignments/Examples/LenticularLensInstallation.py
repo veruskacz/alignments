@@ -1,11 +1,14 @@
 
 import os
 import re
+import sys
 import time
 import datetime
 import platform
+import fileinput
 import subprocess
 from os.path import join
+import cStringIO as Buffer
 
 
 OPE_SYS = platform.system().lower()
@@ -16,6 +19,58 @@ _line = "-----------------------------------------------------------------------
 print "\n{}\n{:>90}\n{}\n".format(_line, date.strftime(_format), _line)
 
 
+
+
+
+def replaceAll(file, searchExp, replaceExp):
+
+    wr = Buffer.StringIO()
+
+    if os.path.isfile(file) is False:
+        print "THE PROVIDED FILE BELOW DOES NOT EXIST\n\t>>> {}\nFOR THAT YOUR ACTION HAS BEEN TERMINATED".format(file)
+        exit(0)
+
+    # print file
+
+    with open(name=file, mode="r") as reader:
+        for line in reader:
+            found = re.findall(searchExp, line)
+            if  len(found) > 0:
+                print found
+                replaced = line.replace(found[0], replaceExp)
+                wr.write(replaced)
+            else:
+                wr.write(line)
+
+    # print wr.getvalue()
+    # text = reader.readlines()
+    # print text
+    #
+    with open(name=file, mode="w+") as writer:
+        writer.write(wr.getvalue())
+
+
+    # for line in fileinput.input(file, inplace=1):
+    #     print file
+    #     print line
+        # if searchExp in line:
+        #     line = line.replace(searchExp, replaceExp)
+        # sys.stdout.write(line)
+
+
+def update_settings(directory, stardog_home, stardog_bin):
+
+    svr_settings = join(directory, "alignments{0}src{0}Alignments{0}Server_Settings.py".format(os.path.sep))
+
+    # STARDOG BIN
+    s_bin = """\"LL_STARDOG_PATH", "(.*)\""""
+    replaceAll(svr_settings, s_bin, """LL_STARDOG_PATH = {0}{1}{1}""".format(stardog_bin, os.path.sep))
+
+    # STARDOG DATA OF HOME
+    s_data = """"LL_STARDOG_DATA", "(.*)\""""
+    replaceAll(svr_settings, s_data, """LL_STARDOG_DATA = {}""".format(stardog_home))
+
+
 def install(directory, python_path, stardog_home, stardog_bin, run=False):
 
     directory = os.getenv("LL_DIRECTORY", directory)
@@ -24,16 +79,16 @@ def install(directory, python_path, stardog_home, stardog_bin, run=False):
     stardog_home = os.getenv("LL_STARDOG_DATA", stardog_home)
 
     if OPE_SYS == "windows":
-        win_install(directory, python_path, run=run)
+        win_install(directory, python_path, stardog_home=stardog_home, stardog_bin=stardog_bin, run=run)
 
     else:
         mac_install(directory, python_path, stardog_home=stardog_home, stardog_bin=stardog_bin, run=run)
 
 
-def win_install(directory, python_path, run=False):
+def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
     print "{:23}: {}".format("INSTALLATION DIRECTORY", directory)
-    print "{:23}: {}".format("INSTALLED PYTHOM PATH", python_path)
+    print "{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
 
     file_path = join(directory, "INSTALLATION.BAT")
     w_dir = join(directory, "alignments")
@@ -42,6 +97,10 @@ def win_install(directory, python_path, run=False):
     call python --version
     call virtualenv --version
     """
+
+    if os.path.isfile(file_path) is False:
+        print "THE PROVIDED FILE BELOW DOES NOT EXIST\n\t>>> {}\nFOR THAT YOUR ACTION HAS BEEN TERMINATED".format(file)
+        exit(0)
 
     with open(name=file_path, mode="wb") as writer:
         writer.write(requirements)
@@ -88,13 +147,29 @@ def win_install(directory, python_path, run=False):
 
     # UPGRADE PIP - CLONE THE LENTICULAR LENS - INSTALL THE VIRTUALENV AND ACTIVATE IT
     # {1}python.exe
+
+
+    cloning = """
+    echo "CLONING THE LENTICULAR LENS SOFTWARE"
+    git clone https://github.com/veruskacz/alignments.git {0}
+    """.format(w_dir)
+
+    with open(name=file_path, mode="wb") as writer:
+        writer.write(cloning)
+
+    if run is True:
+        subprocess.call(file_path, shell=True)
+
+    update_settings(directory, stardog_home, stardog_bin)
+
+    #
     data = """
 
     echo "UPGRADING PIP"
     python -m pip install --upgrade pip
 
     echo "CLONING THE LENTICULAR LENS SOFTWARE"
-    git clone https://github.com/alkoudouss/alignments.git {0}
+    echo git clone https://github.com/alkoudouss/alignments.git {0}
 
     echo "CREATING A VIRTUAL ENVIRONMENT"
     virtualenv  --python={2} {0}
@@ -108,8 +183,9 @@ def win_install(directory, python_path, run=False):
     echo "INSTALLATION DONE..."
     echo "RUNNING THE LENTICULAR LENS"
     cd {0}{1}src
-    python run.py"
-    """.format(w_dir, os.path.sep, python_path)
+    echo mac: LL_STARDOG_PATH="{3}" LL_STARDOG_DATA="{4}" python run.py
+    python run.py
+    """.format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
 
     with open(name=file_path, mode="wb") as writer:
         writer.write(data)
@@ -134,6 +210,10 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
     python --version
     virtualenv --version
     """
+
+    if os.path.isfile(file_path) is False:
+        print "THE PROVIDED FILE BELOW DOES NOT EXIST\n\t>>> {}\nFOR THAT YOUR ACTION HAS BEEN TERMINATED".format(file)
+        exit(0)
 
     with open(name=file_path, mode="wb") as writer:
         writer.write(requirements)
@@ -224,10 +304,10 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
 # CHANGE THE WORKING DIRECTORY, PYTHON PATH A
 ################################################################################################
 
-directory="/Users/veruskazamborlini/Documents/PyApps/InstallTest"
-python_path="/usr/bin/python2.7"
-stardog_bin='/Applications/stardog-5.2.0/bin/'
-stardog_home="/Users/veruskazamborlini/data/"
+directory="C:\Productivity\LinkAnalysis\Coverage\InstallTest"
+python_path="C:\Python27"
+stardog_bin='C:\Program Files\stardog-5.3.0\\bin'
+stardog_home="C:\Productivity\data\stardog"
 
 install(directory, python_path, stardog_home, stardog_bin, run=True)
 
