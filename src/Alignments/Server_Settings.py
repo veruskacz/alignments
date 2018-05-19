@@ -28,7 +28,7 @@ DEFAULT_SERVER = "localhost:5820"
 
 
 SERVER = os.getenv("LL_STARDOG_SERVER", "localhost:5820")
-STARDOG_PATH = os.getenv("LL_STARDOG_PATH", 'C:\\Program Files\\stardog-5.3.0\\bin\\')
+STARDOG_PATH = os.getenv("LL_STARDOG_PATH", "C:\\Program Files\\stardog-5.3.0\\bin\\")
 STARDOG_DATA = os.getenv("LL_STARDOG_DATA", "C:\\Productivity\\data\\stardog")
 
 # IN stardog-5.0.5.1\bin\
