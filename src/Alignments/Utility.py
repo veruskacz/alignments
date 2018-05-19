@@ -91,12 +91,14 @@ def to_nt_format(resource):
 
 
 def is_property_path(resource):
+
     temp = str(to_bytes(resource)).strip()
     check = re.findall("> */ *<", temp)
     return len(check) != 0
 
 
 def get_uri_local_name(uri, sep="_"):
+
     # print "URI: {}".format(uri)
     # print type(uri)
 
@@ -138,6 +140,7 @@ def get_uri_local_name(uri, sep="_"):
 
 
 def get_uri_local_name_plus(uri, sep="_"):
+
     # print "URI: {}".format(uri)
     # print type(uri)
 
@@ -223,7 +226,9 @@ def pipe_split_plus(text, sep="_"):
 
     return altered
 
+
 def get_uri_ns_local_name(uri):
+
     if (uri is None) or (uri == ""):
         return None
 
@@ -474,6 +479,7 @@ def batch_load(batch_load_file):
 
 
 def bat_load(bat_path):
+
     try:
 
         if isfile(bat_path) and bat_path.endswith(batch_extension()):
@@ -517,6 +523,7 @@ def bat_load(bat_path):
 
 
 def sh_load(bat_path):
+
     try:
 
         if isfile(bat_path) and bat_path.endswith(batch_extension()):
@@ -989,11 +996,14 @@ def stardog_on(bat_path):
             if batch_extension() == ".bat":
 
                 cmd = """
-                @echo STARTING STARDOG...
-                cls
-                cd "{}"
-                START stardog-admin.bat server start
-                """.format(Svr.settings[St.stardog_path])
+    @echo
+    @echo -------------------------------------------------------------------------------------------------
+    @echo STARTING STARDOG FROM {}...
+    @echo -------------------------------------------------------------------------------------------------
+    cls
+    cd "{}"
+    START stardog-admin.bat server start
+                """.format(bat_path, Svr.settings[St.stardog_path])
 
             else:
                 cmd = """
@@ -1043,11 +1053,13 @@ def stardog_off(bat_path):
         if batch_extension() == ".bat":
 
             cmd = """
-            @echo STOPPING STARDOG...
-            cls
-            cd "{}"
-            call stardog-admin server stop
-            """.format(Svr.settings[St.stardog_path])
+    @echo -------------------------------------------------------------------------------------------------
+    @echo STOPPING STARDOG FROM{}...
+    @echo -------------------------------------------------------------------------------------------------
+    cls
+    cd "{}"
+    call stardog-admin server stop
+            """.format(bat_path, Svr.settings[St.stardog_path])
 
         else:
 
@@ -1215,10 +1227,11 @@ def character_mapping(input_text):
     return unidecode(unicode(input_text, encoding="utf-8"))
 
 
-def to_alphanumeric(input_text):
+def to_alphanumeric(input_text, spacing="_"):
+
     if type(input_text) is not unicode:
         input_text = (unicode(input_text, "utf-8"))
-    return re.sub('[\W]', "_", input_text)
+    return re.sub('[\W]', spacing, input_text)
 
 
 def prep_4_uri(input_text):

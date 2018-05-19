@@ -16,6 +16,11 @@ PREFIX predicate:<http://risis.eu/predicate/>
     risis:Benin             predicate:cpital        "Cotonou" .
     risis:Benin             predicate:size          "115000" .
     risis:Benin             predicate:population    "11400000" .
+    risis:Benin             predicate:population    "11400002" .
+
+    risis:A             predicate:shoeS   2 .
+    risis:A             predicate:car   2 .
+
   }}
 }}""".format("INSERT") # DELETE
 
@@ -45,11 +50,16 @@ PREFIX predicate:<http://risis.eu/predicate/>
     risis:Benin             predicate:capital        "Cotonou" .
     risis:Benin             predicate:size_kmSquare "114763" .
     risis:Benin             predicate:population    "11427538" .
+    risis:Benin             predicate:population    "11400003" .
+
+    risis:A             predicate:shoe   2 .
+    risis:A             predicate:car   2 .
   }}
 }}""".format("INSERT")
 
 
-Qr.endpoint("DROP SILENT GRAPH <http://risis.eu/dataset/Test.v1>")
-Qr.endpoint("DROP SILENT GRAPH <http://risis.eu/dataset/Test.v2>")
-Qr.endpoint(test_v1)
-Qr.endpoint(test_v2)
+def reload():
+    Qr.endpoint("DROP SILENT GRAPH <http://risis.eu/dataset/Test.v1>")
+    Qr.endpoint("DROP SILENT GRAPH <http://risis.eu/dataset/Test.v2>")
+    Qr.endpoint(test_v1)
+    Qr.endpoint(test_v2)

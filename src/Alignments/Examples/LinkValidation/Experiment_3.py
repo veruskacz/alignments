@@ -15,6 +15,8 @@ net_max_size = 2
 # Using APPROXIMATE SIMILARITY
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+# RESEARCH QUESTION LABEL   : Link Validation Reprocess 0.75
+# RESEARCH QUESTION ID      : http://risis.eu/activity/idea_3944ec
 test = "APPROXIMATE-TRIAL-3"
 
 # SIZE OF THE CLUSTER TO OUTPUT

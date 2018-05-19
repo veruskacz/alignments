@@ -26,7 +26,9 @@ def sigmoid(x):
 
 
 lens_prefix = "http://risis.eu/lens/{}"
+# DEMO-1 CONTAINS ALL CLUSTER SIZES
 directory = "C:\Productivity\LinkAnalysis\ISWC2018\Geo_demo_1"
+# DEMO-2 CONTAINS DATA FOR CLUSTERS OF SIZE 3
 directory_all = "C:\Productivity\LinkAnalysis\ISWC2018\Geo_demo_2"
 line = "-------------------------------------------------------------------------------------------"
 header = "\n{}\n\t\t{}\n{}"
@@ -39,33 +41,33 @@ if run50 is True:
 
     print header.format(line, "THE LINK NETWORK OF 50 METERS", line)
 
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
-                        #     PLOT THE LINK NETWORK OF 50 METERS BEFORE
-                        #       92 CLUSTERS OF SIZE 3 FOUND
-                        #       63 CLUSTERS OF SIZE 4 FOUND
-                        #       16 CLUSTERS OF SIZE 5 FOUND
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
+    # """"""""""""""""""""""""""""""""""""""""""""""""
+    #     PLOT THE LINK NETWORK OF 50 METERS BEFORE
+    #       92 CLUSTERS OF SIZE 3 FOUND
+    #       63 CLUSTERS OF SIZE 4 FOUND
+    #       16 CLUSTERS OF SIZE 5 FOUND
+    # """"""""""""""""""""""""""""""""""""""""""""""""
 
     lens50before = lens_prefix.format("union_Eter_2014_Grid_20170712_Orgreg_20170718_P1611822898")
     Plt.cluster_d_test(lens50before, network_size=3,  network_size_max=0,
                        targets=Data.targets, constraint_targets=None, constraint_text=None,
                        directory=directory, greater_equal=False, limit=None, only_good=False, activated=True)
 
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
-                        #     PLOT THE LINK NETWORK OF 50 METERS AFTER
-                        #       31 CLUSTERS OF SIZE 3 FOUND
-                        #       04 CLUSTERS OF SIZE 4 FOUND
-                        #       00 CLUSTERS OF SIZE 5 FOUND
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
+    # """"""""""""""""""""""""""""""""""""""""""""""""
+    #     PLOT THE LINK NETWORK OF 50 METERS AFTER
+    #       31 CLUSTERS OF SIZE 3 FOUND
+    #       04 CLUSTERS OF SIZE 4 FOUND
+    #       00 CLUSTERS OF SIZE 5 FOUND
+    # """"""""""""""""""""""""""""""""""""""""""""""""
 
     lens50after = lens_prefix.format("union_Eter_2014_Grid_20170712_Orgreg_20170718_N287253238")
     Plt.cluster_d_test(lens50after, network_size=3,  network_size_max=0,
                        targets=Data.targets, constraint_targets=None, constraint_text=None,
                        directory=directory, greater_equal=False, limit=None, only_good=False, activated=True)
 
-                        # """""""""""""""""""""""""""""""""""""""""""""
-                        #     INVESTIGATION 01 : COMPARE CLUSTERS
-                        # """""""""""""""""""""""""""""""""""""""""""""
+    # """""""""""""""""""""""""""""""""""""""""""""
+    #     INVESTIGATION 01 : COMPARE CLUSTERS
+    # """""""""""""""""""""""""""""""""""""""""""""
 
     set_50BEFORE = join(directory, "3_Analysis_20180308\union_50B_Eter_2014_Grid_20170712_Orgreg_20170718_P1611822898")
     set_50AFTER = join(directory, "3_Analysis_20180308\union_50A_Eter_2014_Grid_20170712_Orgreg_20170718_N287253238")
@@ -84,10 +86,9 @@ if run50 is True:
     Functions.folder_check(set_50AFTER, set_50AFTER, diff_1=False, diff_2=False, intersection=True,
                            tracking=False, track_dir=directory_all, detailed=False, activated=False)
 
-
-                        # """""""""""""""""""""""""""""""""""""""""""""
-                        #        EVALUATION SHEET SUMMARY
-                        # """""""""""""""""""""""""""""""""""""""""""""
+    # """""""""""""""""""""""""""""""""""""""""""""
+    #        EVALUATION SHEET SUMMARY
+    # """""""""""""""""""""""""""""""""""""""""""""
     """EXAMPLE"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
         EVALUATION SHEET SUMMARY FOR: 5_2_ClusterSheet_20180301.txt
 
@@ -129,8 +130,8 @@ if run50 is True:
     check_folder_a = "union_50A_Eter_2014_Grid_20170712_Orgreg_20170718_N287253238"
     for size in range(3, 4):
 
-        print "\n>>> PASS ------------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> PASS ---------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory, "{0}_Analysis_{1}\{2}\\{0}diff_50m_ClusterSheet_{1}.txt".format(size, year, check_folder_b))
         Functions.good_bad_count_stats(
@@ -140,8 +141,8 @@ if run50 is True:
         # Functions.confusion_matrix(
         #     true_p=21, false_p=0, true_n=1, false_n=9, ground_truth_p=30, observations=31, confusion=False)
 
-        print "\n>>> FAILED ----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> FAILED -------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory, "{0}_Analysis_{1}\{2}\\Failed{0}diff_50m_ClusterSheet_{1}.txt".format(
                 size, year, check_folder_b))
@@ -149,8 +150,8 @@ if run50 is True:
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
 
-        print "\n>>> BEFORE ----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> BEFORE -------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory, "{0}_Analysis_{1}\{2}\\{0}_50m_ClusterSheet_{1}.txt".format(
                 size, year, check_folder_b))
@@ -158,8 +159,8 @@ if run50 is True:
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
-        print "\n>>> AFTER -----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> AFTER --------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory, "{0}_Analysis_{1}\{2}\\{0}_50m_ClusterSheet_{1}.txt".format(
                 size, year, check_folder_a))
@@ -174,33 +175,31 @@ run500 = False
 if run500 is True:
 
     print header.format(line, "THE LINK NETWORK OF 500 METERS", line)
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
-                        #     PLOT THE LINK NETWORK OF 500 METERS BEFORE
-                        #       249 CLUSTERS OF SIZE 3 FOUND
-                        #       141 CLUSTERS OF SIZE 4 FOUND
-                        #       076 CLUSTERS OF SIZE 5 FOUND
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
+    # """"""""""""""""""""""""""""""""""""""""""""""""
+    #     PLOT THE LINK NETWORK OF 500 METERS BEFORE
+    #       249 CLUSTERS OF SIZE 3 FOUND
+    #       141 CLUSTERS OF SIZE 4 FOUND
+    #       076 CLUSTERS OF SIZE 5 FOUND
+    # """"""""""""""""""""""""""""""""""""""""""""""""
     lens500before = lens_prefix.format("union_Eter_2014_Grid_20170712_Orgreg_20170718_N1668834963")
     Plt.cluster_d_test(lens500before, network_size=3,  network_size_max=0,
                        targets=Data.targets, constraint_targets=None, constraint_text=None,
                        directory=directory, greater_equal=False, limit=None, only_good=False, activated=True)
 
-
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
-                        #     PLOT THE LINK NETWORK OF 50 METERS AFTER
-                        #       155 CLUSTERS OF SIZE 3 FOUND
-                        #       008 CLUSTERS OF SIZE 4 FOUND
-                        #       002 CLUSTERS OF SIZE 5 FOUND
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
+    # """"""""""""""""""""""""""""""""""""""""""""""""
+    #     PLOT THE LINK NETWORK OF 50 METERS AFTER
+    #       155 CLUSTERS OF SIZE 3 FOUND
+    #       008 CLUSTERS OF SIZE 4 FOUND
+    #       002 CLUSTERS OF SIZE 5 FOUND
+    # """"""""""""""""""""""""""""""""""""""""""""""""
     lens500after = lens_prefix.format("union_Eter_2014_Grid_20170712_Orgreg_20170718_N997542894")
     Plt.cluster_d_test(lens500after, network_size=3,  network_size_max=0,
                        targets=Data.targets, constraint_targets=None, constraint_text=None,
                        directory=directory, greater_equal=False, limit=None, only_good=False, activated=True)
 
-
-                        # """""""""""""""""""""""""""""""""""""""""""""
-                        #     INVESTIGATION 02 : COMPARE CLUSTERS
-                        # """""""""""""""""""""""""""""""""""""""""""""
+    # """""""""""""""""""""""""""""""""""""""""""""
+    #     INVESTIGATION 02 : COMPARE CLUSTERS
+    # """""""""""""""""""""""""""""""""""""""""""""
 
     set_500BEFORE = join(
         directory, "3_Analysis_20180308\union_500B_Eter_2014_Grid_20170712_Orgreg_20170718_N1668834963")
@@ -220,41 +219,41 @@ if run500 is True:
     Functions.folder_check(set_500AFTER, set_500AFTER, diff_1=False, diff_2=False, intersection=True,
                            tracking=False, track_dir=directory_all, detailed=False, activated=False)
 
-                       # """""""""""""""""""""""""""""""""""""""""""""
-                       #        EVALUATION SHEET SUMMARY
-                       # """""""""""""""""""""""""""""""""""""""""""""
+    # """""""""""""""""""""""""""""""""""""""""""""
+    #        EVALUATION SHEET SUMMARY
+    # """""""""""""""""""""""""""""""""""""""""""""
     size = 3
     year = "20180308"
     check_folder_b = "union_500B_Eter_2014_Grid_20170712_Orgreg_20170718_N1668834963"
     check_folder_a = "union_500A_Eter_2014_Grid_20170712_Orgreg_20170718_N997542894"
     for size in range(3, 4):
 
-        print "\n>>> PASS ------------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> PASS ---------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(directory, "{0}_Analysis_{1}\{2}\\{0}diff_500m_ClusterSheet_{1}.txt".format(
             size, year, check_folder_b))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
 
-        print "\n>>> FAILED ----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> FAILED -------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(directory, "{0}_Analysis_{1}\{2}\\Failed{0}diff_500m_ClusterSheet_{1}.txt".format(
             size, year, check_folder_b))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
 
-        print "\n>>> BEFORE ----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> BEFORE -------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(directory, "{0}_Analysis_{1}\{2}\\{0}_500m_ClusterSheet_{1}.txt".format(
             size, year, check_folder_b))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
-        print "\n>>> AFTER -----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> AFTER --------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(directory, "{0}_Analysis_{1}\{2}\\{0}_500m_ClusterSheet_{1}.txt".format(
             size, year, check_folder_a))
         Functions.good_bad_count_stats(
@@ -269,33 +268,31 @@ if run2000 is True:
 
     print header.format(line, "THE LINK NETWORK OF 2000 METERS", line)
 
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
-                        #     PLOT THE LINK NETWORK OF 500 METERS BEFORE
-                        #       198 CLUSTERS OF SIZE 3 FOUND
-                        #       129 CLUSTERS OF SIZE 4 FOUND
-                        #       084 CLUSTERS OF SIZE 5 FOUND
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
+    # """"""""""""""""""""""""""""""""""""""""""""""""
+    #     PLOT THE LINK NETWORK OF 500 METERS BEFORE
+    #       198 CLUSTERS OF SIZE 3 FOUND
+    #       129 CLUSTERS OF SIZE 4 FOUND
+    #       084 CLUSTERS OF SIZE 5 FOUND
+    # """"""""""""""""""""""""""""""""""""""""""""""""
     lens2000before = lens_prefix.format("union_Eter_2014_Grid_20170712_Orgreg_20170718_P210872707")
     Plt.cluster_d_test(lens2000before, network_size=3,  network_size_max=0,
                        targets=Data.targets, constraint_targets=None, constraint_text=None,
                        directory=directory, greater_equal=False, limit=None, only_good=False, activated=True)
 
-
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
-                        #     PLOT THE LINK NETWORK OF 50 METERS AFTER
-                        #       342 CLUSTERS OF SIZE 3 FOUND
-                        #       016 CLUSTERS OF SIZE 4 FOUND
-                        #       006 CLUSTERS OF SIZE 5 FOUND
-                        # """"""""""""""""""""""""""""""""""""""""""""""""
+    # """"""""""""""""""""""""""""""""""""""""""""""""
+    #     PLOT THE LINK NETWORK OF 50 METERS AFTER
+    #       342 CLUSTERS OF SIZE 3 FOUND
+    #       016 CLUSTERS OF SIZE 4 FOUND
+    #       006 CLUSTERS OF SIZE 5 FOUND
+    # """"""""""""""""""""""""""""""""""""""""""""""""
     lens2000after = lens_prefix.format("union_Orgreg_20170718_Eter_2014_Grid_20170712_N1471387312")
     Plt.cluster_d_test(lens2000after, network_size=3,  network_size_max=0,
                        targets=Data.targets, constraint_targets=None, constraint_text=None,
                        directory=directory, greater_equal=False, limit=None, only_good=False, activated=True)
 
-
-                        # """""""""""""""""""""""""""""""""""""""""""""
-                        #     INVESTIGATION 01 : COMPARE CLUSTERS
-                        # """""""""""""""""""""""""""""""""""""""""""""
+    # """""""""""""""""""""""""""""""""""""""""""""
+    #     INVESTIGATION 01 : COMPARE CLUSTERS
+    # """""""""""""""""""""""""""""""""""""""""""""
     # set_500BEFORE = join(
     #     directory, "3_Analysis_20180308\union_500B_Eter_2014_Grid_20170712_Orgreg_20170718_N1668834963")
     set_2000BEFORE = join(
@@ -317,26 +314,25 @@ if run2000 is True:
     Functions.folder_check(set_2000AFTER, set_2000AFTER, diff_1=False, diff_2=False, intersection=True,
                            tracking=False, track_dir=directory_all, detailed=True, activated=False)
 
-
-                        # """""""""""""""""""""""""""""""""""""""""""""
-                        #        EVALUATION SHEET SUMMARY
-                        # """""""""""""""""""""""""""""""""""""""""""""
+    # """""""""""""""""""""""""""""""""""""""""""""
+    #        EVALUATION SHEET SUMMARY
+    # """""""""""""""""""""""""""""""""""""""""""""
     size = 3
     year = "20180308"
     check_folder_b = "union_2000B_Eter_2014_Grid_20170712_Orgreg_20170718_P210872707"
     check_folder_a = "union_2000A_Orgreg_20170718_Eter_2014_Grid_20170712_N1471387312"
     for size in range(3, 4):
 
-        print "\n>>> PASS ------------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> PASS ---------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory, "{0}_Analysis_{1}\{2}\\{0}diff_2000m_ClusterSheet_{1}.txt".format(size, year, check_folder_b))
         Functions.good_bad_count_stats(
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
 
-        print "\n>>> FAILED ----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> FAILED -------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory,
             "{0}_Analysis_{1}\{2}\\Failed{0}diff_2000m_ClusterSheet_{1}.txt".format(size, year, check_folder_b))
@@ -344,8 +340,8 @@ if run2000 is True:
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=False, activated=True)
 
-        print "\n>>> BEFORE ----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> BEFORE -------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory,
             "{0}_Analysis_{1}\{2}\\{0}_2000m_ClusterSheet_{1}.txt".format(size, year, check_folder_b))
@@ -353,8 +349,8 @@ if run2000 is True:
             doc_path, machine_bad=False, human_good=False, machine_good=False,
             machine_acceptable=False, machine_uncertain=False, latex=True, activated=True)
 
-        print "\n>>> AFTER -----------------------------------------------------------------------------------------------"
-        print "---------------------------------------------------------------------------------------------------------"
+        print "\n>>> AFTER --------------------------------------------------------------------------------------------"
+        print "------------------------------------------------------------------------------------------------------"
         doc_path = join(
             directory,
             "{0}_Analysis_{1}\{2}\\{0}_2000m_ClusterSheet_{1}.txt".format(size, year, check_folder_a))
@@ -388,7 +384,8 @@ if diff is True:
     # Functions.extract_cluster_stats(route500r, route500)
     # Functions.extract_cluster_stats(route2000r, route2000)
 
+# Functions.confusion_matrix(t
+# rue_p=322, false_p=20, true_n=0, false_n=0, ground_truth_p=322, observations=342, latex=False)
 
-# Functions.confusion_matrix(true_p=322, false_p=20, true_n=0, false_n=0, ground_truth_p=322, observations=342, latex=False)
-
-# Functions.confusion_matrix(true_p=35, false_p=31, true_n=0, false_n=0, ground_truth_p=35, observations=66, latex=False)
+# Functions.confusion_matrix(
+# true_p=35, false_p=31, true_n=0, false_n=0, ground_truth_p=35, observations=66, latex=False)

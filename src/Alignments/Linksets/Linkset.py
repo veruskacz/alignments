@@ -786,7 +786,7 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
         "PREFIX linkset: <{}>".format(Ns.linkset),
         "PREFIX {}: <{}>".format(source[0], source[2]),
         "PREFIX predicate: <{}>".format(Ns.alivocab),
-        "PREFIX {}: <{}>".format(target[0], target[2]),
+        "" if source[0] != target[0] else "PREFIX {}: <{}>".format(target[0], target[2]),
         "construct { ?x ?y ?z }",
         "where     {{ graph linkset:{} {{ ?x ?y ?z }} }}".format(linkset_graph_name),
     )
@@ -798,7 +798,7 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
         "PREFIX predicate:      <{}>".format(Ns.alivocab),
         "PREFIX rdf:            <{}>".format(Ns.rdf),
         "PREFIX {}:             <{}>".format(source[0], source[2]),
-        "PREFIX {}:             <{}>".format(target[0], target[2]),
+        "" if source[0] != target[0] else "PREFIX {}:             <{}>".format(target[0], target[2]),
         "construct { ?x ?y ?z }",
         "where     {{ graph <{}{}> {{ ?x ?y ?z }} }}".format(Ns.singletons, linkset_graph_name),
     )

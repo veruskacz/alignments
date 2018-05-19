@@ -12,19 +12,30 @@ DEFAULT_DATABASE = os.getenv("LL_STARDOG_DATABASE", "risis")
 DEFAULT_SERVER = "localhost:5820"
 
 # EXAMPLE 1
-SERVER_MAC = "localhost:5820"
-STARDOG_PATH_MAC = '/Applications/stardog-5.0.2/bin/'
-STARDOG_DATA_PATH_MAC = "/Users/userX/data/"
+# SERVER_MAC = "localhost:5820"
+# STARDOG_PATH_MAC = '/Applications/stardog-5.0.2/bin/'
+# STARDOG_DATA_PATH_MAC = "/Users/userX/data/"
 
 # EXAMPLE 2
-SERVER_LINUX = "stardog.server.d2s.labs.vu.nl"
-STARDOG_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
-STARDOG_DATA_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data/'
+# SERVER_LINUX = "stardog.server.d2s.labs.vu.nl"
+# STARDOG_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/bin/'
+# STARDOG_DATA_PATH_LINUX = '/scratch/risis/data/stardog/stardog-5.0/stardog-5.0/data/'
 
 # EXAMPLE 3 IS CURRENTLY ACTIVATED
-SERVER_WIN = "localhost:5820"
-STARDOG_PATH_WIN = 'C:\\Program Files\\stardog-5.0.5.1\\bin\\'
-STARDOG_DATA_PATH_WIN = "C:\\Productivity\\data\\stardog"
+# SERVER_WIN = "localhost:5820"
+# STARDOG_PATH_WIN = 'C:\\Program Files\\stardog-5.3.0\\bin\\'
+# STARDOG_DATA_PATH_WIN = "C:\\Productivity\\data\\stardog"
+
+
+SERVER = os.getenv("LL_STARDOG_SERVER", "localhost:5820")
+STARDOG_PATH = os.getenv("LL_STARDOG_PATH", 'C:\\Program Files\\stardog-5.3.0\\bin\\')
+STARDOG_DATA = os.getenv("LL_STARDOG_DATA", "C:\\Productivity\\data\\stardog")
+
+# IN stardog-5.0.5.1\bin\
+# IN [stardog-server]       THE [STARDOG_HOME] CAN BE SET FOR THE [DATA PATH] AS WELL AS THE [BIN] PATH
+# IN [stardog]              [STARDOG_JAVA_ARGS="-Xmx2g"]                                    CAN BE SET
+# IN [stardog.bat]          [STARDOG_JAVA_ARGS=-Xmx2g] -Xms2g]                              CAN BE SET
+# IN [stardog-admin.bat]    [STARDOG_JAVA_ARGS=-Xmx2g -Xms2g -XX:MaxDirectMemorySize=2g]    CAN BE SET
 
 
 settings = {
@@ -39,19 +50,13 @@ settings = {
     St.split_sys: False,
 
     # STARDOG SERVER LOCAL HOST NAME
-    # St.stardog_host_name: SERVER_LINUX,
-    # St.stardog_host_name: SERVER_MAC,
-    St.stardog_host_name: SERVER_WIN,
+    St.stardog_host_name: SERVER,
 
     # STARDOG PATH
-    # St.stardog_path: STARDOG_PATH_LINUX,
-    # St.stardog_path: STARDOG_PATH_MAC,
-    St.stardog_path: STARDOG_PATH_WIN,
+    St.stardog_path: STARDOG_PATH,
 
     # STARDOG DATA PATH
-    # St.stardog_data_path: STARDOG_DATA_PATH_LINUX,
-    # St.stardog_data_path: STARDOG_DATA_PATH_MAC,
-    St.stardog_data_path: STARDOG_DATA_PATH_WIN,
+    St.stardog_data_path: STARDOG_DATA,
 
     # STARDOG 4 IS COMPATIBLE
     # STARDOG 5 IS NOT COMPATIBLE
