@@ -7,25 +7,25 @@ This web application can show off the coolness of the Sngleton*** model develope
 ## Setup
 
 1. Make sure you have `pip` and `virtualenv` installed 
-	[easy_install pip]
-	[pip install virtualenv]
+	[**easy_install pip**]
+	[**pip install virtualenv**]
 	
 2. Create a directory where you want to download the software.
 
-3. Go to the directory and clone it from git: git clone https://github.com/alkoudouss/alignmnents
+3. Go to the directory and clone it from git: git clone https://github.com/alkoudouss/alignmnents.git
 	
 4. Go to the directory in which you cloned this Git repository, and install a virtual environment: 
-	[virtualenv .]
+	[**virtualenv .**]
 	
 5. Activate the virtual environment: 
-	[source bin/activate]	(linux-based)
-	[Scripts\activate.bat]	(windows)
+	[**source bin/activate**]	(linux-based)
+	[**Scripts\activate.bat**]	(windows)
 	
 6. Install the required packages: 
-	[pip install -r requirements.txt]
+	[**pip install -r requirements.txt**]
 	
 7. Make sure you have a properly installed Stardog server running, with **security disabled** 
-	[stardog-admin server start --disable-security]
+	[**stardog-admin server start --disable-security**]
 
 8. Create the database 'risis' from command line as
 	stardog-admin db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n risis
