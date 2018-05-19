@@ -10,9 +10,19 @@ import Alignments.Server_Settings as Svr
 # https://docupub.com/pdfmerge/
 print "\nRUNNING THE LENTICULAR LENS SERVER"
 lock_file = None
+RESET_SERVER_BATS = False
 if __name__ == "__main__":
 
     try:
+
+        if RESET_SERVER_BATS is True:
+            START_path = "{}stardogStart{}".format(Svr.SRC_DIR, Ut.batch_extension())
+            STOP_path = "{}stardogStop{}".format(Svr.SRC_DIR, Ut.batch_extension())
+            if os.path.exists(START_path) is True:
+                os.remove(START_path)
+            if os.path.exists(STOP_path) is True:
+                os.remove(STOP_path)
+
         lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
         # print lock_file
     except Exception as err:
