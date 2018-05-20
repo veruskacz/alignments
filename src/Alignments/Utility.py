@@ -89,7 +89,6 @@ def to_nt_format(resource):
         return resource
 
 
-
 def is_property_path(resource):
 
     temp = str(to_bytes(resource)).strip()
@@ -1008,7 +1007,7 @@ def stardog_on(bat_path):
             else:
                 cmd = """
                 echo STARTING STARDOG...
-                "{}"stardog-admin server start
+                "{0}"stardog-admin server start
                 """.format(Svr.settings[St.stardog_path])
 
             writer = open(bat_path, "wb")
@@ -1097,6 +1096,25 @@ def stardog_off(bat_path):
     else:
         print ">>> THE SERVER WAS NOT ON."
 
+
+def create_database(directory, db_bat_path, db_name):
+
+    # CREATING THE DATABASE IN STARDOG
+    create_db = """
+    \"{0}\"stardog-admin db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n Testing
+    """.format(directory, db_name)
+
+    writer = open(db_bat_path, "wb")
+    writer.write(create_db)
+    writer.close()
+    os.chmod(db_bat_path, 0o777)
+
+    # subprocess.call(bat_path, shell=True)
+    print "   >>> CREATING THE {} DATABASE".format(db_name)
+    if platform.system().lower() == "windows":
+        os.system(db_bat_path)
+    else:
+        os.system("OPEN -a Terminal.app {}".format(db_bat_path))
 
 def extract_ref(text):
 
