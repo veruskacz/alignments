@@ -2,12 +2,17 @@
 # Alignment & Specs Demo
 
 This web application can show off the coolness of the Lenticular Lenses software with Singleton*** model developed by Al Idrissou
+The installation of the software can be done using either of the following options further detailed in this "read me".
+
+*  **All-in-one installation code**
+* **Step-by-step on the command line**
+
 ## Required Software
 1. Make sure you have `git` installed [https://git-scm.com/downloads]
 2. Make sure you have  `python 2.7` installed [follow this link to install python 2.7 according to your operating system: http://docs.python-guide.org/en/latest/starting/installation/]
  3. Make sure you have a `Stardog` properly installed (see instructions in https://github.com/RinkeHoekstra/semanticweb-web-application-tutorial/blob/master/tools.md)
 
-## Installation Batch Setup
+## All-in-One Installation Code Setup
 1. Save the [LenticularLensInstallation.py.py](https://raw.githubusercontent.com/alkoudouss/alignments/master/LenticularLensInstallation.py) python code in an `installation-folder` of your choice.
 2. Open the `LenticularLensInstallation.py`, scroll down to the end of the file and edit the `parameter_input` with the right paths.
 directory				: is the installation folder.
@@ -49,7 +54,8 @@ database_name	: is the stardog database name you will work on.
 5. Run the code:
 ```python LenticularLensInstallation.py```
 
-
+6. #### Go to `http://localhost:5820` and have fun with Stardog!
+7. #### Go to `http://localhost:5077` and have fun with the Lenticular Lens!
 
 ## Step-by-Step Setup
 
@@ -146,4 +152,5 @@ database_name	: is the stardog database name you will work on.
 
    5.2. If you have restarted only you terminal, you will need to re-run some steps: `step 3.2.2`
 
-6. Go to `http://localhost:5077` and have fun!
+6. #### Go to `http://localhost:5820` and have fun with Stardog!
+7. #### Go to `http://localhost:5077` and have fun with the Lenticular Lens!
