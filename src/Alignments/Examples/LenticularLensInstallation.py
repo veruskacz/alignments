@@ -131,8 +131,12 @@ def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
     # 1. CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
     if os.path.isdir(directory) is False:
-        os.mkdir(directory)
-        print "\nTHE PROVIDED DIRECTORY DID NOT EXIST BUT WAS CREATED\n"
+        try:
+            os.mkdir(directory)
+            print "\nTHE PROVIDED DIRECTORY DID NOT EXIST BUT WAS CREATED\n"
+        except:
+            print "\nTHE PROVIDED DIRECTORY COULD NOT BE CREATED\n"
+            return
 
     # 2. CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     with open(name=file_path, mode="wb") as writer:
@@ -238,6 +242,11 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
     print "{:23}: {}".format("COMPUTER TYPE", platform.system().upper())
 
+    if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
+                    stardog_home.__contains__("\\") is None:
+        print "CHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)"
+        return
+
     file_path = join(directory, "INSTALLATION.sh")
     w_dir = join(directory, "alignments")
     requirements = """
@@ -254,7 +263,6 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
         except :
             print "\nTHE PROVIDED DIRECTORY COULD NOT BE CREATED\n"
             return
-
 
     # 2. CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     with open(name=file_path, mode="wb") as writer:
