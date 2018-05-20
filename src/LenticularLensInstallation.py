@@ -76,7 +76,7 @@ def update_settings(directory, stardog_home, stardog_bin, database_name):
 
     # STARDOG BIN
     s_bin = """\"LL_STARDOG_PATH",[ ]*"(.*)\""""
-    replace_all(svr_settings, s_bin, """{0}{1}{1}""".format(stardog_bin, os.path.sep))
+    replace_all(svr_settings, s_bin, """{0}""".format(stardog_bin, os.path.sep))
 
     # STARDOG DATA OF HOME
     s_data = """"LL_STARDOG_DATA",[ ]*"(.*)\""""
@@ -119,7 +119,7 @@ def install(parameter_inputs):
     if OPE_SYS != "windows":
         if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
                         stardog_home.__contains__("\\") is None:
-            print "CHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)"
+            print "\nCHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)\n"
             return
 
     directory = os.getenv("LL_DIRECTORY", directory)
@@ -149,12 +149,12 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
 
     print "{:23}: {}\n".format("COMPUTER TYPE", platform.system().upper())
 
-    file_path = join(directory, "INSTALLATION.BAT")
+    file_path = join(directory, "INSTALLATION.BAT" if OPE_SYS == "windows" else "INSTALLATION.sh")
     w_dir = join(directory, "alignments")
     requirements = """
-        call pip --version
-        call python --version
-        call virtualenv --version
+        pip --version
+        python --version
+        virtualenv --version
         """
 
     # 1. CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
@@ -169,6 +169,11 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     # 2. CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     with open(name=file_path, mode="wb") as writer:
         writer.write(requirements)
+
+    # MAC PERMISSION ISSUES
+    if OPE_SYS != 'windows':
+        os.chmod(file_path, 0o777)
+
     requirements_output = subprocess.check_output(file_path, shell=True)
     requirements_output = str(requirements_output)
 
@@ -240,10 +245,14 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
           "-------------------------------------\n"
     update_settings(directory, stardog_home, stardog_bin, database_name)
 
-    print "\n--------------------------------------------------\n" \
-          "    >>> SLEETING FOR 20 SECONDS FOR USER CHECKS\n" \
-          "----------------------------------------------------\n"
-    time.sleep(20)
+    # MAC PERMISSION ISSUES
+    if OPE_SYS == 'windows':
+
+        print "\n--------------------------------------------------\n" \
+              "    >>> SLEETING FOR 20 SECONDS FOR USER CHECKS\n" \
+              "----------------------------------------------------\n"
+
+        time.sleep(20)
 
 
 def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
@@ -259,8 +268,10 @@ def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
           "    >>> WINDOWS INSTALLATIONS\n" \
           "-------------------------------------\n"
 
-    file_path = join(directory, "INSTALLATION.BAT")
+    file_path = join(directory, "INSTALLATION.sh")
     w_dir = join(directory, "alignments")
+    os.chmod(file_path, 0o777)
+
     data = """
     cls
     echo "    >>> UPGRADING PIP"
@@ -292,7 +303,7 @@ def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
         subprocess.call(file_path, shell=True)
 
 
-def mac_install(w_dir, python_path, stardog_home, stardog_bin, run=False):
+def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
     print "-------------------------------------\n" \
           "    >>> MAC/LINUX INSTALLATIONS\n" \
@@ -304,6 +315,8 @@ def mac_install(w_dir, python_path, stardog_home, stardog_bin, run=False):
     # INSTALL OR UPDATE THE REQUIREMENTS
     # RUN THE LENTICULAR LENS
     # {1}python.exe
+    file_path = join(directory, "INSTALLATION.BAT")
+    w_dir = join(directory, "alignments")
     data = """
 
     echo "    >>> UPGRADING PIP"
@@ -313,7 +326,7 @@ def mac_install(w_dir, python_path, stardog_home, stardog_bin, run=False):
     echo git clone https://github.com/veruskacz/alignments.git {0}
 
     echo "    >>> CREATING A VIRTUAL ENVIRONMENT"
-    virtualenv  --python={2}{1}python.exe {0}
+    virtualenv  --python={2} {0}
 
     echo "    >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
     source {0}{1}bin/activate
