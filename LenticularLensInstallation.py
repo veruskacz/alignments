@@ -1,4 +1,3 @@
-
 import os
 import re
 import sys
@@ -9,7 +8,6 @@ import fileinput
 import subprocess
 from os.path import join
 import cStringIO as Buffer
-
 
 # #####################################################
 """ FUNCTION PARAMETERS """
@@ -22,13 +20,13 @@ begining = time.time()
 _line = "------------------------------------------------------------------------------------------------------"
 print "\n{}\n{:>90}\n{}\n".format(_line, date.strftime(_format), _line)
 
-
 # #####################################################
 """ FINSTALLATION FUNCTIONS """
+
+
 # #####################################################
 
 def normalise_path(file_path):
-
     file_path = re.sub('[\1]', "\\\\1", file_path)
     file_path = re.sub('[\2]', "\\\\2", file_path)
     file_path = re.sub('[\3]', "\\\\3", file_path)
@@ -48,7 +46,6 @@ def normalise_path(file_path):
 
 
 def replace_all(file_path, search_exp, replace_exp):
-
     wr = Buffer.StringIO()
 
     if os.path.isfile(file_path) is False:
@@ -71,7 +68,6 @@ def replace_all(file_path, search_exp, replace_exp):
 
 
 def update_settings(directory, stardog_home, stardog_bin, database_name):
-
     svr_settings = join(directory, "alignments{0}src{0}Alignments{0}Server_Settings.py".format(os.path.sep))
 
     # STARDOG BIN
@@ -88,7 +84,6 @@ def update_settings(directory, stardog_home, stardog_bin, database_name):
 
 
 def install(parameter_inputs):
-
     inputs_0 = re.findall("run[ ]*=[ ]*([^\"\'\n]+)", parameter_inputs)
     inputs_1 = re.findall("directory[ ]*=[ \"\']*([^\"\'\n]+)", parameter_inputs)
     inputs_2 = re.findall("python_path[ ]*=[ \"\']*([^\"\'\n]+)", parameter_inputs)
@@ -112,7 +107,7 @@ def install(parameter_inputs):
     print "{:23}: {}".format("DATABASE NAME", database_name)
 
     if run is None or directory is None or python_path is None or stardog_bin is None or \
-                    stardog_home is None  or database_name is None:
+                    stardog_home is None or database_name is None:
         print "THERE IS A MISSING INPUT"
         return
 
@@ -133,8 +128,12 @@ def install(parameter_inputs):
     stardog_bin = stardog_bin.replace("\\", "\\\\")
     stardog_home = stardog_home.replace("\\", "\\\\")
 
+    if OPE_SYS != "windows":
+        stardog_bin = "{}/".format(stardog_bin) if stardog_bin.endswith("/") is False else stardog_bin
+        stardog_home = "{}/".format(stardog_home) if stardog_home.endswith("/") is False else stardog_home
+
     # RUNNING THE GENERIC INSTALLATION
-    generic_install( directory, python_path, stardog_home,  stardog_bin,  database_name, run=run)
+    generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=run)
 
     # RUNNING WINDOWS SPECIFIC INSTALLATION
     if OPE_SYS == "windows":
@@ -147,11 +146,13 @@ def install(parameter_inputs):
 
 def generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=False):
 
+    highlight = "---------------------------------------------------"
     print "{:23}: {}\n".format("COMPUTER TYPE", platform.system().upper())
 
     file_path = join(directory, "INSTALLATION.BAT" if OPE_SYS == "windows" else "INSTALLATION.sh")
     w_dir = join(directory, "alignments")
     requirements = """
+        git --version
         pip --version
         python --version
         virtualenv --version
@@ -164,20 +165,35 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
             print "\nTHE PROVIDED DIRECTORY DID NOT EXIST BUT WAS CREATED\n"
         except:
             print "\nTHE PROVIDED DIRECTORY COULD NOT BE CREATED\n"
-            return
+            exit(0)
 
     # 2. CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     with open(name=file_path, mode="wb") as writer:
         writer.write(requirements)
 
-    # MAC PERMISSION ISSUES
+    # 3. MAC PERMISSION ISSUES
     if OPE_SYS != 'windows':
         os.chmod(file_path, 0o777)
 
     requirements_output = subprocess.check_output(file_path, shell=True)
     requirements_output = str(requirements_output)
 
-    # 3. PYTHON VERSION
+    # 4. GIT VERSION IS REQUIRED
+    git = re.findall('git version (.+)', str(requirements_output))
+    git_version = git[0] if len(git) > 0 else 0
+
+
+    if int(git_version[0]) == 0:
+        print "\nYOU NEED TO INSTALL GIT FROM [https://git-scm.com/downloads]\n"
+        exit(0)
+
+    elif int(git_version[0]) <= 1:
+        print "\nYOU NEED TO UPGRADE YOUR GIT FROM [https://git-scm.com/downloads]\n"
+        exit(0)
+
+    print "\n{:23}: {}".format("GIT VERSION", git_version)
+
+    # 5. PYTHON VERSION IS REQUIRED
     python = re.findall('python ([\d*\.]+)', str(requirements_output))
     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
     if (python_version >= 27) and (python_version < 2713):
@@ -213,50 +229,39 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         print "PYTHON VERSION 2.7.12 IS REQUIRED TO RUN THE LENTICULAR LENS"
         exit(0)
 
-    # 4. COMMAND FOR CLONING OR PULING THE LENTICULAR LENS SOFTWARE
+    # 6. COMMAND FOR CLONING OR PULING THE LENTICULAR LENS SOFTWARE
     if os.path.isdir(join(directory, "alignments")) is False:
-        print "------------------------------------------\n" \
-              "    >>> LENTICULAR LENS CLONE REQUEST\n" \
-              "------------------------------------------"
+        print "\n{0}\n    >>> LENTICULAR LENS CLONE REQUEST\n{0}\n".format(highlight)
         cloning = """
         echo "CLONING THE LENTICULAR LENS SOFTWARE"
         git clone https://github.com/veruskacz/alignments.git {0}
         """.format(w_dir)
     else:
-        print "---------------------------------------\n" \
-              "    >>> LENTICULAR LENS PULL REQUEST\n" \
-              "---------------------------------------"
+        print "\n{0}\n    >>> LENTICULAR LENS PULL REQUEST\n{0}\n".format(highlight)
         cloning = """
         cd {0}
         git pull
         """.format(join(directory, "alignments"))
 
-    # 5. CREATING THE BATCH FILE
+    # 7. CREATING THE BATCH FILE
     with open(name=file_path, mode="wb") as writer:
         writer.write(cloning)
 
-    # 6. EXECUTING THE BATCH FILE
+    # 8. EXECUTING THE BATCH FILE
     if run is True:
         subprocess.call(file_path, shell=True)
 
-    # 7. UPDATING THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
-    print "\n-------------------------------------\n" \
-          "    >>> UPDATING SERVER SETTINGS\n" \
-          "-------------------------------------\n"
+    # 9. UPDATING THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
+    print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
     update_settings(directory, stardog_home, stardog_bin, database_name)
 
-    # MAC PERMISSION ISSUES
+    # 10. MAC PERMISSION ISSUES
     if OPE_SYS == 'windows':
-
-        print "\n--------------------------------------------------\n" \
-              "    >>> SLEETING FOR 20 SECONDS FOR USER CHECKS\n" \
-              "----------------------------------------------------\n"
-
+        print "\n{0}\n    >>> SLEEPING FOR 20 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
         time.sleep(20)
 
 
 def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
-
     # 8.
     # UPGRADE PIP
     # INSTALL THE VIRTUALENV AND ACTIVATE IT
@@ -264,11 +269,9 @@ def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
     # RUN THE LENTICULAR LENS
     #
 
-    print "\n-------------------------------------\n" \
-          "    >>> WINDOWS INSTALLATIONS\n" \
-          "-------------------------------------\n"
+    print "\n{0}\n    >>> WINDOWS INSTALLATIONS\n{0}\n"
 
-    file_path = join(directory, "INSTALLATION.sh")
+    file_path = join(directory, "INSTALLATION.BAT")
     w_dir = join(directory, "alignments")
     os.chmod(file_path, 0o777)
 
@@ -304,10 +307,7 @@ def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
 
 def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
-
-    print "-------------------------------------\n" \
-          "    >>> MAC/LINUX INSTALLATIONS\n" \
-          "-------------------------------------\n"
+    print "\n{0}\n    >>> MAC/LINUX INSTALLATIONS\n{0}\n"
 
     # 8.
     # UPGRADE PIP
@@ -315,7 +315,7 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
     # INSTALL OR UPDATE THE REQUIREMENTS
     # RUN THE LENTICULAR LENS
     # {1}python.exe
-    file_path = join(directory, "INSTALLATION.BAT")
+    file_path = join(directory, "INSTALLATION.SH")
     w_dir = join(directory, "alignments")
     data = """
 
@@ -631,8 +631,8 @@ python_path = C:\Python27
 stardog_bin = C:\Program Files\stardog-5.3.0\bin
 stardog_home = C:\Productivity\data\stardog
 database_name = risis
-"""
 
+"""
 
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
@@ -640,7 +640,6 @@ database_name = risis
 # #####################################################
 
 install(parameter_input)
-
 
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
