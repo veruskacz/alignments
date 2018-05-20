@@ -43,7 +43,7 @@ if __name__ == "__main__":
             print "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
             # CREATING THE DATABASE IN STARDOG
             db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
-            Ut.create_database(Svr.SRC_DIR, db_bat_path, db_name=Svr.settings[St.database])
+            Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
         elif len(lock_file) > 0 and (
                     str(response).__contains__("200") or
@@ -52,7 +52,7 @@ if __name__ == "__main__":
             print "THE STARDOG SERVER IS ALREADY ON."
             # CREATING THE DATABASE IN STARDOG
             db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
-            Ut.create_database(Svr.SRC_DIR, db_bat_path, db_name=Svr.settings[St.database])
+            Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
         else:
             print "\n>>> ", response
