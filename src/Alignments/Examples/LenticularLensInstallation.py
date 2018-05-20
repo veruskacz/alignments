@@ -229,12 +229,15 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         subprocess.call(file_path, shell=True)
 
     # 7. UPDATING THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
-    print "-------------------------------------\n" \
+    print "\n-------------------------------------\n" \
           "    >>> UPDATING SERVER SETTINGS\n" \
           "-------------------------------------\n"
     update_settings(directory, stardog_home, stardog_bin, database_name)
 
-    time.sleep(15)
+    print "\n--------------------------------------------------\n" \
+          "    >>> SLEETING FOR 20 SECONDS FOR USER CHECKS\n" \
+          "----------------------------------------------------\n"
+    time.sleep(20)
 
 
 def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
