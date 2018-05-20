@@ -1,6 +1,7 @@
 from app import app
 import os
 import requests
+import platform
 import Alignments.Settings as St
 import Alignments.Utility as Ut
 import Alignments.Server_Settings as Svr
@@ -40,12 +41,18 @@ if __name__ == "__main__":
         # print response
         if str(response).__contains__("401"):
             print "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
+            # CREATING THE DATABASE IN STARDOG
+            db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
+            Ut.create_database(Svr.SRC_DIR, db_bat_path, db_name=Svr.settings[St.database])
 
         elif len(lock_file) > 0 and (
                     str(response).__contains__("200") or
                     str(response).__contains__("401") or
                     str(response).__contains__("No connection") is False):
             print "THE STARDOG SERVER IS ALREADY ON."
+            # CREATING THE DATABASE IN STARDOG
+            db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
+            Ut.create_database(Svr.SRC_DIR, db_bat_path, db_name=Svr.settings[St.database])
 
         else:
             print "\n>>> ", response
@@ -55,6 +62,10 @@ if __name__ == "__main__":
 
             print "LISTENING AT: {}...".format(Svr.settings[St.stardog_data_path])
             Ut.listening(Svr.settings[St.stardog_data_path])
+
+            # CREATING THE DATABASE IN STARDOG
+            db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
+            Ut.create_database(Svr.SRC_DIR, db_bat_path, db_name=Svr.settings[St.database])
 
         app.run(host="0.0.0.0", port=int(os.getenv("LL_PORT", 5077)))
 
