@@ -116,6 +116,12 @@ def install(parameter_inputs):
         print "THERE IS A MISSING INPUT"
         return
 
+    if OPE_SYS != "windows":
+        if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
+                        stardog_home.__contains__("\\") is None:
+            print "CHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)"
+            return
+
     directory = os.getenv("LL_DIRECTORY", directory)
     python_path = os.getenv("LL_PYTHON_PATH", python_path)
     stardog_bin = os.getenv("LL_STARDOG_PATH", stardog_bin)
