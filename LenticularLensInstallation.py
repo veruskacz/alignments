@@ -194,14 +194,15 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     print "\n{:23}: {}".format("GIT VERSION", git_version)
 
     # 5. PYTHON VERSION IS REQUIRED
-    python = re.findall('python ([\d*\.]+)', str(requirements_output))
+    pattern = "([\d*\.]+)"
+    python = re.findall('python {}'.format(pattern), str(requirements_output))
     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
     if (python_version >= 27) and (python_version < 2713):
 
         print "{:23}: {}".format("PYTHON VERSION", python[0])
 
         # MAKE SURE PIP IS INSTALL
-        pip = re.findall('pip ([\d*\.]+)', str(requirements_output))
+        pip = re.findall('pip {}'.format(pattern), str(requirements_output))
         pip_version = pip[0] if len(pip) > 0 else 0
         if pip_version > 0:
             print "{:23}: {}".format("PIP VERSION", pip_version)
@@ -214,7 +215,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
             print str(requirements_output)
 
         # VIRTUAL ENVIRONMENT
-        env = re.findall('([\d*\.]+)\n', str(requirements_output))
+        env = re.findall('{}\n'.format(pattern), str(requirements_output))
         env_version = env[0] if len(env) > 0 else 0
         if env_version > 0:
             print "{:23}: {}".format("VIRTUALENV VERSION", env_version)
@@ -350,278 +351,17 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
         # print output
 
 
-# def win_installs(directory, python_path, stardog_home, stardog_bin, database_name, run=False):
-#
-#     print "{:23}: {}".format("COMPUTER TYPE", platform.system().upper())
-#
-#     file_path = join(directory, "INSTALLATION.BAT")
-#     w_dir = join(directory, "alignments")
-#     requirements = """
-#     call pip --version
-#     call python --version
-#     call virtualenv --version
-#     """
-#
-#     # 1. CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
-#     if os.path.isdir(directory) is False:
-#         try:
-#             os.mkdir(directory)
-#             print "\nTHE PROVIDED DIRECTORY DID NOT EXIST BUT WAS CREATED\n"
-#         except:
-#             print "\nTHE PROVIDED DIRECTORY COULD NOT BE CREATED\n"
-#             return
-#
-#     # 2. CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
-#     with open(name=file_path, mode="wb") as writer:
-#         writer.write(requirements)
-#     requirements_output = subprocess.check_output(file_path, shell=True)
-#     requirements_output = str(requirements_output)
-#
-#     # 3. PYTHON VERSION
-#     python = re.findall('python ([\d*\.]+)', str(requirements_output))
-#     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
-#     if (python_version >= 27) and (python_version < 2713):
-#
-#         print "{:23}: {}".format("PYTHON VERSION", python[0])
-#
-#         # MAKE SURE PIP IS INSTALL
-#         pip = re.findall('pip ([\d*\.]+)', str(requirements_output))
-#         pip_version = pip[0] if len(pip) > 0 else 0
-#         if pip_version > 0:
-#             print "{:23}: {}".format("PIP VERSION", pip_version)
-#         else:
-#             # BATCH FOR INSTALLING PIP
-#             with open(name=file_path, mode="wb") as writer:
-#                 writer.write("call easy_install pip")
-#             # INSTALLING PIP
-#             requirements_output = subprocess.check_output(file_path, shell=True)
-#             print str(requirements_output)
-#
-#         # VIRTUAL ENVIRONMENT
-#         env = re.findall('([\d*\.]+)\n', str(requirements_output))
-#         env_version = env[0] if len(env) > 0 else 0
-#         if env_version > 0:
-#             print "{:23}: {}".format("VIRTUALENV VERSION", env_version)
-#         else:
-#             # BATCH FOR INSTALLING THE VIRTUAL ENV
-#             with open(name=file_path, mode="wb") as writer:
-#                 writer.write("call pip install virtualenv")
-#             # INSTALLING THE VIRTUAL ENV
-#             requirements_output = subprocess.check_output(file_path, shell=True)
-#             print str(requirements_output)
-#     else:
-#         print "PYTHON VERSION 2.7.12 IS REQUIRED TO RUN THE LENTICULAR LENS"
-#         exit(0)
-#
-#     # 4. COMMAND FOR CLONING OR PULING THE LENTICULAR LENS SOFTWARE
-#     if os.path.isdir(join(directory, "alignments")) is False:
-#         print "----------------------------------------\n" \
-#               " >>> LENTICULAR LENS CLONE REQUEST\n" \
-#               "---------------------------------------"
-#         cloning = """
-#     echo "CLONING THE LENTICULAR LENS SOFTWARE"
-#     git clone https://github.com/veruskacz/alignments.git {0}
-#     """.format(w_dir)
-#     else:
-#         print "-----------------------------------\n" \
-#               ">>> LENTICULAR LENS PULL REQUEST\n" \
-#               "-----------------------------------"
-#         cloning = """
-#     cd {0}
-#     git pull
-#     """.format(join(directory, "alignments"))
-#
-#     # 5. CREATING THE BATCH FILE
-#     with open(name=file_path, mode="wb") as writer:
-#         writer.write(cloning)
-#
-#     # 6. EXECUTING THE BATCH FILE
-#     if run is True:
-#         subprocess.call(file_path, shell=True)
-#     exit(0)
-#     # 7. UPDATING THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
-#     update_settings(directory, stardog_home, stardog_bin, database_name)
-#
-#     # 8.
-#     # UPGRADE PIP
-#     # INSTALL THE VIRTUALENV AND ACTIVATE IT
-#     # INSTALL OR UPDATE THE REQUIREMENTS
-#     # RUN THE LENTICULAR LENS
-#     # {1}python.exe
-#
-#     data = """
-#     cls
-#     echo "UPGRADING PIP"
-#     python -m pip install --upgrade pip
-#
-#     echo "CLONING THE LENTICULAR LENS SOFTWARE"
-#     echo git clone https://github.com/alkoudouss/alignments.git {0}
-#
-#     echo "CREATING A VIRTUAL ENVIRONMENT"
-#     virtualenv  --python={2} {0}
-#
-#     echo "ACTIVATING THE VIRTUAL ENVIRONMENT"
-#     call {0}{1}Scripts{1}activate.bat
-#
-#     echo "INSTALLING THE LENTICULAR LENS REQUIREMENTS"
-#     pip install -r  {0}{1}requirements.txt
-#
-#     echo "INSTALLATION DONE..."
-#     echo "RUNNING THE LENTICULAR LENS"
-#     cd {0}{1}src
-#     echo mac: LL_STARDOG_PATH="{3}" LL_STARDOG_DATA="{4}" python run.py
-#     python run.py
-#     """.format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
-#
-#     with open(name=file_path, mode="wb") as writer:
-#         writer.write(data)
-#
-#     if run is True:
-#         subprocess.call(file_path, shell=True)
-#         # output = subprocess.check_output(file_path, shell=True)
-#         # output = re.sub(' .*>', ' ', output)
-#         # print output
-#
-#
-# def mac_installs(directory, python_path, stardog_home, stardog_bin, database_name, run=False):
-#
-#     print "{:23}: {}".format("COMPUTER TYPE", platform.system().upper())
-#
-#     if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
-#                     stardog_home.__contains__("\\") is None:
-#         print "CHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)"
-#         return
-#
-#     file_path = join(directory, "INSTALLATION.sh")
-#     w_dir = join(directory, "alignments")
-#     requirements = """
-#     pip --version
-#     python --version
-#     virtualenv --version
-#     """
-#
-#     # 1. CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
-#     if os.path.isdir(directory) is False:
-#         try:
-#             os.mkdir(directory)
-#             print "\nTHE PROVIDED DIRECTORY DID NOT EXIST BUT WAS CREATED\n"
-#         except :
-#             print "\nTHE PROVIDED DIRECTORY COULD NOT BE CREATED\n"
-#             return
-#
-#     # 2. CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
-#     with open(name=file_path, mode="wb") as writer:
-#         writer.write(requirements)
-#     if OPE_SYS != 'windows':
-#         os.chmod(file_path, 0o777)
-#
-#     requirements_output = subprocess.check_output(file_path, shell=True)
-#     requirements_output = str(requirements_output)
-#
-#     # 3. PYTHON VERSION
-#     python = re.findall('python ([\d*\.]+)', str(requirements_output))
-#     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
-#     if (python_version >= 27) and (python_version < 2713):
-#
-#         print "{:23}: {}".format("PYTHON VERSION", python[0])
-#
-#         # MAKE SURE PIP IS INSTALL
-#         pip = re.findall('pip ([\d*\.]+)', str(requirements_output))
-#         pip_version = pip[0] if len(pip) > 0 else 0
-#         if pip_version > 0:
-#             print "{:23}: {}".format("PIP VERSION", pip_version)
-#         else:
-#             # BATCH FOR INSTALLING PIP
-#             with open(name=file_path, mode="wb") as writer:
-#                 writer.write("call easy_install pip")
-#             # INSTALLING PIP
-#             requirements_output = subprocess.check_output(file_path, shell=True)
-#             print str(requirements_output)
-#
-#         # VIRTUAL ENVIRONMENT
-#         env = re.findall('([\d*\.]+)\n', str(requirements_output))
-#         env_version = env[0] if len(env) > 0 else 0
-#         if env_version > 0:
-#             print "{:23}: {}".format("VIRTUALENV VERSION", env_version)
-#         else:
-#             # BATCH FOR INSTALLING THE VIRTUAL ENV
-#             with open(name=file_path, mode="wb") as writer:
-#                 writer.write("call pip install virtualenv")
-#             # INSTALLING THE VIRTUAL ENV
-#             requirements_output = subprocess.check_output(file_path, shell=True)
-#             print str(requirements_output)
-#     else:
-#         print "PYTHON VERSION 2.7.12 IS REQUIRED TO RUN THE LENTICULAR LENS"
-#         exit(0)
-#
-#     # 4. COMMAND FOR CLONING OR PULING THE LENTICULAR LENS SOFTWARE
-#     cloning = """
-#     echo "CLONING THE LENTICULAR LENS SOFTWARE"
-#     git clone https://github.com/veruskacz/alignments.git {0}
-#     """.format(w_dir)
-#
-#     # 5. CREATING THE BATCH FILE
-#     with open(name=file_path, mode="wb") as writer:
-#         writer.write(cloning)
-#
-#     # 6. EXECUTING THE BATCH FILE
-#     if run is True:
-#         subprocess.call(file_path, shell=True)
-#
-#     # 7. UPDATING THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
-#     update_settings(directory, stardog_home, stardog_bin, database_name)
-#
-#     # 8.
-#     # UPGRADE PIP
-#     # INSTALL THE VIRTUALENV AND ACTIVATE IT
-#     # INSTALL OR UPDATE THE REQUIREMENTS
-#     # RUN THE LENTICULAR LENS
-#     # {1}python.exe
-#     data = """
-#
-#     echo "UPGRADING PIP"
-#     sudo python -m pip install --upgrade pip
-#
-#     echo "CLONING THE LENTICULAR LENS SOFTWARE"
-#     echo git clone https://github.com/veruskacz/alignments.git {0}
-#
-#     echo "CREATING A VIRTUAL ENVIRONMENT"
-#     virtualenv  --python={2} {0}
-#
-#     echo "ACTIVATING THE VIRTUAL ENVIRONMENT"
-#     source {0}{1}bin/activate
-#
-#     echo "INSTALLING THE LENTICULAR LENS REQUIREMENTS"
-#     sudo pip install -r  {0}{1}requirements.txt
-#
-#     echo "INSTALLATION DONE..."
-#     echo "RUNNING THE LENTICULAR LENS"
-#     cd {0}{1}src
-#     LL_STARDOG_PATH="{3}" LL_STARDOG_DATA="{4}" python run.py
-#     """.format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
-#
-#     with open(name=file_path, mode="wb") as writer:
-#         writer.write(data)
-#
-#     if run is True:
-#         subprocess.call(file_path, shell=True)
-#         # output = subprocess.check_output(file_path, shell=True)
-#         # output = re.sub(' .*>', ' ', output)
-#         # print output
-
-
-################################################################################################
-# CHANGE THE WORKING DIRECTORY, PYTHON PATH A
-################################################################################################
-
-# directory = "C:\Productivity\LinkAnalysis\Coverage\InstallTest"
-# python_path = "C:\Python27"
-# stardog_bin = 'C:\Program Files\stardog-5.3.0\\bin'
-# stardog_home = "C:\Productivity\data\stardog"
-
-# #####################################################
-""" INSTALLATION PARAMETERS """
-# #####################################################
+# ######################################################
+"""             INSTALLATION PARAMETERS              """
+########################################################
+# CHANGE THE FOLLOWING INFORMATIION
+#   1. WORKING DIRECTORY PATH
+#   2. PYTHON PATH
+#   3. STADOG BIN DIRECTORY
+#   4. STARDOG DATA BASE DIRECTORY
+#   5. STARDOG BATABASE NAME
+########################################################
+#$######################################################
 
 parameter_input = """
 
