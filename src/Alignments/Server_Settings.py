@@ -8,8 +8,6 @@ DIR = "{0}{1}{1}Alignments{1}{1}Data".format(os.getcwd(), SEP)
 UPLOAD_FOLDER = "{0}{1}{1}UploadedFiles".format(os.getcwd(), SEP)
 UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
 # "http://stardog.risis.d2s.labs.vu.nl/annex/risis/sparql/query"
-DEFAULT_DATABASE = os.getenv("LL_STARDOG_DATABASE", "risis")
-DEFAULT_SERVER = "localhost:5820"
 
 # EXAMPLE 1
 # SERVER_MAC = "localhost:5820"
@@ -26,8 +24,9 @@ DEFAULT_SERVER = "localhost:5820"
 # STARDOG_PATH_WIN = 'C:\\Program Files\\stardog-5.3.0\\bin\\'
 # STARDOG_DATA_PATH_WIN = "C:\\Productivity\\data\\stardog"
 
-
-SERVER = os.getenv("LL_STARDOG_SERVER", "localhost:5820")
+DEFAULT_SERVER = "localhost:5820"
+SERVER = os.getenv("LL_STARDOG_SERVER", DEFAULT_SERVER)
+DEFAULT_DATABASE = os.getenv("LL_STARDOG_DATABASE", "risis")
 STARDOG_PATH = os.getenv("LL_STARDOG_PATH", "C:\\Program Files\\stardog-5.3.0\\bin\\")
 STARDOG_DATA = os.getenv("LL_STARDOG_DATA", "C:\\Productivity\\data\\stardog")
 
