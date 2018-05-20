@@ -1,3 +1,4 @@
+
 import os
 import re
 import sys
@@ -9,6 +10,7 @@ import subprocess
 from os.path import join
 import cStringIO as Buffer
 
+
 OPE_SYS = platform.system().lower()
 _format = "%a %b %d %H:%M:%S %Y"
 date = datetime.datetime.today()
@@ -18,6 +20,7 @@ print "\n{}\n{:>90}\n{}\n".format(_line, date.strftime(_format), _line)
 
 
 def normalise_path(file_path):
+
     file_path = re.sub('[\1]', "\\\\1", file_path)
     file_path = re.sub('[\2]', "\\\\2", file_path)
     file_path = re.sub('[\3]', "\\\\3", file_path)
@@ -37,6 +40,7 @@ def normalise_path(file_path):
 
 
 def replace_all(file_path, search_exp, replace_exp):
+
     wr = Buffer.StringIO()
 
     if os.path.isfile(file_path) is False:
@@ -59,6 +63,7 @@ def replace_all(file_path, search_exp, replace_exp):
 
 
 def update_settings(directory, stardog_home, stardog_bin):
+
     svr_settings = join(directory, "alignments{0}src{0}Alignments{0}Server_Settings.py".format(os.path.sep))
 
     # STARDOG BIN
@@ -71,6 +76,7 @@ def update_settings(directory, stardog_home, stardog_bin):
 
 
 def install(parameter_inputs):
+
     inputs_0 = re.findall("run[ ]*=[ ]*([^\"\'\n]+)", parameter_inputs)
     inputs_1 = re.findall("directory[ ]*=[ \"\']*([^\"\'\n]+)", parameter_inputs)
     inputs_2 = re.findall("python_path[ ]*=[ \"\']*([^\"\'\n]+)", parameter_inputs)
@@ -82,6 +88,8 @@ def install(parameter_inputs):
     python_path = normalise_path(str(inputs_2[0]).strip()) if len(inputs_2) > 0 else None
     stardog_bin = normalise_path(str(inputs_3[0]).strip()) if len(inputs_3) > 0 else None
     stardog_home = normalise_path(str(inputs_4[0]).strip()) if len(inputs_4) > 0 else None
+
+
 
     print "{:23}: {}".format("INSTALLATION DIRECTORY", directory)
     print "{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
@@ -110,6 +118,7 @@ def install(parameter_inputs):
 
 
 def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
+
     print "{:23}: {}".format("COMPUTER TYPE", platform.system().upper())
 
     file_path = join(directory, "INSTALLATION.BAT")
@@ -226,6 +235,7 @@ def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
 
 def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
+
     print "{:23}: {}".format("COMPUTER TYPE", platform.system().upper())
 
     file_path = join(directory, "INSTALLATION.sh")
@@ -238,8 +248,13 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
     # 1. CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
     if os.path.isdir(directory) is False:
-        os.mkdir(directory)
-        print "\nTHE PROVIDED DIRECTORY DID NOT EXIST BUT WAS CREATED\n"
+        try:
+            os.mkdir(directory)
+            print "\nTHE PROVIDED DIRECTORY DID NOT EXIST BUT WAS CREATED\n"
+        except :
+            print "\nTHE PROVIDED DIRECTORY COULD NOT BE CREATED\n"
+            return
+
 
     # 2. CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     with open(name=file_path, mode="wb") as writer:
