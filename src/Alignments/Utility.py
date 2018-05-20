@@ -1097,12 +1097,12 @@ def stardog_off(bat_path):
         print ">>> THE SERVER WAS NOT ON."
 
 
-def create_database(directory, db_bat_path, db_name):
+def create_database(stardog_bin_path, db_bat_path, db_name):
 
     # CREATING THE DATABASE IN STARDOG
     create_db = """
     \"{0}\"stardog-admin db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n Testing
-    """.format(directory, db_name)
+    """.format(stardog_bin_path, db_name)
 
     writer = open(db_bat_path, "wb")
     writer.write(create_db)
