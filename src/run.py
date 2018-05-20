@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
             # CREATING THE DATABASE IN STARDOG
             db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
-            Ut.create_database(Svr.SRC_DIR, db_bat_path, db_name=Svr.settings[St.database])
+            Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
         app.run(host="0.0.0.0", port=int(os.getenv("LL_PORT", 5077)))
 
