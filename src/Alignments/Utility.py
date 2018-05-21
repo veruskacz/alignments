@@ -13,7 +13,6 @@ import cStringIO
 import xmltodict
 import requests
 import subprocess
-
 import zipfile as Zip
 from os import listdir
 import os.path as path
@@ -1124,7 +1123,7 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
 
 def check_db_exists(database):
 
-    response = Qr.sparql_xml_to_matrix_db(query="SELECT DISTINCT ?s WHERE { ?s ?p ?o } LIMIT 10", database=database)
+    response = Qry.sparql_xml_to_matrix_db(query="SELECT DISTINCT ?s WHERE { ?s ?p ?o } LIMIT 10", database=database)
     if response["result"] is None:
         if "justification" in response:
             justification = response["justification"]
