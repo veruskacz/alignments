@@ -1119,7 +1119,8 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
     else:
         os.system("OPEN -a Terminal.app {}".format(db_bat_path))
 
-    os.remove(db_bat_path)
+    # os.remove(db_bat_path)
+
 
 def check_db_exists(database):
 
