@@ -387,7 +387,7 @@ database_name = risis
     ON THE PARAMETERS VALUES ENTERED ABOVE  """
 # #####################################################
 
-# install(parameter_input)
+install(parameter_input)
 
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
