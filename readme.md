@@ -13,7 +13,7 @@ The installation of the software can be done using either of the following optio
  3. Make sure you have a `Stardog` properly installed (see instructions in https://github.com/RinkeHoekstra/semanticweb-web-application-tutorial/blob/master/tools.md)
 
 ## All-in-One Installation Code Setup
-1. Save the [LenticularLensInstallation.py.py](https://raw.githubusercontent.com/alkoudouss/alignments/master/LenticularLensInstallation.py) python code in an `installation-folder` of your choice.
+1. Save the [LenticularLensInstallation.py](https://raw.githubusercontent.com/alkoudouss/alignments/master/LenticularLensInstallation.py) python code in an `installation-folder` of your choice  `(for example C:\LenticularLens\LenticularLensInstallation.py)` by first clicking on the above link, then right clicking on the web page and finally choosing the `save-as` option.
 2. Open the `LenticularLensInstallation.py`, scroll down to the end of the file and edit the `parameter_input` with the right paths.
 directory				: is the installation folder.
 python_path		: is the folder where python  is installed.
@@ -43,13 +43,15 @@ database_name	: is the stardog database name you will work on.
 		database_name = risis
 		"""
 	```
-
 3. Open the command line:
 	##### WINDOWS :	Press the `windows button` and the `R button` pitch in `cmd` and `enter`
 	##### BIG-MAC:  Press the `command button` and the `space button` pitch in `terminal` and `enter`
 
 4. Go to the installation folder where `LenticularLensInstallation.py` is copied:
-```cd path-to-installation-folder```
+	```
+	cd path-to-installation-folder
+	example: cd C:\LenticularLens
+	```
 
 5. Run the code:
 ```python LenticularLensInstallation.py```
