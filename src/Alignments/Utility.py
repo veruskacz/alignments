@@ -1099,7 +1099,7 @@ def stardog_off(bat_path):
 def create_database(stardog_bin_path, db_bat_path, db_name):
 
     if check_db_exists(db_name) is True:
-        exit(0)
+        return
 
     # CREATING THE DATABASE IN STARDOG
     create_db = """
@@ -1134,7 +1134,7 @@ def check_db_exists(database):
                 print "\nDATABASE [{}] ALREADY EXIST: ".format(database)
                 return True
         else:
-            print "DATABASE [{}] EXISTS BUT {}".format(database, response["message"])
+            print "DATABASE [{}] ALREADY EXISTS".format(database)
             return True
 
 
