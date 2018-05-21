@@ -362,6 +362,87 @@ def endpoint(query):
         return {St.message: err, St.result: None}
 
 
+def endpoint_db(query, database):
+
+    """
+        param query         : The query that is to be run against the SPARQL endpoint
+        param database_name : The name of the database () in with the named-graph resides
+        param host          : the host (server) name
+        return              : returns the result of the query in the default format of the endpoint.
+                            In the case of STARDOG, the sever returns an XML result.
+    """
+
+    q = to_bytes(query)
+    # print query
+    # Content-Type: application/json
+    # b"Accept": b"text/json"
+    # 'output': 'application/sparql-results+json'
+    # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
+    # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
+    #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
+
+    # THIS SHOULD WORK:
+    # The Stardog SPARQL endpoint is http://<server>:<port>/{db}/query.
+    # http://145.100.59.152:5820/risis_test#!/query/
+    url = b"http://{}/annex/{}/sparql/query?".format(HOST, database)
+    # url = b"http://{}/{}#!/query/".format(HOST, DATABASE)
+    # print url
+    params = urllib.urlencode(
+        {b'query': q, b'format': b'application/sparql-results+json',
+         b'timeout': b'0', b'debug': b'on', b'should-sponge': b''})
+    headers = {b"Content-Type": b"application/x-www-form-urlencoded"}
+
+    """
+        Authentication
+    """
+    user = Svr.settings[St.stardog_user]
+    password = Svr.settings[St.stardog_pass]
+    passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+    passman.add_password(None, url, user, password)
+    urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
+    request = urllib2.Request(url, data=params, headers=headers)
+
+    # print "THE REQUEST'S FULL URI: " + request.get_full_url()
+    # print "THE REQUEST'S DATA: {}".format(request.data)
+
+    request.get_method = lambda: "POST"
+    try:
+        response = urllib2.urlopen(request)
+        result = response.read()
+        # print result
+        # print "NONE", result is None
+        # print "EMPTY", len(result)
+        return {St.message: "OK", St.result: result}
+
+    except urllib2.HTTPError, err:
+        message = err.read()
+        if len(message) == 0:
+            message = err
+
+        if str(message).__contains__("Service Unavailable") or str(message).__contains__("Error 503"):
+            print "THE SERVER IS NOT ON"
+        else:
+            print "USING THIS QUERY {}\nERROR CODE {}: {}".format(query, err.code, message)
+        return {St.message: message, St.result: None}
+
+    except Exception as err:
+
+        if str(err).__contains__("No connection") is True:
+            # logger.warning(err)
+            # print ERROR
+            return {St.message: ERROR, St.result: None}
+
+        elif str(err.message).__contains__("timeout") is True:
+            print "Query execution cancelled: Execution time exceeded query timeout"
+            return {St.message: "Query execution cancelled: Execution time exceeded query timeout.",
+                    St.result: None}
+
+        logger.warning(err)
+        message = "\nOR MAYBE THERE IS AN ERROR IN THIS QUERY"
+        print message + "\n" + query
+        return {St.message: err, St.result: None}
+
+
 def boolean_endpoint_response(query, display=False):
 
     # if query.lower().__contains__('ask') is False:
@@ -508,6 +589,263 @@ def sparql_xml_to_matrix(query):
     #     return {St.message: message, St.result: None}
 
     response = endpoint(query)
+    logger.info("1. RESPONSE OBTAINED")
+    # print response[St.result]
+
+    # DISPLAYING THE RESULT
+
+    if response[St.message] == "OK":
+
+        # print "response:", response[St.result]
+        # print "response length:", len(response[St.result])
+
+        if len(response[St.result]) == 0:
+            message = "NO RESULT FOR THE QUERY"
+            return {St.message: message, St.result: None}
+
+        logger.info("2. RESPONSE IS NOT ''NONE''")
+
+        if True:
+            xml_doc = xmltodict.parse(response[St.result])
+            # print "3. FROM XML TO DOC IN {}".format(str(time.time() - start_time))
+
+            # VARIABLES
+            # print "4. GETTING VARIABLE'S LIST FROM XML_DOC"
+            variables_list = xml_doc['sparql']['head']['variable']
+            # print "Variable List", variables_list
+            # print "5. EXTRACTED IN {} SECONDS".format(str(time.time() - start_time))
+
+            variables_size = len(variables_list)
+            # print "6. VARIABLE SIZE:", variables_size
+
+            # RESULTS
+            # print "7. GETTING RESULT'S LIST FROM XML_DOC"
+            results = xml_doc['sparql']['results']
+            # print "8. IN {}".format(str(time.time() - start_time))
+
+            if results is not None:
+                # print "9. RESULT LIST IS NOT NONE"
+                results = results['result']
+                # print results
+                # print type(results)
+            else:
+                message = "NO RESULT FOR THE QUERY"
+                return {St.message: message, St.result: None}
+                # print query
+
+            """ >>> SINGLE RESULT """
+            if type(results) is collections.OrderedDict:
+                # print "SINGLE RESULT"
+                # Creates a list containing h lists, each of w items, all set to 0
+                # INITIALIZING THE MATRIX
+                w, h = variables_size, 2
+                # print "Creating matrix with size {} by {}".format(w, h)
+                # x*y*0 to avoid weak error say x and y where not used
+                matrix = [[str(x*y*0).replace("0", "") for x in range(w)] for y in range(h)]
+                # print matrix
+                col = -1
+
+                if variables_size == 1:
+                    for name, variable in variables_list.items():
+                        # HEADER
+                        col += 1
+                        # print variable
+                        matrix[0][col] = variable
+                        # print matrix
+
+                    # RECORDS
+                    for key, value in results.items():
+                        # print type(value)
+                        if type(value) is collections.OrderedDict:
+                            item_value = value.items()[1][1]
+                            if "#text" in item_value:
+                                # print to_bytes(item_value["#text"])
+                                matrix[1][0] = to_bytes(item_value["#text"])
+                            else:
+                                matrix[1][0] = to_bytes(item_value)
+                        else:
+                            matrix[1][0] = to_bytes(value.items()[1][1])
+
+                else:
+                    # print "Variable greater than 1"
+                    # HEADER
+                    for variable in variables_list:
+                        for key, value in variable.items():
+                            col += 1
+                            matrix[0][col] = to_bytes(value)
+                            name_index[to_bytes(value)] = col
+                            # print "{} was inserted".format(value)
+                            # print matrix
+
+                    # RECORDS
+                    # print results.items()
+                    for key, value in results.items():
+                        # COLUMNS
+                        # print "Key: ", key
+                        # print "Value: ", value
+                        for data in value:
+                            # print "value Items: ", value.items()[i][1]
+                            # print "Length:", len(value.items())
+                            if type(value) is list:
+                                # print "value:", value
+                                # data = value[i]
+
+                                # get_property = data['@name']
+                                # print "get_property:", get_property
+                                # index = name_index[get_property]
+                                # print "index", index
+
+                                index = name_index[data['@name']]
+                                item = data.items()[1][1]
+                                # print data['@name'], name_index[data['@name']]
+                                matrix[1][index] = to_bytes(item)
+
+                            elif type(value) is collections.OrderedDict:
+                                index = name_index[value['@name']]
+                                if value.items()[1][0] != '@name':
+                                    item = value.items()[1][1]
+                                    matrix[1][index] = to_bytes(item)
+                                    # print "Collection:", value.items()[i][0]
+                                else:
+                                    item = ""
+
+                            if type(item) is collections.OrderedDict:
+                                # print "Data is a collection"
+                                # print "{} was inserted".format(data.items()[1][1])
+                                matrix[1][index] = to_bytes(item.items()[1][1])
+                            else:
+                                # print "data is regular"
+                                # print "{} was inserted".format(data)
+                                matrix[1][index] = to_bytes(item)
+                                # print matrix
+
+                    # print "The matrix is: {}".format(matrix)
+
+            # >>> MORE THAN ONE RESULT
+            if type(results) is list:
+                # print "THE LIST CONTAINS MORE THAN ONE RESULTS"
+                row = 0
+                columns = -1
+                row_size = len(results)
+
+                # Creates a list containing h lists, each of w items, all set to 0
+                w, h = variables_size, row_size + 1
+
+                # print "INITIALIZING THE MATRIX FOR: [{}][{}]".format(h, w)
+                matrix = [[str(x*y*0).replace("0", "") for x in range(w)] for y in range(h)]
+
+                # HEADER
+                # print "UPDATING MATRIX'S HEADER"
+                for variable in variables_list:
+
+                    if type(variable) is collections.OrderedDict:
+                        for key, value in variable.items():
+                            columns += 1
+                            # print "COLUMN: ", columns, value
+                            # print value
+                            matrix[0][columns] = to_bytes(value)
+                            name_index[to_bytes(value)] = columns
+                    else:
+                        # print "TYPE", type(variables_list)
+                        # print "value:", variables_list.items()[0][1]
+                        columns += 1
+                        # print "COLUMN: ", columns
+                        matrix[0][columns] = to_bytes(variables_list.items()[0][1])
+
+                # RECORDS
+                # print "UPDATING MATRIX WITH VARIABLES' VALUES"
+                for result in results:
+
+                    # ROWS
+                    if variables_size == 1:
+                        for key, value in result.items():
+                            row += 1
+                            for c in range(variables_size):
+                                # print value.items()[1][1]
+
+                                # if type(c) is collections.OrderedDict:
+                                data = value.items()[1][1]
+                                if type(data) is collections.OrderedDict:
+                                    item = data.items()[1][1]
+                                    matrix[row][0] = item
+
+                                else:
+                                    matrix[row][0] = to_bytes(data)
+                    else:
+                        for key, value in result.items():
+                            # COLUMNS
+                            # print type(value)
+                            row += 1
+                            # value is a list
+                            # for c in range(variables_size):
+                            for data in value:
+
+                                if type(data) is collections.OrderedDict:
+
+                                    # print row
+                                    # print value[c].items()[1][1]
+                                    # data = value[c]
+                                    # print data['@name'], name_index[data['@name']]
+                                    get_index = data['@name']
+                                    index = name_index[get_index]
+                                    # print "index:", index, "TYPE:", type(data)
+                                    item = data.items()[1][1]
+                                    # print index, item
+                                    if type(item) is collections.OrderedDict:
+                                        item_value = item.items()[1][1]
+                                        matrix[row][index] = to_bytes(item_value)
+                                        # print to_bytes(item_value)
+                                        # print item.items()
+                                        # print "r{} c{} v{}".format(row, c, data.items()[1][1])
+                                    else:
+                                        matrix[row][index] = to_bytes(item)
+                                        # print to_bytes(item)
+                                        # print "r:{} c:{} {}={}".format(row, c, matrix[0][c], to_bytes(item))
+                                else:
+                                    index = name_index[value['@name']]
+                                    if data != '@name':
+                                        matrix[row][index] = to_bytes(value[data])
+                                        # print "data:", data, value[data], name_index[value['@name']]
+
+            # print "DONE"
+            # print "out with: {}".format(matrix)
+            return {St.message: "OK", St.result: matrix}
+
+        # except Exception as err:
+        #     message = "\nUNACCEPTED ERROR IN THE RESPONSE."
+        #     print message
+        #     return {St.message: err, St.result: None}
+
+    else:
+        # logger.warning("NO RESPONSE")
+        # print response[St.message]
+        return {St.message: "NO RESPONSE", St.result: response[St.result], "justification": response[St.message]}
+
+
+def sparql_xml_to_matrix_db(query, database):
+
+    name_index = dict()
+
+    if type(query) is not str and type(query) is not unicode:
+        message = "THE QUERY NEEDS TO BE OF TYPE STRING. {} WAS GIVEN".format(type(query))
+        print message
+        return {St.message: message, St.result: None}
+
+    if (query is None) or (query == ""):
+        message = "Empty query"
+        print message
+        return {St.message: message, St.result: None}
+
+    # start_time = time.time()
+    matrix = None
+    logger.info("XML RESULT TO TABLE")
+    # print query
+
+    # if query.lower().__contains__("optional") is True:
+    #     message = "MATRIX DOES NOT YET DEAL WITH OPTIONAL"
+    #     return {St.message: message, St.result: None}
+
+    response = endpoint_db(query, database)
     logger.info("1. RESPONSE OBTAINED")
     # print response[St.result]
 
@@ -1120,7 +1458,6 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
         print message
 
         count = 0
-
 
         for r in range(len(res_matrix)):
 

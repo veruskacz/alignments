@@ -9,6 +9,7 @@ import subprocess
 from os.path import join
 import cStringIO as Buffer
 
+
 # #####################################################
 """ FUNCTION PARAMETERS """
 # #####################################################
@@ -20,10 +21,9 @@ begining = time.time()
 _line = "------------------------------------------------------------------------------------------------------"
 print "\n{}\n{:>90}\n{}\n".format(_line, date.strftime(_format), _line)
 
+
 # #####################################################
 """ FINSTALLATION FUNCTIONS """
-
-
 # #####################################################
 
 def normalise_path(file_path):
@@ -84,6 +84,8 @@ def update_settings(directory, stardog_home, stardog_bin, database_name):
 
 
 def install(parameter_inputs):
+
+    # INPUT EXTRACTIOIN STEP 1
     inputs_0 = re.findall("run[ ]*=[ ]*([^\"\'\n]+)", parameter_inputs)
     inputs_1 = re.findall("directory[ ]*=[ \"\']*([^\"\'\n]+)", parameter_inputs)
     inputs_2 = re.findall("python_path[ ]*=[ \"\']*([^\"\'\n]+)", parameter_inputs)
@@ -91,8 +93,7 @@ def install(parameter_inputs):
     inputs_4 = re.findall("stardog_home[ ]*=[ \"\']*([^\"\'\n]*)", parameter_inputs)
     inputs_5 = re.findall("database_name[ ]*=[ \"\']*([^\"\'\n]*)", parameter_inputs)
 
-    # DEFAULT_DATABASE = os.getenv("LL_STARDOG_DATABASE", "risis")
-
+    #  INPUT EXTRACTIOIN STEP 2
     run = bool(str(inputs_0[0]).strip()) if len(inputs_0) > 0 else None
     directory = normalise_path(str(inputs_1[0]).strip()) if len(inputs_1) > 0 else None
     python_path = normalise_path(str(inputs_2[0]).strip()) if len(inputs_2) > 0 else None
@@ -100,37 +101,44 @@ def install(parameter_inputs):
     stardog_home = normalise_path(str(inputs_4[0]).strip()) if len(inputs_4) > 0 else None
     database_name = str(inputs_5[0]).strip() if len(inputs_5) > 0 else None
 
+    # PRINTING THE EXTRACTED INPUTS
     print "{:23}: {}".format("INSTALLATION DIRECTORY", directory)
     print "{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
     print "{:23}: {}".format("STARDOG DATA PATH", stardog_home)
     print "{:23}: {}".format("STARDOG HOME PATH", stardog_bin)
     print "{:23}: {}".format("DATABASE NAME", database_name)
 
+    # CHECKING IF ALL INPUTS HAVE BEEN PROVIDED
     if run is None or directory is None or python_path is None or stardog_bin is None or \
                     stardog_home is None or database_name is None:
         print "THERE IS A MISSING INPUT"
         return
 
+    # MAC INPUT ARE NOT WITH BACKSLASH
     if OPE_SYS != "windows":
         if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
                         stardog_home.__contains__("\\") is None:
             print "\nCHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)\n"
             return
 
+    # ENV VARIABLE OR PROPER VARIABLE ARE ALLOWED
     directory = os.getenv("LL_DIRECTORY", directory)
     python_path = os.getenv("LL_PYTHON_PATH", python_path)
     stardog_bin = os.getenv("LL_STARDOG_PATH", stardog_bin)
     stardog_home = os.getenv("LL_STARDOG_DATA", stardog_home)
     database_name = os.getenv("LL_STARDOG_DATABASE", database_name)
 
-    directory = directory.replace("\\", "\\\\")
-    python_path = python_path.replace("\\", "\\\\")
-    stardog_bin = stardog_bin.replace("\\", "\\\\")
-    stardog_home = stardog_home.replace("\\", "\\\\")
-
+    # MAKING SURE THAT THE PATHS END PROPERLY
     if OPE_SYS != "windows":
         stardog_bin = "{}/".format(stardog_bin) if stardog_bin.endswith("/") is False else stardog_bin
         stardog_home = "{}/".format(stardog_home) if stardog_home.endswith("/") is False else stardog_home
+    else:
+        stardog_bin = "{}\\".format(stardog_bin) if stardog_bin.endswith("\\") is False else stardog_bin
+        stardog_home = "{}\\".format(stardog_home) if stardog_home.endswith("\\") is False else stardog_home
+        directory = directory.replace("\\", "\\\\")
+        python_path = python_path.replace("\\", "\\\\")
+        stardog_bin = stardog_bin.replace("\\", "\\\\")
+        stardog_home = stardog_home.replace("\\", "\\\\")
 
     # RUNNING THE GENERIC INSTALLATION
     generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=run)
@@ -379,7 +387,7 @@ database_name = risis
     ON THE PARAMETERS VALUES ENTERED ABOVE  """
 # #####################################################
 
-install(parameter_input)
+# install(parameter_input)
 
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES

@@ -1099,6 +1099,9 @@ def stardog_off(bat_path):
 
 def create_database(stardog_bin_path, db_bat_path, db_name):
 
+    if check_db_exists(db_name) is True:
+        exit(0)
+
     # CREATING THE DATABASE IN STARDOG
     create_db = """
     \"{0}{2}stardog-admin\" db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n {1}
@@ -1115,6 +1118,25 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
         os.system(db_bat_path)
     else:
         os.system("OPEN -a Terminal.app {}".format(db_bat_path))
+
+    os.remove(db_bat_path)
+
+def check_db_exists(database):
+
+    response = Qr.sparql_xml_to_matrix_db(query="SELECT DISTINCT ?s WHERE { ?s ?p ?o } LIMIT 10", database=database)
+    if response["result"] is None:
+        if "justification" in response:
+            justification = response["justification"]
+            if justification.__contains__("UnknownDatabase") is True:
+                print "\nDATABASE [{}] DOES NOT EXIST: ".format(database)
+                return False
+            else:
+                print "\nDATABASE [{}] ALREADY EXIST: ".format(database)
+                return True
+        else:
+            print "DATABASE [{}] EXISTS BUT {}".format(database, response["message"])
+            return True
+
 
 def extract_ref(text):
 
