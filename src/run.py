@@ -1,7 +1,7 @@
 from app import app
 import os
 import requests
-import platform
+import webbrowser as web
 import Alignments.Settings as St
 import Alignments.Utility as Ut
 import Alignments.Server_Settings as Svr
@@ -11,6 +11,7 @@ import Alignments.Server_Settings as Svr
 # https://docupub.com/pdfmerge/
 print "\nRUNNING THE LENTICULAR LENS SERVER"
 lock_file = None
+port = int(os.getenv("LL_PORT", 5077))
 RESET_SERVER_BATS = False
 if __name__ == "__main__":
 
@@ -44,6 +45,8 @@ if __name__ == "__main__":
             # CREATING THE DATABASE IN STARDOG
             db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
             Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
+            print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER"
+            web.open_new_tab('http://localhost:{}/'.format(str(port)))
 
         elif len(lock_file) > 0 and (
                     str(response).__contains__("200") or
@@ -53,6 +56,7 @@ if __name__ == "__main__":
             # CREATING THE DATABASE IN STARDOG
             db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
             Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
+            web.open_new_tab('http://localhost:{}/'.format(str(port)))
 
         else:
             print "\n>>> ", response
@@ -66,7 +70,8 @@ if __name__ == "__main__":
             # CREATING THE DATABASE IN STARDOG
             db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())
             Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
+            web.open_new_tab('http://localhost:{}/'.format(str(port)))
 
-        app.run(host="0.0.0.0", port=int(os.getenv("LL_PORT", 5077)))
+        app.run(host="0.0.0.0", port=int(os.getenv("LL_PORT", port)))
 
 # LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py
