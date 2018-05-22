@@ -372,7 +372,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     # AS A NEW WINDOW WILL PUP UP AND ERASE ALL PREVIUS OUPUTS
     if OPE_SYS == 'windows':
         print "\n{0}\n    >>> SLEEPING FOR 20 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
-        time.sleep(20)
+        time.sleep(10)
 
 
 def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
@@ -433,7 +433,9 @@ database_name = risis
 # #####################################################
 
 install(parameter_input)
-
+# import webbrowser as web
+# web.open_new_tab('http://localhost:5077/')
+# export_database(Svr.settings[St.stardog_path], "risis", "C:\Productivity\LinkAnalysis\Coverage")
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
     ON THE PARAMETERS VALUES ENTERED ABOVE

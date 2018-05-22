@@ -42,21 +42,12 @@ if __name__ == "__main__":
         # print response
         if str(response).__contains__("401"):
             print "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
-            # CREATING THE DATABASE IN STARDOG
-            db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
-            Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
-            print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER"
-            web.open_new_tab('http://localhost:{}/'.format(str(port)))
 
         elif len(lock_file) > 0 and (
                     str(response).__contains__("200") or
                     str(response).__contains__("401") or
                     str(response).__contains__("No connection") is False):
             print "THE STARDOG SERVER IS ALREADY ON."
-            # CREATING THE DATABASE IN STARDOG
-            db_bat_path = "{}create_db{}".format(Svr.SRC_DIR, Ut.batch_extension())
-            Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
-            web.open_new_tab('http://localhost:{}/'.format(str(port)))
 
         else:
             print "\n>>> ", response
@@ -67,11 +58,12 @@ if __name__ == "__main__":
             print "LISTENING AT: {}...".format(Svr.settings[St.stardog_data_path])
             Ut.listening(Svr.settings[St.stardog_data_path])
 
-            # CREATING THE DATABASE IN STARDOG
-            db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())
-            Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
-            web.open_new_tab('http://localhost:{}/'.format(str(port)))
+        # CREATING THE DATABASE IN STARDOG
+        db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())
+        Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
+        print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER"
+        web.open_new_tab('http://localhost:{}/'.format(str(port)))
         app.run(host="0.0.0.0", port=int(os.getenv("LL_PORT", port)))
 
 # LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py
