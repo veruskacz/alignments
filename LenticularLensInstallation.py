@@ -422,7 +422,7 @@ run = True
 directory = C:\Productivity\LinkAnalysis\Coverage\InstallTest\Install
 python_path = C:\Python27
 stardog_bin = C:\Program Files\stardog-5.3.0\bin
-stardog_home = C:\Productivity\data\stardog_ISWC
+stardog_home = C:\Productivity\data\stardog
 database_name = risis
 
 """
@@ -433,9 +433,7 @@ database_name = risis
 # #####################################################
 
 install(parameter_input)
-# import webbrowser as web
-# web.open_new_tab('http://localhost:5077/')
-# export_database(Svr.settings[St.stardog_path], "risis", "C:\Productivity\LinkAnalysis\Coverage")
+
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
     ON THE PARAMETERS VALUES ENTERED ABOVE
