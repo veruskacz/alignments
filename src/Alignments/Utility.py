@@ -1096,6 +1096,26 @@ def stardog_off(bat_path):
         print ">>> THE SERVER WAS NOT ON."
 
 
+def run_cdm(cmd, batch_path, delete_after=True):
+
+    writer = open(batch_path, "wb")
+    writer.write(cmd)
+    writer.close()
+
+    # FILE ACCESS
+    os.chmod(batch_path, 0o777)
+
+    # RUNNING THE BATCH COMMANDS
+    if platform.system().lower() == "windows":
+        os.system(batch_path)
+    else:
+        os.system("OPEN -a Terminal.app {}".format(batch_path))
+
+    # DELETE THE BATCH COMMAND AFTER EXECUTION
+    if delete_after is True:
+        os.remove(batch_path)
+
+
 def create_database(stardog_bin_path, db_bat_path, db_name):
 
     if check_db_exists(db_name) is True:
@@ -1119,6 +1139,23 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
         os.system("OPEN -a Terminal.app {}".format(db_bat_path))
 
     # os.remove(db_bat_path)
+
+
+def export_database(stardog_bin_path, db_name, save_in):
+
+    # MAKE SURE THE DIRECTORY END WITH A SEPARATOR
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    file_path = join(save_in, "{}__backup_{}.ttl".format(db_name, date))
+
+    # MAKE SURE THE BIN PATH ENDS WIT A SEPARATOR
+    stardog_bin_path = stardog_bin_path if str(stardog_bin_path).endswith(os.path.sep) \
+        else "{0}{1}{1}".format(stardog_bin_path, os.path.sep)
+
+    cmd = "\"{0}stardog\" data export --named-graph ALL --format TRIG {1} {2}".format(
+        stardog_bin_path, db_name, file_path)
+
+    batch_path = join(save_in, "{}__backup_{}{}".format(db_name, date, batch_extension()))
+    run_cdm(cmd, batch_path, delete_after=True)
 
 
 def check_db_exists(database):
