@@ -6,6 +6,7 @@ import datetime
 import platform
 import fileinput
 import subprocess
+from cmd import Cmd
 from os.path import join
 import cStringIO as Buffer
 
@@ -97,6 +98,45 @@ commands = {
 
 
 # #####################################################
+""" INPUT PROMPT CLASS """
+# #####################################################
+
+
+def process_input(prompt):
+
+    try:
+        return input("{:60} : ".format(prompt))
+    except Exception as err:
+        while True:
+            try:
+                print "\nENTER THE INPUT WITHN QUOATE"
+                return input("{:30} : ".format(prompt))
+            except Exception as err:
+                "nothing"
+
+
+class MyPrompt(Cmd):
+
+    def do_install(self, args):
+
+        if len(args) == 0:
+            directory = process_input("    Enter the installation directory path")
+            python_path = process_input("    Enter the python directory path")
+            stardog_bin = process_input("    Enter the stardog bin directory path")
+            stardog_home = process_input("    Enter stardog home directory path")
+            database_name = process_input("    Enter the stardog database name")
+            run = process_input("    Enter True/False if you want to run this program")
+            install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run)
+        else:
+            install(parameter_input)
+
+    def do_quit(self, args):
+        """Quits the program."""
+        print "\nThanks for trying it!."
+        raise SystemExit
+
+
+# #####################################################
 """ FINSTALLATION FUNCTIONS """
 # #####################################################
 
@@ -174,7 +214,7 @@ def replace_all(file_path, search_exp, replace_exp):
         writer.write(wr.getvalue())
 
 
-def update_settings(directory, stardog_home, stardog_bin, database_name):
+def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port):
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""
     # UPDATING THE SETTINGS IN THE SERVER SETTING FILE
@@ -194,6 +234,13 @@ def update_settings(directory, stardog_home, stardog_bin, database_name):
     d_data = """"LL_STARDOG_DATABASE",[ ]*"(.*)\""""
     replace_all(svr_settings, d_data, """{}""".format(database_name))
 
+    # LENTICULAR LENS POERT
+    port = """"LL_PORT",[ ]*(\d*)"""
+    replace_all(svr_settings, port, """{}""".format(ll_port))
+
+    print "port:", ll_port
+    exit(0)
+
 
 def input_prep(parameter_inputs):
 
@@ -208,6 +255,7 @@ def input_prep(parameter_inputs):
     inputs_3 = re.findall("stardog_bin[ ]*=[ \"\']*([^\"\'\n]*)", parameter_inputs)
     inputs_4 = re.findall("stardog_home[ ]*=[ \"\']*([^\"\'\n]*)", parameter_inputs)
     inputs_5 = re.findall("database_name[ ]*=[ \"\']*([^\"\'\n]*)", parameter_inputs)
+    inputs_6 = re.findall("ll_port[ ]*=[ \"\']*([^\"\'\n]*)", parameter_inputs)
 
     #  INPUT EXTRACTIOIN STEP 2
     run = bool(str(inputs_0[0]).strip()) if len(inputs_0) > 0 else None
@@ -216,18 +264,24 @@ def input_prep(parameter_inputs):
     stardog_bin = normalise_path(str(inputs_3[0]).strip()) if len(inputs_3) > 0 else None
     stardog_home = normalise_path(str(inputs_4[0]).strip()) if len(inputs_4) > 0 else None
     database_name = str(inputs_5[0]).strip() if len(inputs_5) > 0 else None
+    ll_port = int(inputs_6[0].strip()) if len(inputs_6) > 0 else 5077
 
     # PRINTING THE EXTRACTED INPUTS
-    print "{:23}: {}".format("INSTALLATION DIRECTORY", directory)
+    print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
+    print "\n{:23}: {}".format("INSTALLATION DIRECTORY", directory)
     print "{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
     print "{:23}: {}".format("STARDOG DATA PATH", stardog_home)
     print "{:23}: {}".format("STARDOG HOME PATH", stardog_bin)
     print "{:23}: {}".format("DATABASE NAME", database_name)
+    if run is True:
+        print "{:23}: {} at PORT {}".format("RUN", run, ll_port)
+    else:
+        print "{:23}: {}".format("RUN", run)
 
     # CHECKING IF ALL INPUTS HAVE BEEN PROVIDED
     if run is None or directory is None or python_path is None or stardog_bin is None or \
                     stardog_home is None or database_name is None:
-        print "THERE IS A MISSING INPUT"
+        print "\nCHECK THE ENTERED INPUTS.... THERE MAY BE MISSING OR MAY NOT BE A PROPER PATH."
         exit(0)
 
     # MAC INPUT ARE NOT WITH BACKSLASH
@@ -256,7 +310,78 @@ def input_prep(parameter_inputs):
         stardog_bin = stardog_bin.replace("\\", "\\\\")
         stardog_home = stardog_home.replace("\\", "\\\\")
 
-    return [directory, python_path, stardog_bin, stardog_home, database_name, run]
+    return [directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port]
+
+
+def input_prompt_prep(directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port):
+
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # PREPARING THE INPUT PARAMETRS AS IT IS GEVEN AS A STRING
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+    #  INPUT EXTRACTIOIN STEP 2
+    run = bool(run) if len(str(run)) > 0 else None
+    directory = normalise_path(directory.strip()) \
+        if len(directory) > 0 and directory.__contains__(os.path.sep) else None
+
+    python_path = normalise_path(python_path.strip()) \
+        if len(python_path) > 0 and python_path.__contains__(os.path.sep) else None
+
+    stardog_bin = normalise_path(stardog_bin.strip()) \
+        if len(stardog_bin) > 0 and stardog_bin.__contains__(os.path.sep) else None
+
+    stardog_home = normalise_path(stardog_home.strip()) \
+        if len(stardog_home) > 0  and stardog_home.__contains__(os.path.sep) else None
+
+    database_name = database_name.strip() if len(database_name) > 0  else None
+
+    ll_port = int(inputs_6[0].strip()) if len(inputs_6) > 0 else 5077
+
+    # PRINTING THE EXTRACTED INPUTS
+    print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
+    print "\n{:23}: {}".format("INSTALLATION DIRECTORY", directory)
+    print "{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
+    print "{:23}: {}".format("STARDOG DATA PATH", stardog_home)
+    print "{:23}: {}".format("STARDOG HOME PATH", stardog_bin)
+    print "{:23}: {}".format("DATABASE NAME", database_name)
+    if run is True:
+        print "{:23}: {} at PORT {}".format("RUN", run, ll_port)
+    else:
+        print "{:23}: {}".format("RUN", run)
+
+    # CHECKING IF ALL INPUTS HAVE BEEN PROVIDED
+    if run is None or directory is None or python_path is None or stardog_bin is None or \
+                    stardog_home is None or database_name is None:
+        print "\nCHECK THE ENTERED INPUTS.... THERE MAY BE MISSING OR MAY NOT BE A PROPER PATH."
+        exit(0)
+
+    # MAC INPUT ARE NOT WITH BACKSLASH
+    if OPE_SYS != "windows":
+        if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
+                        stardog_home.__contains__("\\") is None:
+            print "\nCHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)\n"
+            exit(0)
+
+    # ENV VARIABLE OR PROPER VARIABLE ARE ALLOWED
+    directory = os.getenv("LL_DIRECTORY", directory)
+    python_path = os.getenv("LL_PYTHON_PATH", python_path)
+    stardog_bin = os.getenv("LL_STARDOG_PATH", stardog_bin)
+    stardog_home = os.getenv("LL_STARDOG_DATA", stardog_home)
+    database_name = os.getenv("LL_STARDOG_DATABASE", database_name)
+
+    # MAKING SURE THAT THE PATHS END PROPERLY
+    if OPE_SYS != "windows":
+        stardog_bin = "{}/".format(stardog_bin) if stardog_bin.endswith("/") is False else stardog_bin
+        stardog_home = "{}/".format(stardog_home) if stardog_home.endswith("/") is False else stardog_home
+    else:
+        stardog_bin = "{}\\".format(stardog_bin) if stardog_bin.endswith("\\") is False else stardog_bin
+        stardog_home = "{}\\".format(stardog_home) if stardog_home.endswith("\\") is False else stardog_home
+        directory = directory.replace("\\", "\\\\")
+        python_path = python_path.replace("\\", "\\\\")
+        stardog_bin = stardog_bin.replace("\\", "\\\\")
+        stardog_home = stardog_home.replace("\\", "\\\\")
+
+    return [directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port]
 
 
 def install(parameter_inputs):
@@ -272,9 +397,10 @@ def install(parameter_inputs):
     stardog_home = parameters[3]
     database_name = parameters[4]
     run = parameters[5]
+    ll_port = parameters[6]
 
     # RUNNING THE GENERIC INSTALLATION
-    generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=run)
+    generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=run, ll_port=ll_port)
 
     # RUNNING WINDOWS SPECIFIC INSTALLATION
     if OPE_SYS == "windows":
@@ -285,7 +411,33 @@ def install(parameter_inputs):
         mac_install(directory, python_path, stardog_home=stardog_home, stardog_bin=stardog_bin, run=run)
 
 
-def generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=False):
+def install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port):
+
+    """""""""""""""""""""""""""
+    # INSTALLATION MAIN ENTRY
+    """""""""""""""""""""""""""
+
+    # RUNNING THE GENERIC INSTALLATION
+    parameters = input_prompt_prep(directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port)
+    directory = parameters[0]
+    python_path = parameters[1]
+    stardog_bin = parameters[2]
+    stardog_home = parameters[3]
+    database_name = parameters[4]
+    run = parameters[5]
+
+    generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=run, ll_port=ll_port)
+
+    # RUNNING WINDOWS SPECIFIC INSTALLATION
+    if OPE_SYS == "windows":
+        win_install(directory, python_path, stardog_home=stardog_home, stardog_bin=stardog_bin, run=run)
+
+    # RUNNING MAC OR LINUX SPECIFIC INSTALLATION
+    else:
+        mac_install(directory, python_path, stardog_home=stardog_home, stardog_bin=stardog_bin, run=run)
+
+
+def generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=False, ll_port=5077):
 
     print "{:23}: {}\n".format("COMPUTER TYPE", platform.system().upper())
 
@@ -357,21 +509,22 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     if os.path.isdir(join(directory, "alignments")) is False:
         print "\n{0}\n    >>> LENTICULAR LENS CLONE REQUEST\n{0}\n".format(highlight)
         cloning = commands["git_clone"].format(w_dir)
+        execute_cmd(cloning, file_path, output=False, run=run)
     else:
         print "\n{0}\n    >>> LENTICULAR LENS PULL REQUEST\n{0}\n".format(highlight)
         pulling = commands["git_pull"].format(join(directory, "alignments"))
-    execute_cmd(pulling, file_path, output=False, run=run)
+        execute_cmd(pulling, file_path, output=False, run=run)
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
-    update_settings(directory, stardog_home, stardog_bin, database_name)
+    update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
 
     # 8. SLEEPING TIME FOR WINDOWS USER FOR CHECKING WHAT HAS BEE DONE SO FAR
     # AS A NEW WINDOW WILL PUP UP AND ERASE ALL PREVIUS OUPUTS
     if OPE_SYS == 'windows':
-        print "\n{0}\n    >>> SLEEPING FOR 20 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
+        print "\n{0}\n    >>> SLEEPING FOR 10 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
         time.sleep(10)
 
 
@@ -424,7 +577,7 @@ python_path = C:\Python27
 stardog_bin = C:\Program Files\stardog-5.3.0\bin
 stardog_home = C:\Productivity\data\stardog
 database_name = risis
-
+ll_port = 5076
 """
 
 # #####################################################
@@ -432,7 +585,7 @@ database_name = risis
     ON THE PARAMETERS VALUES ENTERED ABOVE  """
 # #####################################################
 
-install(parameter_input)
+# install(parameter_input)
 
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
@@ -441,3 +594,13 @@ install(parameter_input)
 # #####################################################
 
 # DIRECTORY="" PYTHON_PATH="" STARDOG_PATH="" STARDOG_DATA="" python LenticularLensInstallation.py
+
+
+
+
+prompt = MyPrompt()
+prompt.prompt = '> '
+prompt.cmdloop('Lenticular Lens Installation Prompt...'
+               '\n  OPTION 1. Enter [install] for directly intering the inputs from the shell.'
+               '\n  OPTION 2. Enter [Intsall all] to run the code using the [parameter_input]'
+               '\n  OPTION 3. Enter [quit] to exit.\n')
