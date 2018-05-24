@@ -23,8 +23,8 @@ UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
 # SERVER_WIN = "localhost:5820"
 # STARDOG_PATH_WIN = 'C:\\Program Files\\stardog-5.3.0\\bin\\'
 # STARDOG_DATA_PATH_WIN = "C:\\Productivity\\data\\stardog"
-
 DEFAULT_SERVER = "localhost:5820"
+LENTICULAR_LENS_PORT = int(os.getenv("LL_PORT", 5077))
 SERVER = os.getenv("LL_STARDOG_SERVER", DEFAULT_SERVER)
 DEFAULT_DATABASE = os.getenv("LL_STARDOG_DATABASE", "risis")
 STARDOG_PATH = os.getenv("LL_STARDOG_PATH", "C:\\Program Files\\stardog-5.3.0\\bin\\")
@@ -42,6 +42,8 @@ settings = {
     St.database: DEFAULT_DATABASE,
     St.stardog_user: "admin",
     St.stardog_pass: "admin",
+
+    St.ll_port: LENTICULAR_LENS_PORT,
 
     # TRUE MEANS THE PYTHON SERVER AND THE STARDOG
     # SERVER ARE NOT ON THE SAME LOCAL HOST
