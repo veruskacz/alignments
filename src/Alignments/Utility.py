@@ -13,7 +13,7 @@ import cStringIO
 import xmltodict
 import requests
 import subprocess
-import zipfile as Zip
+import zipfile as f_zip
 from os import listdir
 import os.path as path
 import cStringIO as Buffer
@@ -38,13 +38,12 @@ mac_weird_name = "darwin"
 #################################################################
 
 
+def zip_dir(file_path, zip_name):
 
-def zip_dir(path, zip_name):
-
-    zip_f = Zip.ZipFile(zip_name, 'w', Zip.ZIP_DEFLATED)
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            zip_f.write(os.path.join(root, file))
+    zip_f = f_zip.ZipFile(zip_name, 'w', f_zip.ZIP_DEFLATED)
+    for root, dirs, files in os.walk(file_path):
+        for doc in files:
+            zip_f.write(os.path.join(root, doc))
 
 
 def hash_it(text):
@@ -127,7 +126,8 @@ def get_uri_local_name(uri, sep="_"):
         return name
 
     else:
-        non_alphanumeric_str = re.sub('[ \w\.-]', '', uri)
+        pattern = '[ \w\.-]'
+        non_alphanumeric_str = re.sub(pattern, '', uri)
         if non_alphanumeric_str == "":
             return uri
         else:
@@ -168,8 +168,9 @@ def get_uri_local_name_plus(uri, sep="_"):
         return name
 
     else:
-        local = re.findall(".*[\/\#](.*)$", uri)
-        if len(local) > 0 and len(local[0]) > 0 :
+        pattern = ".*[\/\#](.*)$"
+        local = re.findall(pattern, uri)
+        if len(local) > 0 and len(local[0]) > 0:
             return local[0]
         else:
             return uri
@@ -1096,20 +1097,34 @@ def stardog_off(bat_path):
         print ">>> THE SERVER WAS NOT ON."
 
 
-def run_cdm(cmd, batch_path, delete_after=True):
+def run_cdm(cmd, batch_path, delete_after=True, output=False):
 
-    writer = open(batch_path, "wb")
-    writer.write(cmd)
-    writer.close()
 
-    # FILE ACCESS
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+    with open(name=batch_path, mode="wb") as writer:
+        writer.write(cmd)
+
+    # FILE ACCESS WRIGHT
+    # if OPE_SYS != 'windows':
     os.chmod(batch_path, 0o777)
 
-    # RUNNING THE BATCH COMMANDS
-    if platform.system().lower() == "windows":
-        os.system(batch_path)
+    # EXECUTE THE COMMAND
+
+    if output is True:
+        output = subprocess.check_output(batch_path, shell=True)
+        return str(output)
     else:
-        os.system("OPEN -a Terminal.app {}".format(batch_path))
+        # RUNS IN A NEW SHELL
+        subprocess.call(batch_path, shell=True)
+
+    # RUNNING THE BATCH COMMANDS
+    # if platform.system().lower() == "windows":
+    #     os.system(batch_path)
+    # else:
+    #     os.system("OPEN -a Terminal.app {}".format(batch_path))
 
     # DELETE THE BATCH COMMAND AFTER EXECUTION
     if delete_after is True:
@@ -1156,6 +1171,8 @@ def export_database(stardog_bin_path, db_name, save_in):
 
     batch_path = join(save_in, "{}__backup_{}{}".format(db_name, date, batch_extension()))
     run_cdm(cmd, batch_path, delete_after=True)
+
+    export_database(Svr.settings[St.stardog_path], "risis", "C:\Productivity\LinkAnalysis\Coverage")
 
 
 def check_db_exists(database):
@@ -1328,10 +1345,10 @@ def zip_folder(input_folder_path, output_file_path=None):
     as well.
     """
 
-    if path.isfile(output_file_path) is not True :
-        output_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "export.zip")
+    if path.isfile(output_file_path) is not True:
+        output_file_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "export.zip")
 
-    parent_dir = os.path.abspath(os.path.join(input_folder_path, os.pardir))
+    # parent_dir = os.path.abspath(os.path.join(input_folder_path, os.pardir))
 
     file_name = os.path.basename(output_file_path)
     (short_name, extension) = os.path.splitext(file_name)
@@ -1342,7 +1359,7 @@ def zip_folder(input_folder_path, output_file_path=None):
 
     try:
 
-        zip_file = Zip.ZipFile(output_file_path, 'w', Zip.ZIP_DEFLATED)
+        zip_file = f_zip.ZipFile(output_file_path, 'w', f_zip.ZIP_DEFLATED)
 
         for root, folders, files in contents:
 
@@ -1366,7 +1383,7 @@ def zip_folder(input_folder_path, output_file_path=None):
     except OSError, message:
         print message
         sys.exit(1)
-    except Zip.BadZipfile, message:
+    except f_zip.BadZipfile, message:
         print message
         sys.exit(1)
     finally:

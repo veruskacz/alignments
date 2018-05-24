@@ -209,7 +209,9 @@ def union(specs, activated=False):
             print "Removed  : {}".format(total_size - int(specs[St.triples]))
 
             # LOAD THE METADATA
-            inserted_correspondences = int(Qry.get_union_triples(lens))
+            # NOT GOOD AS THE LENS ALSO HAS A SINGLETON GRAPH
+            # inserted_correspondences = int(Qry.get_union_triples(lens))
+            inserted_correspondences = int(specs[St.triples])
             # print "inserted_correspondences:", inserted_correspondences
             specs[St.removedDuplicates] = specs[St.expectedTriples] - inserted_correspondences
             metadata = Gn.union_meta(specs)
@@ -341,3 +343,4 @@ def union_insert_q(lens, source, label):
     DROP SILENT GRAPH tmpgraph:load02
     """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens, Ns.tmpvocab, lens_name, Ns.singletons)
     return query
+# Codes for manipulating stardog data and querying stardog from shell
