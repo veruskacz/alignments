@@ -186,25 +186,3 @@ def graph_metadata(graph):
     print "{:12} : {}".format("MAIN GRAPH", graph)
     query = std_queries["metadata"].format(graph)
     print stardog_query(query)
-
-data1 = "http://risis.eu/linkset/leidenRanking_2015_eter_2014_approxStrSim_University_actor_P110693810"
-data2 = "http://risis.eu/singletons/grid_20170712_grid_20170712_approxStrSim_Organization_label_P887849458"
-data3 = "http://risis.eu/lens/union_Eter_2014_H2020_Grid_20170712" \
-       "_LeidenRanking_2015_Orgref_20170703_Orgreg_20170718_P904257854"
-# print graph_properties("http://risis.eu/dataset/grid_20170712")
-# print graph_search("dataset")
-# print graphs()
-data4 = "http://risis.eu/lens/union_Eter_2014_LeidenRanking" \
-       "_2015_Grid_20170712_H2020_Orgref_20170703_Orgreg_20170718_P1768695787"
-data5 = "http://risis.eu/lens/union_Eter_2014_H2020_Grid_20170712_LeidenRanking" \
-       "_2015_Orgref_20170703_Orgreg_20170718_P904257854"
-data6 = "http://risis.eu/singletons/union_Eter_2014_H2020_Grid_20170712_LeidenRanking_2015" \
-       "_Orgref_20170703_Orgreg_20170718_P904257854"
-
-# print stardog_query_list()
-# print stardog_query_kill(1)
-# print stardog_query_status(1)
-print stardog_export_graph("C:\Productivity\LinkAnalysis\Coverage\InstallTest",
-                           "http://risis.eu/linkset/leidenRanking"
-                           "_2015_eter_2014_approxStrSim_University_actor_P110693810")
-# graph_metadata(data)
