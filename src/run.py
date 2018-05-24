@@ -11,7 +11,6 @@ import Alignments.Server_Settings as Svr
 # https://docupub.com/pdfmerge/
 print "\nRUNNING THE LENTICULAR LENS SERVER"
 lock_file = None
-port = int(os.getenv("LL_PORT", 5077))
 RESET_SERVER_BATS = False
 if __name__ == "__main__":
 
@@ -63,7 +62,7 @@ if __name__ == "__main__":
         Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
         print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER"
-        web.open_new_tab('http://localhost:{}/'.format(str(port)))
+        web.open_new_tab('http://localhost:{}/'.format(Svr.settings[St.ll_port]))
         app.run(host="0.0.0.0", port=Svr.settings[St.ll_port])
 
 # LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py
