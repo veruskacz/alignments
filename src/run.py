@@ -64,6 +64,6 @@ if __name__ == "__main__":
 
         print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER"
         web.open_new_tab('http://localhost:{}/'.format(str(port)))
-        app.run(host="0.0.0.0", port=int(os.getenv("LL_PORT", port)))
+        app.run(host="0.0.0.0", port=Svr.settings[St.ll_port])
 
 # LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py
