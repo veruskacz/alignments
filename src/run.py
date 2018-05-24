@@ -61,7 +61,7 @@ if __name__ == "__main__":
         db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())
         Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
-        print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER"
+        print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(Svr.settings[St.ll_port])
         web.open_new_tab('http://localhost:{}/'.format(Svr.settings[St.ll_port]))
         app.run(host="0.0.0.0", port=Svr.settings[St.ll_port])
 
