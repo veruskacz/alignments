@@ -441,5 +441,3 @@ install(parameter_input)
 # #####################################################
 
 # DIRECTORY="" PYTHON_PATH="" STARDOG_PATH="" STARDOG_DATA="" python LenticularLensInstallation.py
-
-# https://coderwall.com/p/w78iva/give-your-python-program-a-shell-with-the-cmd-module
