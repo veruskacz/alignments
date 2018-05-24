@@ -42,6 +42,7 @@ commands = {
 
     "git_pull": """
     cd {0}
+    git reset --hard HEAD
     git pull
     """,
 
@@ -237,9 +238,6 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
     # LENTICULAR LENS POERT
     port = """"LL_PORT",[ ]*(\d*)"""
     replace_all(svr_settings, port, """{}""".format(ll_port))
-
-    print "port:", ll_port
-    exit(0)
 
 
 def input_prep(parameter_inputs):
