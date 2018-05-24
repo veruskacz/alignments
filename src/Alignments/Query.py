@@ -2038,7 +2038,7 @@ def get_union_triples(lens):
       }}
     }}
     """.format(lens)
-    # print query
+    print query
 
     triples = sparql_xml_to_matrix(query)
     # print triples
