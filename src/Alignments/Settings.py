@@ -173,6 +173,7 @@ stardog_path = 'stardog_path'
 stardog_version = "stardog_version"
 stardog_user = "stardog_user"
 stardog_pass = "stardog_pass"
+ll_port = "ll_port"
 
 
 data_dir = "data_dir"
