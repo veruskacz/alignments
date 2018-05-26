@@ -66,7 +66,6 @@ commands = {
     echo "   >>> INSTALLATION DONE..."
     echo "   >>> RUNNING THE LENTICULAR LENS"
     cd {0}{1}src
-    echo "   >>> mac: LL_STARDOG_PATH="{3}" LL_STARDOG_DATA="{4}" python run.py"
     echo "python -c "import webbrowser as web; web.open_new_tab('http://localhost:5077/')""
     python run.py
     """,
@@ -83,7 +82,7 @@ commands = {
     virtualenv  --python={2} {0}
 
     echo "   >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
-    call source {0}{1}bin{1}activate
+    source {0}{1}bin{1}activate
 
     echo "   >>> INSTALLING THE LENTICULAR LENS REQUIREMENTS"
     sudo pip install -r  {0}{1}requirements.txt
@@ -91,8 +90,8 @@ commands = {
     echo "   >>> INSTALLATION DONE..."
     echo "   >>> RUNNING THE LENTICULAR LENS"
     cd {0}{1}src
-    echo "   >>> mac: LL_STARDOG_PATH=\"{3}\" LL_STARDOG_DATA=\"{4}\" python run.py"
-    echo "python -c \"import webbrowser as web; web.open_new_tab(\'http://localhost:5077/\')\""
+    echo "   >>> mac: LL_STARDOG_PATH=\\\"{3}\\\" LL_STARDOG_DATA=\\\"{4}\\\" python run.py"
+    echo "python -c \\\"import webbrowser as web; web.open_new_tab(\\\'http://localhost:5077/\\\')\\\""
     python run.py
     """
 }
@@ -116,24 +115,28 @@ def process_input(prompt):
                 "nothing"
 
 
+def prompts():
+    directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
+    python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
+    stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
+    stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
+    database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
+    run = process_input("    Enter True/False if you want to [RUN] this program")
+    port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
+    if isinstance(port.strip(), (int, long)) is False:
+        port = "5077"
+
+    return (directory, python_path, stardog_bin, stardog_home, database_name, run, port)
+
+
 class MyPrompt(Cmd):
 
-    def prompts():
-        directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
-        python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
-        stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
-        stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
-        database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
-        run = process_input("    Enter True/False if you want to [RUN] this program")
-        port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
-        if isinstance(port.strip(), (int, long)) is False:
-            ll_port = "5077"
 
     # INSTALL USING THE SHELL PROMPT
     def do_2(self, args):
 
         if len(args) == 0:
-            prompts()
+            (directory, python_path, stardog_bin, stardog_home, database_name, run, port) = prompts()
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
 
 
@@ -145,7 +148,7 @@ class MyPrompt(Cmd):
     def do_install(self, args):
 
         if len(args) == 0:
-            prompts()
+            (directory, python_path, stardog_bin, stardog_home, database_name, run, port) = prompts()
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
         else:
             install(parameter_input)
