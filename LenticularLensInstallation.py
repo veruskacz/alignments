@@ -80,7 +80,7 @@ commands = {
     echo git clone https://github.com/alkoudouss/alignments.git {0}
 
     echo "   >>> CREATING A VIRTUAL ENVIRONMENT"
-    virtualenv  --python={2}{1}python.exe {0}
+    virtualenv  --python={2} {0}
 
     echo "   >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
     call {0}{1}Scripts{1}activate.bat
@@ -91,8 +91,8 @@ commands = {
     echo "   >>> INSTALLATION DONE..."
     echo "   >>> RUNNING THE LENTICULAR LENS"
     cd {0}{1}src
-    echo "   >>> mac: LL_STARDOG_PATH="{3}" LL_STARDOG_DATA="{4}" python run.py"
-    echo "python -c "import webbrowser as web; web.open_new_tab('http://localhost:5077/')""
+    echo "   >>> mac: LL_STARDOG_PATH=\"{3}\" LL_STARDOG_DATA=\"{4}\" python run.py"
+    echo "python -c \"import webbrowser as web; web.open_new_tab(\'http://localhost:5077/\')\""
     python run.py
     """
 }
@@ -118,6 +118,28 @@ def process_input(prompt):
 
 class MyPrompt(Cmd):
 
+    # INSTALL USING THE SHELL PROMPT
+    def do_2(self, args):
+
+        if len(args) == 0:
+            directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
+            python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
+            stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
+            stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
+            database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
+            run = process_input("    Enter True/False if you want to [RUN] this program")
+            port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
+            if len(port.strip()) == 0:
+                ll_port = "5077"
+            install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
+
+
+    # INSTALL USING THE EDITED INPUT PARAMETERS
+    def do_3(self, args):
+
+            install(parameter_input)
+
+    # THIS GIVES BOTH OPTIONS
     def do_install(self, args):
 
         if len(args) == 0:
@@ -337,7 +359,7 @@ def input_prompt_prep(directory, python_path, stardog_bin, stardog_home, databas
     database_name = database_name.strip() if len(database_name) > 0  else None
 
     ll_port = int(str(ll_port).strip()) if isinstance( ll_port.strip(), (int, long)) else 5077
-    
+
 
     # PRINTING THE EXTRACTED INPUTS
     print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
