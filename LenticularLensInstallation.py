@@ -74,7 +74,7 @@ commands = {
     "mac": """
     cls
     echo "    >>> UPGRADING PIP"
-    python -m pip install --upgrade pip
+    sudo python -m pip install --upgrade pip
 
     echo "   >>> CLONING THE LENTICULAR LENS SOFTWARE"
     echo git clone https://github.com/alkoudouss/alignments.git {0}
@@ -86,7 +86,7 @@ commands = {
     call {0}{1}Scripts{1}activate.bat
 
     echo "   >>> INSTALLING THE LENTICULAR LENS REQUIREMENTS"
-    pip install -r  {0}{1}requirements.txt
+    sudo pip install -r  {0}{1}requirements.txt
 
     echo "   >>> INSTALLATION DONE..."
     echo "   >>> RUNNING THE LENTICULAR LENS"
@@ -121,13 +121,15 @@ class MyPrompt(Cmd):
     def do_install(self, args):
 
         if len(args) == 0:
-            directory = process_input("    Enter the installation directory path")
-            python_path = process_input("    Enter the python directory path")
-            stardog_bin = process_input("    Enter the stardog bin directory path")
-            stardog_home = process_input("    Enter stardog home directory path")
-            database_name = process_input("    Enter the stardog database name")
-            run = process_input("    Enter True/False if you want to run this program")
-            port = process_input("    Enter A NEW PORT IF NEEDED. THE DEAFULT IS 5077")
+            directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
+            python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
+            stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
+            stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
+            database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
+            run = process_input("    Enter True/False if you want to [RUN] this program")
+            port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
+            if len(port.strip()) == 0:
+                ll_port = "5077"
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
         else:
             install(parameter_input)
@@ -570,13 +572,27 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
 parameter_input = """
 
+# ENTER FALSE IS YOU DO NOT NEED TO RUN THE TOOL
 run = True
+
+# PROVIDE THE FOLDER IN WHICH YOU WANT THE INSTALLATION FILES TO BE DOWNLOADED
 directory = C:\Productivity\LinkAnalysis\Coverage\InstallTest\Install
+
+# PROVIDE THE DIRECTORY OF YOUR PYTHON 2.7 FORLDER
 python_path = C:\Python27
+
+# PROVIDE THE STARDOG BIN PATH
 stardog_bin = C:\Program Files\stardog-5.3.0\bin
+
+# PROVIDE THE STARDOG HOME FOLDER
 stardog_home = C:\Productivity\data\stardog
+
+# THE DEFAULT DATABSED IS "risis"
 database_name = risis
+
+# 5077 IS THE DEFAULT PORT. NO NEED TO CHANGE UNLESS NEEDED.
 ll_port = 5077
+
 """
 
 
@@ -599,6 +615,6 @@ install(parameter_input)
 prompt = MyPrompt()
 prompt.prompt = '> '
 prompt.cmdloop('Lenticular Lens Installation Prompt...'
-               '\n  OPTION 1. Enter [install] for directly intering the inputs from the shell.'
-               '\n  OPTION 2. Enter [Intsall all] to run the code using the [parameter_input]'
-               '\n  OPTION 3. Enter [quit] to exit.\n')
+               '\n  OPTION 1. Enter [quit] to exit.\n''
+               '\n  OPTION 2. Enter [install] for directly inserting the required input parameters from the cmd-shell.'
+               '\n  OPTION 2. Enter [intsall all] to run the code using the [parameter_input] edited within the file.')
