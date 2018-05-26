@@ -336,7 +336,8 @@ def input_prompt_prep(directory, python_path, stardog_bin, stardog_home, databas
 
     database_name = database_name.strip() if len(database_name) > 0  else None
 
-    ll_port = int(str(ll_port).strip()) if int(str(ll_port).strip()) else 5077
+    ll_port = int(str(ll_port).strip()) if isinstance( ll_port.strip(), (int, long)) else 5077
+    
 
     # PRINTING THE EXTRACTED INPUTS
     print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
@@ -616,4 +617,4 @@ prompt.prompt = '> '
 prompt.cmdloop('Lenticular Lens Installation Prompt...'
                '\n  OPTION 1. Enter [quit] to exit'
                '\n  OPTION 2. Enter [install] for directly inserting the required input parameters from the cmd-shell.'
-               '\n  OPTION 2. Enter [intsall all] to run the code using the [parameter_input] edited within the file.')
+               '\n  OPTION 3. Enter [intsall all] to run the code using the [parameter_input] edited within the file.\n')
