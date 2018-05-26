@@ -83,7 +83,7 @@ commands = {
     virtualenv  --python={2} {0}
 
     echo "   >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
-    call {0}{1}Scripts{1}activate.bat
+    call source {0}{1}bin{1}activate
 
     echo "   >>> INSTALLING THE LENTICULAR LENS REQUIREMENTS"
     sudo pip install -r  {0}{1}requirements.txt
