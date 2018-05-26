@@ -110,8 +110,8 @@ def process_input(prompt):
     except Exception as err:
         while True:
             try:
-                print "\nENTER THE INPUT WITHN QUOATE"
-                return input("{:30} : ".format(prompt))
+                print "\nENTER THE INPUT WITHIN QUOTES"
+                return input("{:60} : ".format(prompt))
             except Exception as err:
                 "nothing"
 
@@ -127,7 +127,8 @@ class MyPrompt(Cmd):
             stardog_home = process_input("    Enter stardog home directory path")
             database_name = process_input("    Enter the stardog database name")
             run = process_input("    Enter True/False if you want to run this program")
-            install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run)
+            port = process_input("    Enter A NEW PORT IF NEEDED. THE DEAFULT IS 5077")
+            install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
         else:
             install(parameter_input)
 
@@ -333,7 +334,7 @@ def input_prompt_prep(directory, python_path, stardog_bin, stardog_home, databas
 
     database_name = database_name.strip() if len(database_name) > 0  else None
 
-    ll_port = int(inputs_6[0].strip()) if len(inputs_6) > 0 else 5077
+    ll_port = int(str(ll_port).strip()) if int(str(ll_port).strip()) else 5077
 
     # PRINTING THE EXTRACTED INPUTS
     print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
@@ -575,15 +576,16 @@ python_path = C:\Python27
 stardog_bin = C:\Program Files\stardog-5.3.0\bin
 stardog_home = C:\Productivity\data\stardog
 database_name = risis
-ll_port = 5076
+ll_port = 5077
 """
+
 
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
     ON THE PARAMETERS VALUES ENTERED ABOVE  """
 # #####################################################
 
-# install(parameter_input)
+install(parameter_input)
 
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
@@ -592,8 +594,6 @@ ll_port = 5076
 # #####################################################
 
 # DIRECTORY="" PYTHON_PATH="" STARDOG_PATH="" STARDOG_DATA="" python LenticularLensInstallation.py
-
-
 
 
 prompt = MyPrompt()
