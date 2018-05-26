@@ -150,7 +150,7 @@ class MyPrompt(Cmd):
             database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
             run = process_input("    Enter True/False if you want to [RUN] this program")
             port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
-            if len(port.strip()) == 0:
+            if isinstance(port.strip(), (int, long)) is False:
                 ll_port = "5077"
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
         else:
@@ -637,6 +637,6 @@ ll_port = 5077
 prompt = MyPrompt()
 prompt.prompt = '> '
 prompt.cmdloop('Lenticular Lens Installation Prompt...'
-               '\n  OPTION 1. Enter [quit] to exit'
-               '\n  OPTION 2. Enter [install] for directly inserting the required input parameters from the cmd-shell.'
-               '\n  OPTION 3. Enter [intsall all] to run the code using the [parameter_input] edited within the file.\n')
+               '\n  OPTION 1. Enter [1] or [quit] to exit'
+               '\n  OPTION 2. Enter [2] or [install] for directly inserting the required input parameters from the cmd-shell.'
+               '\n  OPTION 3. Enter [3] or [intsall all] to run the code using the [parameter_input] edited within the file.\n')
