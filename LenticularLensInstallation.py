@@ -595,7 +595,6 @@ ll_port = 5077
 
 """
 
-
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
     ON THE PARAMETERS VALUES ENTERED ABOVE  """
