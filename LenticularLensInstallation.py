@@ -614,6 +614,6 @@ ll_port = 5077
 prompt = MyPrompt()
 prompt.prompt = '> '
 prompt.cmdloop('Lenticular Lens Installation Prompt...'
-               '\n  OPTION 1. Enter [quit] to exit.\n'
+               '\n  OPTION 1. Enter [quit] to exit'
                '\n  OPTION 2. Enter [install] for directly inserting the required input parameters from the cmd-shell.'
                '\n  OPTION 2. Enter [intsall all] to run the code using the [parameter_input] edited within the file.')
