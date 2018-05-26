@@ -118,40 +118,31 @@ def process_input(prompt):
 
 class MyPrompt(Cmd):
 
+    directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
+    python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
+    stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
+    stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
+    database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
+    run = process_input("    Enter True/False if you want to [RUN] this program")
+    port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
+    if isinstance(port.strip(), (int, long)) is False:
+        ll_port = "5077"
+
     # INSTALL USING THE SHELL PROMPT
     def do_2(self, args):
 
         if len(args) == 0:
-            directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
-            python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
-            stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
-            stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
-            database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
-            run = process_input("    Enter True/False if you want to [RUN] this program")
-            port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
-            if len(port.strip()) == 0:
-                ll_port = "5077"
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
 
 
     # INSTALL USING THE EDITED INPUT PARAMETERS
     def do_3(self, args):
-
             install(parameter_input)
 
     # THIS GIVES BOTH OPTIONS
     def do_install(self, args):
 
         if len(args) == 0:
-            directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
-            python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
-            stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
-            stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
-            database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
-            run = process_input("    Enter True/False if you want to [RUN] this program")
-            port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
-            if isinstance(port.strip(), (int, long)) is False:
-                ll_port = "5077"
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
         else:
             install(parameter_input)
@@ -574,7 +565,7 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
     # INSTALL OR UPDATE THE REQUIREMENTS
     # RUN THE LENTICULAR LENS
 
-    print "\n{0}\n    >>> MAC/LINUX INSTALLATIONS\n{0}\n"
+    print "\n{0}\n    >>> MAC/LINUX INSTALLATIONS\n{0}\n".format(highlight)
     file_path = join(directory, "INSTALLATION.sh")
     w_dir = join(directory, "alignments")
     cmds = commands["mac"].format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
