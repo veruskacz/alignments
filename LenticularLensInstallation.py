@@ -118,31 +118,34 @@ def process_input(prompt):
 
 class MyPrompt(Cmd):
 
-    directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
-    python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
-    stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
-    stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
-    database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
-    run = process_input("    Enter True/False if you want to [RUN] this program")
-    port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
-    if isinstance(port.strip(), (int, long)) is False:
-        ll_port = "5077"
+    def prompts():
+        directory = process_input("    Enter the [INSTALLATION DIRECTORY] path")
+        python_path = process_input("    Enter the [PYTHON DIRECTORY] path")
+        stardog_bin = process_input("    Enter the [STARDOG BIN DIRECTORY] path")
+        stardog_home = process_input("    Enter [STARDOG HOME DIRECTORY] path")
+        database_name = process_input("    Enter the [STARDOG DATABASE NAME]")
+        run = process_input("    Enter True/False if you want to [RUN] this program")
+        port = process_input("    Enter a new [PORT] if needed. THE DEAFULT IS 5077")
+        if isinstance(port.strip(), (int, long)) is False:
+            ll_port = "5077"
 
     # INSTALL USING THE SHELL PROMPT
     def do_2(self, args):
 
         if len(args) == 0:
+            prompts()
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
 
 
     # INSTALL USING THE EDITED INPUT PARAMETERS
     def do_3(self, args):
-            install(parameter_input)
+        install(parameter_input)
 
     # THIS GIVES BOTH OPTIONS
     def do_install(self, args):
 
         if len(args) == 0:
+            prompts()
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
         else:
             install(parameter_input)
