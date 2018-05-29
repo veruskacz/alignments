@@ -27,5 +27,5 @@ echo Loading data
 		call stardog namespace add --prefix lensOpd 		--uri http://risis.eu/lens/operator/difference 			risis		
 		call stardog namespace add --prefix singletons 		--uri http://risis.eu/singletons/ 						risis
 		call stardog namespace add --prefix dataset 		--uri http://risis.eu/dataset/ 							risis
-		
+		call stardog namespace add --prefix gadm            --uri http://geo.risis.eu/vocabulary/gadm/              risis
         
