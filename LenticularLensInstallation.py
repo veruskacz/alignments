@@ -31,6 +31,11 @@ commands = {
     virtualenv --version
     """,
 
+    "git_v": "git --version",
+    "pip_v": "pip --version",
+    "pyt_v": "python --version",
+    "env_v": "virtualenv --version",
+
     "pip": "call easy_install pip",
 
     "venv": "call pip install virtualenv",
@@ -71,7 +76,7 @@ commands = {
     """,
 
     "mac": """
-    cls
+    clear
     echo "    >>> UPGRADING PIP"
     sudo python -m pip install --upgrade pip
 
@@ -164,6 +169,39 @@ class MyPrompt(Cmd):
 # #####################################################
 
 
+def versions(file_path):
+    pattern = "([\d*\.]+)"
+    import sys
+    # print(sys.version)
+
+    try:
+        git_out = execute_cmd(commands["git_v"], file_path)
+        git = re.findall('git version (.+)', str(git_out))
+    except:
+        git = ["0"]
+
+    try:
+        pyt_out =  subprocess.check_output(commands["pyt_v"], shell=True, stderr=subprocess.STDOUT)
+        python = re.findall('python {}'.format(pattern), str(pyt_out), flags=re.IGNORECASE)
+    except Exception as err:
+        python = ["0"]
+
+    try:
+        pip_out = execute_cmd(commands["pip_v"], file_path)
+        pip = re.findall('pip {}'.format(pattern), str(pip_out))
+    except:
+        pip = ["0"]
+
+    try:
+        env_out = execute_cmd(commands["env_v"], file_path)
+        env = re.findall('{}[\n]*'.format(pattern), env_out)
+        print env_out, "ENV", env
+    except:
+        env = ["0"]
+
+    return (git, python, pip, env)
+
+
 def execute_cmd(cmd, file_path, output=True, run=True):
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -181,7 +219,7 @@ def execute_cmd(cmd, file_path, output=True, run=True):
     if run is True:
 
         if output is True:
-            output = subprocess.check_output(file_path, shell=True)
+            output = subprocess.check_output(file_path, shell=True, stderr=subprocess.STDOUT)
             return str(output)
         else:
             # RUNS IN A NEW SHELL
@@ -480,29 +518,40 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # 3. CHECKING THE AVAILABLE VESIONS OF THE REQUIRED PAKAGES
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    requirements_out = execute_cmd(commands["versions"], file_path)
+    # requirements_out = execute_cmd(commands["versions"], file_path)
+    (git, python, pip, env) = versions(file_path)
+    print (git, python, pip, env)
+    if python[0] == "0":
+        print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [PYTHON] VERSION")
+        exit(1)
+    if pip[0] == "0":
+        print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [PIP] VERSION")
+        exit(1)
+    if env[0] == "0":
+        print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [VIRTUALENV] VERSION")
+        exit(1)
 
     # 4. GIT VERSION IS REQUIRED
-    git = re.findall('git version (.+)', str(requirements_out))
+    # git = re.findall('git version (.+)', str(requirements_out))
     git_version = git[0] if len(git) > 0 else 0
     if int(git_version[0]) == 0:
-        print "\nYOU NEED TO INSTALL GIT FROM [https://git-scm.com/downloads]\n"
+        print "\n\t>>> YOU NEED TO INSTALL GIT FROM [https://git-scm.com/downloads]\n"
         exit(0)
     elif int(git_version[0]) <= 1:
-        print "\nYOU NEED TO UPGRADE YOUR GIT FROM [https://git-scm.com/downloads]\n"
+        print "\n\t>>>YOU NEED TO UPGRADE YOUR GIT FROM [https://git-scm.com/downloads]\n"
         exit(0)
     print "\n{:23}: {}".format("GIT VERSION", git_version)
 
     # 5. PYTHON VERSION IS REQUIRED
     pattern = "([\d*\.]+)"
-    python = re.findall('python {}'.format(pattern), str(requirements_out))
+    # python = re.findall('python {}'.format(pattern), str(requirements_out))
     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
     if (python_version >= 27) and (python_version < 2713):
 
         print "{:23}: {}".format("PYTHON VERSION", python[0])
 
         # MAKE SURE PIP IS INSTALL
-        pip = re.findall('pip {}'.format(pattern), str(requirements_out))
+        # pip = re.findall('pip {}'.format(pattern), str(requirements_out))
         pip_version = pip[0] if len(pip) > 0 else 0
         if pip_version > 0:
             print "{:23}: {}".format("PIP VERSION", pip_version)
@@ -512,7 +561,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
             print requirements_out
 
         # MAKE SURE VIRTUAL ENVIRONMENT IS INSTALL
-        env = re.findall('{}\n'.format(pattern), requirements_out)
+        # env = re.findall('{}\n'.format(pattern), requirements_out)
         env_version = env[0] if len(env) > 0 else 0
         if env_version > 0:
             print "{:23}: {}".format("VIRTUALENV VERSION", env_version)
@@ -521,7 +570,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
             requirements_out = execute_cmd(cmd=commands["venv"], file_path=file_path)
             print requirements_out
     else:
-        print "PYTHON VERSION 2.7.12 IS REQUIRED TO RUN THE LENTICULAR LENS"
+        print "\n\t>>> PYTHON VERSION 2.7.12 IS REQUIRED TO RUN THE LENTICULAR LENS"
         exit(0)
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
