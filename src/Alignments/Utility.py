@@ -1178,7 +1178,9 @@ def export_database(stardog_bin_path, db_name, save_in):
 def check_db_exists(database):
 
     response = Qry.sparql_xml_to_matrix_db(query="SELECT DISTINCT ?s WHERE { ?s ?p ?o } LIMIT 10", database=database)
-    if response["result"] is None:
+    print "DB CREATION CHECK:", response
+
+    if response["result"] is not None:
         if "justification" in response:
             justification = response["justification"]
             if justification.__contains__("UnknownDatabase") is True:
@@ -1190,6 +1192,8 @@ def check_db_exists(database):
         else:
             print "DATABASE [{}] ALREADY EXISTS".format(database)
             return True
+    else:
+        return False
 
 
 def extract_ref(text):
