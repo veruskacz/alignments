@@ -279,3 +279,23 @@ def query_stardog_data_add_file():
     print ""
 
 
+# INSERT STARDOG DATA FROM A FOLDER
+eter = "D:\Linking2GRID\Data\ETER 2017\converted\eter_2014.2017-08-03\University\\"
+leiden = "D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRanking_2015.2017-08-03\University"
+# print stardog_data_folder(leiden)
+
+# print query_graphs()
+#
+# print query_generic("http://risis.eu/dataset/grid_20170712_enriched")
+
+# print stardog_data_file(graph="http://risis.eu/dataset/grid_20180501", database=None, add=True,
+#                         file_path="D:\Linking2GRID\Grid\grid20180501\grid.ttl")
+
+import re
+gadm = Qry.virtuoso_request("ask {GRAPH <http://risis.eu/dataset/grid_20170712>{ ?x ?y ?z . }}")
+gadm = re.findall("rs:boolean[ ]*(.*)[ ]*\.",gadm["result"])
+if len(gadm) > 0:
+    gadm = bool(gadm[0].strip())
+else:
+    gadm = False
+print gadm

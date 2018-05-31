@@ -36,9 +36,9 @@ commands = {
     "pyt_v": "python --version",
     "env_v": "virtualenv --version",
 
-    "pip": "call easy_install pip",
+    "pip": "easy_install pip",
 
-    "venv": "call pip install virtualenv",
+    "venv": "pip install virtualenv",
 
     "git_clone": """
     echo "CLONING THE LENTICULAR LENS SOFTWARE"
@@ -165,7 +165,7 @@ class MyPrompt(Cmd):
 
 
 # #####################################################
-""" FINSTALLATION FUNCTIONS """
+""" INSTALLATION HELPER FUNCTIONS """
 # #####################################################
 
 
@@ -195,7 +195,7 @@ def versions(file_path):
     try:
         env_out = execute_cmd(commands["env_v"], file_path)
         env = re.findall('{}[\n]*'.format(pattern), env_out)
-        print env_out, "ENV", env
+        # print env_out, "ENV", env
     except:
         env = ["0"]
 
@@ -300,6 +300,11 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
     replace_all(svr_settings, port, """{}""".format(ll_port))
 
 
+# #####################################################
+""" INSTALLATION ALL IN ONE """
+# #####################################################
+
+
 def input_prep(parameter_inputs):
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -326,87 +331,16 @@ def input_prep(parameter_inputs):
 
     # PRINTING THE EXTRACTED INPUTS
     print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
-    print "\n{:23}: {}".format("INSTALLATION DIRECTORY", directory)
-    print "{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
-    print "{:23}: {}".format("STARDOG DATA PATH", stardog_home)
-    print "{:23}: {}".format("STARDOG HOME PATH", stardog_bin)
-    print "{:23}: {}".format("DATABASE NAME", database_name)
+    print "\n1. INPUTS"
+    print "\n\t{:23}: {}".format("INSTALLATION DIRECTORY", directory)
+    print "\t{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
+    print "\t{:23}: {}".format("STARDOG DATA PATH", stardog_home)
+    print "\t{:23}: {}".format("STARDOG HOME PATH", stardog_bin)
+    print "\t{:23}: {}".format("DATABASE NAME", database_name)
     if run is True:
-        print "{:23}: {} at PORT {}".format("RUN", run, ll_port)
+        print "\t{:23}: {} at PORT {}".format("RUN", run, ll_port)
     else:
-        print "{:23}: {}".format("RUN", run)
-
-    # CHECKING IF ALL INPUTS HAVE BEEN PROVIDED
-    if run is None or directory is None or python_path is None or stardog_bin is None or \
-                    stardog_home is None or database_name is None:
-        print "\nCHECK THE ENTERED INPUTS.... THERE MAY BE MISSING OR MAY NOT BE A PROPER PATH."
-        exit(0)
-
-    # MAC INPUT ARE NOT WITH BACKSLASH
-    if OPE_SYS != "windows":
-        if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
-                        stardog_home.__contains__("\\") is None:
-            print "\nCHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)\n"
-            exit(0)
-
-    # ENV VARIABLE OR PROPER VARIABLE ARE ALLOWED
-    directory = os.getenv("LL_DIRECTORY", directory)
-    python_path = os.getenv("LL_PYTHON_PATH", python_path)
-    stardog_bin = os.getenv("LL_STARDOG_PATH", stardog_bin)
-    stardog_home = os.getenv("LL_STARDOG_DATA", stardog_home)
-    database_name = os.getenv("LL_STARDOG_DATABASE", database_name)
-
-    # MAKING SURE THAT THE PATHS END PROPERLY
-    if OPE_SYS != "windows":
-        stardog_bin = "{}/".format(stardog_bin) if stardog_bin.endswith("/") is False else stardog_bin
-        stardog_home = "{}/".format(stardog_home) if stardog_home.endswith("/") is False else stardog_home
-    else:
-        stardog_bin = "{}\\".format(stardog_bin) if stardog_bin.endswith("\\") is False else stardog_bin
-        stardog_home = "{}\\".format(stardog_home) if stardog_home.endswith("\\") is False else stardog_home
-        directory = directory.replace("\\", "\\\\")
-        python_path = python_path.replace("\\", "\\\\")
-        stardog_bin = stardog_bin.replace("\\", "\\\\")
-        stardog_home = stardog_home.replace("\\", "\\\\")
-
-    return [directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port]
-
-
-def input_prompt_prep(directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port):
-
-    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # PREPARING THE INPUT PARAMETRS AS IT IS GEVEN AS A STRING
-    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-    #  INPUT EXTRACTIOIN STEP 2
-    run = bool(run) if len(str(run)) > 0 else None
-    directory = normalise_path(directory.strip()) \
-        if len(directory) > 0 and directory.__contains__(os.path.sep) else None
-
-    python_path = normalise_path(python_path.strip()) \
-        if len(python_path) > 0 and python_path.__contains__(os.path.sep) else None
-
-    stardog_bin = normalise_path(stardog_bin.strip()) \
-        if len(stardog_bin) > 0 and stardog_bin.__contains__(os.path.sep) else None
-
-    stardog_home = normalise_path(stardog_home.strip()) \
-        if len(stardog_home) > 0  and stardog_home.__contains__(os.path.sep) else None
-
-    database_name = database_name.strip() if len(database_name) > 0  else None
-
-    ll_port = int(str(ll_port).strip()) if isinstance( ll_port.strip(), (int, long)) else 5077
-
-
-    # PRINTING THE EXTRACTED INPUTS
-    print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
-    print "\n{:23}: {}".format("INSTALLATION DIRECTORY", directory)
-    print "{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
-    print "{:23}: {}".format("STARDOG DATA PATH", stardog_home)
-    print "{:23}: {}".format("STARDOG HOME PATH", stardog_bin)
-    print "{:23}: {}".format("DATABASE NAME", database_name)
-    if run is True:
-        print "{:23}: {} at PORT {}".format("RUN", run, ll_port)
-    else:
-        print "{:23}: {}".format("RUN", run)
+        print "\t{:23}: {}".format("RUN", run)
 
     # CHECKING IF ALL INPUTS HAVE BEEN PROVIDED
     if run is None or directory is None or python_path is None or stardog_bin is None or \
@@ -470,6 +404,84 @@ def install(parameter_inputs):
         mac_install(directory, python_path, stardog_home=stardog_home, stardog_bin=stardog_bin, run=run)
 
 
+# #####################################################
+""" INSTALLATION STEP-BYSTEP WITH PROMPT """
+# #####################################################
+
+
+def input_prompt_prep(directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port):
+
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    # PREPARING THE INPUT PARAMETRS AS IT IS GEVEN AS A STRING
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+    #  INPUT EXTRACTIOIN STEP 2
+    run = bool(run) if len(str(run)) > 0 else None
+    directory = normalise_path(directory.strip()) \
+        if len(directory) > 0 and directory.__contains__(os.path.sep) else None
+
+    python_path = normalise_path(python_path.strip()) \
+        if len(python_path) > 0 and python_path.__contains__(os.path.sep) else None
+
+    stardog_bin = normalise_path(stardog_bin.strip()) \
+        if len(stardog_bin) > 0 and stardog_bin.__contains__(os.path.sep) else None
+
+    stardog_home = normalise_path(stardog_home.strip()) \
+        if len(stardog_home) > 0  and stardog_home.__contains__(os.path.sep) else None
+
+    database_name = database_name.strip() if len(database_name) > 0  else None
+
+    ll_port = int(str(ll_port).strip()) if isinstance( ll_port.strip(), (int, long)) else 5077
+
+
+    # PRINTING THE EXTRACTED INPUTS
+    print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
+    print "\n1. INPUTS"
+    print "\n\t{:23}: {}".format("INSTALLATION DIRECTORY", directory)
+    print "\t{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
+    print "\t{:23}: {}".format("STARDOG DATA PATH", stardog_home)
+    print "\t{:23}: {}".format("STARDOG HOME PATH", stardog_bin)
+    print "\t{:23}: {}".format("DATABASE NAME", database_name)
+    if run is True:
+        print "\t{:23}: {} at PORT {}".format("RUN", run, ll_port)
+    else:
+        print "\t{:23}: {}".format("RUN", run)
+
+    # CHECKING IF ALL INPUTS HAVE BEEN PROVIDED
+    if run is None or directory is None or python_path is None or stardog_bin is None or \
+                    stardog_home is None or database_name is None:
+        print "\nCHECK THE ENTERED INPUTS.... THERE MAY BE MISSING OR MAY NOT BE A PROPER PATH."
+        exit(0)
+
+    # MAC INPUT ARE NOT WITH BACKSLASH
+    if OPE_SYS != "windows":
+        if directory.__contains__("\\") or python_path.__contains__("\\") or stardog_bin.__contains__("\\") or \
+                        stardog_home.__contains__("\\") is None:
+            print "\nCHECK YOUR INPUT PATHS AGAIN AS IT LOOKS LIKE A WINDOWS PATH :-)\n"
+            exit(0)
+
+    # ENV VARIABLE OR PROPER VARIABLE ARE ALLOWED
+    directory = os.getenv("LL_DIRECTORY", directory)
+    python_path = os.getenv("LL_PYTHON_PATH", python_path)
+    stardog_bin = os.getenv("LL_STARDOG_PATH", stardog_bin)
+    stardog_home = os.getenv("LL_STARDOG_DATA", stardog_home)
+    database_name = os.getenv("LL_STARDOG_DATABASE", database_name)
+
+    # MAKING SURE THAT THE PATHS END PROPERLY
+    if OPE_SYS != "windows":
+        stardog_bin = "{}/".format(stardog_bin) if stardog_bin.endswith("/") is False else stardog_bin
+        stardog_home = "{}/".format(stardog_home) if stardog_home.endswith("/") is False else stardog_home
+    else:
+        stardog_bin = "{}\\".format(stardog_bin) if stardog_bin.endswith("\\") is False else stardog_bin
+        stardog_home = "{}\\".format(stardog_home) if stardog_home.endswith("\\") is False else stardog_home
+        directory = directory.replace("\\", "\\\\")
+        python_path = python_path.replace("\\", "\\\\")
+        stardog_bin = stardog_bin.replace("\\", "\\\\")
+        stardog_home = stardog_home.replace("\\", "\\\\")
+
+    return [directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port]
+
+
 def install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, ll_port):
 
     """""""""""""""""""""""""""
@@ -496,9 +508,14 @@ def install_pronpt(directory, python_path, stardog_bin, stardog_home, database_n
         mac_install(directory, python_path, stardog_home=stardog_home, stardog_bin=stardog_bin, run=run)
 
 
+# #####################################################
+""" INSTALLATION: PLATFORM INDEPENDENT DEPENDENT """
+# #####################################################
+
+
 def generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=False, ll_port=5077):
 
-    print "{:23}: {}\n".format("COMPUTER TYPE", platform.system().upper())
+    print "\n2. VERSIONS\n\n\t{:23}: {}".format("COMPUTER TYPE", platform.system().upper())
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # 1. CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
@@ -520,7 +537,8 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # requirements_out = execute_cmd(commands["versions"], file_path)
     (git, python, pip, env) = versions(file_path)
-    print (git, python, pip, env)
+    # print (git, python, pip, env)
+
     if python[0] == "0":
         print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [PYTHON] VERSION")
         exit(1)
@@ -531,40 +549,53 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [VIRTUALENV] VERSION")
         exit(1)
 
+    # ###############################
     # 4. GIT VERSION IS REQUIRED
+    # ###############################
     # git = re.findall('git version (.+)', str(requirements_out))
-    git_version = git[0] if len(git) > 0 else 0
+    # git version 2.10.1.windows.1
+    git_version = git[0][0] if len(git) > 0 else 0
     if int(git_version[0]) == 0:
         print "\n\t>>> YOU NEED TO INSTALL GIT FROM [https://git-scm.com/downloads]\n"
         exit(0)
     elif int(git_version[0]) <= 1:
         print "\n\t>>>YOU NEED TO UPGRADE YOUR GIT FROM [https://git-scm.com/downloads]\n"
         exit(0)
-    print "\n{:23}: {}".format("GIT VERSION", git_version)
+    print "\t{:23}: {}".format("GIT VERSION", git[0])
 
+    # ###############################
     # 5. PYTHON VERSION IS REQUIRED
+    # ###############################
     pattern = "([\d*\.]+)"
     # python = re.findall('python {}'.format(pattern), str(requirements_out))
     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
     if (python_version >= 27) and (python_version < 2713):
 
-        print "{:23}: {}".format("PYTHON VERSION", python[0])
+        print "\t{:23}: {}".format("PYTHON VERSION", python[0])
 
+        # ###############################
         # MAKE SURE PIP IS INSTALL
+        # ###############################
         # pip = re.findall('pip {}'.format(pattern), str(requirements_out))
-        pip_version = pip[0] if len(pip) > 0 else 0
-        if pip_version > 0:
-            print "{:23}: {}".format("PIP VERSION", pip_version)
+        # pip_version = pip[0] if len(pip) > 0 else 0
+        pip_version = int(str(pip[0]).replace(".", "")) if len(pip) > 0 else 0
+        # print pip_version
+        if pip_version > 1000:
+            print "\t{:23}: {}".format("PIP VERSION", pip[0])
         else:
             # INSTALLING PIP
             requirements_out = execute_cmd(cmd=commands["pip"], file_path=file_path)
             print requirements_out
 
+        # ##########################################
         # MAKE SURE VIRTUAL ENVIRONMENT IS INSTALL
+        # ##########################################
         # env = re.findall('{}\n'.format(pattern), requirements_out)
-        env_version = env[0] if len(env) > 0 else 0
-        if env_version > 0:
-            print "{:23}: {}".format("VIRTUALENV VERSION", env_version)
+        # env_version = env[0] if len(env) > 0 else 0
+        env_version = int(str(env[0]).replace(".", "")) if len(env) > 0 else 0
+        # print env_version
+        if env_version > 1500:
+            print "\t{:23}: {}".format("VIRTUALENV VERSION", env[0])
         else:
             # INSTALLING THE VIRTUAL ENV
             requirements_out = execute_cmd(cmd=commands["venv"], file_path=file_path)
@@ -596,6 +627,11 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     if OPE_SYS == 'windows':
         print "\n{0}\n    >>> SLEEPING FOR 10 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
         time.sleep(10)
+
+
+# #####################################################
+""" INSTALLATION: PLATFORM DEPENDENT """
+# #####################################################
 
 
 def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
