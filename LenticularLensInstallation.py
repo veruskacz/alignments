@@ -114,7 +114,7 @@ def process_input(prompt):
     except Exception as err:
         while True:
             try:
-                print "\nENTER THE INPUT WITHIN QUOTES"
+                print "\n\tENTER THE INPUT WITHIN QUOTES"
                 return input("{:60} : ".format(prompt))
             except Exception as err:
                 "nothing"
@@ -200,6 +200,23 @@ def versions(file_path):
         env = ["0"]
 
     return (git, python, pip, env)
+
+
+def install_package(package, command, condition, condition_idx, file_path):
+    package = str(package).upper()
+    while condition[condition_idx][0] != "0":
+        print("\n\t>>> THE REQUIRED [{}] VERSION IS NOT INSTALL!".format(package))
+        proceed = process_input("\t\tEnter [1] to INSTALL [{}] or enter [anything else] to exit.".format(package))
+        if str(proceed).strip() == "1":
+            if OPE_SYS == 'windows':
+                requirements_out = execute_cmd(cmd=commands[command], file_path=file_path)
+            else:
+                requirements_out = execute_cmd(cmd="sudo" + commands[command], file_path=file_path)
+            print requirements_out
+            condition = versions(file_path)
+        else:
+            print "\t\tFORCED EXIT BY USER."
+            exit(1)
 
 
 def execute_cmd(cmd, file_path, output=True, run=True):
@@ -542,13 +559,39 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     if python[0] == "0":
         print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [PYTHON] VERSION")
         exit(1)
-    if pip[0] == "0":
-        print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [PIP] VERSION")
-        exit(1)
-    if env[0] == "0":
-        print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [VIRTUALENV] VERSION")
-        exit(1)
 
+    # PACKAGE MANAGEMENT SYSTEM
+    install_package(package="PIP", command="pip",
+                    condition=(git, python, pip, env), condition_idx=2, file_path=file_path)
+    # while pip[0] == "0":
+    #     print("\n\t>>> THE REQUIRED [PIP] PAKAGE VERSION IS NOT INSTALL!")
+    #     proceed = process_input("\t\tEnter [1] to INSTALL [PIP] or enter [anything else] to exit.")
+    #     if str(proceed).strip() == "1":
+    #         if OPE_SYS == 'windows':
+    #             requirements_out = execute_cmd(cmd=commands["pip"], file_path=file_path)
+    #         else:
+    #             requirements_out = execute_cmd(cmd="sudo" + commands["pip"], file_path=file_path)
+    #         print requirements_out
+    #         (git, python, pip, env) = versions(file_path)
+    #     exit(1)
+
+    # VIRTUAL ENVIRONMENT
+    install_package(package="VIRTUALENV", command="venv",
+                    condition=(git, python, pip, env), condition_idx=3, file_path=file_path)
+    # while env[0] == "0":
+    #     print("\n\t>>> THE REQUIRED [VIRTUALENV] VERSION IS NOT INSTALL!")
+    #     proceed = process_input("\t\tEnter [1] to INSTALL [VIRTUALENV] or enter [anything else] to exit.")
+    #     if str(proceed).strip() == "1":
+    #         if OPE_SYS == 'windows':
+    #             requirements_out = execute_cmd(cmd=commands["venv"], file_path=file_path)
+    #         else:
+    #             requirements_out = execute_cmd(cmd="sudo" + commands["venv"], file_path=file_path)
+    #         print requirements_out
+    #         (git, python, pip, env) = versions(file_path)
+    #     else:
+    #         print "\t\tFORCED EXIT BY USER."
+    #         exit(1)
+    exit(0)
     # ###############################
     # 4. GIT VERSION IS REQUIRED
     # ###############################

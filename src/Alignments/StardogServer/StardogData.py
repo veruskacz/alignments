@@ -9,6 +9,8 @@ import Alignments.Server_Settings as Svr
 
 stardog_cmds = {
 
+    "server_status": "\"{}stardog-admin\" server status",
+
     # 0. STARDOG BIN
     "query_list": "\"{}stardog-admin\" query list",
 
@@ -95,6 +97,20 @@ def stardog_query_list():
 
     try:
         cmd = stardog_cmds["query_list"].format(stardog_bin)
+        remove = "{}".format(stardog_bin)
+        print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
+        return subprocess.check_output(cmd, shell=True)
+    except Exception as err:
+        return err
+
+def stardog_status():
+
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    #   QUERRYING STARDOG FOR THE CURRENT LIST OF QUERIES
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+    try:
+        cmd = stardog_cmds["server_status"].format(stardog_bin)
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
@@ -211,8 +227,10 @@ def stardog_data_file(file_path, graph=None, database=None, add=True):
         cmd = cmd.replace("\\", "/")
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
-        return subprocess.check_output(cmd, shell=True)
+        return subprocess.check_
+        utput(cmd, shell=True)
     except Exception as err:
+
         return err
 
 
@@ -291,11 +309,7 @@ leiden = "D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRank
 # print stardog_data_file(graph="http://risis.eu/dataset/grid_20180501", database=None, add=True,
 #                         file_path="D:\Linking2GRID\Grid\grid20180501\grid.ttl")
 
-import re
-gadm = Qry.virtuoso_request("ask {GRAPH <http://risis.eu/dataset/grid_20170712>{ ?x ?y ?z . }}")
-gadm = re.findall("rs:boolean[ ]*(.*)[ ]*\.",gadm["result"])
-if len(gadm) > 0:
-    gadm = bool(gadm[0].strip())
-else:
-    gadm = False
-print gadm
+# print stardog_query_list()
+# print stardog_query_status(94)
+print stardog_status()
+# print query_graph_search("dataset")

@@ -491,6 +491,7 @@ def bat_load(bat_path):
             #   THE FILES THAT WERE ADDED
             #   HOW MANY TRIPLES WHERE ADDED
             output = subprocess.check_output(bat_path, shell=True)
+            print "SUBPROCESS OUTPUT:", output
             output = re.sub('\(Conversion\).*\n', '', output)
 
             # THE OUTPUT CONTAINS FULL PATH THAT IS NOT ADVISABLE TO DISPLAY
@@ -518,6 +519,7 @@ def bat_load(bat_path):
             return {"message": "OK", "result": output}
 
     except Exception as err:
+        print "SUBPROCESS ERROR"
         return {"message": "CHECK THE FILE PATH.\n{}".format(err.message), "result": None}
 
 
