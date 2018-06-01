@@ -16,7 +16,7 @@ class CSV(RDF):
     def no_id(self, database, is_trig, file_to_convert, separator, entity_type, rdftype, activated=False):
 
         if activated is False:
-            print "The function has not been activated."
+            print "The function [CSV: no_id] has not been activated."
             return
 
         database = database.replace(" ", "_")
@@ -205,7 +205,7 @@ class CSV(RDF):
                  rdftype=None, subject_id=None, embedded_uri=None, field_metadata=None, activated=False):
 
         if activated is False:
-            print "The function has not been activated."
+            print "The function [CSV init] has not been activated."
             return
 
         # embedded_uri is an array of dictionaries.
@@ -228,7 +228,7 @@ class CSV(RDF):
         self.embedded_uri = embedded_uri
         self.fieldMetadata = field_metadata
         if subject_id is None:
-            self.no_id(database, is_trig, file_to_convert, separator, entity_type, rdftype)
+            self.no_id(database, is_trig, file_to_convert, separator, entity_type, rdftype, activated=activated)
             return
 
         bom = ''
@@ -441,8 +441,16 @@ class CSV(RDF):
                         else:
                             temp += record[j]
                     j += 1
-                if complete == True:
-                    attributes.append(temp)
+
+                # completed or at the end
+                if complete == True or j == len(record):
+                    value = temp.strip()
+                    if value.startswith(td) and value.endswith(td):
+                        value = value[1:-1]
+                    # print value, j
+                    if value != td:
+                        attributes.append(value)
+                # print temp, j, len(record)
                 temp = ""
                 i = j
 
@@ -451,7 +459,10 @@ class CSV(RDF):
 
                     # Enqueue if you encounter the separator
                     if record[i] == separator:
-                        attributes.append(temp)
+                        value = temp.strip()
+                        if value.startswith(td) and value.endswith(td):
+                            value = value[1:-1]
+                        attributes.append(value)
                         # print "> separator " + temp
                         temp = ""
 
@@ -470,7 +481,12 @@ class CSV(RDF):
 
         # Append the last attribute
         if temp != "":
-            attributes.append(temp)
+            value = temp.strip()
+            if value.startswith(td) and value.endswith(td):
+                value = value[1:-1]
+            # print 2, value
+            if value != td:
+                attributes.append(value)
 
         # print "EXTRACTOR RETURNED: {}".format(attributes)
         return attributes
@@ -1029,3 +1045,6 @@ class CSV(RDF):
 # print "SIZE OF THE ROW:", len(separated_row)
 # for item in separated_row:
 #     print item
+
+# print CSV.extractor('"Name", "Country","State","Level","Wikipedia","Wikidata","VIAF","ISNI","GRID","Website","ID"', ',')
+# print CSV.extractor(' "title" , "n" , "sd" , "ed" , "pa" , "an" , "mn" , "co" , "tc" , "cou" ,', ',')

@@ -3641,7 +3641,7 @@ def convertCSVToRDF():
     entity_type = request.args.get('entity_type', '')
     rdftype = map(int, request.args.getlist('rdftype[]'))
     subject_id = request.args.get('subject_id', None)
-    print subject_id
+    # print subject_id
 
     # print subject_id, rdftype
 
@@ -3649,7 +3649,7 @@ def convertCSVToRDF():
             separator=separator, entity_type=entity_type,
             rdftype=rdftype if rdftype != [] else None,
             subject_id = int(subject_id) if subject_id != '' else None,
-            field_metadata=None)
+            field_metadata=None, activated=True)
 
     return jsonify({'batch': converter.bat_file, 'data': converter.outputPath, 'schema': converter.outputMetaPath})
 
@@ -3690,7 +3690,8 @@ def viewRQuestionFile():
 def viewSampleRDFFile():
     print "VIEW RDF SAMPLE FILE"
     filePath = request.args.get('file', '')
-    return json.dumps(CSV.CSV.view_data(filePath))
+    sample = json.dumps(CSV.CSV.view_data(filePath))
+    return sample
 
 
 @app.route('/headerExtractor', methods=['POST'])
@@ -3703,13 +3704,14 @@ def headerExtractor():
     header = ""
     for i in range(len(header_list)):
         header += "<option>{}</option>".format(header_list[i])
-    # print header
+    print header
     return header
 
 
 @app.route('/loadGraph')
 def loadGraph():
     batch_file = request.args.get('batch_file', '')
+    print batch_file
     return json.dumps(Ut.batch_load(batch_file))
 
 
