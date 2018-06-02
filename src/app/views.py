@@ -53,6 +53,7 @@ if CREATION_ACTIVE:
     import Alignments.UserActivities.Clustering as Clt
     from shutil import rmtree
     import Alignments.Server_Settings as Svr
+    import Alignments.StardogServer.StardogData as Stardog
 
     import Alignments.ConstraintClustering.DatasetsResourceClustering as DRC
 
@@ -208,6 +209,55 @@ def getupload():
 
     return ""
 
+
+
+@app.route('/executeTriplestoreAdmin')
+def executeTriplestoreAdmin():
+    option = request.args.get('option', '')
+    input = request.args.get('input', '')
+    if option == 'Server Status':
+        result = Stardog.stardog_status()
+    elif option == 'Query List':
+        result = Stardog.stardog_query_list()
+    else:
+        if input == '':
+            result = 'PLEASE GIVE AN INPUT NUMBER!!'
+        else:
+            try:
+                int_input = int(input)
+                if option == 'Query Status [give query id as input]':
+                    result = Stardog.stardog_query_status(int_input)
+                elif option == 'Query Kill [give query id as input]':
+                    result = Stardog.stardog_query_kill(int_input)
+                else:
+                    result = 'Option is not valid!'
+            except:
+                result = 'PLEASE GIVE AN INPUT NUMBER!!'
+    return result
+
+@app.route('/executeTriplestoreQuery')
+def executeTriplestoreQuery():
+    option = request.args.get('option', '')
+    input = request.args.get('input', '')
+    if option == 'Named Graphs':
+        result = Stardog.query_graphs()
+    else:
+        if input == '':
+            result = 'PLEASE GIVE AN INPUT NUMBER!!'
+        elif option == 'Search Named Graphs [give input]':
+            result = Stardog.query_graph_search(input)
+        else:
+            try:
+                int_input = int(input)
+                if option == 'Query Status Number [give input]':
+                    result = Stardog.stardog_query_status(int_input)
+                elif option == 'Kill Query Number [give input]':
+                    result = Stardog.stardog_query_kill(int_input)
+                else:
+                    result = 'Option is not valid!'
+            except:
+                result = 'PLEASE GIVE AN INPUT!!'
+    return result
 
 @app.route('/userLinksetImport')
 def userLinksetImport():
@@ -766,7 +816,9 @@ def linksetdetails():
             mechanism_list = md['mechanism_list_stripped']['value']
         )
 
-        return json.dumps({'metadata': md, 'data': data})
+        metadata_text = Stardog.query_graph_metadata(linkset)
+
+        return json.dumps({'metadata': md, 'data': data, 'metadata_text': metadata_text})
 
 
 # @app.route('/getlinksetdetailssample', methods=['GET'])
@@ -926,7 +978,8 @@ def lensdetails():
 
     # RETURN THE RESULT
     if (template == 'none'):
-        return json.dumps(d)
+        metadata_text = Stardog.query_graph_metadata(lens)
+        return json.dumps({'metadata': d, 'metadata_text': metadata_text})
     else:
         # if (load_samples == 'yes'):
         #     query = ...

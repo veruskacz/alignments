@@ -1,0 +1,138 @@
+<div class="panel panel-info">
+<div class="panel-heading">
+   <div class="row">
+    <div class="col-md-9"><h3>Triplestore</h3></div>
+   </div>
+</div>
+
+<div class="panel-body">
+ <div class="row" id="triplestoreAdmin_row">
+  <div class="col-md-12" >
+     <div class="row">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <div class="row">
+              <div class="col-md-4">
+                  <h4 class="panel-title">
+                      <a id="link_collapse_triplestoreAdmin"
+                         data-toggle="collapse" href="#collapse_triplestoreAdmin">
+                      <span class="badge alert-info"><strong>-</strong></span></a>
+                      Triplestore Admin Options
+                  </h4>
+              </div>
+              <!--<h5><div class="col-md-6 text-right" style="color:red" id="idea_creation_message_col"></div></h5>-->
+              <div class="col-md-8 text-right">
+                <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="triplestoreAdmin_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="triplestoreAdminExecuteButton" class="btn btn-success"
+                              data-toggle="button" onclick = "triplestoreAdminExecuteButtonClick();">
+                       Execute</button></td>
+                </table>
+              </div>
+          </div>
+        </div>
+        <div id="collapse_triplestoreAdmin" class="panel-collapse collapse" target="link_collapse_triplestoreAdmin">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-11" id="triplestoreAdmin_list_col">
+                OPTIONS
+                <select class="form-control" id="triplestoreAdmin_list">
+                    <option>Server Status</option>
+                    <option>Query List</option>
+                    <option>Query Status [give query id as input]</option>
+                    <option>Query Kill [give query id as input]</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                INPUT
+                <input type="text" class="form-control" id="triplestoreAdmin_input">
+                       <!--value="Panel_">-->
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+               <BR/> RESULT
+               <textarea readonly wrap='off' class="form-control" id="triplestoreAdmin_result"
+                         style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='20'>
+               </textarea>
+            </div>
+          </div>
+
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+  </div>
+ </div>
+
+ <div class="row" id="triplestoreQuery_row">
+  <div class="col-md-12" >
+     <div class="row">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <div class="row">
+              <div class="col-md-4">
+                  <h4 class="panel-title">
+                      <a id="link_collapse_triplestoreQuery"
+                         data-toggle="collapse" href="#collapse_triplestoreQuery">
+                      <span class="badge alert-info"><strong>-</strong></span></a>
+                      Triplestore Query Options
+                  </h4>
+              </div>
+              <!--<h5><div class="col-md-6 text-right" style="color:red" id="idea_creation_message_col"></div></h5>-->
+              <div class="col-md-8 text-right">
+                <table align="right">
+                   <tr align="right">
+                       <td align="right"><div id="triplestoreQuery_message_col"></div></td>
+                       <td valign="center"><div class="loading"></div></td>
+                       <td align="right"><button type="button" id="triplestoreQueryExecuteButton" class="btn btn-success"
+                              data-toggle="button" onclick = "triplestoreQueryExecuteButtonClick();">
+                       Execute</button></td>
+                </table>
+              </div>
+          </div>
+        </div>
+        <div id="collapse_triplestoreQuery" class="panel-collapse collapse" target="link_collapse_triplestoreAdmin">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-9" id="triplestoreQuery_list_col">
+                OPTIONS
+                <select class="form-control" id="triplestoreQuery_list">
+                    <option>Named Graphs</option>
+                    <option>Search Named Graphs [give input]</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                INPUT
+                <input type="text" class="form-control" id="triplestoreQuery_input">
+                       <!--value="Panel_">-->
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+               <BR/> RESULT
+               <textarea readonly wrap='off' class="form-control" id="triplestoreQuery_result"
+                         style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='20'>
+               </textarea>
+            </div>
+          </div>
+
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+  </div>
+ </div>
+
+</div>
+
+
+</div>
