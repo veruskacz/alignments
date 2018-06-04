@@ -13,7 +13,7 @@ print "\nRUNNING THE LENTICULAR LENS SERVER"
 lock_file = None
 RESET_SERVER_BATS = False
 
-print os.environ("LL_PORT", 5077)
+# print os.environ("LL_PORT", 5077)
 
 # exit(0)
 if __name__ == "__main__":
