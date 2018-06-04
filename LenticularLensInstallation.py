@@ -202,20 +202,20 @@ class LLPrompt(Cmd):
                 int(str(port))
                 ll_port = port
                 overwright = True
-                print "\n\t>>> {:18} : PORT [{}] REPLACED BY PORT [{}]".format("PORT OVEWRIGHING", parameters[6], port)
+                print "\n\t>>> {:18} : PORT [{}] REPLACED BY PORT [{}]".format("PORT OVERWRITING", parameters[6], port)
             except:
                 ll_port = parameters[6]
         else:
             ll_port = parameters[6]
 
-        file_path = join(directory, "INSTALLATION.bat")
+        file_path = join(directory, "INSTALLATION.bat") if OPE_SYS == 'windows' else join(directory, "INSTALLATION.sh")
         w_dir = join(directory, "alignments")
         # cmds = commands["windows"].format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
 
         print "\nYOU HAVE OPT FOR DIRECTLY RUNNING THE LENTICULAR LENS."
         try:
             # RUNS IN A NEW SHELL
-            cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["renMac"]
+            cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["runMac"]
             cmd = cmd.format(w_dir, os.path.sep)
             print cmd
 
@@ -232,8 +232,49 @@ class LLPrompt(Cmd):
             print "ERROR"
             return err.message
 
-    def do_run(self, args):
-        do_4()
+    def do_run(self, port):
+        overwright = False
+        parameters = input_prep(parameter_input)
+        directory = parameters[0]
+        # python_path = parameters[1]
+        stardog_bin = parameters[2]
+        stardog_home = parameters[3]
+        database_name = parameters[4]
+        # run = parameters[5]
+        if len(port) > 0:
+            try:
+                int(str(port))
+                ll_port = port
+                overwright = True
+                print "\n\t>>> {:18} : PORT [{}] REPLACED BY PORT [{}]".format("PORT OVERWRITING", parameters[6], port)
+            except:
+                ll_port = parameters[6]
+        else:
+            ll_port = parameters[6]
+
+        file_path = join(directory, "INSTALLATION.bat") if OPE_SYS == 'windows' else join(directory, "INSTALLATION.sh")
+        w_dir = join(directory, "alignments")
+        # cmds = commands["windows"].format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
+
+        print "\nYOU HAVE OPT FOR DIRECTLY RUNNING THE LENTICULAR LENS."
+        try:
+            # RUNS IN A NEW SHELL
+            cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["runMac"]
+            cmd = cmd.format(w_dir, os.path.sep)
+            print cmd
+
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
+            update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
+
+            execute_cmd(cmd=cmd, file_path=file_path, output=False)
+
+        except Exception as err:
+            print err.message
+            print "ERROR"
+            return err.message
 
     # THIS GIVES BOTH OPTIONS
     def do_install(self, args):
@@ -408,10 +449,7 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
     # port = """"LL_PORT",[ ]*(\d*)"""
     # replace_all(svr_settings, port, """{}""".format(ll_port))
     # Svr.settings[St.ll_port] = ll_port
-    print "updated to", ll_port
     os.environ['LL_PORT'] = str(ll_port)
-
-    print os.environ['LL_PORT']
 
 
 # #####################################################
