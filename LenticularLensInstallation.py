@@ -10,6 +10,8 @@ from cmd import Cmd
 from os.path import join
 import cStringIO as Buffer
 
+import Alignments.Settings as St
+import Alignments.Server_Settings as Svr
 
 # #####################################################
 """ FUNCTION PARAMETERS """
