@@ -203,7 +203,7 @@ class LLPrompt(Cmd):
                 int(str(port))
                 ll_port = port
                 overwright = True
-                print "\n\t>>> {:18} : PORT [{}] REPALCED BY PORT [{}]".format("PORT OVEWRIGHING", parameters[6], port)
+                print "\n\t>>> {:18} : PORT [{}] REPLACED BY PORT [{}]".format("PORT OVEWRIGHING", parameters[6], port)
             except:
                 ll_port = parameters[6]
 
@@ -222,8 +222,7 @@ class LLPrompt(Cmd):
             # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
             """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
             print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
-            if overwright is False:
-                update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
+            update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
 
             execute_cmd(cmd=cmd, file_path=file_path, output=False)
 
@@ -406,6 +405,8 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
     # LENTICULAR LENS POERT
     port = """"LL_PORT",[ ]*(\d*)"""
     # replace_all(svr_settings, port, """{}""".format(ll_port))
+    Svr.settings[St.ll_port] = ll_port
+    print "updated to", port
     os.system('setx LL_PORT {}'.format(ll_port))
 
 

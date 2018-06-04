@@ -68,7 +68,7 @@ if __name__ == "__main__":
         # print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(Svr.settings[St.ll_port])
         # web.open_new_tab('http://localhost:{}/'.format(Svr.settings[St.ll_port]))
         # app.run(host="0.0.0.0", port=Svr.settings[St.ll_port])
-        port = os.getenv("LL_PORT", Svr.settings[St.ll_port])
+        port = Svr.settings[St.ll_port] # os.getenv("LL_PORT", Svr.settings[St.ll_port])
         print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(port)
         web.open_new_tab('http://localhost:{}/'.format(port))
         app.run(host="0.0.0.0", port=port)
