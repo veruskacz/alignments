@@ -98,6 +98,24 @@ commands = {
     echo "   >>> mac: LL_STARDOG_PATH=\\\"{3}\\\" LL_STARDOG_DATA=\\\"{4}\\\" python run.py"
     echo "python -c \\\"import webbrowser as web; web.open_new_tab(\\\'http://localhost:5077/\\\')\\\""
     python run.py
+    """,
+
+    "runMac": """
+    echo "   >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
+    source {0}{1}bin{1}activate
+
+    echo "   >>> RUNNING THE LENTICULAR LENS"
+    cd {0}{1}src
+    python run.py
+    """,
+
+    "runWin": """
+    echo "   >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
+    call {0}{1}Scripts{1}activate.bat
+
+    echo "   >>> RUNNING THE LENTICULAR LENS"
+    cd {0}{1}src
+    python run.py
     """
 }
 
@@ -144,10 +162,40 @@ class MyPrompt(Cmd):
             (directory, python_path, stardog_bin, stardog_home, database_name, run, port) = prompts()
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
 
-
     # INSTALL USING THE EDITED INPUT PARAMETERS
     def do_3(self, args):
         install(parameter_input)
+
+    def do_4(self, args):
+        parameters = input_prep(parameter_input)
+        directory = parameters[0]
+        # python_path = parameters[1]
+        # stardog_bin = parameters[2]
+        # stardog_home = parameters[3]
+        # database_name = parameters[4]
+        # run = parameters[5]
+        # ll_port = parameters[6]
+
+        file_path = join(directory, "INSTALLATION.bat")
+        w_dir = join(directory, "alignments")
+        # cmds = commands["windows"].format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
+
+        print "\nYOU HAVE OPT FOR DIRECTLY RUNNING THE LENTICULAR LENS."
+        try:
+            # RUNS IN A NEW SHELL
+            cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["renMac"]
+            cmd = cmd.format(w_dir, os.path.sep)
+            print cmd
+
+            print subprocess.check_output("pip --version", shell=True, stderr=subprocess.STDOUT)
+            print cmd
+
+            print execute_cmd(cmd=cmd, file_path=file_path)
+
+
+        except Exception as err:
+            print "ERROR"
+            return err.message
 
     # THIS GIVES BOTH OPTIONS
     def do_install(self, args):
@@ -203,6 +251,7 @@ def versions(file_path):
 
 
 def install_package(package, command, condition, condition_idx, file_path):
+
     package = str(package).upper()
     while condition[condition_idx][0] != "0":
         print("\n\t>>> THE REQUIRED [{}] VERSION IS NOT INSTALL!".format(package))
@@ -235,12 +284,16 @@ def execute_cmd(cmd, file_path, output=True, run=True):
     # EXECUTE THE COMMAND
     if run is True:
 
-        if output is True:
-            output = subprocess.check_output(file_path, shell=True, stderr=subprocess.STDOUT)
-            return str(output)
-        else:
-            # RUNS IN A NEW SHELL
-            subprocess.call(file_path, shell=True)
+        try:
+            if output is True:
+                output = subprocess.check_output(file_path, shell=True, stderr=subprocess.STDOUT)
+                return str(output)
+            else:
+                # RUNS IN A NEW SHELL
+                subprocess.call(file_path, shell=True)
+
+        except Exception as err:
+            return err.message
 
 
 def normalise_path(file_path):
