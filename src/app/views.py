@@ -1,20 +1,20 @@
 # encoding=utf-8
 
-import os
-import re
 import ast
+import collections
 import json
+import logging
+import os
+import os.path as path
+import re
 import urllib
 import urllib2
-import logging
+
+import Queries as Qry
 import requests
 import xmltodict
-import collections
-import Queries as Qry
-import os.path as path
-from flask import render_template, request, redirect, jsonify # url_for, make_response, g
-
 from Alignments.UserActivities.Import_Data import export_research_question
+from flask import render_template, request, redirect, jsonify # url_for, make_response, g
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -29,8 +29,6 @@ if CREATION_ACTIVE:
     import Alignments.Settings as St
     import Alignments.NameSpace as Ns
     import Alignments.ToRDF.CSV as CSV
-    import Alignments.ErrorCodes as Ec
-    import Alignments.Linksets.Linkset as Ls
     import Alignments.Manage.AdminGraphs as adm
     from Alignments.Lenses.Lens_Union import union
     from Alignments.Lenses.Lens_Difference import difference as diff
@@ -3646,10 +3644,10 @@ def convertCSVToRDF():
     # print subject_id, rdftype
 
     converter = CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
-            separator=separator, entity_type=entity_type,
-            rdftype=rdftype if rdftype != [] else None,
-            subject_id = int(subject_id) if subject_id != '' else None,
-            field_metadata=None, activated=True)
+                        separator=separator, entity_type=entity_type,
+                        rdftype=rdftype if rdftype != [] else None,
+                        subject_id = int(subject_id) if subject_id != '' else None,
+                        field_metadata=None, activated=True)
 
     return jsonify({'batch': converter.bat_file, 'data': converter.outputPath, 'schema': converter.outputMetaPath})
 
@@ -3711,7 +3709,7 @@ def headerExtractor():
 @app.route('/loadGraph')
 def loadGraph():
     batch_file = request.args.get('batch_file', '')
-    print batch_file
+    print "PRINT LOADING THE {}".format(batch_file)
     return json.dumps(Ut.batch_load(batch_file))
 
 
