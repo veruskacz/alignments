@@ -224,7 +224,7 @@ class LLPrompt(Cmd):
             """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
             print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
             update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
-           
+
             execute_cmd(cmd=cmd, file_path=file_path, output=False)
 
         except Exception as err:
@@ -409,7 +409,7 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
     # replace_all(svr_settings, port, """{}""".format(ll_port))
     # Svr.settings[St.ll_port] = ll_port
     print "updated to", ll_port
-    os.environ['LL_PORT'] = ll_port
+    os.environ['LL_PORT'] = str(ll_port)
 
     print os.environ['LL_PORT']
 
