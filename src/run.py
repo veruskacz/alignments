@@ -15,7 +15,7 @@ RESET_SERVER_BATS = False
 
 print os.environ("LL_PORT", 5077)
 
-exit(0)
+# exit(0)
 if __name__ == "__main__":
 
     try:
