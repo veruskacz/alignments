@@ -9,12 +9,6 @@
                 activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
                 inspect_linkset_activate(mode="inspect")'
                 >Inspect</button>
-        <!--<button type="button" id="btn_inspect_linkset_cluster"-->
-                <!--class="btn btn-primary btn btn-primary disabled"-->
-                <!--onclick='newSelectButton(this);-->
-                <!--activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");-->
-                <!--inspect_linkset_activate(mode="inspect_linkset_cluster")'-->
-        <!--&gt;Inspect from Cluster</button>-->
         <button type="button" class="btn btn-primary disabled"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="creation_linkset_row",cl="row creation");
@@ -22,12 +16,6 @@
                 activateTargetDiv(targetId="item_identity");
                 create_linkset_activate()'
                 >Create</button>
-        <!--<button type="button" class="btn btn-primary disabled"-->
-                <!--onclick='newSelectButton(this);-->
-                <!--activateTargetDiv(targetId="creation_linkset_row",cl="row creation");-->
-                <!--activateTargetDiv(targetId="create_linkset_cluster_heading",cl="panel-heading");-->
-                <!--create_linkset_activate(mode="cluster")'-->
-                <!--&gt;Create from Cluster</button>-->
         <button type="button" id="btn_edit_linkset" class="btn btn-primary disabled"
                 onclick='newSelectButton(this);
                 activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
@@ -41,12 +29,6 @@
                 activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
                 inspect_linkset_activate(mode="refine")'
                 >Refine</button>
-        <!--<button type="button" id="btn_export_linkset" class="btn btn-primary disabled"-->
-                <!--onclick='newSelectButton(this);-->
-                <!--activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");-->
-                <!--activateTargetDiv(targetId="export_linkset_heading",cl="panel-heading");-->
-                <!--inspect_linkset_activate(mode="export")'-->
-                <!--&gt;Export</button>-->
         <div class="btn-group">
             <button type="button" class="btn btn-primary dropdown-toggle disabled" data-toggle="dropdown"
                 id="btn_export_linkset"
@@ -200,31 +182,6 @@
              </div>
            </div>
 
-           <!--<div class="panel-heading" id="create_linkset_cluster_heading" >-->
-             <!--<div class="row">-->
-               <!--<div class="col-md-4">-->
-                  <!--<h4 class="panel-title">-->
-                    <!--<a id="link_collapse_linkset_cluster_create"-->
-                         <!--data-toggle="collapse" href="#collapse_linkset_cluster_create">-->
-                        <!--<span class="badge alert-info"><strong>-</strong></span></a>-->
-                    <!--Create Linkset from Cluster-->
-                  <!--</h4>-->
-               <!--</div>-->
-               <!--&lt;!&ndash;<h5><div class="col-md-8 text-right" style="color:red" id="linkset_creation_message_col"></div></h5>&ndash;&gt;-->
-               <!--<div class="col-md-8 text-right">-->
-                   <!--<table align="right">-->
-                       <!--<tr align="right" >-->
-                           <!--<td align="right" valign="center" ><div id="linkset_cluster_creation_message_col"></div></td>-->
-                           <!--<td valign="center"><div class="loading"></div></td>-->
-                           <!--<td align="right" valign="center"><button type="button" id="create_clusterLinksetButton"-->
-                           <!--class="btn btn-success btn btn-primary"-->
-                           <!--onclick="createLinksetClusterClick()">Create Linkset-->
-                               <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
-                           <!--</button></td>-->
-                   <!--</table>-->
-               <!--</div>-->
-             <!--</div>-->
-           <!--</div>-->
 
            <div class="panel-heading" id="edit_linkset_heading" style='display:none'>
              <div class="row">
@@ -1102,62 +1059,6 @@
                </div> <!-- Panel Body -->
            </div>  <!-- Panel Collapse -->
 
-           <!--<div id="collapse_linkset_cluster_create" class="panel-collapse collapse in"-->
-             <!--target="link_collapse_linkset_cluster_create">-->
-
-             <!--<div class="panel-body" id="create_linkset_cluster_panel_body">-->
-
-                <!--<div class="row creation" id="create_linkset_clusters_row" style='display:none'>-->
-                  <!--<div class="col-md-12">-->
-                      <!--<div class="row" style='width: 100%;'>-->
-                        <!--<div class="col-md-4">-->
-                          <!--<div class="row">-->
-                            <!--<div class="col-md-12">-->
-                                <!--<h4>Cluster Reference</h4>-->
-                            <!--</div>-->
-                          <!--</div>-->
-                          <!--<div class="row">-->
-                            <!--&lt;!&ndash;<div class="col-md-12" id="create_linkset_clusters_reference_selection_col"></div>&ndash;&gt;-->
-                            <!--<div class="co-md-12">-->
-                              <!--&lt;!&ndash;<div class="row">&ndash;&gt;-->
-                            <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
-                                <!--<div class="list-group" id="create_linkset_clusters_reference_selection_col"-->
-                                     <!--style='scroll: both; overflow: auto; height: 15em; width: 100%; margin-left: 0.3cm;'>-->
-                                <!--</div>-->
-                              <!--&lt;!&ndash;</div>&ndash;&gt;-->
-                            <!--</div>-->
-
-                            <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
-                          <!--</div>-->
-                        <!--</div>-->
-                        <!--<div class="col-md-4">-->
-                          <!--<div class="row">-->
-                            <!--<div class="col-md-12">-->
-                                <!--<h4>Clusters</h4>-->
-                            <!--</div>-->
-                          <!--</div>-->
-                          <!--<div class="row">-->
-                            <!--<div class="col-md-12" id="create_linkset_clusters_selection_col" style='width: 100%;'>-->
-                            <!--&lt;!&ndash; will be rendered via server &ndash;&gt;-->
-                            <!--</div>-->
-                          <!--</div>-->
-                        <!--</div>-->
-                        <!--&lt;!&ndash;<div class="col-md-4">&ndash;&gt;-->
-                          <!--&lt;!&ndash;<div class="row">&ndash;&gt;-->
-                            <!--&lt;!&ndash;<div class="co-md-12"  style='width: 100%;'>&ndash;&gt;-->
-                            <!--&lt;!&ndash;&lt;!&ndash; will be rendered via server &ndash;&gt;&ndash;&gt;-->
-                                <!--&lt;!&ndash;<div class="list-group" id="create_linkset_clusters_details_col"&ndash;&gt;-->
-                                     <!--&lt;!&ndash;style='scroll: both; overflow: auto; height: 15em; width: 100%;'></div>&ndash;&gt;-->
-                            <!--&lt;!&ndash;</div>&ndash;&gt;-->
-                          <!--&lt;!&ndash;</div>&ndash;&gt;-->
-                        <!--&lt;!&ndash;</div>&ndash;&gt;-->
-                      <!--</div>-->
-
-                  <!--</div>-->
-                 <!--</div>-->
-
-             <!--</div>-->
-           <!--</div>-->
         <!-- Modal -->
           <div class="modal fade" id="labelLinksetModal" role="dialog">
             <div class="modal-dialog">  <!--modal-sm">-->
@@ -1215,107 +1116,6 @@
           </div>
 
       </div> <!-- Panel -->
-
-      <!--<div class="panel panel-default" id="panel_cluster_prop_selection">-->
-       <!--<div class="panel-heading">-->
-          <!--<div class="row">-->
-              <!--<div class="col-md-12">-->
-                <!--<h4 class="panel-title">-->
-                  <!--<a id="link_collapse_linkset_cluster_props"-->
-                     <!--data-toggle="collapse" href="#collapse_linkset_cluster_props">-->
-                      <!--<span class="badge alert-info"><strong>+</strong></span></a>-->
-                  <!--Property Selection <small> (select a dataset to see its attributes)</small>-->
-                <!--</h4>-->
-              <!--</div>-->
-          <!--</div>-->
-
-       <!--</div>-->
-
-      <!--<div id="collapse_linkset_cluster_props" class="panel-collapse collapse in" target="link_collapse_linkset_cluster_props">-->
-          <!--<div class="panel-body">-->
-          <!--<div class="row">-->
-
-            <!--<div class="col-md-4" >-->
-                <!--<div class="row">-->
-                  <!--<div class="col-md-12"><h4>Datasets</h4></div>-->
-                <!--</div>-->
-                <!--<div class="row">-->
-                  <!--<div class="col-md-12">Select from the list:</div>-->
-                <!--</div>-->
-                <!--<div class="row">-->
-                  <!--<div class="col-md-12" >-->
-                    <!--<div class="list-group" id="linkset_cluster_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>-->
-                    <!--</div>-->
-                  <!--</div>-->
-                <!--</div>-->
-            <!--</div>-->
-
-            <!--<div class="col-md-4" >-->
-                <!--<div class="row">-->
-                            <!--<div class="col-md-12">-->
-                             <!--<div class="row">-->
-                                 <!--<div class="col-md-6">-->
-                                     <!--<small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>-->
-                                         <!--</strong></small>-->
-                                 <!--</div>-->
-                                 <!--<div class="col-md-5" align="right">-->
-                                     <!--<small><div class="checkbox-inline" ><label><input type="checkbox" id="linkset_cluster_enable_prop_path"-->
-                                            <!--onclick='resetDivSelectedEntity("linkset_cluster_dataset_col","predicate")' >Enable Prop. Path</label></div></small>-->
-                                 <!--</div>-->
-                             <!--</div>-->
-                            <!--</div>-->
-                <!--</div>-->
-                <!--<div class="row">-->
-                  <!--<div class="col-md-12" id="creation_linkset_cluster_predicates_msg_col"></div>-->
-                <!--</div>-->
-                <!--<div class="row"> &nbsp </div>-->
-             <!--<div class="row">-->
-                 <!--<div class="col-md-12">-->
-                <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
-               <!--<input type="text" onkeyup='filterListGroup(this,"creation_linkset_cluster_predicates_col","linkset_cluster_pred_counter")'-->
-                      <!--placeholder="Search for names.." style='width: 83%'>-->
-                  <!--<span id="linkset_cluster_pred_counter" class="badge"></span>-->
-               <!--</div>-->
-             <!--</div>-->
-             <!--<div class="row"> &nbsp </div>-->
-             <!--&lt;!&ndash;<div class="row" id = "cluster_selected_pred_row">&ndash;&gt;-->
-                 <!--&lt;!&ndash;<div class="col-md-12">&ndash;&gt;-->
-                     <!--&lt;!&ndash;<div class="well well-sm" id="cluster_selected_pred" uri="" >&ndash;&gt;-->
-                         <!--&lt;!&ndash;Select a Property + <span style="color:blue"><strong> example value </strong></span>&ndash;&gt;-->
-                     <!--&lt;!&ndash;</div>&ndash;&gt;-->
-                 <!--&lt;!&ndash;</div>&ndash;&gt;-->
-             <!--&lt;!&ndash;</div>&ndash;&gt;-->
-             <!--<div class="row">-->
-                  <!--<div class="col-md-12" id="creation_linkset_cluster_predicates_col"-->
-                                      <!--badge_counter="linkset_cluster_pred_counter"-->
-                                      <!--targetList="creation_linkset_cluster_predicates_col"-->
-                                      <!--accumPath=""-->
-                                      <!--accumPathLabel=""-->
-                                      <!--propPathCheckBok="linkset_cluster_enable_prop_path"-->
-                                      <!--propPath="enabled"> </div>-->
-
-             <!--</div>-->
-            <!--</div>-->
-
-            <!--<div class="col-md-4" >-->
-                <!--<div class="row">-->
-                  <!--<div class="col-md-12"><h4>Selected Attributes</h4>-->
-                  <!--</div>-->
-                <!--</div>-->
-                <!--<div class="row">-->
-                  <!--<div class="col-md-12">-->
-                    <!--<div class="list-group" id="creation_linkset_cluster_selected_predicates_group"-->
-                            <!--style='scroll: both; overflow: auto; height: 15em; width: 100%;'>-->
-                    <!--</div>-->
-                  <!--</div>-->
-                <!--</div>-->
-            <!--</div>-->
-          <!--</div>-->
-          <!--</div>-->
-       <!--</div>-->
-
-
-      <!--</div>-->
 
       </div> <!-- Col -->
      </div> <!-- Row -->
@@ -1457,6 +1257,43 @@
        </div>
       </div>
      </div>
+
+     <div class="row creation" id="creation_linkset_metadata_row" style='display:none'>
+      <div class="col-md-12">
+         <div class="row">
+          <div class="col-md-12" >
+            <div class="panel panel-default">
+            <div class="panel-heading" >
+              <div class="row">
+                  <div class="col-md-4">
+                      <h4 class="panel-title">
+                          <a id="link_collapse_creation_linkset_metadata"
+                             data-toggle="collapse" href="#collapse_creation_linkset_metadata">
+                          <span class="badge alert-info"><strong>-</strong></span></a>
+                          Generic Metadata
+                      </h4>
+                  </div>
+              </div>
+            </div>
+            <div id="collapse_creation_linkset_metadata" class="panel-collapse collapse" target="link_collapse_creation_linkset_metadata">
+            <div class="panel-body">
+              <div class="row">
+                <div class="col-md-12">
+                   <textarea readonly wrap='off' class="form-control" id="creation_linkset_metadata_result"
+                             style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;' rows='12'>
+                   </textarea>
+                </div>
+              </div>
+
+            </div>
+            </div>
+           </div>
+          </div>
+         </div>
+
+      </div>
+     </div>
+
 
      <div class="row creation" id="creation_linkset_correspondence_row" style='display:none'>
       <div class="col-md-12" >

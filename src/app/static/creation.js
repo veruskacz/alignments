@@ -1085,40 +1085,6 @@ function inspect_linkset_activate(mode='default')
           {
             var selection = selectListItemUnique(this, 'inspect_linkset_selection_col')
           }
-//          if (mode == 'inspect_linkset_cluster')
-//          {
-//            var linkset_uri = $(this).attr('uri');
-//            var linkset_type = $(this).attr('lkst_type');
-//
-//            // load the panel describing the linkset sample
-//            $('#inspect_linkset_linkset_details_col').show();
-//            $('#inspect_linkset_linkset_details_col').html('Loading...');
-//            $.get('/getlinksetdetailsCluster',data={'linkset': linkset_uri},function(data)
-//            {
-//                var obj = JSON.parse(data);
-//                $('#inspect_linkset_linkset_details_col').html(obj.data);
-//
-//                get_filter(rq_uri, linkset_uri);
-//
-//                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
-//                {
-//                   $('#creation_linkset_row').show();
-//                   loadEditPanel(obj.metadata, mode);
-//                   enableButton('deleteLinksetButton');
-//                   enableButton('exportLinksetButton');
-//                   enableButton('exportPlotLinksetButton');
-//                }
-//                else if (mode == 'inspect')
-//                {
-//                   $('#creation_linkset_filter_row').show();
-//                   $('#creation_linkset_search_row').show();
-//                   $('#creation_linkset_correspondence_row').show();
-//                   showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
-//                }
-//            });
-//
-//          }
-//          else
           if (selection)
           {
             var linkset_uri = $(this).attr('uri');
@@ -1130,6 +1096,7 @@ function inspect_linkset_activate(mode='default')
             // load the panel describing the linkset sample
             $('#inspect_linkset_linkset_details_col').show();
             $('#inspect_linkset_linkset_details_col').html('Loading...');
+            $('#creation_linkset_metadata_result').val('');
             $.get('/getlinksetdetails',data={'linkset': linkset_uri, 'lkst_type': linkset_type, 'load_samples': load_samples},function(data)
             {
                 var obj = JSON.parse(data);
@@ -1149,7 +1116,9 @@ function inspect_linkset_activate(mode='default')
                 {
                    $('#creation_linkset_filter_row').show();
                    $('#creation_linkset_search_row').show();
+                   $('#creation_linkset_metadata_row').show();
                    $('#creation_linkset_correspondence_row').show();
+                   $('#creation_linkset_metadata_result').val(obj.metadata_text);
                    showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
                 }
             });
@@ -2189,6 +2158,7 @@ function applyFilterLinksetClick()
 
        $('#creation_linkset_filter_row').show();
        $('#creation_linkset_search_row').show();
+       $('#creation_linkset_metadata_row').show();
        $('#creation_linkset_correspondence_row').show();
        showDetails(rq_uri, linkset_uri, obj, filter_uri, filter_term);
     });
@@ -2283,6 +2253,7 @@ function applyFilterLensClick()
 
        $('#creation_lens_filter_row').show();
        $('#creation_lens_search_row').show();
+       $('#creation_lens_metadata_row').show();
        $('#creation_lens_correspondence_row').show();
        showDetails(rq_uri, lens_uri, obj, filter_uri, filter_term);
     });
@@ -2393,15 +2364,19 @@ function inspect_lens_activate(mode)
                 // load the panel for filter
                   $('#creation_lens_filter_row').show();
                   $('#creation_lens_search_row').show();
+                  $('#creation_lens_metadata_row').show();
+
 
                 // load the panel for correspondences details
                   $('#creation_lens_correspondence_row').show();
+                  $('#creation_lens_metadata_result').val('')
                   //already has Loading...
                   $.get('/getlensdetails',data={'lens': lens_uri,
                                                 'template': 'none'},function(data)
                   {
                     var obj = JSON.parse(data);
-                    showDetails(rq_uri, lens_uri, obj);
+                    $('#creation_lens_metadata_result').val(obj.metadata_text);
+                    showDetails(rq_uri, lens_uri, obj.metadata);
 
                   });
 
@@ -2417,6 +2392,7 @@ function inspect_lens_activate(mode)
       $('#lens_inspect_panel_body').hide();
       $('#creation_lens_filter_row').hide();
       $('#creation_lens_search_row').hide();
+      $('#creation_lens_metadata_row').hide();
       $('#creation_lens_correspondence_row').hide();
       $('#creation_lens_row').show();
       $('#edit_lens_heading').show();
@@ -2426,6 +2402,7 @@ function inspect_lens_activate(mode)
       $('#lens_inspect_panel_body').hide();
       $('#creation_lens_filter_row').hide();
       $('#creation_lens_search_row').hide();
+      $('#creation_lens_metadata_row').hide();
       $('#creation_lens_correspondence_row').hide();
       $('#creation_lens_row').show();
       $('#export_lens_heading').show();
@@ -2435,6 +2412,7 @@ function inspect_lens_activate(mode)
       $('#lens_creation_row').hide();
       $('#creation_lens_filter_row').hide();
       $('#creation_lens_search_row').hide();
+      $('#creation_lens_metadata_row').hide();
       $('#creation_lens_correspondence_row').hide();
       $('#creation_lens_row').show();
 //      enableButton('exportLensButton', enable=false);
@@ -4686,6 +4664,7 @@ function refresh_create_linkset(mode='all')
       $('#inspect_linkset_linkset_details_col').html("");
       $('#creation_linkset_filter_row').hide();
       $('#creation_linkset_search_row').hide();
+      $('#creation_linkset_metadata_row').hide();
       $('#creation_linkset_correspondence_row').hide();
       $('#creation_linkset_correspondence_col').html('');
 

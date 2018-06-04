@@ -103,6 +103,7 @@ def stardog_query_list():
     except Exception as err:
         return err
 
+
 def stardog_status():
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -290,7 +291,9 @@ def query_graph_metadata(graph):
     graph = main_alignment(graph)
     print "{:12} : {}".format("MAIN GRAPH", graph)
     qry = std_queries["metadata"].format(graph)
-    print query(qry)
+    result = query(qry)
+    print result
+    return result
 
 
 def query_stardog_data_add_file():
@@ -311,5 +314,5 @@ leiden = "D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRank
 
 # print stardog_query_list()
 # print stardog_query_status(94)
-print stardog_status()
+# print stardog_status()
 # print query_graph_search("dataset")
