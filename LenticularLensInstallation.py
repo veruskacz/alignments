@@ -10,9 +10,6 @@ from cmd import Cmd
 from os.path import join
 import cStringIO as Buffer
 
-import Alignments.Settings as St
-import Alignments.Server_Settings as Svr
-
 # #####################################################
 """ FUNCTION PARAMETERS """
 # #####################################################
@@ -208,6 +205,8 @@ class LLPrompt(Cmd):
                 print "\n\t>>> {:18} : PORT [{}] REPLACED BY PORT [{}]".format("PORT OVEWRIGHING", parameters[6], port)
             except:
                 ll_port = parameters[6]
+        else:
+            ll_port = parameters[6]
 
         file_path = join(directory, "INSTALLATION.bat")
         w_dir = join(directory, "alignments")
@@ -225,10 +224,11 @@ class LLPrompt(Cmd):
             """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
             print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
             update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
-
+           
             execute_cmd(cmd=cmd, file_path=file_path, output=False)
 
         except Exception as err:
+            print err.message
             print "ERROR"
             return err.message
 
@@ -405,11 +405,13 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
     replace_all(svr_settings, d_data, """{}""".format(database_name))
 
     # LENTICULAR LENS POERT
-    port = """"LL_PORT",[ ]*(\d*)"""
+    # port = """"LL_PORT",[ ]*(\d*)"""
     # replace_all(svr_settings, port, """{}""".format(ll_port))
-    Svr.settings[St.ll_port] = ll_port
-    print "updated to", port
-    os.system('setx LL_PORT {}'.format(ll_port))
+    # Svr.settings[St.ll_port] = ll_port
+    print "updated to", ll_port
+    os.environ['LL_PORT'] = ll_port
+
+    print os.environ['LL_PORT']
 
 
 # #####################################################
