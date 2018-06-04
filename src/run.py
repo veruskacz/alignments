@@ -12,6 +12,10 @@ import Alignments.Server_Settings as Svr
 print "\nRUNNING THE LENTICULAR LENS SERVER"
 lock_file = None
 RESET_SERVER_BATS = False
+
+print os.environ("LL_PORT", 5077)
+
+exit(0)
 if __name__ == "__main__":
 
     try:
@@ -61,8 +65,12 @@ if __name__ == "__main__":
         db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())
         Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
-        print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(Svr.settings[St.ll_port])
-        web.open_new_tab('http://localhost:{}/'.format(Svr.settings[St.ll_port]))
-        app.run(host="0.0.0.0", port=Svr.settings[St.ll_port])
+        # print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(Svr.settings[St.ll_port])
+        # web.open_new_tab('http://localhost:{}/'.format(Svr.settings[St.ll_port]))
+        # app.run(host="0.0.0.0", port=Svr.settings[St.ll_port])
+        port = os.getenv("LL_PORT", Svr.settings[St.ll_port])
+        print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(port)
+        web.open_new_tab('http://localhost:{}/'.format(port))
+        app.run(host="0.0.0.0", port=port)
 
 # LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py

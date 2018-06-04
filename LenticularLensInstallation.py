@@ -20,8 +20,12 @@ _format = "%a %b %d %H:%M:%S %Y"
 date = datetime.datetime.today()
 begining = time.time()
 highlight = "---------------------------------------------------"
-_line = "------------------------------------------------------------------------------------------------------"
-print "\n{}\n{:>90}\n{}\n".format(_line, date.strftime(_format), _line)
+_line = "--------------------------------------------------------------" \
+        "--------------------------------------------------------------"
+
+# CLEAR SHELL
+os.system('cls')
+print "\n{}\n{:>117}\n{}\n".format(_line, date.strftime(_format), _line)
 commands = {
 
     "versions": """
@@ -152,8 +156,25 @@ def prompts():
     return (directory, python_path, stardog_bin, stardog_home, database_name, run, port)
 
 
-class MyPrompt(Cmd):
+class LLPrompt(Cmd):
 
+    message = """
+    Lenticular Lens Installation Prompt...
+        OPTION 1. Enter [1] or [quit] to exit
+        OPTION 2. Enter [2] or [install] for directly inserting the required input parameters from the cmd-shell.
+        OPTION 3. Enter [3] or [intsall all] to run the code using the [parameter_input] edited within the file.
+        OPTION 4. Enter [4] or [run] to run the Lenticular Lens. This onption is used only prior to an installation. \n
+    """
+
+    def do_clear(self):
+        os.system('cls')
+
+
+    # QUIT THE LENTICIULAR LENS
+    def do_1(self, args):
+        """Quits the program."""
+        print "{}\n{:>117}\n{}".format(_line, "Thanks for trying it!.", _line)
+        raise SystemExit
 
     # INSTALL USING THE SHELL PROMPT
     def do_2(self, args):
@@ -166,15 +187,25 @@ class MyPrompt(Cmd):
     def do_3(self, args):
         install(parameter_input)
 
-    def do_4(self, args):
+    # RUN THE LENTICULAR LENS
+    def do_4(self, port):
+
+        overwright = False
         parameters = input_prep(parameter_input)
         directory = parameters[0]
         # python_path = parameters[1]
-        # stardog_bin = parameters[2]
-        # stardog_home = parameters[3]
-        # database_name = parameters[4]
+        stardog_bin = parameters[2]
+        stardog_home = parameters[3]
+        database_name = parameters[4]
         # run = parameters[5]
-        # ll_port = parameters[6]
+        if len(port) > 0:
+            try:
+                int(str(port))
+                ll_port = port
+                overwright = True
+                print "\n\t>>> {:18} : PORT [{}] REPALCED BY PORT [{}]".format("PORT OVEWRIGHING", parameters[6], port)
+            except:
+                ll_port = parameters[6]
 
         file_path = join(directory, "INSTALLATION.bat")
         w_dir = join(directory, "alignments")
@@ -187,15 +218,21 @@ class MyPrompt(Cmd):
             cmd = cmd.format(w_dir, os.path.sep)
             print cmd
 
-            print subprocess.check_output("pip --version", shell=True, stderr=subprocess.STDOUT)
-            print cmd
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
+            if overwright is False:
+                update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
 
-            print execute_cmd(cmd=cmd, file_path=file_path)
-
+            execute_cmd(cmd=cmd, file_path=file_path, output=False)
 
         except Exception as err:
             print "ERROR"
             return err.message
+
+    def do_run(self, args):
+        do_4()
 
     # THIS GIVES BOTH OPTIONS
     def do_install(self, args):
@@ -208,7 +245,7 @@ class MyPrompt(Cmd):
 
     def do_quit(self, args):
         """Quits the program."""
-        print "\nThanks for trying it!."
+        print "{}\n{:>117}\n{}".format(_line, "Thanks for trying it!.", _line)
         raise SystemExit
 
 
@@ -253,7 +290,7 @@ def versions(file_path):
 def install_package(package, command, condition, condition_idx, file_path):
 
     package = str(package).upper()
-    while condition[condition_idx][0] != "0":
+    while condition[condition_idx][0] == "0":
         print("\n\t>>> THE REQUIRED [{}] VERSION IS NOT INSTALL!".format(package))
         proceed = process_input("\t\tEnter [1] to INSTALL [{}] or enter [anything else] to exit.".format(package))
         if str(proceed).strip() == "1":
@@ -268,18 +305,19 @@ def install_package(package, command, condition, condition_idx, file_path):
             exit(1)
 
 
-def execute_cmd(cmd, file_path, output=True, run=True):
+def execute_cmd(cmd, file_path=None, output=True, run=True):
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-    with open(name=file_path, mode="wb") as writer:
-        writer.write(cmd)
+    if file_path is not None and os.path.isfile(file_path):
+        with open(name=file_path, mode="wb") as writer:
+            writer.write(cmd)
 
-    # MAC PERMISSION ISSUES
-    if OPE_SYS != 'windows':
-        os.chmod(file_path, 0o777)
+        # MAC PERMISSION ISSUES
+        if OPE_SYS != 'windows':
+            os.chmod(file_path, 0o777)
 
     # EXECUTE THE COMMAND
     if run is True:
@@ -367,7 +405,8 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
 
     # LENTICULAR LENS POERT
     port = """"LL_PORT",[ ]*(\d*)"""
-    replace_all(svr_settings, port, """{}""".format(ll_port))
+    # replace_all(svr_settings, port, """{}""".format(ll_port))
+    os.system('setx LL_PORT {}'.format(ll_port))
 
 
 # #####################################################
@@ -613,7 +652,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [PYTHON] VERSION")
         exit(1)
 
-    # PACKAGE MANAGEMENT SYSTEM
+    # P-1.PACKAGE MANAGEMENT SYSTEM
     install_package(package="PIP", command="pip",
                     condition=(git, python, pip, env), condition_idx=2, file_path=file_path)
     # while pip[0] == "0":
@@ -644,7 +683,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     #     else:
     #         print "\t\tFORCED EXIT BY USER."
     #         exit(1)
-    exit(0)
+
     # ###############################
     # 4. GIT VERSION IS REQUIRED
     # ###############################
@@ -812,9 +851,6 @@ ll_port = 5077
 # DIRECTORY="" PYTHON_PATH="" STARDOG_PATH="" STARDOG_DATA="" python LenticularLensInstallation.py
 
 
-prompt = MyPrompt()
+prompt = LLPrompt()
 prompt.prompt = '> '
-prompt.cmdloop('Lenticular Lens Installation Prompt...'
-               '\n  OPTION 1. Enter [1] or [quit] to exit'
-               '\n  OPTION 2. Enter [2] or [install] for directly inserting the required input parameters from the cmd-shell.'
-               '\n  OPTION 3. Enter [3] or [intsall all] to run the code using the [parameter_input] edited within the file.\n')
+prompt.cmdloop(prompt.message)
