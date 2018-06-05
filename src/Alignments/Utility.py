@@ -950,7 +950,7 @@ def listening(directory, sleep_time=10):
         except Exception as err:
             response = str(err)
 
-        if str(response).__contains__("10061"):
+        if str(response).__contains__("10061") or str(response).__contains__("61"):
             print "\t>>> The connection has not been established yet with the stardog server..."
 
         if len(lock_file) > 0 and str(response).__contains__("401"):
