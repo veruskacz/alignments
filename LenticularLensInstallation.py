@@ -39,9 +39,9 @@ commands = {
     "pyt_v": "python --version",
     "env_v": "virtualenv --version",
 
-    "pip": "easy_install pip>=10.0.1",
+    "pip": "easy_install pip==10.0.1",
 
-    "pip_up": "sudo python -m pip install --upgrade pip",
+    "pip_up": "sudo python -m pip install --upgrade --force-reinstall pip",
 
     "venv": "pip install virtualenv",
 
@@ -374,7 +374,7 @@ def execute_cmd(cmd, file_path=None, output=True, run=True):
     # CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-    if file_path is not None and os.path.isfile(file_path):
+    if file_path is not None:
         with open(name=file_path, mode="wb") as writer:
             writer.write(cmd)
 
