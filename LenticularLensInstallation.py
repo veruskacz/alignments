@@ -169,7 +169,7 @@ class LLPrompt(Cmd):
             Enter [2] or [install] for directly inserting the required input parameters from the [cmd-shell].
 
         OPTION 3. ALL-IN INSTALL
-            Enter [3] or [intsall all] to run the code using the [parameter_input] edited within the file.
+            Enter [3] or [install all] to run the code using the [parameter_input] edited within the file.
 
         OPTION 4. RUN THE LENTICUALR LEND
             Enter [4] or [run] to run the Lenticular Lens. This onption is used only prior to an installation. \n
