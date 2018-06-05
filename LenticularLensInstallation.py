@@ -39,7 +39,9 @@ commands = {
     "pyt_v": "python --version",
     "env_v": "virtualenv --version",
 
-    "pip": "easy_install pip",
+    "pip": "easy_install pip>=10.0.1",
+
+    "pip_up": "sudo python -m pip install --upgrade pip",
 
     "venv": "pip install virtualenv",
 
@@ -159,18 +161,31 @@ class LLPrompt(Cmd):
 
     message = """
     Lenticular Lens Installation Prompt...
-        OPTION 1. Enter [1] or [quit] to exit
-        OPTION 2. Enter [2] or [install] for directly inserting the required input parameters from the cmd-shell.
-        OPTION 3. Enter [3] or [intsall all] to run the code using the [parameter_input] edited within the file.
-        OPTION 4. Enter [4] or [run] to run the Lenticular Lens. This onption is used only prior to an installation. \n
+
+        OPTION 1. QUIT
+            Enter [1] or [quit] to exit
+
+        OPTION 2. STEP-BY-STEP SHELL-INSTALL
+            Enter [2] or [install] for directly inserting the required input parameters from the [cmd-shell].
+
+        OPTION 3. ALL-IN INSTALL
+            Enter [3] or [intsall all] to run the code using the [parameter_input] edited within the file.
+
+        OPTION 4. RUN THE LENTICUALR LEND
+            Enter [4] or [run] to run the Lenticular Lens. This onption is used only prior to an installation. \n
     """
 
     def do_clear(self):
         os.system('cls')
 
-
-    # QUIT THE LENTICIULAR LENS
+    # QUIT THE LENTICIULAR LENS WITH OPTION [1]
     def do_1(self, args):
+        """Quits the program."""
+        print "{}\n{:>117}\n{}".format(_line, "Thanks for trying it!.", _line)
+        raise SystemExit
+
+    # QUIT THE LENTICIULAR LENS WITH OPTION [QUIT]
+    def do_quit(self, args):
         """Quits the program."""
         print "{}\n{:>117}\n{}".format(_line, "Thanks for trying it!.", _line)
         raise SystemExit
@@ -186,7 +201,7 @@ class LLPrompt(Cmd):
     def do_3(self, args):
         install(parameter_input)
 
-    # RUN THE LENTICULAR LENS
+    # RUN THE LENTICULAR LENS WITH THE [4] OPTION
     def do_4(self, port):
 
         overwright = False
@@ -232,6 +247,7 @@ class LLPrompt(Cmd):
             print "ERROR"
             return err.message
 
+    # RUN THE LENTICULAR LENS WITH THE [RUN] OPTION
     def do_run(self, port):
         overwright = False
         parameters = input_prep(parameter_input)
@@ -285,10 +301,7 @@ class LLPrompt(Cmd):
         else:
             install(parameter_input)
 
-    def do_quit(self, args):
-        """Quits the program."""
-        print "{}\n{:>117}\n{}".format(_line, "Thanks for trying it!.", _line)
-        raise SystemExit
+
 
 
 # #####################################################
@@ -302,26 +315,34 @@ def versions(file_path):
     # print(sys.version)
 
     try:
-        git_out = execute_cmd(commands["git_v"], file_path)
+        git_out = execute_cmd(commands["git_v"], file_path, output=True)
         git = re.findall('git version (.+)', str(git_out))
+        if len(git) == 0:
+            git = ["0"]
     except:
         git = ["0"]
 
     try:
         pyt_out =  subprocess.check_output(commands["pyt_v"], shell=True, stderr=subprocess.STDOUT)
         python = re.findall('python {}'.format(pattern), str(pyt_out), flags=re.IGNORECASE)
+        if len(python) == 0:
+            python = ["0"]
     except Exception as err:
         python = ["0"]
 
     try:
-        pip_out = execute_cmd(commands["pip_v"], file_path)
+        pip_out = execute_cmd(commands["pip_v"], file_path, output=True)
         pip = re.findall('pip {}'.format(pattern), str(pip_out))
+        if len(pip) == 0:
+            pip = ["0"]
     except:
         pip = ["0"]
 
     try:
-        env_out = execute_cmd(commands["env_v"], file_path)
+        env_out = execute_cmd(commands["env_v"], file_path, output=True)
         env = re.findall('{}[\n]*'.format(pattern), env_out)
+        if len(env) == 0:
+            env = ["0"]
         # print env_out, "ENV", env
     except:
         env = ["0"]
@@ -333,14 +354,14 @@ def install_package(package, command, condition, condition_idx, file_path):
 
     package = str(package).upper()
     while condition[condition_idx][0] == "0":
-        print("\n\t>>> THE REQUIRED [{}] VERSION IS NOT INSTALL!".format(package))
+        print("\n\t>>> THE REQUIRED [{}] VERSION IS NOT INSTALLED!".format(package))
         proceed = process_input("\t\tEnter [1] to INSTALL [{}] or enter [anything else] to exit.".format(package))
         if str(proceed).strip() == "1":
             if OPE_SYS == 'windows':
-                requirements_out = execute_cmd(cmd=commands[command], file_path=file_path)
+                execute_cmd(cmd=commands[command], file_path=file_path, output=False)
             else:
-                requirements_out = execute_cmd(cmd="sudo" + commands[command], file_path=file_path)
-            print requirements_out
+                execute_cmd(cmd="sudo " + commands[command], file_path=file_path, output=False)
+            # print requirements_out
             condition = versions(file_path)
         else:
             print "\t\tFORCED EXIT BY USER."
@@ -648,7 +669,9 @@ def install_pronpt(directory, python_path, stardog_bin, stardog_home, database_n
     stardog_home = parameters[3]
     database_name = parameters[4]
     run = parameters[5]
+    ll_port = parameters[6]
 
+    # RUNNING THE GENERIC INSTALLATION
     generic_install(directory, python_path, stardog_home, stardog_bin, database_name, run=run, ll_port=ll_port)
 
     # RUNNING WINDOWS SPECIFIC INSTALLATION
@@ -698,6 +721,19 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     # P-1.PACKAGE MANAGEMENT SYSTEM
     install_package(package="PIP", command="pip",
                     condition=(git, python, pip, env), condition_idx=2, file_path=file_path)
+
+    # BETTING THE PIP VERSION AS INTEGER
+    pip_version = int(str(pip[0]).replace(".", "")) if len(pip) > 0 else 0
+    # print pip_version
+    if pip_version > 1000:
+        # PIP VERSION IS OKAY
+        print "\t{:23}: {}".format("PIP VERSION", pip[0])
+    else:
+        # UPGRADING PIP
+        requirements_out = execute_cmd(cmd=commands["pip_up"], file_path=file_path)
+        print requirements_out
+
+
     # while pip[0] == "0":
     #     print("\n\t>>> THE REQUIRED [PIP] PAKAGE VERSION IS NOT INSTALL!")
     #     proceed = process_input("\t\tEnter [1] to INSTALL [PIP] or enter [anything else] to exit.")
