@@ -813,9 +813,19 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     # 8. SLEEPING TIME FOR WINDOWS USER FOR CHECKING WHAT HAS BEE DONE SO FAR
     # AS A NEW WINDOW WILL PUP UP AND ERASE ALL PREVIUS OUPUTS
     if OPE_SYS == 'windows':
-        print "\n{0}\n    >>> SLEEPING FOR 10 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
-        time.sleep(10)
 
+        class timeout(Cmd):
+            def do_1(self, goon):
+                return True
+
+        command = timeout()
+        command.prompt = '> '
+        message = "\n{0}\n{1:^52}\n{2:^52}\n{0}\n".format(
+            highlight, ">>>   I AM GOING TO SLEEP...", "PUNCH IN THE KEY [1] TO WAIKE ME UP")
+        command.cmdloop(message)
+        print "\n{1:^52}\n".format(highlight, "THANKS FOR WAIKING ME UP!")
+        # print "\n{0}\n    >>> SLEEPING FOR 10 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
+        # time.sleep(10)
 
 # #####################################################
 """ INSTALLATION: PLATFORM DEPENDENT """
