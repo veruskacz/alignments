@@ -3173,12 +3173,12 @@ def datasetLinkingClusterDetails3():
 
     # print 'after', type(cluster_json)
     cluster = ast.literal_eval(cluster_json)
-    print '\n'
-    print cluster['id']
+    # print '\n'
+    # print cluster['id']
     # print properties
-    print cluster['nodes']
-    print cluster['links']
-    print cluster['dict']
+    # print cluster['nodes']
+    # print cluster['links']
+    # print cluster['dict']
 
     response = Clt.cluster_values_plus(research_question, cluster['nodes'], targets, distinct_values=(distinctValues=='yes'))
     print response
