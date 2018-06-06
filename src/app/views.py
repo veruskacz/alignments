@@ -3181,7 +3181,7 @@ def datasetLinkingClusterDetails3():
     # print cluster['dict']
 
     response = Clt.cluster_values_plus(research_question, cluster['nodes'], targets, distinct_values=(distinctValues=='yes'))
-    print response
+    # print response
     if response['result'] and len(response['result']) > 1:
         # print response['result']
         header = response['result'][0][:-1]
@@ -3260,7 +3260,7 @@ def datasetLinkingClusterDetails3():
                 print 'Missing confidence value, set to 1.'
                 confidence = 1
             plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
-            print plot_graph
+            # print plot_graph
 
         message = "Have a look at the result in the table below"
         return json.dumps({'message': message,
