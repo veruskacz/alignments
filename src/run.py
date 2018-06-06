@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
         lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
         # print lock_file
+
     except Exception as err:
         print str(err)
 
