@@ -491,7 +491,7 @@ def bat_load(bat_path):
             #   THE FILES THAT WERE ADDED
             #   HOW MANY TRIPLES WHERE ADDED
             output = subprocess.check_output(bat_path, shell=True)
-            print "SUBPROCESS OUTPUT:", output
+            # print "SUBPROCESS OUTPUT:", output
             output = re.sub('\(Conversion\).*\n', '', output)
 
             # THE OUTPUT CONTAINS FULL PATH THAT IS NOT ADVISABLE TO DISPLAY
@@ -950,8 +950,7 @@ def listening(directory, sleep_time=10):
         except Exception as err:
             response = str(err)
 
-        print "LISTENER RESPONSE:", response
-
+        # print "LISTENER RESPONSE:", response
         if str(response).__contains__("10061") or str(response).__contains__("61"):
             print "\t>>> The connection has not been established yet with the stardog server..."
 
@@ -1052,6 +1051,7 @@ def stardog_off(bat_path):
 
     directory = Svr.settings[St.stardog_data_path]
 
+    # IF THE STARDOG-STOP FILE DOES NOT EXIST, CREATE IT
     if path.exists(bat_path) is False:
 
         if batch_extension() == ".bat":
@@ -1077,10 +1077,12 @@ def stardog_off(bat_path):
         writer.close()
         os.chmod(bat_path, 0o777)
 
+    # GETTING THE .LOCK FILE. THIS FILES DETERMINES WHETHER STARDOG IS ON OR OFF
     lock_file = [name for name in os.listdir(directory) if name.endswith('.lock')]
 
     if len(lock_file) > 0:
 
+        # STARDOG IS ON SO... RUN THE STOP CODE
         off = batch_load(bat_path)
 
         if off is not None and type(off) is dict:

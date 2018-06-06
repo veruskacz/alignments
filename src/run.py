@@ -13,9 +13,6 @@ print "\nRUNNING THE LENTICULAR LENS SERVER"
 lock_file = None
 RESET_SERVER_BATS = False
 
-# print os.environ("LL_PORT", 5077)
-
-# exit(0)
 if __name__ == "__main__":
 
     try:
@@ -47,13 +44,15 @@ if __name__ == "__main__":
             print "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
 
         elif len(lock_file) > 0 and (
-                    str(response).__contains__("200") or
-                    str(response).__contains__("401") or
-                    str(response).__contains__("No connection") is False):
+                    (str(response).__contains__("200") or
+                     str(response).__contains__("401") or
+                     str(response).__contains__("61") or
+                     str(response).__contains__("10061") or
+                     str(response).__contains__("No connection")) is False):
             print "THE STARDOG SERVER IS ALREADY ON."
 
         else:
-            print "\n>>> ", response
+            # print "\n>>> ", response
             "SWITCHING ON THE SERVER..."
             bat_path = "{}stardogStart{}".format(Svr.SRC_DIR, Ut.batch_extension())
             Ut.stardog_on(bat_path)
@@ -61,17 +60,14 @@ if __name__ == "__main__":
             print "LISTENING AT: {}...".format(Svr.settings[St.stardog_data_path])
             Ut.listening(Svr.settings[St.stardog_data_path])
 
-        # CREATING THE DATABASE IN STARDOG
+        # CREATING THE DATABASE IN STARDOG IF IT DOES NOT EXISTS
         db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())
         Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
 
-        # print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(Svr.settings[St.ll_port])
-        # web.open_new_tab('http://localhost:{}/'.format(Svr.settings[St.ll_port]))
-        # app.run(host="0.0.0.0", port=Svr.settings[St.ll_port])
+        # LAUNCHING THE LL USING FLASK
         port = int(os.environ['LL_PORT']) if 'LL_PORT' in os.environ else Svr.settings[St.ll_port]
-        # os.getenv("LL_PORT", Svr.settings[St.ll_port])
         print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(port)
         web.open_new_tab('http://localhost:{}/'.format(port))
-        app.run(host="0.0.0.0", port=port)
+        app.run(host="0.0.0.0", port=port, threaded=True)
 
 # LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py

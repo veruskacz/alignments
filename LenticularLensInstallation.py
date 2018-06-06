@@ -212,6 +212,8 @@ class LLPrompt(Cmd):
         stardog_home = parameters[3]
         database_name = parameters[4]
         # run = parameters[5]
+
+        # SETTING HE LL PORT
         if len(port) > 0:
             try:
                 int(str(port))
@@ -225,9 +227,10 @@ class LLPrompt(Cmd):
 
         file_path = join(directory, "INSTALLATION.bat") if OPE_SYS == 'windows' else join(directory, "INSTALLATION.sh")
         w_dir = join(directory, "alignments")
-        # cmds = commands["windows"].format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
+
 
         print "\nYOU HAVE OPT FOR DIRECTLY RUNNING THE LENTICULAR LENS."
+
         try:
             # RUNS IN A NEW SHELL
             cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["runMac"]
@@ -240,6 +243,7 @@ class LLPrompt(Cmd):
             print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
             update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
 
+            # RUN THE LENTICULAR LENS
             execute_cmd(cmd=cmd, file_path=file_path, output=False)
 
         except Exception as err:
@@ -300,8 +304,6 @@ class LLPrompt(Cmd):
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
         else:
             install(parameter_input)
-
-
 
 
 # #####################################################
@@ -693,7 +695,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     print "\n2. VERSIONS\n\n\t{:23}: {}".format("COMPUTER TYPE", platform.system().upper())
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # 1. CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
+    # 2.1 CHECK WHETHER THE INSTALLATION DIRECTORY EXISTS
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     if os.path.isdir(directory) is False:
         try:
@@ -708,12 +710,14 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     file_path = join(directory, "INSTALLATION.bat" if OPE_SYS == "windows" else "INSTALLATION.sh")
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # 3. CHECKING THE AVAILABLE VESIONS OF THE REQUIRED PAKAGES
+    # 2.2 CHECKING THE AVAILABLE VESIONS OF THE REQUIRED PAKAGES
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # requirements_out = execute_cmd(commands["versions"], file_path)
     (git, python, pip, env) = versions(file_path)
     # print (git, python, pip, env)
 
+    # ###############################
+    # PYTHON
+    # ###############################
     if python[0] == "0":
         print("\n\t>>> MAKE SURE YOU HAVE INSTALLED THE REQUIRED [PYTHON] VERSION")
         exit(1)
@@ -733,40 +737,15 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         requirements_out = execute_cmd(cmd=commands["pip_up"], file_path=file_path)
         print requirements_out
 
-
-    # while pip[0] == "0":
-    #     print("\n\t>>> THE REQUIRED [PIP] PAKAGE VERSION IS NOT INSTALL!")
-    #     proceed = process_input("\t\tEnter [1] to INSTALL [PIP] or enter [anything else] to exit.")
-    #     if str(proceed).strip() == "1":
-    #         if OPE_SYS == 'windows':
-    #             requirements_out = execute_cmd(cmd=commands["pip"], file_path=file_path)
-    #         else:
-    #             requirements_out = execute_cmd(cmd="sudo" + commands["pip"], file_path=file_path)
-    #         print requirements_out
-    #         (git, python, pip, env) = versions(file_path)
-    #     exit(1)
-
+    # ###############################
     # VIRTUAL ENVIRONMENT
+    # ###############################
     install_package(package="VIRTUALENV", command="venv",
                     condition=(git, python, pip, env), condition_idx=3, file_path=file_path)
-    # while env[0] == "0":
-    #     print("\n\t>>> THE REQUIRED [VIRTUALENV] VERSION IS NOT INSTALL!")
-    #     proceed = process_input("\t\tEnter [1] to INSTALL [VIRTUALENV] or enter [anything else] to exit.")
-    #     if str(proceed).strip() == "1":
-    #         if OPE_SYS == 'windows':
-    #             requirements_out = execute_cmd(cmd=commands["venv"], file_path=file_path)
-    #         else:
-    #             requirements_out = execute_cmd(cmd="sudo" + commands["venv"], file_path=file_path)
-    #         print requirements_out
-    #         (git, python, pip, env) = versions(file_path)
-    #     else:
-    #         print "\t\tFORCED EXIT BY USER."
-    #         exit(1)
 
     # ###############################
     # 4. GIT VERSION IS REQUIRED
     # ###############################
-    # git = re.findall('git version (.+)', str(requirements_out))
     # git version 2.10.1.windows.1
     git_version = git[0][0] if len(git) > 0 else 0
     if int(git_version[0]) == 0:
@@ -781,7 +760,6 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     # 5. PYTHON VERSION IS REQUIRED
     # ###############################
     pattern = "([\d*\.]+)"
-    # python = re.findall('python {}'.format(pattern), str(requirements_out))
     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
     if (python_version >= 27) and (python_version < 2713):
 
@@ -790,8 +768,6 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         # ###############################
         # MAKE SURE PIP IS INSTALL
         # ###############################
-        # pip = re.findall('pip {}'.format(pattern), str(requirements_out))
-        # pip_version = pip[0] if len(pip) > 0 else 0
         pip_version = int(str(pip[0]).replace(".", "")) if len(pip) > 0 else 0
         # print pip_version
         if pip_version > 1000:
@@ -804,8 +780,6 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         # ##########################################
         # MAKE SURE VIRTUAL ENVIRONMENT IS INSTALL
         # ##########################################
-        # env = re.findall('{}\n'.format(pattern), requirements_out)
-        # env_version = env[0] if len(env) > 0 else 0
         env_version = int(str(env[0]).replace(".", "")) if len(env) > 0 else 0
         # print env_version
         if env_version > 1500:
@@ -819,7 +793,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         exit(0)
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # 6. CLONE OR PULTHE LENTICULAR LENS SOFTWARE
+    # 2.3 CLONE OR PULTHE LENTICULAR LENS SOFTWARE
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     if os.path.isdir(join(directory, "alignments")) is False:
         print "\n{0}\n    >>> LENTICULAR LENS CLONE REQUEST\n{0}\n".format(highlight)
@@ -831,7 +805,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         execute_cmd(pulling, file_path, output=False, run=run)
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
+    # 2.4 UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
     update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
