@@ -1197,7 +1197,7 @@ def check_db_exists(database):
                 print "\n\tDATABASE [{}] ALREADY EXIST: ".format(database)
                 return True
         else:
-            print "DATABASE [{}] ALREADY EXISTS".format(database)
+            print "\n\tDATABASE [{}] ALREADY EXISTS".format(database)
             return True
     else:
         return False
