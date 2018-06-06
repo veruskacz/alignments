@@ -3227,7 +3227,7 @@ def datasetLinkingClusterDetails3():
                 elif (node2, node1) in cluster['links']:
                     links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[(node2, node1)])}]
 
-        print links
+        # print links
         obj_metrics = plots.metric(cluster['links'])
         message = obj_metrics['message'].replace('\n','</br>')
 
