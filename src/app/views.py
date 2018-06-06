@@ -3139,8 +3139,10 @@ def datasetLinkingClusterDetails3():
     cluster_json = request.args.get('cluster') #{id, nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
     # cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
 
+    properties = []
+    targets = []
     if True:
-        targets = []
+        
         for json_item in datasets_properties:
             row = ast.literal_eval(json_item)
             dict_graph = None
@@ -3174,8 +3176,8 @@ def datasetLinkingClusterDetails3():
     # print 'after', type(cluster_json)
     cluster = ast.literal_eval(cluster_json)
     # print '\n'
-    # print cluster['id']
-    # print properties
+    print "\t>>> CLUSTER ID:", cluster['id']
+    print "\t>>> PROPERTIES:", properties
     # print cluster['nodes']
     # print cluster['links']
     # print cluster['dict']
