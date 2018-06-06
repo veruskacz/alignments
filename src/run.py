@@ -12,6 +12,8 @@ import Alignments.Server_Settings as Svr
 print "\nRUNNING THE LENTICULAR LENS SERVER"
 lock_file = None
 RESET_SERVER_BATS = False
+_line = "--------------------------------------------------------------" \
+        "--------------------------------------------------------------"
 
 if __name__ == "__main__":
 
@@ -66,7 +68,9 @@ if __name__ == "__main__":
 
         # LAUNCHING THE LL USING FLASK
         port = int(os.environ['LL_PORT']) if 'LL_PORT' in os.environ else Svr.settings[St.ll_port]
-        print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(port)
+        # print "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(port)
+        print "\n{0}\n{1:>117}\n{0}\n".format(
+            _line, "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(port))
         web.open_new_tab('http://localhost:{}/'.format(port))
         app.run(host="0.0.0.0", port=port, threaded=True)
 

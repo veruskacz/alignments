@@ -961,7 +961,7 @@ def listening(directory, sleep_time=10):
 
             if len(lock_file) > 0 and \
                     (str(response).__contains__("200") or str(response).__contains__("No connection") is False):
-                print "\t>>> >>> THE SERVER IS ON."
+                print "\t>>> THE SERVER IS ON."
                 return "THE SERVER IS ON."
 
         print "\nListening for \"system.lock\" file and checking whether a connection to the server is established..."
@@ -981,7 +981,7 @@ def stardog_on(bat_path):
     except Exception as err:
         response = str(err)
 
-    print response
+    # print response
 
     # NO NEED FOR TURNING IT ON AS IT IS ALREADY ON
     if len(lock_file) > 0 and (str(response).__contains__("200") or str(response).__contains__("401")):
@@ -1191,10 +1191,10 @@ def check_db_exists(database):
         if "justification" in response:
             justification = response["justification"]
             if justification.__contains__("UnknownDatabase") is True:
-                print "\nDATABASE [{}] DOES NOT EXIST: ".format(database)
+                print "\n\tDATABASE [{}] DOES NOT EXIST: ".format(database)
                 return False
             else:
-                print "\nDATABASE [{}] ALREADY EXIST: ".format(database)
+                print "\n\tDATABASE [{}] ALREADY EXIST: ".format(database)
                 return True
         else:
             print "DATABASE [{}] ALREADY EXISTS".format(database)

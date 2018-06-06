@@ -190,6 +190,12 @@ class LLPrompt(Cmd):
         print "{}\n{:>117}\n{}".format(_line, "Thanks for trying it!.", _line)
         raise SystemExit
 
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    2. INSTALL THE REQUIREMENTS USING THE COMMAND SHELL STEP-BYSTEP
+       PULL THE LATEST VERSION AND
+       RUN THE LENTICULAR LENS
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
     # INSTALL USING THE SHELL PROMPT
     def do_2(self, args):
 
@@ -197,9 +203,22 @@ class LLPrompt(Cmd):
             (directory, python_path, stardog_bin, stardog_home, database_name, run, port) = prompts()
             install_pronpt(directory, python_path, stardog_bin, stardog_home, database_name, run, port)
 
+
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    3. INSTALL THE REQUIREMENTS USING THE ALL-IN-ONE OPTION BASED
+       ON THE PARAMETERS INSERTED
+       PULL THE LATEST VERSION AND
+       RUN THE LENTICULAR LENS
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
     # INSTALL USING THE EDITED INPUT PARAMETERS
     def do_3(self, args):
         install(parameter_input)
+
+
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    4. RUN THE LENTICULAR LENS WITHOUT A GIT PULL
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
     # RUN THE LENTICULAR LENS WITH THE [4] OPTION
     def do_4(self, port):
@@ -295,6 +314,139 @@ class LLPrompt(Cmd):
             print err.message
             print "ERROR"
             return err.message
+
+
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    5. PULL THE LATEST VERSION AND RUN THE LENTICULAR LENS
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+    def do_5(self, port):
+
+        overwright = False
+        parameters = input_prep(parameter_input)
+        directory = parameters[0]
+        # python_path = parameters[1]
+        stardog_bin = parameters[2]
+        stardog_home = parameters[3]
+        database_name = parameters[4]
+        run = parameters[5]
+
+        # SETTING HE LL PORT
+        if len(port) > 0:
+            try:
+                int(str(port))
+                ll_port = port
+                overwright = True
+                print "\n\t>>> {:18} : PORT [{}] REPLACED BY PORT [{}]".format("PORT OVERWRITING", parameters[6],
+                                                                               port)
+            except:
+                ll_port = parameters[6]
+        else:
+            ll_port = parameters[6]
+
+        file_path = join(directory, "INSTALLATION.bat") if OPE_SYS == 'windows' else join(directory,
+                                                                                          "INSTALLATION.sh")
+        w_dir = join(directory, "alignments")
+
+        print "\nYOU HAVE OPT FOR DIRECTLY RUNNING THE LENTICULAR LENS."
+
+        try:
+            # RUNS IN A NEW SHELL
+            cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["runMac"]
+            cmd = cmd.format(w_dir, os.path.sep)
+            print cmd
+
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
+            update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
+
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            # 2.3 CLONE OR PULTHE LENTICULAR LENS SOFTWARE
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            if os.path.isdir(join(directory, "alignments")) is False:
+                print "\n{0}\n    >>> LENTICULAR LENS CLONE REQUEST\n{0}\n".format(highlight)
+                cloning = commands["git_clone"].format(w_dir)
+                execute_cmd(cloning, file_path, output=False, run=run)
+            else:
+                print "\n{0}\n    >>> LENTICULAR LENS PULL REQUEST\n{0}\n".format(highlight)
+                pulling = commands["git_pull"].format(join(directory, "alignments"))
+                execute_cmd(pulling, file_path, output=False, run=run)
+
+            # RUN THE LENTICULAR LENS
+            execute_cmd(cmd=cmd, file_path=file_path, output=False)
+
+        except Exception as err:
+            print err.message
+            print "ERROR"
+            return err.message
+
+    def do_runpull(self, port):
+
+        overwright = False
+        parameters = input_prep(parameter_input)
+        directory = parameters[0]
+        # python_path = parameters[1]
+        stardog_bin = parameters[2]
+        stardog_home = parameters[3]
+        database_name = parameters[4]
+        run = parameters[5]
+
+        # SETTING HE LL PORT
+        if len(port) > 0:
+            try:
+                int(str(port))
+                ll_port = port
+                overwright = True
+                print "\n\t>>> {:18} : PORT [{}] REPLACED BY PORT [{}]".format("PORT OVERWRITING", parameters[6],
+                                                                               port)
+            except:
+                ll_port = parameters[6]
+        else:
+            ll_port = parameters[6]
+
+        file_path = join(directory, "INSTALLATION.bat") if OPE_SYS == 'windows' else join(directory,
+                                                                                          "INSTALLATION.sh")
+        w_dir = join(directory, "alignments")
+
+        print "\nYOU HAVE OPT FOR DIRECTLY RUNNING THE LENTICULAR LENS."
+
+        try:
+            # RUNS IN A NEW SHELL
+            cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["runMac"]
+            cmd = cmd.format(w_dir, os.path.sep)
+            print cmd
+
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
+            update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
+
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            # 2.3 CLONE OR PULTHE LENTICULAR LENS SOFTWARE
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            if os.path.isdir(join(directory, "alignments")) is False:
+                print "\n{0}\n    >>> LENTICULAR LENS CLONE REQUEST\n{0}\n".format(highlight)
+                cloning = commands["git_clone"].format(w_dir)
+                execute_cmd(cloning, file_path, output=False, run=run)
+            else:
+                print "\n{0}\n    >>> LENTICULAR LENS PULL REQUEST\n{0}\n".format(highlight)
+                pulling = commands["git_pull"].format(join(directory, "alignments"))
+                execute_cmd(pulling, file_path, output=False, run=run)
+
+            # RUN THE LENTICULAR LENS
+            execute_cmd(cmd=cmd, file_path=file_path, output=False)
+
+        except Exception as err:
+            print err.message
+            print "ERROR"
+            return err.message
+
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    DO OPTION 3 OR 4
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
     # THIS GIVES BOTH OPTIONS
     def do_install(self, args):
