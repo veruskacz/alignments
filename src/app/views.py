@@ -3142,7 +3142,7 @@ def datasetLinkingClusterDetails3():
     properties = []
     targets = []
     if True:
-        
+
         for json_item in datasets_properties:
             row = ast.literal_eval(json_item)
             dict_graph = None
@@ -3176,7 +3176,7 @@ def datasetLinkingClusterDetails3():
     # print 'after', type(cluster_json)
     cluster = ast.literal_eval(cluster_json)
     # print '\n'
-    print "\t>>> CLUSTER ID:", cluster['id']
+    print "\n\t>>> CLUSTER ID:", cluster['id']
     print "\t>>> PROPERTIES:", properties
     # print cluster['nodes']
     # print cluster['links']
