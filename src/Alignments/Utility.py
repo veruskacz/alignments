@@ -1358,8 +1358,12 @@ def zip_folder(input_folder_path, output_file_path=None):
     as well.
     """
 
-    if path.isfile(output_file_path) is not True:
-        output_file_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "export.zip")
+    if output_file_path is not None:
+        print "output_file_path:", output_file_path
+        print "output_file_path directory:", path.dirname(output_file_path)
+
+    if path.isdir(path.dirname(output_file_path)) is False:
+        output_file_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "exportResearch.zip")
 
     # parent_dir = os.path.abspath(os.path.join(input_folder_path, os.pardir))
 
@@ -1449,3 +1453,4 @@ def get_resource_value(resources, targets):
 #                 BIND(<{0}> AS ?dataset)
 #                 ?resource a <{1}> .
 #                 ?resource {2} ?value
+
