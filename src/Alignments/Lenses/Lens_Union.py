@@ -31,11 +31,12 @@ DIRECTORY = Ss.settings[St.lens_Union__dir]
 
 def run_checks(specs, query):
 
-    print "RUNNING GOOD TO GO CHECK"
+    print "\n3. RUNNING GOOD TO GO CHECK"
     # print "QUERY FOR CHECK:", query
     # CHECK-1: CHECK WHETHER THE LENS EXIST BY ASKING ITS METADATA WHETHER IT IS COMPOSED OF THE SAME GRAPHS
+    print "QUERY:", query
     ask = Qry.sparql_xml_to_matrix(query)
-    # print"ANSWER 1:", ask
+    print"\t3.1 ANSWER 1:", ask['message']
 
     # ASK IS NOT SUPPOSED TO BE NONE
     # CHECK-1-RESULT: PROBLEM CONNECTING WITH THE SERVER
@@ -46,16 +47,20 @@ def run_checks(specs, query):
 
     # CHECK-1-RESULT: ASK HAS A RESULT, MEANING THE LENS EXIT UNDER THE SAME COMPOSITION OF GRAPHS
     elif ask[St.message] != "NO RESPONSE":
-        # print "IN 2"
-        if ask[St.result]:
+        print "\tFOUND"
+        for i in range(1, len(ask[St.result])):
+            print "\t\t- {}".format(ask[St.result][i][0])
+        # IF THERE IS RESULT WITH THE SAME NUMBER OF TARGETS THEN THE LENS ALREADY EXISTS
+        if ask[St.result] and len(ask[St.result]) - 1 == len(specs[St.datasets]):
+
             message = Ec.ERROR_CODE_7.replace("#", specs[St.lens]).replace("@", ask[St.result][1][0])
             print message
             return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: specs[St.lens]}
-        print " CHECK 1: THERE IS NO METADATA FOR TIS LENS"
+        print "\tCHECK 1: THERE IS NO METADATA FOR TIS LENS"
         # ELSE
         # WITH THE UNSTATED ELSE, WE GET OUT AND PROCEED TO THE CREATION OF A NEW LENS
     else:
-        # print "IN 3"
+        print "IN 3"
         print Ec.ERROR_CODE_1
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: None}
 
@@ -81,7 +86,7 @@ def run_checks(specs, query):
         print message
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: specs[St.lens]}
 
-    print " DIAGNOSTICS: GOOD TO GO\n"
+    print "\n\tDIAGNOSTICS: GOOD TO GO\n"
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 
@@ -98,15 +103,18 @@ def union(specs, activated=False):
 
     """
     THE generate_lens_name FUNCTION RETURNS THE NAME OF THE UNION AND A
-    QUERY THAT ALLOWS TO AS WHETHER THE LENS TO BE CREATED EXIST BY CHECKING
-    WHETHER THERE EXISTS A LENS HAS THE SAME COMPOSITION IN TERMS GRAPHS USED FOR THE UNION
+    QUERY THAT ALLOWS TO ASk WHETHER THE LENS TO BE CREATED EXIST BY CHECKING
+    WHETHER THERE EXISTS A LENS WITH THE SAME COMPOSITION IN TERMS GRAPHS USED FOR THE UNION
     """
 
     # SET THE NAME OF THE UNION-LENS
+    print "1. DATASETS:", len(specs[St.datasets])
+    for ds in specs[St.datasets]:
+        print "\t- {}".format(ds)
     info = Lu.generate_lens_name(specs[St.datasets])
 
     specs[St.lens] = "{}{}".format(Ns.lens, info["name"])
-    print "LENS: ", info["name"]
+    print "\n2. LENS: ", info["name"]
 
     # CHECK WHETHER THE LENS EXISTS
     check = run_checks(specs, info["query"])

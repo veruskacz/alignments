@@ -134,10 +134,12 @@ def ask_union(datasets):
     return """
     ### CHECKING WHETHER A GRAPH (LENS UNION) ALREADY EXISTS WITH THESE TARGETS
     PREFIX void:<{}>
-    SELECT *
+    SELECT ?targets
     {{
         ?subject
     {}.
+        ?subject
+            void:target ?targets .
     }}
     """.format(Ns.void, triples)
 
