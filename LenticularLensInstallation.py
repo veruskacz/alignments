@@ -171,8 +171,13 @@ class LLPrompt(Cmd):
         OPTION 3. ALL-IN INSTALL
             Enter [3] or [install all] to run the code using the [parameter_input] edited within the file.
 
-        OPTION 4. RUN THE LENTICUALR LEND
-            Enter [4] or [run] to run the Lenticular Lens. This onption is used only prior to an installation. \n
+        OPTION 4. RUN THE LENTICUALR LENS
+            Enter [4] or [run] to run the Lenticular Lens. This onption is used only after an installation.
+            Enter [4 port] or [run port] to run the Lenticular Lens on a port of your choosing.
+
+        OPTION 5. UPDATE THE TOOL VERSION FROM GIT AND RUN THE LENTICUALR LENS
+            Enter [5] or [runpull] to run the Lenticular Lens. This onption is used only after an installation.
+            Enter [5 port] or [runpull port] to run the Lenticular Lens on a port of your choosing.\n
     """
 
     def do_clear(self):

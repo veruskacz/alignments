@@ -1187,20 +1187,22 @@ def check_db_exists(database):
     response = Qry.sparql_xml_to_matrix_db(query="SELECT DISTINCT ?s WHERE { ?s ?p ?o } LIMIT 10", database=database)
     # print "DB CREATION CHECK:", response
 
-    if response["result"] is not None:
-        if "justification" in response:
-            justification = response["justification"]
-            if justification.__contains__("UnknownDatabase") is True:
-                print "\n\tDATABASE [{}] DOES NOT EXIST: ".format(database)
-                return False
-            else:
-                print "\n\tDATABASE [{}] ALREADY EXIST: ".format(database)
-                return True
+    # if response["result"] is not None:
+    if "justification" in response:
+        justification = response["justification"]
+        if justification.__contains__("UnknownDatabase") is True:
+            print "\n\tDATABASE [{}] DOES NOT EXIST: ".format(database)
+            return False
         else:
-            print "\n\tDATABASE [{}] ALREADY EXISTS".format(database)
+            # THE DB EXISTS BUT NOT POPULATED
+            print "\n\tDATABASE [{}] ALREADY EXISTS: ".format(database)
             return True
     else:
-        return False
+        # THE DB EXISTS AND IT IS POPULATED
+        print "\n\tDATABASE [{}] ALREADY EXISTS".format(database)
+        return True
+    # else:
+    #     return False
 
 
 def extract_ref(text):
