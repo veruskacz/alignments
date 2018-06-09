@@ -13,12 +13,21 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Svr
 from kitchen.text.converters import to_unicode, to_bytes
+from Alignments.UserActivities.Import_Data import download_stardog_data
 
 
 # ALIGNMENT FOR VISUALISATION
-def export_alignment_all(alignment, limit=5000):
+# TODO: NEEDS TO BE UPDATED WITH OFSET IN CASE OF LARGE ALIGNMENTS.
+# TODO: THE download_stardog_data FUNCTIION FROM import_data.py COULD BE THE WAY TO GO
+def export_alignment_all(alignment, directory=None, limit=5000):
 
-    # COMMENT THE LIMKT OIT IF IT IS EQUAL TO NONE
+    directory = os.path.join(directory, "")
+    print directory
+    if os.path.isdir(os.path.dirname(directory)) is False or os.path.exists(directory) is False:
+        print "CREATING THE DIRECTORY"
+        os.mkdir(os.path.dirname(directory))
+
+    # COMMENT THE LINKSET OIT IF IT IS EQUAL TO NONE
 
     # This function returns all the links + some metadata about the alignment.
     # METADATA: source dataset, target dataset and mechanism
@@ -29,7 +38,7 @@ def export_alignment_all(alignment, limit=5000):
     alignment = alignment if Ut.is_nt_format(alignment) is True else "<{}>".format(alignment)
 
     # ****************************************************
-    # 1. ET THE METADATA OF THE ALIGNMENT: THE QUERY
+    # 1. GET THE METADATA OF THE ALIGNMENT: THE QUERY
     # ****************************************************
     meta = """
     PREFIX ll: <{0}>
@@ -46,7 +55,9 @@ def export_alignment_all(alignment, limit=5000):
     # GET THE METADATA OF THE ALIGNMENT: RUN THE QUERY
     meta_construct = Qry.endpointconstruct(meta, clean=False)
     meta_construct = meta_construct.replace("{", "").replace("}", "")
-    print meta_construct
+    with open(os.path.join(directory, "metadata.ttl"), "wb") as metadata:
+        metadata.write(meta_construct)
+    # print meta_construct
 
     # ****************************************************
     # 2. GET THE CORRESPONDENCES OF THE LINKSET
@@ -70,7 +81,9 @@ def export_alignment_all(alignment, limit=5000):
     alignment_construct = Qry.endpointconstruct(query, clean=False)
     if alignment_construct:
         alignment_construct = alignment_construct.replace("{", "{}\n{{".format(alignment))
-    print alignment_construct
+    # print alignment_construct
+    with open(os.path.join(directory, "linkset.trig"), "wb") as links:
+        links.write(alignment_construct)
 
     # ****************************************************
     # 3. GET THE METADATA CORRESPONDENCES' PREDICATES
@@ -103,7 +116,9 @@ def export_alignment_all(alignment, limit=5000):
     singleton_construct = Qry.endpointconstruct(singleton_query, clean=False)
     if singleton_construct:
         singleton_construct = singleton_construct.replace("{", "{}\n{{".format(singleton_graph_uri))
-    print singleton_construct
+    # print singleton_construct
+    with open(os.path.join(directory, "singletons.trig"), "wb") as singletons:
+        singletons.write(singleton_construct)
 
     # LOAD THE METADATA USING RDFLIB
     sg = rdflib.Graph()
@@ -125,14 +140,26 @@ def export_alignment_all(alignment, limit=5000):
     message = "You have just downloaded the graph [{}] which contains [{}] correspondences. ".format(
         row_alignment, triples)
 
+    host = Svr.settings[St.stardog_host_name]
+    endpoint = b"http://{}/annex/{}/sparql/query?".format(host, Svr.settings[St.database])
+
+    local_name = Ut.get_uri_local_name_plus(alignment)
+    file_at_parent_directory = os.path.join(os.path.abspath(
+        os.path.join(directory, os.pardir)), "{}.zip".format(local_name))
+
+    zipped_file = Ut.zip_folder(directory, output_file_path=file_at_parent_directory)
+    print "\t>>> THE ZIPPED FILE IS LOCATED AT:\n\t\t- {}".format(zipped_file)
+
     # result = result
     # print result
     print "Done with graph: {}".format(alignment)
 
-    return {'result': {
-        "generic_metadata": meta_construct,
-        'specific_metadata': singleton_construct,
-        'data': alignment_construct}, 'message': message}
+    # return {'result': {
+    #     "generic_metadata": meta_construct,
+    #     'specific_metadata': singleton_construct,
+    #     'data': alignment_construct}, 'message': message}
+
+    return {'result': zipped_file, 'message': message}
 
 
 # FLAT ALIGNMENT
