@@ -1362,7 +1362,8 @@ def zip_folder(input_folder_path, output_file_path=None):
         print "output_file_path:", output_file_path
         print "output_file_path directory:", path.dirname(output_file_path)
 
-    if path.isdir(path.dirname(output_file_path)) is False:
+    if output_file_path is None or path.isdir(path.dirname(output_file_path)) is False:
+        print "CREATING THE DIRECTORY"
         output_file_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "exportResearch.zip")
 
     # parent_dir = os.path.abspath(os.path.join(input_folder_path, os.pardir))
