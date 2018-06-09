@@ -40,8 +40,8 @@ def linkset_metadata(specs, display=False):
         src_cross_check, trg_cross_check) if src_cross_check is not None and trg_cross_check is not None else ''
 
     # CROSS CHECK FOR THE INSERT CLAUSE
-    cross_check_insert = "\n        ll:crossCheckSubject        ?src_crossCheck ;" \
-                         "\n        ll:crossCheckObject         ?trg_crossCheck ;\n" \
+    cross_check_insert = "\n        alivocab:crossCheckSubject        ?src_crossCheck ;" \
+                         "\n        alivocab:crossCheckObject         ?trg_crossCheck ;\n" \
         if src_cross_check is not None and trg_cross_check is not None else ''
 
     # specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
