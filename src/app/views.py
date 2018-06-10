@@ -661,11 +661,11 @@ def details():
     elif s_crossCheck_property != '':
         alignsObjectsList += ['none']
 
-    print '>>>>> before: ', alignsMechanism, alignsSubjects, alignsObjects
-    print '\n', alignsSubjectsList, alignsObjectsList
+    # print '>>>>> before: ', alignsMechanism, alignsSubjects, alignsObjects
+    # print '\n', alignsSubjectsList, alignsObjectsList
     if str(alignsMechanism).__contains__('identity'):
-        alignsSubjects = alignsSubjects.replace('type', 'identifier')
-        alignsObjects = alignsObjects.replace('type', 'identifier')
+        alignsSubjects = alignsSubjects.replace('type', 'identifier') if u'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' in alignsSubjectsList else alignsSubjects
+        alignsObjects = alignsObjects.replace('type', 'identifier') if u'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' in alignsSubjectsList else alignsSubjects
         if s_crossCheck_property != '' and alignsSubjectsList:
             alignsSubjectsList.remove(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
         if o_crossCheck_property != '' and alignsObjectsList:
@@ -673,8 +673,8 @@ def details():
     #elif str(alignsMechanism).__contains__('identity'):
 
 
-    print '>>>> after: ', alignsSubjects, alignsObjects
-    print '\n', alignsSubjectsList, alignsObjectsList
+    # print '>>>> after: ', alignsSubjects, alignsObjects
+    # print '\n', alignsSubjectsList, alignsObjectsList
 
     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
     # print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
