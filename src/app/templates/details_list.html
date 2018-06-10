@@ -29,9 +29,11 @@
               </TD >
              <TD style='width: 50%;'><li class="list-group-item" id="trgDatasetLI" uri='{{ obj_uri }}'
                  style="background-color:lightgray;width: 100%;">
+                 {% if d.alignsObjects_stripped %}
                  {{d.alignsObjects_stripped.value}} =
                  <span class="list-group-item-heading" style="color:blue;width: 100%;">
                      <strong>{{ d.trgPredValue.value }}</strong></span>
+                 {% endif%}
                  </li>
              </TD>
           <TR>

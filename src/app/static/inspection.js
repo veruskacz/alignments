@@ -64,7 +64,8 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
                             'alignsSubjectsList': alignsSubjectsList,
                             'alignsObjectsList': alignsObjectsList,
                             'crossCheckSubject': crossCheckSubject,
-                            'crossCheckObject': crossCheckObject
+                            'crossCheckObject': crossCheckObject,
+                            'alignsMechanism': alignsMechanism
                             }
 
           // REPLACE WITH A CHECK FOR THE SELECT BUTTON TYPE (LINKSET OR LENS)

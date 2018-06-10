@@ -321,6 +321,7 @@
                                         targetList="src_predicates_col"
                                         targetList2="source_lat_predicates_col"
                                         targetList3="source_long_predicates_col"
+                                        targetList4="src_predicates_colCrossCheck"
                                         hiddenDiv="hidden_src_entType_div">
                                     <!-- will be rendered via server -->
                                     <div class="hiddenDiv" id="hidden_src_entType_div" style='display:none' uri="" label="" ></div>
@@ -574,6 +575,55 @@
 
                     </div> <!-- Panel -->
 
+                      <div class="panel panel-default" id="panel_sourceCrossCheckProp" style="display:none">
+                      <div class="panel-body">
+                        <div class="row">
+                              <div class="col-md-12" id="div_sourceAlignPropCrossCheck">
+                                  <h4>Property for cross-checking</h4>
+                              </div>
+                        </div>
+
+                        <div class="row" id = "src_selected_pred_rowCrossCheck">
+                         <div class="col-md-12">
+                             <div class="well well-sm" id="src_selected_predCrossCheck" uri="" >
+                                 Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                             </div>
+                         </div>
+                        </div>
+
+                        <div class="row" id = "src_list_pred_rowCrossCheck">
+                        <div class="col-md-12">
+                             <!--<div class="row"> &nbsp </div>-->
+                             <div class="row">
+                                 <div class="col-md-12">
+                                <span class="glyphicon glyphicon glyphicon-search"></span>
+                               <input type="text" onkeyup='filterListGroup(this,"src_predicates_colCrossCheck")' placeholder="Search for names.." style='width: 93%'>
+                               </div>
+                             </div>
+                             <div class="row"> &nbsp </div>
+                         <div class="row">
+                             <div class="col-md-7">
+                                 <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                     </strong></small>
+                             </div>
+                             <div class="col-md-5" align="right">
+                                 <small><div class="checkbox-inline" ><label><input type="checkbox" id="src_enable_prop_pathCrossCheck"
+                                        onclick='resetDivSelectedEntity("button-src-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                             </div>
+                         </div>
+                         <div class="row">
+                             <div class="col-md-12 pred-list" id="src_predicates_colCrossCheck"
+                                  targetList="src_predicates_colCrossCheck"
+                                  targetTxt="src_selected_predCrossCheck"
+                                  propPathCheckBok="src_enable_prop_pathCrossCheck"
+                                  propPath="enabled"> </div>
+                         </div>
+                        </div>
+                        </div>
+                      </div> <!-- Panel Body-->
+
+                    </div> <!-- Panel -->
+
                      </div>
                     </div> <!-- Col 12-->
                    </div> <!-- Row-->
@@ -617,6 +667,7 @@
                                         targetList="trg_predicates_col"
                                         targetList2="target_lat_predicates_col"
                                         targetList3="target_long_predicates_col"
+                                        targetList4="trg_predicates_colCrossCheck"
                                         hiddenDiv="hidden_trg_entType_div">
                                     <!-- will be rendered via server -->
                                     <div class="hiddenDiv" id="hidden_trg_entType_div" style='display:none' uri="" label="" ></div>
@@ -864,6 +915,53 @@
                                         targetList="trg_predicates_col"
                                         targetTxt="trg_selected_pred"
                                         propPathCheckBok="trg_enable_prop_path"
+                                        propPath="enabled"> </div>
+                                 </div>
+                                </div>
+                             </div>
+                          </div>   <!-- Panel body-->
+                        </div>   <!-- Panel -->
+
+                        <div class="panel panel-default" id="panel_targetCrossCheckProp" style="display:none">
+                          <div class="panel-body">
+                            <div class="row">
+                                  <div class="col-md-12" id="div_targetCrossCheckProp">
+                                      <h4>Property for cross-checking</h4>
+                                  </div>
+                            </div>
+
+                             <div class="row" id = "trg_selected_pred_row_CrossCheck">
+                               <div class="col-md-12">
+                                   <div class="well well-sm" id="trg_selected_predCrossCheck" uri="">Select a Property +
+                                     <span style="color:blue"><strong> example value </strong></span>
+                                   </div>
+
+                               </div>
+                             </div>
+                             <div class="row" id = "trg_list_pred_row_CrossCheck">
+                                <div class="col-md-12">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                    <span class="glyphicon glyphicon glyphicon-search"></span>
+                                   <input type="text" onkeyup='filterListGroup(this,"trg_predicates_col")' placeholder="Search for names.." style='width: 93%'>
+                                   </div>
+                                 </div>
+                                 <div class="row"> &nbsp </div>
+                                 <div class="row">
+                                     <div class="col-md-7">
+                                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                                             </strong></small>
+                                     </div>
+                                     <div class="col-md-5" align="right">
+                                         <small><div class="checkbox-inline" ><label><input type="checkbox" id="trg_enable_prop_pathCrossCheck"
+                                            onclick='resetDivSelectedEntity("button-trg-entity-type-col","predicate")' >Enable Prop. Path</label></div></small>
+                                     </div>
+                                 </div>
+                                 <div class="row">
+                                     <div class="col-md-12 pred-list" id="trg_predicates_colCrossCheck"
+                                        targetList="trg_predicates_colCrossCheck"
+                                        targetTxt="trg_selected_predCrossCheck"
+                                        propPathCheckBok="trg_enable_prop_pathCrossCheck"
                                         propPath="enabled"> </div>
                                  </div>
                                 </div>

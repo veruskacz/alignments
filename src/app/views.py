@@ -236,25 +236,24 @@ def executeTriplestoreAdmin():
 @app.route('/executeTriplestoreQuery')
 def executeTriplestoreQuery():
     option = request.args.get('option', '')
-    input = request.args.get('input', '')
+    input1 = request.args.get('input', '')
+    input2 = request.args.get('input2', '')
     if option == 'Named Graphs':
         result = Stardog.query_graphs()
     else:
-        if input == '':
-            result = 'PLEASE GIVE AN INPUT NUMBER!!'
-        elif option == 'Search Named Graphs [give input]':
-            result = Stardog.query_graph_search(input)
+        if input1 == '':
+            result = 'INPUT 1 missing!!'
+        elif option == 'Search Named Graphs [give as input a text for search]':
+            result = Stardog.query_graph_search(input1)
         else:
-            try:
-                int_input = int(input)
-                if option == 'Query Status Number [give input]':
-                    result = Stardog.stardog_query_status(int_input)
-                elif option == 'Kill Query Number [give input]':
-                    result = Stardog.stardog_query_kill(int_input)
-                else:
-                    result = 'Option is not valid!'
-            except:
-                result = 'PLEASE GIVE AN INPUT!!'
+            if input2 == '':
+                result = 'INPUT 2 missing!!'
+            elif option == 'Add data file [give as input filepath and named graph]':
+                result = Stardog.stardog_data_file(input1)
+            elif option == 'Add data directory [give as input directory and named graph]':
+                result = Stardog.stardog_data_folder(input1)
+            else:
+                result = 'Option is not valid!'
     return result
 
 @app.route('/userLinksetImport')
@@ -425,30 +424,6 @@ def enrichdataset():
 
     # SEND BAK RESULTS
     return json.dumps(result)
-
-
-# @app.route('/getcorrespheader', methods=['GET'])
-# def correspondencesHeader():
-#
-#     rq_uri = request.args.get('rq_uri', '')
-#     graph_uri = request.args.get('graph_uri', '')
-#     filter_uri = request.args.get('filter_uri', '')
-#     filter_term = request.args.get('filter_term', '').replace('\"','').replace('\'','')
-#
-#     query = Qry.get_correspondHeader(rq_uri, graph_uri, filter_uri, filter_term)
-#     data = sparql(query, strip=True)
-#
-#     header_template = """<h3><strong>Correspondences</strong></h3>
-#                           <span class="badge alert-primary"> {{ graph_label }} </span> contains
-#                           <span id='triples_span' class="badge alert-success">{{ graph_triples }}</span> triples
-#                             {% if alignsMechanism != ''%}
-#                           , aligned using the <span class="badge alert-info"> {{ alignsMechanism|upper }}</span> mechanism.
-#                             {%endif%}
-#                             {% if operator != ''%}
-#                            generated using the <span class="badge alert-info"> {{ operator|upper }}</span> operator.
-#                             {%endif%}"""
-#
-#     return render_template(header_template, data)
 
 
 @app.route('/getcorrespondences', methods=['GET'])
@@ -653,10 +628,14 @@ def details():
     obj_uri = request.args.get('obj_uri', '')
     subjectTarget = request.args.get('subjectTarget', '')
     objectTarget = request.args.get('objectTarget', '')
-    # alignsSubjects = request.args.get('alignsSubjectsList', '')
-    # alignsObjects = request.args.get('alignsObjectsList', '')
+    alignsMechanism = request.args.get('alignsMechanism', '')
+
+    print 'originals: ', request.args.get('alignsSubjectsList', '')
+    print request.args.get('alignsObjectsList', '')
+
     alignsSubjectsList = map((lambda x: x.strip()),request.args.get('alignsSubjectsList', '').split('|'))
     alignsObjectsList = map((lambda x: x.strip()),request.args.get('alignsObjectsList', '').split('|'))
+
     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
 
     if len(alignsSubjectsList) > 1:
@@ -670,12 +649,32 @@ def details():
         alignsObjects = Ut.get_uri_local_name(request.args.get('alignsObjectsList', ''))
 
     s_crossCheck_property = request.args.get('crossCheckSubject', '')
+    o_crossCheck_property = request.args.get('crossCheckObject', '')
+
     if s_crossCheck_property != '':
         alignsSubjectsList += [s_crossCheck_property]
+    elif o_crossCheck_property != '':
+        alignsObjectsList += ['none']
 
-    o_crossCheck_property = request.args.get('crossCheckObject', '')
     if o_crossCheck_property != '':
         alignsObjectsList += [o_crossCheck_property]
+    elif s_crossCheck_property != '':
+        alignsObjectsList += ['none']
+
+    print '>>>>> before: ', alignsMechanism, alignsSubjects, alignsObjects
+    print '\n', alignsSubjectsList, alignsObjectsList
+    if str(alignsMechanism).__contains__('identity'):
+        alignsSubjects = alignsSubjects.replace('type', 'identifier')
+        alignsObjects = alignsObjects.replace('type', 'identifier')
+        if s_crossCheck_property != '' and alignsSubjectsList:
+            alignsSubjectsList.remove(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+        if o_crossCheck_property != '' and alignsObjectsList:
+            alignsObjectsList.remove(u'http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
+    #elif str(alignsMechanism).__contains__('identity'):
+
+
+    print '>>>> after: ', alignsSubjects, alignsObjects
+    print '\n', alignsSubjectsList, alignsObjectsList
 
     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
     # print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
@@ -696,56 +695,6 @@ def details():
                             objectTarget = objectTarget,
                             alignsSubjects = alignsSubjects,
                             alignsObjects = alignsObjects)
-
-
-# @app.route('/getdetailslkstcluster', methods=['GET'])
-# def getdetailslkstcluster():
-#     """
-#     This function is called due to request /getdetails
-#     It queries the dataset for both all the correspondences in a certain graph URI
-#     Expected Input: uri, label (for the graph)
-#     The results, ...,
-#         are passed as parameters to the template details_list.html
-#     """
-#
-#     # RETRIEVE VARIABLES
-#     sub_uri = request.args.get('sub_uri', '')
-#     obj_uri = request.args.get('obj_uri', '')
-#     # FOR EACH DATASET GET VALUES FOR THE ALIGNED PROPERTIES
-#
-#     if len(alignsSubjectsList) > 1:
-#         alignsSubjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsSubjectsList)
-#     else:
-#         alignsSubjects = Ut.get_uri_local_name(request.args.get('alignsSubjectsList', ''))
-#
-#     if len(alignsObjectsList) > 1:
-#         alignsObjects = reduce((lambda x, y: Ut.get_uri_local_name(x, sep=" / ") + ' | ' + Ut.get_uri_local_name(y, sep=" / ")), alignsObjectsList)
-#     else:
-#         alignsObjects = Ut.get_uri_local_name(request.args.get('alignsObjectsList', ''))
-#
-#     s_crossCheck_property = request.args.get('crossCheckSubject', '')
-#     if s_crossCheck_property != '':
-#         alignsSubjectsList += [s_crossCheck_property]
-#
-#     o_crossCheck_property = request.args.get('crossCheckObject', '')
-#     if o_crossCheck_property != '':
-#         alignsObjectsList += [o_crossCheck_property]
-#
-#     query = Qry.get_aligned_predicate_value(sub_uri, obj_uri, alignsSubjectsList, alignsObjectsList)
-#     details = sparql(query, strip=True)
-#
-#     if PRINT_RESULTS:
-#         print "\n\nDETAILS:", details
-#
-#     return render_template('details_list.html',
-#                             details = details,
-#                             sub_uri = sub_uri,
-#                             obj_uri = obj_uri,
-#                             subjectTarget = subjectTarget,
-#                             objectTarget = objectTarget,
-#                             alignsSubjects = alignsSubjects,
-#                             alignsObjects = alignsObjects)
-#
 
 
 @app.route('/getlinksetdetails', methods=['GET'])
@@ -789,7 +738,7 @@ def linksetdetails():
         if PRINT_RESULTS:
             print "\n\nDETAILS:", details
 
-        if len(details) > 1 and details[0]['crossCheck']['value'] and details[0]['crossCheck']['value'] == 'True':
+        if len(details) > 0 and details[0]['crossCheck']['value'] == 'True':
             s_property_crossCheck = md['s_property_stripped']['value']
             o_property_crossCheck = md['o_property_stripped']['value']
         else:
@@ -818,53 +767,6 @@ def linksetdetails():
 
         return json.dumps({'metadata': md, 'data': data, 'metadata_text': metadata_text})
 
-
-# @app.route('/getlinksetdetailssample', methods=['GET'])
-# def linksetdetailssample():
-#     """
-#     This function is called due to request /getdetails
-#     It queries the dataset for both all the correspondences in a certain graph URI
-#     Expected Input: uri, label (for the graph)
-#     The results, ...,
-#         are passed as parameters to the template linksetDetails_list.html
-#     """
-#
-#     # RETRIEVE VARIABLES
-#     linkset = request.args.get('linkset', '')
-#     template = request.args.get('template', 'linksetDetails_list.html')
-#     # filter_uri = request.args.get('filter_uri', '')
-#
-#     query = Qry.get_linkset_corresp_sample_details(linkset, limit=10)
-#     details = sparql(query, strip=True)
-#
-#     # print "LINKSET DETAIL QUERY:", query
-#     # print "LINKSET DETAIL RESULT:", details
-#
-#     s_property_list = ''
-#     o_property_list = ''
-#     mechanism_list = ''
-#     D = None
-#     # print "RESULT!!!!!!!!", details
-#     if details:
-#         d = details[0]
-#         # print "!!!!!!!! D", d
-#         s_property_list = d['s_property_stripped']['value']
-#         o_property_list = d['o_property_stripped']['value']
-#         mechanism_list = d['mechanism_stripped']['value']
-#
-#     if PRINT_RESULTS:
-#         print "\n\nDETAILS:", details
-#
-#     data = render_template(template,
-#         details = details,
-#         subTarget = subTarget,
-#         objTarget = objTarget,
-#         s_property_list = s_property_list,
-#         o_property_list = o_property_list,
-#         mechanism_list = mechanism_list
-#     )
-#
-#     return json.dumps({'metadata': md, 'data': data})
 
 @app.route('/getlinksetdetailsCluster', methods=['GET'])
 def linksetdetailsCluster():
@@ -1666,6 +1568,12 @@ def spa_linkset():
 
     if len(request.args.get('corresp_reducer', '')) > 0:
         specs[St.corr_reducer] = request.args.get('corresp_reducer', '')
+
+    if len(request.args.get('src_crossCheck', '')) > 0:
+        specs[St.source][St.crossCheck] = request.args.get('src_crossCheck', '')
+
+    if len(request.args.get('trg_crossCheck', '')) > 0:
+        specs[St.target][St.crossCheck] = request.args.get('trg_crossCheck', '')
 
     if len(request.args.get('src_lat', '')) > 0:
         specs[St.source][St.latitude] = request.args.get('src_lat', '')
@@ -3462,6 +3370,51 @@ def exportAlignment():
 
         elif mode == 'vis':
             result = Ex.visualise(graphs, PLOTS_FOLDER, {'user': user, 'password': psswd })
+
+        elif mode == 'all':
+
+            fileName = Ut.get_uri_local_name(graph_uri)
+            directory = os.path.join(Svr.SRC_DIR, "app", "static", "data", fileName)
+            # CREATE THE DIRECTORY IF IT DOES NOT EXIST
+            if os.path.exists(directory) is False:
+                os.makedirs(directory)
+
+            # DOWNLOAD THE FILE
+            result = Ex.export_alignment_all(graph_uri, directory)
+            result['fileName'] = fileName
+
+                # REMOVE THE DIRECTORY
+            rmtree(directory)
+
+        # print "\n after:", result
+
+    except Exception as error:
+        print "AN ERROR OCCURRED: ", error
+        result = json.dumps({'message':str(error.message), 'result':None})
+
+    return json.dumps(result)
+
+
+@app.route('/exportAlignmentOld', methods=['GET'])
+def exportAlignmentOld():
+
+    graph_uri = request.args.get('graph_uri', '')
+    mode = request.args.get('mode', 'flat')
+    graphs = request.args.getlist('graphs[]')
+    user = request.args.get('name', '')
+    psswd = request.args.get('code', '')
+    result = None
+
+    try:
+        # print "\n before:", graph_uri
+        if mode == 'flat':
+            result = Ex.export_flat_alignment(graph_uri)
+
+        elif mode == 'md':
+            result = Ex.export_flat_alignment_and_metadata(graph_uri)
+
+        elif mode == 'vis':
+            result = Ex.visualise(graphs, PLOTS_FOLDER, {'user': user, 'password': psswd })
         elif mode == 'all':
             result = Ex.export_alignment_all(graph_uri)
         # print "\n after:", result
@@ -3471,7 +3424,6 @@ def exportAlignment():
         result = json.dumps({'message':str(error.message), 'result':None})
 
     return json.dumps(result)
-
 
 @app.route('/deleteLinkset')
 def deleteLinkset():
