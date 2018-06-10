@@ -915,7 +915,7 @@ def create_clusters(initial_dataset_uri, property_uri,
     if reference_uri:
         # server_message = "Cluster created as: {}".format(reference_uri)
         message = "The cluster was created as [{}] with {} clusters!".format(
-            reference_uri, len(constraint_table))
+            reference_uri, len(constraint_table) - 1)
         print message
         return {St.message: message, "reference": reference_uri, "group_name": group_name}
 
