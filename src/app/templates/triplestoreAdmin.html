@@ -28,8 +28,8 @@
                        <td align="right"><div id="triplestoreAdmin_message_col"></div></td>
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="triplestoreAdminExecuteButton" class="btn btn-success"
-                              data-toggle="button" onclick = "triplestoreAdminExecuteButtonClick();">
-                       Execute</button></td>
+                              data-toggle="button" onclick="triplestoreAdminExecuteButtonClick();" style="vertical-align: middle">
+                       Execute <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span> </button></td>
                 </table>
               </div>
           </div>
@@ -94,7 +94,7 @@
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right"><button type="button" id="triplestoreQueryExecuteButton" class="btn btn-success"
                               data-toggle="button" onclick = "triplestoreQueryExecuteButtonClick();">
-                       Execute</button></td>
+                       Execute <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span> </button></td>
                 </table>
               </div>
           </div>
@@ -102,16 +102,23 @@
         <div id="collapse_triplestoreQuery" class="panel-collapse collapse" target="link_collapse_triplestoreAdmin">
         <div class="panel-body">
           <div class="row">
-            <div class="col-md-9" id="triplestoreQuery_list_col">
+            <div class="col-md-6" id="triplestoreQuery_list_col">
                 OPTIONS
                 <select class="form-control" id="triplestoreQuery_list">
                     <option>Named Graphs</option>
-                    <option>Search Named Graphs [give input]</option>
+                    <option>Search Named Graphs [give as input a text for search]</option>
+                    <option>Add data file [give as input filepath and named graph]</option>
+                    <option>Add data directory [give as input directory and named graph]</option>
                 </select>
             </div>
             <div class="col-md-3">
-                INPUT
+                INPUT 1
                 <input type="text" class="form-control" id="triplestoreQuery_input">
+                       <!--value="Panel_">-->
+            </div>
+              <div class="col-md-3">
+                INPUT 2
+                <input type="text" class="form-control" id="triplestoreQuery_input2">
                        <!--value="Panel_">-->
             </div>
           </div>

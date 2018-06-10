@@ -424,7 +424,10 @@ function TripleStoreAdminClick()
 function triplestoreAdminExecuteButtonClick()
 {
     var option = getSelectValues(document.getElementById('triplestoreAdmin_list'));
+    chronoReset();
     $('#triplestoreAdmin_message_col').html(addNote("Running selected option!",cl='warning'));
+    loadingGif(document.getElementById('triplestoreAdmin_message_col'), 2);
+    $('#triplestoreAdmin_result').val('');
 
     if (option.length > 0)
     {
@@ -436,18 +439,23 @@ function triplestoreAdminExecuteButtonClick()
             //var obj = JSON.parse(data);
             $('#triplestoreAdmin_result').val(data);
             $('#triplestoreAdmin_message_col').html(addNote("See results in the panel below!",cl='success'));
+            loadingGif(document.getElementById('triplestoreAdmin_message_col'), 2, show = false);
         });
     }
     else
     {
         $('#triplestoreAdmin_message_col').html(addNote(missing_feature));
+        loadingGif(document.getElementById('triplestoreAdmin_message_col'), 2, show = false);
     }
 }
 
 function triplestoreQueryExecuteButtonClick()
 {
     var option = getSelectValues(document.getElementById('triplestoreQuery_list'));
+    chronoReset();
     $('#triplestoreQuery_message_col').html(addNote("Running selected option!",cl='warning'));
+    loadingGif(document.getElementById('triplestoreQuery_message_col'), 2);
+    $('#triplestoreQuery_result').val('');
 
     if (option.length > 0)
     {
@@ -459,11 +467,13 @@ function triplestoreQueryExecuteButtonClick()
             //var obj = JSON.parse(data);
             $('#triplestoreQuery_result').val(data);
             $('#triplestoreQuery_message_col').html(addNote("See results in the panel below!",cl='success'));
+            loadingGif(document.getElementById('triplestoreQuery_message_col'), 2, show = false);
         });
     }
     else
     {
         $('#triplestoreQuery_message_col').html(addNote(missing_feature));
+        loadingGif(document.getElementById('triplestoreQuery_message_col'), 2, show = false);
     }
 }
 

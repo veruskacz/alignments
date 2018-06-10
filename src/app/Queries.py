@@ -55,20 +55,8 @@ def get_rqs ():
         print query
     return query
 
-# def find_rq (question):
-#     query = """
-#     SELECT ?rq
-# 	{{
-#       	?rq a <http://risis.eu/class/ResearchQuestion> ;
-#         	rdfs:label ""\"{}\""".
-#     }}""".format(question)
-#     if DETAIL:
-#         print query
-#     return query
-
 
 def get_types_per_graph(rq_uri, mode):
-    # print rq_uri, mode
     filter = """
         ## CHECK FOR DATASETS/GRAPHS SELECTED IN A RESERACH QUESTION
         GRAPH <{0}>
@@ -79,8 +67,6 @@ def get_types_per_graph(rq_uri, mode):
         """.format(rq_uri)
     if (mode == 'toAdd'):
         filter = 'FILTER NOT EXISTS {' + filter + '}'
-
-    # print filter
 
     query = PREFIX + """
     ## SELECT THE DATASETS/GRAPHS, ENTITY TYPE AND NUMBER OR ENTITYS OF THAT TYPE
@@ -210,71 +196,6 @@ def get_graph_linkset():
     if DETAIL:
         print query
     return query
-
-
-# def get_linkset_metadata(linkset):
-#     query = PREFIX + """
-#     ### GET LINKSET METADATA
-#     SELECT DISTINCT ?subjectTarget ?objectTarget ?triples
-#                     ?alignsSubjects ?alignsObjects ?alignsMechanism
-#     WHERE
-#     {{
-#         <{}>
-#             rdf:type	                                            void:Linkset ;
-#             <http://rdfs.org/ns/void#subjectsTarget>                ?subjectTarget ;
-#             <http://rdfs.org/ns/void#objectsTarget>                 ?objectTarget ;
-#             <http://rdfs.org/ns/void#triples>                       ?triples ;
-#             <http://risis.eu/alignment/predicate/alignsSubjects>    ?alignsSubjects ;
-#             <http://risis.eu/alignment/predicate/alignsObjects>     ?alignsObjects ;
-#             <http://risis.eu/alignment/predicate/alignsMechanism>   ?alignsMechanism .
-#     }}
-#     """.format(linkset)
-#     if DETAIL:
-#         print query
-#     return query
-
-
-# Ve test
-# def get_targets(graph_uri):
-#     query = PREFIX + """
-#     ### GET LINKSET METADATA
-#     SELECT DISTINCT ?g
-#     WHERE
-#     {
-#             { <""" + graph_uri + """> <http://rdfs.org/ns/void#subjectsTarget>                ?g }
-#             UNION
-#             { <""" + graph_uri + """> <http://rdfs.org/ns/void#objectsTarget>                 ?g }
-#             UNION
-#             { <""" + graph_uri + """> void:target                                             ?g }
-#     }
-#     """
-#     if DETAIL:
-#         print query
-#     return query
-
-
-# def get_lens_operator(lens):
-#     query = PREFIX + """
-#     SELECT *
-#     {{
-#         <{}> alivocab:operator ?operator .
-#     }}
-#     """.format(lens)
-#     if DETAIL:
-#         print query
-#     return query
-
-
-# def get_lens_union_targets(lens):
-#     query = PREFIX + """
-#     select *
-#     {{
-#         <{}> void:target ?target .
-#     }}
-#     """.format(lens)
-#     if DETAIL:
-#         print query
-#     return query
 
 
 def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
@@ -421,24 +342,6 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
 
 
 def get_datasets():
-    # query = PREFIX + """
-    # ### GET DISTINCT DATASETS
-    # SELECT DISTINCT ?uri ?mode
-    # WHERE
-    # {
-    # 	?uri   rdf:type	 _:type
-    #     GRAPH ?uri {_:s  ?p  _:o}
-    #
-    #     ### FILTER THE TYPE OF GRAPH
-    #     FILTER NOT EXISTS { {?uri   rdf:type	void:Linkset}
-    #     UNION {?uri   rdf:type	bdb:Lens}
-    #     UNION {?uri   rdf:type	void:View}
-    #     UNION {?uri   rdf:type	<http://risis.eu/class/ResearchQuestion>}
-    #     }
-    #
-    #   BIND("no-mode" as ?mode)
-    # }
-    # """
     query = PREFIX + """
     ### GET DISTINCT DATASETS
     SELECT DISTINCT ?uri ?mode
@@ -570,251 +473,6 @@ def get_graphs_related_to_rq_type(rq_uri, type=None):
     if DETAIL:
         print query
     return query
-
-
-def get_graphs_related_to_rq_type_old(rq_uri, type=None):
-
-    if type == "linkset&lens":
-        type_filter = """
-        # THAT ARE OF TYPE LINKSET OR LENS
-        { ?uri  rdf:type	void:Linkset }
-        UNION
-        { ?uri   rdf:type	 void:Lens }
-         """
-    # elif type == "linksetBiD":
-    #     type_filter = """?uri   rdf:type	void:Linkset .
-    #             { 	 ?uri
-    #                        alivocab:alignsSubjects ?s_prop ;
-    #                        alivocab:alignsObjects ?o_prop .
-    #
-    #                 BIND('oneAligns' as ?lkst_type_)
-    #                 filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
-    #             }
-    #
-    #             ### SELECTING CREATED LENS OR LINKSETS
-    #           	UNION
-    #             {
-    #                  ?uri
-    #                        alivocab:alignsSubjects ?s_prop ;
-    #                        alivocab:alignsObjects ?o_prop .
-    #                 BIND("success" as ?mode)
-    #                 BIND('multipleAligns' as ?lkst_type_)
-    #                 filter (isBlank(?s_prop) = "TRUE"^^xsd:boolean || isBlank(?o_prop) = "TRUE"^^xsd:boolean)
-    #
-    #             }
-    #         """
-    elif type == "linksetMultiD":
-        type_filter = """?uri   rdf:type	void:Linkset .
-                     ?uri
-                           alivocab:hasAlignmentTarget  ?target  .
-
-                     BIND('multidimensional' as ?lkst_type_)
-            """
-    elif type == "linkset" or type == "linksetBiD":
-        type_filter = """
-        # THAT ARE OF TYPE LINKSET
-        ?uri  rdf:type	void:Linkset
-        BIND('oneAligns' as ?lkst_type_)
-        #filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean && isBlank(?o_prop) = "FALSE"^^xsd:boolean)
-    """
-    elif type == "lens":
-        type_filter = """
-        # THAT ARE OF TYPE LENS '
-        ?uri   rdf:type	 bdb:Lens .
-        """
-    elif type == "view":
-        type_filter = "?uri   rdf:type	 void:View ."
-    else:
-        type_filter = ""
-
-    type_condition = """
-    # WHICH ARE NOT A LINKSET WHOSE TARGET DATASETS (SOURCE OR OBJECT)
-    # OR ARE NOT A LENS THAT TARGETS A LINKSET (THROUGH ZERO OR MORE LENSES) WHOSE TARGET DATASETS (SOURCE OR OBJECT)
-    FILTER NOT EXISTS
-    {{  ?uri  void:target*/(void:subjectsTarget|void:objectsTarget) ?dataset
-
-        # ARE NOT WITHIN THE SELECTED DATASETS FOR A CERTAIN RESEARCH QUESTION
-        FILTER NOT EXISTS
-        {{
-            GRAPH <{0}>
-            {{
-                <{0}>  alivocab:selected ?dataset  .
-            }}
-        }}
-    }} """.format(rq_uri)
-
-    query = PREFIX + """
-    ### GET DISTINCT GRAPHS
-    SELECT DISTINCT ?uri ?mode ?label ?lkst_type
-    WHERE
-    {{
-        # GRAPH-TYPE FILTER
-        {0}
-        OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
-        BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
-        BIND (IF(bound(?lkst_type_), ?lkst_type_ , "-") AS ?lkst_type)
-
-        # GRAPH-TYPE CONDITION
-        {1}
-
-        # AND WHICH ARE NOT ASSOCIATED TO THE RESEARCH QUESTION
-        FILTER NOT EXISTS
-        {{
-            GRAPH <{2}>
-            {{
-                {{
-                  <{2}>  alivocab:created*/alivocab:created   ?uri .
-                }}
-                UNION
-                {{
-                  <{2}>  alivocab:created*/prov:used  ?uri.
-                }}
-            }}
-        }}
-
-      BIND("no-mode" as ?mode)
-    }}
-    """.format(type_filter, type_condition, rq_uri)
-    if DETAIL:
-        print query
-    return query
-
-
-def get_filter_conditions_old(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True, graph_type='linkset'):
-    # ADD FILTER CONDITIONS
-    filter_condition = ""
-    filter_count = ""
-    filter_count_aux = ""
-
-    if (rq_uri != '') and (graph_uri != ''):
-        result = get_graph_filter(rq_uri, graph_uri, filter_uri)
-        print result
-        if result["result"]:
-            method = result["result"][1][1]
-            if method == "threshold":
-                filter_condition = result["result"][1][0]
-                # somehow this HAVING is needed to avoid return with empty sub pred obj
-                #filter_condition += "BIND(count(distinct ?pred) as ?strength)"
-                #filter_count = 'HAVING (?strength > 0)'
-            else:
-                filter_count = " GROUP BY ?sub ?pred ?obj "
-                filter_count += result["result"][1][0]
-                if method == "accept":
-                    filter_count_aux = """
-                    OPTIONAL {{ ?pred2 <http://risis.eu/alignment/predicate/hasValidation> ?accept.
-                                ?accept rdf:type <http://www.w3.org/ns/prov#Accept> .
-                             }}"""
-                # TODO: CHANGE RISIS PREDICATE TO RISIS CLASS FOR REJECT
-                elif method == "reject":
-                    filter_count_aux = """
-                    OPTIONAL {{?pred2 <http://risis.eu/alignment/predicate/hasValidation> ?reject.
-                                ?reject rdf:type <http://risis.eu/alignment/predicate/Reject> .
-                             }}"""
-                elif method == "strength":
-                    filter_count_aux = """
-                    OPTIONAL {{ ?pred prov:wasDerivedFrom ?derivedFrom. }}"""
-
-    # if propPath:
-    #     propPath_query = '?sub {} ?s .'.format(propPath)
-    # else:
-    #     propPath_query = ''
-    #
-    # if (search_pred) and (search_text):
-    #     search_query = """
-    #     ## TEXT SEARCH
-    #     ?s    <{}>     ?Svalue .
-    #     (?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{}\"\"\".
-    #     """.format(search_pred, search_text)
-    # else:
-    #     search_query = ''
-    #
-    # if sub_uri:
-    #     if propPath:
-    #         bind_query = """
-    #         ## BIND
-    #         BIND (<{}> AS  ?sub )
-    #         """.format(sub_uri)
-    #     else:
-    #         bind_query = """
-    #         ## BIND
-    #         BIND (<{}> AS  ?s )
-    #         """.format(sub_uri)
-    # else:
-    #     bind_query = ''
-# get_target_datasets
-
-    # ADD FILTER TERM MATCH
-    filter_term_match = ''
-    if (filter_term != '') and (graph_uri != '') and (filter_term.__contains__("Type a term ") is False):
-        if graph_type == 'linkset': ## Todo: check if it's enough
-            filter_term_match = """
-
-            ### GETTING THE LINKSET TARGETS
-            <{0}>
-                   void:subjectsTarget     ?subjectsTarget ;
-                   void:objectsTarget           ?objectsTarget ;
-                   alivocab:alignsSubjects      ?alignsSubjects ;
-                   alivocab:alignsObjects       ?alignsObjects .
-            """.format(graph_uri)
-        else:
-            filter_term_match = """
-
-            ### GETTING THE TARGETS FOR LENS
-            <{0}>
-                    (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*        ?graph_uri .
-
-            ### GET METADATA IN THE DEFAULT GRAPH
-            ?graph_uri  void:subjectsTarget     ?subjectsTarget ;
-                   void:objectsTarget           ?objectsTarget ;
-                   alivocab:alignsSubjects      ?alignsSubjects ;
-                   alivocab:alignsObjects       ?alignsObjects .
-            """.format(graph_uri)
-
-        if useStardogApprox:
-            filter_term_match += """
-        {{
-        ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
-        GRAPH ?subjectsTarget
-            {{
-                ?sub    ?alignsSubjects     ?Svalue .
-                #(?Svalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
-                FILTER REGEX (?Svalue, "{0}", "i" )
-            }}
-        }}
-        UNION
-        {{
-        ## MATCH USING ALIGNED PROPERTY IN THE OBJECT-DATASET
-        GRAPH ?objectsTarget
-            {{
-                ?obj    ?alignsObjects     ?Ovalue .
-                #(?Ovalue ?score) <tag:stardog:api:property:textMatch> \"\"\"{0}\"\"\".
-                FILTER REGEX (?Ovalue, "{0}", "i" )
-            }}
-        }}
-        """.format(filter_term)
-        else:
-            filter_term_match += """
-        {{
-        ## MATCH USING ALIGNED PROPERTY IN THE SUBJECT-DATASET
-        GRAPH ?subjectsTarget
-            {{
-                ?sub    ?alignsSubjects     \"\"\"{0}\"\"\".
-            }}
-        }}
-        UNION
-        {{
-        ## MATCH USING ALIGNED PROPERTY IN THE OBJECT-DATASET
-        GRAPH ?objectsTarget
-            {{
-                ?obj    ?alignsObjects     \"\"\"{0}\"\"\".
-            }}
-        }}
-        """.format(filter_term)
-
-    return {'filter_condition': filter_condition,
-            'filter_count': filter_count,
-            'filter_count_aux': filter_count_aux,
-            'filter_term_match': filter_term_match}
 
 
 def get_filter_conditions(rq_uri, graph_uri, filter_uri='', filter_term='', useStardogApprox=True, graph_type='linkset'):
@@ -1019,61 +677,6 @@ def get_correspondences3(rq_uri, graph_uri, filter_uri='', filter_term='', limit
     return query
 
 
-def get_target_datasets_old2(graph_uri='', singleton_uri=''):
-    query = """
-    ### GET TARGET DATASETS
-    ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
-    {0}
-    SELECT DISTINCT ?DatasetsSub ?DatasetsObj ?alignsSubjects ?alignsObjects ?alignsMechanism 
-    where
-    {{
-        ### Retrieves the lens
-        <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph1.
-
-        {{ ?graph1
-           void:subjectsTarget 			?DatasetsSub ;
-           alivocab:alignsSubjects   	?alignsSubjects .
-        }} UNION {{
-        ?graph1
-           void:objectsTarget  			?DatasetsObj ;
-            OPTIONAL {{ ?graph1    alivocab:alignsObjects    ?alignsObj }}
-        }}
-
-
-        BIND (IF(bound(?alignsObj), ?alignsObj , "resource identifier") AS ?alignsObjects)
-
-        OPTIONAL {{ ?graph1	  alivocab:alignsMechanism  ?alignsMechanism1 }}
-
-        GRAPH <{1}>
-        {{ ?sub <{2}> ?obj
-        }}
-
-        GRAPH ?DatasetsSub
-        {{
-            ?sub ?p1 ?o1
-        }}
-
-        GRAPH ?DatasetsObj
-        {{
-            ?obj ?p2 ?o2
-        }}
-
-        FILTER NOT EXISTS {{
-              {{ ?DatasetsSub  a  void:Linkset }}
-               UNION
-               {{ ?DatasetsSub  a  bdb:Lens }} }}
-        FILTER NOT EXISTS {{
-              {{ ?DatasetsObj  a  void:Linkset }}
-               UNION
-               {{ ?DatasetsObj  a  bdb:Lens }} }}
-    }}
-    """.format(PREFIX, graph_uri, singleton_uri)  # union)
-
-    if DETAIL:
-        print query
-    return query
-
-
 def get_target_datasets(graph_uri='', singleton_uri=''):
     query = """
     ### GET TARGET DATASETS
@@ -1113,72 +716,6 @@ def get_target_datasets(graph_uri='', singleton_uri=''):
     if DETAIL:
         print query
     return query
-
-#
-# def get_target_datasets(graph_uri='', singleton_uri=''):
-#     query = """
-#     ### GET TARGET DATASETS
-#     ### THIS FUNCTION EXTRACTS THE TARGET DATASETS INVOLVED IN THE CREATION OF A CORRESPONDENCE
-#     {0}
-#     SELECT DISTINCT ?DatasetsSub ?DatasetsObj ?alignsSubjects ?alignsObjects ?alignsMechanism
-#     where
-#     {{
-#         ### Retrieves the lens
-#         <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph1.
-#         <{1}>  (prov:wasDerivedFrom|void:target|void:subjectsTarget|void:objectsTarget)*   ?graph2.
-#
-#         {{ ?graph1
-#            void:subjectsTarget 			?DatasetsSub ;
-#            alivocab:alignsSubjects   	?alignsSub .
-#         }} UNION {{
-#         ?graph1
-#            void:objectsTarget  			?DatasetsSub ;
-#             OPTIONAL {{ ?graph1    alivocab:alignsObjects    ?alignsSub }}
-#         }}
-#
-#
-#         {{ ?graph2
-#            void:subjectsTarget 			?DatasetsObj ;
-#            alivocab:alignsSubjects   	?alignsObj .
-#         }} UNION {{
-#         ?graph2
-#            void:objectsTarget  			?DatasetsObj ;
-#             OPTIONAL {{ ?graph2    alivocab:alignsObjects    ?alignsObj }}
-#         }}
-#         BIND (IF(bound(?alignsSub), ?alignsSub , "resource identifier") AS ?alignsSubjects)
-#         BIND (IF(bound(?alignsObj), ?alignsObj , "resource identifier") AS ?alignsObjects)
-#
-#         OPTIONAL {{ ?graph1	  alivocab:alignsMechanism  ?alignsMechanism1 }}
-#         OPTIONAL {{ ?graph2	  alivocab:alignsMechanism  ?alignsMechanism2 }}
-#
-#         GRAPH <{1}>
-#         {{ ?sub <{2}> ?obj
-#         }}
-#
-#         GRAPH ?DatasetsSub
-#         {{
-#             ?sub ?p1 ?o1
-#         }}
-#
-#         GRAPH ?DatasetsObj
-#         {{
-#             ?obj ?p2 ?o2
-#         }}
-#
-#         FILTER NOT EXISTS {{
-#               {{ ?DatasetsSub  a  void:Linkset }}
-#                UNION
-#                {{ ?DatasetsSub  a  bdb:Lens }} }}
-#         FILTER NOT EXISTS {{
-#               {{ ?DatasetsObj  a  void:Linkset }}
-#                UNION
-#                {{ ?DatasetsObj  a  bdb:Lens }} }}
-#     }}
-#     """.format(PREFIX, graph_uri, singleton_uri)  # union)
-#
-#     if DETAIL:
-#         print query
-#     return query
 
 
 def get_target_datasets_old(graph_uri=''):
@@ -1467,20 +1004,40 @@ def get_aligned_predicate_value(source_uri, target_uri, src_aligns_list, trg_ali
     sub_qry = ''
     for i in range(len(src_aligns_list)):
         src_aligns = src_aligns_list[i]
-        src_aligns = "<{}>".format(src_aligns) if Ut.is_nt_format(src_aligns) is not True else src_aligns
         trg_aligns = trg_aligns_list[i]
-        trg_aligns = "<{}>".format(trg_aligns) if Ut.is_nt_format(trg_aligns) is not True else trg_aligns
 
-        sub_qry += """ {{ GRAPH ?g_source
-                        {{  <{0}>  {1}  ?srcPredValue
-                        bind ("{1}" as ?alignsSubjects ) }}
-                    OPTIONAL
-                    {{
-                        graph ?g_target
-                            {{  <{2}>  {3}  ?trgPredVal
-                            bind ("{3}" as ?alignsObjects ) }}
-                    }} }}
-                    """.format(source_uri, src_aligns, target_uri, trg_aligns)
+        if src_aligns != 'none':
+            src_aligns = "<{}>".format(src_aligns) if Ut.is_nt_format(src_aligns) is not True else src_aligns
+            sub_qry += """ {{ GRAPH ?g_source
+                                    {{  <{0}>  {1}  ?srcPredValue
+                                        bind ("{1}" as ?alignsSubjects )
+                                    }}
+
+                            """.format(source_uri, src_aligns)
+        else:
+            sub_qry += """
+                          BIND ("{1}" as ?alignsSubjects )
+                          BIND ("{1}" AS ?srcPredValue)
+                        }}
+                        """.format(target_uri, trg_aligns)
+        if trg_aligns != 'none':
+            trg_aligns = "<{}>".format(trg_aligns) if Ut.is_nt_format(trg_aligns) is not True else trg_aligns
+
+            sub_qry += """
+                        OPTIONAL
+                        {{  GRAPH ?g_target
+                                {{  <{0}>  {1}  ?trgPredVal_
+                                 }}
+                        }}  BIND ("{1}" as ?alignsObjects )
+                            BIND (IF ({1} = <http://risis.eu/alignment/predicate/resourceIdentifier>, <{0}>, ?trgPredVal_) AS ?trgPredVal)
+                        }}
+                        """.format(target_uri, trg_aligns)
+        else:
+            sub_qry += """
+                          BIND ("{1}" as ?alignsObjects )
+                          BIND ("{1}" AS ?trgPredVal)
+                        }}
+                        """.format(target_uri, trg_aligns)
 
         if i < len(src_aligns_list)-1:
             sub_qry += ' UNION '
@@ -1502,151 +1059,6 @@ def get_aligned_predicate_value(source_uri, target_uri, src_aligns_list, trg_ali
     return query
 
 
-# TODO: this seams to not work for property path
-# def get_linkset_corresp_sample_details_old0(linkset, limit=1):
-#
-#     query = PREFIX + """
-#     ### LINKSET DETAILS WITH SAMPLE OF ALIGNED PREDICATES
-#
-#     SELECT DISTINCT
-#     ?subTarget ?objTarget ?s_datatype ?o_datatype ?operator
-#     (GROUP_CONCAT(?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
-#     (GROUP_CONCAT(?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
-#     (GROUP_CONCAT(?s_prop; SEPARATOR="|") as ?s_property)
-#     (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
-#     (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
-#     (GROUP_CONCAT(?trip; SEPARATOR="|") as ?triples)
-#
-#     WHERE
-#     {{
-#         ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
-#         <{0}>
-#             prov:wasDerivedFrom*        ?linkset .
-#
-#         ### RETRIEVING LINKSET METADATA
-#         ?linkset
-#             alivocab:alignsMechanism    ?mec ;
-#             void:subjectsTarget         ?subTarget ;
-#             bdb:subjectsDatatype        ?s_datatype ;
-#             alivocab:alignsSubjects     ?s_prop;
-#             void:objectsTarget          ?objTarget ;
-#             bdb:objectsDatatype         ?o_datatype ;
-#             alivocab:alignsObjects      ?o_prop ;
-#             void:triples                ?trip .
-#
-#         ### RETRIEVING CORRESPONDENCES
-#         GRAPH  <{0}>
-#         {{
-#             ?sub_uri    ?aligns        ?obj_uri
-#         }}
-#
-#         ### RETRIEVING SUBJECT DATASET INFO
-#         GRAPH ?subTarget
-#         {{
-#             ?sub_uri    ?s_prop     ?s_PredV
-#         }}
-#
-#         ### RETRIEVING OBJECT DATASET INFO WHEN EXISTS
-#         ### SOME ALIGNMENTS LIKE EMBEDDED SUBSET DO NOT USE OBJECT DATASET
-#         OPTIONAL
-#         {{
-#             graph ?objTarget
-#             {{
-#                 ?obj_uri  ?o_prop   ?o_PredVal
-#             }}
-#         }}
-#         BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
-#         BIND ("" AS ?operator)
-#     }}
-#     group by ?subTarget ?objTarget  ?sub_uri ?obj_uri  ?s_datatype ?o_datatype ?operator
-#     LIMIT {1}""".format(linkset, limit)
-#     if DETAIL:
-#         print query
-#     return query
-
-
-# def get_linkset_corresp_sample_details_old1(linkset, limit=1):
-#
-#     query = PREFIX + """
-#     SELECT DISTINCT
-#     (GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
-#     (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
-#     (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
-#     ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
-#     ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-#     WHERE {{
-#         <{0}>
-#             prov:wasDerivedFrom*        ?linkset .
-#         ?linkset
-#             alivocab:alignsMechanism    ?mec ;
-#             void:subjectsTarget         ?subTarget ;
-#             bdb:subjectsDatatype        ?s_datatype ;
-#             alivocab:alignsSubjects     ?s_prop;
-#             void:objectsTarget          ?objTarget ;
-#             bdb:objectsDatatype         ?o_datatype ;
-#             alivocab:alignsObjects      ?o_prop ;
-#             void:triples                ?triples .
-#         {{
-#             SELECT ?sub_uri ?obj_uri
-#             (GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
-#             (GROUP_CONCAT(DISTINCT ?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
-#             {{
-#                 GRAPH  <{0}>
-#                 {{
-#                     ?sub_uri    ?aligns        ?obj_uri
-#                 }}
-#                 GRAPH ?subTarget
-#                 {{
-#                     ###SOURCE SLOT
-#                 }}
-#                 OPTIONAL
-#                 {{
-#                     graph ?objTarget
-#                     {{
-#                         ###TARGET SLOT
-#                     }}
-#                 }}
-#                 BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
-#                 BIND ("" AS ?operator)
-#             }} GROUP BY ?sub_uri ?obj_uri
-#         }}
-#     }}
-#     GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype
-#     ?triples ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
-#     LIMIT {1}""".format(linkset, limit)
-#
-#     source = ""
-#     source_bind = ""
-#     target = ""
-#     target_bind = ""
-#     prop_query = linkset_aligns_prop(linkset)
-#     prop_matrix = sparql_matrix(prop_query)["result"]
-#     # print "\n\nprop_matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", prop_matrix
-#     # print "length", len(prop_matrix)
-#     for i in range(1, len(prop_matrix)):
-#         # print "matrix!!!!!!!!!!!!!!!!!!!!", prop_matrix[i]
-#         src = "<{}>".format(prop_matrix[i][0]) if prop_matrix[i][0].__contains__(">/<") is False else prop_matrix[i][0]
-#         trg = "<{}>".format(prop_matrix[i][1]) if prop_matrix[i][1].__contains__(">/<") is False else prop_matrix[i][1]
-#         if i == 1:
-#             source = "?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
-#             target = "?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
-#             source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?s_PredV_{})".format(str(i))
-#             target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?o_PredVal_{})".format(str(i))
-#         else:
-#             source += "\n\t\t\t\t\t\t?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
-#             target += "\n\t\t\t\t\t\t\t?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
-#             source_bind += ", \"|\", STR(?s_PredV_{})".format(str(i))
-#             target_bind += ", \"|\",  STR(?o_PredVal_{})".format(str(i))
-#
-#     source_bind += ", \"]\" ) AS ?s_PredV )"
-#     target_bind += ", \"]\" ) AS ?o_PredVal )"
-#     source += source_bind
-#     target += target_bind
-#     query = str(query).replace("###SOURCE SLOT", source).replace("###TARGET SLOT", target)
-#     # print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
-#     print query
-#     return query
-
 def get_linkset_corresp_sample_details(linkset, limit=1, crossCheck=True):
 
     source = ""
@@ -1666,70 +1078,82 @@ def get_linkset_corresp_sample_details(linkset, limit=1, crossCheck=True):
     SELECT ?sub_uri ?obj_uri
     (GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
     (GROUP_CONCAT(DISTINCT ?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
-    ("{4}" as ?crossCheck)
+    ("{2}" as ?crossCheck)
     {{
         GRAPH  <{0}>
         {{
             ?sub_uri    ?aligns        ?obj_uri
         }}
-        GRAPH {2}
-        {{
-            ###SOURCE SLOT
-        }}
-        OPTIONAL
-        {{
-            graph {3}
-            {{
-                ###TARGET SLOT
-            }}
-        }}
+
+        ###SOURCE SLOT
+
+        ###TARGET SLOT
+
         BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
         BIND ("" AS ?operator)
     }} GROUP BY ?sub_uri ?obj_uri
-    LIMIT {1}""".format(linkset, limit, s_ds, t_ds, crossCheck)
+    LIMIT {1}""".format(linkset, limit, crossCheck)
 
-    # print "\n\nprop_matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", prop_matrix
-    # print "length", len(prop_matrix)
     for i in range(1, len(prop_matrix)):
-        # print "matrix!!!!!!!!!!!!!!!!!!!!", prop_matrix[i]
         src = "<{}>".format(prop_matrix[i][0]) if prop_matrix[i][0].__contains__(">/<") is False else prop_matrix[i][0]
         trg = "<{}>".format(prop_matrix[i][1]) if prop_matrix[i][1].__contains__(">/<") is False else prop_matrix[i][1]
 
-        mec = prop_matrix[i][2]
-        # print prop_matrix
-        # print mec
+        # mec = prop_matrix[i][2]
         if i == 1:
 
             source = "?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
-            target = "?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
 
-            if mec == 'http://risis.eu/mechanism/identity':
-
-                source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?sub_uri)"
-                target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?obj_uri)"
+            if str(trg).__contains__('resourceIdentifier'):
+                target += "\n\t\t\t\t\t\t\tBIND (?obj_uri  as  ?o_PredVal_{} ).".format(str(i))
             else:
+                target += "\n\t\t\t\t\t\t\t?obj_uri  {}  ?o_PredVal_{} . #! ".format(trg, str(i))
 
-                source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?s_PredV_{})".format(str(i))
-                target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?o_PredVal_{})".format(str(i))
+            # if mec == 'http://risis.eu/mechanism/identity':
+            #
+            #     source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?sub_uri)"
+            #     target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?obj_uri)"
+            # else:
+
+            source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?s_PredV_{})".format(str(i))
+            target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?o_PredVal_{})".format(str(i))
         else:
 
             source += "\n\t\t\t\t\t\t?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
-            target += "\n\t\t\t\t\t\t\t?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
 
-            if mec == 'http://risis.eu/mechanism/identity':
-                source_bind += ", \"|\", STR(?sub_uri)"
-                target_bind += ", \"|\",  STR(?obj_uri)"
+            if str(trg).__contains__('resourceIdentifier'):
+                target += "\n\t\t\t\t\t\t\tBIND (?obj_uri  as  ?o_PredVal_{} ).".format(trg, str(i))
             else:
+                target += "\n\t\t\t\t\t\t\t?obj_uri  {}  ?o_PredVal_{} . #! ".format(trg, str(i))
 
-                source_bind += ", \"|\", STR(?s_PredV_{})".format(str(i))
-                target_bind += ", \"|\",  STR(?o_PredVal_{})".format(str(i))
+            # if mec == 'http://risis.eu/mechanism/identity':
+            #     source_bind += ", \"|\", STR(?sub_uri)"
+            #     target_bind += ", \"|\",  STR(?obj_uri)"
+            # else:
+
+            source_bind += ", \"|\", STR(?s_PredV_{})".format(str(i))
+            target_bind += ", \"|\",  STR(?o_PredVal_{})".format(str(i))
+
 
     source_bind += ", \"]\" ) AS ?s_PredV )"
     target_bind += ", \"]\" ) AS ?o_PredVal )"
     source += source_bind
     target += target_bind
+
+    source = """ GRAPH {}
+        {{
+            {}
+        }}""".format(s_ds, source)
+
+    if target.__contains__('#!'): ## marker added to make sure there is at list one pattern to match
+        target = """ OPTIONAL
+        {{
+            graph {}
+            {{
+                {}
+            }}
+        }}""" .format(t_ds, target)
+
     query = str(query).replace("###SOURCE SLOT", source).replace("###TARGET SLOT", target)
-    #print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
     print query
     return query
 
@@ -1835,8 +1259,8 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
             bind (<{0}> as ?graph)
             ?graph
                 (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
-                alivocab:alignsSubjects     ?s_property;
-                alivocab:alignsObjects      ?o_property ;
+                alivocab:alignsSubjects     ?s_property_;
+                alivocab:alignsObjects      ?o_property_ ;
                 alivocab:alignsMechanism    ?mechanism .
             ?linkset
                 alivocab:alignsMechanism    ?mec ;
@@ -1849,11 +1273,19 @@ def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filt
                 #void:triples               ?triple .
 
             OPTIONAL {{
-                <{0}>
-                alivocab:threshold          ?threshold_ .
+                ?linkset      alivocab:crossCheckSubject  ?s_crossCheck_property_ .
             }}
+
+            OPTIONAL {{
+                ?linkset      alivocab:crossCheckObject   ?o_crossCheck_property_ .
+            }}
+
+              BIND (IF(bound(?s_crossCheck_property_), ?s_crossCheck_property_, ?s_property_) as ?s_property).
+              BIND (IF(bound(?o_crossCheck_property_), ?o_crossCheck_property_, ?o_property_) as ?o_property).
+
             OPTIONAL {{
                 <{0}>
+                alivocab:threshold          ?threshold_ ;
                 alivocab:delta              ?delta_ .
             }}
 
@@ -2041,477 +1473,6 @@ def get_linksetCluster_corresp_details(linkset, limit=1, rq_uri='', filter_uri='
     GROUP BY ?triples ?mechanism ?linkset ?dataset ?datatype
     # LIMIT {1}
     """.format(linkset, limit, count_query)
-
-    if DETAIL:
-        print query
-    return query
-
-
-def get_linkset_corresp_details_old(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
-
-    filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
-    # print 'FILTERS:', filters
-
-    count_query = """
-                SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
-                {{
-                    GRAPH <{0}> {{ ?sub ?pred ?obj }}
-                    GRAPH <{5}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
-                               ?pred2 ?p ?o .
-                        # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
-                        {3}
-                    }}
-
-                    # FILTER BY CONDITION
-                    {1}
-
-                    # FILTER BY TERM MATCH
-                    {4}
-
-                }}
-                # FILTER BY COUNT
-                {2}
-    """.format(linkset, filters['filter_condition'],
-               filters['filter_count'], filters['filter_count_aux'],
-               filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
-
-    query = PREFIX + """
-    ### LINKSET DETAILS
-
-    SELECT DISTINCT
-    (GROUP_CONCAT(DISTINCT ?s_prop; SEPARATOR=" | ") as ?s_property_list)
-    (GROUP_CONCAT(DISTINCT ?o_prop; SEPARATOR=" | ") as ?o_property_list)
-    (GROUP_CONCAT(?mec; SEPARATOR=" | ") as ?mechanism_list)
-    #(GROUP_CONCAT(?triple; SEPARATOR=" | ") as ?triples)
-    ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
-    #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-    ?threshold ?delta ?dist ?dist_unit
-	?s_property ?o_property ?mechanism
-	?s_crossCheck_property ?o_crossCheck_property
-    WHERE {{
-        bind (<{0}> as ?graph)
-        ?graph
-            # (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
-            # Temporarilly changed due to strange result in windows computer
-            # after adding the union for addressing list of aligns-properties.
-            # To be further checked because this affects the visulisation of
-            # linkset that are derived from other alignments,
-            # e.g. showing several times the mechanism
-            prov:wasDerivedFrom*/void:target*/prov:wasDerivedFrom*       ?linkset ;
-            #alivocab:alignsSubjects     ?s_property;
-            #alivocab:alignsObjects      ?o_property ;
-            alivocab:alignsMechanism    ?mechanism .
-        ?linkset
-            alivocab:alignsMechanism    ?mec ;
-            void:subjectsTarget         ?subTarget ;
-            bdb:subjectsDatatype        ?s_datatype ;
-            #alivocab:alignsSubjects     ?s_prop;
-            void:objectsTarget          ?objTarget ;
-            bdb:objectsDatatype         ?o_datatype .
-            #alivocab:alignsObjects      ?o_prop .
-            #void:triples               ?triple .
-
-    {{ ?linkset alivocab:alignsSubjects ?s_prop ;
-                alivocab:alignsObjects ?o_prop .
-        ?graph   alivocab:alignsSubjects     ?s_property;
-                 alivocab:alignsObjects     ?o_property.
-        filter not exists {{?linkset alivocab:alignsSubjects/rdf:rest ?r}}
-        filter not exists {{?linkset alivocab:alignsObjects/rdf:rest ?r}}
-    }}
-    union
-    {{
-      {{ select ?graph ?linkset
-                    (GROUP_CONCAT(DISTINCT ?s_prop_; SEPARATOR=" | ") as ?s_prop)
-                    (GROUP_CONCAT(DISTINCT ?o_prop_; SEPARATOR=" | ") as ?o_prop)
-                     ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
-      {{
-        ?linkset    alivocab:alignsSubjects     ?SRC_onj .
-        ?SRC_onj    rdf:rest*/rdf:first         ?s_prop_ .
-        ?graph      alivocab:crossCheckSubject  ?s_property .
-        ?graph      alivocab:crossCheckSubject  ?s_crossCheck_property_ .
-
-        ?linkset    alivocab:alignsObjects      ?trg_onj .
-        ?trg_onj    rdf:rest*/rdf:first         ?o_prop_ .
-        ?graph      alivocab:crossCheckObject   ?o_property .
-        ?graph      alivocab:crossCheckObject   ?o_crossCheck_property_ .
-
-         filter (isBlank(?s_prop_) = "FALSE"^^xsd:boolean) .
-         filter (isBlank(?o_prop_) = "FALSE"^^xsd:boolean) .
-      }} GROUP BY ?graph ?linkset ?s_property ?o_property ?s_crossCheck_property_ ?o_crossCheck_property_
-      }}
-    }}
-
-        OPTIONAL {{
-            <{0}>
-            alivocab:threshold          ?threshold_ .
-        }}
-        OPTIONAL {{
-            <{0}>
-            alivocab:delta              ?delta_ .
-        }}
-        OPTIONAL {{
-            <{0}>
-            alivocab:unit                   ?unit_ .
-        }}
-        OPTIONAL {{
-            <{0}>
-            alivocab:unitValue              ?unit_value_ .
-        }}
-
-            BIND (IF(bound(?s_crossCheck_property_), ?s_crossCheck_property_ , '') AS ?s_crossCheck_property)
-            BIND (IF(bound(?o_crossCheck_property_), ?o_crossCheck_property_ , '') AS ?o_crossCheck_property)
-
-            BIND (IF(bound(?threshold_), ?threshold_ , 0) AS ?threshold)
-            BIND (IF(bound(?delta_), ?delta_ , '') AS ?delta)
-            BIND (IF(bound(?unit_), ?unit_ , '') AS ?dist_unit)
-            BIND (IF(bound(?unit_value_), ?unit_value_ , '') AS ?dist)
-            BIND ("" AS ?operator)
-
-            # COUNT TRIPLES ACCORDING TO FILTER
-            {{ {2} }}
-
-        }}
-    GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples
-    #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-    ?operator
-    ?s_property ?o_property ?mechanism ?threshold ?delta ?dist ?dist_unit
-    ?s_crossCheck_property ?o_crossCheck_property
-    # LIMIT {1}
-    """.format(linkset, limit, count_query)
-
-    # {{ ?linkset alivocab:alignsSubjects ?s_prop .
-    #     ?graph   alivocab:alignsSubjects     ?s_property.
-    #     filter not exists {{?linkset alivocab:alignsSubjects/rdf:rest ?r}}
-    # }}
-    # union {{
-    #   ?linkset alivocab:alignsSubjects ?SRC_onj .
-    #   ?SRC_onj  rdf:rest*/rdf:first ?s_prop .
-    #   ?graph   alivocab:crossCheckSubject ?s_property .
-    #   filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean)
-    # }}
-    #
-    # {{ ?linkset alivocab:alignsObjects ?o_prop .
-    #     ?graph   alivocab:alignsObjects     ?o_property.
-    #     filter not exists {{?linkset alivocab:alignsObjects/rdf:rest ?r}}
-    # }}
-    # union {{
-    #   ?linkset alivocab:alignsObjects ?trg_onj .
-    #   ?trg_onj  rdf:rest*/rdf:first ?o_prop .
-    #   ?graph   alivocab:crossCheckObject ?o_property
-    #   filter (isBlank(?o_prop) = "FALSE"^^xsd:boolean)
-   	# }}
-
-    if DETAIL:
-        print query
-    return query
-
-def get_linkset_corresp_details_even_older(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
-
-    filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
-    # print 'FILTERS:', filters
-
-    count_query = """
-                SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
-                {{
-                    GRAPH <{0}> {{ ?sub ?pred ?obj }}
-                    GRAPH <{5}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
-                               ?pred2 ?p ?o .
-                        # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
-                        {3}
-                    }}
-
-                    # FILTER BY CONDITION
-                    {1}
-
-                    # FILTER BY TERM MATCH
-                    {4}
-
-                }}
-                # FILTER BY COUNT
-                {2}
-    """.format(linkset, filters['filter_condition'],
-               filters['filter_count'], filters['filter_count_aux'],
-               filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
-
-    query = PREFIX + """
-    ### LINKSET DETAILS
-
-    SELECT DISTINCT
-    (GROUP_CONCAT(DISTINCT ?s_prop; SEPARATOR="|") as ?s_property_list)
-    (GROUP_CONCAT(DISTINCT ?o_prop; SEPARATOR="|") as ?o_property_list)
-    (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism_list)
-    #(GROUP_CONCAT(?triple; SEPARATOR="|") as ?triples)
-    ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
-    #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-    ?threshold ?delta
-	?s_property ?o_property ?mechanism
-    WHERE {{
-        <{0}>
-            (prov:wasDerivedFrom/void:target)*/prov:wasDerivedFrom*       ?linkset ;
-            alivocab:alignsSubjects     ?s_property;
-            alivocab:alignsObjects      ?o_property ;
-            alivocab:alignsMechanism    ?mechanism .
-        ?linkset
-            alivocab:alignsMechanism    ?mec ;
-            void:subjectsTarget         ?subTarget ;
-            bdb:subjectsDatatype        ?s_datatype ;
-            #alivocab:alignsSubjects     ?s_prop;
-            void:objectsTarget          ?objTarget ;
-            bdb:objectsDatatype         ?o_datatype ;
-            #alivocab:alignsObjects      ?o_prop .
-            #void:triples               ?triple .
-
-
-    {{ ?linkset alivocab:alignsSubjects ?s_prop .
-        filter not exists {{?linkset alivocab:alignsSubjects/rdf:rest ?r}}
-    }}
-    union {{
-      ?linkset alivocab:alignsSubjects ?SRC_onj .
-      ?SRC_onj  rdf:rest*/rdf:first ?s_prop .
-    }} filter (isBlank(?s_prop) = "FALSE"^^xsd:boolean)
-
-    filter (isBlank(?s_property) = "FALSE"^^xsd:boolean)
-    filter (isBlank(?o_property) = "FALSE"^^xsd:boolean)
-
-    {{ ?linkset alivocab:alignsObjects ?o_prop .
-        filter not exists {{?linkset alivocab:alignsSubjects/rdf:rest ?r}}
-    }}
-    union {{
-      ?linkset alivocab:alignsObjects ?trg_onj .
-      ?trg_onj  rdf:rest*/rdf:first ?o_prop .
-   	}} filter (isBlank(?o_prop) = "FALSE"^^xsd:boolean)
-
-
-        OPTIONAL {{
-            <{0}>
-            alivocab:threshold          ?threshold_ .
-        }}
-        OPTIONAL {{
-            <{0}>
-            alivocab:delta              ?delta_ .
-        }}
-
-            BIND (IF(bound(?threshold_), ?threshold_ , 0) AS ?threshold)
-            BIND (IF(bound(?delta_), ?delta_ , 0) AS ?delta)
-            BIND ("" AS ?operator)
-
-            # COUNT TRIPLES ACCORDING TO FILTER
-            {{ {2} }}
-
-        }}
-    GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples
-    #?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-    ?operator
-    ?s_property ?o_property ?mechanism ?threshold ?delta
-    # LIMIT {1}
-    """.format(linkset, limit, count_query)
-
-    if DETAIL:
-        print query
-    return query
-
-# def get_linkset_corresp_sample_details(linkset, limit=1):
-#
-#     source = ""
-#     source_bind = ""
-#     target = ""
-#     target_bind = ""
-#     prop_query = linkset_aligns_prop(linkset)
-#     prop_matrix = sparql_matrix(prop_query)["result"]
-#
-#     s_ds = "<{}>".format(prop_matrix[1][3])
-#     t_ds = "<{}>".format(prop_matrix[1][4])
-#
-#     query = PREFIX + """
-#     #### CORRESPONDENCE DETAIL SAMPLE
-#     SELECT DISTINCT
-#     (GROUP_CONCAT( ?s_prop; SEPARATOR="|") as ?s_property)
-#     (GROUP_CONCAT(?o_prop; SEPARATOR="|") as ?o_property)
-#     (GROUP_CONCAT(?mec; SEPARATOR="|") as ?mechanism)
-#     (GROUP_CONCAT(?triple; SEPARATOR="|") as ?triples)
-#     ?subTarget ?objTarget ?s_datatype ?o_datatype ?triples ?operator
-#     ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue
-#     WHERE {{
-#         <{0}>
-#         #    prov:wasDerivedFrom*        ?linkset .
-#         #?linkset
-#             alivocab:alignsMechanism    ?mec ;
-#             void:subjectsTarget         ?subTarget ;
-#             bdb:subjectsDatatype        ?s_datatype ;
-#             alivocab:alignsSubjects     ?s_prop;
-#             void:objectsTarget          ?objTarget ;
-#             bdb:objectsDatatype         ?o_datatype ;
-#             alivocab:alignsObjects      ?o_prop ;
-#             void:triples                ?triple .
-#         {{
-#             SELECT ?sub_uri ?obj_uri
-#             (GROUP_CONCAT(DISTINCT ?s_PredV; SEPARATOR=" | ") as ?s_PredValue)
-#             (GROUP_CONCAT(DISTINCT ?o_PredV; SEPARATOR=" | ") as ?o_PredValue)
-#             {{
-#                 GRAPH  <{0}>
-#                 {{
-#                     ?sub_uri    ?aligns        ?obj_uri
-#                 }}
-#                 GRAPH {2}
-#                 {{
-#                     ###SOURCE SLOT
-#                 }}
-#                 OPTIONAL
-#                 {{
-#                     graph {3}
-#                     {{
-#                         ###TARGET SLOT
-#                     }}
-#                 }}
-#                 BIND (IF(bound(?o_PredVal), ?o_PredVal , "none") AS ?o_PredV)
-#                 BIND ("" AS ?operator)
-#             }} GROUP BY ?sub_uri ?obj_uri
-#         }}
-#     }}
-#     GROUP BY ?subTarget ?objTarget ?s_datatype ?o_datatype
-#     ?sub_uri ?obj_uri ?s_PredValue ?o_PredValue ?operator
-#     LIMIT {1}""".format(linkset, limit, s_ds, t_ds)
-#
-#     # print "\n\nprop_matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", prop_matrix
-#     # print "length", len(prop_matrix)
-#     for i in range(1, len(prop_matrix)):
-#         # print "matrix!!!!!!!!!!!!!!!!!!!!", prop_matrix[i]
-#         src = "<{}>".format(prop_matrix[i][0]) if prop_matrix[i][0].__contains__(">/<") is False else prop_matrix[i][0]
-#         trg = "<{}>".format(prop_matrix[i][1]) if prop_matrix[i][1].__contains__(">/<") is False else prop_matrix[i][1]
-#
-#         mec = prop_matrix[i][2]
-#         # print prop_matrix
-#         # print mec
-#         if i == 1:
-#
-#             source = "?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
-#             target = "?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
-#
-#             if mec == 'http://risis.eu/mechanism/identity':
-#
-#                 source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?sub_uri)"
-#                 target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?obj_uri)"
-#             else:
-#
-#                 source_bind = "\n\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?s_PredV_{})".format(str(i))
-#                 target_bind = "\n\t\t\t\t\t\t\tBIND(CONCAT(\"[\", STR(?o_PredVal_{})".format(str(i))
-#         else:
-#
-#             source += "\n\t\t\t\t\t\t?sub_uri  {}  ?s_PredV_{} .".format(src, str(i))
-#             target += "\n\t\t\t\t\t\t\t?obj_uri  {}  ?o_PredVal_{} .".format(trg, str(i))
-#
-#             if mec == 'http://risis.eu/mechanism/intermediate':
-#                 source_bind += ", \"|\", STR(?sub_uri)"
-#                 target_bind += ", \"|\",  STR(?obj_uri)"
-#             else:
-#
-#                 source_bind += ", \"|\", STR(?s_PredV_{})".format(str(i))
-#                 target_bind += ", \"|\",  STR(?o_PredVal_{})".format(str(i))
-#
-#     source_bind += ", \"]\" ) AS ?s_PredV )"
-#     target_bind += ", \"]\" ) AS ?o_PredVal )"
-#     source += source_bind
-#     target += target_bind
-#     query = str(query).replace("###SOURCE SLOT", source).replace("###TARGET SLOT", target)
-#     print ">>> PRINTED QUERY FOR CORRESPONDENCE DETAIL SAMPLE"
-#     print query
-#     return query
-#
-#
-# def get_linkset_corresp_details(linkset, limit=1, rq_uri='', filter_uri='', filter_term=''):
-#
-#     filters = get_filter_conditions(rq_uri, linkset, filter_uri, filter_term)
-#     # print 'FILTERS:', filters
-#
-#     count_query = """
-#                 SELECT DISTINCT (count(DISTINCT ?pred ) as  ?triples)
-#                 {{
-#                     GRAPH <{0}> {{ ?sub ?pred ?obj }}
-#                     GRAPH <{5}> {{ ?pred prov:wasDerivedFrom* ?pred2 .
-#                                ?pred2 ?p ?o .
-#                         # ADDITIONAL PATTERNS TO ALLOW FOR FILTER COUNT
-#                         {3}
-#                     }}
-#
-#                     # FILTER BY CONDITION
-#                     {1}
-#
-#                     # FILTER BY TERM MATCH
-#                     {4}
-#
-#                 }}
-#                 # FILTER BY COUNT
-#                 {2}
-#     """.format(linkset, filters['filter_condition'],
-#                filters['filter_count'], filters['filter_count_aux'],
-#                filters['filter_term_match'], Ut.from_alignment2singleton(linkset))
-#
-#     query = PREFIX + """
-#     ### LINKSET DETAILS
-#
-#     SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property
-#     ?objTarget ?o_datatype ?o_property  ?triples ?operator
-#         WHERE
-#         {{
-#
-#             ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
-#             <{0}>
-#                 prov:wasDerivedFrom*        ?linkset .
-#
-#             ### RETRIEVING LINKSET METADATA
-#             ?linkset
-#                 alivocab:alignsMechanism    ?mechanism ;
-#                 void:subjectsTarget         ?subTarget ;
-#                 bdb:subjectsDatatype        ?s_datatype ;
-#                 alivocab:alignsSubjects     ?s_property;
-#                 void:objectsTarget          ?objTarget ;
-#                 bdb:objectsDatatype         ?o_datatype ;
-#                 alivocab:alignsObjects      ?o_property .
-#                 #void:triples                ?triples .
-#
-#             BIND ("" AS ?operator)
-#
-#             # COUNT TRIPLES ACCORDING TO FILTER
-#             {{ {2} }}
-#
-#         }}
-#     # LIMIT {1}
-#     """.format(linkset, limit, count_query)
-#
-#     if DETAIL:
-#         print query
-#     return query
-
-
-def get_linkset_corresp_details_old(linkset, limit=1):
-
-    query = PREFIX + """
-    ### LINKSET DETAILS
-
-    SELECT DISTINCT ?mechanism ?subTarget ?s_datatype ?s_property
-    ?objTarget ?o_datatype ?o_property  ?triples ?operator
-        WHERE
-        {{
-
-            ### GETTING THE LINKSET AND DERIVED LINKSETS WHEN REFINED
-            <{0}>
-                prov:wasDerivedFrom*        ?linkset .
-
-            ### RETRIEVING LINKSET METADATA
-            ?linkset
-                alivocab:alignsMechanism    ?mechanism ;
-                void:subjectsTarget         ?subTarget ;
-                bdb:subjectsDatatype        ?s_datatype ;
-                alivocab:alignsSubjects     ?s_property;
-                void:objectsTarget          ?objTarget ;
-                bdb:objectsDatatype         ?o_datatype ;
-                alivocab:alignsObjects      ?o_property ;
-                void:triples                ?triples .
-
-            BIND ("" AS ?operator)
-        }}
-    # LIMIT {1}
-    """.format(linkset, limit)
 
     if DETAIL:
         print query
