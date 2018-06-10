@@ -1,8 +1,12 @@
+# -*- coding: utf-8 -*-
+# coding=utf-8
+
 import re
 import Alignments.ErrorCodes as Ec
 import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.Utility as Ut
+from kitchen.text.converters import to_unicode
 
 INFO = False
 DETAIL = False
@@ -49,6 +53,7 @@ def register_research_question(question):
 
     try:
         # CHECK WHETHER THE RESEARCH QUESTION ALREADY EXISTS
+        question = to_unicode(question, "utf-8")
         existence_query = check_rq_existence(question)
         check = Qry.boolean_endpoint_response(existence_query)
 
