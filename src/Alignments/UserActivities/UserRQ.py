@@ -6,7 +6,7 @@ import Alignments.ErrorCodes as Ec
 import Alignments.Query as Qry
 import Alignments.Settings as St
 import Alignments.Utility as Ut
-from kitchen.text.converters import to_unicode
+from kitchen.text.converters import to_bytes, to_unicode
 
 INFO = False
 DETAIL = False
@@ -51,9 +51,9 @@ def register_research_question(question):
           "\n======================================================" \
           "========================================================"
 
-    try:
+    if True:
         # CHECK WHETHER THE RESEARCH QUESTION ALREADY EXISTS
-        question = to_unicode(question, "utf-8")
+        question = to_bytes(to_unicode(question, "utf-8"))
         existence_query = check_rq_existence(question)
         check = Qry.boolean_endpoint_response(existence_query)
 
@@ -107,10 +107,10 @@ def register_research_question(question):
 
             print {St.message: MESSAGE_3.replace("@", "<br/>"), St.result: None}
 
-    except Exception as err:
-        # logger.warning(err)
-        print "ERROR IN SPA_LINKSET", err
-        return {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
+    # except Exception as err:
+    #     # logger.warning(err)
+    #     print "ERROR IN function [register_research_question]", err
+    #     return {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
 
 
 def research_question(question):
