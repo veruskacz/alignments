@@ -913,9 +913,12 @@ def create_clusters(initial_dataset_uri, property_uri,
     # print "reference_uri:",
 
     if reference_uri:
+        server_message = "Cluster created as: {}".format(reference_uri)
+        message = "The cluster was created as [{}] with {} clusters!".format(
+            reference_uri, len(constraint_table))
         return {St.message: "", "reference": reference_uri, "group_name": group_name}
 
-    return {St.message: "", "reference": None, "group_name": group_name}
+    return {St.message: "The cluster could not be created", "reference": None, "group_name": group_name}
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
