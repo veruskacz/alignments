@@ -308,7 +308,7 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
             <{0}> a <http://risis.eu/class/ResearchQuestion> .
             {{
                 <{0}>  alivocab:selected    ?uri .
-                BIND("no-mode" as ?mode)
+                #BIND("no-mode" as ?mode)
             }}
 
             UNION
@@ -316,7 +316,7 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
             ### SELECTING CREATED LENS OR LINKSETS
             {{
                 <{0}>  alivocab:created+  ?uri .
-                BIND("success" as ?mode)
+                BIND("success" as ?mode2)
             }}
 
             UNION
@@ -324,9 +324,10 @@ def get_graphs_per_rq_type(rq_uri, type=None, dataset=None):
             ### SELECTING USED LENS OR LINKSETS
             {{
                 <{0}>  alivocab:created*/prov:used  ?uri.
-                BIND("info" as ?mode)
+                BIND("info" as ?mode3)
             }}
             {2}
+            BIND( IF(BOUND(?mode3),?mode3, IF(BOUND(?mode2),?mode2, "no-mode")) AS ?mode)
             OPTIONAL {{?uri   skos:prefLabel		?label_ .}}
             BIND (IF(bound(?label_), ?label_ , "-") AS ?label)
 
@@ -1145,7 +1146,7 @@ def get_linkset_corresp_sample_details(linkset, limit=1, crossCheck=True):
         }}""".format(s_ds, source)
 
     if target.__contains__('#!'): ## marker added to make sure there is at list one pattern to match
-        target = """ OPTIONAL
+        target = """ #OPTIONAL
         {{
             graph {}
             {{
