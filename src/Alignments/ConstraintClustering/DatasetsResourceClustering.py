@@ -40,7 +40,7 @@ constraint_2
 """
 
 _format = "%a, %d %b %Y %H:%M:%S "
-print "\n{:>80}\n".format(datetime.datetime.today().strftime(_format))
+# print "\n{:>80}\n".format(datetime.datetime.today().strftime(_format))
 
 
 # COUNTING THE NUMBER OF TRIPLES INSERTED
@@ -1588,7 +1588,7 @@ def linkset_from_cluster(specs, cluster_uri, user_label=None, count=1, activated
     print "\t{:20}: {}".format("ENDED ON", datetime.datetime.today().strftime(_format))
     size_after = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, label))
     print "\t{:20}: {}".format("LINKSET SIZE AFTER", size_after)
-    print "\t{:20}: {} minute(s) [{}]".format(">>> Executed in", str(diff / 60), diff)
+    print "\t{:20}: {} ".format(">>> Executed in", str(datetime.timedelta(seconds=diff)))
 
     specs[St.triples] = size_after
     return {St.message: "The linkset was created as [{}] and contains {} triples".format(

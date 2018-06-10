@@ -1,5 +1,6 @@
 import logging
 import time
+import datetime
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -127,7 +128,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             # print metadata
             ls_end = time.time()
             diff = ls_end - ls_start
-            print ">>> Executed in    : {:<14} minute(s) []".format(str(diff/ 60), diff)
+            print ">>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
 
             # NO POINT TO CREATE ANY FILE WHEN NO TRIPLE WAS INSERTED
             if int(specs[St.triples]) > 0:
@@ -147,6 +148,11 @@ def spa_linksets(specs, id=False, display=False, activated=False):
                 server_message = "Linksets created as: {}".format(specs[St.linkset])
                 message = "The linkset was created as [{}] with {} triples found!".format(
                     specs[St.linkset], specs[St.triples])
+
+                ls_end_2 = time.time()
+                diff = ls_end_2 - ls_end
+                print ">>> Executed in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
+                print "\t*** JOB DONE! ***"
                 print "\t", server_message
                 print "\t*** JOB DONE! ***"
 
@@ -2583,7 +2589,7 @@ def geo_specs_2_linkset(specs, activated=False):
 
         message = Ec.ERROR_CODE_4.replace('\n', "<br/>")
         if activated is True:
-
+            ls_start = time.time()
             # REGISTER THE ALIGNMENT
             if check[St.message].__contains__("ALREADY EXISTS"):
                 Urq.register_alignment_mapping(specs, created=False)
@@ -2604,6 +2610,10 @@ def geo_specs_2_linkset(specs, activated=False):
                 specs[St.insert_query] = "{} ;\n{};\n{}".format(
                     geo_query(specs, True), geo_query(specs, False), geo_match_query(specs))
                 # print "INSERT QUERY: {}".format(specs[St.insert_query])
+
+                ls_end = time.time()
+                diff = ls_end - ls_start
+                print ">>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
 
                 if specs[St.triples] > 0:
 
@@ -2630,6 +2640,9 @@ def geo_specs_2_linkset(specs, activated=False):
 
                     Urq.register_alignment_mapping(specs, created=True)
 
+                    ls_end_2 = time.time()
+                    diff = ls_end_2 - ls_end
+                    print ">>> Executed in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
                     print "\t*** JOB DONE! ***"
 
             return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}

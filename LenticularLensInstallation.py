@@ -984,6 +984,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
         # print "\n{0}\n    >>> SLEEPING FOR 10 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
         # time.sleep(10)
 
+
 # #####################################################
 """ INSTALLATION: PLATFORM DEPENDENT """
 # #####################################################
