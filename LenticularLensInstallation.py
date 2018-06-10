@@ -23,7 +23,11 @@ _line = "--------------------------------------------------------------" \
         "--------------------------------------------------------------"
 
 # CLEAR SHELL
-os.system('cls')
+if OPE_SYS == "windows":
+    os.system('cls')
+else:
+    os.system('clear')
+
 print "\n{}\n{:>117}\n{}\n".format(_line, date.strftime(_format), _line)
 commands = {
 
