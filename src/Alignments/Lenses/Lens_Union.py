@@ -48,8 +48,9 @@ def run_checks(specs, query):
     # CHECK-1-RESULT: ASK HAS A RESULT, MEANING THE LENS EXIT UNDER THE SAME COMPOSITION OF GRAPHS
     elif ask[St.message] != "NO RESPONSE":
         print "\tFOUND"
-        for i in range(1, len(ask[St.result])):
-            print "\t\t- {}".format(ask[St.result][i][0])
+        if ask[St.result]:
+            for i in range(1, len(ask[St.result])):
+                print "\t\t- {}".format(ask[St.result][i][0])
         # IF THERE IS RESULT WITH THE SAME NUMBER OF TARGETS THEN THE LENS ALREADY EXISTS
         if ask[St.result] and len(ask[St.result]) - 1 == len(specs[St.datasets]):
 
