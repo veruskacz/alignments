@@ -64,9 +64,9 @@ stardog_db = Svr.settings[St.database]
 
 
 
-# ##############################################################################
+# ********************************************************************************
 """ STARDOG FROM COMMAND LINE """
-# ##############################################################################
+# ********************************************************************************
 
 
 def main_alignment(alignment):
@@ -185,7 +185,16 @@ def stardog_export_graph(file_path, graph, database=None):
         return err
 
 
-def stardog_data_folder(folder_path, database=None, add=True, fies_format="trig"):
+def stardog_data_add_folder(folder_path, named_graph=None, database=None, add=True, fies_format="trig", activated=False):
+
+
+    if activated is False:
+        message = "THE FUNCTION [stardog_data_add_folder] IS NOT ACTIVATED"
+        print message
+        return message
+
+    if fies_format.strip() == "ttl" and named_graph is None:
+        return "The named graph is required for loading your data."
 
     """""""""""""""""""""""""""""""""""""""""""""
     #   EXPORTING AN ENTIRE STARDOG DATABASE
@@ -204,12 +213,20 @@ def stardog_data_folder(folder_path, database=None, add=True, fies_format="trig"
         cmd = cmd.replace("\\", "/")
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
-        return subprocess.check_output(cmd, shell=True)
+        result = subprocess.check_output(cmd, shell=True)
+        print result
+        return result
+
     except Exception as err:
         return err
 
 
-def stardog_data_file(file_path, graph=None, database=None, add=True):
+def stardog_data_add_file(file_path, graph=None, database=None, add=True, activated=False):
+
+    if activated is False:
+        message = "THE FUNCTION [stardog_data_add_folder] IS NOT ACTIVATED"
+        print message
+        return message
 
     """""""""""""""""""""""""""""""""""""""""""""
     #   EXPORTING AN ENTIRE STARDOG DATABASE
@@ -228,10 +245,11 @@ def stardog_data_file(file_path, graph=None, database=None, add=True):
         cmd = cmd.replace("\\", "/")
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
-        return subprocess.check_
-        utput(cmd, shell=True)
-    except Exception as err:
+        result = subprocess.check_output(cmd, shell=True)
+        print result
+        return result
 
+    except Exception as err:
         return err
 
 
@@ -243,13 +261,14 @@ def stardog_data_file(file_path, graph=None, database=None, add=True):
 def query(query):
 
     """""""""""""""""""""""""""""
-    #   QUERRYING STARDOG
+    #   QUERYING STARDOG
     """""""""""""""""""""""""""""
 
     try:
         cmd = std_queries["query"].format(stardog_bin, stardog_db, query)
         remove = "\"{}stardog\" query {} \"".format(stardog_bin, stardog_db)
         print "{:12} : {}".format("QUERY", cmd[0:-1].replace(remove, ""))
+        cmd = cmd.replace("\n", "")
         return subprocess.check_output(cmd, shell=True)
     except Exception as err:
         return err
@@ -296,10 +315,6 @@ def query_graph_metadata(graph):
     return result
 
 
-def query_stardog_data_add_file():
-    print ""
-
-
 # INSERT STARDOG DATA FROM A FOLDER
 eter = "D:\Linking2GRID\Data\ETER 2017\converted\eter_2014.2017-08-03\University\\"
 leiden = "D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRanking_2015.2017-08-03\University"
@@ -316,3 +331,46 @@ leiden = "D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRank
 # print stardog_query_status(94)
 # print stardog_status()
 # print query_graph_search("dataset")
+
+# # GRID
+# stardog_data_add_file(
+#     file_path="D:\Linking2GRID\Grid\grid20180501\grid.ttl",
+#     graph="http://risis.eu/dataset/grid_20180501", database="risis", add=True, activated=False)
+#
+# # ETER
+# stardog_data_add_folder(
+#     folder_path="D:\Linking2GRID\Data\ETER 2017\converted\eter_2014.2017-08-03\University",
+#     database="risis", fies_format="trig", add=True, activated=False)
+#
+# # LEIDEN
+# stardog_data_add_folder(
+#     folder_path="D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRanking_2015.2017-08-03\University",
+#     database="risis", fies_format="trig", add=True, activated=False)
+
+query_str = """
+#### Query for enriching GRID with organisation counts at GADM level-2
+PREFIX dataset:		<http://risis.eu/dataset/>
+prefix foaf: 		<http://xmlns.com/foaf/0.1/>
+prefix grivocab: 	<http://www.grid.ac/ontology/>
+prefix ll: 			<http://risis.eu/alignment/predicate/>
+PREFIX gadm: 		<http://geo.risis.eu/vocabulary/gadm/>
+PREFIX coord:		<http://www.w3.org/2003/01/geo/wgs84_pos#>
+
+select (count(distinct ?grid) as ?total)
+{
+    GRAPH dataset:grid_20180501_enriched
+    {
+        ?grid ll:intersects ?gadm .
+    }
+
+    service <http://sparql.sms.risis.eu/>
+    {
+        GRAPH <http://geo.risis.eu/gadm>
+        {
+            ?gadm gadm:level ?level .
+        }
+    }
+}
+"""
+
+# print query(query_str)
