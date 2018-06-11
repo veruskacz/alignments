@@ -4934,6 +4934,8 @@ function refresh_import(mode='all')
 function import_dataset_button(th)
 {
     $('#import_title').html('<h3>Import Dataset</h3>');
+    $('#dropbox').html('<span class="message"><strong><font size="6">Drop here your dataset csv files to upload.</font></strong></span>');
+//    $('#div_targetAlignProp').html('<h4>Property to align</h4>');
     $('#dataset_upload_row').show();
     $('#dataset_convert_row').show();
     $('#import_dataset_div').show();
@@ -5005,12 +5007,12 @@ function convertDatasetClick()
     var files = getSelectValues(document.getElementById('ds_files_list'));
 
     //var input = document.getElementById('dataset_file_path');
-    var separator = document.getElementById('ds_separator');
-    var dataset = document.getElementById('ds_name');
-    var entity_type = document.getElementById('ds_entity_type_name');
+    var separator = document.getElementById('ds_separator').value;
+    var dataset = document.getElementById('ds_name').value.trim().replace(' ','_');
+    var entity_type = document.getElementById('ds_entity_type_name').value.trim().replace(' ','_');
 
     console.log(files);
-    if ((files.length > 0) && (dataset.value) && (entity_type.value) )
+    if ((files.length > 0) && (dataset) && (entity_type) )
     {
         var indexes_1 = []
         indexes_1 = getSelectIndexes(document.getElementById('ds_type_list'));
@@ -5041,9 +5043,9 @@ function convertDatasetClick()
 
         $.get('/convertCSVToRDF',
               data={'file': files[0],
-                    'separator': separator.value,
-                    'database': dataset.value,
-                    'entity_type': entity_type.value,
+                    'separator': separator,
+                    'database': dataset,
+                    'entity_type': entity_type,
                     'rdftype[]': rdftype,
                     'subject_id': subject_id},
               function(data)

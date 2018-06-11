@@ -245,13 +245,15 @@ def executeTriplestoreQuery():
             result = 'INPUT 1 missing!!'
         elif option == 'Search Named Graphs [give as input a text for search]':
             result = Stardog.query_graph_search(input1)
+        elif option == 'Add data from trig-files in directory [give as input directory]':
+            result = Stardog.stardog_data_add_folder(input1,fies_format='trig',activated=True)
         else:
             if input2 == '':
                 result = 'INPUT 2 missing!!'
             elif option == 'Add data file [give as input filepath and named graph]':
-                result = Stardog.stardog_data_file(input1)
-            elif option == 'Add data directory [give as input directory and named graph]':
-                result = Stardog.stardog_data_folder(input1)
+                result = Stardog.stardog_data_add_file(input1,graph=input2,activated=True)
+            elif option == 'Add data from ttl-files in directory [give as input directory and named graph]':
+                result = Stardog.stardog_data_add_folder(input1,named_graph=input2,fies_format='ttl',activated=True)
             else:
                 result = 'Option is not valid!'
     return result
