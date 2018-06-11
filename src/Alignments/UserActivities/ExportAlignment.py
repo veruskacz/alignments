@@ -587,7 +587,7 @@ def enrich_query(specs, limit=0, offset=0, is_count=True):
 
 
 # ENRICHING DATASETS WITH GADM BOUNDARIES: THE MAIN FUNCTION
-def enrich(specs, directory):
+def enrich(specs, directory, endpoint):
 
     # TODO RUN IT IF THERE IS NOT GRAPH ENRICHED WITH THE SAME NAME
 
@@ -600,7 +600,7 @@ def enrich(specs, directory):
     print "FILE DIRECTORY:", directory
     name = Ut.get_uri_local_name(specs[St.graph])
 
-    data_1 = Qry.virtuoso_request("ask {{ GRAPH <{}> {{ ?x ?y ?z . }} }}".format(specs[St.graph]))
+    data_1 = Qry.virtuoso_request("ask {{ GRAPH <{}> {{ ?x ?y ?z . }} }}".format(specs[St.graph]), endpoint)
     data_1 = regex.findall("rs:boolean[ ]*(.*)[ ]*\.", data_1["result"])
     if len(data_1) > 0:
         data_1 = data_1[0].strip() == "true"
@@ -608,7 +608,7 @@ def enrich(specs, directory):
             print "GRAPH: {} {}".format(specs[St.graph], "DOES NOT EXIST AT THE REMOTE VIRTUOSO SITE.")
 
     # CHECKING WHETHER BOTH DATASETS ARE AT THE VIRTUOSO TRIPLE STORE
-    data_2 = Qry.virtuoso_request("ask {GRAPH <http://geo.risis.eu/gadm>{ ?x ?y ?z . }}")
+    data_2 = Qry.virtuoso_request("ask {GRAPH <http://geo.risis.eu/gadm>{ ?x ?y ?z . }}", endpoint)
     data_2 = regex.findall("rs:boolean[ ]*(.*)[ ]*\.", data_2["result"])
     if len(data_2) > 0:
         data_2 = data_2[0].strip() == "true"
@@ -638,7 +638,7 @@ def enrich(specs, directory):
     print "\n1. GETTING THE TOTAL NUMBER OF TRIPLES."
     count_query = enrich_query(specs, limit=0, offset=0, is_count=True)
     print count_query
-    count_res = Qry.virtuoso_request(count_query)
+    count_res = Qry.virtuoso_request(count_query, endpoint)
     result = count_res['result']
 
     # GET THE TOTAL NUMBER OF TRIPLES
@@ -683,7 +683,7 @@ def enrich(specs, directory):
         # print Qry.virtuoso(virtuoso)["result"]
 
         # print "\t\t2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
-        writer.write(Qry.virtuoso_request(virtuoso)["result"])
+        writer.write(Qry.virtuoso_request(virtuoso)["result"], endpoint)
 
     writer.close()
     print "\n4. RUNNING THE BATCH FILE"

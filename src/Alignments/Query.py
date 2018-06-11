@@ -3672,7 +3672,7 @@ def countries_geodata(level=2, display=False, activated=False):
 #                         database_name="risis", host="localhost:5820", level=2, display=True, activated=False)
 
 
-def virtuoso_request(query):
+def virtuoso_request(query, endpoint):
 
     """
         param query         : The query that is to be run against the SPARQL endpoint
@@ -3691,7 +3691,7 @@ def virtuoso_request(query):
     # headers = {b"Content-Type": b"application/x-www-form-urlencoded",
     #            b"Authorization": b"Basic YWRtaW46YWRtaW5UMzE0YQ=="}
 
-    url = b"http://sparql.sms.risis.eu/?"
+    url = to_bytes(endpoint)
     # print url
     params = urllib.urlencode(
         {b'query': q, b'default-graph-uri': '', b'format': b'text/turtle',

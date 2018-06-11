@@ -18,6 +18,7 @@ from os import listdir, path
 from os.path import join, isfile, isdir
 from Alignments.Utility import normalise_path as nrm
 from kitchen.text.converters import to_bytes, to_unicode
+from Alignments.UserActivities.View import view_description
 
 # THE PROCESS OF IMPORTING AN ALIGNMENT
 #   1. SAVE THE TRIG FILE
@@ -1051,11 +1052,19 @@ def get_research_question_link_stats(research_question, indent=True, activated=F
     # endpoint = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
 
     # **************************************************************
+    # 2. DOCUMENTING THE VIEWS IN THIS RESEARCH QUESTION
+    # **************************************************************
+    read_me.write("{}2. VIEWS CREATED\n".format(idt))
+    descroptiom = view_description(research_question)
+    if description_response:
+        read_me.write(view_description(research_question) + "\n")
+
+    # **************************************************************
     # 2. GET ALL LINKSETS CREATED FROM AN ALIGNMENT MAPPING
     # **************************************************************
     idt = "\t" if indent is True else ""
 
-    read_me.write("{}2. LINKSETS CREATED FROM AN ALIGNMENT MAPPING\n".format(idt))
+    read_me.write("{}3. LINKSETS CREATED FROM AN ALIGNMENT MAPPING\n".format(idt))
     linksets_query = """
     PREFIX class: <http://risis.eu/class/>
     PREFIX ll: <http://risis.eu/alignment/predicate/>
@@ -1089,7 +1098,7 @@ def get_research_question_link_stats(research_question, indent=True, activated=F
     # 3. GET ALL LENSES CREATED FROM AN ALIGNMENT MAPPING
     # **************************************************************
 
-    read_me.write("\n{}3. LENSES CREATED FROM AN ALIGNMENT MAPPING\n".format(idt))
+    read_me.write("\n{}4. LENSES CREATED FROM AN ALIGNMENT MAPPING\n".format(idt))
     lenses_query = """
         PREFIX ll: <http://risis.eu/alignment/predicate/>
         PREFIX prov: <http://www.w3.org/ns/prov#>

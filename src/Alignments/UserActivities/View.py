@@ -2,6 +2,7 @@
 
 import xmltodict
 import re
+import cStringIO as Buffer
 from cStringIO import StringIO
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -1059,7 +1060,7 @@ def filter_data(question_uri, filter_uri):
         }}
     }} ORDER BY ?target ?selected
     """.format(question_uri, filter_uri)
-    print view_filter_query
+    # print view_filter_query
     # RUN QUERY
     view_filter_matrix = sparql_xml_to_matrix(view_filter_query)
     # print "view_filter_query:", view_filter_query
@@ -1134,3 +1135,44 @@ def get_namedgraph_size(linkset_uri, isdistinct=False):
         return dropload_doc['sparql']['results']['result']['binding']['literal']['#text']
     else:
         return None
+
+
+def view_description(question_uri):
+    """
+    RESEARCH QUESTION VIEWS
+    """
+    views_data = Buffer.StringIO()
+    views_uri = views(question_uri)
+    views_requested = 0
+    # EXTRACTING ALL THE VIEWS FOR THIS RESEARCH QUESTION
+
+    if views_uri:
+        views_requested = len(views_uri) - 1
+        for i in range(1, len(views_uri)):
+            view_uri = views_uri[i][0]
+            views_data.write("\n\t\tView_Lens {}: {}\n".format(i, view_uri))
+            view_composition = linksets_and_lenses(question_uri, view_uri)
+            view_filters = filters(question_uri, view_uri)
+
+            # DESCRIBING THE COMPOSITION OF EACH VIEW LENSES
+            for element in view_composition:
+                views_data.write("\n\t\t\tDATASET: {}".format(element))
+            views_data.write("\n")
+
+            # EXTRACTING THE FILTERS
+            for n in range(1, len(view_filters)):
+                filter_uri = view_filters[n][0]
+                # views_data.write("\n\t\tFilter {}: {}".format(n, view_filters[n][0]))
+                filter_dt = filter_data(question_uri, filter_uri)
+
+                # FILTER'S DATASETS
+                views_data.write("\n\t\t\t\tFilter for dataset: {}".format(filter_dt[1][0]))
+
+                for m in range(1, len(filter_dt)):
+                    views_data.write("\n\t\t\t\t\tProperty: {}".format(filter_dt[m][1]))
+
+                views_data.write("\n")
+
+    return views_data.getvalue()
+
+
