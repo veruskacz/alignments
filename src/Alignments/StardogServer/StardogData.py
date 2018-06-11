@@ -26,8 +26,8 @@ stardog_cmds = {
     # 0. STARDOG BIN    1.GRAPH       2.DATASET     3.OUTPUT FILE PATH
     "export_graph": "\"{}stardog\" data export --named-graph {} --format TRIG {} {}",
 
-    # 0. STARDOG BIN    1. ADD/REMOVE   2.DATABASE       3.FOLDER PATH      4.FILE FORMAT(ttl or trig)
-    "data_add_folder": "\"{}stardog\" data {} {} \"{}\"*.{}",
+    # 0. STARDOG BIN    1. ADD/REMOVE   2.DATABASE       3.named graph  4.FOLDER PATH      5.FILE FORMAT(ttl or trig)
+    "data_add_folder": "\"{}stardog\" data {} {} {} \"{}\"*.{}",
 
     # 0. STARDOG BIN    1. ADD/REMOVE   2.DATABASE       3.GRAPH     4.FILE PATH
     "data_add_file": "\"{}stardog\" data {} {} {} {}",
@@ -203,13 +203,18 @@ def stardog_data_add_folder(folder_path, named_graph=None, database=None, add=Tr
     if database is None:
         database = stardog_db
 
+    if named_graph is not None:
+        graph = "-g {}".format(named_graph.strip())
+    else:
+        graph = ""
+
     if folder_path.strip().endswith(path.sep) is False:
         folder_path = "{}{}".format(folder_path, path.sep)
 
     add_remove = "add" if add is True else "remove"
 
     try:
-        cmd = stardog_cmds["data_add_folder"].format(stardog_bin, add_remove, database, folder_path, fies_format)
+        cmd = stardog_cmds["data_add_folder"].format(stardog_bin, add_remove, database, graph, folder_path, fies_format)
         cmd = cmd.replace("\\", "/")
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
