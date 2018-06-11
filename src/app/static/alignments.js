@@ -461,7 +461,8 @@ function triplestoreQueryExecuteButtonClick()
     {
         $.get('/executeTriplestoreQuery',
               data={'option':  option[0],
-                    'input':   document.getElementById('triplestoreQuery_input').value},
+                    'input':   document.getElementById('triplestoreQuery_input').value,
+                    'input2':   document.getElementById('triplestoreQuery_input2').value},
               function(data)
         {
             //var obj = JSON.parse(data);
