@@ -922,7 +922,7 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
     # ###############################
     pattern = "([\d*\.]+)"
     python_version = int(str(python[0]).replace(".", "")) if len(python) > 0 else 0
-    if (python_version >= 27) and (python_version < 2713):
+    if (python_version >= 27) and (python_version < 2720):
 
         print "\t{:23}: {}".format("PYTHON VERSION", python[0])
 
