@@ -599,8 +599,9 @@ function geoEnrichmentClick()
     var entity_datatype = $('#dts_selected_entity-type').attr('uri');
     var long_predicate = $('#long_selected_pred').attr('uri');
     var lat_predicate = $('#lat_selected_pred').attr('uri');
+    var endpoint = document.getElementById('enrichmentEndpoint_input').value;
 
-    if ((graph) && (entity_datatype) && (long_predicate) && (lat_predicate))
+    if ((graph) && (entity_datatype) && (long_predicate) && (lat_predicate) && endpoint)
     {
        var message = "Executing the dataset geo-enrichement";
        $('#geoenrichment_message_col').html(addNote(message,cl='warning'));
@@ -609,7 +610,8 @@ function geoEnrichmentClick()
                       data={'graph': graph,
                             'entity_datatype': entity_datatype,
                             'long_predicate': long_predicate,
-                            'lat_predicate': lat_predicate
+                            'lat_predicate': lat_predicate,
+                            'endpoint': endpoint
                             },
               function(data)
        {

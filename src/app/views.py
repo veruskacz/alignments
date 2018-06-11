@@ -418,9 +418,10 @@ def enrichdataset():
         St.long_predicate: request.args.get('long_predicate', ''),
         St.lat_predicate: request.args.get('lat_predicate', '')
     }
+    endpoint = request.args.get('endpoint', '')
 
     # print specs
-    result = Ex.enrich(specs, ENRICHED_FOLDER)
+    result = Ex.enrich(specs, ENRICHED_FOLDER, endpoint)
 
     # SEND BAK RESULTS
     return json.dumps(result)

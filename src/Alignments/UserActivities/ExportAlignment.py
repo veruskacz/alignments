@@ -600,6 +600,7 @@ def enrich(specs, directory, endpoint):
     print "FILE DIRECTORY:", directory
     name = Ut.get_uri_local_name(specs[St.graph])
 
+    print endpoint
     data_1 = Qry.virtuoso_request("ask {{ GRAPH <{}> {{ ?x ?y ?z . }} }}".format(specs[St.graph]), endpoint)
     data_1 = regex.findall("rs:boolean[ ]*(.*)[ ]*\.", data_1["result"])
     if len(data_1) > 0:
@@ -683,7 +684,7 @@ def enrich(specs, directory, endpoint):
         # print Qry.virtuoso(virtuoso)["result"]
 
         # print "\t\t2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
-        writer.write(Qry.virtuoso_request(virtuoso)["result"], endpoint)
+        writer.write(Qry.virtuoso_request(virtuoso, endpoint)["result"])
 
     writer.close()
     print "\n4. RUNNING THE BATCH FILE"
