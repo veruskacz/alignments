@@ -204,6 +204,9 @@ class CSV(RDF):
     def __init__(self, database, is_trig, file_to_convert, separator, entity_type,
                  rdftype=None, subject_id=None, embedded_uri=None, field_metadata=None, activated=False):
 
+        entity_type = entity_type.strip().replace(" ", "_")
+        database = database.strip().replace(" ", "_")
+
         if activated is False:
             print "The function [CSV init] has not been activated."
             return
