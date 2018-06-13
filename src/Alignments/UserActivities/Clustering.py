@@ -3280,8 +3280,8 @@ def links_clustering(graph, limit=1000):
     standard = 50000
     check = 1
     iteration = 1
-
-    print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE: {}".format(graph)
+    size = Qry.get_namedgraph_size(graph)
+    print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE: {} of {} triples".format(graph, size)
     data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph)
 
     print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
