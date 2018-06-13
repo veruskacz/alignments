@@ -956,7 +956,7 @@ def listening(directory, sleep_time=10):
             diff = time.time() - t_start
             if str(response).__contains__("10061") or str(response).__contains__("61"):
                 print "\t>>> The connection has not been established yet with the stardog server...\n" \
-                      ">>> It has been {} so far...".format(datetime.timedelta(seconds=diff))
+                      "\t>>> It has been {} so far...".format(datetime.timedelta(seconds=diff))
 
             else:
                 if len(lock_file) > 0 and str(response).__contains__("401"):
