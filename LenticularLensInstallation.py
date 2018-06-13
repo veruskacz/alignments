@@ -167,20 +167,31 @@ class LLPrompt(Cmd):
     Lenticular Lens Installation Prompt...
 
         OPTION 1. QUIT
+        ---------
             Enter [1] or [quit] to exit
+                  ---    ------
 
         OPTION 2. STEP-BY-STEP SHELL-INSTALL
+        --------
             Enter [2] or [install] for directly inserting the required input parameters from the [cmd-shell].
+                  ---    ---------
 
         OPTION 3. ALL-IN INSTALL
+        ---------
             Enter [3] or [install all] to run the code using the [parameter_input] edited within the file.
+                  ---    -------------
 
         OPTION 4. RUN THE LENTICUALR LENS
+        ---------
             Enter [4] or [run] to run the Lenticular Lens. This onption is used only after an installation.
+                  ---    -----
             Enter [4 port] or [run port] to run the Lenticular Lens on a port of your choosing.
 
+
         OPTION 5. UPDATE THE TOOL VERSION FROM GIT AND RUN THE LENTICUALR LENS
+        ---------
             Enter [5] or [runpull] to run the Lenticular Lens. This onption is used only after an installation.
+                  ---    ---------
             Enter [5 port] or [runpull port] to run the Lenticular Lens on a port of your choosing.\n
     """
 
@@ -565,13 +576,7 @@ def normalise_path(file_path):
     """""""""""""""""""""""""""
     # NORMALISES WINDOWS PATH
     """""""""""""""""""""""""""
-    file_path = re.sub('[\1]', "\\\\1", file_path)
-    file_path = re.sub('[\2]', "\\\\2", file_path)
-    file_path = re.sub('[\3]', "\\\\3", file_path)
-    file_path = re.sub('[\4]', "\\\\4", file_path)
-    file_path = re.sub('[\5]', "\\\\5", file_path)
-    file_path = re.sub('[\6]', "\\\\6", file_path)
-    file_path = re.sub('[\7]', "\\\\7", file_path)
+
     file_path = re.sub('[\0]', "\\\\0", file_path)
     file_path = re.sub('[\a]', "\\\\a", file_path)
     file_path = re.sub('[\b]', "\\\\b", file_path)
@@ -580,6 +585,13 @@ def normalise_path(file_path):
     file_path = re.sub('[\r]', "\\\\r", file_path)
     file_path = re.sub('[\t]', "\\\\t", file_path)
     file_path = re.sub('[\v]', "\\\\v", file_path)
+    file_path = re.sub('[\1]', "\\\\1", file_path)
+    file_path = re.sub('[\2]', "\\\\2", file_path)
+    file_path = re.sub('[\3]', "\\\\3", file_path)
+    file_path = re.sub('[\4]', "\\\\4", file_path)
+    file_path = re.sub('[\5]', "\\\\5", file_path)
+    file_path = re.sub('[\6]', "\\\\6", file_path)
+    file_path = re.sub('[\7]', "\\\\7", file_path)
     return file_path
 
 
@@ -1037,11 +1049,11 @@ def mac_install(directory, python_path, stardog_home, stardog_bin, run=False):
 
 parameter_input = """
 
-# ENTER FALSE IS YOU DO NOT NEED TO RUN THE TOOL
+# ENTER FALSE IF YOU DO NOT NEED TO RUN THE TOOL
 run = True
 
 # PROVIDE THE FOLDER IN WHICH YOU WANT THE INSTALLATION FILES TO BE DOWNLOADED
-directory = C:\Productivity\LinkAnalysis\Coverage\InstallTest\Install
+directory = C:\Productivity\LinkAnalysis\Coverage\InstallTest\anInstall
 
 # PROVIDE THE DIRECTORY OF YOUR PYTHON 2.7 FORLDER
 python_path = C:\Python27
@@ -1063,7 +1075,7 @@ ll_port = 5077
 # #####################################################
 """ RUNNING THE LENTICULAR LENS INSTALLATION BASES
     ON THE PARAMETERS VALUES ENTERED ABOVE  """
-# #####################################################
+# #####################################################r
 
 # install(parameter_input)
 

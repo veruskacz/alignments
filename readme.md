@@ -44,7 +44,10 @@ database_name	: is the stardog database name you will work on.
 		"""
 	```
 3. Open the command line:
-	##### WINDOWS :	Press the `windows button` and the `R button` pitch in `cmd` and `enter`
+	##### WINDOWS :	Press the `windows button` <a href="https://www.youtube.com/watch?v=CcffBlCBF54&index=6&list=PLo4YbUaRFSnwJ9XJvp6rlIMsaw_rfKT9C"><img src="https://github.com/alkoudouss/RISIS-2018-course/blob/master/Images/WindowsKey.jpg?raw=true" alt="IMAGE ALT TEXT HERE" width="20" height="15" border="20" /></a> and the `R keyboard button` pitch in `cmd` and `enter`
+
+
+
 	##### BIG-MAC:  Press the `command button` and the `space button` pitch in `terminal` and `enter`
 
 4. Go to the installation folder where `LenticularLensInstallation.py` is copied:
