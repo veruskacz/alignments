@@ -936,38 +936,45 @@ def listening(directory, sleep_time=10):
 
     # run indefinitely
     print directory
-    while True:
-        # get the directory listing
-        lock_file = [name for name in os.listdir(directory)
-                     if name.endswith('.lock')]
+    t_start = time.time()
+    try:
+        while True:
+            # get the directory listing
+            lock_file = [name for name in os.listdir(directory)
+                         if name.endswith('.lock')]
 
-        # print the most recent listing
-        for lock in lock_file:
-            print"\t>>> {} is active".format(lock)
+            # print the most recent listing
+            for lock in lock_file:
+                print"\t>>> {} is active".format(lock)
 
-        try:
-            response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
-        except Exception as err:
-            response = str(err)
+            try:
+                response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
+            except Exception as err:
+                response = str(err)
 
-        # print "LISTENER RESPONSE:", response
-        if str(response).__contains__("10061") or str(response).__contains__("61"):
-            print "\t>>> The connection has not been established yet with the stardog server..."
+            # print "LISTENER RESPONSE:", response
+            diff = time.time() - t_start
+            if str(response).__contains__("10061") or str(response).__contains__("61"):
+                print "\t>>> The connection has not been established yet with the stardog server...\n" \
+                      ">>> It has been {} so far...".format(datetime.timedelta(seconds=diff))
 
-        else:
-            if len(lock_file) > 0 and str(response).__contains__("401"):
-                print "\t>>> THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
-                return "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
+            else:
+                if len(lock_file) > 0 and str(response).__contains__("401"):
+                    print "\t>>> THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
+                    return "THE STARDOG SERVER IS ON AND REQUIRES PASSWORD."
 
-            if len(lock_file) > 0 and \
-                    (str(response).__contains__("200") or str(response).__contains__("No connection") is False):
-                print "\t>>> THE SERVER IS ON."
-                return "THE SERVER IS ON."
+                if len(lock_file) > 0 and \
+                        (str(response).__contains__("200") or str(response).__contains__("No connection") is False):
+                    print "\t>>> THE SERVER IS ON."
+                    return "THE SERVER IS ON."
 
-        print "\nListening for \"system.lock\" file and checking whether a connection to the server is established..."
-        # wait a little bit before getting the next listing
-        # if you want near instantaneous updates, make the sleep value small.
-        time.sleep(sleep_time)
+            print "\nListening for \"system.lock\" file and checking whether a connection to the server is established..."
+            # wait a little bit before getting the next listing
+            # if you want near instantaneous updates, make the sleep value small.
+            time.sleep(sleep_time)
+
+    except Exception as err:
+        print err.message
 
 
 def stardog_on(bat_path):
