@@ -34,13 +34,13 @@ SINGLE PREDICATE ALIGNMENT
 def spa_linksets(specs, id=False, display=False, activated=False):
 
     # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
-    if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATED" \
-              "\n======================================================" \
-              "========================================================"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
-    else:
-        print "THE FUNCTION IS ACTIVATED"
+    # if activated is False:
+    #     print "THE FUNCTION IS NOT ACTIVATED" \
+    #           "\n======================================================" \
+    #           "========================================================"
+    #     return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
+    # else:
+    #     print "THE FUNCTION IS ACTIVATED"
 
     source = specs[St.source]
     target = specs[St.target]
@@ -674,9 +674,10 @@ def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
     #           "\nEXECUTING LINKSET SPECS"
 
     if activated is True:
-        Ut.headings("EXECUTING LINKSET SPECS...")
+        Ut.headings("EXECUTING STANDARD LINKSET SPECS...")
     else:
-        print "THE FUNCTION [specs_2_linkset] IS NOT ACTIVATED"
+        Ut.headings("THE FUNCTION [specs_2_linkset] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # inserted_mapping = None
     # inserted_linkset = None
@@ -719,14 +720,11 @@ def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
 
 def specs_2_linkset_num_approx(specs,  match_numeric=False, display=False, activated=False):
 
-    # if activated is True:
-    heading = "======================================================" \
-              "========================================================" \
-              "\nEXECUTING LINKSET SPECS"
-
-    print heading
-    # inserted_mapping = None
-    # inserted_linkset = None
+    if activated is True:
+        Ut.headings("EXECUTING NUMBER LINKSET SPECS...")
+    else:
+        Ut.headings("THE FUNCTION [specs_2_linkset_num_approx] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -1113,9 +1111,11 @@ def spa_linkset_identity_query(specs):
 
 def specs_2_linkset_id(specs, display=False, activated=False):
 
-    print "======================================================" \
-          "========================================================" \
-          "\nEXECUTING LINKSET SPECS"
+    if activated is True:
+        Ut.headings("EXECUTING IDENTITY LINKSET SPECS...")
+    else:
+        Ut.headings("THE FUNCTION [specs_2_linkset_id] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -1964,14 +1964,11 @@ def spa_linkset_intermediate_query(specs):
 
 def specs_2_linkset_intermediate(specs, display=False, activated=False):
 
-    # if activated is True:
-    heading = "======================================================" \
-              "========================================================" \
-              "\nEXECUTING LINKSET VIA INTERMEDIATE SPECS"
-
-    print heading
-    # inserted_mapping = None
-    # inserted_linkset = None
+    if activated is True:
+        Ut.headings("EXECUTING LINKSET VIA INTERMEDIATE SPECS...")
+    else:
+        Ut.headings("THE FUNCTION [specs_2_linkset_intermediate] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -2283,38 +2280,6 @@ def insert_query_reduce2(specs):
     return query
 
 
-########################################################################################
-# See if this makes sens or is necessary
-########################################################################################
-
-# def approx_numeric(specs):
-#     query = """
-#     select ?s ?x ?y
-#     {
-#         # SOURCE
-#         graph dataset:leidenRanking_2015
-#         {
-#           ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/Int_coverage> ?x .
-#           ?s <http://risis.eu/leidenRanking_2015/ontology/predicate/MNCS> ?y .
-#
-#           filter( abs( xsd:decimal(?x) - xsd:decimal(?y) ) <= 0.1)
-#
-#         }
-#     }
-#     """
-#
-#     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
-#
-#     # UPDATE THE SPECS OF SOURCE AND TARGETS
-#     update_specification(specs[St.source])
-#     update_specification(specs[St.target])
-#
-#     # GENERATE THE NAME OF THE LINKSET
-#     Ls.set_linkset_name(specs)
-#
-#     insert_query_numeric_reduce(specs)
-
-
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
     LINKSET FROM CLUSTERS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -2322,12 +2287,11 @@ def insert_query_reduce2(specs):
 
 def cluster_specs_2_linksets(specs, activated=False):
 
-    # if activated is True:
-    heading = "======================================================" \
-              "========================================================" \
-              "\nEXECUTING LINKSET SPECS"
-
-    print heading
+    if activated is True:
+        Ut.headings("EXECUTING LINKSET CLUSTER SPECS...")
+    else:
+        Ut.headings("THE FUNCTION [cluster_specs_2_linksets] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
@@ -2558,18 +2522,11 @@ def geo_match(specs):
 
 def geo_specs_2_linkset(specs, activated=False):
 
-    # if activated is True:
-    heading = "======================================================" \
-              "========================================================" \
-              "\nEXECUTING LINKSET SPECS FOR GEO-SIMILARITY"
-
-    print heading
-
-    if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATED" \
-              "\n======================================================" \
-              "========================================================"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
+    if activated is True:
+        Ut.headings("EXECUTING LINKSET SPECS FOR GEO-SIMILARITY..")
+    else:
+        Ut.headings("THE FUNCTION [geo_specs_2_linkset] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     source = specs[St.source]
     target = specs[St.target]
