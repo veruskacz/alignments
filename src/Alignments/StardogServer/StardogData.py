@@ -6,6 +6,38 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Svr
 from Alignments.Utility import headings
+import os
+
+namespaces = """
+    {0}stardog namespace add --prefix owl  			    --uri http://www.w3.org/2002/07/owl#					{1}
+    {0}stardog namespace add --prefix void  			--uri http://rdfs.org/ns/void#							{1}
+    {0}stardog namespace add --prefix bdb  			    --uri http://vocabularies.bridgedb.org/ops#				{1}
+    {0}stardog namespace add --prefix prov  			--uri http://www.w3.org/ns/prov#						{1}
+    {0}stardog namespace add --prefix skos  			--uri http://www.w3.org/2004/02/skos/core#				{1}
+    {0}stardog namespace add --prefix lens 			    --uri http://risis.eu/lens/ 							{1}
+    {0}stardog namespace add --prefix risis 			--uri http://risis.eu/ risis							{1}
+    {0}stardog namespace add --prefix riclass 		    --uri http://risis.eu/class/ 							{1}
+    {0}stardog namespace add --prefix schema 			--uri http://risis.eu/ontology/ 						{1}
+    {0}stardog namespace add --prefix dataset 		    --uri http://risis.eu/dataset/ 							{1}
+    {0}stardog namespace add --prefix idea 			    --uri http://risis.eu/activity/ 						{1}
+    {0}stardog namespace add --prefix linkset 		    --uri http://risis.eu/linkset/ 							{1}
+    {0}stardog namespace add --prefix method 			--uri http://risis.eu/method/ 							{1}
+    {0}stardog namespace add --prefix ll 				--uri http://risis.eu/alignment/predicate/ 				{1}
+    {0}stardog namespace add --prefix tmpgraph 		    --uri http://risis.eu/alignment/temp-match/ 			{1}
+    {0}stardog namespace add --prefix tempG	 		    --uri http://risis.eu/alignment/temp-match/ 			{1}
+    {0}stardog namespace add --prefix tmpvocab 		    --uri http://risis.eu//temp-match/temp-match/predicate/ {1}
+    {0}stardog namespace add --prefix mechanism 		--uri http://risis.eu/mechanism/ 						{1}
+    {0}stardog namespace add --prefix singletons 		--uri http://risis.eu/singletons/ 						{1}
+    {0}stardog namespace add --prefix justification 	--uri http://risis.eu/justification/ 					{1}
+    {0}stardog namespace add --prefix lensOp 			--uri http://risis.eu/lens/operator/ 					{1}
+    {0}stardog namespace add --prefix lensOpu 		    --uri http://risis.eu/lens/operator/union 				{1}
+    {0}stardog namespace add --prefix lensOpi 		    --uri http://risis.eu/lens/operator/intersection 		{1}
+    {0}stardog namespace add --prefix lensOpt 		    --uri http://risis.eu/lens/operator/transitive 			{1}
+    {0}stardog namespace add --prefix lensOpd 		    --uri http://risis.eu/lens/operator/difference 			{1}
+    {0}stardog namespace add --prefix singletons 		--uri http://risis.eu/singletons/ 						{1}
+    {0}stardog namespace add --prefix dataset 		    --uri http://risis.eu/dataset/ 							{1}
+    {0}stardog namespace add --prefix gadm             --uri http://geo.risis.eu/vocabulary/gadm/               {1}
+"""
 
 
 stardog_cmds = {
@@ -60,6 +92,7 @@ std_queries = {
     # GRAPH/ALIGNMENT/LINKSET/LENS/SINGLETONS
     "metadata": "SELECT * {{ <{}> ?predicate ?object .}} "}
 
+database = Svr.settings[St.database]
 stardog_bin = Svr.settings[St.stardog_path]
 stardog_db = Svr.settings[St.database]
 
@@ -69,8 +102,43 @@ stardog_db = Svr.settings[St.database]
 """ STARDOG FROM COMMAND LINE """
 # ********************************************************************************
 
+def add_namespace(namespace, uri):
+
+    print headings("ADDING A NAMESPACE")
+    print "NAMESPACE LABEL:".format(namespace)
+    print "NAMESPACE URIS :".format(uri)
+    # PLATFORM DEPENDENT CMD
+    cmd = "stardog namespace add --prefix {} --uri {} {}".format(namespace, uri, database)
+    return subprocess.check_output(cmd, shell=True)
+
+
+def load_default_namespaces(directory):
+
+    print headings("LOADING DEFAULT NAMESPACES TO STARDOG [{}]".format(database))
+
+    if path.isdir(directory) is False:
+        return "\n>>> [{}] IS NOT A DIRECTORY ".format(directory)
+
+    f_path = path.join(directory, "namespace.bat" if Ut.iswindows() else "namespace.sh")
+
+    # PLATFORM DEPENDENT CMD
+    if Ut.iswindows():
+        cmd = namespaces.format("call ", database)
+    else:
+        cmd = namespaces.format("", database)
+
+    # EXECUTE THE CMD
+    result = Ut.run_cdm(cmd, f_path, delete_after=True, output=False)
+
+    # DISPLAY THE FINAL RETURN
+    print "Finished with: {}".format(result)
+
 
 def main_alignment(alignment):
+
+    # ****************************************************************************
+    # GIVEN AN ALIGNMENT, RETURN THE MAIN ONE
+    # ****************************************************************************
 
     # LOCAL NAME OF THE GRAPH
     name = Ut.get_uri_local_name_plus(alignment)
