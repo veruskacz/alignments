@@ -27,7 +27,7 @@ DEFAULT_SERVER = "localhost:5820"
 LENTICULAR_LENS_PORT = int(os.getenv("LL_PORT", 5077))
 SERVER = os.getenv("LL_STARDOG_SERVER", DEFAULT_SERVER)
 DEFAULT_DATABASE = os.getenv("LL_STARDOG_DATABASE", "risis")
-STARDOG_PATH = os.getenv("LL_STARDOG_PATH", "C:\\Program Files\\stardog-5.3.0\\bin\\")
+STARDOG_PATH = os.getenv("LL_STARDOG_PATH", "C:\\Program Files\\stardog-5.0.5.1\\bin\\")
 STARDOG_DATA = os.getenv("LL_STARDOG_DATA", "C:\\Productivity\\data\\stardog")
 
 # IN stardog-5.0.5.1\bin\
