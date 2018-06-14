@@ -37,6 +37,16 @@ mac_weird_name = "darwin"
 """
 #################################################################
 
+def activation(activated, function, heading):
+
+    if activated is True:
+        headings(heading)
+        return True
+    else:
+        print "THE FUNCTION {} IS NOT ACTIVATED".format(function)
+        return False
+
+
 def headings(message):
     _format = "It is %a %b %d %Y %H:%M:%S"
     date = datetime.datetime.today()
