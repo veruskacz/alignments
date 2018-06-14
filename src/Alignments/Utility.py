@@ -37,6 +37,9 @@ mac_weird_name = "darwin"
 """
 #################################################################
 
+def iswindows():
+    return True if OPE_SYS == 'windows' else False
+
 def activation(activated, function, heading):
 
     if activated is True:
@@ -1134,38 +1137,47 @@ def run_cdm(cmd, batch_path, delete_after=True, output=False):
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    try:
+        with open(name=batch_path, mode="wb") as writer:
+            writer.write(cmd)
 
-    with open(name=batch_path, mode="wb") as writer:
-        writer.write(cmd)
+        # FILE ACCESS WRIGHT
+        # if OPE_SYS != 'windows':
+        os.chmod(batch_path, 0o777)
 
-    # FILE ACCESS WRIGHT
-    # if OPE_SYS != 'windows':
-    os.chmod(batch_path, 0o777)
+        # EXECUTE THE COMMAND
 
-    # EXECUTE THE COMMAND
+        if output is True:
+            output = subprocess.check_output(batch_path, shell=True)
+            if delete_after is True:
+                os.remove(batch_path)
+            return str(output)
+        else:
+            # RUNS IN A NEW SHELL
+            output = subprocess.call(batch_path, shell=True)
 
-    if output is True:
-        output = subprocess.check_output(batch_path, shell=True)
-        return str(output)
-    else:
-        # RUNS IN A NEW SHELL
-        subprocess.call(batch_path, shell=True)
+            if delete_after is True:
+                os.remove(batch_path)
 
-    # RUNNING THE BATCH COMMANDS
-    # if platform.system().lower() == "windows":
-    #     os.system(batch_path)
-    # else:
-    #     os.system("OPEN -a Terminal.app {}".format(batch_path))
+            return output
 
-    # DELETE THE BATCH COMMAND AFTER EXECUTION
-    if delete_after is True:
-        os.remove(batch_path)
+        # RUNNING THE BATCH COMMANDS
+        # if platform.system().lower() == "windows":
+        #     os.system(batch_path)
+        # else:
+        #     os.system("OPEN -a Terminal.app {}".format(batch_path))
+
+        # DELETE THE BATCH COMMAND AFTER EXECUTION
+
+
+    except Exception as err:
+        return err.message
 
 
 def create_database(stardog_bin_path, db_bat_path, db_name):
 
     if check_db_exists(db_name) is True:
-        return
+        return False
 
     # CREATING THE DATABASE IN STARDOG
     create_db = """
@@ -1183,6 +1195,8 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
         os.system(db_bat_path)
     else:
         os.system("OPEN -a Terminal.app {}".format(db_bat_path))
+
+    return True
 
     # os.remove(db_bat_path)
 
