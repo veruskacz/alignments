@@ -1,4 +1,4 @@
-
+ERROR_CODE_0 = "THE FUNCTION IS NOT ACTIVATED"
 
 ERROR_CODE_1 = "A PROBLEM OCCURRED WHILE CONNECTING WITH THE TRIPLE STORE."
 
@@ -15,7 +15,7 @@ ERROR_CODE_4 = "NO TRIPLE WAS INSERTED FOR THIS ACTION. THIS COULD BE DUE TO A N
                "  - INTERNAL ERROR\n"
 
 # DO NOT CHANE ERROR_CODE_5 CAUSE
-ERROR_CODE_5 = "No connection could be made because the target machine actively refused it."
+ERROR_CODE_5 = "No connection could not be made because the target machine actively refused it."
 
 
 ERROR_CODE_6 = "LINKSET [#] ALREADY EXISTS. \nTO PROCEED ANYWAY, PLEASE DELETE THE LINKSET."
