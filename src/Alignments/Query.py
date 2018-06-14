@@ -6,6 +6,7 @@ import urllib
 import urllib2
 import logging
 # import requests
+import traceback
 import xmltodict
 import collections
 import Alignments.Settings as St
@@ -475,11 +476,6 @@ def boolean_endpoint_response(query, display=False):
 def endpointconstruct(query, clean=True, insert=False):
 
     q = to_bytes(query)
-    # print q
-    # Content-Type: application/json
-    # b"Accept": b"text/json"
-    # 'output': 'application/sparql-results+json'
-    # url = b"http://{}:{}/annex/{}/sparql/query?".format("localhost", "5820", "linkset")
     url = b"http://{}/annex/{}/sparql/query?".format(HOST, DATABASE)
     headers = {b"Content-Type": b"application/x-www-form-urlencoded", b'Accept': b'application/trig'}
 
@@ -491,12 +487,13 @@ def endpointconstruct(query, clean=True, insert=False):
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
-    # print  query
+    print  query
     params = urllib.urlencode({b'query': q})
     request = urllib2.Request(url, data=params, headers=headers)
     request.get_method = lambda: "POST"
 
     try:
+        print request.data
         response = urllib2.urlopen(request)
         # print "RESPONSE", response
         result = response.read()
@@ -562,6 +559,7 @@ def endpointconstruct(query, clean=True, insert=False):
         return result
 
     except Exception as err:
+        print traceback.print_exc()
         print err
 
 

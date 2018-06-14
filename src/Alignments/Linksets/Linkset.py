@@ -786,11 +786,10 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
         "PREFIX linkset: <{}>".format(Ns.linkset),
         "PREFIX {}: <{}>".format(source[0], source[2]),
         "PREFIX predicate: <{}>".format(Ns.alivocab),
-        "" if source[0] != target[0] else "PREFIX {}: <{}>".format(target[0], target[2]),
+        "" if source[0] == target[0] else "PREFIX {}: <{}>".format(target[0], target[2]),
         "construct { ?x ?y ?z }",
         "where     {{ graph linkset:{} {{ ?x ?y ?z }} }}".format(linkset_graph_name),
     )
-
     # print linkset_query
 
     singleton_metadata_query = "\n{}\n{}\n{}\n{}\n\n{}\n{}\n{}\n\n".format(
@@ -798,7 +797,7 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
         "PREFIX predicate:      <{}>".format(Ns.alivocab),
         "PREFIX rdf:            <{}>".format(Ns.rdf),
         "PREFIX {}:             <{}>".format(source[0], source[2]),
-        "" if source[0] != target[0] else "PREFIX {}:             <{}>".format(target[0], target[2]),
+        "" if source[0] == target[0] else "PREFIX {}:             <{}>".format(target[0], target[2]),
         "construct { ?x ?y ?z }",
         "where     {{ graph <{}{}> {{ ?x ?y ?z }} }}".format(Ns.singletons, linkset_graph_name),
     )
@@ -864,8 +863,10 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
     """
     check_rdf_file(linkset_output)
 
-    if metadata_output.__contains__("INSERT") is not True:
+    if metadata_triples.__contains__("INSERT") is not True:
         check_rdf_file(metadata_output)
+    else:
+        print "\nTHE GENERIC METADATA IS NIT CHECKED AS IT IS AN INSERTION\n"
 
     check_rdf_file(singleton_metadata_output)
 

@@ -127,7 +127,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
             # print metadata
             ls_end = time.time()
             diff = ls_end - ls_start
-            print ">>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
+            print "\n>>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
 
             # NO POINT TO CREATE ANY FILE WHEN NO TRIPLE WAS INSERTED
             if int(specs[St.triples]) > 0:
@@ -150,7 +150,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
 
                 ls_end_2 = time.time()
                 diff = ls_end_2 - ls_end
-                print ">>> Executed in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
+                print "\n>>> Executed in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
                 print "\t*** JOB DONE! ***"
                 print "\t", server_message
                 print "\t*** JOB DONE! ***"
