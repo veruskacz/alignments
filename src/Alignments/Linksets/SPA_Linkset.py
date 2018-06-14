@@ -31,7 +31,6 @@ SINGLE PREDICATE ALIGNMENT
       WHEN EVER THE "sameAsCount" VARIABLE IS NULL, AN ERROR-CODE 1 IS RETURNED
 """
 
-
 def spa_linksets(specs, id=False, display=False, activated=False):
 
     # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
@@ -670,12 +669,15 @@ def insert_query_reduce(specs, match_numeric=False):
 
 def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
 
-    # if activated is True:
-    heading = "======================================================" \
-              "========================================================" \
-              "\nEXECUTING LINKSET SPECS"
+    # heading = "======================================================" \
+    #           "========================================================" \
+    #           "\nEXECUTING LINKSET SPECS"
 
-    print heading
+    if activated is True:
+        Ut.headings("EXECUTING LINKSET SPECS...")
+    else:
+        print "THE FUNCTION [specs_2_linkset] IS NOT ACTIVATED"
+
     # inserted_mapping = None
     # inserted_linkset = None
 

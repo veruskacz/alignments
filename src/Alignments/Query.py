@@ -606,6 +606,7 @@ def sparql_xml_to_matrix(query):
         logger.info("2. RESPONSE IS NOT ''NONE''")
 
         if True:
+            # print response[St.result]
             xml_doc = xmltodict.parse(response[St.result])
             # print "3. FROM XML TO DOC IN {}".format(str(time.time() - start_time))
 
@@ -1595,7 +1596,7 @@ def get_cluster_rsc_strengths(resources, alignments):
 def cluster_rsc_strengths_query(resources, alignments):
 
     check = resources is None or len(resources) == 0
-    comment = "#" if check is True else ""
+    comment = "# " if check is True else ""
     query = """
     PREFIX prov: <{3}>
     PREFIX ll: <{4}>

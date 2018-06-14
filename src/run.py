@@ -45,7 +45,7 @@ if __name__ == "__main__":
         # DO THIS ONLY IF THE RERVER IS READY, MEANING AFTER THE SECOND FLASK LOAD
         if "WERKZEUG_RUN_MAIN" in os.environ:
 
-            print "\nRUNNING THE LENTICULAR LENS SERVER"
+            print Ut.headings("RUNNING THE LENTICULAR LENS SERVER...")
 
             try:
                 response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))

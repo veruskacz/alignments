@@ -7,9 +7,15 @@ from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 # import Alignments.UserActivities.Plots as Plt
+import time
 
 
-_format = "%a %b %d %H:%M:%S:%f %Y"
+# _format = "%a %b %d %H:%M:%S:%f %Y"
+
+_format = "It is %a %b %d %Y %H:%M:%S"
+date = datetime.datetime.today()
+_line = "--------------------------------------------------------------" \
+        "--------------------------------------------------------------"
 
 
 def matrix(row, column, init=0):
@@ -2736,46 +2742,11 @@ def links_clustering_improved(graph, limit=1000):
 # USING SET AND THE TABLE OF RESOURCES AND THEIR STRENGTHS
 def links_clustering(graph, limit=1000):
 
-    # ***************************************************************************
-    # USING SET OPERATOR FOR GENERATING THE LINK CLUSTERS OF RESOURCES AND ALSO
-    # USING TABLE AND NOT TRIPLES AS THE TABLE OF RESOURCES AND THEIR STRENGTHS
-    # ***************************************************************************
+    print Ut.headings("LINK CLUSTERING...")
 
-    # g = [
-    #     ("<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
-    #     ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
-    #     ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgreg.2>"),
-    #     ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://h2020.2> "),
-    #     ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://eter.2>"),
-    #     ("<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
-    # ]
-
-    # g = [
-    #     ( "<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
-    #     ( "<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
-    #     ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://h2020.2> "),
-    #     ( "<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
-    #     ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgreg.2>"),
-    #     ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://eter.2>"),
-    # ]
-
-    # g = [
-    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/SAMEAS>",
-    #      "<http://www.grid.ac/institutes/grid.10493.3f>"),
-    #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/SAMEAS>",
-    #      "<http://risis.eu/eter_2014/resource/DE0056>"),
-    #     ("<http://www.grid.ac/institutes/grid.10493.3f> ", "<http://risis.eu/alignment/predicate/SAMEAS>",
-    #      "<http://risis.eu/eter_2014/resource/DE0056> ") ]
-
-
-    # DOWNLOAD THE GRAPH
-
-
-    # ROOT = KEY:CHILD VALUE:PARENT
     root = dict()
     count = 0
     clusters = dict()
-
     root_mtx = {}
     # count_mtx = 0
     clusters_mtx = {}
@@ -3274,61 +3245,72 @@ def links_clustering(graph, limit=1000):
 
         return counter
 
-    # *******************************************
-    # RUN THE LINK CLUSTER
-    # *******************************************
-    standard = 50000
-    check = 1
-    iteration = 1
-    size = Qry.get_namedgraph_size(graph)
-    print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE: {} of {} triples".format(graph, size)
-    data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph)
+    try:
 
-    print "2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
-    for (subject, object), strength in data.items():
+        # *******************************************
+        # RUN THE LINK CLUSTER
+        # *******************************************
+        standard = 50000
+        check = 1
+        iteration = 1
+        size = Qry.get_namedgraph_size(graph)
 
-        # CALLING THE MAIN HELPER FUNCTION
-        count = cluster_helper_set(count, annotate=False)
+        print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE:\n\t{} of {} triples".format(graph, size)
+        start = time.time()
+        data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph)
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\t{} triples downloaded in {}".format(size, diff)
 
-        # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN
-        if iteration == check:
-            print "\tRESOURCE {:>10}:   {} {}".format(count, subject, object)
-            check = check + standard
-        iteration += 1
-        # print strength
-        # break
+        print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
+        start = time.time()
+        for (subject, object), strength in data.items():
 
-    # COMPARING HELPERS
-    # for subject, predicate, obj in g:
-    #
-    #     count = cluster_helper_set(count, annotate=False)
-    #     # count_mtx = cluster_helper_mtx(count_mtx)
-    #     if iteration == check:
-    #         print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
-    #         check = check + standard
-    #     iteration += 1
+            # CALLING THE MAIN HELPER FUNCTION
+            count = cluster_helper_set(count, annotate=False)
 
-    # sizes = set()
-    # sizes2 = set()
-    # for p, c in clusters.items():
-    #     # {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
-    #     # print c
-    #     mdx = c[St.matrix_d]
-    #     countLinks = 0
-    #     for x, y in mdx.items():
-    #         if y == 1:
-    #             countLinks += 1
-    #     sizes.add((len(c[St.children]), countLinks))
-    # for p, c in clusters2.items():
-    #     sizes2.add((len(c['nodes']), len(c['links'])))
-    #
-    # sizes = sorted(sizes)
-    # sizes2 = sorted(sizes2)
-    # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
+            # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN
+            if iteration == check:
+                print "\tRESOURCE {:>10}:   {} {}".format(count, subject, object)
+                check = check + standard
+            iteration += 1
+            # print strength
+            # break
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\t{} triples clustered in {}".format(size, diff)
+        # COMPARING HELPERS
+        # for subject, predicate, obj in g:
+        #
+        #     count = cluster_helper_set(count, annotate=False)
+        #     # count_mtx = cluster_helper_mtx(count_mtx)
+        #     if iteration == check:
+        #         print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
+        #         check = check + standard
+        #     iteration += 1
 
-    print "3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
-    return clusters
+        # sizes = set()
+        # sizes2 = set()
+        # for p, c in clusters.items():
+        #     # {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
+        #     # print c
+        #     mdx = c[St.matrix_d]
+        #     countLinks = 0
+        #     for x, y in mdx.items():
+        #         if y == 1:
+        #             countLinks += 1
+        #     sizes.add((len(c[St.children]), countLinks))
+        # for p, c in clusters2.items():
+        #     sizes2.add((len(c['nodes']), len(c['links'])))
+        #
+        # sizes = sorted(sizes)
+        # sizes2 = sorted(sizes2)
+        # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
 
+        print "\n3. NUMBER OF CLUSTER FOUND: {}\n".format(len(clusters))
+        return clusters
+
+    except Exception as err:
+        print err
+        return clusters
 
 # # LINKSET CLUSTERING
 # def cluster_links(graph):

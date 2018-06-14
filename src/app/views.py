@@ -2426,7 +2426,7 @@ def datasetLinkingClusters():
     alignments = request.args.getlist('alignments[]')
     # print alignments
 
-    print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     clusters = Clt.cluster_dataset(dataset, entityType, alignments)
 
     # properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
@@ -2483,7 +2483,7 @@ def datasetLinkingClusters2():
     greater_equal = (request.args.get('greater_equal', 'false')) == 'true'
     print properties
 
-    print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
     clusters = Clt.links_clustering(alignments[0], limit=None)
     # print clusters
@@ -2602,7 +2602,7 @@ def datasetLinkingClusters3():
     # print targets
     # exit()
 
-    print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
     clusters = Clt.links_clustering(alignments[0], limit=None)
     # print clusters
@@ -2687,7 +2687,7 @@ def datasetLinkingClusters2_old():
     greater_equal = (request.args.get('greater_equal', 'false')) == 'true'
     # print alignments
 
-    print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
     clusters = Clt.links_clustering(alignments[0], limit=None)
     # print clusters

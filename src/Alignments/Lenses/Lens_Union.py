@@ -2,6 +2,7 @@
 # linkset = load("Linkset", "C:\Users\Al\PycharmProjects\Linkset\Linksets\Linkset.py")
 
 import logging
+import datetime
 import Alignments.Lenses.LensUtility as Lu
 import Alignments.Query as Qry
 import Alignments.Settings as St
@@ -12,12 +13,17 @@ import Alignments.Server_Settings as Ss
 import Alignments.UserActivities.UserRQ as Urq
 from Alignments.Manage.AdminGraphs import drop_linkset
 from Alignments.Utility import write_to_file, update_specification
+from Alignments.Utility import headings
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 handler = logging.StreamHandler()
 logger.addHandler(handler)
 
+_format = "It is %a %b %d %Y %H:%M:%S"
+date = datetime.datetime.today()
+_line = "--------------------------------------------------------------" \
+        "--------------------------------------------------------------"
 ERROR_CODE_11 = "DUE TO A SYSTEM ERROR, WE ARE UNABLE TO PROCESS YOUR REQUEST."
 DIRECTORY = Ss.settings[St.lens_Union__dir]
 
@@ -98,9 +104,11 @@ def union(specs, activated=False):
         print ("THE FUNCTION IS NOT ACTIVATED")
         return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
 
-    print "\nEXECUTING UNION SPECS" \
-          "\n======================================================" \
-          "========================================================"
+    # print "\nEXECUTING UNION SPECS" \
+    #       "\n======================================================" \
+    #       "========================================================"
+
+    print headings("EXECUTING UNION SPECS...")
 
     """
     THE generate_lens_name FUNCTION RETURNS THE NAME OF THE UNION AND A

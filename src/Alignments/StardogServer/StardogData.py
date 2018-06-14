@@ -5,6 +5,7 @@ import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Server_Settings as Svr
+from Alignments.Utility import headings
 
 
 stardog_cmds = {
@@ -92,8 +93,9 @@ def main_alignment(alignment):
 def stardog_query_list():
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    #   QUERRYING STARDOG FOR THE CURRENT LIST OF QUERIES
+    #   QUERYING STARDOG FOR THE CURRENT LIST OF QUERIES
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    print headings("QUERYING STARDOG FOR THE CURRENT LIST OF QUERIES")
 
     try:
         cmd = stardog_cmds["query_list"].format(stardog_bin)
@@ -109,6 +111,7 @@ def stardog_status():
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""
     #   QUERRYING STARDOG FOR THE CURRENT LIST OF QUERIES
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    print headings("QUERYING STARDOG FOR THE CURRENT LIST OF QUERIES")
 
     try:
         cmd = stardog_cmds["server_status"].format(stardog_bin)
@@ -124,6 +127,7 @@ def stardog_query_kill(query_id):
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""
     #       TERMINATING A SPECIFIC QUERY BASED ON ID
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    print headings("TERMINATING A SPECIFIC QUERY BASED ON ID")
 
     try:
         cmd = stardog_cmds["query_kill"].format(stardog_bin, query_id)
@@ -137,8 +141,10 @@ def stardog_query_kill(query_id):
 def stardog_query_status(query_id):
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    #   ASSESSING THE STATUS OF A SPECIFIC CURRENTLY RUNNING QUERIES
+    #   ASSESSING THE STATUS OF A SPECIFIC CURRENTLY RUNNING QUERY
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    print headings("ASSESSING THE STATUS OF A SPECIFIC CURRENTLY RUNNING QUERY")
+
 
     try:
         cmd = stardog_cmds["query_status"].format(stardog_bin, query_id)
@@ -154,6 +160,7 @@ def stardog_export_db(file_path, database=None):
     """""""""""""""""""""""""""""""""""""""""""""
     #   EXPORTING AN ENTIRE STARDOG DATABASE
     """""""""""""""""""""""""""""""""""""""""""""
+    print headings("EXPORTING AN ENTIRE STARDOG DATABASE")
 
     if database is None:
         database = stardog_db
@@ -170,8 +177,9 @@ def stardog_export_db(file_path, database=None):
 def stardog_export_graph(file_path, graph, database=None):
 
     """""""""""""""""""""""""""""""""""""""""""""
-    #   EXPORTING AN ENTIRE STARDOG DATABASE
+    #   EXPORTING AN ENTIRE STARDOG GRAPH
     """""""""""""""""""""""""""""""""""""""""""""
+    print headings("EXPORTING AN ENTIRE STARDOG GRAPH")
 
     if database is None:
         database = stardog_db
@@ -197,8 +205,9 @@ def stardog_data_add_folder(folder_path, named_graph=None, database=None, add=Tr
         return "The named graph is required for loading your data."
 
     """""""""""""""""""""""""""""""""""""""""""""
-    #   EXPORTING AN ENTIRE STARDOG DATABASE
+    #   ADDING DATA TO STARDOG
     """""""""""""""""""""""""""""""""""""""""""""
+    print headings("ADDING DATA TO STARDOG FROM A FOLDER")
 
     if database is None:
         database = stardog_db
@@ -236,6 +245,7 @@ def stardog_data_add_file(file_path, graph=None, database=None, add=True, activa
     """""""""""""""""""""""""""""""""""""""""""""
     #   EXPORTING AN ENTIRE STARDOG DATABASE
     """""""""""""""""""""""""""""""""""""""""""""
+    print headings("ADDING DATA TO STARDOG FROM A FILE")
 
     if database is None:
         database = stardog_db
@@ -268,6 +278,7 @@ def query(query):
     """""""""""""""""""""""""""""
     #   QUERYING STARDOG
     """""""""""""""""""""""""""""
+    print headings("QUERYING STARDOG")
 
     try:
         cmd = std_queries["query"].format(stardog_bin, stardog_db, query)
@@ -284,6 +295,7 @@ def query_generic(graph, limit=100):
     """""""""""""""""""""""""""""
     #   QUERRYING STARDOG
     """""""""""""""""""""""""""""
+    print headings("GENERIC QUERY FOR STARDOG")
 
     try:
         cmd = std_queries["query_generic"].format(stardog_bin, stardog_db, graph, limit)
@@ -295,22 +307,29 @@ def query_generic(graph, limit=100):
 
 
 def query_graphs():
+
+    print headings("QUERYING STARDOG'S NAMED GRAPHS")
     qry = std_queries["graph_all"]
     return query(qry)
 
 
 def query_graph_properties(graph):
+
+    print headings("QUERYING STARDOG'S GRAPH PROPERTIES")
     qry = std_queries["graph_properties"].format(graph)
     return query(qry)
 
 
 def query_graph_search(search_exp):
+
+    print headings("QUERYING STARDOG FOR A SPECIFIC GRAPH")
     qry = std_queries["graphs_search"].format(search_exp)
     return query(qry)
 
 
 def query_graph_metadata(graph):
 
+    print headings("QUERYING STARDOG FOR TGHE GENERIC METADATA OF A GRAPH")
     print "{:12} : {}".format("INPUT GRAPH ", graph)
     graph = main_alignment(graph)
     print "{:12} : {}".format("MAIN GRAPH", graph)
@@ -379,3 +398,8 @@ select (count(distinct ?grid) as ?total)
 """
 
 # print query(query_str)
+
+# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\grid_20180501_NL.trig", "http://risis.eu/dataset/grid_20180501_NL", database=None)
+# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\eter_2014_enriched.trig", "http://risis.eu/dataset/eter_2014_enriched", database=None)
+# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\grid_20180501_enriched.trig", "http://risis.eu/dataset/grid_20180501_enriched", database=None)
+

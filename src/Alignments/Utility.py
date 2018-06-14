@@ -37,6 +37,13 @@ mac_weird_name = "darwin"
 """
 #################################################################
 
+def headings(message):
+    _format = "It is %a %b %d %Y %H:%M:%S"
+    date = datetime.datetime.today()
+    _line = "--------------------------------------------------------------" \
+            "--------------------------------------------------------------"
+    return "\n\n{0}\n{2:>117}\n{1:>117}\n{0}\n".format(_line, message, date.strftime(_format))
+
 
 def zip_dir(file_path, zip_name):
 
