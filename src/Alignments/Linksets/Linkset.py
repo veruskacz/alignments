@@ -863,7 +863,11 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
         6. CHECK THE WRITTEN FILES
     """
     check_rdf_file(linkset_output)
-    check_rdf_file(metadata_output)
+
+    if metadata_output.__contains__("INSERT") is not True:
+        check_rdf_file(metadata_output)
+
+    check_rdf_file(singleton_metadata_output)
 
 
 def linkset_wasderivedfrom(refined_linkset_uri):
