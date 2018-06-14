@@ -6,6 +6,7 @@ import webbrowser as web
 import Alignments.Settings as St
 import Alignments.Utility as Ut
 import Alignments.Server_Settings as Svr
+from Alignments.StardogServer.StardogData import load_default_namespaces
 #
 # https://github.com/CLARIAH/grlc/blob/master/docker-assets/entrypoint.sh
 # https://github.com/CLARIAH/grlc/blob/master/gunicorn_config.py
@@ -77,7 +78,9 @@ if __name__ == "__main__":
 
             # CREATING THE DATABASE IN STARDOG IF IT DOES NOT EXISTS
             db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())
-            Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
+            created = Ut.create_database(Svr.settings[St.stardog_path], db_bat_path, db_name=Svr.settings[St.database])
+            if created is True:
+                load_default_namespaces(directory=os.getcwd())
 
             print "\n{0}\n{1:>117}\n{2:>117}\n{0}\n".format(
                 _line, date.strftime(_format),
