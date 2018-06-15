@@ -674,9 +674,9 @@ def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
     #           "\nEXECUTING LINKSET SPECS"
 
     if activated is True:
-        Ut.headings("EXECUTING STANDARD LINKSET SPECS...")
+        print Ut.headings("EXECUTING STANDARD LINKSET SPECS...")
     else:
-        Ut.headings("THE FUNCTION [specs_2_linkset] IS NOT ACTIVATED")
+        print Ut.headings("THE FUNCTION [specs_2_linkset] IS NOT ACTIVATED")
         return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # inserted_mapping = None
@@ -721,9 +721,9 @@ def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
 def specs_2_linkset_num_approx(specs,  match_numeric=False, display=False, activated=False):
 
     if activated is True:
-        Ut.headings("EXECUTING NUMBER LINKSET SPECS...")
+        print Ut.headings("EXECUTING NUMBER LINKSET SPECS...")
     else:
-        Ut.headings("THE FUNCTION [specs_2_linkset_num_approx] IS NOT ACTIVATED")
+        print Ut.headings("THE FUNCTION [specs_2_linkset_num_approx] IS NOT ACTIVATED")
         return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
@@ -1112,9 +1112,9 @@ def spa_linkset_identity_query(specs):
 def specs_2_linkset_id(specs, display=False, activated=False):
 
     if activated is True:
-        Ut.headings("EXECUTING IDENTITY LINKSET SPECS...")
+        print Ut.headings("EXECUTING IDENTITY LINKSET SPECS...")
     else:
-        Ut.headings("THE FUNCTION [specs_2_linkset_id] IS NOT ACTIVATED")
+        print Ut.headings("THE FUNCTION [specs_2_linkset_id] IS NOT ACTIVATED")
         return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT
@@ -1965,9 +1965,9 @@ def spa_linkset_intermediate_query(specs):
 def specs_2_linkset_intermediate(specs, display=False, activated=False):
 
     if activated is True:
-        Ut.headings("EXECUTING LINKSET VIA INTERMEDIATE SPECS...")
+        print Ut.headings("EXECUTING LINKSET VIA INTERMEDIATE SPECS...")
     else:
-        Ut.headings("THE FUNCTION [specs_2_linkset_intermediate] IS NOT ACTIVATED")
+        print Ut.headings("THE FUNCTION [specs_2_linkset_intermediate] IS NOT ACTIVATED")
         return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
@@ -2288,9 +2288,9 @@ def insert_query_reduce2(specs):
 def cluster_specs_2_linksets(specs, activated=False):
 
     if activated is True:
-        Ut.headings("EXECUTING LINKSET CLUSTER SPECS...")
+        print Ut.headings("EXECUTING LINKSET CLUSTER SPECS...")
     else:
-        Ut.headings("THE FUNCTION [cluster_specs_2_linksets] IS NOT ACTIVATED")
+        print Ut.headings("THE FUNCTION [cluster_specs_2_linksets] IS NOT ACTIVATED")
         return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # ACCESS THE TASK SPECIFIC PREDICATE COUNT BEFORE YOU DO ANYTHING
@@ -2523,9 +2523,9 @@ def geo_match(specs):
 def geo_specs_2_linkset(specs, activated=False):
 
     if activated is True:
-        Ut.headings("EXECUTING LINKSET SPECS FOR GEO-SIMILARITY..")
+        print Ut.headings("EXECUTING LINKSET SPECS FOR GEO-SIMILARITY..")
     else:
-        Ut.headings("THE FUNCTION [geo_specs_2_linkset] IS NOT ACTIVATED")
+        print Ut.headings("THE FUNCTION [geo_specs_2_linkset] IS NOT ACTIVATED")
         return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     source = specs[St.source]

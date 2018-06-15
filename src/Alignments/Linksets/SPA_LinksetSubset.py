@@ -1,5 +1,6 @@
 import logging
 import Alignments.Query as Qry
+import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.ErrorCodes as Ec
@@ -168,80 +169,72 @@ def spa_subset_insert(specs):
 
 def specification_2_linkset_subset(specs, activated=False):
 
-    if activated is False:
-        print "\n======================================================" \
-              "========================================================" \
-              "\nTHE FUNCTION IS NOT ACTIVATED." \
-              "\n======================================================" \
-              "========================================================"
-        # logger.warning("THE FUNCTION IS NOT ACTIVATED.")
-
     if activated is True:
+        print Ut.headings("EXECUTING LINKSET SUBSET SPECS...")
+    else:
+        print Ut.headings("THE FUNCTION [specification_2_linkset_subset] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
-        print "\nEXECUTING LINKSET SUBSET SPECS" \
-              "\n======================================================" \
-              "========================================================"
+    # ACCESS THE TASK SPECIFIC PREDICATE COUNT
+    specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
 
-        # ACCESS THE TASK SPECIFIC PREDICATE COUNT
-        specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
+    # UPDATE THE QUERY THAT IS GOING TO BE EXECUTED
+    if specs[St.sameAsCount]:
 
-        # UPDATE THE QUERY THAT IS GOING TO BE EXECUTED
-        if specs[St.sameAsCount]:
+        source = specs[St.source]
+        target = specs[St.target]
 
-            source = specs[St.source]
-            target = specs[St.target]
+        # UPDATE THE SPECS OF SOURCE AND TARGETS
+        update_specification(source)
+        update_specification(target)
 
-            # UPDATE THE SPECS OF SOURCE AND TARGETS
-            update_specification(source)
-            update_specification(target)
+        # GENERATE THE NAME OF THE LINKSET
+        Ls.set_subset_name(specs)
 
-            # GENERATE THE NAME OF THE LINKSET
-            Ls.set_subset_name(specs)
+        # SETTING SOME GENERIC METADATA INFO
+        specs[St.link_name] = "same"
+        specs[St.linkset_name] = specs[St.linkset_name]
+        specs[St.link] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
+        specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+        specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.linkset_name])
+        specs[St.justification] = "{}{}".format(Ns.justification, specs[St.linkset_name])
 
-            # SETTING SOME GENERIC METADATA INFO
-            specs[St.link_name] = "same"
-            specs[St.linkset_name] = specs[St.linkset_name]
-            specs[St.link] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
-            specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.link_name])
-            specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
-            specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.linkset_name])
-            specs[St.justification] = "{}{}".format(Ns.justification, specs[St.linkset_name])
+        # COMMENT ON THE LINK PREDICATE
+        specs[St.link_comment] = "The predicate <{}> is used in replacement of the linktype <{}> used in the " \
+                                 "original <{}> dataset.".format(
+            specs[St.link], specs[St.source][St.link_old], specs[St.source][St.graph])
 
-            # COMMENT ON THE LINK PREDICATE
-            specs[St.link_comment] = "The predicate <{}> is used in replacement of the linktype <{}> used in the " \
-                                     "original <{}> dataset.".format(
-                specs[St.link], specs[St.source][St.link_old], specs[St.source][St.graph])
+        # COMMENT ON THE JUSTIFICATION FOR THIS LINKSET
+        specs[St.justification_comment] = "In OrgRef's a set of entities are linked to GRID. The linking method " \
+                                          "used by OrgRef is unknown. Here we assume that it is a curated work " \
+                                          "and extracted it as a linkset.",
 
-            # COMMENT ON THE JUSTIFICATION FOR THIS LINKSET
-            specs[St.justification_comment] = "In OrgRef's a set of entities are linked to GRID. The linking method " \
-                                              "used by OrgRef is unknown. Here we assume that it is a curated work " \
-                                              "and extracted it as a linkset.",
+        # COMMENT ON THE LINKSET ITSELF
+        specs[St.linkset_comment] = "The current linkset is a subset of the <{0}> dataset that links <{0}> to " \
+                                    "<{1}>. The methodology used by <{0}> to generate this builtin linkset in " \
+                                    "unknown.".format(specs[St.source][St.graph], specs[St.target][St.graph])
 
-            # COMMENT ON THE LINKSET ITSELF
-            specs[St.linkset_comment] = "The current linkset is a subset of the <{0}> dataset that links <{0}> to " \
-                                        "<{1}>. The methodology used by <{0}> to generate this builtin linkset in " \
-                                        "unknown.".format(specs[St.source][St.graph], specs[St.target][St.graph])
+        source[St.entity_ns] = str(source[St.entity_datatype]).replace(source[St.entity_name], '')
+        target[St.entity_ns] = str(target[St.entity_datatype]).replace(target[St.entity_name], '')
 
-            source[St.entity_ns] = str(source[St.entity_datatype]).replace(source[St.entity_name], '')
-            target[St.entity_ns] = str(target[St.entity_datatype]).replace(target[St.entity_name], '')
+        # GENERATE THE LINKSET
+        inserted_linkset = spa_linkset_subset(specs, activated)
+        # print "LINKSET SUBSET RESULT:", inserted_linkset
 
-            # GENERATE THE LINKSET
-            inserted_linkset = spa_linkset_subset(specs, activated)
-            # print "LINKSET SUBSET RESULT:", inserted_linkset
-
-            if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
-                return inserted_linkset
-
-            if specs[St.triples] > "0":
-
-                # REGISTER THE ALIGNMENT
-                if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
-                    Urq.register_alignment_mapping(specs, created=False)
-                else:
-                    Urq.register_alignment_mapping(specs, created=True)
-
+        if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
             return inserted_linkset
 
-        else:
-            print Ec.ERROR_CODE_1
-            return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
+        if specs[St.triples] > "0":
+
+            # REGISTER THE ALIGNMENT
+            if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
+                Urq.register_alignment_mapping(specs, created=False)
+            else:
+                Urq.register_alignment_mapping(specs, created=True)
+
+        return inserted_linkset
+
+    else:
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}

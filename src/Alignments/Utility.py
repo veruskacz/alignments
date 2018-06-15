@@ -37,8 +37,10 @@ mac_weird_name = "darwin"
 """
 #################################################################
 
-def iswindows():
+
+def is_windows():
     return True if OPE_SYS == 'windows' else False
+
 
 def activation(activated, function, heading):
 
@@ -55,7 +57,7 @@ def headings(message):
     date = datetime.datetime.today()
     _line = "--------------------------------------------------------------" \
             "--------------------------------------------------------------"
-    print "\n\n{0}\n{2:>117}\n{1:>117}\n{0}\n".format(_line, message, date.strftime(_format))
+    return "\n\n{0}\n{2:>117}\n{1:>117}\n{0}\n".format(_line, message, date.strftime(_format))
 
 
 def zip_dir(file_path, zip_name):
@@ -999,21 +1001,22 @@ def listening(directory, sleep_time=10):
 
 def stardog_on(bat_path):
 
-    print "\nSTARTING THE STARDOG SERVER"
+    # print "\nSTARTING THE STARDOG SERVER"
     directory = Svr.settings[St.stardog_data_path]
-
     lock_file = [name for name in os.listdir(directory) if name.endswith('.lock')]
+
+    # 1. SEND A REQUEST TO CHECK WHETHER THE SERVER IS ON OR NOT
     try:
         response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
     except Exception as err:
         response = str(err)
-
     # print response
 
-    # NO NEED FOR TURNING IT ON AS IT IS ALREADY ON
+    # 2. NO NEED FOR TURNING THE SERVER ON AS IT IS ALREADY ON
     if len(lock_file) > 0 and (str(response).__contains__("200") or str(response).__contains__("401")):
-        print "THE SERVER WAS ALREADY ON."
+        print "\t>>> THE SERVER WAS ALREADY ON."
 
+    # 3. NEED TO TURN ON THE TRIPLE STORE
     else:
 
         # REMOVE THE LOCK FILE IF IT EXISTS
@@ -1024,21 +1027,18 @@ def stardog_on(bat_path):
         if path.exists(bat_path) is False:
             # START stardog-admin.bat server start --disable-security
             if batch_extension() == ".bat":
-
                 cmd = """
-    @echo
     @echo -------------------------------------------------------------------------------------------------
     @echo STARTING STARDOG FROM {}...
     @echo -------------------------------------------------------------------------------------------------
-    cls
     cd "{}"
     START stardog-admin.bat server start
                 """.format(bat_path, Svr.settings[St.stardog_path])
 
             else:
                 cmd = """
-                echo STARTING STARDOG...
-                "{0}"stardog-admin server start
+    echo STARTING STARDOG...
+    "{0}"stardog-admin server start
                 """.format(Svr.settings[St.stardog_path])
 
             writer = open(bat_path, "wb")
@@ -1046,9 +1046,9 @@ def stardog_on(bat_path):
             writer.close()
             os.chmod(bat_path, 0o777)
 
-        # subprocess.call(bat_path, shell=True)
         if batch_extension() == ".bat":
-            os.system(bat_path)
+            # os.system(bat_path)
+           subprocess.call(bat_path, shell=True)
         else:
             os.system("OPEN -a Terminal.app {}".format(bat_path))
         # time.sleep(waiting_time)

@@ -39,7 +39,6 @@ namespaces = """
     {0}stardog namespace add --prefix gadm --uri http://geo.risis.eu/vocabulary/gadm/ {1}
 """
 
-
 stardog_cmds = {
 
     "server_status": "\"{}stardog-admin\" server status",
@@ -103,8 +102,6 @@ def reset_ll_port(port):
         os.environ["LL_PORT"] = str(port)
         return "DONE!"
 
-
-
     for (key, val) in env.items():
         if str(key).__contains__('PORT'):
             os.environ[key] = "5077"
@@ -132,10 +129,10 @@ def load_default_namespaces(directory):
     if path.isdir(directory) is False:
         return "\n>>> [{}] IS NOT A DIRECTORY ".format(directory)
 
-    f_path = path.join(directory, "namespace.bat" if Ut.iswindows() else "namespace.sh")
+    f_path = path.join(directory, "namespace.bat" if Ut.is_windows() else "namespace.sh")
 
     # PLATFORM DEPENDENT CMD
-    if Ut.iswindows():
+    if Ut.is_windows():
         cmd = namespaces.format("call ", database)
     else:
         cmd = namespaces.format("", database)

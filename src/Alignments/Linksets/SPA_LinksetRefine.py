@@ -5,6 +5,7 @@ import Alignments.NameSpace as Ns
 import Alignments.ErrorCodes as Ec
 import Alignments.GenericMetadata as Gn
 import Alignments.Linksets.Linkset as Ls
+import Alignments.Utility as Ut
 import Alignments.Lenses.Lens_Difference as Df
 from Alignments.Utility import write_to_file, update_specification
 from Alignments.UserActivities.UserRQ import register_alignment_mapping
@@ -17,18 +18,11 @@ DIRECTORY = Ss.settings[St.linkset_Refined_dir]
 
 def refine(specs, activated=False):
 
-    heading = "======================================================" \
-              "========================================================" \
-              "\nEXECUTING LINKSET REFINE SPECIFICATIONS"
-    print heading
-
-    if activated is False:
-        print "THE FUNCTION IS NOT ACTIVATED" \
-              "\n======================================================" \
-              "========================================================"
-        return {St.message: "THE FUNCTION IS NOT ACTIVATED.", St.error_code: 1, St.result: None}
+    if activated is True:
+        print Ut.headings("EXECUTING LINKSET REFINE SPECS...")
     else:
-        print "THE FUNCTION IS ACTIVATED"
+        print Ut.headings("THE FUNCTION [refine] IS NOT ACTIVATED")
+        return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
     # if True:
     try:

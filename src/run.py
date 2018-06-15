@@ -1,5 +1,6 @@
 from app import app
 import os
+import traceback
 import requests
 import datetime
 import webbrowser as web
@@ -23,7 +24,10 @@ _line = "--------------------------------------------------------------" \
 if __name__ == "__main__":
 
     try:
-
+        # **************************************************************
+        # IN CASE YOU CHANGE YOU STARDOG BIB PATH OR HOME PATH,
+        # TURN RESET_SERVER_BATS TO [TRUE] AND RESET IT BACK TO [FALSE]
+        # **************************************************************
         if RESET_SERVER_BATS is True:
             START_path = "{}stardogStart{}".format(Svr.SRC_DIR, Ut.batch_extension())
             STOP_path = "{}stardogStop{}".format(Svr.SRC_DIR, Ut.batch_extension())
@@ -36,7 +40,7 @@ if __name__ == "__main__":
         # print lock_file
 
     except Exception as err:
-        print str(err)
+        print traceback.print_exc()
 
     if lock_file is not None:
 
@@ -46,7 +50,9 @@ if __name__ == "__main__":
         # DO THIS ONLY IF THE RERVER IS READY, MEANING AFTER THE SECOND FLASK LOAD
         if "WERKZEUG_RUN_MAIN" in os.environ:
 
+            # ********************************************************************************
             print Ut.headings("RUNNING THE LENTICULAR LENS SERVER...")
+            # ********************************************************************************
 
             try:
                 response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
@@ -69,7 +75,7 @@ if __name__ == "__main__":
 
             else:
                 # print "\n>>> ", response
-                "SWITCHING ON THE SERVER..."
+                print "\t>>> SWITCHING ON THE TRIPLE STORE SERVER...\n"
                 bat_path = "{}stardogStart{}".format(Svr.SRC_DIR, Ut.batch_extension())
                 Ut.stardog_on(bat_path)
 
@@ -82,9 +88,11 @@ if __name__ == "__main__":
             if created is True:
                 load_default_namespaces(directory=os.getcwd())
 
+            # *********************************************************************************************
             print "\n{0}\n{1:>117}\n{2:>117}\n{0}\n".format(
                 _line, date.strftime(_format),
                 "LAUNCHING THE LENTICULAR LENS ON YOUR DEFAULT BROWSER AT PORT: {}".format(port))
+            # *********************************************************************************************
             web.open_new_tab('http://localhost:{}/'.format(port))
 
         # LAUNCHING THE LL USING FLASK
