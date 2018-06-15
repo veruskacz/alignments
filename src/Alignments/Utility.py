@@ -1048,7 +1048,7 @@ def stardog_on(bat_path):
 
         if batch_extension() == ".bat":
             # os.system(bat_path)
-           subprocess.call(bat_path, shell=True)
+           subprocess.call(bat_path, shell=False)
         else:
             os.system("OPEN -a Terminal.app {}".format(bat_path))
         # time.sleep(waiting_time)
