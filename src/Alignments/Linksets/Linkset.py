@@ -147,7 +147,6 @@ def set_linkset_name(specs, inverse=False):
     dir_name = DIRECTORY
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
 
-
     if inverse is False:
 
         h_name = specs[St.mechanism] + \

@@ -31,7 +31,8 @@ SINGLE PREDICATE ALIGNMENT
       WHEN EVER THE "sameAsCount" VARIABLE IS NULL, AN ERROR-CODE 1 IS RETURNED
 """
 
-def spa_linksets(specs, id=False, display=False, activated=False):
+
+def spa_linksets(specs, identity=False, display=False, activated=False):
 
     # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
     # if activated is False:
@@ -57,13 +58,12 @@ def spa_linksets(specs, id=False, display=False, activated=False):
     # This function is designed for EXACT NAME SIMILARITY RUN AS SPARQL QUERIES
     # if True:
     try:
-    # if True:
         if activated is True:
             # print "NAME: " + specs[St.linkset]
             # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
             # print Ls.linkset_info(specs, specs[St.sameAsCount])
 
-            if id is False:
+            if identity is False:
                 check = Ls.run_checks(specs, check_type="linkset")
             else:
                 check = Ls.run_checks_id(specs)
@@ -179,7 +179,7 @@ def spa_linksets(specs, id=False, display=False, activated=False):
 # SINGLE PREDICATE ALIGNMENT
 ########################################################################################
 
-
+# TODO IT HAS BEEN REPLACED BY insert_query_reduce FOR EFFICIENCY
 def spa_linkset_ess_query(specs):
     # Single Predicate Alignment with Exact String Similarity
     source = specs[St.source]
@@ -390,15 +390,16 @@ def spa_linkset_ess_query(specs):
 
 # THIS FUNCTION REPLACES spa_linkset_ess_query AS IT ADDS THE POSSIBILITY TO
 # REDUCE THE SOURCE OR TARGET'S NUMBER OF INSTANCE TO BE MATCHED AGAINST
+# HELPER-1
 def extract_query(specs, is_source):
 
     # UPDATE THE SPECS OF SOURCE AND TARGETS
     if is_source is True:
         info = specs[St.source]
-        load = "_1"
+        load = "_{}_1".format(specs[St.linkset_name])
     else:
         info = specs[St.target]
-        load = "_2"
+        load = "_{}_2".format(specs[St.linkset_name])
 
     # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
     if St.rdf_predicate in info and info[St.rdf_predicate] is not None:
@@ -462,6 +463,7 @@ def extract_query(specs, is_source):
 
 
 # STRING-BASED -> THIS COMPUTES TWO QUERIES: MATCHED AND INSERT MATCHED
+# HELPER-2
 def match_query(specs):
 
     is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) and \
@@ -475,7 +477,7 @@ def match_query(specs):
     match = """
     INSERT
     {{
-        GRAPH tmpgraph:load_3
+        GRAPH tmpgraph:load_{5}_3
         {{
             ?{0}_1  tmpvocab:exactName  ?{1}_2 .
             ?{0}_1  tmpvocab:evidence   ?label .
@@ -483,11 +485,11 @@ def match_query(specs):
     }}
     WHERE
     {{
-        GRAPH tmpgraph:load_1
+        GRAPH tmpgraph:load_{5}_1
         {{
             ?{0}_1 ?hasProperty ?label .
         }}
-        GRAPH tmpgraph:load_{3}
+        GRAPH tmpgraph:load_{5}_{3}
         {{
             ?{1}_2 ?hasProperty ?label .
         }}
@@ -497,7 +499,7 @@ def match_query(specs):
     }}
     """.format(
         specs[St.source][St.graph_name], specs[St.target][St.graph_name],
-        comment, number_of_load, operator)
+        comment, number_of_load, operator, specs[St.linkset_name])
 
     linkset = """
     INSERT
@@ -517,8 +519,8 @@ def match_query(specs):
     }}
     WHERE
     {{
-        ### Selecting from tmpgraph:load_3
-        GRAPH tmpgraph:load_3
+        ### Selecting from tmpgraph:load_{0}_3
+        GRAPH tmpgraph:load_{0}_3
         {{
             ?source tmpvocab:exactName ?target .
             ?source tmpvocab:evidence  ?label .
@@ -540,7 +542,8 @@ def match_numeric_query(specs):
     is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) \
                         and (specs[St.source][St.entity_datatype] == specs[St.target][St.entity_datatype])
 
-    number_of_load = '1' if is_de_duplication is True else "2"
+    number_of_load = '{}_1'.format(specs[St.linkset_name]) if is_de_duplication is True \
+        else "{}_2".format(specs[St.linkset_name])
 
     # PLAIN NUMBER CHECK
     delta_check = "BIND(ABS(xsd:decimal(?x) - xsd:decimal(?x)) AS ?DELTA)"
@@ -548,11 +551,11 @@ def match_numeric_query(specs):
     # DATE CHECK
     if specs[St.numeric_approx_type].lower() == "date":
         delta_check = "BIND( (YEAR(xsd:datetime(STR(?x))) - YEAR(xsd:datetime(STR(?y))) ) as ?DELTA )"
-
+    
     match = """
     INSERT
     {{
-        GRAPH tmpgraph:load_3
+        GRAPH tmpgraph:load_{6}_3
         {{
             ?{0}_1  tmpvocab:exactName  ?{1}_2 .
             ?{0}_1  tmpvocab:evidence   ?DELTA .
@@ -560,17 +563,17 @@ def match_numeric_query(specs):
     }}
     WHERE
     {{
-
         ### LINKSET TO REFINE
         graph <{5}>
         {{
             ?{0}_1 ?pred  ?{1}_2 .
         }}
 
-        GRAPH tmpgraph:load_1
+        GRAPH tmpgraph:load_{6}_1
         {{
             ?{0}_1 ?hasProperty ?x .
         }}
+
         GRAPH tmpgraph:load_{4}
         {{
             ?{1}_2 ?hasProperty ?y .
@@ -582,7 +585,7 @@ def match_numeric_query(specs):
         FILTER( ABS(?DELTA) <= {2} )
     }}
     """.format(specs[St.source][St.graph_name], specs[St.target][St.graph_name], specs[St.delta], delta_check,
-               number_of_load, specs[St.linkset])
+               number_of_load, specs[St.linkset], specs[St.linkset_name])
 
     linkset = """
     INSERT
@@ -601,8 +604,8 @@ def match_numeric_query(specs):
     }}
     WHERE
     {{
-        ### Selecting from tmpgraph:load_3
-        GRAPH tmpgraph:load_3
+        ### Selecting from tmpgraph:load_{0}_3
+        GRAPH tmpgraph:load_{0}_3
         {{
             ?source tmpvocab:exactName ?target .
             ?source tmpvocab:evidence  ?label .
@@ -618,6 +621,11 @@ def match_numeric_query(specs):
     return [match, linkset]
 
 
+# THIS FUNCTION IS RESPONSIBLE FOR TEMPORARY GRAPH LOAD
+# IT IS USED BY BOTH [specs_2_linkset] AND specs_2_linkset_num_approx
+# THE FUNCTION DEPENDS ON
+#   - extract_query : FOR LOADING THE TEMP GRAPHS
+#   - match_query   : FOR FINDING THE CORRESPONDENCES
 def insert_query_reduce(specs, match_numeric=False):
 
     is_de_duplication = (specs[St.source][St.graph] == specs[St.target][St.graph]) and \
@@ -633,18 +641,18 @@ def insert_query_reduce(specs, match_numeric=False):
     """.format(Ns.dataset, Ns.linkset, Ns.singletons, Ns.alivocab, Ns.tmpgraph, Ns.tmpvocab)
 
     drop_q1 = """
-    DROP SILENT GRAPH <{0}load_1> ;
-    DROP SILENT GRAPH <{0}load_2> ;
-    DROP SILENT GRAPH <{0}load_3> ;
+    DROP SILENT GRAPH <{0}load_{3}_1> ;
+    DROP SILENT GRAPH <{0}load_{3}_2> ;
+    DROP SILENT GRAPH <{0}load_{3}_3> ;
     DROP SILENT GRAPH <{1}> ;
     DROP SILENT GRAPH <{2}{3}>
     """.format(Ns.tmpgraph, specs[St.linkset], Ns.singletons, specs[St.linkset_name])
 
     drop_q2 = """
-    DROP SILENT GRAPH <{0}load_1> ;
-    DROP SILENT GRAPH <{0}load_2> ;
-    DROP SILENT GRAPH <{0}load_3>
-    """.format(Ns.tmpgraph)
+    DROP SILENT GRAPH <{0}load_{1}_1> ;
+    DROP SILENT GRAPH <{0}load_{1}_2> ;
+    DROP SILENT GRAPH <{0}load_{1}_3>
+    """.format(Ns.tmpgraph, specs[St.linkset_name])
 
     source_extract = extract_query(specs, is_source=True)
     target_extract = "" if is_de_duplication is True else extract_query(specs, is_source=False)
@@ -1081,7 +1089,7 @@ def spa_linkset_identity_query(specs):
         load_temp01
     )
 
-    match_query = "{}\n\n{}\n{}".format(
+    matched_query = "{}\n\n{}\n{}".format(
         prefix,
         "### 2.3 INSERT CORRESPONDENCE [match] into tmpgraph:load",
         load_temp,
@@ -1101,7 +1109,7 @@ def spa_linkset_identity_query(specs):
         drop_tmp
     )
 
-    queries = [early_drop_query, src_query, trg_query, match_query, linkset_query, drop_query]
+    queries = [early_drop_query, src_query, trg_query, matched_query, linkset_query, drop_query]
     # print query01
     # print query02
     # print query03
@@ -1138,7 +1146,7 @@ def specs_2_linkset_id(specs, display=False, activated=False):
         # print specs[St.linkset_insert_queries]
 
         # GENERATE THE LINKSET
-        inserted_linkset = spa_linksets(specs, id=True, display=display, activated=activated)
+        inserted_linkset = spa_linksets(specs, identity=True, display=display, activated=activated)
 
         # REGISTER THE ALIGNMENT
         if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
@@ -1680,7 +1688,6 @@ def spa_linkset_intermediate_query(specs):
         # 0          1         2           3        4            5             6
         Ns.tmpgraph, src_name, src_aligns, src_uri, Ns.tmpvocab, src_rdf_pred, source[St.entity_datatype])
 
-
     trg_query = prefix + """
     ### 1.2. LOADING TARGET TO A TEMPORARY GRAPH
     INSERT
@@ -1712,8 +1719,7 @@ def spa_linkset_intermediate_query(specs):
         # 0          1         2            3         4            5                           6
         Ns.tmpgraph, trg_name, Ns.tmpvocab, trg_uri, trg_rdf_pred, target[St.entity_datatype], trg_aligns)
 
-
-    match_query = prefix + """
+    matched_query = prefix + """
 
     ### 2. FINDING CANDIDATE MATCH [PART 1]
     INSERT
@@ -1783,7 +1789,6 @@ def spa_linkset_intermediate_query(specs):
         # 0          1         3  2        8 3        9 4
         Ns.tmpgraph, src_name,  trg_name, Ns.tmpvocab, specs[St.intermediate_graph])
 
-
     linkset_query = prefix + """
     ### 3. CREATING THE CORRESPONDENCES
     INSERT
@@ -1833,6 +1838,7 @@ def spa_linkset_intermediate_query(specs):
         Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns, specs[St.linkset], Ns.tmpvocab,
         # 7          8                    9                      10             11
         Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name])
+
     # insert = """
     # PREFIX alivocab:    <{16}>
     # PREFIX prov:        <{17}>
@@ -1958,7 +1964,7 @@ def spa_linkset_intermediate_query(specs):
     # print insert
     # return insert
     # print query01, query02, query03, query04
-    queries = [early_drop_query, src_query, trg_query, match_query, linkset_query, drop_query]
+    queries = [early_drop_query, src_query, trg_query, matched_query, linkset_query, drop_query]
     return queries
 
 
