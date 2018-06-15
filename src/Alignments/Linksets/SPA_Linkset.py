@@ -551,7 +551,7 @@ def match_numeric_query(specs):
     # DATE CHECK
     if specs[St.numeric_approx_type].lower() == "date":
         delta_check = "BIND( (YEAR(xsd:datetime(STR(?x))) - YEAR(xsd:datetime(STR(?y))) ) as ?DELTA )"
-    
+
     match = """
     INSERT
     {{
