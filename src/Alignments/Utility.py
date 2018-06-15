@@ -990,7 +990,8 @@ def listening(directory, sleep_time=10):
                     print "\t>>> THE SERVER IS ON."
                     return "THE SERVER IS ON."
 
-            print "\nListening for \"system.lock\" file and checking whether a connection to the server is established..."
+            print "\nListening for \"system.lock\" file and checking whether " \
+                  "a connection to the server is established every {} seconds...".format(str(sleep_time))
             # wait a little bit before getting the next listing
             # if you want near instantaneous updates, make the sleep value small.
             time.sleep(sleep_time)
