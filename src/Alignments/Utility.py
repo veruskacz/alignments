@@ -1028,9 +1028,9 @@ def stardog_on(bat_path):
             # START stardog-admin.bat server start --disable-security
             if batch_extension() == ".bat":
                 cmd = """
-    @echo -------------------------------------------------------------------------------------------------
+    @echo -------------------------------------------------------------------------------------------------------------
     @echo STARTING STARDOG FROM {}...
-    @echo -------------------------------------------------------------------------------------------------
+    @echo ------------------------------------------------------------------------------------------------------------
     cd "{}"
     START stardog-admin.bat server start
                 """.format(bat_path, Svr.settings[St.stardog_path])
@@ -1054,6 +1054,7 @@ def stardog_on(bat_path):
         # time.sleep(waiting_time)
 
         while True:
+
             try:
                 try:
                     response = requests.get("http://{}".format(Svr.settings[St.stardog_host_name]))
