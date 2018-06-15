@@ -80,7 +80,7 @@ if __name__ == "__main__":
                 Ut.stardog_on(bat_path)
 
                 print "LISTENING AT: {}...".format(Svr.settings[St.stardog_data_path])
-                Ut.listening(Svr.settings[St.stardog_data_path], sleep_time=20)
+                Ut.listening(Svr.settings[St.stardog_data_path], sleep_time=30)
 
             # CREATING THE DATABASE IN STARDOG IF IT DOES NOT EXISTS
             db_bat_path = "{}stardogCreate_{}_db{}".format(Svr.SRC_DIR, Svr.settings[St.database], Ut.batch_extension())

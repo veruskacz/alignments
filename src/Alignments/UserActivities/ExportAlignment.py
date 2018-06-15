@@ -638,7 +638,7 @@ def enrich(specs, directory, endpoint):
 
     print "\n1. GETTING THE TOTAL NUMBER OF TRIPLES."
     count_query = enrich_query(specs, limit=0, offset=0, is_count=True)
-    print count_query
+    # print count_query
     count_res = Qry.virtuoso_request(count_query, endpoint)
     result = count_res['result']
 

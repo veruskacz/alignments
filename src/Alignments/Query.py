@@ -487,13 +487,13 @@ def endpointconstruct(query, clean=True, insert=False):
     passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
     passman.add_password(None, url, user, password)
     urllib2.install_opener(urllib2.build_opener(urllib2.HTTPBasicAuthHandler(passman)))
-    print  query
+    # print  query
     params = urllib.urlencode({b'query': q})
     request = urllib2.Request(url, data=params, headers=headers)
     request.get_method = lambda: "POST"
 
     try:
-        print request.data
+        # print request.data
         response = urllib2.urlopen(request)
         # print "RESPONSE", response
         result = response.read()
