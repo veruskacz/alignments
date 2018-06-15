@@ -17,7 +17,7 @@ from Alignments.StardogServer.StardogData import load_default_namespaces
 _format = "%a %b %d %Y %H:%M:%S"
 date = datetime.datetime.today()
 lock_file = None
-RESET_SERVER_BATS = False
+RESET_SERVER_BATS = True
 _line = "--------------------------------------------------------------" \
         "--------------------------------------------------------------"
 
