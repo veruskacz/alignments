@@ -61,7 +61,6 @@ commands = {
     """,
 
     "windows": """
-    cls
     echo "    >>> UPGRADING PIP"
     python -m pip install --upgrade pip
 
@@ -85,7 +84,6 @@ commands = {
     """,
 
     "mac": """
-    clear
     echo "    >>> UPGRADING PIP"
     sudo python -m pip install --upgrade pip
 
@@ -110,20 +108,18 @@ commands = {
     """,
 
     "runMac": """
-    echo "   >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
+    echo "   >>> VIRTUAL ENV AVTIVATION..."
     source {0}{1}bin{1}activate
-
-    echo "   >>> RUNNING THE LENTICULAR LENS"
     cd {0}{1}src
+    echo "   >>> INITAITING THE LL SERVER..."
     python run.py
     """,
 
     "runWin": """
-    echo "   >>> ACTIVATING THE VIRTUAL ENVIRONMENT"
+    echo "   >>> VIRTUAL ENV AVTIVATION..."
     call {0}{1}Scripts{1}activate.bat
-
-    echo "   >>> RUNNING THE LENTICULAR LENS"
     cd {0}{1}src
+    echo "   >>> INITAITING THE LL SERVER..."
     python run.py
     """
 }
@@ -374,13 +370,7 @@ class LLPrompt(Cmd):
             # RUNS IN A NEW SHELL
             cmd = commands["runWin"] if OPE_SYS == 'windows' else commands["runMac"]
             cmd = cmd.format(w_dir, os.path.sep)
-            print cmd
-
-            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-            # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
-            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-            print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
-            update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
+            # print cmd
 
             """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
             # 2.3 CLONE OR PULTHE LENTICULAR LENS SOFTWARE
@@ -394,7 +384,14 @@ class LLPrompt(Cmd):
                 pulling = commands["git_pull"].format(join(directory, "alignments"))
                 execute_cmd(pulling, file_path, output=False, run=run)
 
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            # 7. UPDAT THE SEVER SETTINGS WITH STARDOG HOME AND BIN PATHS
+            """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+            print "\n{0}\n    >>> UPDATING SERVER SETTINGS\n{0}\n".format(highlight)
+            update_settings(directory, stardog_home, stardog_bin, database_name, ll_port)
+
             # RUN THE LENTICULAR LENS
+            print "\n{0}\n    >>> RUNNING THE LENTICULAR LENS\n{0}\n".format(highlight)
             execute_cmd(cmd=cmd, file_path=file_path, output=False)
 
         except Exception as err:
@@ -483,6 +480,14 @@ class LLPrompt(Cmd):
 # #####################################################
 
 
+def headings(message):
+    _format = "It is %a %b %d %Y %H:%M:%S"
+    date = datetime.datetime.today()
+    _line = "--------------------------------------------------------------" \
+            "--------------------------------------------------------------"
+    return "\n\n{0}\n{2:>117}\n{1:>117}\n{0}\n".format(_line, message, date.strftime(_format))
+
+
 def versions(file_path):
     pattern = "([\d*\.]+)"
     import sys
@@ -532,9 +537,9 @@ def install_package(package, command, condition, condition_idx, file_path):
         proceed = process_input("\t\tEnter [1] to INSTALL [{}] or enter [anything else] to exit.".format(package))
         if str(proceed).strip() == "1":
             if OPE_SYS == 'windows':
-                execute_cmd(cmd=commands[command], file_path=file_path, output=False)
+                execute_cmd(cmd=commands[command], file_path=file_path, output=False, shell=False)
             else:
-                execute_cmd(cmd="sudo " + commands[command], file_path=file_path, output=False)
+                execute_cmd(cmd="sudo " + commands[command], file_path=file_path, output=False, shell=False)
             # print requirements_out
             condition = versions(file_path)
         else:
@@ -542,7 +547,7 @@ def install_package(package, command, condition, condition_idx, file_path):
             exit(1)
 
 
-def execute_cmd(cmd, file_path=None, output=True, run=True):
+def execute_cmd(cmd, file_path=None, output=True, run=True, shell=True):
 
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
@@ -561,11 +566,11 @@ def execute_cmd(cmd, file_path=None, output=True, run=True):
 
         try:
             if output is True:
-                output = subprocess.check_output(file_path, shell=True, stderr=subprocess.STDOUT)
+                output = subprocess.check_output(file_path, shell=shell, stderr=subprocess.STDOUT)
                 return str(output)
             else:
                 # RUNS IN A NEW SHELL
-                subprocess.call(file_path, shell=True)
+                subprocess.call(file_path, shell=shell)
 
         except Exception as err:
             return err.message
@@ -603,8 +608,8 @@ def replace_all(file_path, search_exp, replace_exp):
 
     wr = Buffer.StringIO()
     if os.path.isfile(file_path) is False:
-        print "THE PROVIDED FILE BELOW DOES NOT EXIST" \
-              "\n\t>>> {}\nFOR THAT YOUR ACTION HAS BEEN TERMINATED\n".format(file_path)
+        print "\tTHE PROVIDED FILE BELOW DOES NOT EXIST" \
+              "\n\t>>> {}\n\tFOR THAT YOUR ACTION HAS BEEN TERMINATED\n".format(file_path)
         exit(0)
 
     with open(name=file_path, mode="r") as reader:
@@ -628,6 +633,7 @@ def update_settings(directory, stardog_home, stardog_bin, database_name, ll_port
     """""""""""""""""""""""""""""""""""""""""""""""""""""
 
     svr_settings = join(directory, "alignments{0}src{0}Alignments{0}Server_Settings.py".format(os.path.sep))
+    print "PATH: {}\n".format(svr_settings)
 
     # STARDOG BIN
     s_bin = """\"LL_STARDOG_PATH",[ ]*"(.*)\""""
@@ -678,7 +684,9 @@ def input_prep(parameter_inputs):
     ll_port = int(inputs_6[0].strip()) if len(inputs_6) > 0 else 5077
 
     # PRINTING THE EXTRACTED INPUTS
-    print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
+    # **************************************************************************
+    print headings("STARTING THE INSTALLATION OF THE LENTICULAR LENS")
+    # **************************************************************************
     print "\n1. INPUTS"
     print "\n\t{:23}: {}".format("INSTALLATION DIRECTORY", directory)
     print "\t{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
@@ -783,7 +791,9 @@ def input_prompt_prep(directory, python_path, stardog_bin, stardog_home, databas
 
 
     # PRINTING THE EXTRACTED INPUTS
-    print "\nSTARTING THE INSTALLATION OF THE LENTICULAR LENS"
+    # **************************************************************************
+    print headings("STARTING THE INSTALLATION OF THE LENTICULAR LENS")
+    # **************************************************************************
     print "\n1. INPUTS"
     print "\n\t{:23}: {}".format("INSTALLATION DIRECTORY", directory)
     print "\t{:23}: {}".format("INSTALLED PYTHON PATH", python_path)
@@ -993,8 +1003,10 @@ def generic_install(directory, python_path, stardog_home, stardog_bin, database_
 
         command = timeout()
         command.prompt = '> '
+        # **************************************************************************************
         message = "\n{0}\n{1:^52}\n{2:^52}\n{0}\n".format(
             highlight, ">>>   I AM GOING TO SLEEP...", "PUNCH IN THE KEY [1] TO WAIKE ME UP")
+        # **************************************************************************************
         command.cmdloop(message)
         print "\n{1:^52}\n".format(highlight, "THANKS FOR WAIKING ME UP!")
         # print "\n{0}\n    >>> SLEEPING FOR 10 SECONDS FOR USER CHECKS\n{0}\n".format(highlight)
@@ -1017,7 +1029,7 @@ def win_install(directory, python_path, stardog_home, stardog_bin, run=False):
     file_path = join(directory, "INSTALLATION.bat")
     w_dir = join(directory, "alignments")
     cmds = commands["windows"].format(w_dir, os.path.sep, python_path, stardog_bin, stardog_home)
-    execute_cmd(cmds, file_path, output=False, run=run)
+    execute_cmd(cmds, file_path, output=False, run=run, shell=False)
     wb.open_new_tab('http://localhost:5077/')
 
 
@@ -1053,7 +1065,7 @@ parameter_input = """
 run = True
 
 # PROVIDE THE FOLDER IN WHICH YOU WANT THE INSTALLATION FILES TO BE DOWNLOADED
-directory = C:\Productivity\LinkAnalysis\Coverage\InstallTest\anInstall
+directory = C:\Productivity\LenticularLens
 
 # PROVIDE THE DIRECTORY OF YOUR PYTHON 2.7 FORLDER
 python_path = C:\Python27
