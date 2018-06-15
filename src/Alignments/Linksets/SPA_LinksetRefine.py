@@ -24,7 +24,6 @@ def refine(specs, activated=False):
         print Ut.headings("THE FUNCTION [refine] IS NOT ACTIVATED")
         return {St.message: Ec.ERROR_CODE_0, St.error_code: 0, St.result: None}
 
-    # if True:
     try:
 
         insert_query = None
@@ -148,18 +147,27 @@ def refining(specs, insert_query, activated=False):
     specs[St.insert_query] = insert_query(specs)
     print specs[St.insert_query]
 
+    # IF THE INSERT QUERY IS NOT A LIST
     if type(specs[St.insert_query]) == str:
         is_run = Qry.boolean_endpoint_response(specs[St.insert_query])
 
+    # THE INSERT QUERY IS A LIST
     else:
-        print "\n4. RUNNING THE EXTRACTION QUERY"
+        print "\n4. RUNNING THE DROP QUERY"
         print specs[St.insert_query][0]
-        # is_run = Qry.boolean_endpoint_response(specs[St.insert_query][0])
         Qry.boolean_endpoint_response(specs[St.insert_query][0])
 
-        print "\n5. RUNNING THE FINDING QUERY"
+        print "\n5. RUNNING THE SOURCE TEMP QUERY"
         print specs[St.insert_query][1]
-        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][1])
+        Qry.boolean_endpoint_response(specs[St.insert_query][1])
+
+        print "\n6. RUNNING THE TARGET TEMP QUERY"
+        print specs[St.insert_query][2]
+        Qry.boolean_endpoint_response(specs[St.insert_query][2])
+
+        print "\n7. RUNNING THE FINDING QUERY"
+        print specs[St.insert_query][3]
+        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][3])
 
     print "\n>>> RUN SUCCESSFULLY:", is_run.upper()
 
@@ -221,6 +229,11 @@ def refining(specs, insert_query, activated=False):
     else:
         print "NO MATCH COULD BE FOUND."
 
+
+
+########################################################################################
+# LINKSET REFINEMENT QUERIES
+########################################################################################
 
 def refine_exact_query(specs):
 
@@ -318,6 +331,358 @@ def refine_exact_query(specs):
     return insert_query
 
 
+def refine_intermediate_query(specs):
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns] \
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns] \
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
+    src_name = specs[St.source][St.graph_name]
+    # src_uri = specs[St.source][St.graph]
+    src_uri = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
+    # src_aligns = specs[St.source][St.aligns]
+
+    trg_name = specs[St.target][St.graph_name]
+    # trg_uri = specs[St.target][St.graph]
+    trg_uri = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
+    # trg_aligns = specs[St.target][St.aligns]
+
+    insert = """
+    PREFIX alivocab:    <{16}>
+    PREFIX prov:        <{17}>
+
+    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load02> ;
+    DROP SILENT GRAPH <{10}> ;
+    DROP SILENT GRAPH <{14}{15}> ;
+
+    INSERT
+    {{
+        GRAPH <{10}>
+        {{
+            ?{1} ?newSingletons  ?{3} .
+        }}
+        ### SINGLETONS' METADATA
+        GRAPH <{14}{15}>
+        {{
+            ?newSingletons
+                rdf:singletonPropertyOf     alivocab:{12}{13} ;
+                prov:wasDerivedFrom         ?pred ;
+                alivocab:hasEvidence        ?evidence .
+        }}
+    }}
+
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{5}>
+        {{
+            ?{1} ?pred  ?{3} .
+            bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+        }}
+
+        ### SOURCE DATASET
+        graph <{6}>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1} {2} ?value_1 .
+            bind (lcase(str(?value_1)) as ?src_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?src_trimmed)
+        }}
+
+        ### TARGET DATASET
+        graph <{7}>
+        {{
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3} {4} ?value_2 .
+            bind (lcase(str(?value_2)) as ?trg_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trg_trimmed)
+        }}
+
+        ### INTERMEDIATE DATASET
+        graph <{9}>
+        {{
+            ?intermediate_uri
+                ?intPred_1 ?value_3 ;
+                ?intPred_2 ?value_4 .
+
+            ### VALUES TO LOWER CASE
+            bind (lcase(str(?value_3)) as ?src_val)
+            bind (lcase(str(?value_4)) as ?trg_val)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp
+    }} ;
+
+    DROP SILENT GRAPH <{0}load01> ;)
+            BIND(REPLACE(?src_val, ?regexp, '$1$2') AS ?src_trimmed)
+            BIND(REPLACE(?trg_val, ?regexp, '$1$2') AS ?trg_trimmed)
+            BIND(concat("[", ?src_trimmed, "] aligns with [", ?trg_trimmed, "]") AS ?evidence)
+        }}
+    DROP SILENT GRAPH <{0}load02>
+    """.format(
+        # 0          1         2           3         4
+        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
+        # 5                6        7        8            9
+        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
+        # 10               11           12                  13
+        specs[St.refined], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
+        # 14           15                      16           17
+        Ns.singletons, specs[St.refined_name], Ns.alivocab, Ns.prov
+    )
+
+    # print insert
+    return insert
+
+
+def refine_numeric_query(specs):
+
+    # is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
+    # number_of_load = '1' if is_de_duplication is True else "2"
+
+    # PLAIN NUMBER CHECK
+    delta_check = "BIND(ABS(xsd:decimal(?x) - xsd:decimal(?x)) AS ?DELTA)"
+
+    # DATE CHECK
+    if specs[St.numeric_approx_type].lower() == "date":
+        delta_check = "BIND( (YEAR(xsd:datetime(STR(?x))) - YEAR(xsd:datetime(STR(?y))) ) as ?DELTA )"
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns] \
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns] \
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
+    src_name = specs[St.source][St.graph_name]
+    # src_uri = specs[St.source][St.graph]
+    src_uri = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
+    # src_aligns = specs[St.source][St.aligns]
+
+    trg_name = specs[St.target][St.graph_name]
+    # trg_uri = specs[St.target][St.graph]
+    trg_uri = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
+    # trg_aligns = specs[St.target][St.aligns]
+
+    drop = """
+    PREFIX ll:    <{0}>
+    PREFIX prov:  <{1}>
+    PREFIX tempG: <{2}>
+
+    DROP SILENT GRAPH tempG:load01 ;
+    DROP SILENT GRAPH tempG:load02 ;
+    DROP SILENT GRAPH <{3}> ;
+    DROP SILENT GRAPH <{4}{5}> ;
+    """.format(
+        # 0          1         2           3                  4              5
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name]
+    )
+
+    source = """
+    PREFIX ll:    <{0}>
+    PREFIX prov:  <{1}>
+    PREFIX tempG: <{2}>
+
+    ### 1. LOADING SOURCE TO A TEMPORARY GRAPH
+    INSERT
+    {{
+        GRAPH tempG:load01
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{3}_1 ll:relatesTo1 ?srcTrimmed .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{4}>
+        {{
+            ?{3}_1 ?pred  ?obj .
+        }}
+
+        ### SOURCE DATASET
+        graph <{5}>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{3}_1 {6} ?value_1 .
+            bind (lcase(str(?value_1)) as ?src_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?srcTrimmed)
+        }}
+    }}
+    """.format(
+        # 0          1         2           3         4                  5        6
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, src_name, specs[St.linkset], src_uri, src_aligns)
+
+    target = """
+    PREFIX ll:    <{0}>
+    PREFIX prov:  <{1}>
+    PREFIX tempG: <{2}>
+
+    ### 1. LOADING SOURCE TO A TEMPORARY GRAPH
+    INSERT
+    {{
+        GRAPH tempG:load01
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{3}_1 ll:relatesTo3 ?trgTrimmed .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{4}>
+        {{
+            ?sub ?pred ?{3}_1 .
+        }}
+
+        ### SOURCE DATASET
+        graph <{5}>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{3}_1 {6} ?value_1 .
+            bind (lcase(str(?value_1)) as ?trg_value)
+
+            # VALUE TRIMMING
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+            BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trgTrimmed)
+        }}
+    }}
+    """.format(
+        # 0          1         2           3         4                  5        6
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, trg_name, specs[St.linkset], trg_uri, trg_aligns)
+
+
+    # extract = """
+    # PREFIX ll:    <{0}>
+    # PREFIX prov:  <{1}>
+    # PREFIX tempG: <{2}>
+    #
+    # DROP SILENT GRAPH tempG:load01 ;
+    # DROP SILENT GRAPH tempG:load02 ;
+    # DROP SILENT GRAPH <{3}> ;
+    # DROP SILENT GRAPH <{4}{5}> ;
+    #
+    # ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
+    # INSERT
+    # {{
+    #     GRAPH tempG:load01
+    #     {{
+    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+    #         ?{8}_1 ll:relatesTo1 ?srcTrimmed .
+    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
+    #         ?{9}_2 ll:relatesTo3 ?trgTrimmed .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### LINKSET TO REFINE
+    #     graph <{7}>
+    #     {{
+    #         ?{8}_1 ?pred  ?{9}_2 .
+    #     }}
+    #
+    #     ### SOURCE DATASET
+    #     graph <{10}>
+    #     {{
+    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+    #         ?{8}_1 {12} ?value_1 .
+    #         bind (lcase(str(?value_1)) as ?src_value)
+    #
+    #         # VALUE TRIMMING
+    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+    #         BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?srcTrimmed)
+    #     }}
+    #
+    #     ### TARGET DATASET
+    #     graph <{11}>
+    #     {{
+    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
+    #         ?{9}_2 {13} ?value_2 .
+    #         bind (lcase(str(?value_2)) as ?trg_value)
+    #
+    #         # VALUE TRIMMING
+    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
+    #         BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trgTrimmed)
+    #     }}
+    # }} """.format(
+    #     # 0          1         2           3                  4              5
+    #     Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name],
+    #     # 6           7                  8         9         10       11       12          13
+    #     Ns.tmpvocab, specs[St.linkset], src_name, trg_name, src_uri, trg_uri, src_aligns, trg_aligns
+    # )
+
+    find = """
+    ### 2. FINDING CANDIDATE MATCH BETWEEN THE SOURCE AND TARGET
+    PREFIX ll:    <{0}>
+    PREFIX prov:  <{1}>
+    PREFIX tempG: <{2}>
+    INSERT
+    {{
+        ### MATCH FOUND
+        GRAPH <{10}>
+        {{
+            ?{3}_1 ?newSingletons ?{4}_2 .
+        }}
+        # METADATA OF MATCH FOUND
+        GRAPH <{11}{12}>
+        {{
+            ?newSingletons
+                rdf:singletonPropertyOf     ll:{8}{9} ;
+                prov:wasDerivedFrom         ?pred ;
+                ll:hasEvidence              ?evidence .
+        }}
+    }}
+    WHERE
+    {{
+        ### LINKSET TO REFINE
+        graph <{5}>
+        {{
+            ?{3}_1 ?pred  ?{4}_2 .
+            bind( iri(replace("{0}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+        }}
+        ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+        GRAPH tempG:load01
+        {{
+            ?{3}_1 ll:relatesTo1 ?x .
+            ?{4}_2 ll:relatesTo3 ?y .
+        }}
+
+        # DELTA APPROX CHECK
+        {6}
+
+        FILTER( ABS(?DELTA) <= {7} )
+
+        BIND(concat("The DELTA of [", ?x, "] and [", ?y, "] is [", STR(ABS(?DELTA)),
+        "] which passed the threshold of [", STR({7}), "]" ) AS ?evidence)
+    }}""".format(
+        # 0          1        2            3         4         5                  6            7
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, src_name, trg_name, specs[St.linkset], delta_check, specs[St.delta],
+        # 8                  9                      10                 11             12
+        specs[St.mechanism], specs[St.sameAsCount], specs[St.refined], Ns.singletons, specs[St.refined_name])
+
+    return [drop, source, target, find]
+
+########################################################################################
+# SINGLE PREDICATE ALIGNMENT FOR LINKSET REFINEMENT BASED ON INTERMEDIATE
+########################################################################################
 # DEPRECATED (TODO TO DELETE)
 def refine_intermediate_query_1(specs):
 
@@ -492,261 +857,15 @@ def refine_intermediate_query_1(specs):
     return insert
 
 
-def refine_intermediate_query(specs):
-
-    source = specs[St.source]
-    target = specs[St.target]
-
-    # FORMATTING THE ALIGNS PROPERTY
-    src_aligns = source[St.aligns] \
-        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
-
-    trg_aligns = target[St.aligns] \
-        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
-
-    src_name = specs[St.source][St.graph_name]
-    # src_uri = specs[St.source][St.graph]
-    src_uri = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
-    # src_aligns = specs[St.source][St.aligns]
-
-    trg_name = specs[St.target][St.graph_name]
-    # trg_uri = specs[St.target][St.graph]
-    trg_uri = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
-    # trg_aligns = specs[St.target][St.aligns]
-
-    insert = """
-    PREFIX alivocab:    <{16}>
-    PREFIX prov:        <{17}>
-
-    DROP SILENT GRAPH <{0}load01> ;
-    DROP SILENT GRAPH <{0}load02> ;
-    DROP SILENT GRAPH <{10}> ;
-    DROP SILENT GRAPH <{14}{15}> ;
-
-    INSERT
-    {{
-        GRAPH <{10}>
-        {{
-            ?{1} ?newSingletons  ?{3} .
-        }}
-        ### SINGLETONS' METADATA
-        GRAPH <{14}{15}>
-        {{
-            ?newSingletons
-                rdf:singletonPropertyOf     alivocab:{12}{13} ;
-                prov:wasDerivedFrom         ?pred ;
-                alivocab:hasEvidence        ?evidence .
-        }}
-    }}
-
-    WHERE
-    {{
-        ### LINKSET TO REFINE
-        graph <{5}>
-        {{
-            ?{1} ?pred  ?{3} .
-            bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
-        }}
-
-        ### SOURCE DATASET
-        graph <{6}>
-        {{
-            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1} {2} ?value_1 .
-            bind (lcase(str(?value_1)) as ?src_value)
-
-            # VALUE TRIMMING
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-            BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?src_trimmed)
-        }}
-
-        ### TARGET DATASET
-        graph <{7}>
-        {{
-            ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3} {4} ?value_2 .
-            bind (lcase(str(?value_2)) as ?trg_value)
-
-            # VALUE TRIMMING
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-            BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trg_trimmed)
-        }}
-
-        ### INTERMEDIATE DATASET
-        graph <{9}>
-        {{
-            ?intermediate_uri
-                ?intPred_1 ?value_3 ;
-                ?intPred_2 ?value_4 .
-
-            ### VALUES TO LOWER CASE
-            bind (lcase(str(?value_3)) as ?src_val)
-            bind (lcase(str(?value_4)) as ?trg_val)
-
-            # VALUE TRIMMING
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp
-    }} ;
-
-    DROP SILENT GRAPH <{0}load01> ;)
-            BIND(REPLACE(?src_val, ?regexp, '$1$2') AS ?src_trimmed)
-            BIND(REPLACE(?trg_val, ?regexp, '$1$2') AS ?trg_trimmed)
-            BIND(concat("[", ?src_trimmed, "] aligns with [", ?trg_trimmed, "]") AS ?evidence)
-        }}
-    DROP SILENT GRAPH <{0}load02>
-    """.format(
-        # 0          1         2           3         4
-        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
-        # 5                6        7        8            9
-        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
-        # 10               11           12                  13
-        specs[St.refined], Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
-        # 14           15                      16           17
-        Ns.singletons, specs[St.refined_name], Ns.alivocab, Ns.prov
-    )
-
-    # print insert
-    return insert
 
 
-def refine_numeric_query(specs):
 
-    # is_de_duplication = specs[St.source][St.graph] == specs[St.target][St.graph]
-    # number_of_load = '1' if is_de_duplication is True else "2"
+########################################################################################
+# SINGLE PREDICATE ALIGNMENT IDENTITY
+# ALIGNING SUBJECTS FROM DIFFERENT GRAPHS THAT HAVE THE SAME RESOURCE URI IDENTIFIER
+########################################################################################
 
-    # PLAIN NUMBER CHECK
-    delta_check = "BIND(ABS(xsd:decimal(?x) - xsd:decimal(?x)) AS ?DELTA)"
 
-    # DATE CHECK
-    if specs[St.numeric_approx_type].lower() == "date":
-        delta_check = "BIND( (YEAR(xsd:datetime(STR(?x))) - YEAR(xsd:datetime(STR(?y))) ) as ?DELTA )"
-
-    source = specs[St.source]
-    target = specs[St.target]
-
-    # FORMATTING THE ALIGNS PROPERTY
-    src_aligns = source[St.aligns] \
-        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
-
-    trg_aligns = target[St.aligns] \
-        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
-
-    src_name = specs[St.source][St.graph_name]
-    # src_uri = specs[St.source][St.graph]
-    src_uri = source[St.graph] if St.extended_graph not in source else source[St.extended_graph]
-    # src_aligns = specs[St.source][St.aligns]
-
-    trg_name = specs[St.target][St.graph_name]
-    # trg_uri = specs[St.target][St.graph]
-    trg_uri = target[St.graph] if St.extended_graph not in target else target[St.extended_graph]
-    # trg_aligns = specs[St.target][St.aligns]
-
-    extract = """
-    PREFIX ll:    <{0}>
-    PREFIX prov:  <{1}>
-    PREFIX tempG: <{2}>
-
-    DROP SILENT GRAPH tempG:load01 ;
-    DROP SILENT GRAPH tempG:load02 ;
-    DROP SILENT GRAPH <{3}> ;
-    DROP SILENT GRAPH <{4}{5}> ;
-
-    ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
-    INSERT
-    {{
-        GRAPH tempG:load01
-        {{
-            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{8}_1 ll:relatesTo1 ?srcTrimmed .
-            ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{9}_2 ll:relatesTo3 ?trgTrimmed .
-        }}
-    }}
-    WHERE
-    {{
-        ### LINKSET TO REFINE
-        graph <{7}>
-        {{
-            ?{8}_1 ?pred  ?{9}_2 .
-        }}
-        ### SOURCE DATASET
-        graph <{10}>
-        {{
-            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{8}_1 {12} ?value_1 .
-            bind (lcase(str(?value_1)) as ?src_value)
-
-            # VALUE TRIMMING
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-            BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?srcTrimmed)
-        }}
-        ### TARGET DATASET
-        graph <{11}>
-        {{
-            ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{9}_2 {13} ?value_2 .
-            bind (lcase(str(?value_2)) as ?trg_value)
-
-            # VALUE TRIMMING
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-            BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trgTrimmed)
-        }}
-    }} """.format(
-        # 0          1         2           3                  4              5
-        Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name],
-        # 6           7                  8         9         10       11       12          13
-        Ns.tmpvocab, specs[St.linkset], src_name, trg_name, src_uri, trg_uri, src_aligns, trg_aligns
-    )
-
-    find = """
-    ### 2. FINDING CANDIDATE MATCH BETWEEN THE SOURCE AND TARGET
-    PREFIX ll:    <{0}>
-    PREFIX prov:  <{1}>
-    PREFIX tempG: <{2}>
-    INSERT
-    {{
-        ### MATCH FOUND
-        GRAPH <{10}>
-        {{
-            ?{3}_1 ?newSingletons ?{4}_2 .
-        }}
-        # METADATA OF MATCH FOUND
-        GRAPH <{11}{12}>
-        {{
-            ?newSingletons
-                rdf:singletonPropertyOf     ll:{8}{9} ;
-                prov:wasDerivedFrom         ?pred ;
-                ll:hasEvidence              ?evidence .
-        }}
-    }}
-    WHERE
-    {{
-        ### LINKSET TO REFINE
-        graph <{5}>
-        {{
-            ?{3}_1 ?pred  ?{4}_2 .
-            bind( iri(replace("{0}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
-        }}
-        ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-        GRAPH tempG:load01
-        {{
-            ?{3}_1 ll:relatesTo1 ?x .
-            ?{4}_2 ll:relatesTo3 ?y .
-        }}
-
-        # DELTA APPROX CHECK
-        {6}
-
-        FILTER( ABS(?DELTA) <= {7} )
-
-        BIND(concat("The DELTA of [", ?x, "] and [", ?y, "] is [", STR(ABS(?DELTA)),
-        "] which passed the threshold of [", STR({7}), "]" ) AS ?evidence)
-    }}""".format(
-        # 0          1        2            3         4         5                  6            7
-        Ns.alivocab, Ns.prov, Ns.tmpgraph, src_name, trg_name, specs[St.linkset], delta_check, specs[St.delta],
-        # 8                  9                      10                 11             12
-        specs[St.mechanism], specs[St.sameAsCount], specs[St.refined], Ns.singletons, specs[St.refined_name])
-
-    return [extract, find]
 
 
 def refine_metadata(specs):
