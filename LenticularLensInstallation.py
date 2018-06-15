@@ -1059,7 +1059,7 @@ directory = C:\Productivity\LinkAnalysis\Coverage\InstallTest\anInstall
 python_path = C:\Python27
 
 # PROVIDE THE STARDOG BIN PATH
-stardog_bin = C:\Program Files\stardog-5.3.0\bin
+stardog_bin = C:\Program Files\stardog-5.0.5.1\bin
 
 # PROVIDE THE STARDOG HOME FOLDER
 stardog_home = C:\Productivity\data\stardog
