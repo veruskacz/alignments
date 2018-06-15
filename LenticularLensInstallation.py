@@ -111,7 +111,7 @@ commands = {
     echo "   >>> VIRTUAL ENV AVTIVATION..."
     source {0}{1}bin{1}activate
     cd {0}{1}src
-    echo "   >>> INITAITING THE LL SERVER..."
+    echo "   >>> INITAITING THE LENTICULAR LENS SERVER..."
     python run.py
     """,
 
@@ -119,7 +119,7 @@ commands = {
     echo "   >>> VIRTUAL ENV AVTIVATION..."
     call {0}{1}Scripts{1}activate.bat
     cd {0}{1}src
-    echo "   >>> INITAITING THE LL SERVER..."
+    echo "   >>> INITAITING THE LENTICULAR LENS SERVER..."
     python run.py
     """
 }
