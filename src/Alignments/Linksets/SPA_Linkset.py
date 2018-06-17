@@ -179,215 +179,6 @@ def spa_linksets(specs, identity=False, display=False, activated=False):
 # SINGLE PREDICATE ALIGNMENT
 ########################################################################################
 
-# TODO IT HAS BEEN REPLACED BY insert_query_reduce FOR EFFICIENCY
-def spa_linkset_ess_query(specs):
-    # Single Predicate Alignment with Exact String Similarity
-    source = specs[St.source]
-    target = specs[St.target]
-
-    """
-        NAMESPACE
-    """
-    prefix = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}".format(
-        "##################################################################",
-        "### Linking {{{}}} to {{{}}} based on exact name".format(source[St.graph_name], target[St.graph_name]),
-        "##################################################################",
-        "prefix dataset:    <{}>".format(Ns.dataset),
-        "prefix linkset:    <{}>".format(Ns.linkset),
-        "prefix singleton:  <{}>".format(Ns.singletons),
-        "prefix alivocab:   <{}>".format(Ns.alivocab),
-        "prefix tmpgraph:   <{}>".format(Ns.tmpgraph),
-        "prefix tmpvocab:   <{}>".format(Ns.tmpvocab))
-    '''
-        DROPPING GRAPHS
-    '''
-    drop_tmp = "DROP SILENT GRAPH tmpgraph:load"
-    drop_tmp00 = "DROP SILENT GRAPH tmpgraph:load00"
-    drop_tmp01 = "DROP SILENT GRAPH tmpgraph:load01"
-    # drop_ls = "DROP SILENT GRAPH linkset:{}_{}_ExactName".format(src_dataset_name, trg_dataset_name)
-    # drop_metadata = "DROP SILENT GRAPH lsMetadata:{}_{}_ExactName_metadata".format(src_dataset_name, trg_dataset_name)
-
-    drop_ls = "DROP SILENT GRAPH linkset:{}".format(specs[St.linkset_name])
-    drop_metadata = "DROP SILENT GRAPH singleton:{}".format(specs[St.linkset_name])
-
-    '''
-        LOADING SOURCE TO TEMPORARY GRAPH tmpgraph:load00
-    '''
-
-    # FORMATTING THE ALIGNS PROPERTY
-    src_aligns = source[St.aligns]\
-        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
-
-    trg_aligns = target[St.aligns]\
-        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
-
-    # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
-    if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
-        src_rdf_pred = source[St.rdf_predicate]\
-            if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
-    else:
-        src_rdf_pred = "a"
-
-    if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
-        trg_rdf_pred = target[St.rdf_predicate] \
-            if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
-    else:
-        trg_rdf_pred = "a"
-
-    load_temp00 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
-        format("\tINSERT",
-               "\t{",
-               "\t  GRAPH tmpgraph:load00",
-               "\t  {",
-               "\t    ?source alivocab:hasProperty ?label .",
-               "\t  }",
-               "\t}",
-
-               "\tWHERE",
-               "\t{",
-               "\t  ### Selecting source data instances based on name",
-               "\t  GRAPH <{}>".format(source[St.graph]),
-               "\t  {",
-               "\t    ?source {} <{}> .".format(src_rdf_pred, source[St.entity_datatype]),
-               "\t    ?source {} ?aLabel .".format(src_aligns),
-               "\t    BIND(lcase(str(?aLabel)) as ?label)",
-               "\t  }",
-               "\t}")
-
-    '''
-        LOADING TARGET TO TEMPORARY GRAPH tmpgraph:load01
-    '''
-    load_temp01 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
-        format("\tINSERT",
-               "\t{",
-               "\t  GRAPH tmpgraph:load01",
-               "\t  {",
-               "\t    ?target alivocab:hasProperty  ?label .",
-               "\t  }",
-               "\t}",
-
-               "\tWHERE",
-               "\t{",
-               "\t  ### Selecting target data instances based on exact name",
-               "\t  graph <{}>".format(target[St.graph]),
-               "\t  {",
-               "\t    ?target {} <{}> .".format(trg_rdf_pred, target[St.entity_datatype]),
-               "\t    ?target {}  ?bLabel .".format(trg_aligns),
-               "\t    BIND(lcase(str(?bLabel)) as ?label)",
-               "\t  }",
-               "\t}")
-
-    '''
-        LOADING CORRESPONDENCE TO TEMPORARY GRAPH tmpgraph:load
-    '''
-    load_temp = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
-        format("\tINSERT",
-               "\t{",
-               "\t  GRAPH tmpgraph:load",
-               "\t  {",
-               "\t    ?source tmpvocab:exactName ?target ;",
-               "\t            tmpvocab:evidence  ?label .",
-               "\t  }",
-               "\t}",
-               # Load
-               "\tWHERE",
-               "\t{",
-               "\t  ### Selecting source data instances based on name",
-               "\t  GRAPH tmpgraph:load00",
-               "\t  {",
-               "\t    ?source alivocab:hasProperty ?label .",
-               "\t  }",
-
-               "\t  ### Selecting target data instances based on exact name",
-               "\t  graph tmpgraph:load01",
-               "\t  {",
-               "\t    ?target alivocab:hasProperty  ?label .",
-               "\t  }",
-
-               "\t}", )
-
-    '''
-        CREATING THE LINKSET & METADATA GRAPHS lsMetadata
-    '''
-    load_linkset = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
-                   "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
-        format("\tINSERT",
-               "\t{",
-               "\t  GRAPH linkset:{}".format(specs[St.linkset_name]),
-               "\t  {",
-               "\t    ### Correspondence triple with singleton",
-               "\t    ?source ?singPre ?target.",
-               "\t  }",
-
-               "\t  GRAPH singleton:{}".format(specs[St.linkset_name]),
-               "\t  {",
-               "\t    ### Singleton metadata",
-               "\t    ?singPre rdf:singletonPropertyOf     alivocab:exactStrSim{} ;".format(specs[St.sameAsCount]),
-               "\t             alivocab:hasEvidence        ?label .",
-               "\t  }",
-
-               "\t}",
-               "\tWHERE",
-               "\t{",
-               "\t  ### Selecting from tmpgraph:load",
-               "\t  GRAPH tmpgraph:load",
-               "\t  {",
-               "\t    ?source tmpvocab:exactName ?target ;",
-               "\t            tmpvocab:evidence  ?label .",
-               "\t            ",
-               "\t    ### Create A SINGLETON URI",
-               "\t    BIND( replace(\"{}{}{}_#\",\"#\",".format(
-                   Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount]),
-               "\t        STRAFTER(str(UUID()),\"uuid:\")) as ?pre )",
-               "\t    BIND(iri(?pre) as ?singPre)",
-               "\t  }",
-               "\t}")
-
-    '''
-        PUTTING IT ALL TOGETHER
-    '''
-    query01 = "{}\n\n{}\n\t{} ;\n\n{}\n\t{} ;\n\n{}\n\t{} ;\n\n{}\n{} ;\n\n{}\n\t{}".format(
-        prefix,
-        "### 1.0 DROP temporary graph",
-        drop_tmp,
-        "### 1.1 DROP SOURCE temporary graph 00",
-        drop_tmp00,
-        "### 1.2 DROP TARGET temporary graph 01",
-        drop_tmp01,
-        "### 1.3 DROP LINKSET graph",
-        drop_ls,
-        "### 1.4 DROP METADATA graph",
-        drop_metadata
-    )
-
-    query02 = "{}\n\n{}\n{} ;\n\n{}\n{} ;\n\n{}\n{} ".format(
-        prefix,
-        "### 2.0 INSERT SOURCE into tmpgraph:load00",
-        load_temp00,
-        "### 2.1 INSERT TARGET into tmpgraph:load01",
-        load_temp01,
-        "### 2.3 INSERT CORRESPONDENCE [match] into tmpgraph:load",
-        load_temp,
-    )
-
-    query03 = "{}\n\n{}\n{}".format(
-        prefix,
-        "### 3.0 CREATING AND LOADING THE LINKSET AND ITS METADATA",
-        load_linkset,
-    )
-
-    query04 = "{}\n\n{}\n\t{} ;\n\t{} ;\n\t{}".format(
-        prefix,
-        "### 4.0 DROP temporary graphs",
-        drop_tmp00,
-        drop_tmp01,
-        drop_tmp
-    )
-    # print query01, query02, query03, query04
-    queries = [query01, query02, query03, query04]
-    return queries
-
-
 # THIS FUNCTION REPLACES spa_linkset_ess_query AS IT ADDS THE POSSIBILITY TO
 # REDUCE THE SOURCE OR TARGET'S NUMBER OF INSTANCE TO BE MATCHED AGAINST
 # HELPER-1
@@ -456,7 +247,7 @@ def extract_query(specs, is_source):
         {6}        {{ ?obj   ?pred   ?{5}. }}
         {6}    }}
         {6}}}
-    }} ;
+    }}
     """.format(Ns.tmpgraph, uri, rdf_pred, aligns,
                reducer, name, reducer_comment, info[St.entity_datatype], load)
     return query
@@ -1160,310 +951,6 @@ def specs_2_linkset_id(specs, display=False, activated=False):
 # ALIGNING SUBJECTS USING AN INTERMEDIATE DATASET
 ########################################################################################
 
-# DEPRECATED (TODO TO DELETE)
-def spa_linkset_intermediate_query_2(specs):
-
-    source = specs[St.source]
-    target = specs[St.target]
-
-    # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
-    if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
-        src_rdf_pred = source[St.rdf_predicate] \
-            if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
-    else:
-        src_rdf_pred = "a"
-
-    if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
-        trg_rdf_pred = target[St.rdf_predicate] \
-            if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
-    else:
-        trg_rdf_pred = "a"
-
-    # FORMATTING THE ALIGNS PROPERTY
-    src_aligns = source[St.aligns] \
-        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
-
-    trg_aligns = target[St.aligns] \
-        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
-
-    src_name = specs[St.source][St.graph_name]
-    src_uri = specs[St.source][St.graph]
-    # src_aligns = specs[St.source][St.aligns]
-
-    trg_name = specs[St.target][St.graph_name]
-    trg_uri = specs[St.target][St.graph]
-    # trg_aligns = specs[St.target][St.aligns]
-
-    """
-        NAMESPACE
-    """
-    prefix = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}".format(
-        "##################################################################",
-        "### Linking {{{}}} to {{{}}} based on exact name".format(source[St.graph_name], target[St.graph_name]),
-        "##################################################################",
-        "prefix dataset:    <{}>".format(Ns.dataset),
-        "prefix linkset:    <{}>".format(Ns.linkset),
-        "prefix singleton:  <{}>".format(Ns.singletons),
-        "prefix alivocab:   <{}>".format(Ns.alivocab),
-        "prefix tmpgraph:   <{}>".format(Ns.tmpgraph),
-        "prefix tmpvocab:   <{}>".format(Ns.tmpvocab))
-
-    query01 = """
-    DROP SILENT GRAPH <{0}load00> ;
-    DROP SILENT GRAPH <{0}load01> ;
-    DROP SILENT GRAPH <{0}load02> ;
-    DROP SILENT GRAPH <{1}{2}>
-    """.format(Ns.tmpgraph, Ns.singletons, specs[St.linkset_name])
-
-    query02 = prefix + """
-    ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
-    INSERT
-    {{
-        GRAPH <{0}load00>
-        {{
-            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1}_1 <{8}relatesTo1> ?src_value .
-        }}
-        GRAPH <{0}load01>
-        {{
-            ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3}_2 <{8}relatesTo3> ?trg_value .
-        }}
-    }}
-    WHERE
-    {{
-        ### SOURCE DATASET
-        graph <{6}>
-        {{
-            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-            ?{1}_1 {10} <{12}> .
-            ?{1}_1 {2} ?value_1 .
-            bind (lcase(str(?value_1)) as ?src_value)
-        }}
-        ### TARGET DATASET
-        graph <{7}>
-        {{
-            ### TARGET DATASET AND ITS ALIGNED PREDICATE
-            ?{3}_2 {11} <{13}> .
-            ?{3}_2 {4} ?value_2 .
-            bind (lcase(str(?value_2)) as ?trg_value)
-        }}
-    }} ;
-
-    ### 2. FINDING CANDIDATE MATCH
-    INSERT
-    {{
-        ### MATCH FOUND
-        GRAPH <{0}load02>
-        {{
-            ?{1}_1 <{8}relatesTo> ?{3}_2 .
-        }}
-    }}
-    WHERE
-    {{
-        ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-        GRAPH <{0}load00>
-        {{
-            ?{1}_1 <{8}relatesTo1> ?src_value .
-        }}
-        GRAPH <{0}load01>
-        {{
-            ?{3}_2 <{8}relatesTo3> ?trg_value .
-        }}
-        ### INTERMEDIATE DATASET VIA URI
-        graph <{9}>
-        {{
-            ?intermediate_uri
-                ?intPred_1 ?value_3 ;
-                ?intPred_2 ?value_4 .
-            bind (lcase(?value_3) as ?src_value)
-            bind (lcase(?value_4) as ?trg_value)
-        }}
-    }}
-    """.format(
-        # 0          1         2           3         4
-        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
-        # 5                6        7        8            9
-        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
-        # 10          11            12                          13
-        src_rdf_pred, trg_rdf_pred, source[St.entity_datatype], target[St.entity_datatype]
-    )
-
-    query03 = prefix + """
-    ### 3. CREATING THE CORRESPONDENCES
-    INSERT
-    {{
-        GRAPH <{5}>
-        {{
-            ?{1}_1 ?newSingletons  ?{3}_2 .
-        }}
-        ### SINGLETONS' METADATA
-        GRAPH <{10}{11}>
-        {{
-            ?newSingletons
-                rdf:singletonPropertyOf     alivocab:{8}{9} ;
-                alivocab:hasStrength        1 ;
-                alivocab:hasEvidence        ?evidence .
-        }}
-    }}
-    WHERE
-    {{
-        ### MATCH FOUND
-        GRAPH <{0}load02>
-        {{
-            ?{1}_1 <{6}relatesTo> ?{3}_2 .
-             bind( iri(replace("{7}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
-        }}
-        {{
-            SELECT ?{1}_1 ?{3}_2 ?evidence
-            {{
-                ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-                GRAPH <{0}load00>
-                {{
-                    ?{1}_1 <{6}relatesTo1> ?src_value .
-                }}
-                GRAPH <{0}load01>
-                {{
-                    ?{3}_2 <{6}relatesTo3> ?trg_value .
-                }}
-                BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
-            }}
-        }}
-    }}
-    """.format(
-        # 0          1         2           3         4           5                  6
-        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns, specs[St.linkset], Ns.tmpvocab,
-        # 7          8                    9                      10             11
-        Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name],
-    )
-    # insert = """
-    # PREFIX alivocab:    <{16}>
-    # PREFIX prov:        <{17}>
-    #
-    # DROP SILENT GRAPH <{0}load01> ;
-    # DROP SILENT GRAPH <{0}load02> ;
-    # DROP SILENT GRAPH <{10}> ;
-    # DROP SILENT GRAPH <{14}{15}> ;
-    #
-    # ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
-    # INSERT
-    # {{
-    #     GRAPH <{0}load01>
-    #     {{
-    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-    #         ?{1} {2} ?src_value .
-    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
-    #         ?{3} {4} ?trg_value .
-    #     }}
-    # }}
-    # WHERE
-    # {{
-    #     ### SOURCE DATASET
-    #     graph <{6}>
-    #     {{
-    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-    #         ?{1} {2} ?value_1 .
-    #         bind (lcase(str(?value_1)) as ?src_value)
-    #     }}
-    #     ### TARGET DATASET
-    #     graph <{7}>
-    #     {{
-    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
-    #         ?{3} {4} ?value_2 .
-    #         bind (lcase(str(?value_2)) as ?trg_value)
-    #     }}
-    # }} ;
-    #
-    # ### 2. FINDING CANDIDATE MATCH
-    # INSERT
-    # {{
-    #     ### MATCH FOUND
-    #     GRAPH <{0}load02>
-    #     {{
-    #         ?{1} <{8}relatesTo> ?{3} .
-    #     }}
-    # }}
-    # WHERE
-    # {{
-    #     ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-    #     GRAPH <{0}load01>
-    #     {{
-    #         ?{1} {2} ?src_value .
-    #         ?{3} {4} ?trg_value .
-    #     }}
-    #     ### INTERMEDIATE DATASET VIA URI
-    #    graph <{9}>
-    #    {{
-    #         ?intermediate_uri
-    #             ?intPred_1 ?value_3 ;
-    #             ?intPred_2 ?value_4 .
-    #         bind (lcase(?value_3) as ?src_value)
-    #         bind (lcase(?value_4) as ?trg_value)
-    #    }}
-    # }} ;
-    #
-    # ### 3. CREATING THE CORRESPONDENCES
-    # INSERT
-    # {{
-    #     GRAPH <{10}>
-    #     {{
-    #         ?{1} ?newSingletons  ?{3} .
-    #     }}
-    #     ### SINGLETONS' METADATA
-    #     GRAPH <{14}{15}>
-    #     {{
-    #         ?newSingletons
-    #             rdf:singletonPropertyOf     alivocab:{12}{13} ;
-    #             alivocab:hasEvidence        ?evidence .
-    #     }}
-    # }}
-    # WHERE
-    # {{
-    #     ### MATCH FOUND
-    #     GRAPH <{0}load02>
-    #     {{
-    #         ?{1} <{8}relatesTo> ?{3} .
-    #          bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
-    #     }}
-    #     {{
-    #         SELECT ?{1} ?{3} ?evidence
-    #         {{
-    #             ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-    #             GRAPH <{0}load01>
-    #             {{
-    #                 ?{1} {2} ?src_value .
-    #                 ?{3} {4} ?trg_value .
-    #                 BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
-    #             }}
-    #         }}
-    #     }}
-    # }} ;
-    #
-    # DROP GRAPH <{0}load01> ;
-    # DROP GRAPH <{0}load02>
-    # """.format(
-    #     # 0          1         2           3         4
-    #     Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
-    #     # 5                6        7        8            9
-    #     specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
-    #     # 10  11           12                  13
-    #     None, Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
-    #     # 14           15                      16           17
-    #     Ns.singletons, specs[St.linkset_name], Ns.alivocab, Ns.prov
-    # )
-
-    query04 = """
-    DROP SILENT GRAPH <{0}load00> ;
-    DROP SILENT GRAPH <{0}load01> ;
-    DROP SILENT GRAPH <{0}load02>
-    """.format(Ns.tmpgraph)
-
-    # print insert
-    # return insert
-    # print query01, query02, query03, query04
-    queries = [query01, query02, query03, query04]
-    return queries
-
 
 def spa_linkset_intermediate_query(specs):
 
@@ -1807,7 +1294,7 @@ def spa_linkset_intermediate_query(specs):
     WHERE
     {{
         ### MATCH FOUND
-        GRAPH <{0}load02>
+        GRAPH <{0}load_{11}_02>
         {{
             ?{1}_1 <{6}relatesTo> ?intermediate_uri .
             ?intermediate_uri <{6}relatesTo> ?{3}_2 .
@@ -2007,286 +1494,6 @@ def specs_2_linkset_intermediate(specs, display=False, activated=False):
         print Ec.ERROR_CODE_1
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
 
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# NUMERICAL APPROXIMATION NOT USED
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-# def insert_query_numeric_reduce(specs):
-#
-#     # UPDATE THE SPECS OF SOURCE AND TARGETS
-#     # update_specification(specs[St.source])
-#     # update_specification(specs[St.target])
-#     # Ls.set_linkset_name(specs)
-#     # source = specs[St.source]
-#     # target = specs[St.target]
-#
-#     prefix = """
-#     prefix dataset:    <{}>
-#     prefix linkset:    <{}>
-#     prefix singleton:  <{}>
-#     prefix alivocab:   <{}>
-#     prefix tmpgraph:   <{}>
-#     prefix tmpvocab:   <{}>
-#     """.format(Ns.dataset, Ns.linkset, Ns.singletons, Ns.alivocab, Ns.tmpgraph, Ns.tmpvocab)
-#
-#     drop_q1 = """
-#     DROP SILENT GRAPH <{0}load_{3}_1> ;
-#     DROP SILENT GRAPH <{0}load_{3}_2> ;
-#     DROP SILENT GRAPH <{0}load_{3}_3> ;
-#     DROP SILENT GRAPH <{1}> ;
-#     DROP SILENT GRAPH <{2}{3}>
-#     """.format(Ns.tmpgraph, specs[St.linkset], Ns.singletons, specs[St.linkset_name])
-#
-#     drop_q2 = """
-#     #DROP SILENT GRAPH <{0}load_{1}_1> ;
-#     #DROP SILENT GRAPH <{0}load_{1}_2> ;
-#     DROP SILENT GRAPH <{0}load_{1}_3>
-#     """.format(Ns.tmpgraph, specs[St.linkset_name])
-#
-#     source_extract = extract_query(specs, is_source=True)
-#     target_extract = extract_query(specs, is_source=False)
-#     match = match_numeric_query(specs)
-#
-#     query_1 = drop_q1
-#     query_2 = prefix + source_extract + target_extract + match[0]
-#     query_3 = prefix + match[1]
-#     query_4 = drop_q2
-#     print query_1
-#     print query_2
-#     print query_3
-#     print query_4
-#     return [query_1, query_2, query_3, query_4]
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# PRE-MATCHED NOT USED
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-
-# def pred_match(dataset_list):
-#
-#     def helper1(index, predicate, obj):
-#         sparql_query = "?{} <{}> ?{} .".format(index, predicate, obj)
-#         return [" ?{}".format(obj), sparql_query, ]
-#
-#     def helper2(graph_uri, triple_lines):
-#         sparql_query = """
-#     GRAPH <{}>
-#     {{
-#         {}
-#     }}""".format(graph_uri, triple_lines)
-#         return sparql_query
-#
-#     pred_count = 0
-#     dataset_dict = dict()
-#     if type(dataset_list) is list:
-#         # For each dataset, gather its predicates
-#         for dataset in dataset_list:
-#             predicates = Qry.get_properties(dataset)
-#             # Load it into the dictionary
-#             if predicates is not None:
-#                 # going through the predicates
-#                 for i in range(1, len(predicates)):
-#                     if predicates[i][0] != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
-#                         local_name = Ut.get_uri_local_name(predicates[i][0])
-#
-#                         # Insert a new key
-#                         if local_name not in dataset_dict:
-#                             pred_count += 1
-#                             temp_dict = dict()
-#                             temp_dict[pred_count] = [dataset, predicates[i][0]]
-#                             dataset_dict[local_name] = temp_dict
-#
-#                         # we found a match in property name
-#                         else:
-#                             pred_count += 1
-#                             curr_dict = dataset_dict[local_name]
-#                             curr_dict[pred_count] = [dataset, predicates[i][0]]
-#
-#     # Write the SPARQL query for checking whether there is an actual match
-#     query = "SELECT DISTINCT"
-#     sub_query = ""
-#     group = dict()
-#     pre_dict = dict()
-#     for pred, data in dataset_dict.items():
-#
-#         if len(data) > 1:
-#             for key, value in data.items():
-#                 dataset = value[0]
-#                 prd = value[1]
-#                 dataset_name = Ut.get_uri_local_name(dataset)
-#
-#                 if dataset not in group:
-#                     line = helper1(dataset_name, prd, pred)
-#                     group[dataset] = line[1]
-#                     if line[0] not in pre_dict:
-#                         pre_dict[line[0]] = pred
-#
-#                 else:
-#                     line = helper1(dataset_name, prd, pred)
-#                     group[dataset] += "\n\t\t{}".format(line[1])
-#                     if line[0] not in pre_dict:
-#                         pre_dict[line[0]] = pred
-#
-#                 # print group[dataset]
-#     for key in pre_dict:
-#         query += " {}".format(key)
-#     for graph, triples in group.items():
-#         sub_query += helper2(graph, triples)
-#     #             result = helper(key, value[0], value[1])
-#     #             sub_query += result[1]
-#     #             query += result[0]
-#
-#     query = "{}\n{{{}\n}}".format(query, sub_query)
-#     response = Qry.sparql_xml_to_matrix(query)
-#     print query
-#     if response is None:
-#         print "No match"
-
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-# INSERT QUERY NOT USED
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-
-# def insert_query_reduce2(specs):
-#     # UPDATE THE SPECS OF SOURCE AND TARGETS
-#
-#     update_specification(specs[St.source])
-#     update_specification(specs[St.target])
-#     Ls.set_linkset_name(specs)
-#
-#     source = specs[St.source]
-#     target = specs[St.target]
-#
-#     # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
-#     if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
-#         src_rdf_pred = source[St.rdf_predicate] \
-#             if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
-#     else:
-#         src_rdf_pred = "a"
-#
-#     if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
-#         trg_rdf_pred = target[St.rdf_predicate] \
-#             if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
-#     else:
-#         trg_rdf_pred = "a"
-#
-#     # FORMATTING THE ALIGNS PROPERTY
-#     src_aligns = source[St.aligns] \
-#         if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
-#
-#     trg_aligns = target[St.aligns] \
-#         if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
-#
-#     src_name = source[St.graph_name]
-#     src_uri = source[St.graph]
-#
-#     trg_name = specs[St.target][St.graph_name]
-#     trg_uri = specs[St.target][St.graph]
-#
-#     prefix = """
-#     prefix dataset:    <{}>
-#     prefix linkset:    <{}>
-#     prefix singleton:  <{}>
-#     prefix alivocab:   <{}>
-#     prefix tmpgraph:   <{}>
-#     prefix tmpvocab:   <{}>
-#     """.format(Ns.dataset, Ns.linkset, Ns.singletons, Ns.alivocab, Ns.tmpgraph, Ns.tmpvocab)
-#
-#     drop_q1 = """
-#     DROP SILENT GRAPH <{0}load00> ;
-#     DROP SILENT GRAPH <{0}load01> ;
-#     DROP SILENT GRAPH <{0}load02> ;
-#     DROP SILENT GRAPH <{1}> ;
-#     DROP SILENT GRAPH <{2}{3}> ;
-#     """.format(Ns.tmpgraph, specs[St.linkset], Ns.singletons, specs[St.linkset_name])
-#
-#     drop_q2 = """
-#     DROP SILENT GRAPH <{0}load00> ;
-#     DROP SILENT GRAPH <{0}load01> ;
-#     DROP SILENT GRAPH <{0}load02>
-#     """.format(Ns.tmpgraph)
-#
-#     if St.reducer not in source:
-#         src_reducer_comment = "#"
-#         src_reducer = ""
-#     else:
-#         src_reducer_comment = ""
-#         src_reducer = source[St.reducer]
-#
-#     source_q = """
-#     INSERT
-#     {{
-#         GRAPH <{0}load00>
-#         {{
-#             ?{5}  {3}  ?label .
-#         }}
-#     }}
-#     WHERE
-#     {{
-#         GRAPH <{1}>
-#         {{
-#             ?{5}  {2}  ?<{7}> .
-#             ?{5}  {3}  ?object .
-#             BIND(lcase(str(?object)) as ?label)
-#         }}
-#
-#         {6}FILTER NOT EXISTS
-#         {6}{{
-#         {6}    GRAPH <{4}>
-#         {6}    {{
-#         {6}        {{ ?{5}   ?pred   ?obj . }}
-#         {6}        UNION
-#         {6}        {{ ?obj   ?pred   ?{5}. }}
-#         {6}    }}
-#         {6}}}
-#     }} ;
-#     """.format(Ns.tmpgraph, src_uri, src_rdf_pred, src_aligns,
-#                src_reducer, src_name, src_reducer_comment, source[St.entity_datatype])
-#
-#     if St.reducer not in target:
-#         trg_reducer_comment = "#"
-#         trg_reducer = ""
-#     else:
-#         trg_reducer_comment = ""
-#         trg_reducer = target[St.reducer]
-#
-#     target_q = """
-#     INSERT
-#     {{
-#         GRAPH <{0}load01>
-#         {{
-#             ?{5}  {3}  ?label .
-#         }}
-#     }}
-#     WHERE
-#     {{
-#         GRAPH <{1}>
-#         {{
-#             ?{5}  {2}  ?<{7}> .
-#             ?{5}  {3}  ?object .
-#             BIND(lcase(str(?object)) as ?label)
-#         }}
-#
-#         {6}FILTER NOT EXISTS
-#         {6}{{
-#         {6}  GRAPH <{4}>
-#         {6}  {{
-#         {6}    {{ ?{5}   ?pred   ?obj . }}
-#         {6}    UNION
-#         {6}    {{ ?obj   ?pred   ?{5} . }}
-#         {6}  }}
-#         {6}}}
-#     }} ;
-#     """.format(Ns.tmpgraph, trg_uri, trg_rdf_pred, trg_aligns,
-#                trg_reducer, trg_name, trg_reducer_comment, target[St.entity_datatype])
-#
-#     query = prefix + drop_q1 + source_q + target_q + drop_q2
-#     print query
-#     return query
-#
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
     LINKSET FROM CLUSTERS
@@ -2620,6 +1827,802 @@ def geo_specs_2_linkset(specs, activated=False):
     else:
         print Ec.ERROR_CODE_1
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# NUMERICAL APPROXIMATION NOT USED
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+# DEPRECATED (TODO TO DELETE)
+def spa_linkset_intermediate_query_2(specs):
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
+    if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
+        src_rdf_pred = source[St.rdf_predicate] \
+            if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
+    else:
+        src_rdf_pred = "a"
+
+    if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
+        trg_rdf_pred = target[St.rdf_predicate] \
+            if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
+    else:
+        trg_rdf_pred = "a"
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns] \
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns] \
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
+    src_name = specs[St.source][St.graph_name]
+    src_uri = specs[St.source][St.graph]
+    # src_aligns = specs[St.source][St.aligns]
+
+    trg_name = specs[St.target][St.graph_name]
+    trg_uri = specs[St.target][St.graph]
+    # trg_aligns = specs[St.target][St.aligns]
+
+    """
+        NAMESPACE
+    """
+    prefix = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}".format(
+        "##################################################################",
+        "### Linking {{{}}} to {{{}}} based on exact name".format(source[St.graph_name], target[St.graph_name]),
+        "##################################################################",
+        "prefix dataset:    <{}>".format(Ns.dataset),
+        "prefix linkset:    <{}>".format(Ns.linkset),
+        "prefix singleton:  <{}>".format(Ns.singletons),
+        "prefix alivocab:   <{}>".format(Ns.alivocab),
+        "prefix tmpgraph:   <{}>".format(Ns.tmpgraph),
+        "prefix tmpvocab:   <{}>".format(Ns.tmpvocab))
+
+    query01 = """
+    DROP SILENT GRAPH <{0}load00> ;
+    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load02> ;
+    DROP SILENT GRAPH <{1}{2}>
+    """.format(Ns.tmpgraph, Ns.singletons, specs[St.linkset_name])
+
+    query02 = prefix + """
+    ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
+    INSERT
+    {{
+        GRAPH <{0}load00>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1}_1 <{8}relatesTo1> ?src_value .
+        }}
+        GRAPH <{0}load01>
+        {{
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3}_2 <{8}relatesTo3> ?trg_value .
+        }}
+    }}
+    WHERE
+    {{
+        ### SOURCE DATASET
+        graph <{6}>
+        {{
+            ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+            ?{1}_1 {10} <{12}> .
+            ?{1}_1 {2} ?value_1 .
+            bind (lcase(str(?value_1)) as ?src_value)
+        }}
+        ### TARGET DATASET
+        graph <{7}>
+        {{
+            ### TARGET DATASET AND ITS ALIGNED PREDICATE
+            ?{3}_2 {11} <{13}> .
+            ?{3}_2 {4} ?value_2 .
+            bind (lcase(str(?value_2)) as ?trg_value)
+        }}
+    }} ;
+
+    ### 2. FINDING CANDIDATE MATCH
+    INSERT
+    {{
+        ### MATCH FOUND
+        GRAPH <{0}load02>
+        {{
+            ?{1}_1 <{8}relatesTo> ?{3}_2 .
+        }}
+    }}
+    WHERE
+    {{
+        ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+        GRAPH <{0}load00>
+        {{
+            ?{1}_1 <{8}relatesTo1> ?src_value .
+        }}
+        GRAPH <{0}load01>
+        {{
+            ?{3}_2 <{8}relatesTo3> ?trg_value .
+        }}
+        ### INTERMEDIATE DATASET VIA URI
+        graph <{9}>
+        {{
+            ?intermediate_uri
+                ?intPred_1 ?value_3 ;
+                ?intPred_2 ?value_4 .
+            bind (lcase(?value_3) as ?src_value)
+            bind (lcase(?value_4) as ?trg_value)
+        }}
+    }}
+    """.format(
+        # 0          1         2           3         4
+        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
+        # 5                6        7        8            9
+        specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
+        # 10          11            12                          13
+        src_rdf_pred, trg_rdf_pred, source[St.entity_datatype], target[St.entity_datatype]
+    )
+
+    query03 = prefix + """
+    ### 3. CREATING THE CORRESPONDENCES
+    INSERT
+    {{
+        GRAPH <{5}>
+        {{
+            ?{1}_1 ?newSingletons  ?{3}_2 .
+        }}
+        ### SINGLETONS' METADATA
+        GRAPH <{10}{11}>
+        {{
+            ?newSingletons
+                rdf:singletonPropertyOf     alivocab:{8}{9} ;
+                alivocab:hasStrength        1 ;
+                alivocab:hasEvidence        ?evidence .
+        }}
+    }}
+    WHERE
+    {{
+        ### MATCH FOUND
+        GRAPH <{0}load02>
+        {{
+            ?{1}_1 <{6}relatesTo> ?{3}_2 .
+             bind( iri(replace("{7}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+        }}
+        {{
+            SELECT ?{1}_1 ?{3}_2 ?evidence
+            {{
+                ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+                GRAPH <{0}load00>
+                {{
+                    ?{1}_1 <{6}relatesTo1> ?src_value .
+                }}
+                GRAPH <{0}load01>
+                {{
+                    ?{3}_2 <{6}relatesTo3> ?trg_value .
+                }}
+                BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
+            }}
+        }}
+    }}
+    """.format(
+        # 0          1         2           3         4           5                  6
+        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns, specs[St.linkset], Ns.tmpvocab,
+        # 7          8                    9                      10             11
+        Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name],
+    )
+    # insert = """
+    # PREFIX alivocab:    <{16}>
+    # PREFIX prov:        <{17}>
+    #
+    # DROP SILENT GRAPH <{0}load01> ;
+    # DROP SILENT GRAPH <{0}load02> ;
+    # DROP SILENT GRAPH <{10}> ;
+    # DROP SILENT GRAPH <{14}{15}> ;
+    #
+    # ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
+    # INSERT
+    # {{
+    #     GRAPH <{0}load01>
+    #     {{
+    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+    #         ?{1} {2} ?src_value .
+    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
+    #         ?{3} {4} ?trg_value .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### SOURCE DATASET
+    #     graph <{6}>
+    #     {{
+    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
+    #         ?{1} {2} ?value_1 .
+    #         bind (lcase(str(?value_1)) as ?src_value)
+    #     }}
+    #     ### TARGET DATASET
+    #     graph <{7}>
+    #     {{
+    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
+    #         ?{3} {4} ?value_2 .
+    #         bind (lcase(str(?value_2)) as ?trg_value)
+    #     }}
+    # }} ;
+    #
+    # ### 2. FINDING CANDIDATE MATCH
+    # INSERT
+    # {{
+    #     ### MATCH FOUND
+    #     GRAPH <{0}load02>
+    #     {{
+    #         ?{1} <{8}relatesTo> ?{3} .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+    #     GRAPH <{0}load01>
+    #     {{
+    #         ?{1} {2} ?src_value .
+    #         ?{3} {4} ?trg_value .
+    #     }}
+    #     ### INTERMEDIATE DATASET VIA URI
+    #    graph <{9}>
+    #    {{
+    #         ?intermediate_uri
+    #             ?intPred_1 ?value_3 ;
+    #             ?intPred_2 ?value_4 .
+    #         bind (lcase(?value_3) as ?src_value)
+    #         bind (lcase(?value_4) as ?trg_value)
+    #    }}
+    # }} ;
+    #
+    # ### 3. CREATING THE CORRESPONDENCES
+    # INSERT
+    # {{
+    #     GRAPH <{10}>
+    #     {{
+    #         ?{1} ?newSingletons  ?{3} .
+    #     }}
+    #     ### SINGLETONS' METADATA
+    #     GRAPH <{14}{15}>
+    #     {{
+    #         ?newSingletons
+    #             rdf:singletonPropertyOf     alivocab:{12}{13} ;
+    #             alivocab:hasEvidence        ?evidence .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### MATCH FOUND
+    #     GRAPH <{0}load02>
+    #     {{
+    #         ?{1} <{8}relatesTo> ?{3} .
+    #          bind( iri(replace("{11}{12}{13}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+    #     }}
+    #     {{
+    #         SELECT ?{1} ?{3} ?evidence
+    #         {{
+    #             ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+    #             GRAPH <{0}load01>
+    #             {{
+    #                 ?{1} {2} ?src_value .
+    #                 ?{3} {4} ?trg_value .
+    #                 BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
+    #             }}
+    #         }}
+    #     }}
+    # }} ;
+    #
+    # DROP GRAPH <{0}load01> ;
+    # DROP GRAPH <{0}load02>
+    # """.format(
+    #     # 0          1         2           3         4
+    #     Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns,
+    #     # 5                6        7        8            9
+    #     specs[St.linkset], src_uri, trg_uri, Ns.tmpvocab, specs[St.intermediate_graph],
+    #     # 10  11           12                  13
+    #     None, Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount],
+    #     # 14           15                      16           17
+    #     Ns.singletons, specs[St.linkset_name], Ns.alivocab, Ns.prov
+    # )
+
+    query04 = """
+    DROP SILENT GRAPH <{0}load00> ;
+    DROP SILENT GRAPH <{0}load01> ;
+    DROP SILENT GRAPH <{0}load02>
+    """.format(Ns.tmpgraph)
+
+    # print insert
+    # return insert
+    # print query01, query02, query03, query04
+    queries = [query01, query02, query03, query04]
+    return queries
+
+
+# TODO IT HAS BEEN REPLACED BY insert_query_reduce FOR EFFICIENCY
+def spa_linkset_ess_query(specs):
+    # Single Predicate Alignment with Exact String Similarity
+    source = specs[St.source]
+    target = specs[St.target]
+
+    """
+        NAMESPACE
+    """
+    prefix = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}".format(
+        "##################################################################",
+        "### Linking {{{}}} to {{{}}} based on exact name".format(source[St.graph_name], target[St.graph_name]),
+        "##################################################################",
+        "prefix dataset:    <{}>".format(Ns.dataset),
+        "prefix linkset:    <{}>".format(Ns.linkset),
+        "prefix singleton:  <{}>".format(Ns.singletons),
+        "prefix alivocab:   <{}>".format(Ns.alivocab),
+        "prefix tmpgraph:   <{}>".format(Ns.tmpgraph),
+        "prefix tmpvocab:   <{}>".format(Ns.tmpvocab))
+    '''
+        DROPPING GRAPHS
+    '''
+    drop_tmp = "DROP SILENT GRAPH tmpgraph:load"
+    drop_tmp00 = "DROP SILENT GRAPH tmpgraph:load00"
+    drop_tmp01 = "DROP SILENT GRAPH tmpgraph:load01"
+    # drop_ls = "DROP SILENT GRAPH linkset:{}_{}_ExactName".format(src_dataset_name, trg_dataset_name)
+    # drop_metadata = "DROP SILENT GRAPH lsMetadata:{}_{}_ExactName_metadata".format(src_dataset_name, trg_dataset_name)
+
+    drop_ls = "DROP SILENT GRAPH linkset:{}".format(specs[St.linkset_name])
+    drop_metadata = "DROP SILENT GRAPH singleton:{}".format(specs[St.linkset_name])
+
+    '''
+        LOADING SOURCE TO TEMPORARY GRAPH tmpgraph:load00
+    '''
+
+    # FORMATTING THE ALIGNS PROPERTY
+    src_aligns = source[St.aligns]\
+        if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+
+    trg_aligns = target[St.aligns]\
+        if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+
+    # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
+    if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
+        src_rdf_pred = source[St.rdf_predicate]\
+            if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
+    else:
+        src_rdf_pred = "a"
+
+    if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
+        trg_rdf_pred = target[St.rdf_predicate] \
+            if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
+    else:
+        trg_rdf_pred = "a"
+
+    load_temp00 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
+        format("\tINSERT",
+               "\t{",
+               "\t  GRAPH tmpgraph:load00",
+               "\t  {",
+               "\t    ?source alivocab:hasProperty ?label .",
+               "\t  }",
+               "\t}",
+
+               "\tWHERE",
+               "\t{",
+               "\t  ### Selecting source data instances based on name",
+               "\t  GRAPH <{}>".format(source[St.graph]),
+               "\t  {",
+               "\t    ?source {} <{}> .".format(src_rdf_pred, source[St.entity_datatype]),
+               "\t    ?source {} ?aLabel .".format(src_aligns),
+               "\t    BIND(lcase(str(?aLabel)) as ?label)",
+               "\t  }",
+               "\t}")
+
+    '''
+        LOADING TARGET TO TEMPORARY GRAPH tmpgraph:load01
+    '''
+    load_temp01 = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
+        format("\tINSERT",
+               "\t{",
+               "\t  GRAPH tmpgraph:load01",
+               "\t  {",
+               "\t    ?target alivocab:hasProperty  ?label .",
+               "\t  }",
+               "\t}",
+
+               "\tWHERE",
+               "\t{",
+               "\t  ### Selecting target data instances based on exact name",
+               "\t  graph <{}>".format(target[St.graph]),
+               "\t  {",
+               "\t    ?target {} <{}> .".format(trg_rdf_pred, target[St.entity_datatype]),
+               "\t    ?target {}  ?bLabel .".format(trg_aligns),
+               "\t    BIND(lcase(str(?bLabel)) as ?label)",
+               "\t  }",
+               "\t}")
+
+    '''
+        LOADING CORRESPONDENCE TO TEMPORARY GRAPH tmpgraph:load
+    '''
+    load_temp = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
+        format("\tINSERT",
+               "\t{",
+               "\t  GRAPH tmpgraph:load",
+               "\t  {",
+               "\t    ?source tmpvocab:exactName ?target ;",
+               "\t            tmpvocab:evidence  ?label .",
+               "\t  }",
+               "\t}",
+               # Load
+               "\tWHERE",
+               "\t{",
+               "\t  ### Selecting source data instances based on name",
+               "\t  GRAPH tmpgraph:load00",
+               "\t  {",
+               "\t    ?source alivocab:hasProperty ?label .",
+               "\t  }",
+
+               "\t  ### Selecting target data instances based on exact name",
+               "\t  graph tmpgraph:load01",
+               "\t  {",
+               "\t    ?target alivocab:hasProperty  ?label .",
+               "\t  }",
+
+               "\t}", )
+
+    '''
+        CREATING THE LINKSET & METADATA GRAPHS lsMetadata
+    '''
+    load_linkset = "{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+                   "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
+        format("\tINSERT",
+               "\t{",
+               "\t  GRAPH linkset:{}".format(specs[St.linkset_name]),
+               "\t  {",
+               "\t    ### Correspondence triple with singleton",
+               "\t    ?source ?singPre ?target.",
+               "\t  }",
+
+               "\t  GRAPH singleton:{}".format(specs[St.linkset_name]),
+               "\t  {",
+               "\t    ### Singleton metadata",
+               "\t    ?singPre rdf:singletonPropertyOf     alivocab:exactStrSim{} ;".format(specs[St.sameAsCount]),
+               "\t             alivocab:hasEvidence        ?label .",
+               "\t  }",
+
+               "\t}",
+               "\tWHERE",
+               "\t{",
+               "\t  ### Selecting from tmpgraph:load",
+               "\t  GRAPH tmpgraph:load",
+               "\t  {",
+               "\t    ?source tmpvocab:exactName ?target ;",
+               "\t            tmpvocab:evidence  ?label .",
+               "\t            ",
+               "\t    ### Create A SINGLETON URI",
+               "\t    BIND( replace(\"{}{}{}_#\",\"#\",".format(
+                   Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount]),
+               "\t        STRAFTER(str(UUID()),\"uuid:\")) as ?pre )",
+               "\t    BIND(iri(?pre) as ?singPre)",
+               "\t  }",
+               "\t}")
+
+    '''
+        PUTTING IT ALL TOGETHER
+    '''
+    query01 = "{}\n\n{}\n\t{} ;\n\n{}\n\t{} ;\n\n{}\n\t{} ;\n\n{}\n{} ;\n\n{}\n\t{}".format(
+        prefix,
+        "### 1.0 DROP temporary graph",
+        drop_tmp,
+        "### 1.1 DROP SOURCE temporary graph 00",
+        drop_tmp00,
+        "### 1.2 DROP TARGET temporary graph 01",
+        drop_tmp01,
+        "### 1.3 DROP LINKSET graph",
+        drop_ls,
+        "### 1.4 DROP METADATA graph",
+        drop_metadata
+    )
+
+    query02 = "{}\n\n{}\n{} ;\n\n{}\n{} ;\n\n{}\n{} ".format(
+        prefix,
+        "### 2.0 INSERT SOURCE into tmpgraph:load00",
+        load_temp00,
+        "### 2.1 INSERT TARGET into tmpgraph:load01",
+        load_temp01,
+        "### 2.3 INSERT CORRESPONDENCE [match] into tmpgraph:load",
+        load_temp,
+    )
+
+    query03 = "{}\n\n{}\n{}".format(
+        prefix,
+        "### 3.0 CREATING AND LOADING THE LINKSET AND ITS METADATA",
+        load_linkset,
+    )
+
+    query04 = "{}\n\n{}\n\t{} ;\n\t{} ;\n\t{}".format(
+        prefix,
+        "### 4.0 DROP temporary graphs",
+        drop_tmp00,
+        drop_tmp01,
+        drop_tmp
+    )
+    # print query01, query02, query03, query04
+    queries = [query01, query02, query03, query04]
+    return queries
+
+# def insert_query_numeric_reduce(specs):
+#
+#     # UPDATE THE SPECS OF SOURCE AND TARGETS
+#     # update_specification(specs[St.source])
+#     # update_specification(specs[St.target])
+#     # Ls.set_linkset_name(specs)
+#     # source = specs[St.source]
+#     # target = specs[St.target]
+#
+#     prefix = """
+#     prefix dataset:    <{}>
+#     prefix linkset:    <{}>
+#     prefix singleton:  <{}>
+#     prefix alivocab:   <{}>
+#     prefix tmpgraph:   <{}>
+#     prefix tmpvocab:   <{}>
+#     """.format(Ns.dataset, Ns.linkset, Ns.singletons, Ns.alivocab, Ns.tmpgraph, Ns.tmpvocab)
+#
+#     drop_q1 = """
+#     DROP SILENT GRAPH <{0}load_{3}_1> ;
+#     DROP SILENT GRAPH <{0}load_{3}_2> ;
+#     DROP SILENT GRAPH <{0}load_{3}_3> ;
+#     DROP SILENT GRAPH <{1}> ;
+#     DROP SILENT GRAPH <{2}{3}>
+#     """.format(Ns.tmpgraph, specs[St.linkset], Ns.singletons, specs[St.linkset_name])
+#
+#     drop_q2 = """
+#     #DROP SILENT GRAPH <{0}load_{1}_1> ;
+#     #DROP SILENT GRAPH <{0}load_{1}_2> ;
+#     DROP SILENT GRAPH <{0}load_{1}_3>
+#     """.format(Ns.tmpgraph, specs[St.linkset_name])
+#
+#     source_extract = extract_query(specs, is_source=True)
+#     target_extract = extract_query(specs, is_source=False)
+#     match = match_numeric_query(specs)
+#
+#     query_1 = drop_q1
+#     query_2 = prefix + source_extract + target_extract + match[0]
+#     query_3 = prefix + match[1]
+#     query_4 = drop_q2
+#     print query_1
+#     print query_2
+#     print query_3
+#     print query_4
+#     return [query_1, query_2, query_3, query_4]
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# PRE-MATCHED NOT USED
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
+# def pred_match(dataset_list):
+#
+#     def helper1(index, predicate, obj):
+#         sparql_query = "?{} <{}> ?{} .".format(index, predicate, obj)
+#         return [" ?{}".format(obj), sparql_query, ]
+#
+#     def helper2(graph_uri, triple_lines):
+#         sparql_query = """
+#     GRAPH <{}>
+#     {{
+#         {}
+#     }}""".format(graph_uri, triple_lines)
+#         return sparql_query
+#
+#     pred_count = 0
+#     dataset_dict = dict()
+#     if type(dataset_list) is list:
+#         # For each dataset, gather its predicates
+#         for dataset in dataset_list:
+#             predicates = Qry.get_properties(dataset)
+#             # Load it into the dictionary
+#             if predicates is not None:
+#                 # going through the predicates
+#                 for i in range(1, len(predicates)):
+#                     if predicates[i][0] != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
+#                         local_name = Ut.get_uri_local_name(predicates[i][0])
+#
+#                         # Insert a new key
+#                         if local_name not in dataset_dict:
+#                             pred_count += 1
+#                             temp_dict = dict()
+#                             temp_dict[pred_count] = [dataset, predicates[i][0]]
+#                             dataset_dict[local_name] = temp_dict
+#
+#                         # we found a match in property name
+#                         else:
+#                             pred_count += 1
+#                             curr_dict = dataset_dict[local_name]
+#                             curr_dict[pred_count] = [dataset, predicates[i][0]]
+#
+#     # Write the SPARQL query for checking whether there is an actual match
+#     query = "SELECT DISTINCT"
+#     sub_query = ""
+#     group = dict()
+#     pre_dict = dict()
+#     for pred, data in dataset_dict.items():
+#
+#         if len(data) > 1:
+#             for key, value in data.items():
+#                 dataset = value[0]
+#                 prd = value[1]
+#                 dataset_name = Ut.get_uri_local_name(dataset)
+#
+#                 if dataset not in group:
+#                     line = helper1(dataset_name, prd, pred)
+#                     group[dataset] = line[1]
+#                     if line[0] not in pre_dict:
+#                         pre_dict[line[0]] = pred
+#
+#                 else:
+#                     line = helper1(dataset_name, prd, pred)
+#                     group[dataset] += "\n\t\t{}".format(line[1])
+#                     if line[0] not in pre_dict:
+#                         pre_dict[line[0]] = pred
+#
+#                 # print group[dataset]
+#     for key in pre_dict:
+#         query += " {}".format(key)
+#     for graph, triples in group.items():
+#         sub_query += helper2(graph, triples)
+#     #             result = helper(key, value[0], value[1])
+#     #             sub_query += result[1]
+#     #             query += result[0]
+#
+#     query = "{}\n{{{}\n}}".format(query, sub_query)
+#     response = Qry.sparql_xml_to_matrix(query)
+#     print query
+#     if response is None:
+#         print "No match"
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# INSERT QUERY NOT USED
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
+# def insert_query_reduce2(specs):
+#     # UPDATE THE SPECS OF SOURCE AND TARGETS
+#
+#     update_specification(specs[St.source])
+#     update_specification(specs[St.target])
+#     Ls.set_linkset_name(specs)
+#
+#     source = specs[St.source]
+#     target = specs[St.target]
+#
+#     # REPLACE RDF TYPE "a" IN CASE ANOTHER TYPE IS PROVIDED
+#     if St.rdf_predicate in source and source[St.rdf_predicate] is not None:
+#         src_rdf_pred = source[St.rdf_predicate] \
+#             if Ls.nt_format(source[St.rdf_predicate]) else "<{}>".format(source[St.rdf_predicate])
+#     else:
+#         src_rdf_pred = "a"
+#
+#     if St.rdf_predicate in target and target[St.rdf_predicate] is not None:
+#         trg_rdf_pred = target[St.rdf_predicate] \
+#             if Ls.nt_format(target[St.rdf_predicate]) else "<{}>".format(target[St.rdf_predicate])
+#     else:
+#         trg_rdf_pred = "a"
+#
+#     # FORMATTING THE ALIGNS PROPERTY
+#     src_aligns = source[St.aligns] \
+#         if Ls.nt_format(source[St.aligns]) else "<{}>".format(source[St.aligns])
+#
+#     trg_aligns = target[St.aligns] \
+#         if Ls.nt_format(target[St.aligns]) else "<{}>".format(target[St.aligns])
+#
+#     src_name = source[St.graph_name]
+#     src_uri = source[St.graph]
+#
+#     trg_name = specs[St.target][St.graph_name]
+#     trg_uri = specs[St.target][St.graph]
+#
+#     prefix = """
+#     prefix dataset:    <{}>
+#     prefix linkset:    <{}>
+#     prefix singleton:  <{}>
+#     prefix alivocab:   <{}>
+#     prefix tmpgraph:   <{}>
+#     prefix tmpvocab:   <{}>
+#     """.format(Ns.dataset, Ns.linkset, Ns.singletons, Ns.alivocab, Ns.tmpgraph, Ns.tmpvocab)
+#
+#     drop_q1 = """
+#     DROP SILENT GRAPH <{0}load00> ;
+#     DROP SILENT GRAPH <{0}load01> ;
+#     DROP SILENT GRAPH <{0}load02> ;
+#     DROP SILENT GRAPH <{1}> ;
+#     DROP SILENT GRAPH <{2}{3}> ;
+#     """.format(Ns.tmpgraph, specs[St.linkset], Ns.singletons, specs[St.linkset_name])
+#
+#     drop_q2 = """
+#     DROP SILENT GRAPH <{0}load00> ;
+#     DROP SILENT GRAPH <{0}load01> ;
+#     DROP SILENT GRAPH <{0}load02>
+#     """.format(Ns.tmpgraph)
+#
+#     if St.reducer not in source:
+#         src_reducer_comment = "#"
+#         src_reducer = ""
+#     else:
+#         src_reducer_comment = ""
+#         src_reducer = source[St.reducer]
+#
+#     source_q = """
+#     INSERT
+#     {{
+#         GRAPH <{0}load00>
+#         {{
+#             ?{5}  {3}  ?label .
+#         }}
+#     }}
+#     WHERE
+#     {{
+#         GRAPH <{1}>
+#         {{
+#             ?{5}  {2}  ?<{7}> .
+#             ?{5}  {3}  ?object .
+#             BIND(lcase(str(?object)) as ?label)
+#         }}
+#
+#         {6}FILTER NOT EXISTS
+#         {6}{{
+#         {6}    GRAPH <{4}>
+#         {6}    {{
+#         {6}        {{ ?{5}   ?pred   ?obj . }}
+#         {6}        UNION
+#         {6}        {{ ?obj   ?pred   ?{5}. }}
+#         {6}    }}
+#         {6}}}
+#     }} ;
+#     """.format(Ns.tmpgraph, src_uri, src_rdf_pred, src_aligns,
+#                src_reducer, src_name, src_reducer_comment, source[St.entity_datatype])
+#
+#     if St.reducer not in target:
+#         trg_reducer_comment = "#"
+#         trg_reducer = ""
+#     else:
+#         trg_reducer_comment = ""
+#         trg_reducer = target[St.reducer]
+#
+#     target_q = """
+#     INSERT
+#     {{
+#         GRAPH <{0}load01>
+#         {{
+#             ?{5}  {3}  ?label .
+#         }}
+#     }}
+#     WHERE
+#     {{
+#         GRAPH <{1}>
+#         {{
+#             ?{5}  {2}  ?<{7}> .
+#             ?{5}  {3}  ?object .
+#             BIND(lcase(str(?object)) as ?label)
+#         }}
+#
+#         {6}FILTER NOT EXISTS
+#         {6}{{
+#         {6}  GRAPH <{4}>
+#         {6}  {{
+#         {6}    {{ ?{5}   ?pred   ?obj . }}
+#         {6}    UNION
+#         {6}    {{ ?obj   ?pred   ?{5} . }}
+#         {6}  }}
+#         {6}}}
+#     }} ;
+#     """.format(Ns.tmpgraph, trg_uri, trg_rdf_pred, trg_aligns,
+#                trg_reducer, trg_name, trg_reducer_comment, target[St.entity_datatype])
+#
+#     query = prefix + drop_q1 + source_q + target_q + drop_q2
+#     print query
+#     return query
+#
+
+
 
 
 grid = {

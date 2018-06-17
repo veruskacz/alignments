@@ -751,7 +751,7 @@ def run_checks_cluster(specs, check_type):
 
 def linkset_info(specs, same_as_count):
     info = "{}{}{}{}{}{}". \
-        format("======================================================="
+        format("\n======================================================="
                "=======================================================\n",
                "Results for creating the linkset between {} and {}.\n".format(
                    specs[St.source][St.graph_name], specs[St.target][St.graph_name]),
