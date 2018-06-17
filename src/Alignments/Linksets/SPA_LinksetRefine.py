@@ -484,8 +484,8 @@ def refine_numeric_query(specs):
     PREFIX prov:  <{1}>
     PREFIX tempG: <{2}>
 
-    DROP SILENT GRAPH tempG:load01 ;
-    DROP SILENT GRAPH tempG:load02 ;
+    DROP SILENT GRAPH tempG:load_{5}_01 ;
+    DROP SILENT GRAPH tempG:load_{5}_02 ;
     DROP SILENT GRAPH <{3}> ;
     DROP SILENT GRAPH <{4}{5}> ;
     """.format(
@@ -501,7 +501,7 @@ def refine_numeric_query(specs):
     ### 1. LOADING SOURCE TO A TEMPORARY GRAPH
     INSERT
     {{
-        GRAPH tempG:load01
+        GRAPH tempG:load_{7}_01
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
             ?{3}_1 ll:relatesTo1 ?srcTrimmed .
@@ -528,8 +528,8 @@ def refine_numeric_query(specs):
         }}
     }}
     """.format(
-        # 0          1         2           3         4                  5        6
-        Ns.alivocab, Ns.prov, Ns.tmpgraph, src_name, specs[St.linkset], src_uri, src_aligns)
+        # 0          1         2           3         4                  5        6           7
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, src_name, specs[St.linkset], src_uri, src_aligns, specs[St.refined_name])
 
     target = """
     PREFIX ll:    <{0}>
@@ -539,7 +539,7 @@ def refine_numeric_query(specs):
     ### 1. LOADING SOURCE TO A TEMPORARY GRAPH
     INSERT
     {{
-        GRAPH tempG:load01
+        GRAPH tempG:load_{7}_01
         {{
             ### SOURCE DATASET AND ITS ALIGNED PREDICATE
             ?{3}_1 ll:relatesTo3 ?trgTrimmed .
@@ -566,8 +566,8 @@ def refine_numeric_query(specs):
         }}
     }}
     """.format(
-        # 0          1         2           3         4                  5        6
-        Ns.alivocab, Ns.prov, Ns.tmpgraph, trg_name, specs[St.linkset], trg_uri, trg_aligns)
+        # 0          1         2           3         4                  5        6           7
+        Ns.alivocab, Ns.prov, Ns.tmpgraph, trg_name, specs[St.linkset], trg_uri, trg_aligns, specs[St.refined_name])
 
 
     # extract = """
@@ -659,7 +659,7 @@ def refine_numeric_query(specs):
             bind( iri(replace("{0}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
         }}
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-        GRAPH tempG:load01
+        GRAPH tempG:load_{12}_01
         {{
             ?{3}_1 ll:relatesTo1 ?x .
             ?{4}_2 ll:relatesTo3 ?y .

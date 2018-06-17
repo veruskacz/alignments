@@ -765,7 +765,7 @@ def linkset_info(specs, same_as_count):
 def refined_info(specs, same_as_count):
 
     info = "{}{}{}{}{}". \
-        format("======================================================="
+        format("\n======================================================="
                "=======================================================\n",
                "Results for refining  linkset:{}.\n".format(specs[St.linkset_name]),
 
@@ -777,7 +777,7 @@ def refined_info(specs, same_as_count):
     return info
 
 
-def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_triples):
+def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_triples, check_file=False):
 
     # print "CALL A CONSTRUCT ON: {}".format(linkset_graph_name)
 
@@ -857,17 +857,19 @@ def writelinkset(source, target, linkset_graph_name, outputs_path, metadata_trip
         sing_metadata_disc.write(to_unicode(singleton_metadata_construct) + "\n\n")
     sing_metadata_disc.close()
 
-    """
-        6. CHECK THE WRITTEN FILES
-    """
-    check_rdf_file(linkset_output)
+    if check_file is True:
 
-    if metadata_triples.__contains__("INSERT") is not True:
-        check_rdf_file(metadata_output)
-    else:
-        print "\nTHE GENERIC METADATA IS NIT CHECKED AS IT IS AN INSERTION\n"
+        """
+            6. CHECK THE WRITTEN FILES
+        """
+        check_rdf_file(linkset_output)
 
-    check_rdf_file(singleton_metadata_output)
+        if metadata_triples.__contains__("INSERT") is not True:
+            check_rdf_file(metadata_output)
+        else:
+            print "\nTHE GENERIC METADATA IS NIT CHECKED AS IT IS AN INSERTION\n"
+
+        check_rdf_file(singleton_metadata_output)
 
 
 def linkset_wasderivedfrom(refined_linkset_uri):
