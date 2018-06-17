@@ -37,7 +37,7 @@ def cluster(graph):
         parent = ""
 
         # DATE CREATION
-        date = "{}".format(datetime.datetime.today().strftime(_format))
+        the_date = "{}".format(datetime.datetime.today().strftime(_format))
 
         # CHECK WHETHER A CHILD HAS A PARENT
         has_parent_1 = True if child_1 in root else False
@@ -47,7 +47,7 @@ def cluster(graph):
         if has_parent_1 is False and has_parent_2 is False:
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count) + graph)
+            hash_value = hash(the_date + str(count) + graph)
             parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
                 else "P{}".format(hash_value)
 
@@ -132,7 +132,7 @@ def cluster_triples(graph):
         # parent = ""
 
         # DATE CREATION
-        date = "{}".format(datetime.datetime.today().strftime(_format))
+        the_date = "{}".format(datetime.datetime.today().strftime(_format))
 
         # CHECK WHETHER A CHILD HAS A PARENT
         has_parent_1 = True if child_1 in root else False
@@ -143,7 +143,7 @@ def cluster_triples(graph):
         if has_parent_1 is False and has_parent_2 is False:
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count) + graph)
+            hash_value = hash(the_date + str(count) + graph)
             parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
                 else "P{}".format(hash_value)
 
@@ -244,7 +244,7 @@ def cluster_triples2(graph, limit=0):
         # parent = ""
 
         # DATE CREATION
-        date = "{}".format(datetime.datetime.today().strftime(_format))
+        the_date = "{}".format(datetime.datetime.today().strftime(_format))
 
         # CHECK WHETHER A CHILD HAS A PARENT
         has_parent_1 = True if child_1 in root else False
@@ -259,7 +259,7 @@ def cluster_triples2(graph, limit=0):
                 # Do not add new clusters
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count) + graph)
+            hash_value = hash(the_date + str(count) + graph)
             parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
                 else "P{}".format(hash_value)
 
@@ -406,7 +406,7 @@ def cluster_dataset(dataset_uri, datatype_uri, graph_list=None):
                 # parent = ""
 
                 # DATE CREATION
-                date = "{}".format(datetime.datetime.today().strftime(_format))
+                the_date = "{}".format(datetime.datetime.today().strftime(_format))
 
                 # CHECK WHETHER A CHILD HAS A PARENT
                 has_parent_1 = True if child_1 in root else False
@@ -417,7 +417,7 @@ def cluster_dataset(dataset_uri, datatype_uri, graph_list=None):
                 if has_parent_1 is False and has_parent_2 is False:
 
                     # GENERATE THE PARENT
-                    hash_value = hash(date + str(count) + dataset_uri)
+                    hash_value = hash(the_date + str(count) + dataset_uri)
                     parent = "{}".format(str(hash_value).replace("-", "N")) if str(hash_value).startswith("-") \
                         else "P{}".format(hash_value)
 
@@ -578,16 +578,17 @@ def cluster_values2(g_cluster, properties, distinct_values=True, display=False, 
     return response
 
 
-def cluster_values_plus_Old(rq_uri, g_cluster, properties, distinct_values=True, display=False, limit_resources=0):
+def cluster_values_plus_old(rq_uri, g_cluster, properties, distinct_values=True, display=False, limit_resources=0):
 
     """
-    :param g_cluster: A LIST OF CLUSTERED RESOURCES
-    :param properties: A LIST OF PROPERTIES OF INTEREST
-    :param distinct_values: return distinct resources
+    :param rq_uri CLUSTER RESEARCH QUESTION
+    :param g_cluster: CLUSTER GRAP
+    :param properties:
+    :param distinct_values: USED IN SPARQL QUERY TO COUNT DISTINCT OR NOT
     :param display: display the matrix as a table
-    :param limit_resources: limit the number of resources to include in the cluster
-    :return: A DICTIONARY WHERE THE RESULT OF THE QUERY IS OBTAINED USING THE KEY: result
+    :param limit_resources: LIMITING THE NUMBER OF RESOURCES TO INCLUDE
     """
+
     prop = ""
     union = ""
     # print "\nCLUSTER SIZE: {}".format(len(g_cluster))
@@ -647,17 +648,17 @@ def cluster_values_plus_Old(rq_uri, g_cluster, properties, distinct_values=True,
 def cluster_values_plus(rq_uri, g_cluster, targets, distinct_values=True, display=False, limit_resources=100):
 
     """
-    :param g_cluster: A LIST OF CLUSTERED RESOURCES
-    :param properties: A LIST OF PROPERTIES OF INTEREST
-    :param distinct_values: return distinct resources
+    :param rq_uri: CLUSTER RESEARCH QUESTION
+    :param g_cluster: CLUSTER GRAP
+    :param targets: CLUSTER TARGETS
+    :param distinct_values: USED IN SPARQL QUERY TO COUNT DISTINCT OR NOT
     :param display: display the matrix as a table
-    :param limit_resources: limit the number of resources to include in the cluster
-    :return: A DICTIONARY WHERE THE RESULT OF THE QUERY IS OBTAINED USING THE KEY: result
+    :param limit_resources: LIMITING THE NUMBER OF RESOURCES TO INCLUDE
     """
 
     # print "\nCLUSTER SIZE: {}".format(len(g_cluster))
 
-    if limit_resources > 0 and len(g_cluster) > limit_resources:
+    if (limit_resources > 0) and (len(g_cluster) > limit_resources):
         query_body = Ut.get_resource_value(g_cluster[0:limit_resources], targets)
     else:
         query_body = Ut.get_resource_value(g_cluster, targets)
@@ -748,13 +749,13 @@ def cluster_links(graph, limit=1000):
     #     ("<http://eter.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://leiden.2>"),
     # ]
     #
-    g = [
-        ("<http://grid.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgref.2>"),
-        ("<http://eter.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://leiden.2>"),
-        ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/sameAs>", "<http://h2020.2> "),
-        ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://grid.2>"),
-        ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgreg.2>"),
-        ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://eter.2>")]
+    # g = [
+    #     ("<http://grid.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgref.2>"),
+    #     ("<http://eter.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://leiden.2>"),
+    #     ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/sameAs>", "<http://h2020.2> "),
+    #     ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://grid.2>"),
+    #     ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://orgreg.2>"),
+    #     ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/sameAs>", "<http://eter.2>")]
 
     # g = [
     #     ("<http://risis.eu/leidenRanking_2015/resource/884>", "<http://risis.eu/alignment/predicate/sameAs>",
@@ -811,7 +812,7 @@ def cluster_links(graph, limit=1000):
         child_2 = obj.strip()
 
         # DATE CREATION
-        date = "{}".format(datetime.datetime.today().strftime(_format))
+        the_date = "{}".format(datetime.datetime.today().strftime(_format))
 
         # CHECK WHETHER A CHILD HAS A PARENT
         has_parent_1 = True if child_1 in root else False
@@ -824,7 +825,7 @@ def cluster_links(graph, limit=1000):
             # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count) + graph)
+            hash_value = hash(the_date + str(count) + graph)
             parent = "{}".format(str(hash_value).replace("-", "N")) if str(
                 hash_value).startswith("-") \
                 else "P{}".format(hash_value)
@@ -1060,12 +1061,12 @@ def cluster_links(graph, limit=1000):
     check = 1
     iteration = 1
     for subject, predicate, obj in g:
-        print "\tRESOURCE {:>4}: {} {}".format(count, subject.n3() , obj)
+        print "\tRESOURCE {:>4}: {} {}".format(count, subject.n3(), obj)
 
         count = cluster_helper(count)
         if iteration == check:
             print "1- ", count
-            check = check + standard
+            check += standard
         iteration += 1
 
     print "3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
@@ -1198,74 +1199,6 @@ def disambiguate_network_2(lookup_resource_list, targets, output=True):
     # return "NO RESULT FOR THE QUERY..."
 
 
-# TESTING THE CLUSTER ANALYSIS
-# def cluster_test(linkset, network_size=3, greater_equal=True, limit=5000):
-#
-#     count_1 = 0
-#     count_2 = 0
-#
-#     print ""
-#
-#     linkset = linkset.strip()
-#
-#     # RUN THE CLUSTER
-#     clusters_0 = cluster_links(linkset, limit)
-#
-#     for i_cluster in clusters_0.items():
-#
-#         network = []
-#         count_1 += 1
-#         children = i_cluster[1][St.children]
-#         # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
-#         #     continue
-#
-#         check = len(children) >= network_size if greater_equal else len(children) == network_size
-#
-#         if check:
-#             count_2 += 1
-#
-#             print "\nCLUSTER {:>3}: {}: with size: {}".format(count_1, i_cluster[0], len(children))
-#             for child in children:
-#                 print "\t{}".format(child)
-#
-#             print "\nDISAMBIGUATION HELPER"
-#             disambiguate_network(linkset, children)
-#
-#             position = i_cluster[1][St.row]
-#             print "\nANNOTATED CLUSTER PROCESS"
-#             print i_cluster[1][St.annotate]
-#
-#             # THE CLUSTER
-#             # print "POSITION: {}".format(position)
-#             print "\nMATRIX DISPLAY\n"
-#             for i in range(0, position):
-#                 resource = (i_cluster[1][St.matrix])[i]
-#                 print "\t{}".format(resource[:position])
-#                 # print "\t{}".format(resource)
-#
-#             # THE MATRIX
-#             for i in range(1, position):
-#                 for j in range(1, position):
-#                     if (i_cluster[1][St.matrix])[i][j] != 0:
-#                         r = (i_cluster[1][St.matrix])[i][0]
-#                         c = (i_cluster[1][St.matrix])[0][j]
-#                         # r_name = r[-25:]
-#                         # c_name = c[-25:]
-#                         r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
-#                         c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
-#                         # r_smart = {"key": i, "name": r_name}
-#                         # c_smart = {"key": j, "name": c_name}
-#                         network += [(r_name, c_name)]
-#                         # network += [(r_smart, c_smart)]
-#
-#             print ""
-#             # print "\tNETWORK", network
-#             Plt.draw_graph(network)
-#
-#     print "FOUND: {}".format(count_2)
-
-
-# WORKING ONE
 def links_clustering_matrix(graph, limit=1000):
 
     count = 0
@@ -1657,7 +1590,7 @@ def links_clustering_matrix(graph, limit=1000):
         count = cluster_helper(count, annotate=False)
         if iteration == check:
             print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
-            check = check + standard
+            check += standard
         iteration += 1
 
     print "3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
@@ -1674,7 +1607,6 @@ def resource_stat(alignment, dataset, resource_type=None, output=True, activated
         return [None, None]
     print "\tSTATISTICS FOR {}".format(alignment)
     message = "\tSTATISTICS FOR {}\n".format(alignment)
-
 
     # STATS ON DISCOVERED RESOURCES
     matched = dict()
@@ -1799,7 +1731,7 @@ def resources_matched(alignment, dataset, resource_type=None, matched=True, stat
     return Qry.sparql_xml_to_matrix(query)
 
 
-def links_clustering_BUG(graph, limit=1000):
+def links_clustering_bug(graph):
 
     count = 0
     clusters = dict()
@@ -1827,10 +1759,10 @@ def links_clustering_BUG(graph, limit=1000):
     # ]
 
     g = [
-        ( "<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
-        ( "<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
-        ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://h2020.2> "),
-        ( "<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
+        ("<http://grid.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgref.2>"),
+        ("<http://eter.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://leiden.2>"),
+        ("<http://orgreg.2> ", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://h2020.2>"),
+        ("<http://leiden.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://grid.2>"),
         ("<http://orgref.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://orgreg.2>"),
         ("<http://h2020.2>", "<http://risis.eu/alignment/predicate/SAMEAS>", "<http://eter.2>"),
     ]
@@ -2198,7 +2130,7 @@ def links_clustering_BUG(graph, limit=1000):
             print "\t\t", value
         if iteration == check:
             # print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
-            check = check + standard
+            check += standard
         iteration += 1
 
     print "3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
@@ -2207,7 +2139,6 @@ def links_clustering_BUG(graph, limit=1000):
 
 # USING SET
 def links_clustering_improved(graph, limit=1000):
-
 
     # ROOT = KEY:CHILD VALUE:PARENT
     root = dict()
@@ -2600,7 +2531,7 @@ def links_clustering_improved(graph, limit=1000):
         child_2 = obj.n3().strip()
 
         # DATE CREATION
-        date = "{}".format(datetime.datetime.today().strftime(_format))
+        the_date = "{}".format(datetime.datetime.today().strftime(_format))
 
         # CHECK WHETHER A CHILD HAS A PARENT
         has_parent_1 = True if child_1 in root else False
@@ -2613,7 +2544,7 @@ def links_clustering_improved(graph, limit=1000):
             # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count) + graph)
+            hash_value = hash(the_date + str(count) + graph)
             parent = "{}".format(str(hash_value).replace("-", "N")) if str(
                 hash_value).startswith("-") \
                 else "P{}".format(hash_value)
@@ -2646,7 +2577,8 @@ def links_clustering_improved(graph, limit=1000):
 
                 if parent2 in clusters:
                     # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
-                    for child in clusters[parent2]['nodes']: ### check this
+                    # check this
+                    for child in clusters[parent2]['nodes']:
                         root[child] = parent1
 
                     # print 'before', clusters2[parent1]['nodes']
@@ -2654,7 +2586,8 @@ def links_clustering_improved(graph, limit=1000):
                     clusters[parent1]['links'] = clusters[parent1]['links'].union(clusters[parent2]['links'])
                     # print 'after', clusters2[parent1]['nodes']
 
-                    #add the current link (child_1, child_2)  ### check this
+                    # add the current link (child_1, child_2)
+                    # check this
                     link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
                     clusters[parent1]['links'].add(link)
 
@@ -2713,7 +2646,7 @@ def links_clustering_improved(graph, limit=1000):
         # count_mtx = cluster_helper_mtx(count_mtx)
         if iteration == check:
             print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
-            check = check + standard
+            check += standard
         iteration += 1
 
     # sizes = set()
@@ -2738,15 +2671,32 @@ def links_clustering_improved(graph, limit=1000):
     return clusters
 
 
-
-# USING SET AND THE TABLE OF RESOURCES AND THEIR STRENGTHS
-def links_clustering(graph, limit=1000):
+# ************************************************
+# ************************************************
+# USING
+#   - [SET]
+#   - [TABLE OF RESOURCES] AND THEIR
+#   - [STRENGTHS]
+# ************************************************
+# ************************************************
+def links_clustering(graph, limit=10000):
 
     print Ut.headings("LINK CLUSTERING...")
-
+    # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
     root = dict()
     count = 0
     clusters = dict()
+    # EXAMPLE
+    #   P1832892825 	{
+    #       'nodes': set(['<http://www.grid.ac/institutes/grid.449957.2>',
+    #                     '<http://risis.eu/eter_2014/resource/NL0028>']),
+
+    #       'strengths': {('<http://risis.eu/eter_2014/resource/NL0028>',
+    #                  '<http://www.grid.ac/institutes/grid.449957.2>'): ['1', '1']},
+
+    #       'links': set([('<http://risis.eu/eter_2014/resource/NL0028>',
+    #                  '<http://www.grid.ac/institutes/grid.449957.2>')])
+    # }
     root_mtx = {}
     # count_mtx = 0
     clusters_mtx = {}
@@ -2793,10 +2743,10 @@ def links_clustering(graph, limit=1000):
     def cluster_helper_mtx(counter, annotate=False):
 
         counter += 1
-        child_1 = subject.n3().strip()
-        child_2 = obj.n3().strip()
-        # child_1 = subject.strip()
-        # child_2 = obj.strip()
+        # child_1 = subject.n3().strip()
+        # child_2 = obj.n3().strip()
+        child_1 = subject.strip()
+        child_2 = t_object.strip()
 
         # DATE CREATION
         # date = "{}".format(datetime.datetime.today().strftime(_format))
@@ -3094,12 +3044,12 @@ def links_clustering(graph, limit=1000):
         # child_2 = obj.strip()
 
         child_1 = subject.strip()
-        child_2 = object.strip()
+        child_2 = t_object.strip()
         child_1 = child_1 if Ut.is_nt_format(child_1) else "<{}>".format(child_1)
         child_2 = child_2 if Ut.is_nt_format(child_2) else "<{}>".format(child_2)
 
         # DATE CREATION
-        date = "{}".format(datetime.datetime.today().strftime(_format))
+        the_date = "{}".format(datetime.datetime.today().strftime(_format))
 
         # CHECK WHETHER A CHILD HAS A PARENT
         has_parent_1 = True if child_1 in root else False
@@ -3114,7 +3064,7 @@ def links_clustering(graph, limit=1000):
             # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
 
             # GENERATE THE PARENT
-            hash_value = hash(date + str(count) + graph)
+            hash_value = hash(the_date + str(count) + graph)
             parent = "{}".format(str(hash_value).replace("-", "N")) if str(
                 hash_value).startswith("-") \
                 else "P{}".format(hash_value)
@@ -3152,7 +3102,8 @@ def links_clustering(graph, limit=1000):
 
                 if parent2 in clusters:
                     # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
-                    for child in clusters[parent2]['nodes']: ### check this
+                    # check this
+                    for child in clusters[parent2]['nodes']:
                         root[child] = parent1
 
                     # print 'before', clusters2[parent1]['nodes']
@@ -3163,15 +3114,15 @@ def links_clustering(graph, limit=1000):
                     clusters[parent1]['links'] = clusters[parent1]['links'].union(clusters[parent2]['links'])
 
                     # RE-ASSIGNING THE STRENGTHS OF CHILD 2
-                    for key, link_strengths in clusters[parent2]['strengths'].items():
-                        if key not in clusters[parent1]['strengths']:
-                            clusters[parent1]['strengths'][key] = link_strengths
+                    for i_key, link_strengths in clusters[parent2]['strengths'].items():
+                        if i_key not in clusters[parent1]['strengths']:
+                            clusters[parent1]['strengths'][i_key] = link_strengths
                         else:
-                            clusters[parent1]['strengths'][key] += link_strengths
+                            clusters[parent1]['strengths'][i_key] += link_strengths
 
                     # print 'after', clusters2[parent1]['nodes']
 
-                    #add the current link (child_1, child_2)  ### check this
+                    # add the current link (child_1, child_2)
                     link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
                     clusters[parent1]['links'].add(link)
 
@@ -3233,7 +3184,6 @@ def links_clustering(graph, limit=1000):
             clusters[parent]['links'].add(link)
             clusters[parent]['nodes'].add(child_1)
 
-
             if link in clusters[parent]['strengths']:
                 clusters[parent]['strengths'][link] += strength
             else:
@@ -3263,15 +3213,15 @@ def links_clustering(graph, limit=1000):
 
         print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
         start = time.time()
-        for (subject, object), strength in data.items():
+        for (subject, t_object), strength in data.items():
 
             # CALLING THE MAIN HELPER FUNCTION
             count = cluster_helper_set(count, annotate=False)
 
             # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN
             if iteration == check:
-                print "\tRESOURCE {:>10}:   {} {}".format(count, subject, object)
-                check = check + standard
+                print "\tRESOURCE {:>10}:   {} {}".format(count, subject, t_object)
+                check += standard
             iteration += 1
             # print strength
             # break
@@ -3306,12 +3256,133 @@ def links_clustering(graph, limit=1000):
         # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
 
         print "\n3. NUMBER OF CLUSTER FOUND: {}\n".format(len(clusters))
+
+        # for (key, val) in clusters.items():
+        #     print key, "\t", val
+
+        # for (key, val) in root.items():
+        #     print key, "\t", val
+
+        # ***********************************************************************************
+        # CLUSTER EXTENSION
+        # ***********************************************************************************
+        # 1. PICK A CLUSTER
+        picked_cluster = "P49770126"
+        picked_nodes = clusters[picked_cluster]
+        # print "picked_nodes", picked_nodes
+        print "DONE!!!!!!!!!!!!!!!!"
+        # 2. FETCH THE PAIRED NODE FOR EACH NODE IN THE CLUSTER
+        query = """
+        SELECT ?node ?pred ?paired
+        {{
+            VALUES ?paired {}
+
+            # NODE PAIRED TO THE LINKSET FROM SUBJECT
+            GRAPH {}
+            {{
+                ?paired ?pred ?node .
+            }} UNION
+
+            # NODE PAIRED TO THE LINKSET FROM OBJECT
+            GRAPH {}
+            {{
+                ?node ?pred ?paired .
+            }}
+        }}
+        """
+        query_response = Qry.sparql_xml_to_matrix(query=query)
+        query_result = query_response[St.result]
+
+        # 3. FOR EACH PARED NOD, EXTRACT THE CLUSTER ID THE NODE BELONGS TO
+        extension = []
+        if query_result is not None:
+            for i in range(1, len(query_result)):
+                node = "<{}>".format(query_result[i][2])
+                if node in root:
+                    extension += [root[node]]
+
+        # return {'clusters':clusters, 'node2cluster_id':root}
         return clusters
 
     except Exception as err:
-        print err
+        print err.message
         return clusters
 
+
+"""""""""
+# TESTING THE CLUSTER ANALYSIS
+"""""""""
+# def cluster_test(linkset, network_size=3, greater_equal=True, limit=5000):
+#
+#     count_1 = 0
+#     count_2 = 0
+#
+#     print ""
+#
+#     linkset = linkset.strip()
+#
+#     # RUN THE CLUSTER
+#     clusters_0 = cluster_links(linkset, limit)
+#
+#     for i_cluster in clusters_0.items():
+#
+#         network = []
+#         count_1 += 1
+#         children = i_cluster[1][St.children]
+#         # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
+#         #     continue
+#
+#         check = len(children) >= network_size if greater_equal else len(children) == network_size
+#
+#         if check:
+#             count_2 += 1
+#
+#             print "\nCLUSTER {:>3}: {}: with size: {}".format(count_1, i_cluster[0], len(children))
+#             for child in children:
+#                 print "\t{}".format(child)
+#
+#             print "\nDISAMBIGUATION HELPER"
+#             disambiguate_network(linkset, children)
+#
+#             position = i_cluster[1][St.row]
+#             print "\nANNOTATED CLUSTER PROCESS"
+#             print i_cluster[1][St.annotate]
+#
+#             # THE CLUSTER
+#             # print "POSITION: {}".format(position)
+#             print "\nMATRIX DISPLAY\n"
+#             for i in range(0, position):
+#                 resource = (i_cluster[1][St.matrix])[i]
+#                 print "\t{}".format(resource[:position])
+#                 # print "\t{}".format(resource)
+#
+#             # THE MATRIX
+#             for i in range(1, position):
+#                 for j in range(1, position):
+#                     if (i_cluster[1][St.matrix])[i][j] != 0:
+#                         r = (i_cluster[1][St.matrix])[i][0]
+#                         c = (i_cluster[1][St.matrix])[0][j]
+#                         # r_name = r[-25:]
+#                         # c_name = c[-25:]
+#                         r_name = "{}:{}".format(i, Ut.get_uri_local_name(r))
+#                         c_name = "{}:{}".format(j, Ut.get_uri_local_name(c))
+#                         # r_smart = {"key": i, "name": r_name}
+#                         # c_smart = {"key": j, "name": c_name}
+#                         network += [(r_name, c_name)]
+#                         # network += [(r_smart, c_smart)]
+#
+#             print ""
+#             # print "\tNETWORK", network
+#             Plt.draw_graph(network)
+#
+#     print "FOUND: {}".format(count_2)
+
+
+# WORKING ONE
+
+"""""""""
+TO DELETE FROM THE FILE
+"""""""""
 # # LINKSET CLUSTERING
 # def cluster_links(graph):
 #
