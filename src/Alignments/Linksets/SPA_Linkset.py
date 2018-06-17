@@ -1206,7 +1206,8 @@ def spa_linkset_intermediate_query(specs):
 
     matched_query = prefix + """
 
-    ### 2. FINDING CANDIDATE MATCH [PART 1]
+    ### 2.1 FINDING CANDIDATE MATCH [PART 1]
+    ### MATCH SOURCE WITH INTERMEDIATE
     INSERT
     {{
         ### MATCH FOUND
@@ -1237,7 +1238,8 @@ def spa_linkset_intermediate_query(specs):
         }}
     }} ;
 
-    ### 3. FINDING CANDIDATE MATCH
+    ### 2.2 FINDING CANDIDATE MATCH
+    ### MATCH INTERMEDIATE WITH THE TARGET
     INSERT
     {{
         ### MATCH FOUND
@@ -1249,7 +1251,7 @@ def spa_linkset_intermediate_query(specs):
     WHERE
     {{
         ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-        GRAPH <{0}load_[5]_02>
+        GRAPH <{0}load_{5}_02>
         {{
             ?{1}_1 <{3}relatesTo> ?intermediate_uri .
         }}
