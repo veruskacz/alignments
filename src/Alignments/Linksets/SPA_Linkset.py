@@ -1,6 +1,7 @@
 import logging
 import time
 import datetime
+import traceback
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
@@ -112,7 +113,16 @@ def spa_linksets(specs, identity=False, display=False, activated=False, check_fi
             print """ 3. LINKSET & METADATA                                      """
             ########################################################################
             print insertqueries[4]
-            Qry.boolean_endpoint_response(insertqueries[4])
+            if type(insertqueries[4]) is str:
+                Qry.boolean_endpoint_response(insertqueries[4])
+            elif type(insertqueries[4]) is list:
+                Qry.boolean_endpoint_response(insertqueries[4][0])
+                Qry.boolean_endpoint_response(insertqueries[4][1])
+            else:
+                print "THE LINKSET QUERY IS SUPPOSED TO BE A STRING OR A LIST OF STRING. " \
+                      "\nRIGHT NOW, IT IS NEITHER. AND... THIS CAUSE THE FUNCTION TO EXIT"
+                print traceback.print_exc()
+                return {St.message: Ec.ERROR_CODE_4.replace('\n', "<br/>"), St.error_code: 4, St.result: None}
 
             ########################################################################
             print """ 4. DROPPING TEMPORARY GRAPHS                               """
@@ -1277,21 +1287,63 @@ def spa_linkset_intermediate_query(specs):
         # 0          1          2         3            4                             5
         Ns.tmpgraph, src_name,  trg_name, Ns.tmpvocab, specs[St.intermediate_graph], specs[St.linkset_name])
 
-    linkset_query = prefix + """
-    ### 3. CREATING THE CORRESPONDENCES
+    # linkset_query = prefix + """
+    # ### 3. CREATING THE CORRESPONDENCES
+    # INSERT
+    # {{
+    #     GRAPH <{5}>
+    #     {{
+    #         ?{1}_1 ?newSingletons  ?{3}_2 .
+    #     }}
+    #     ### SINGLETONS' METADATA
+    #     GRAPH <{10}{11}>
+    #     {{
+    #         ?newSingletons
+    #             rdf:singletonPropertyOf     alivocab:{8}{9} ;
+    #             alivocab:hasStrength        1 ;
+    #             alivocab:hasEvidence        ?evidence .
+    #     }}
+    # }}
+    # WHERE
+    # {{
+    #     ### MATCH FOUND
+    #     GRAPH <{0}load_{11}_02>
+    #     {{
+    #         ?{1}_1 <{6}relatesTo> ?intermediate_uri .
+    #         ?intermediate_uri <{6}relatesTo> ?{3}_2 .
+    #     }}
+    #
+    #     bind( iri(replace("{7}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+    #
+    #     {{
+    #         SELECT ?{1}_1 ?{3}_2 ?evidence
+    #         {{
+    #             ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
+    #             GRAPH <{0}load_{11}_00>
+    #             {{
+    #                 ?{1}_1 <{6}relatesTo1> ?src_value .
+    #             }}
+    #             GRAPH <{0}load_{11}_01>
+    #             {{
+    #                 ?{3}_2 <{6}relatesTo3> ?trg_value .
+    #             }}
+    #             BIND(concat("[", ?src_value, "] aligns with [", ?trg_value, "]") AS ?evidence)
+    #         }}
+    #     }}
+    # }}
+    # """.format(
+    #     # 0          1         2           3         4           5                  6
+    #     Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns, specs[St.linkset], Ns.tmpvocab,
+    #     # 7          8                    9                      10             11
+    #     Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name])
+
+    linkset_query_01 = prefix + """
+    ### 3.1 CREATING THE CORRESPONDENCES
     INSERT
     {{
         GRAPH <{5}>
         {{
             ?{1}_1 ?newSingletons  ?{3}_2 .
-        }}
-        ### SINGLETONS' METADATA
-        GRAPH <{10}{11}>
-        {{
-            ?newSingletons
-                rdf:singletonPropertyOf     alivocab:{8}{9} ;
-                alivocab:hasStrength        1 ;
-                alivocab:hasEvidence        ?evidence .
         }}
     }}
     WHERE
@@ -1304,6 +1356,33 @@ def spa_linkset_intermediate_query(specs):
         }}
 
         bind( iri(replace("{7}{8}{9}_#", "#",  strafter(str(uuid()), "uuid:") )) as ?newSingletons )
+    }}
+    """.format(
+        # 0          1         2           3         4           5                  6
+        Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns, specs[St.linkset], Ns.tmpvocab,
+        # 7          8                    9                      10             11
+        Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name])
+
+    linkset_query_02 = prefix + """
+    ### 3.2 CREATING THE CORRESPONDENCES
+    INSERT
+    {{
+
+        ### SINGLETONS' METADATA
+        GRAPH <{10}{11}>
+        {{
+            ?newSingletons
+                rdf:singletonPropertyOf     alivocab:{8}{9} ;
+                alivocab:hasStrength        1 ;
+                alivocab:hasEvidence        ?evidence .
+        }}
+    }}
+    WHERE
+    {{
+        GRAPH <{5}>
+        {{
+            ?{1}_1 ?newSingletons  ?{3}_2 .
+        }}
 
         {{
             SELECT ?{1}_1 ?{3}_2 ?evidence
@@ -1326,6 +1405,8 @@ def spa_linkset_intermediate_query(specs):
         Ns.tmpgraph, src_name, src_aligns, trg_name, trg_aligns, specs[St.linkset], Ns.tmpvocab,
         # 7          8                    9                      10             11
         Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount], Ns.singletons, specs[St.linkset_name])
+
+    linkset_query = [linkset_query_01, linkset_query_02]
 
     # insert = """
     # PREFIX alivocab:    <{16}>
