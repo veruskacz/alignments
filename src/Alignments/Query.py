@@ -1418,6 +1418,7 @@ def display_result(query, info=None, spacing=50, limit=100, is_activated=False):
 
     if is_activated is False:
         print "The function [display_result] is not activated!"
+        return
 
     limit = limit
     if info is not None:
