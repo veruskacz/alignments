@@ -339,7 +339,8 @@ def edit_distance(token_x, token_y):
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
-def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None):
+def prefixed_inverted_index(
+        specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None, check_file=False):
 
     #################################################################
     # BACKGROUND
@@ -1093,9 +1094,10 @@ def prefixed_inverted_index(specs, theta, reorder=True, stop_words_string=None, 
             Urq.register_alignment_mapping(specs, created=True)
 
         # WRITE TO FILE
-        check_rdf_file(writers[St.crpdce_writer_path])
-        check_rdf_file(writers[St.meta_writer_path])
-        check_rdf_file(writers[St.singletons_writer_path])
+        if check_file is True:
+            check_rdf_file(writers[St.crpdce_writer_path])
+            check_rdf_file(writers[St.meta_writer_path])
+            check_rdf_file(writers[St.singletons_writer_path])
 
         print "\tLinkset created as: ", specs[St.linkset_name]
         print "\t*** JOB DONE! ***"
@@ -1374,7 +1376,8 @@ def get_tokens_to_include(string, threshold, tf, stop_word, stop_symbols_string)
     return in_tokens[:included]
 
 
-def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None, activated=True):
+def refine_approx(
+        specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None, activated=True, check_file=False):
 
     debug = False
     sim = 0
@@ -1731,10 +1734,11 @@ def refine_approx(specs, theta, reorder=True, stop_words_string=None, stop_symbo
             # UPDATE THE REFINED VARIABLE AS THE INSERTION WAS SUCCESSFUL
             refined = {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
             # WRITE TO FILE
-            print "\t\tCHECKING RDF FILE SYNTAX"
-            check_rdf_file(writers[St.crpdce_writer_path])
-            check_rdf_file(writers[St.meta_writer_path])
-            check_rdf_file(writers[St.singletons_writer_path])
+            if check_file is True:
+                print "\t\tCHECKING RDF FILE SYNTAX"
+                check_rdf_file(writers[St.crpdce_writer_path])
+                check_rdf_file(writers[St.meta_writer_path])
+                check_rdf_file(writers[St.singletons_writer_path])
 
         print "\tLinkset created as: ", specs[St.refined_name]
         print "\t*** JOB DONE! ***"

@@ -32,7 +32,7 @@ SINGLE PREDICATE ALIGNMENT
 """
 
 
-def spa_linksets(specs, identity=False, display=False, activated=False):
+def spa_linksets(specs, identity=False, display=False, activated=False, check_file=False):
 
     # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
     # if activated is False:
@@ -143,7 +143,7 @@ def spa_linksets(specs, identity=False, display=False, activated=False):
                 print "\t>>> WRITING TO FILE"
                 # linkset_path = "D:\datasets\Linksets\ExactName"
                 linkset_path = DIRECTORY
-                writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=False)
+                writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=check_file)
                 server_message = "Linksets created as: {}".format(specs[St.linkset])
                 message = "The linkset was created as [{}] with {} triples found!".format(
                     specs[St.linkset], specs[St.triples])
@@ -460,7 +460,7 @@ def insert_query_reduce(specs, match_numeric=False):
     return [query_1, query_2, query_3, query_4, query_5, query_6]
 
 
-def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
+def specs_2_linkset(specs, match_numeric=False, display=False, activated=False, check_file=False):
 
     # heading = "======================================================" \
     #           "========================================================" \
@@ -492,7 +492,7 @@ def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
         specs[St.linkset_insert_queries] = insert_query_reduce(specs, match_numeric)
         # GENERATE THE LINKSET
         # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
-        inserted_linkset = spa_linksets(specs, display=display, activated=activated)
+        inserted_linkset = spa_linksets(specs, display=display, activated=activated, check_file=check_file)
 
         if activated is True:
 
@@ -511,7 +511,7 @@ def specs_2_linkset(specs, match_numeric=False, display=False, activated=False):
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
 
 
-def specs_2_linkset_num_approx(specs,  match_numeric=False, display=False, activated=False):
+def specs_2_linkset_num_approx(specs,  match_numeric=False, display=False, activated=False, check_file=False):
 
     if activated is True:
         print Ut.headings("EXECUTING NUMBER LINKSET SPECS...")
@@ -537,7 +537,7 @@ def specs_2_linkset_num_approx(specs,  match_numeric=False, display=False, activ
 
         # GENERATE THE LINKSET
         # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
-        inserted_linkset = spa_linksets(specs, display=display, activated=activated)
+        inserted_linkset = spa_linksets(specs, display=display, activated=activated, check_file=check_file)
 
         if activated is True:
 
@@ -901,7 +901,7 @@ def spa_linkset_identity_query(specs):
     return queries
 
 
-def specs_2_linkset_id(specs, display=False, activated=False):
+def specs_2_linkset_id(specs, display=False, activated=False, check_file=False):
 
     if activated is True:
         print Ut.headings("EXECUTING IDENTITY LINKSET SPECS...")
@@ -930,7 +930,8 @@ def specs_2_linkset_id(specs, display=False, activated=False):
         # print specs[St.linkset_insert_queries]
 
         # GENERATE THE LINKSET
-        inserted_linkset = spa_linksets(specs, identity=True, display=display, activated=activated)
+        inserted_linkset = spa_linksets(
+            specs, identity=True, display=display, activated=activated, check_file=check_file)
 
         # REGISTER THE ALIGNMENT
         if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
@@ -1453,7 +1454,7 @@ def spa_linkset_intermediate_query(specs):
     return queries
 
 
-def specs_2_linkset_intermediate(specs, display=False, activated=False):
+def specs_2_linkset_intermediate(specs, display=False, activated=False, check_file=False):
 
     if activated is True:
         print Ut.headings("EXECUTING LINKSET VIA INTERMEDIATE SPECS...")
@@ -1478,7 +1479,7 @@ def specs_2_linkset_intermediate(specs, display=False, activated=False):
 
         # GENERATE THE LINKSET
         # print "specs_2_linkset FUNCTION ACTIVATED: {}".format(activated)
-        inserted_linkset = spa_linksets(specs, display=display, activated=activated)
+        inserted_linkset = spa_linksets(specs, display=display, activated=activated, check_file=check_file)
 
         # REGISTER THE ALIGNMENT
         if inserted_linkset[St.message].__contains__("ALREADY EXISTS"):
@@ -1736,7 +1737,7 @@ def geo_match(specs):
     print "\t", Qry.boolean_endpoint_response(drop)
 
 
-def geo_specs_2_linkset(specs, activated=False):
+def geo_specs_2_linkset(specs, activated=False, check_file=False):
 
     if activated is True:
         print Ut.headings("EXECUTING LINKSET SPECS FOR GEO-SIMILARITY..")
@@ -1806,7 +1807,7 @@ def geo_specs_2_linkset(specs, activated=False):
 
                     # linkset_path = "D:\datasets\Linksets\ExactName"
                     linkset_path = DIRECTORY
-                    writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=False)
+                    writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=check_file)
                     server_message = "Linksets created as: {}".format(specs[St.linkset])
                     message = "The linkset was created as [{}] with {} triples found!".format(
                         specs[St.linkset], specs[St.triples])

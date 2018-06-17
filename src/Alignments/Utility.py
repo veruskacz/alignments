@@ -742,7 +742,7 @@ def insertgraphs(dataset_name, dir_path):
 #################################################################
 
 
-def write_to_file(graph_name, directory, metadata=None, correspondences=None, singletons=None):
+def write_to_file(graph_name, directory, metadata=None, correspondences=None, singletons=None, check_file=False):
 
     # print graph_name
 
