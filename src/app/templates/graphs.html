@@ -1,58 +1,16 @@
- <!--<div class="row">-->
-    <!--<div class="col-md-12">-->
-      <!--<ul class="nav nav-tabs">-->
-        <!--<li class="active"><a href="#">Home</a></li>-->
-        <!--<li class="dropdown">-->
-          <!--<a class="dropdown-toggle" data-toggle="dropdown" href="#">Menu 1-->
-          <!--<span class="caret"></span></a>-->
-          <!--<ul class="dropdown-menu">-->
-            <!--<li><a href="#">Submenu 1-1</a></li>-->
-            <!--<li><a href="#">Submenu 1-2</a></li>-->
-            <!--<li><a href="#">Submenu 1-3</a></li>-->
-          <!--</ul>-->
-        <!--</li>-->
-        <!--<li><a href="#">Menu 2</a></li>-->
-        <!--<li><a href="#">Menu 3</a></li>-->
-      <!--</ul>-->
-    <!--</div>-->
-<!--</div>-->
-
-<!--<nav class="navbar navbar-inverse">-->
-  <!--<div class="container-fluid">-->
-    <!--<div class="navbar-header">-->
-      <!--<a class="navbar-brand" href="#">WebSiteName</a>-->
-    <!--</div>-->
-    <!--<ul class="nav navbar-nav">-->
-      <!--<li class="active"><a href="#">Home</a></li>-->
-      <!--<li><a href="#">Link</a></li>-->
-      <!--<li><a href="#">Link</a></li>-->
-    <!--</ul>-->
-    <!--<button class="btn btn-danger navbar-btn">Button</button>-->
-  <!--</div>-->
-<!--</nav> - -->
 
 <div class="row">
-    <div class="col-md-11">
 
-        <!-- This is the Mode dropdown button-->
-        <span id="menu_list_col">
 
-        <!-- <input type="checkbox" data-toggle="toggle"
-               data-on="Enabled" data-off="Disabled"
-               onstyle="primary" offstyle="default"> -->
-        <!-- <input type="checkbox" id="toggle-two">
-        <script>
-          $(function() {
-            $('#toggle-two').bootstrapToggle({
-              on: 'Enabled',
-              off: 'Disabled'
-            });
-          })
-        </script> -->
+    <div class="col-md-10">
 
-        <button class="btn btn-default dropdown-toggle" type="button" id="modeDropdown"
+         <!-- This is the Mode dropdown button-->
+           <span id="menu_list_col">
+
+             <button class="btn btn-info dropdown-toggle" type="button" id="modeDropdown" style="color:black"
             data-toggle='dropdown' mode='C'>Mode: Investigation<span class="caret"></span>
-        </button>
+             </button>
+
             <ul class="dropdown-menu" role="menu" aria-labelledby="modeDropdown">
                 <!--<li role="presentation" onclick="modeInvestigation(this.innerText);">-->
                     <!--<a role="menuitem" tabindex="-1">Mode: Investigation</a>-->
@@ -87,9 +45,15 @@
                     onclick='newSelectButton(this);mainButtonClick(targetId="inspection_dataset_col");'>Link Cluster</button>
             <button type="button" class="btn btn-primary" id="creationDatasetButton"
                     onclick='newSelectButton(this);importButtonClick(targetId="creation_dataset_col");'>Import</button>
+
         </span>
 
+
+
+
+
         <span id="admin_buttons_col">
+
             <button type="button" class="btn btn-primary" id="triplestoreAdimButton"
                     onclick='newSelectButton(this);TripleStoreAdminClick();
                     '>Triplestore</button>
@@ -102,28 +66,23 @@
                     onclick='del_lenses_button();'>Del Lenses</button>
             <button type="button" class="btn btn-primary" id="deleteViewsButton"
                     onclick='del_views_button();'>Del Views</button>
+
         </span>
 
+
+    </div>
+    <div class="col-md-2 text-right">
         <!--This is the refresh button -->
-         <a class="btn btn-default" id="refreshButton" onclick="refresh();">Refresh</a>
+         <span id="refresh_button_col" >
+            <a class="btn btn-default" id="refreshButton" onclick="refresh();">Refresh</a>
+         </span>
 
-    </div>
-    <div class="col-md-1 text-right">
-
-
-        <span id="triplestore_buttons_col">
-            <input id="stardog_btn" type="checkbox" checked data-toggle="toggle"
-                   data-on="Startdog is ON" data-off="Startdog is OFF" data-onstyle="success" data-offstyle="danger"
+         <span id="triplestore_button_col">
+            <input id="stardog_btn" type="checkbox" checked data-toggle="toggle" data-width="160"
+                   data-on="Turn Triplestore OFF" data-off="Turn Triplestore ON" data-onstyle="success" data-offstyle="danger"
                     onchange="test(this)">
-
-            <!--<a href="javascript:void(0)" id="loginlink" onclick="checkClick()">-->
-                <!--<input id="stardog_btn" type="checkbox" checked data-toggle="toggle"-->
-                   <!--data-on="Startdog is ON" data-off="Startdog is OFF" data-onstyle="success" data-offstyle="danger"-->
-                        <!--uncheckable = 'false' ignore="false"-->
-                    <!--/>-->
-            <!--</a>-->
-        </span>
-    </div>
+            </span>
+     </div>
 
     <!-- Modal -->
     <!--<div class="modal fade" id="modalPass" role="dialog">-->

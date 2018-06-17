@@ -1308,12 +1308,12 @@
      <div class="row creation" id="creation_linkset_cluster_filter_row" style='display:none'>
       <div class="col-md-12">
         <div class="panel panel-default">
-        <div class="panel-heading" id="linkset_filter_heading_panel">
+        <div class="panel-heading" id="linkset_cluster_filter_heading_panel">
          <div class="row">
           <div class="col-md-4">
               <h4 class="panel-title">
-                  <a id="link_collapse_linkset_filter"
-                     data-toggle="collapse" href="#collapse_linkset_filter">
+                  <a id="link_collapse_linkset_cluster_filter"
+                     data-toggle="collapse" href="#collapse_linkset_cluster_filter">
                   <span class="badge alert-info"><strong>-</strong></span></a>
                   Filter Linkset Correspondences
               </h4>
@@ -1321,19 +1321,19 @@
           <div class="col-md-8 text-right">
                <table align="right">
                    <tr align="right">
-                       <td align="right"><div id="linkset_add_filter_message_col"></div></td>
+                       <td align="right"><div id="linkset_cluster_add_filter_message_col"></div></td>
                        <td valign="center"><div class="loading"></div></td>
-                       <td align="right"><button type="button" id="btn_add_filter_linkset"
+                       <td align="right"><button type="button" id="btn_add_filter_linkset_cluster"
                                 class="btn btn-primary"
                                 onclick='addFilterLinksetClick()'
                                 >Add filter</button>
-                          <button type="button" id="btn_apply_filter_linkset"
+                          <button type="button" id="btn_apply_filter_linkset_cluster"
                                 class="btn btn-primary"
                                 onclick='applyFilterLinksetClick()'
                                 >Apply Filter(s)
                           <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                           </button>
-                          <button type="button" id="btn_delete_filter_linkset"
+                          <button type="button" id="btn_delete_filter_linkset_cluster"
                                 class="btn btn-primary"
                                 onclick='deleteFilterLinksetClick()'
                                 >Delete Filter(s)
@@ -1344,7 +1344,7 @@
               </div>
          </div>
         </div>
-        <div id="collapse_linkset_filter" class="panel-collapse collapse in" target="link_collapse_linkset_filter">
+        <div id="collapse_linkset_cluster_filter" class="panel-collapse collapse in" target="link_collapse_linkset_cluster_filter">
         <div class="panel-body">
           <div class="row">
             <div class="col-md-6">
@@ -1352,7 +1352,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <!--<label for="sel1">Select list:</label>-->
-                        <select class="form-control" id="linkset_filter_property">
+                        <select class="form-control" id="linkset_cluster_filter_property">
                         <option>--Select a Property--</option>
                         <option>Threshold</option>
                         <option>Accept</option>
@@ -1364,21 +1364,21 @@
                     <table>
                         <TR>
                             <TD>
-                                <input type="text" class="form-control" style='width:5em' id="linkset_filter_value1">
+                                <input type="text" class="form-control" style='width:5em' id="linkset_cluster_filter_value1">
                             </TD>
                             <TD width="20"></TD>
                             <TD>
-                                <input type="text" class="form-control" style='width:5em' id="linkset_filter_value2">
+                                <input type="text" class="form-control" style='width:5em' id="linkset_cluster_filter_value2">
                             </TD>
                         <TR>
                             <TD>
-                                <div class="checkbox-inline"><label><input type="checkbox" id="value1_greater" value=">">></label></div>
-                                <div class="checkbox-inline"><label><input type="checkbox" id="value1_equal" value="=">=</label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="linkset_cluster_value1_greater" value=">">></label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="linkset_cluster_value1_equal" value="=">=</label></div>
                             </TD>
                             <TD></TD>
                             <TD>
-                                <div class="checkbox-inline"><label><input type="checkbox" id="value2_smaller" value="<"><</label></div>
-                                <div class="checkbox-inline"><label><input type="checkbox" id="value2_equal" value="=">=</label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="linkset_cluster_value2_smaller" value="<"><</label></div>
+                                <div class="checkbox-inline"><label><input type="checkbox" id="linkset_cluster_value2_equal" value="=">=</label></div>
                             </TD>
                     </table>
                 </div>
@@ -1389,9 +1389,9 @@
                 <!--</div>-->
               <!--</div>-->
             </div>
-            <div class="col-md-6" id="linkset_filter_col">
-                <div class="list-group" id="linkset_filter_list" style='scroll: horizontal; overflow: auto; height: 10em; width: 100%;'>
-                    <li class="list-group-item list-group-item-warning" uri="none" id="no_filter_linkset"><span class="list-group-item-heading"> None </span></li>'
+            <div class="col-md-6" id="linkset_cluster_filter_col">
+                <div class="list-group" id="linkset_cluster_filter_list" style='scroll: horizontal; overflow: auto; height: 10em; width: 100%;'>
+                    <li class="list-group-item list-group-item-warning" uri="none" id="no_filter_linkset_cluster"><span class="list-group-item-heading"> None </span></li>'
                     <!-- To be loaded by the server -->
                 </div>
             </div>
@@ -1405,7 +1405,7 @@
      <div class="row creation" id="creation_linkset_cluster_search_row" style='display:none'>
       <div class="col-md-12">
         <div class="panel panel-default">
-        <div class="panel-heading" id="linkset_search_heading_panel">
+        <div class="panel-heading" id="linkset_cluster_search_heading_panel">
          <div class="row">
           <div class="col-md-5">
               <h4 class="panel-title">
@@ -1416,17 +1416,17 @@
           <div class="col-md-7 text-right">
                <table align="right">
                    <tr align="right">
-                       <td align="right"><div id="linkset_add_search_message_col"></div></td>
+                       <td align="right"><div id="linkset_cluster_add_search_message_col"></div></td>
                        <td valign="center"><div class="loading"></div></td>
                        <td align="right">
-                           <input type="text" class="form-control" id="linkset_filter_text"
+                           <input type="text" class="form-control" id="linkset_cluster_filter_text"
                                   onfocus='if ($(this).val() == "-- Type a term --") {$(this).val("")}'
                                   onblur='if ($(this).val() == "") {$(this).val("-- Type a term --")}'
                                   value="-- Type a term --">
                        </td>
                        <td align="right"> &nbsp; </td>
                        <td align="right">
-                          <button type="button" id="btn_apply_search_linkset"
+                          <button type="button" id="btn_apply_search_linkset_cluster"
                                 class="btn btn-primary"
                                 onclick='applyFilterLinksetClick()'
                                 >Search

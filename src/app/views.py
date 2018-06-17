@@ -9,6 +9,7 @@ import os.path as path
 import re
 import urllib
 import urllib2
+import traceback
 
 import Queries as Qry
 import requests
@@ -29,12 +30,14 @@ if CREATION_ACTIVE:
     import Alignments.Settings as St
     import Alignments.NameSpace as Ns
     import Alignments.ToRDF.CSV as CSV
+    import Alignments.ErrorCodes as Ec
     import Alignments.Manage.AdminGraphs as adm
     from Alignments.Lenses.Lens_Union import union
     from Alignments.Lenses.Lens_Difference import difference as diff
     from Alignments.Lenses.Lens_transitive import lens_transitive as trans
     import Alignments.UserActivities.UserRQ as Urq
     import Alignments.UserActivities.View as mod_view
+    import Alignments.Linksets.Linkset as Ls
     import Alignments.Linksets.SPA_Linkset as spa_linkset2
     import Alignments.Linksets.SPA_LinksetRefine as refine
     import Alignments.UserActivities.User_Validation as UVld
@@ -105,19 +108,6 @@ PREFIXES =  """
 
 PRINT_RESULTS = False
 
-# @app.route('/print', methods=['GET'])
-# def prints():
-#     msg = request.args.get('msg', '')
-#     print "\n\n\n"
-#     print msg
-#     return msg
-
-# UPLOAD_FOLDER = '/AlignmentUI/UploadedFiles/'
-# "C:\Users\Al\PycharmProjects\AlignmentUI\UploadedFiles"
-# ALLOWED_EXTENSIONS2 = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
-
-# app = Flask(__name__)
-
 
 @app.route('/default_dir_files')
 def default_dir_files():
@@ -167,7 +157,7 @@ def getupload():
 
     upload_type = request.args.get('type', 'linkset')
     original = request.args.get('original', '')
-    print "upload_type", upload_type
+    # print "upload_type", upload_type
 
     # upload_type = request.args.get('type', 'linkset')
     if upload_type == 'dataset':
@@ -202,11 +192,10 @@ def getupload():
         select_list = ""
         for i in range(len(list)):
             select_list += "<option>{}</option>".format(list[i])
-        print list, select_list
+        # print list, select_list
         return jsonify({"success": True, 'selectlist': select_list, 'original': original})
 
     return ""
-
 
 
 @app.route('/executeTriplestoreAdmin')
@@ -233,6 +222,7 @@ def executeTriplestoreAdmin():
                 result = 'PLEASE GIVE AN INPUT NUMBER!!'
     return result
 
+
 @app.route('/executeTriplestoreQuery')
 def executeTriplestoreQuery():
     option = request.args.get('option', '')
@@ -257,6 +247,7 @@ def executeTriplestoreQuery():
             else:
                 result = 'Option is not valid!'
     return result
+
 
 @app.route('/userLinksetImport')
 def userLinksetImport():
@@ -429,8 +420,8 @@ def enrichdataset():
     return json.dumps(result)
 
 
-@app.route('/getcorrespondences', methods=['GET'])
-def correspondences():
+@app.route('/getcorrespondencesOld', methods=['GET'])
+def correspondencesOld():
     """
     This function is called due to request /getcorrespondences
     It queries the dataset for both all the correspondences in a certain graph URI
@@ -467,8 +458,8 @@ def correspondences():
                             correspondences = correspondences)
 
 
-@app.route('/getcorrespondences2', methods=['GET'])
-def correspondences2():
+@app.route('/getcorrespondences', methods=['GET'])
+def correspondences():
     """
     This function is called due to request /getcorrespondences
     It queries the dataset for both all the correspondences in a certain graph URI
@@ -512,13 +503,13 @@ def correspondences2():
                             graph_menu = graph_menu,
                             correspondences = correspondences,
                             graph_uri = graph_uri,
-                            graph_label = get_URI_local_name(graph_label.replace("_()","")).replace("_"," "),
+                            graph_label = Ut.get_uri_local_name(graph_label.replace("_()","")).replace("_"," "),
                             graph_triples = graph_triples,
-                            alignsMechanism = get_URI_local_name(alignsMechanism))
+                            alignsMechanism = Ut.get_uri_local_name(alignsMechanism))
 
 
-@app.route('/getcorrespondences3', methods=['GET'])
-def correspondences3():
+@app.route('/getcorrespondencesLinksetCluster', methods=['GET'])
+def getcorrespondencesLinksetCluster():
     """
     This function is called due to request /getcorrespondences
     It queries the dataset for both all the correspondences in a certain graph URI
@@ -562,9 +553,9 @@ def correspondences3():
                             graph_menu = graph_menu,
                             correspondences = correspondences,
                             graph_uri = graph_uri,
-                            graph_label = get_URI_local_name(graph_label.replace("_()","")).replace("_"," "),
+                            graph_label = Ut.get_uri_local_name(graph_label.replace("_()","")).replace("_"," "),
                             graph_triples = graph_triples,
-                            alignsMechanism = get_URI_local_name(alignsMechanism))
+                            alignsMechanism = Ut.get_uri_local_name(alignsMechanism))
 
 
 @app.route('/setlinkesetfilter', methods=['GET'])
@@ -876,11 +867,12 @@ def lensdetails():
     else:
         return 'NO RESULTS!'
 
-    if PRINT_RESULTS:
-        print "\n\nDETAILS:", details
+    # if PRINT_RESULTS:
+    print "\n\nDETAILS:", details
 
     # RETURN THE RESULT
     if (template == 'none'):
+        print 'template none'
         metadata_text = Stardog.query_graph_metadata(lens)
         return json.dumps({'metadata': d, 'metadata_text': metadata_text})
     else:
@@ -1155,9 +1147,9 @@ def detailsLens_old():
         for i in range(len(align_list)):
             # print "\n", align_list[i], "=", values_matrix[1][i]
             if values_matrix is None:
-                pred_value = {'pred': get_URI_local_name(align_list[i]), 'value': ""}
+                pred_value = {'pred': Ut.get_uri_local_name(align_list[i]), 'value': ""}
             else:
-                pred_value = {'pred': get_URI_local_name(align_list[i]), 'value':values_matrix[1][i]}
+                pred_value = {'pred': Ut.get_uri_local_name(align_list[i]), 'value':values_matrix[1][i]}
 
             pred_values += [pred_value]
 
@@ -1173,14 +1165,14 @@ def detailsLens_old():
         if i < len(sub_datasets):
             (res, align_list, pred_values) = datasets_dict[sub_datasets[i]]
             col1 = {'dataset': sub_datasets[i],
-                    'dataset_stripped': get_URI_local_name(sub_datasets[i]),
+                    'dataset_stripped': Ut.get_uri_local_name(sub_datasets[i]),
                     'predicates': pred_values}
         else:
             col1 = ""
         if i < len(obj_datasets):
             (res, align_list, pred_values) = datasets_dict[obj_datasets[i]]
             col2 = {'dataset': obj_datasets[i],
-                    'dataset_stripped': get_URI_local_name(obj_datasets[i]),
+                    'dataset_stripped': Ut.get_uri_local_name(obj_datasets[i]),
                     'predicates': pred_values}
         else:
             col2 = ""
@@ -1560,6 +1552,11 @@ def spa_linkset():
         specs[St.delta] = request.args.get('delta', '')
         print specs[St.delta]
 
+    if request.args.get('check_rdf', 'true') == 'true':
+        check_rdf  = True
+    else:
+        check_rdf = False
+
     if len(request.args.get('intermediate_graph', '')) > 0:
         specs[St.intermediate_graph] = request.args.get('intermediate_graph', '')
 
@@ -1603,30 +1600,26 @@ def spa_linkset():
     if request.args.get('geo_dist', ''):
         specs[St.unit_value] = request.args.get('geo_dist', '')
 
-    print specs
+    # print specs
     # return json.dumps('')
 
     check_type = "linkset"
     id = False
-    # try:
-    if True:
+    try:
+    # if True:
 
         threshold = request.args.get('threshold', '0.8')
         threshold = float(threshold.strip())
-        # threshold = float(0.60)
-        # print threshold
         stop_words = request.args.get('stop_words', '')
         stop_symbols = request.args.get('stop_symbols', '')
 
-        # print threshold, stop_words, stop_symbols
-        # return json.dumps('')
 
         if CREATION_ACTIVE:
 
             # print "\n\n\nSPECS: ", specs
 
             if specs['mechanism'] == 'exactStrSim':
-                linkset_result = spa_linkset2.specs_2_linkset(specs=specs, display=False, activated=FUNCTION_ACTIVATED)
+                linkset_result = spa_linkset2.specs_2_linkset(specs=specs, display=False, activated=FUNCTION_ACTIVATED, check_file = check_rdf)
 
             elif specs['mechanism'] == 'embededAlignment':
                 del specs['target']['aligns']
@@ -1635,33 +1628,27 @@ def spa_linkset():
 
             elif specs['mechanism'] == 'identity':
                 id = True
-                linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED)
+                linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=FUNCTION_ACTIVATED, check_file = check_rdf)
 
             elif specs['mechanism'] == 'approxStrSim':
                 print 1
-                linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+                linkset_result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols, check_file = check_rdf)
 
             elif specs['mechanism'] == 'approxNbrSim':
 
-                try:
-                    # print "2"
-                    delta = float(specs[St.delta])
-                    specs[St.delta] = delta
-                    # print "2"
-                    linkset_result = spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
-                                                                  activated=FUNCTION_ACTIVATED)
-                except:
-                    linkset_result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
-
+                delta = float(specs[St.delta])
+                specs[St.delta] = delta
+                linkset_result = spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
+                                                              activated=FUNCTION_ACTIVATED, check_file = check_rdf)
 
             elif specs[St.mechanism] == "intermediate":
-                linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED)
+                linkset_result = spa_linkset2.specs_2_linkset_intermediate(specs, display=False, activated=FUNCTION_ACTIVATED, check_file = check_rdf)
 
             elif specs['mechanism'] == 'geoSim':
                 # linkset_result = None
                 # print 'HERE', specs
                 specs['mechanism'] = 'nearbyGeoSim'
-                linkset_result = spa_linkset2.geo_specs_2_linkset(specs, activated=FUNCTION_ACTIVATED)
+                linkset_result = spa_linkset2.geo_specs_2_linkset(specs, activated=FUNCTION_ACTIVATED, check_file = check_rdf)
                 # print linkset_result
 
             else:
@@ -1674,23 +1661,33 @@ def spa_linkset():
         # print "\n\n\n{}".format(linkset_result['message'])
         return json.dumps(linkset_result)
 
-    # except Exception as err:
-    #
-    #     print "\nSECOND CHECK AFTER SERVER ERROR"
-    #
-    #     if id == True:
-    #         check = Ls.run_checks_id(specs)
-    #     else:
-    #         check = Ls.run_checks(specs, check_type=check_type)
-    #
-    #     if check[St.result] != "GOOD TO GO":
-    #         # THE LINKSET WAS CREATED
-    #         linkset_result = {'message': Ec.ERROR_CODE_22.replace('#', check[St.result]),
-    #                           'error_code': 0, St.result: check[St.result]}
-    #     else:
-    #         linkset_result = {'message': str(err.message), 'error_code': -1, St.result: None}
-    #
-    #     return json.dumps(linkset_result)
+    except Exception as err:
+
+        traceback.print_exc()
+
+        print "\nSECOND CHECK AFTER SERVER ERROR -- MAIN EXCEPTION "
+
+        try:
+            if id == True:
+                check = Ls.run_checks_id(specs)
+            else:
+                check = Ls.run_checks(specs, check_type=check_type)
+
+            if check[St.result] != "GOOD TO GO":
+                # THE LINKSET WAS CREATED
+                print  Ec.ERROR_CODE_22.replace('#', check[St.result])
+                linkset_result = {'message': Ec.ERROR_CODE_22.replace('#', check[St.result]),
+                                  'error_code': 0, St.result: check[St.result]}
+            else:
+                linkset_result = {'message': "", 'error_code': -1, St.result: None}
+
+        except Exception as err:
+
+            print "\nSERVER ERROR  -- SUB-EXCEPTION"
+            traceback.print_exc()
+            linkset_result = {'message': "", 'error_code': -1, St.result: None}
+
+        return json.dumps(linkset_result)
 
 
 @app.route('/refineLinkset')
@@ -1771,67 +1768,76 @@ def refineLinkset():
     if temp_num_approx:
         specs[St.numeric_approx_type] = temp_num_approx
 
-    if CREATION_ACTIVE:
-        if specs['mechanism'] == 'exactStrSim':
-            linkset_result = refine.refine(specs, activated=True)
-
-        elif specs['mechanism'] == 'identity':
-            linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
-
-        elif specs['mechanism'] == 'approxStrSim':
-            # linkset_result = None
-            threshold = request.args.get('threshold', '0.8')
-            threshold = float(threshold.strip())
-            stop_words = request.args.get('stop_words', '')
-            stop_symbols = request.args.get('stop_symbols', '')
-
-            print threshold, stop_words, stop_symbols
-            # linkset_result = prefixed_inverted_index(specs, threshold, check_type="refine",
-            #                                          stop_words_string=stop_words, stop_symbols_string=stop_symbols)
-
-            linkset_result = refine_approx(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
-
-        elif specs['mechanism'] == 'geoSim':
-            linkset_result = None
-
-        elif specs[St.mechanism] == "intermediate":
-            linkset_result = refine.refine(specs, activated=True)
-            # print linkset_result
-            #linkset_result = result['refined']
-
-        elif specs['mechanism'] == 'approxNbrSim':
-            try:
-                print "Delta", specs[St.delta]
-                delta = float(specs[St.delta])
-                specs[St.delta] = delta
-                # print "2"
+    try:
+        if CREATION_ACTIVE:
+            if specs['mechanism'] == 'exactStrSim':
                 linkset_result = refine.refine(specs, activated=True)
-                    # spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
-                    #                                           activated=FUNCTION_ACTIVATED)
-            except Exception as err:
-                print "Error:", str(err)
-                linkset_result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
 
+            elif specs['mechanism'] == 'identity':
+                linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
+
+            elif specs['mechanism'] == 'approxStrSim':
+                # linkset_result = None
+                threshold = request.args.get('threshold', '0.8')
+                threshold = float(threshold.strip())
+                stop_words = request.args.get('stop_words', '')
+                stop_symbols = request.args.get('stop_symbols', '')
+
+                print threshold, stop_words, stop_symbols
+                # linkset_result = prefixed_inverted_index(specs, threshold, check_type="refine",
+                #                                          stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+
+                linkset_result = refine_approx(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+
+            elif specs['mechanism'] == 'geoSim':
+                linkset_result = None
+
+            elif specs[St.mechanism] == "intermediate":
+                linkset_result = refine.refine(specs, activated=True)
+                # print linkset_result
+                #linkset_result = result['refined']
+
+            elif specs['mechanism'] == 'approxNbrSim':
+                try:
+                    print "Delta", specs[St.delta]
+                    delta = float(specs[St.delta])
+                    specs[St.delta] = delta
+                    # print "2"
+                    linkset_result = refine.refine(specs, activated=True)
+                        # spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
+                        #                                           activated=FUNCTION_ACTIVATED)
+                except Exception as err:
+                    print "Error:", str(err)
+                    linkset_result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
+
+            else:
+                linkset_result = None
         else:
-            linkset_result = None
-    else:
-        linkset_result = {'message': 'Linkset refinement is inactive!',
+            linkset_result = {'message': 'Linkset refinement is inactive!',
+                               'error_code': -1,
+                               'linkset': ''}
+
+        # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
+        if linkset_result:
+            if St.refined in linkset_result:
+                refined = linkset_result[St.refined]
+                if refined:
+                    if refined[St.error_code] == 0:
+                        return json.dumps(refined)
+            else:
+                linkset_result = {'message': linkset_result[St.message],
+                                  'error_code': -1,
+                                  'linkset': ''}
+        # print "\n\n\n{}".format(linkset_result['message'])
+        return json.dumps(linkset_result)
+
+    except Exception as err:
+
+        traceback.print_exc()
+
+        return json.dumps({'message': '',
                            'error_code': -1,
-                           'linkset': ''}
-
-    # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
-    if linkset_result:
-        if St.refined in linkset_result:
-            refined = linkset_result[St.refined]
-            if refined:
-                if refined[St.error_code] == 0:
-                    return json.dumps(refined)
-        else:
-            linkset_result = {'message': linkset_result[St.message],
-                              'error_code': -1,
-                              'linkset': ''}
-    # print "\n\n\n{}".format(linkset_result['message'])
-    return json.dumps(linkset_result)
+                           St.result: None})
 
 
 @app.route('/importLinkset')
@@ -1857,44 +1863,53 @@ def spa_lens():
 
     # print "\n\n\nSPECS: ", specs
 
-    if CREATION_ACTIVE:
+    try:
+        if CREATION_ACTIVE:
 
-        print "#####", request.args.get('subjects_target'), request.args.get('objects_target')
+            # print "#####", request.args.get('subjects_target'), request.args.get('objects_target')
 
-        if str(operator).lower()  == "union":
-            graphs = request.args.getlist('graphs[]')
-            specs = {
-                St.researchQ_URI: rq_uri,
-                St.datasets: graphs,
-                St.lens_operation: operator }
-            lens_result = union(specs, activated=True)
+            if str(operator).lower()  == "union":
+                graphs = request.args.getlist('graphs[]')
+                specs = {
+                    St.researchQ_URI: rq_uri,
+                    St.datasets: graphs,
+                    St.lens_operation: operator }
+                lens_result = union(specs, activated=True)
 
-        elif str(operator).lower() == "difference":
-            specs = {
-                St.researchQ_URI: rq_uri,
-                St.subjectsTarget: request.args.get('subjects_target'),
-                St.objectsTarget: request.args.get('objects_target'),
-                St.lens_operation: operator }
-            lens_result = diff(specs, activated=True)
+            elif str(operator).lower() == "difference":
+                specs = {
+                    St.researchQ_URI: rq_uri,
+                    St.subjectsTarget: request.args.get('subjects_target'),
+                    St.objectsTarget: request.args.get('objects_target'),
+                    St.lens_operation: operator }
+                lens_result = diff(specs, activated=True)
 
-        elif str(operator).lower() == "transitive":
-            specs = {
-                St.researchQ_URI: rq_uri,
-                St.subjectsTarget: request.args.get('subjects_target'),
-                St.objectsTarget: request.args.get('objects_target'),
-                St.lens_operation: operator }
-            lens_result = trans(specs, activated=True)
+            elif str(operator).lower() == "transitive":
+                specs = {
+                    St.researchQ_URI: rq_uri,
+                    St.subjectsTarget: request.args.get('subjects_target'),
+                    St.objectsTarget: request.args.get('objects_target'),
+                    St.lens_operation: operator }
+                lens_result = trans(specs, activated=True)
 
+            else:
+                lens_result = {'message': 'Operation not implemented!',
+                               'error_code': -1,
+                               St.result: None}
         else:
-            lens_result = {'message': 'Operation not implemented!',
+            lens_result = {'message': 'Lens creation is inactive!',
                            'error_code': -1,
                            St.result: None}
-    else:
-        lens_result = {'message': 'Lens creation is inactive!',
-                       'error_code': -1,
-                       St.result: None}
 
-    return json.dumps(lens_result)
+        return json.dumps(lens_result)
+
+    except Exception as err:
+
+        traceback.print_exc()
+
+        return json.dumps({'message': '',
+                           'error_code': -1,
+                           St.result: None})
 
 
 @app.route('/refineAlignment')
@@ -2151,7 +2166,7 @@ def viewdetails():
     details += """<div class="panel-body">"""
     details += "<div class='row'><div class='col-md-6'>"
     for g in view['view_lens']:
-        details += '- ' + get_URI_local_name(g).replace('_', ' ') +'<br/>'
+        details += '- ' + Ut.get_uri_local_name(g).replace('_', ' ') +'<br/>'
 
     # datasets_bag = map(lambda x: x[0], view['view_filter_matrix'][1:])
     # datasets = list(set(datasets_bag))
@@ -2170,11 +2185,11 @@ def viewdetails():
 
     for row in view['view_filter_matrix'][1:]:
         dataset_uri = row[0]
-        dataset = get_URI_local_name(dataset_uri)
+        dataset = Ut.get_uri_local_name(dataset_uri)
         details += '<strong>' + dataset
         if str(row[1]) != '':
             entityType_uri = row[1]
-            entityType = get_URI_local_name(entityType_uri)
+            entityType = Ut.get_uri_local_name(entityType_uri)
             if entityType is None:
                 entityType = ""
             details += ' | ' + entityType
@@ -2186,7 +2201,7 @@ def viewdetails():
         predicatesNames = []
         if predicatesList != ['']:
             for pred_uri in predicatesList:
-                pred = get_URI_local_name(pred_uri)
+                pred = Ut.get_uri_local_name(pred_uri)
                 list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
                              + 'pred_uri="' + pred_uri \
                              + '" graph_uri="' + dataset_uri \
@@ -2194,7 +2209,7 @@ def viewdetails():
                              + '"><span class="list-group-item-heading"><b>' \
                              + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
                 predicatesNames += [pred]
-            # predicatesList = map(lambda x: get_URI_local_name(x), predicatesList)
+            # predicatesList = map(lambda x: get_uri_local_name(x), predicatesList)
             predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
             details += '</strong><br/> - ' + predicates + '<br/>'
 
@@ -2202,7 +2217,7 @@ def viewdetails():
         predicatesNames = []
         if predicatesList != ['']:
             for pred_uri in predicatesList:
-                pred = get_URI_local_name(pred_uri)
+                pred = Ut.get_uri_local_name(pred_uri)
                 if pred is None:
                     pred = ""
                 list_pred += ['<li class="list-group-item" style="background-color:lightblue"' \
@@ -2212,7 +2227,7 @@ def viewdetails():
                     + '"><span class="list-group-item-heading"><b>' \
                     + dataset + ' | ' + entityType + '</b>: ' + pred + '</span></li>']
                 predicatesNames += [pred]
-            # predicatesNames = map(lambda x: get_URI_local_name(x), predicatesList)
+            # predicatesNames = map(lambda x: get_uri_local_name(x), predicatesList)
             predicates = reduce(lambda x, y: x + ', ' + y ,predicatesNames)
             details += ' - Opt: ' + predicates + '<br/>'
 
@@ -2221,8 +2236,8 @@ def viewdetails():
 
     for i in range(1,len(view['view_filter_matrix'])):
         filter = view['view_filter_matrix'][i]
-        # print get_URI_local_name(filter[0]), get_URI_local_name(filter[1])
-        view['view_filter_matrix'][i] += [get_URI_local_name(filter[0]), get_URI_local_name(filter[1])]
+        # print get_uri_local_name(filter[0]), get_uri_local_name(filter[1])
+        view['view_filter_matrix'][i] += [Ut.get_uri_local_name(filter[0]), Ut.get_uri_local_name(filter[1])]
 
     view['details'] = details
 
@@ -2338,70 +2353,74 @@ def datasetLinkingStats():
     computeCluster = request.args.get('computeCluster', 'yes') == 'yes'
     alignments = request.args.getlist('alignments[]')
 
-    header = []
-    query = ds_stats(dataset, entityType, display=False, optional_label=optionalLabel, graph_list=alignments)
+    try:
+        header = []
+        query = ds_stats(dataset, entityType, display=False, optional_label=optionalLabel, graph_list=alignments)
 
-    # print "\nRUNNING SPARQL QUERY:{}".format(query)
-    dic_response = sparql2matrix(query)
-    # print dic_response
-    # print St.message in dic_response
+        # print "\nRUNNING SPARQL QUERY:{}".format(query)
+        dic_response = sparql2matrix(query)
+        # print dic_response
+        # print St.message in dic_response
 
-    print "\nPROCESSING THE RESULT..."
-    if dic_response[St.message] == "OK":
-        # response = sparql_xml_to_matrix(query)
-        response = dic_response[St.result]
-        results = []
-        plotdata = []
-        if (response):
-            if computeCluster:
-                header = ['id'] + response[0][:-2] + ['clusters','percentage'] + [response[0][-2]]
-            else:
-                header = ['id'] + response[0][:-1]
-            results_x = response[1:]
-
-            # decode = lambda x: x.decode('utf-8') if str(x) else x
-            local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") \
-                if x.startswith("http://") else x
-            for i in range(len(results_x)):
-                row = results_x[i]
-                temp = map(local_name, row[:-1])
+        print "\nPROCESSING THE RESULT..."
+        if dic_response[St.message] == "OK":
+            # response = sparql_xml_to_matrix(query)
+            response = dic_response[St.result]
+            results = []
+            plotdata = []
+            if (response):
                 if computeCluster:
-                    uri = row[-1]
-                    total = float(row[2])
-                    # print total
-                    clusters = Clt.cluster_triples(uri)
-                    # results += [map(decode, temp)]
-                      # if temp[5][0] != '0':
-                    results += [['A'+str(i+1)] + temp[:-1] + [len(clusters), round(len(clusters)/total*100,2)] + temp[-1:]]
-                    plotdata += [{'name': 'A'+str(i+1), 'label': temp[5], 'freq': float(temp[4]), 'clust': round(len(clusters)/total*100,2) } if len(row)>=5 else {}]
+                    header = ['id'] + response[0][:-2] + ['clusters','percentage'] + [response[0][-2]]
                 else:
-                    results += [temp]
-                    plotdata += [{'name': 'A'+str(i+1), 'label': temp[5], 'freq': float(temp[4]), 'clust': 0 } if len(row)>=5 else {}]
-            # print plotdata
+                    header = ['id'] + response[0][:-1]
+                results_x = response[1:]
 
-        # print '\n\n', results
-        if len(response) > 1:
-            message = "Have a look at the result in the table below"
+                # decode = lambda x: x.decode('utf-8') if str(x) else x
+                local_name = lambda x: Ut.get_uri_local_name(x.replace("_()","")).replace("_"," ") \
+                    if x.startswith("http://") else x
+                for i in range(len(results_x)):
+                    row = results_x[i]
+                    temp = map(local_name, row[:-1])
+                    if computeCluster:
+                        uri = row[-1]
+                        total = float(row[2])
+                        # print total
+                        clusters = Clt.cluster_triples(uri)
+                        # results += [map(decode, temp)]
+                          # if temp[5][0] != '0':
+                        results += [['A'+str(i+1)] + temp[:-1] + [len(clusters), round(len(clusters)/total*100,2)] + temp[-1:]]
+                        plotdata += [{'name': 'A'+str(i+1), 'label': temp[5], 'freq': float(temp[4]), 'clust': round(len(clusters)/total*100,2) } if len(row)>=5 else {}]
+                    else:
+                        results += [temp]
+                        plotdata += [{'name': 'A'+str(i+1), 'label': temp[5], 'freq': float(temp[4]), 'clust': 0 } if len(row)>=5 else {}]
+                # print plotdata
+
+            # print '\n\n', results
+            if len(response) > 1:
+                message = "Have a look at the result in the table below"
+            else:
+                message = "The query was successfully run with no result to show. " \
+                          "<br/>Probably the selected properties need some revising."
+
+            return json.dumps({'message': message,
+                               'result': render_template('viewsDetails_list.html', header = header, results = results),
+                               'plotdata': plotdata})
+
+        elif dic_response[St.message] == "NO RESPONSE":
+            print "NO RESULT FOR THIS QUERY..."
+            return json.dumps({'message': "NO RESPONSE", 'result': None})
+
         else:
-            message = "The query was successfully run with no result to show. " \
-                      "<br/>Probably the selected properties need some revising."
-
-        return json.dumps({'message': message,
-                           'result': render_template('viewsDetails_list.html', header = header, results = results),
-                           'plotdata': plotdata})
-
-    elif dic_response[St.message] == "NO RESPONSE":
-        print "NO RESULT FOR THIS QUERY..."
-        return json.dumps({'message': "NO RESPONSE", 'result': None})
-
-    else:
-        message = dic_response[St.message]
-        return json.dumps({'message': message, 'result': None})
-    # return json.dumps({'message': '', 'result': None})
+            message = dic_response[St.message]
+            return json.dumps({'message': message, 'result': None})
+    except:
+        # print "AN ERROR OCCURRED: ", error
+        traceback.print_exc()
+        return json.dumps({'message':'', 'result':None})
 
 
-@app.route('/getDatasetLinkingStats2')
-def datasetLinkingStats2():
+@app.route('/getDatasetLinkingStatsSummary')
+def datasetLinkingStatsSummary():
     dataset = request.args.get('dataset', '')
     entityType = request.args.get('entityType', '')
     alignments = request.args.getlist('alignments[]')
@@ -2418,149 +2437,9 @@ def datasetLinkingStats2():
     else:
         return ''
 
+
 @app.route('/getDatasetLinkingClusters')
 def datasetLinkingClusters():
-    dataset = request.args.get('dataset', '')
-    entityType = request.args.get('entityType', '')
-    properties = request.args.getlist('properties[]')
-    alignments = request.args.getlist('alignments[]')
-    # print alignments
-
-    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
-    clusters = Clt.cluster_dataset(dataset, entityType, alignments)
-
-    # properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
-    #               "http://xmlns.com/foaf/0.1/name",
-    #               "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
-    counter = 0
-    header = ['id', 'size', 'prop', 'sample']
-    results = []
-    clustersList = []
-    for parent, cluster in clusters.items():
-        if len(cluster) > 2:
-            # print "\n{:10}\t{:3}".format(parent, len(cluster))
-            clustersList += [cluster]
-            # SAMPLE OF THE CLUSTER
-            index = 0
-            sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
-
-            # print "sample['result']", sample['result']
-            # TRY MORE ROWS TO FINALLY GET A SAMPLE
-            while index + 1 < len(cluster) and (sample['result'] is None or len(sample['result'])) < 2:
-                index += 1
-                sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
-                if sample['result'] and len(sample['result']) > 1:
-                    break
-
-            # print cluster[0]
-            # if counter > 50:
-            #     break
-            counter +=1
-            if sample['result'] and len(sample['result']) > 1:
-                # print response['result']
-                results += [[str(counter), str(len(cluster)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
-            else:
-                results += [[str(counter), str(len(cluster)), "-", "No value found"]]
-
-    if len(results) > 1:
-        message = "Have a look at the result in the table below"
-        return json.dumps({'message': message,
-                           'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
-    else:
-        message = "The query was successfully run with no result to show. " \
-                  "<br/>Probably the selected properties need some revising."
-        print "NO RESULT FOR THIS QUERY..."
-        return json.dumps({'message': message, 'result': None})
-
-
-@app.route('/getDatasetLinkingClusters2')
-def datasetLinkingClusters2():
-    # dataset = request.args.get('dataset', '')
-    # entityType = request.args.get('entityType', '')
-    properties = request.args.getlist('properties[]')
-    alignments = request.args.getlist('alignments[]')
-    network_size = int(request.args.get('network_size', '-1'))
-    greater_equal = (request.args.get('greater_equal', 'false')) == 'true'
-    print properties
-
-    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
-    # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
-    clusters = Clt.links_clustering(alignments[0], limit=None)
-    # print clusters
-
-    # for each cluster-matrix
-    counter = 0
-    header = ['ID', 'count', 'size', 'prop', 'sample']
-    results = []
-    clustersList = []
-    for cluster_id, values in clusters.items():
-        nodes = list(values['nodes'])
-        links = list(values['links'])
-        strengths = values['strengths']
-
-        # print i_cluster
-        # (cluster_id, values) = i_cluster
-        children = nodes
-        n_children = len(children)
-        # print children, network_size
-        if (network_size != -1) and not ((n_children >= network_size and greater_equal) or (n_children == network_size)):
-            # print 'HERE!!!'
-            continue
-
-        # Calculate hash and fech resource ids
-        smallest_hash = float('inf')
-        resources = ""
-        for child in children:
-            hashed = hash(child)
-            if hashed <= smallest_hash:
-                smallest_hash = hashed
-
-            use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
-            resources += "\n\t\t\t\t{}".format(use)
-
-        smallest_hash = "{}".format(str(smallest_hash).replace("-", "N")) if str(
-                smallest_hash).startswith("-") \
-                else "P{}".format(smallest_hash)
-
-        clustersList += [{'id': smallest_hash, 'nodes': nodes, 'links': links, 'dict': strengths}]
-
-        # index = 0
-        sample = Clt.cluster_values2(nodes, properties, distinct_values=False, display=False)
-
-        # print "sample['result']", sample['result']
-        # TRY MORE ROWS TO FINALLY GET A SAMPLE
-        # while index + 1 < len(cluster) and (sample['result'] is None or len(sample['result'])) < 2:
-        #     index += 1
-        #     sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
-        #     if sample['result'] and len(sample['result']) > 1:
-        #         break
-
-        # print cluster[0]
-        # if counter > 50:
-        #     break
-        counter +=1
-        if sample['result'] and len(sample['result']) > 1:
-            # print response['result']
-            # results += [[cluster_id, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
-            results += [[smallest_hash, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
-        else:
-            # results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
-            results += [[smallest_hash, str(counter), str(len(nodes)), "-", "No value found"]]
-
-    if len(results) > 1:
-        message = "Have a look at the result in the table below"
-        # print 'before', clustersList
-        return json.dumps({'message': message,
-                           'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
-    else:
-        message = "The query was successfully run with no result to show. " \
-                  "<br/>Probably the selected properties need some revising."
-        print "NO RESULT FOR THIS QUERY..."
-        return json.dumps({'message': message, 'result': None})
-
-
-@app.route('/getDatasetLinkingClusters3')
-def datasetLinkingClusters3():
     research_question = request.args.get('research_question', '')
     datasets_properties = request.args.getlist('datasets_properties[]')
     alignments = request.args.getlist('alignments[]')
@@ -2678,6 +2557,298 @@ def datasetLinkingClusters3():
         return json.dumps({'message': message, 'result': None})
 
 
+@app.route('/renderFile')
+def renderFile():
+    template = request.args.get('template', '')
+    return render_template(template)
+
+@app.route('/getDatasetLinkingClusterDetails')
+def datasetLinkingClusterDetails():
+    research_question = request.args.get('research_question', '')
+    distinctValues = request.args.get('groupDistValues','yes')
+    datasets_properties = request.args.getlist('datasets_properties[]')
+    cluster_json = request.args.get('cluster') #{id, nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
+    # cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
+
+    properties = []
+    targets = []
+    if True:
+
+        for json_item in datasets_properties:
+            row = ast.literal_eval(json_item)
+            dict_graph = None
+            exists_dataset_entityType = False
+
+            for elem in targets:
+                # check if the dataset has been already registered
+                if (elem['graph'] == row['dataset']):
+                    # only assigns value to dict_graph if the desired dataset was found
+                    dict_graph = elem
+                    data_list = elem['data']
+                    for data in data_list:
+                        # check if the entityType has been already registered for that graph
+                        if (data['entity_datatype'] == row['entityType']):
+                            data['properties'].append(row['properties'])
+                            exists_dataset_entityType = True
+
+            # if the above loop finished without finding the desired dictionary, then it will be registered
+            if not exists_dataset_entityType:
+
+                # this means the entry for the dataset does not exists
+                if (dict_graph is None):
+                    # create an entry for this dataset
+                    dict_graph = {'graph': row['dataset'], 'data':[]}
+                    targets.append(dict_graph)
+
+                properties = [row['properties']]
+                data = {'entity_datatype': row['entityType'], 'properties': properties}
+                dict_graph['data'].append(data)
+
+    # print 'after', type(cluster_json)
+    cluster = ast.literal_eval(cluster_json)
+    # print '\n'
+    print "\n\t>>> CLUSTER ID:", cluster['id']
+    print "\t>>> PROPERTIES:", properties
+    # print cluster['nodes']
+    # print cluster['links']
+    # print cluster['dict']
+
+    response = Clt.cluster_values_plus(research_question, cluster['nodes'], targets, distinct_values=(distinctValues=='yes'))
+    # print response
+    if response['result'] and len(response['result']) > 1:
+        # print response['result']
+        header = response['result'][0][:-1]
+        results_x = response['result'][1:]
+
+        results = []
+        plot_graph = {}
+        nodes = []
+        links = []
+        group = []
+        for r in results_x:
+            results += [map(process_table_columns, r[:-1]) ]
+            dataset = results[-1][0]
+            node_names = results[-1][3]
+            node_names = node_names[1:-1].split('] [')
+            node_name = 'None'
+            for i in range(len(node_names)):
+                n = node_names[i]
+                if i == len(node_names)-1: # if it is the last/unique then take it
+                    node_name = n
+                else: # then there can always be another option (the bigger the better)
+                    if n.startswith("http") or n.startswith("<http") or n.startswith("www"):
+                        pass
+                    elif len(n) < len(node_names[i+1]):
+                        pass
+                    else:
+                        node_name = n
+                        break
+            try:
+                index = group.index(dataset)
+            except:
+                index = len(group)
+                group += [dataset]
+
+            nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
+
+            dict = cluster['dict']
+            for n in nodes[:-1]:
+                node1 = nodes[-1]['uri'] if Ut.is_nt_format(nodes[-1]['uri']) else '<{}>'.format(nodes[-1]['uri'])
+                node2 = n['uri'] if Ut.is_nt_format(n['uri']) else '<{}>'.format(n['uri'])
+                if (node1, node2) in dict:
+                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[(node1, node2)])}]
+                elif (node2, node1) in cluster['links']:
+                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[(node2, node1)])}]
+
+        # print links
+        obj_metrics = plots.metric(cluster['links'])
+        message = obj_metrics['message'].replace('\n','</br>')
+
+        # confidence = min(cluster['dict'].items(), key=lambda value: value[1])[1]
+        # confidence = min(cluster['dict'].items(), key=lambda value: value[1] if len(value[1]) > 0 else 2)[1]
+        messageConf = ''
+        # confidence = 1
+        for link, link_strengths in cluster['dict'].items():
+            # print 'V', value[1], type(value[1]), len(value[1])
+            if len(link_strengths) == 0:
+                cluster['dict'][link] = [0.5]
+                # confidence = 0.5
+                messageConf = 'Some links have no strenght, those are set to 0.5'
+            # else:
+            #     strength = max(link_strengths)
+            #     if confidence > strength:
+            #         confidence = strength
+        # confidence = max(min(cluster['dict'].items(), key=lambda value: max(value[1]))[1])
+
+        link, link_min_strengths  = min(cluster['dict'].items(), key=lambda tuple: max(tuple[1]))
+        confidence = max(link_min_strengths)
+
+
+        if len(nodes) > 0 and len(links) > 0:
+            # print cluster['dict'].items()
+            # print 'Conf.', confidence
+            try:
+                confidence = float(confidence)
+            except:
+                print 'Missing confidence value, set to 1.'
+                confidence = 1
+            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
+            # print plot_graph
+
+        message = "Have a look at the result in the table below"
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results),
+                           'graph': plot_graph})
+    else:
+        message = "The query was successfully run with no result to show. " \
+                  "<br/>Probably the selected properties need some revising."
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': message, 'result': None, 'graph': {}})
+
+
+#TODO: deprecated, to be deleted
+@app.route('/getDatasetLinkingClustersOld')
+def datasetLinkingClustersOld():
+    dataset = request.args.get('dataset', '')
+    entityType = request.args.get('entityType', '')
+    properties = request.args.getlist('properties[]')
+    alignments = request.args.getlist('alignments[]')
+    # print alignments
+
+    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+    clusters = Clt.cluster_dataset(dataset, entityType, alignments)
+
+    # properties = ["http://ecartico.org/ontology/full_name", "http://goldenagents.org/uva/SAA/ontology/full_name",
+    #               "http://xmlns.com/foaf/0.1/name",
+    #               "http://www.w3.org/2004/02/skos/core#prefLabel", "{}label".format(Ns.rdfs)]
+    counter = 0
+    header = ['id', 'size', 'prop', 'sample']
+    results = []
+    clustersList = []
+    for parent, cluster in clusters.items():
+        if len(cluster) > 2:
+            # print "\n{:10}\t{:3}".format(parent, len(cluster))
+            clustersList += [cluster]
+            # SAMPLE OF THE CLUSTER
+            index = 0
+            sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
+
+            # print "sample['result']", sample['result']
+            # TRY MORE ROWS TO FINALLY GET A SAMPLE
+            while index + 1 < len(cluster) and (sample['result'] is None or len(sample['result'])) < 2:
+                index += 1
+                sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
+                if sample['result'] and len(sample['result']) > 1:
+                    break
+
+            # print cluster[0]
+            # if counter > 50:
+            #     break
+            counter +=1
+            if sample['result'] and len(sample['result']) > 1:
+                # print response['result']
+                results += [[str(counter), str(len(cluster)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+            else:
+                results += [[str(counter), str(len(cluster)), "-", "No value found"]]
+
+    if len(results) > 1:
+        message = "Have a look at the result in the table below"
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
+    else:
+        message = "The query was successfully run with no result to show. " \
+                  "<br/>Probably the selected properties need some revising."
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': message, 'result': None})
+
+#TODO: deprecated, to be deleted
+@app.route('/getDatasetLinkingClusters2')
+def datasetLinkingClusters2():
+    # dataset = request.args.get('dataset', '')
+    # entityType = request.args.get('entityType', '')
+    properties = request.args.getlist('properties[]')
+    alignments = request.args.getlist('alignments[]')
+    network_size = int(request.args.get('network_size', '-1'))
+    greater_equal = (request.args.get('greater_equal', 'false')) == 'true'
+    # print properties
+
+    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+    # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
+    clusters = Clt.links_clustering(alignments[0], limit=None)
+    # print clusters
+
+    # for each cluster-matrix
+    counter = 0
+    header = ['ID', 'count', 'size', 'prop', 'sample']
+    results = []
+    clustersList = []
+    for cluster_id, values in clusters.items():
+        nodes = list(values['nodes'])
+        links = list(values['links'])
+        strengths = values['strengths']
+
+        # print i_cluster
+        # (cluster_id, values) = i_cluster
+        children = nodes
+        n_children = len(children)
+        # print children, network_size
+        if (network_size != -1) and not ((n_children >= network_size and greater_equal) or (n_children == network_size)):
+            # print 'HERE!!!'
+            continue
+
+        # Calculate hash and fech resource ids
+        smallest_hash = float('inf')
+        resources = ""
+        for child in children:
+            hashed = hash(child)
+            if hashed <= smallest_hash:
+                smallest_hash = hashed
+
+            use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
+            resources += "\n\t\t\t\t{}".format(use)
+
+        smallest_hash = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                smallest_hash).startswith("-") \
+                else "P{}".format(smallest_hash)
+
+        clustersList += [{'id': smallest_hash, 'nodes': nodes, 'links': links, 'dict': strengths}]
+
+        # index = 0
+        sample = Clt.cluster_values2(nodes, properties, distinct_values=False, display=False)
+
+        # print "sample['result']", sample['result']
+        # TRY MORE ROWS TO FINALLY GET A SAMPLE
+        # while index + 1 < len(cluster) and (sample['result'] is None or len(sample['result'])) < 2:
+        #     index += 1
+        #     sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
+        #     if sample['result'] and len(sample['result']) > 1:
+        #         break
+
+        # print cluster[0]
+        # if counter > 50:
+        #     break
+        counter +=1
+        if sample['result'] and len(sample['result']) > 1:
+            # print response['result']
+            # results += [[cluster_id, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+            results += [[smallest_hash, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
+        else:
+            # results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
+            results += [[smallest_hash, str(counter), str(len(nodes)), "-", "No value found"]]
+
+    if len(results) > 1:
+        message = "Have a look at the result in the table below"
+        # print 'before', clustersList
+        return json.dumps({'message': message,
+                           'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
+    else:
+        message = "The query was successfully run with no result to show. " \
+                  "<br/>Probably the selected properties need some revising."
+        print "NO RESULT FOR THIS QUERY..."
+        return json.dumps({'message': message, 'result': None})
+
+
+#TODO: deprecated, to be deleted
 def datasetLinkingClusters2_old():
     # dataset = request.args.get('dataset', '')
     # entityType = request.args.get('entityType', '')
@@ -2877,8 +3048,10 @@ def datasetLinkingClusters2_old():
         print "NO RESULT FOR THIS QUERY..."
         return json.dumps({'message': message, 'result': None})
 
-@app.route('/getDatasetLinkingClusterDetails')
-def datasetLinkingClusterDetails():
+
+#TODO: deprecated, to be deleted
+@app.route('/getDatasetLinkingClusterDetailsOld')
+def datasetLinkingClusterDetailsOld():
     clusterStr = request.args.get('cluster','')
     distinctValues = request.args.get('groupDistValues','yes')
     properties = request.args.getlist('properties[]')
@@ -2930,8 +3103,9 @@ def datasetLinkingClusterDetails():
         return json.dumps({'message': message, 'result': None, 'graph': {}})
 
 
-@app.route('/getDatasetLinkingClusterDetails2')
-def datasetLinkingClusterDetails2():
+#TODO: deprecated, to be deleted
+@app.route('/getDatasetLinkingClusterDetailsOld2')
+def datasetLinkingClusterDetailsOld2():
     research_question = request.args.get('research_question', '')
     distinctValues = request.args.get('groupDistValues','yes')
     properties = request.args.getlist('properties[]')
@@ -3030,150 +3204,6 @@ def datasetLinkingClusterDetails2():
                 confidence = 1
             plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
             print plot_graph
-
-        message = "Have a look at the result in the table below"
-        return json.dumps({'message': message,
-                           'result': render_template('viewsDetails_list.html', header = header, results = results),
-                           'graph': plot_graph})
-    else:
-        message = "The query was successfully run with no result to show. " \
-                  "<br/>Probably the selected properties need some revising."
-        print "NO RESULT FOR THIS QUERY..."
-        return json.dumps({'message': message, 'result': None, 'graph': {}})
-
-
-@app.route('/getDatasetLinkingClusterDetails3')
-def datasetLinkingClusterDetails3():
-    research_question = request.args.get('research_question', '')
-    distinctValues = request.args.get('groupDistValues','yes')
-    datasets_properties = request.args.getlist('datasets_properties[]')
-    cluster_json = request.args.get('cluster') #{id, nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
-    # cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
-
-    properties = []
-    targets = []
-    if True:
-
-        for json_item in datasets_properties:
-            row = ast.literal_eval(json_item)
-            dict_graph = None
-            exists_dataset_entityType = False
-
-            for elem in targets:
-                # check if the dataset has been already registered
-                if (elem['graph'] == row['dataset']):
-                    # only assigns value to dict_graph if the desired dataset was found
-                    dict_graph = elem
-                    data_list = elem['data']
-                    for data in data_list:
-                        # check if the entityType has been already registered for that graph
-                        if (data['entity_datatype'] == row['entityType']):
-                            data['properties'].append(row['properties'])
-                            exists_dataset_entityType = True
-
-            # if the above loop finished without finding the desired dictionary, then it will be registered
-            if not exists_dataset_entityType:
-
-                # this means the entry for the dataset does not exists
-                if (dict_graph is None):
-                    # create an entry for this dataset
-                    dict_graph = {'graph': row['dataset'], 'data':[]}
-                    targets.append(dict_graph)
-
-                properties = [row['properties']]
-                data = {'entity_datatype': row['entityType'], 'properties': properties}
-                dict_graph['data'].append(data)
-
-    # print 'after', type(cluster_json)
-    cluster = ast.literal_eval(cluster_json)
-    # print '\n'
-    print "\n\t>>> CLUSTER ID:", cluster['id']
-    print "\t>>> PROPERTIES:", properties
-    # print cluster['nodes']
-    # print cluster['links']
-    # print cluster['dict']
-
-    response = Clt.cluster_values_plus(research_question, cluster['nodes'], targets, distinct_values=(distinctValues=='yes'))
-    # print response
-    if response['result'] and len(response['result']) > 1:
-        # print response['result']
-        header = response['result'][0][:-1]
-        results_x = response['result'][1:]
-
-        results = []
-        plot_graph = {}
-        nodes = []
-        links = []
-        group = []
-        for r in results_x:
-            results += [map(process_table_columns, r[:-1]) ]
-            dataset = results[-1][0]
-            node_names = results[-1][3]
-            node_names = node_names[1:-1].split('] [')
-            node_name = 'None'
-            for i in range(len(node_names)):
-                n = node_names[i]
-                if i == len(node_names)-1: # if it is the last/unique then take it
-                    node_name = n
-                else: # then there can always be another option (the bigger the better)
-                    if n.startswith("http") or n.startswith("<http") or n.startswith("www"):
-                        pass
-                    elif len(n) < len(node_names[i+1]):
-                        pass
-                    else:
-                        node_name = n
-                        break
-            try:
-                index = group.index(dataset)
-            except:
-                index = len(group)
-                group += [dataset]
-
-            nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
-
-            dict = cluster['dict']
-            for n in nodes[:-1]:
-                node1 = nodes[-1]['uri'] if Ut.is_nt_format(nodes[-1]['uri']) else '<{}>'.format(nodes[-1]['uri'])
-                node2 = n['uri'] if Ut.is_nt_format(n['uri']) else '<{}>'.format(n['uri'])
-                if (node1, node2) in dict:
-                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[(node1, node2)])}]
-                elif (node2, node1) in cluster['links']:
-                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[(node2, node1)])}]
-
-        # print links
-        obj_metrics = plots.metric(cluster['links'])
-        message = obj_metrics['message'].replace('\n','</br>')
-
-        # confidence = min(cluster['dict'].items(), key=lambda value: value[1])[1]
-        # confidence = min(cluster['dict'].items(), key=lambda value: value[1] if len(value[1]) > 0 else 2)[1]
-        messageConf = ''
-        # confidence = 1
-        for link, link_strengths in cluster['dict'].items():
-            # print 'V', value[1], type(value[1]), len(value[1])
-            if len(link_strengths) == 0:
-                cluster['dict'][link] = [0.5]
-                # confidence = 0.5
-                messageConf = 'Some links have no strenght, those are set to 0.5'
-            # else:
-            #     strength = max(link_strengths)
-            #     if confidence > strength:
-            #         confidence = strength
-        # confidence = max(min(cluster['dict'].items(), key=lambda value: max(value[1]))[1])
-
-        link, link_min_strengths  = min(cluster['dict'].items(), key=lambda tuple: max(tuple[1]))
-        confidence = max(link_min_strengths)
-
-
-        if len(nodes) > 0 and len(links) > 0:
-            # print cluster['dict'].items()
-            # print 'Conf.', confidence
-            try:
-                confidence = float(confidence)
-            except:
-                print 'Missing confidence value, set to 1.'
-                confidence = 1
-            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
-            # print plot_graph
 
         message = "Have a look at the result in the table below"
         return json.dumps({'message': message,
@@ -3398,43 +3428,44 @@ def exportAlignment():
     return json.dumps(result)
 
 
-@app.route('/exportAlignmentOld', methods=['GET'])
-def exportAlignmentOld():
-
-    graph_uri = request.args.get('graph_uri', '')
-    mode = request.args.get('mode', 'flat')
-    graphs = request.args.getlist('graphs[]')
-    user = request.args.get('name', '')
-    psswd = request.args.get('code', '')
-    result = None
-
-    try:
-        # print "\n before:", graph_uri
-        if mode == 'flat':
-            result = Ex.export_flat_alignment(graph_uri)
-
-        elif mode == 'md':
-            result = Ex.export_flat_alignment_and_metadata(graph_uri)
-
-        elif mode == 'vis':
-            result = Ex.visualise(graphs, PLOTS_FOLDER, {'user': user, 'password': psswd })
-        elif mode == 'all':
-            result = Ex.export_alignment_all(graph_uri)
-        # print "\n after:", result
-
-    except Exception as error:
-        print "AN ERROR OCCURRED: ", error
-        result = json.dumps({'message':str(error.message), 'result':None})
-
-    return json.dumps(result)
+# @app.route('/exportAlignmentOld', methods=['GET'])
+# def exportAlignmentOld():
+#
+#     graph_uri = request.args.get('graph_uri', '')
+#     mode = request.args.get('mode', 'flat')
+#     graphs = request.args.getlist('graphs[]')
+#     user = request.args.get('name', '')
+#     psswd = request.args.get('code', '')
+#     result = None
+#
+#     try:
+#         # print "\n before:", graph_uri
+#         if mode == 'flat':
+#             result = Ex.export_flat_alignment(graph_uri)
+#
+#         elif mode == 'md':
+#             result = Ex.export_flat_alignment_and_metadata(graph_uri)
+#
+#         elif mode == 'vis':
+#             result = Ex.visualise(graphs, PLOTS_FOLDER, {'user': user, 'password': psswd })
+#         elif mode == 'all':
+#             result = Ex.export_alignment_all(graph_uri)
+#         # print "\n after:", result
+#
+#     except Exception as error:
+#         print "AN ERROR OCCURRED: ", error
+#         result = json.dumps({'message':str(error.message), 'result':None})
+#
+#     return json.dumps(result)
+#
 
 @app.route('/deleteLinkset')
 def deleteLinkset():
     rq_uri = request.args.get('rq_uri', '')
     linkset_uri = request.args.get('linkset_uri', '')
     mode = request.args.get('mode', '')
-    if True:
-    # try:
+    # if True:
+    try:
         if mode == 'check':
 
             query = Qry.check_graph_dependencies_rq(rq_uri, linkset_uri)
@@ -3485,9 +3516,10 @@ def deleteLinkset():
         else:
             return json.dumps({'message':'Invalid mode.', 'result':None})
 
-    # except Exception as error:
-    #     print "AN ERROR OCCURRED: ", error
-    #     return json.dumps({'message':str(error.message), 'result':None})
+    except Exception as error:
+        # print "AN ERROR OCCURRED: ", error
+        traceback.print_exc()
+        return json.dumps({'message':'', 'result':None})
 
 
 @app.route('/deleteLens')
@@ -3643,39 +3675,34 @@ def updateLabel():
 
 @app.route('/convertCSVToRDF')
 def convertCSVToRDF():
-    filePath = request.args.get('file', '')
-    separator = request.args.get('separator', '')
-    database = request.args.get('database', '')
-    entity_type = request.args.get('entity_type', '')
-    rdftype = map(int, request.args.getlist('rdftype[]'))
-    subject_id = request.args.get('subject_id', None)
-    # print subject_id
+    try:
+        filePath = request.args.get('file', '')
+        separator = request.args.get('separator', '')
+        database = request.args.get('database', '')
+        entity_type = request.args.get('entity_type', '')
+        rdftype = map(int, request.args.getlist('rdftype[]'))
+        subject_id = request.args.get('subject_id', None)
 
-    # print subject_id, rdftype
+        converter = CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
+                            separator=separator, entity_type=entity_type,
+                            rdftype=rdftype if rdftype != [] else None,
+                            subject_id = int(subject_id) if subject_id != '' else None,
+                            field_metadata=None, activated=True)
 
-    converter = CSV.CSV(database=database, is_trig=True, file_to_convert=filePath,
-                        separator=separator, entity_type=entity_type,
-                        rdftype=rdftype if rdftype != [] else None,
-                        subject_id = int(subject_id) if subject_id != '' else None,
-                        field_metadata=None, activated=True)
+        return jsonify({'batch': converter.bat_file, 'data': converter.outputPath, 'schema': converter.outputMetaPath})
 
-    return jsonify({'batch': converter.bat_file, 'data': converter.outputPath, 'schema': converter.outputMetaPath})
+    except Exception as err :
+        # print "[convertCSVToRDF]: {}".format(err.message),  err.args
+        traceback.print_exc()
+        return ""
 
 
-# @app.route('/readFileSample')
-# def readFileSample():
+# @app.route('/importConvertedDataset')
+# def importConvertedDataset():
 #     filePath = request.args.get('file', '')
-#     # result = readAndReturnSample(filePath)
+#     # result = import(filePath)
 #     result = ""
 #     return json.dumps(result)
-
-
-@app.route('/importConvertedDataset')
-def importConvertedDataset():
-    filePath = request.args.get('file', '')
-    # result = import(filePath)
-    result = ""
-    return json.dumps(result)
 
 
 @app.route('/viewSampleFile')
@@ -4849,17 +4876,17 @@ def endpoint(query):
         return None
 
 
-def get_URI_local_name(uri):
-    # print "URI: {}".format(uri)
-
-    if (uri is None) or (uri == ""):
-        return None
-    else:
-        non_alphanumeric_str = re.sub('[ \w]', '', uri)
-        if non_alphanumeric_str == "":
-            return uri
-        else:
-            last_char = non_alphanumeric_str[-1]
-            index = uri.rindex(last_char)
-            name = uri[index + 1:]
-            return name
+# def get_URI_local_name(uri):
+#     # print "URI: {}".format(uri)
+#
+#     if (uri is None) or (uri == ""):
+#         return None
+#     else:
+#         non_alphanumeric_str = re.sub('[ \w]', '', uri)
+#         if non_alphanumeric_str == "":
+#             return uri
+#         else:
+#             last_char = non_alphanumeric_str[-1]
+#             index = uri.rindex(last_char)
+#             name = uri[index + 1:]
+#             return name

@@ -19,6 +19,10 @@ function modeCreation(val)
    $('#divInvestigation').hide();
    $('#investigation_buttons_col').hide();
    $('#admin_buttons_col').hide();
+   $('#triplestore_button_col').hide();
+   $('#refresh_button_col').show();
+
+
 
    // "empty" and show divCreation
    hideColDiv('divCreation');
@@ -48,6 +52,11 @@ function idea_button(targetId)
 
 function mainButtonClick(targetId)
 {
+   // cleaning linkingClusterDivs
+   $('#linkingClusterDiv').html('')
+   $('#linksetlinkingClusterDiv').html('')
+   $('#lenslinkingClusterDiv').html('')
+
    activateTargetDiv(targetId);
    elem = document.getElementById(targetId);
    mode = $('#'+targetId).attr('mode');
@@ -999,11 +1008,14 @@ function createLinksetClusterClick()
 
         if (targets.length > 0)
         {
+         var check_rdf = 'true'
+//         if ($('#linkset_check_file_checkbox').is(':checked')) check_rdf = 'false';
          var specs = {'cluster_uri': cluster_uri,
                       'reference_uri': reference_uri,
                       'mechanism': "exactStrSim",
                       'rq_uri': rq_uri,
-                      'targets[]': targets};
+                      'targets[]': targets,
+                      'check_rdf': check_rdf};
 
             chronoReset();
             $('#linkset_cluster_creation_message_col').html(addNote('The linkset is being created',cl='warning'));
@@ -1120,8 +1132,11 @@ function inspect_linkset_activate(mode='default')
                    $('#creation_linkset_search_row').show();
                    $('#creation_linkset_metadata_row').show();
                    $('#creation_linkset_correspondence_row').show();
+                   $('#creation_linkset_linking_cluster_row').show();
+                   $('#creation_lens_linking_cluster_row').show();
                    $('#creation_linkset_metadata_result').val(obj.metadata_text);
                    showDetails(rq_uri, linkset_uri, obj.metadata, filter_uri='none');
+                   showLinkingClusterOptions(rq_uri, 'linksetlinkingClusterDiv', 'single', 'inspect_linkset_selection_col');
                 }
             });
           }
@@ -1495,6 +1510,8 @@ function createLinksetClick()
             specs['trg_long'] = $('#target_long_selected_pred').attr('uri');
         }
 
+        if ($('#linkset_check_file_checkbox').is(':checked')) specs['check_rdf'] = 'false';
+
         var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
         $('#linkset_creation_message_col').html(addNote(message,cl='warning'));
         loadingGif(document.getElementById('linkset_creation_message_col'), 2);
@@ -1510,7 +1527,12 @@ function createLinksetClick()
             success: function(data){
                 loadingGif(document.getElementById('linkset_creation_message_col'), 2, show=false);
                 var obj = JSON.parse(data);
-                $('#linkset_creation_message_col').html(addNote(obj.message,cl='info'));
+
+                if ((Object.keys(obj).length) && (obj.message.length > 0))
+                    $('#linkset_creation_message_col').html(addNote(obj.message,cl='info'));
+                else
+                    $('#linkset_creation_message_col').html(addNote("Something went wrong!"));
+
             }
         }
 
@@ -1620,8 +1642,12 @@ function refineLinksetClick()
       $.get('/refineLinkset', specs, function(data)
       {
             var obj = JSON.parse(data);
-            $('#linkset_refine_message_col').html(addNote(obj.message,cl='info'));
             loadingGif(document.getElementById('linkset_refine_message_col'), 2, show=false);
+
+            if ((Object.keys(obj).length) && (obj.message.length > 0))
+                $('#linkset_refine_message_col').html(addNote(obj.message,cl='info'));
+            else
+                $('#linkset_refine_message_col').html(addNote("Something went wrong!"));
       });
 
   }
@@ -1992,6 +2018,8 @@ function deleteLinksetClick()
                     $.get('/deleteLinkset', data={'rq_uri':rq_uri, 'linkset_uri':linkset, 'mode':'delete'}, function(data)
                     {
                         var obj = JSON.parse(data);
+                        if (obj.message.length == 0)
+                            $('#linkset_edit_message_col').html(addNote("Something went wrong!"));
                         if (obj.result == 'OK')
                         {   $('#btn_edit_linkset').click();
                             $('#linkset_edit_message_col').html(addNote(obj.message,cl='info')); }
@@ -2156,9 +2184,8 @@ function applyFilterLinksetClick()
     var rq_uri = $('#creation_linkset_selected_RQ').attr('uri');
     var linkset_uri = ''
     var elems = selectedElemsInDiv("inspect_linkset_selection_col");
-       if (elems.length > 0)
-       {    linkset_uri = $(elems[0]).attr('uri');
-       }
+    if (elems.length > 0)
+        { linkset_uri = $(elems[0]).attr('uri'); }
 
     var filter_uri = '';
     elems = selectedElemsInDiv("linkset_filter_col");
@@ -2169,17 +2196,17 @@ function applyFilterLinksetClick()
         { filter_term = ''; }
 
     $.get('/getlinksetdetails',data={'linkset': linkset_uri,
-                                      'template': 'none',
-                                      'rq_uri': rq_uri,
-                                      'filter_uri': filter_uri},function(data)
-    {
-       var obj = JSON.parse(data);
-
+                                     'template': 'none',
+                                     'rq_uri': rq_uri,
+                                     'filter_uri': filter_uri},function(data)
+    {  var obj = JSON.parse(data);
        $('#creation_linkset_filter_row').show();
        $('#creation_linkset_search_row').show();
        $('#creation_linkset_metadata_row').show();
        $('#creation_linkset_correspondence_row').show();
+       $('#creation_linkset_linking_cluster_row').show();
        showDetails(rq_uri, linkset_uri, obj, filter_uri, filter_term);
+       showLinkingClusterOptions(rq_uri, 'linksetlinkingClusterDiv', 'single', 'inspect_linkset_selection_col');
     });
 }
 
@@ -2274,7 +2301,9 @@ function applyFilterLensClick()
        $('#creation_lens_search_row').show();
        $('#creation_lens_metadata_row').show();
        $('#creation_lens_correspondence_row').show();
-       showDetails(rq_uri, lens_uri, obj, filter_uri, filter_term);
+       $('#creation_lens_linking_cluster_row').show();
+       showDetails(rq_uri, lens_uri, obj.metadata, filter_uri, filter_term);
+       showLinkingClusterOptions(rq_uri, 'lenslinkingClusterDiv', 'single', 'inspect_lens_lens_selection_col');
     });
 }
 
@@ -2395,8 +2424,9 @@ function inspect_lens_activate(mode)
                   {
                     var obj = JSON.parse(data);
                     $('#creation_lens_metadata_result').val(obj.metadata_text);
+                    $('#creation_lens_linking_cluster_row').show();
                     showDetails(rq_uri, lens_uri, obj.metadata);
-
+                    showLinkingClusterOptions(rq_uri, 'lenslinkingClusterDiv', 'single', 'inspect_lens_lens_selection_col');
                   });
 
 //                 alert(rq_uri);
@@ -2667,20 +2697,28 @@ function createLensClick()
         $.get('/createLens', specs, function(data)
         {
             var obj = JSON.parse(data);
-            $('#lens_creation_message_col').html(addNote(obj.message, cl='info'));
             loadingGif(document.getElementById('lens_creation_message_col'), 2, show=false);
 
-            $('#creation_lens_lens_selection_col').html('Loading...');
-               $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
-                                      'type': 'lens',
-                                      'template': 'list_group.html'},function(data)
-               {
-                 $('#creation_lens_lens_selection_col').html(data);
+            if ((Object.keys(obj).length) && (obj.message.length > 0))
+            {
+                   $('#lens_creation_message_col').html(addNote(obj.message, cl='info'));
+                   $('#creation_lens_lens_selection_col').html('Loading...');
+                   $.get('/getgraphsperrqtype',data={'rq_uri': rq_uri,
+                                          'type': 'lens',
+                                          'template': 'list_group.html'},function(data)
+                   {
+                     $('#creation_lens_lens_selection_col').html(data);
 
-                 // set actions after clicking a graph in the list
-                 $('#creation_lens_lens_selection_col a').on('click',function()
-                  { selectListItem(this); });
-               });
+                     // set actions after clicking a graph in the list
+                     $('#creation_lens_lens_selection_col a').on('click',function()
+                      { selectListItem(this); });
+                   });
+            }
+            else
+                $('#lens_creation_message_col').html(addNote("Something went wrong!"));
+
+
+
         });
     }
     else {
@@ -4692,6 +4730,8 @@ function refresh_create_linkset(mode='all')
       $('#creation_linkset_metadata_row').hide();
       $('#creation_linkset_correspondence_row').hide();
       $('#creation_linkset_correspondence_col').html('');
+      $('#creation_linkset_linking_cluster_row').hide();
+      $('#creation_lens_linking_cluster_row').hide();
 
       $('#int_red_graph_row').hide();
       $('#aprox_settings_row').hide();
@@ -5350,43 +5390,47 @@ $('.btn-toggle').click(function() {
 //Dataset Inspection
 ////////////////////////////////////////////////////////
 
+
+function showLinkingClusterOptions(rq_uri, div, type, alignment_col)
+{
+     $.get('/renderFile',data={'template': 'linkingCluster.html'},function(data)
+     {  $("#"+div).html(data);
+
+         setAttr('dataset_linking_cluster_calculate_button','type',type);
+         setAttr('dataset_linking_cluster_calculate_button','alignment_col',alignment_col);
+         $('#dataset_linking_stats_selection_prop_dataset_col').html('Loading...');
+         $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'view'},function(data)
+         {
+           $('#dataset_linking_stats_selection_prop_dataset_col').html(data);
+
+           // when a dataset from the list is selected, its list of predicates will be loaded
+           $('#dataset_linking_stats_selection_prop_dataset_col li').on('click',function()
+           {
+              var graph_uri = $(this).attr('uri');
+              var graph_label = $(this).attr('label');
+              var type_uri = $(this).attr('type_uri');
+              var type_label = $(this).attr('type_label');
+              var total = $(this).attr('total');
+
+              setAttr('dataset_linking_stats_selection_prop_predicates_col','propPath','');
+              setAttr('dataset_linking_stats_selection_prop_predicates_col','propPathLabel','');
+
+              if (selectListItemUnique(this, 'dataset_linking_stats_selection_prop_dataset_col'))
+              {
+                  get_list_of_predicates(graph_uri, graph_label, type_uri, type_label, total)
+              }
+
+
+           });
+         });
+     });
+}
+
 function dataset_stats_load_datasets_predicates()
 {
 // Load into div the selected datasets for a certain research question
     var rq_uri = $('#dataset_inspection_selected_RQ').attr('uri');
-     $('#dataset_linking_stats_selection_prop_dataset_col').html('Loading...');
-     $.get('/getgraphsentitytypes',data={'rq_uri': rq_uri, 'mode': 'view'},function(data)
-     {
-       $('#dataset_linking_stats_selection_prop_dataset_col').html(data);
-
-       // when a dataset from the list is selected, its list of predicates will be loaded
-       $('#dataset_linking_stats_selection_prop_dataset_col li').on('click',function()
-       {
-          var graph_uri = $(this).attr('uri');
-          var graph_label = $(this).attr('label');
-          var type_uri = $(this).attr('type_uri');
-          var type_label = $(this).attr('type_label');
-          var total = $(this).attr('total');
-
-          setAttr('dataset_linking_stats_selection_prop_predicates_col','propPath','');
-          setAttr('dataset_linking_stats_selection_prop_predicates_col','propPathLabel','');
-
-          if (selectListItemUnique(this, 'dataset_linking_stats_selection_prop_dataset_col'))
-          {
-              get_list_of_predicates(graph_uri, graph_label, type_uri, type_label, total)
-          }
-
-       });
-     });
-
-//     if ((view_filters) && (view_filters.length > 0))
-//     {
-//        $('#dataset_linking_stats_selection_prop_selected_predicates_group').html("");
-//        //var view_filters = obj.list_pred
-//        for (i = 0; i < view_filters.length; i++) {
-//              $('#dataset_linking_stats_selection_prop_selected_predicates_group').prepend(view_filters[i]);
-//        }
-//     }
+    showLinkingClusterOptions(rq_uri, 'linkingClusterDiv', 'multiple', 'dataset_linking_stats_selection_linkset_col');
 }
 
 function get_list_of_predicates(graph_uri, graph_label, type_uri, type_label, total, propPath='')
@@ -5612,16 +5656,20 @@ function calculateDatasetStats()
                 type: "GET",
                 timeout: 0,
                 success: function(data){
-                  var obj = JSON.parse(data);
+
+                var obj = JSON.parse(data);
                 $('#dataset_linking_stats_results').html(obj.result);
                 $("#collapse_dataset_linking_stats_table").collapse("show");
                 $('#dataset_linking_stats_message_col').html(addNote(obj.message,cl='info'));
 
-                if (checkComputerCluster.checked)
-                    plotDatasetLinkingStats4(obj.plotdata);
-                else
-                    plotDatasetLinkingStats3(obj.plotdata);
-                $("#collapse_dataset_linking_stats_graphic").collapse("show");
+                if (obj.result)
+                {
+                    if (checkComputerCluster.checked)
+                        plotDatasetLinkingStats4(obj.plotdata);
+                    else
+                        plotDatasetLinkingStats3(obj.plotdata);
+                    $("#collapse_dataset_linking_stats_graphic").collapse("show");
+                }
 
                 loadingGif(document.getElementById('dataset_linking_stats_message_col'), 2, show = false);
 
@@ -5635,7 +5683,7 @@ function calculateDatasetStats()
 }
 
 
-function calculateDatasetStats2()
+function calculateDatasetStatsSummary()
 {
 
     $('#dataset_linking_stats2_results').val('');
@@ -5657,7 +5705,7 @@ function calculateDatasetStats2()
         loadingGif(document.getElementById('dataset_linking_stats2_message_col'), 2);
         $.ajax(
             {
-                url: '/getDatasetLinkingStats2',
+                url: '/getDatasetLinkingStatsSummary',
                 data: {'dataset': $('#selected_dataset').attr('uri'),
                        'entityType': $('#dts_selected_entity-type').attr('uri'),
                        'alignments[]': alignments},
@@ -5675,7 +5723,7 @@ function calculateDatasetStats2()
     }
     else if (alignments.length > 1)
     {
-        $('#dataset_linking_stats2_message_col').html(addNote('Please select only one alignemtnt!'));
+        $('#dataset_linking_stats2_message_col').html(addNote('Please select ONLY ONE alignemtnt!'));
     }
     else
     {
@@ -5683,12 +5731,13 @@ function calculateDatasetStats2()
     }
 }
 
+
 function isInt(value) {
   var x;
   return isNaN(value) ? !1 : (x = parseFloat(value), (0 | x) === x);
 }
 
-function calculateDatasetCluster()
+function calculateDatasetCluster(th)
 {
 
     $('#dataset_linking_stats_cluster_results').html('');
@@ -5697,8 +5746,6 @@ function calculateDatasetCluster()
     $("#collapse_dataset_linking_stats_cluster_details").collapse("hide");
 
 
-
-//    alert("1")
     var datasets_properties = []
     var elem = document.getElementById('dataset_linking_stats_selection_prop_selected_predicates_group');
     if (elem) { elems = elem.getElementsByClassName('list-group-item'); }
@@ -5712,43 +5759,51 @@ function calculateDatasetCluster()
         datasets_properties.push( JSON.stringify(dict));
     }
 
-//    alert("2")
+    alignment_col = $(th).attr('alignment_col');
+    if (alignment_col)
+    {
+        var elems = selectedElemsInGroupList(alignment_col);
+        var i;
+        var alignments = []
+        for (i = 0; i < elems.length; i++) {
+            alignments.push($(elems[i]).attr('uri'));
+        }
 
-    var elems = selectedElemsInGroupList('dataset_linking_stats_selection_linkset_col');
-    var i;
-    var alignments = []
-    for (i = 0; i < elems.length; i++) {
-        alignments.push($(elems[i]).attr('uri'));
-    }
-    elems = selectedElemsInGroupList('dataset_linking_stats_selection_lens_col');
-    for (i = 0; i < elems.length; i++) {
-        alignments.push($(elems[i]).attr('uri'));
-    }
-
-    var cluster_limit =  $('#cluster_limit_text').val();
-    if (cluster_limit == "-- Type size --")
-        { cluster_limit = '-1'; }
-    if (cluster_limit != '-1')
+        if ($(th).attr('type') == 'multiple')
         {
-            var greater_equal = 'false'; // it will be false (only equal) if anything but greater is checked
-            if ($('#cluster1_greater').is(':checked'))
-            {
-                var greater_equal = 'true';
+            alignment_col2 = $(th).attr('alignment_col2');
+            elems = selectedElemsInGroupList(alignment_col2);
+            for (i = 0; i < elems.length; i++) {
+                alignments.push($(elems[i]).attr('uri'));
             }
         }
+
+        var cluster_limit =  $('#cluster_limit_text').val();
+        if (cluster_limit == "-- Type size --")
+            { cluster_limit = '-1'; }
+        if (cluster_limit != '-1')
+            {
+                var greater_equal = 'false'; // it will be false (only equal) if anything but greater is checked
+                if ($('#cluster1_greater').is(':checked'))
+                {
+                    var greater_equal = 'true';
+                }
+            }
+    }
+
 
     if ((alignments.length > 0) && (datasets_properties.length > 0) && ((cluster_limit == '-1')||(isInt(cluster_limit))))
     {
       $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
       loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
 
-//      $.get('/getDatasetLinkingClusters2',data={'dataset': $('#selected_dataset').attr('uri'),
+//      $.get('/getDatasetLinkingClustersOld2',data={'dataset': $('#selected_dataset').attr('uri'),
 //                                     'entityType': $('#dts_selected_entity-type').attr('uri'),
 //                                     'alignments[]': alignments,
 //                                     'properties[]': properties,
 //                                     'network_size': cluster_limit,
 //                                     'greater_equal': greater_equal}, function(data)
-      $.get('/getDatasetLinkingClusters3',data={'research_question': $('#dataset_inspection_selected_RQ').attr('uri'),
+      $.get('/getDatasetLinkingClusters',data={'research_question': $('#dataset_inspection_selected_RQ').attr('uri'),
                                      'alignments[]': alignments,
                                      'datasets_properties[]': datasets_properties,
                                      'network_size': cluster_limit,
@@ -5772,7 +5827,7 @@ function calculateDatasetCluster()
                 else
                     var groupDistValues = 'no';
 
-                $.get('/getDatasetLinkingClusterDetails3',data={'research_question': $('#dataset_inspection_selected_RQ').attr('uri'),
+                $.get('/getDatasetLinkingClusterDetails',data={'research_question': $('#dataset_inspection_selected_RQ').attr('uri'),
                                                                'cluster': $(this).attr('cluster'),
                                                                'groupDistValues': groupDistValues,
                                                                //'properties[]': properties
@@ -6166,14 +6221,13 @@ function plotClusterGraph(graph)
     .selectAll("line")
     .data(graph.links)
     .enter().append("line")
-      .style("stroke-width", function(d) { return Math.sqrt(d.value); })
-//      .style("stroke", "red")
+//    .on("click", function() { alert("1"); })
+      .style("stroke-width", function(d) { return Math.sqrt(d.value)+1; })
       .style("stroke", function(d) { if (d.strenght < 1)
                                         return "red";
                                     return "black"; })
       .style("stroke-dasharray", function(d) {  var space = String(20*(1-d.strenght));
                                                 return ("3," + space ) } );
-//      .style("stroke-dasharray", ("3, 0.5"));
 
   var node = svg.append("g")
       .attr("class", "nodes")
