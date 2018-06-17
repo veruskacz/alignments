@@ -143,7 +143,7 @@ def spa_linksets(specs, identity=False, display=False, activated=False):
                 print "\t>>> WRITING TO FILE"
                 # linkset_path = "D:\datasets\Linksets\ExactName"
                 linkset_path = DIRECTORY
-                writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata)
+                writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=False)
                 server_message = "Linksets created as: {}".format(specs[St.linkset])
                 message = "The linkset was created as [{}] with {} triples found!".format(
                     specs[St.linkset], specs[St.triples])
@@ -398,7 +398,7 @@ def match_numeric_query(specs):
             BIND( replace(\"{2}{3}{4}_#\",\"#\", STRAFTER(str(UUID()),\"uuid:\")) as ?pre )
             BIND(iri(?pre) as ?singPre)
         }}
-    }} ;
+    }}
     """.format(specs[St.linkset_name], specs[St.sameAsCount],
                Ns.alivocab, specs[St.mechanism], specs[St.sameAsCount])
 
@@ -1806,7 +1806,7 @@ def geo_specs_2_linkset(specs, activated=False):
 
                     # linkset_path = "D:\datasets\Linksets\ExactName"
                     linkset_path = DIRECTORY
-                    writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata)
+                    writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=False)
                     server_message = "Linksets created as: {}".format(specs[St.linkset])
                     message = "The linkset was created as [{}] with {} triples found!".format(
                         specs[St.linkset], specs[St.triples])
