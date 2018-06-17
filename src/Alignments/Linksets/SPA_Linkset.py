@@ -1309,11 +1309,11 @@ def spa_linkset_intermediate_query(specs):
             SELECT ?{1}_1 ?{3}_2 ?evidence
             {{
                 ### SOURCE AND TARGET LOADED TO A TEMPORARY GRAPH
-                GRAPH <{0}load00>
+                GRAPH <{0}load_{11}_00>
                 {{
                     ?{1}_1 <{6}relatesTo1> ?src_value .
                 }}
-                GRAPH <{0}load01>
+                GRAPH <{0}load_{11}_01>
                 {{
                     ?{3}_2 <{6}relatesTo3> ?trg_value .
                 }}
