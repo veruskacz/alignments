@@ -30,7 +30,7 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
   $('#'+div).html('Loading...');
 
   // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
-  $.get('/getcorrespondences2',data={'rq_uri': rq_uri,
+  $.get('/getcorrespondences',data={'rq_uri': rq_uri,
                                     'graph_uri': graph_uri,
                                     'filter_uri': filter_uri,
                                     'filter_term': filter_term,
@@ -175,19 +175,8 @@ function showDetails(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term=
 function showDetailsLinksetCluster(rq_uri, graph_uri, detailsDict, filter_uri='', filter_term='')
 {
   var graph_label = graph_uri;
-//  var subjectTarget = detailsDict.subTarget_stripped.value;
-//  var objectTarget = detailsDict.objTarget_stripped.value;
-//  var subjectTarget_uri = detailsDict.subTarget.value;
-//  var objectTarget_uri = detailsDict.objTarget.value;
   var graph_triples = detailsDict.triples.value;
-//  var alignsSubjects = detailsDict.s_property.value;
-//  var alignsObjects = detailsDict.o_property.value;
   var alignsMechanism = detailsDict.mechanism.value;
-//  var operator = detailsDict.operator.value;
-//  var alignsSubjectsList = detailsDict.s_property_list.value
-//  var alignsObjectsList = detailsDict.o_property_list.value
-//  var crossCheckSubject = detailsDict.s_crossCheck_property.value
-//  var crossCheckObject = detailsDict.o_crossCheck_property.value
 
   hideColDiv('divInvestigation');
 
@@ -198,7 +187,7 @@ function showDetailsLinksetCluster(rq_uri, graph_uri, detailsDict, filter_uri=''
   $('#'+div).html('Loading...');
 
   // FUNCTION THAT GETS THE LIST OF CORRESPONDENCES
-  $.get('/getcorrespondences3',data={'rq_uri': rq_uri,
+  $.get('/getcorrespondencesLinksetCluster',data={'rq_uri': rq_uri,
                                     'graph_uri': graph_uri,
                                     'filter_uri': filter_uri,
                                     'filter_term': filter_term,
@@ -566,3 +555,4 @@ function deleteValidationClick(th)
 
 
 }
+

@@ -1,0 +1,258 @@
+
+    <div class="row" id="dataset_linking_stats_selection_prop_row">
+        <div class="col-md-12">
+          <div class="panel panel-default">
+           <div class="panel-heading">
+              <div class="row">
+                  <div class="col-md-12">
+                      <a id="link_collapse_dataset_linking_stats_selection_prop"
+                         data-toggle="collapse" href="#collapse_dataset_linking_stats_selection_prop">
+                          <span class="badge alert-info"><strong>+</strong></span></a>
+                      Property Selection <small> (select a dataset bellow to see its attributes)</small>
+                  </div>
+                  <!--<h5><div class="col-md-6 text-right" style="color:red" id="view_creation_message_col"></div></h5>-->
+                  <!--<div class="col-md-8 text-right">-->
+                   <!--<table align="right">-->
+                       <!--<tr align="right">-->
+                           <!--<td align="right"><div id="dataset_linking_stats_selection_prop_message_col"></div></td>-->
+                           <!--<td valign="center"><div class="loading"></div></td>-->
+                           <!--<td align="right"><button type="button" id="dataset_linking_stats_selection_propButton" class="btn btn-success"-->
+                              <!--data-toggle="button" onclick = 'createViewClick(mode="check")' >-->
+                                <!--Check View-->
+                           <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
+                           <!--</button></td>-->
+                   <!--</table>-->
+                  <!--</div>-->
+              </div>
+
+           </div>
+           <div id="collapse_dataset_linking_stats_selection_prop" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats_selection_prop">
+              <div class="panel-body">
+              <div class="row">
+
+                <div class="col-md-4" >
+                    <div class="row">
+                      <div class="col-md-12"><h4>Datasets</h4></div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">Select from the list:</div>
+                    </div>
+                    <div id="loading3" style='display:none'> Loading... </div>
+                    <div class="row">
+                      <div class="col-md-12" >
+                        <div class="list-group" id="dataset_linking_stats_selection_prop_dataset_col" style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4" >
+                    <div class="row">
+                      <div class="col-md-12"><h4>Attributes &nbsp
+                            <small><strong> [<span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>]
+                            </strong></small>
+                        </h4>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12" id="dataset_linking_stats_selection_prop_predicates_msg_col"></div>
+                    </div>
+                    <div class="row"> &nbsp </div>
+                    <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"dataset_linking_stats_selection_prop_predicates_col","dataset_linking_stats_selection_prop_pred_counter")'
+                              placeholder="Search for names.." style='width: 83%'>
+                          <span id="dataset_linking_stats_selection_prop_pred_counter" class="badge"></span>
+                       </div>
+                    </div>
+                    <div class="row"> &nbsp </div>
+                    <div class="row">
+                      <div class="col-md-12" id="dataset_linking_stats_selection_prop_predicates_col" propPath = '' propPathLabel = ''>
+
+                      </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4" >
+                    <div class="row">
+                      <div class="col-md-12"><h4>Selected Attributes</h4>
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="list-group" id="dataset_linking_stats_selection_prop_selected_predicates_group"
+                                style='scroll: both; overflow: auto; height: 15em; width: 100%;'>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+              </div>
+           </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="row" id="dataset_linking_stats_cluster">
+      <div class="col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+         <div class="row">
+          <div class="col-md-4">
+                <a id="link_collapse_dataset_linking_stats_cluster"
+             data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster">
+              <span class="badge alert-info"><strong>+</strong></span></a>Dataset Clusters
+          </div>
+          <div class="col-md-8 text-right">
+            <table align="right">
+            <tr align="right">
+               <td align="right"><div id="dataset_linking_cluster_message_col"></div></td>
+               <td align="right">
+                   <input type="text" class="form-control" id="cluster_limit_text" style='width:8em'
+                          onfocus='if ($(this).val() == "-- Type size --") {$(this).val("")}'
+                          onblur='if ($(this).val() == "") {$(this).val("-- Type size --")}'
+                          value="-- Type size --">
+               </td>
+               <TD>
+                    <div class="checkbox"><label><input type="checkbox" id="cluster1_greater" value=">=">&#8805</label></div>
+                    <div class="checkbox"><label><input type="checkbox" id="cluster1_equal" value="=" checked="checked">= </label></div>
+               </TD>
+               <td align="right"> &nbsp; </td>
+               <td valign="center"><div class="loading"></div></td>
+               <td align="right">
+                    <button type="button" class="btn btn-primary" id="dataset_linking_cluster_calculate_button"
+                    onclick='calculateDatasetCluster(this);'
+                    alignment_col="dataset_linking_stats_selection_linkset_col"
+                    alignment_col2="dataset_linking_stats_selection_lens_col"
+                    type="multiple"
+                    >Compute Dataset Clusters
+                    <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                    </button>
+                   <br/>
+               </td>
+            </table>
+          </div>
+         </div>
+        </div>
+        <div id="collapse_dataset_linking_stats_cluster" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats_cluster">
+        <div class="panel-body">
+        <div class="row" >
+          <div class="col-md-12">
+          <div id="dataset_linking_stats_cluster_results" style='height: 20em; width:100%, scroll: both; overflow: auto;'> </div>
+          </div>
+        </div>
+            <div class="row" > &nbsp; </div>
+
+        <div class="row">
+
+          <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+
+                            <!--<div class="checkbox-inline" ><label>-->
+                            <!--<input type="checkbox" id="checkboxGroupDistValuesPlot">Group Distinct Values </label>-->
+                            <!--</div>-->
+                <div class="row">
+                <div class="col-md-2">
+                    <a id="link_collapse_dataset_linking_stats_cluster_plot"
+                    data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster_plot">
+                    <span class="badge alert-info"><strong>-</strong></span></a>Cluster Network
+                </div>
+                <div class="col-md-2" id="cluster_id_col" >
+                </div>
+
+                <div class="col-md-8" id="cluster_metrics_scale_col" >
+
+                    <div class="row" >
+                            <svg width="700" height="60">
+                            <g id="axis1" class="axis" transform="translate(20,40)">
+                            </g>
+                            <g id="wrapper" transform="translate(20,10)">
+                            </g>
+                           </svg>
+                    </div>
+                    <!--<div class="row" >-->
+                            <!--<svg width="700" height="60">-->
+                            <!--<g id="axis2" transform="translate(20,40)">-->
+                            <!--</g>-->
+                            <!--<g id="wrapper2" transform="translate(20,10)">-->
+                            <!--</g>-->
+                           <!--</svg>-->
+                    <!--</div>-->
+                </div>
+                </div>
+
+            </div>
+            <div id="collapse_dataset_linking_stats_cluster_plot" class="panel-collapse collapse in" target="link_collapse_dataset_linking_stats_cluster_plot">
+            <div class="panel-body" >
+
+
+            <div class="row" style="background-color:#FFFFE0;" >
+                <div class="col-md-4" id="cluster_metrics_col" >
+                </div>
+
+                <div class="col-md-8" style='height: 30em; width:100%, scroll: both; overflow: auto;' >
+
+                <style>
+                .links line {
+                  stroke: #999;
+                  stroke-opacity: 0.6;
+                }
+
+                .nodes circle {
+                  stroke: #fff;
+                  stroke-width: 1.5px;
+                }
+
+                text {
+                  font-family: sans-serif;
+                  font-size: 10px;
+                }
+
+                .background{
+                  background-color: lightyellow; }
+
+                </style>
+                <!--<script src="https://d3js.org/d3.v4.min.js"></script>-->
+                <svg class="plot" id="graph_cluster" width="750" height="450" style="background-color:#FFFFE0;">
+
+                </svg>
+                </div>
+            </div>
+
+
+
+            </div>
+            </div>
+          </div>
+          </div>
+
+        </div>
+
+        <div class="row" id="dataset_linking_stats_cluster_details">
+          <div class="col-md-12">
+          <div class="panel panel-default">
+            <div class="panel-heading"><a id="link_collapse_dataset_linking_stats_cluster_details"
+             data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster_details">
+              <span class="badge alert-info"><strong>-</strong></span></a>Cluster Details  &nbsp &nbsp
+                            <div class="checkbox-inline" ><label>
+                            <input type="checkbox" id="checkboxGroupDistValues">Group Distinct Values </label>
+                            </div>
+            </div>
+            <div id="collapse_dataset_linking_stats_cluster_details" class="panel-collapse collapse" target="link_collapse_dataset_linking_stats_cluster_details">
+            <div class="panel-body">
+              <div id="dataset_linking_stats_cluster_results_details" style='height: 20em; width:100%, scroll: both; overflow: auto;'> </div>
+            </div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+
+        </div>
+        </div>
+      </div>
+      </div>
+    </div>
+

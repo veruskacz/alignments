@@ -392,6 +392,8 @@ function modeAdmin(val)
    // reset all buttons in the admin mode to primary and show
 //   resetButtons('admin_buttons_col');
    $('#admin_buttons_col').show();
+   $('#triplestore_button_col').show();
+   $('#refresh_button_col').hide();
 }
 
 function TripleStoreAdminClick()

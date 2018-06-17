@@ -875,6 +875,7 @@
               </div>   <!-- Panel -->
           </div>
         </div>
+
         <div class="row" id="refine_lens_aprox_nbr_settings_row" style='display:none' >
             <div class="col-md-12">
               <div class="panel panel-default">
@@ -987,6 +988,41 @@
   </div>
  </div>
 
+ <div class="row creation" id="creation_lens_metadata_row" style='display:none'>
+  <div class="col-md-12">
+     <div class="row">
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" >
+          <div class="row">
+              <div class="col-md-4">
+                  <h4 class="panel-title">
+                      <a id="link_collapse_creation_lens_metadata"
+                         data-toggle="collapse" href="#collapse_creation_lens_metadata">
+                      <span class="badge alert-info"><strong>-</strong></span></a>
+                      Generic Metadata
+                  </h4>
+              </div>
+          </div>
+        </div>
+        <div id="collapse_creation_lens_metadata" class="panel-collapse collapse" target="link_collapse_creation_lens_metadata">
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-12">
+               <textarea readonly wrap='off' class="form-control" id="creation_lens_metadata_result"
+                         style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;white-space:pre-nowrap;font-family: Consolas, Courier New, Courier, sans-serif;' rows='12'>
+               </textarea>
+            </div>
+          </div>
+
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+  </div>
+ </div>
 
 
  <div class="row creation" id="creation_lens_filter_row" style='display:none'>
@@ -1086,16 +1122,58 @@
  </div>
 
 
- <div class="row creation" id="creation_lens_search_row" style='display:none'>
-      <div class="col-md-12">
-        <div class="panel panel-default">
-        <div class="panel-heading" id="lens_search_heading_panel">
+ <!--<div class="row creation" id="creation_lens_search_row" style='display:none'>-->
+      <!--<div class="col-md-12">-->
+        <!--<div class="panel panel-default">-->
+        <!--<div class="panel-heading" id="lens_search_heading_panel">-->
+         <!--<div class="row">-->
+          <!--<div class="col-md-5">-->
+              <!--<h4 class="panel-title">-->
+                  <!--<span class="badge alert-info"><strong>-</strong></span>-->
+                  <!--Search Lens Correspondences-->
+              <!--</h4>-->
+          <!--</div>-->
+          <!--<div class="col-md-7 text-right">-->
+               <!--<table align="right">-->
+                   <!--<tr align="right">-->
+                       <!--<td align="right"><div id="lens_add_search_message_col"></div></td>-->
+                       <!--<td valign="center"><div class="loading"></div></td>-->
+                       <!--<td align="right">-->
+                           <!--<input type="text" class="form-control" id="lens_filter_text"-->
+                                  <!--onfocus='if ($(this).val() == "&#45;&#45; Type a term &#45;&#45;") {$(this).val("")}'-->
+                                  <!--onblur='if ($(this).val() == "") {$(this).val("&#45;&#45; Type a term &#45;&#45;")}'-->
+                                  <!--value="&#45;&#45; Type a term &#45;&#45;">-->
+                       <!--</td>-->
+                       <!--<td align="right"> &nbsp; </td>-->
+                       <!--<td align="right">-->
+                          <!--<button type="button" id="btn_apply_search_lens"-->
+                                <!--class="btn btn-primary"-->
+                                <!--onclick='applyFilterLensClick()'-->
+                                <!--&gt;Search-->
+                          <!--<span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>-->
+                          <!--</button>-->
+                        <!--</td>-->
+               <!--</table>-->
+              <!--</div>-->
+         <!--</div>-->
+        <!--</div>-->
+       <!--</div>-->
+      <!--</div>-->
+     <!--</div>-->
+
+
+ <div class="row creation" id="creation_lens_correspondence_row" style='display:none'>
+  <div class="col-md-12" >
+    <div class="panel panel-default">
+    <div class="panel-heading" id="lens_investigation_heading_panel">
          <div class="row">
           <div class="col-md-5">
-              <h4 class="panel-title">
-                  <span class="badge alert-info"><strong>-</strong></span>
-                  Search Lens Correspondences
-              </h4>
+          <h4 class="panel-title">
+              <a id="link_collapse_lens_corresp_investigation"
+                 data-toggle="collapse" href="#collapse_lens_corresp_investigation">
+              <span class="badge alert-info"><strong>-</strong></span></a>
+              Investigate Lens Correspondences
+          </h4>
           </div>
           <div class="col-md-7 text-right">
                <table align="right">
@@ -1120,58 +1198,7 @@
                </table>
               </div>
          </div>
-        </div>
-       </div>
-      </div>
-     </div>
 
-
- <div class="row creation" id="creation_lens_metadata_row" style='display:none'>
-  <div class="col-md-12">
-     <div class="row">
-      <div class="col-md-12" >
-        <div class="panel panel-default">
-        <div class="panel-heading" >
-          <div class="row">
-              <div class="col-md-4">
-                  <h4 class="panel-title">
-                      <a id="link_collapse_creation_lens_metadata"
-                         data-toggle="collapse" href="#collapse_creation_lens_metadata">
-                      <span class="badge alert-info"><strong>-</strong></span></a>
-                      Generic Metadata
-                  </h4>
-              </div>
-          </div>
-        </div>
-        <div id="collapse_creation_lens_metadata" class="panel-collapse collapse" target="link_collapse_creation_lens_metadata">
-        <div class="panel-body">
-          <div class="row">
-            <div class="col-md-12">
-               <textarea readonly wrap='off' class="form-control" id="creation_lens_metadata_result"
-                         style='scroll: both; overflow: auto; background-color:LIGHTYELLOW;white-space:pre-nowrap;font-family: Consolas, Courier New, Courier, sans-serif;' rows='12'>
-               </textarea>
-            </div>
-          </div>
-
-        </div>
-        </div>
-       </div>
-      </div>
-     </div>
-
-  </div>
- </div>
-
- <div class="row creation" id="creation_lens_correspondence_row" style='display:none'>
-  <div class="col-md-12" >
-    <div class="panel panel-default">
-    <div class="panel-heading" id="lens_investigation_heading_panel">
-          <h4 class="panel-title">
-              <a id="link_collapse_lens_corresp_investigation"
-                 data-toggle="collapse" href="#collapse_lens_corresp_investigation">
-              <span class="badge alert-info"><strong>-</strong></span></a>
-              Investigate Lens Correspondences
-          </h4>
     </div>
     <div id="collapse_lens_corresp_investigation" class="panel-collapse collapse in" target="link_collapse_lens_corresp_investigation">
     <div class="panel-body">
@@ -1212,6 +1239,31 @@
    </div>
   </div>
  </div>
+
+ <div class="row creation" id="creation_lens_linking_cluster_row" style='display:none'>
+      <div class="col-md-12" >
+        <div class="panel panel-default">
+        <div class="panel-heading" id="lens_linking_cluster_heading_panel">
+              <h4 class="panel-title">
+                  <a id="link_collapse_lens_linking_cluster"
+                     data-toggle="collapse" href="#collapse_lens_linking_cluster">
+                  <span class="badge alert-info"><strong>-</strong></span></a>
+                  Linkset Clusters
+              </h4>
+        </div>
+        <div id="collapse_lens_linking_cluster" class="panel-collapse collapse in" target="link_collapse_lens_linking_cluster">
+        <div class="panel-body">
+            <div class="row">
+              <div class="col-md-12" id="lenslinkingClusterDiv">
+              </div>
+            </div>
+        </div>
+        </div>
+       </div>
+      </div>
+     </div>
+
+
 
 </div>
 </div>
