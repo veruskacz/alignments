@@ -3131,7 +3131,8 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
                 link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
 
                 # THE CLUSTER COMPOSED OF NODES, LINKS AND STRENGTHS
-                clusters[parent] = {'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {link: strength}}
+                clusters[parent] = {
+                    'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {str(hash(link)): strength}}
                 # print "1",clusters[parent]
 
                 # print parent, child_1, child_2
@@ -3180,10 +3181,11 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
                         link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
                         clusters[parent1]['links'].add(link)
 
-                        if link in clusters[parent1]['strengths']:
-                            clusters[parent1]['strengths'][link] += strength
+                        link_hash = str(hash(link))
+                        if link_hash in clusters[parent1]['strengths']:
+                            clusters[parent1]['strengths'][link_hash] += strength
                         else:
-                            clusters[parent1]['strengths'][link] = strength
+                            clusters[parent1]['strengths'][link_hash] = strength
 
                         clusters.pop(parent2)
                 else:
@@ -3191,10 +3193,11 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
                     link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
                     clusters[parent]['links'].add(link)
 
-                    if link in clusters[parent]['strengths']:
-                        clusters[parent]['strengths'][link] += strength
+                    link_hash = str(hash(link))
+                    if link_hash in clusters[parent]['strengths']:
+                        clusters[parent]['strengths'][link_hash] += strength
                     else:
-                        clusters[parent]['strengths'][link] = strength
+                        clusters[parent]['strengths'][link_hash] = strength
 
                     if annotate:
                         clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1, child_2)
@@ -3214,10 +3217,11 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
                 clusters[parent]['links'].add(link)
                 clusters[parent]['nodes'].add(child_2)
 
-                if link in clusters[parent]['strengths']:
-                    clusters[parent]['strengths'][link] += strength
+                link_hash = str(hash(link))
+                if link_hash in clusters[parent]['strengths']:
+                    clusters[parent]['strengths'][link_hash] += strength
                 else:
-                    clusters[parent]['strengths'][link] = strength
+                    clusters[parent]['strengths'][link_hash] = strength
 
                 if annotate:
                     clusters[parent][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
@@ -3238,10 +3242,11 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
                 clusters[parent]['links'].add(link)
                 clusters[parent]['nodes'].add(child_1)
 
-                if link in clusters[parent]['strengths']:
-                    clusters[parent]['strengths'][link] += strength
+                link_hash = str(hash(link))
+                if link_hash in clusters[parent]['strengths']:
+                    clusters[parent]['strengths'][link_hash] += strength
                 else:
-                    clusters[parent]['strengths'][link] = strength
+                    clusters[parent]['strengths'][link_hash] = strength
 
                 if annotate:
                     clusters[parent][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
@@ -3357,7 +3362,6 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
             return clusters
 
 
-
 def cluster_extension(nodes, node2cluster, linkset):
 
     # ***********************************************************************************
@@ -3434,6 +3438,7 @@ def delete_serialised_clusters(graph):
     """.format(graph)
     Qry.endpoint(query=query)
     print "DONE1!!"
+
 
 """""""""
 # TESTING THE CLUSTER ANALYSIS
@@ -3890,3 +3895,4 @@ TO DELETE FROM THE FILE
 
 
 # links_clustering("", limit=1000)
+
