@@ -2681,7 +2681,7 @@ def links_clustering_improved(graph, limit=1000):
 #   - [STRENGTHS]
 # ************************************************
 # ************************************************
-def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
+def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=False, limit=10000):
 
 
     # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
@@ -2700,11 +2700,14 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
     ask = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
     if Qry.boolean_endpoint_response(ask) == "true":
         print "\n>>> THE CLUSTERED HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+
         # QUERY FOR THE SERIALISATION
         s_query = "SELECT * {{ <{}> <{}serialisedClusters> ?serialised .}}".format(graph, Ns.alivocab)
         start = time.time()
+
         # FETCH THE SERIALISATION
         s_query_result = Qry.sparql_xml_to_matrix(s_query)[St.result]
+
         # Qry.display_result(s_query, is_activated=True)
         diff = datetime.timedelta(seconds=time.time() - start)
         print "\tLOADED in {}".format(diff)
@@ -2713,20 +2716,24 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
         if s_query_result is not None:
             serialised = s_query_result[1][0]
             start = time.time()
+
             # DE-SERIALISE THE SERIALISED
             serialised = ast.literal_eval(serialised)
             diff = datetime.timedelta(seconds=time.time() - start)
             print "\tDe-serialised in {}".format(diff)
             clusters = serialised['clusters']
             root = serialised['node2cluster_id']
+
             # EXTEND THE GIVEN CLUSTER
-            if cluster2extend_id is not None:
+            if cluster2extend_id is not None and related_linkset is not None:
                 if cluster2extend_id in clusters:
+                    """
                     # {'links': links, 'extensions': list(set(extension))}
-                    # LINKS         : [\LIST OF TUPLE OF THE TYPE (NODE, PARED)
-                    # EXTENSIONS    : UNIQUE LIST OF CLUSTER ID THAT EXTENT THE ORIGINAL CLUSTER
+                    # LINKS         : LIST OF TUPLE OF THE TYPE (NODE, PAIRED)
+                    # EXTENSIONS    : UNIQUE LIST OF CLUSTER ID THAT EXTENT THE ORIGINAL CLUSTER USING PAIRED
+                    """
                     extension_dict = cluster_extension(
-                        nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=graph)
+                        nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
                 else:
                     print "THE CLUSTER ID DOES NOT EXIST."
 
@@ -3364,6 +3371,12 @@ def links_clustering(graph, cluster2extend_id=None, reset=False, limit=10000):
 
 def cluster_extension(nodes, node2cluster, linkset):
 
+    """
+    :param nodes:           THE SET OF NODES RELATED BY A SAME AS LINK.
+    :param node2cluster:    A DICTIONARY {KEY: NODE} MAPPING A CLUSTER IDEA TO TO ALL NODES IN THE MATHER CLUSTER
+    :param linkset:         THE LINKSET USED FOR EXTENDING A CLUSTER STEMMED FROM THE MOTHER CLUSTER
+    :return:                A DICTIONARY {'links': links, 'extensions': list(set(extension))}
+    """
     # ***********************************************************************************
     # CLUSTER EXTENSION
     # THIS FUNCTION TRIES TO BRIDGE AN EXISTING CLUSTER WITH OTHER CLUSTERS BASED ON
