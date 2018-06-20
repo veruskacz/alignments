@@ -16,7 +16,7 @@ namespaces = """
     {0}stardog namespace add {1} --prefix prov --uri http://www.w3.org/ns/prov#
     {0}stardog namespace add {1} --prefix skos --uri http://www.w3.org/2004/02/skos/core#
     {0}stardog namespace add {1} --prefix lens --uri http://risis.eu/lens/
-    {0}stardog namespace add {1} --prefix risis --uri http://risis.eu/ risis
+    {0}stardog namespace add {1} --prefix risis --uri http://risis.eu/
     {0}stardog namespace add {1} --prefix riclass --uri http://risis.eu/class/
     {0}stardog namespace add {1} --prefix schema --uri http://risis.eu/ontology/
     {0}stardog namespace add {1} --prefix dataset --uri http://risis.eu/dataset/
