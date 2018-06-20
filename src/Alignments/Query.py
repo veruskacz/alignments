@@ -1576,6 +1576,7 @@ def get_cluster_rsc_strengths(resources, alignments):
     # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
     response = sparql_xml_to_matrix(query)
     result = response[St.result]
+    print "\t>>> PROCESSING THE DOWNLOADED DATA..."
 
     # DICTIONARY KEY: (SUBJECT, OBJECT) VALUE: LIST OF STRENGTHS
     response_dic = dict()
@@ -1608,11 +1609,11 @@ def cluster_rsc_strengths_query(resources, alignments):
             GRAPH <{1}>
             {{ ?lookup ?predicate ?object .}}
         }}
-        UNION
-        {{
-            GRAPH <{1}>
-            {{?object ?predicate ?lookup . }}
-        }}
+        {5}UNION
+        {5}{{
+        {5}    GRAPH <{1}>
+        {5}    {{?object ?predicate ?lookup . }}
+        {5}}}
 
         # FETCH CORRESPONDENCE STRENGTH
         {{
