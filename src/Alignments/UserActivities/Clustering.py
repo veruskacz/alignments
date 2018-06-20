@@ -2681,7 +2681,7 @@ def links_clustering_improved(graph, limit=1000):
 #   - [STRENGTHS]
 # ************************************************
 # ************************************************
-def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=False, limit=10000):
+def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=True, limit=10000):
 
 
     # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
@@ -2696,7 +2696,9 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
         print "DELETING THE SERIALISED DATA FROM: {}".format(graph)
         delete_serialised_clusters(graph)
 
+    # **************************************************************************************************
     # 1. CHECK IF THE ALIGNMENT HAS A TRIPLE ABLE THE CLUSTER
+    # **************************************************************************************************
     ask = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
     if Qry.boolean_endpoint_response(ask) == "true":
         print "\n>>> THE CLUSTERED HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
@@ -2737,10 +2739,24 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
                 else:
                     print "THE CLUSTER ID DOES NOT EXIST."
 
-        # return (clusters, extension_dict)
+                # RETURNING THE CLUSTER EXTENSION FOR PLOT
+                clusters_subset = {}
+                for cluster_id in extension_dict['extensions']:
+                    clusters_subset[cluster_id] = clusters[cluster_id]
+
+                # ADD THE CLUSTER SUBSET TO THE RETURNED DICTIONARY
+                extension_dict['clusters_subset'] = clusters_subset
+
+                # THIS ASSUMES THAT THE USER HAS THE CLUSTERS
+                # BUT REQUEST FOR A SPECIFIC CLUSTER EXTENSION
+                return extension_dict
+
+        # RHIS ASSUMES THAT YOU REQUEST THE CLUSTER
         return clusters
 
+    # **************************************************************************************************
     # 2. RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
+    # **************************************************************************************************
     else:
         print Ut.headings("LINK CLUSTERING...")
         # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
@@ -3329,7 +3345,7 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
             # for (key, val) in root.items():
             #     print key, "\t", val
 
-            print "\n3. SERIALISING THE DICTIONARIES"
+            print "\n4. PROCESSING THE CLUSTERS FOR UNIQUE ID AND PREPARING FOR SERIALISATION"
             new_clusters = dict()
             start = time.time()
             for (key, data) in clusters.items():
@@ -3342,6 +3358,7 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
                     if hashed <= smallest_hash:
                         smallest_hash = hashed
 
+                # CREATE A NE KEY
                 new_key = "{}".format(str(smallest_hash).replace("-", "N")) if str(
                     smallest_hash).startswith("-") else "P{}".format(smallest_hash)
 
@@ -3351,12 +3368,20 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
                 new_clusters[new_key]['strengths'] = data['strengths']
                 new_clusters[new_key]['links'] = list(data['links'])
 
+                for node in data['nodes']:
+                    root[node] = new_key
+
             returned = {'clusters':new_clusters, 'node2cluster_id':root}
+
+            # SERIALISATION
+            print "\n5. SERIALISING THE DICTIONARIES"
             Qry.endpoint("""INSERT DATA {{
                 <{}> <{}serialisedClusters> '''{}'''
             }}""".format(graph, Ns.alivocab, returned))
             diff = datetime.timedelta(seconds=time.time() - start)
             print "\t{} triples serialised in {}".format(size, diff)
+
+            print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
 
             # print clusters
             # print new_clusters
@@ -3373,7 +3398,7 @@ def cluster_extension(nodes, node2cluster, linkset):
 
     """
     :param nodes:           THE SET OF NODES RELATED BY A SAME AS LINK.
-    :param node2cluster:    A DICTIONARY {KEY: NODE} MAPPING A CLUSTER IDEA TO TO ALL NODES IN THE MATHER CLUSTER
+    :param node2cluster:    A DICTIONARY {NODE: CLUSTER-ID} MAPPING A CLUSTER IDEA TO TO ALL NODES IN THE MATHER CLUSTER
     :param linkset:         THE LINKSET USED FOR EXTENDING A CLUSTER STEMMED FROM THE MOTHER CLUSTER
     :return:                A DICTIONARY {'links': links, 'extensions': list(set(extension))}
     """
@@ -3388,16 +3413,16 @@ def cluster_extension(nodes, node2cluster, linkset):
     # 1. PICK A CLUSTER
     # picked_cluster = clusters[clusters.keys()[0]]
     # picked_nodes_csv = picked_cluster['nodes']
-    picked_nodes_csv = "\n\t\t".join(str(s) for s in nodes)
+    picked_nodes_csv = "\n\t\t\t".join(str(s) for s in nodes)
 
     # 2. FETCH THE PAIRED NODE FOR EACH NODE IN THE CLUSTER
     query = """
     SELECT ?node ?pred ?paired
     {{
-        VALUES ?paired {{
+        VALUES ?node {{
             {0} }}
 
-        # NODE PAIRED TO THE LINKSET FROM SUBJECT
+        # NODE PAIRED TO THE LINKSET FROM OBJECT
         {{
             GRAPH <{1}>
             {{
@@ -3405,7 +3430,7 @@ def cluster_extension(nodes, node2cluster, linkset):
             }}
         }}UNION
 
-        # NODE PAIRED TO THE LINKSET FROM OBJECT
+        # NODE PAIRED TO THE LINKSET FROM SUBJECT
         {{
             GRAPH <{1}>
             {{
