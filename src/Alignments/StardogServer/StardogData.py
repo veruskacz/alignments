@@ -8,36 +8,38 @@ import Alignments.Server_Settings as Svr
 from Alignments.Utility import headings
 import os
 
+
 namespaces = """
-    {0}stardog namespace add --prefix owl --uri http://www.w3.org/2002/07/owl# {1}
-    {0}stardog namespace add --prefix void --uri http://rdfs.org/ns/void# {1}
-    {0}stardog namespace add --prefix bdb --uri http://vocabularies.bridgedb.org/ops# {1}
-    {0}stardog namespace add --prefix prov --uri http://www.w3.org/ns/prov# {1}
-    {0}stardog namespace add --prefix skos --uri http://www.w3.org/2004/02/skos/core# {1}
-    {0}stardog namespace add --prefix lens --uri http://risis.eu/lens/ {1}
-    {0}stardog namespace add --prefix risis --uri http://risis.eu/ risis {1}
-    {0}stardog namespace add --prefix riclass --uri http://risis.eu/class/ {1}
-    {0}stardog namespace add --prefix schema --uri http://risis.eu/ontology/ {1}
-    {0}stardog namespace add --prefix dataset --uri http://risis.eu/dataset/ {1}
-    {0}stardog namespace add --prefix idea --uri http://risis.eu/activity/ {1}
-    {0}stardog namespace add --prefix linkset --uri http://risis.eu/linkset/ {1}
-    {0}stardog namespace add --prefix method --uri http://risis.eu/method/ {1}
-    {0}stardog namespace add --prefix ll --uri http://risis.eu/alignment/predicate/ {1}
-    {0}stardog namespace add --prefix tmpgraph --uri http://risis.eu/alignment/temp-match/ {1}
-    {0}stardog namespace add --prefix tempG --uri http://risis.eu/alignment/temp-match/ {1}
-    {0}stardog namespace add --prefix tmpvocab --uri http://risis.eu//temp-match/temp-match/predicate/ {1}
-    {0}stardog namespace add --prefix mechanism --uri http://risis.eu/mechanism/ {1}
-    {0}stardog namespace add --prefix singletons --uri http://risis.eu/singletons/ {1}
-    {0}stardog namespace add --prefix justification --uri http://risis.eu/justification/ {1}
-    {0}stardog namespace add --prefix lensOp --uri http://risis.eu/lens/operator/ {1}
-    {0}stardog namespace add --prefix lensOpu --uri http://risis.eu/lens/operator/union {1}
-    {0}stardog namespace add --prefix lensOpi --uri http://risis.eu/lens/operator/intersection {1}
-    {0}stardog namespace add --prefix lensOpt --uri http://risis.eu/lens/operator/transitive {1}
-    {0}stardog namespace add --prefix lensOpd --uri http://risis.eu/lens/operator/difference {1}
-    {0}stardog namespace add --prefix singletons --uri http://risis.eu/singletons/ {1}
-    {0}stardog namespace add --prefix dataset --uri http://risis.eu/dataset/ {1}
-    {0}stardog namespace add --prefix gadm --uri http://geo.risis.eu/vocabulary/gadm/ {1}
+    {0}stardog namespace add {1} --prefix owl --uri http://www.w3.org/2002/07/owl#
+    {0}stardog namespace add {1} --prefix void --uri http://rdfs.org/ns/void#
+    {0}stardog namespace add {1} --prefix bdb --uri http://vocabularies.bridgedb.org/ops#
+    {0}stardog namespace add {1} --prefix prov --uri http://www.w3.org/ns/prov#
+    {0}stardog namespace add {1} --prefix skos --uri http://www.w3.org/2004/02/skos/core#
+    {0}stardog namespace add {1} --prefix lens --uri http://risis.eu/lens/
+    {0}stardog namespace add {1} --prefix risis --uri http://risis.eu/ risis
+    {0}stardog namespace add {1} --prefix riclass --uri http://risis.eu/class/
+    {0}stardog namespace add {1} --prefix schema --uri http://risis.eu/ontology/
+    {0}stardog namespace add {1} --prefix dataset --uri http://risis.eu/dataset/
+    {0}stardog namespace add {1} --prefix idea --uri http://risis.eu/activity/
+    {0}stardog namespace add {1} --prefix linkset --uri http://risis.eu/linkset/
+    {0}stardog namespace add {1} --prefix method --uri http://risis.eu/method/
+    {0}stardog namespace add {1} --prefix ll --uri http://risis.eu/alignment/predicate/
+    {0}stardog namespace add {1} --prefix tmpgraph --uri http://risis.eu/alignment/temp-match/
+    {0}stardog namespace add {1} --prefix tempG --uri http://risis.eu/alignment/temp-match/
+    {0}stardog namespace add {1} --prefix tmpvocab --uri http://risis.eu//temp-match/temp-match/predicate/
+    {0}stardog namespace add {1} --prefix mechanism --uri http://risis.eu/mechanism/
+    {0}stardog namespace add {1} --prefix singletons --uri http://risis.eu/singletons/
+    {0}stardog namespace add {1} --prefix justification --uri http://risis.eu/justification/
+    {0}stardog namespace add {1} --prefix lensOp --uri http://risis.eu/lens/operator/
+    {0}stardog namespace add {1} --prefix lensOpu --uri http://risis.eu/lens/operator/union
+    {0}stardog namespace add {1} --prefix lensOpi --uri http://risis.eu/lens/operator/intersection
+    {0}stardog namespace add {1} --prefix lensOpt --uri http://risis.eu/lens/operator/transitive
+    {0}stardog namespace add {1} --prefix lensOpd --uri http://risis.eu/lens/operator/difference
+    {0}stardog namespace add {1} --prefix singletons --uri http://risis.eu/singletons/
+    {0}stardog namespace add {1} --prefix dataset --uri http://risis.eu/dataset/
+    {0}stardog namespace add {1} --prefix gadm --uri http://geo.risis.eu/vocabulary/gadm/
 """
+
 
 stardog_cmds = {
 
@@ -118,7 +120,7 @@ def add_namespace(namespace, uri):
     print "NAMESPACE LABEL:".format(namespace)
     print "NAMESPACE URIS :".format(uri)
     # PLATFORM DEPENDENT CMD
-    cmd = "stardog namespace add --prefix {} --uri {} {}".format(namespace, uri, database)
+    cmd = "stardog namespace add {} --prefix {} --uri {}".format(Svr.settings[St.stardog_uri], namespace, uri)
     return subprocess.check_output(cmd, shell=True)
 
 
@@ -133,9 +135,9 @@ def load_default_namespaces(directory):
 
     # PLATFORM DEPENDENT CMD
     if Ut.is_windows():
-        cmd = namespaces.format("call ", database)
+        cmd = namespaces.format("call ", Svr.settings[St.stardog_uri])
     else:
-        cmd = namespaces.format("", database)
+        cmd = namespaces.format("", Svr.settings[St.stardog_uri],)
 
     # EXECUTE THE CMD
     result = Ut.run_cdm(cmd, f_path, delete_after=True, output=False)

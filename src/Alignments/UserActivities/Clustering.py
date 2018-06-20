@@ -3460,7 +3460,7 @@ def cluster_extension(nodes, node2cluster, linkset):
                 extension += [node2cluster[paired]]
 
     # EXTENSION IS THE LIST OF CLUSTER ID THAT EXTEND THE GIVEN CLUSTER
-    to_return = {'links': extension, 'extensions': list(set(extension))}
+    to_return = {'links': links, 'extensions': list(set(extension))}
     print "\tNUMBER OF LINKS FOUND:", len(links)
     print "NUMBER OF EXTENSION IDS FOUND", len(to_return['extensions'])
     for ex_id in to_return['extensions']:

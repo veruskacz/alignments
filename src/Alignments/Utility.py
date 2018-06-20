@@ -1181,10 +1181,12 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
     if check_db_exists(db_name) is True:
         return False
 
+    endpoint = Svr.settings[St.stardog_uri].replace("/{}".format(Svr.settings[St.database]), "")
+
     # CREATING THE DATABASE IN STARDOG
     create_db = """
-    \"{0}{2}stardog-admin\" db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n {1}
-    """.format(stardog_bin_path, db_name, os.path.sep)
+    \"{0}{2}stardog-admin\" --server {3} db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n {1}
+    """.format(stardog_bin_path, db_name, os.path.sep, endpoint)
 
     writer = open(db_bat_path, "wb")
     writer.write(create_db)
