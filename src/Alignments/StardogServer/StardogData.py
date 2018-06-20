@@ -413,7 +413,7 @@ def query_graph_metadata(graph):
     print "{:12} : {}".format("MAIN GRAPH", graph)
     qry = std_queries["metadata"].format(graph)
     result = query(qry)
-    print result
+    # print result
     return result
 
 
