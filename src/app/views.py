@@ -2445,8 +2445,9 @@ def datasetLinkingClusters():
     alignments = request.args.getlist('alignments[]')
     network_size = int(request.args.get('network_size', '-1'))
     greater_equal = (request.args.get('greater_equal', 'false')) == 'true'
+    print
 
-    if True:
+    try:
         targets = []
         for json_item in datasets_properties:
             row = ast.literal_eval(json_item)
@@ -2478,83 +2479,54 @@ def datasetLinkingClusters():
                 data = {'entity_datatype': row['entityType'], 'properties': properties}
                 dict_graph['data'].append(data)
 
-    # print targets
-    # exit()
+        # print targets
+        # exit()
 
-    # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
-    # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
-    clusters = Clt.links_clustering(alignments[0], limit=None)
-    # print clusters
+        # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
+        # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
+        clusters = Clt.links_clustering(alignments[0], limit=None, reset=False)
+        # print clusters
 
-    # for each cluster-matrix
-    counter = 0
-    header = ['ID', 'count', 'size', 'prop', 'sample']
-    results = []
-    clustersList = []
-    for cluster_id, values in clusters.items():
-        nodes = list(values['nodes'])
-        links = list(values['links'])
-        strengths = values['strengths']
+        # for each cluster-matrix
+        counter = 0
+        header = ['ID', 'count', 'size', 'prop', 'sample']
+        results = []
+        clustersDict = {}
+        key_list = []
+        for cluster_id, values in clusters.items():
+            nodes = values['nodes']
+            links = values['links']
+            strengths = values['strengths']
 
-        # print i_cluster
-        # (cluster_id, values) = i_cluster
-        children = nodes
-        n_children = len(children)
-        # print children, network_size
-        if (network_size != -1) and not ((n_children >= network_size and greater_equal) or (n_children == network_size)):
-            # print 'HERE!!!'
-            continue
+            children = nodes
+            n_children = len(children)
+            if (network_size != -1) and not ((n_children >= network_size and greater_equal) or (n_children == network_size)):
+                continue
 
-        # Calculate hash and fech resource ids
-        smallest_hash = float('inf')
-        resources = ""
-        for child in children:
-            hashed = hash(child)
-            if hashed <= smallest_hash:
-                smallest_hash = hashed
+            clustersDict[cluster_id]={'nodes': nodes, 'links': links, 'dict': strengths}
 
-            use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
-            resources += "\n\t\t\t\t{}".format(use)
+            sample = Clt.cluster_values_plus('', nodes, targets, distinct_values=False, display=False, limit_resources=1)
 
-        smallest_hash = "{}".format(str(smallest_hash).replace("-", "N")) if str(
-                smallest_hash).startswith("-") \
-                else "P{}".format(smallest_hash)
+            counter +=1
+            key_list += [cluster_id]
+            if sample['result'] and len(sample['result']) > 1:
+                results += [[cluster_id, str(counter), str(len(nodes)), Ut.pipe_split_plus(sample['result'][1][2],sep='/') , sample['result'][1][3].decode('utf-8')]]
+            else:
+                results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
 
-        clustersList += [{'id': smallest_hash, 'nodes': nodes, 'links': links, 'dict': strengths}]
-
-        # index = 0
-        sample = Clt.cluster_values_plus('', nodes, targets, distinct_values=False, display=False, limit_resources=1)
-
-        # print "sample['result']", sample['result']
-        # TRY MORE ROWS TO FINALLY GET A SAMPLE
-        # while index + 1 < len(cluster) and (sample['result'] is None or len(sample['result'])) < 2:
-        #     index += 1
-        #     sample = Clt.cluster_values2([cluster[index]], properties, distinct_values=False, display=False)
-        #     if sample['result'] and len(sample['result']) > 1:
-        #         break
-
-        # print cluster[0]
-        # if counter > 50:
-        #     break
-        counter +=1
-        if sample['result'] and len(sample['result']) > 1:
-            # print response['result']
-            # results += [[cluster_id, str(counter), str(len(nodes)), sample['result'][1][0], sample['result'][1][3].decode('utf-8')]]
-            results += [[smallest_hash, str(counter), str(len(nodes)), Ut.pipe_split_plus(sample['result'][1][2],sep='/') , sample['result'][1][3].decode('utf-8')]]
+        if len(results) > 1:
+            message = "Have a look at the result in the table below"
+            return json.dumps({'message': message,
+                               'clustersList': clustersDict,
+                               'result': render_template('viewsDetails_list.html', header = header, results=results, clustersList=key_list)})
         else:
-            # results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
-            results += [[smallest_hash, str(counter), str(len(nodes)), "-", "No value found"]]
-
-    if len(results) > 1:
-        message = "Have a look at the result in the table below"
-        # print 'before', clustersList
-        return json.dumps({'message': message,
-                           'result': render_template('viewsDetails_list.html', header = header, results = results, clustersList=clustersList)})
-    else:
-        message = "The query was successfully run with no result to show. " \
-                  "<br/>Probably the selected properties need some revising."
-        print "NO RESULT FOR THIS QUERY..."
-        return json.dumps({'message': message, 'result': None})
+            message = "The query was successfully run with no result to show. " \
+                      "<br/>Probably the selected properties need some revising."
+            print "NO RESULT FOR THIS QUERY..."
+            return json.dumps({'message': message, 'result': None})
+    except:
+        traceback.print_exc()
+        return json.dumps({'message': '', 'result': None})
 
 
 @app.route('/renderFile')
@@ -2562,13 +2534,16 @@ def renderFile():
     template = request.args.get('template', '')
     return render_template(template)
 
+
 @app.route('/getDatasetLinkingClusterDetails')
 def datasetLinkingClusterDetails():
     research_question = request.args.get('research_question', '')
+    alignments = request.args.getlist('alignments[]')
     distinctValues = request.args.get('groupDistValues','yes')
     datasets_properties = request.args.getlist('datasets_properties[]')
-    cluster_json = request.args.get('cluster') #{id, nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
-    # cluster_json = request.args.get('cluster') #{[nodes], [links(a,b)]}
+    cluster_json = request.args.get('cluster', '') #{nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
+    cluster_id = request.args.get('clusterId', '')
+    cluster_linkset_extension = request.args.get('cluster_linkset_extension', None)
 
     properties = []
     targets = []
@@ -2604,14 +2579,16 @@ def datasetLinkingClusterDetails():
                 data = {'entity_datatype': row['entityType'], 'properties': properties}
                 dict_graph['data'].append(data)
 
-    # print 'after', type(cluster_json)
+
     cluster = ast.literal_eval(cluster_json)
-    # print '\n'
-    print "\n\t>>> CLUSTER ID:", cluster['id']
+
+    print "\n\t>>> CLUSTER", cluster_id
     print "\t>>> PROPERTIES:", properties
     # print cluster['nodes']
     # print cluster['links']
     # print cluster['dict']
+
+
 
     response = Clt.cluster_values_plus(research_question, cluster['nodes'], targets, distinct_values=(distinctValues=='yes'))
     # print response
@@ -2619,6 +2596,7 @@ def datasetLinkingClusterDetails():
         # print response['result']
         header = response['result'][0][:-1]
         results_x = response['result'][1:]
+        # print results_x
 
         results = []
         plot_graph = {}
@@ -2649,18 +2627,19 @@ def datasetLinkingClusterDetails():
                 index = len(group)
                 group += [dataset]
 
-            nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index}]
+            nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index, 'size': '10'}]
 
             dict = cluster['dict']
+            ## check for possible links with all the nodes before the one just inserted
             for n in nodes[:-1]:
                 node1 = nodes[-1]['uri'] if Ut.is_nt_format(nodes[-1]['uri']) else '<{}>'.format(nodes[-1]['uri'])
                 node2 = n['uri'] if Ut.is_nt_format(n['uri']) else '<{}>'.format(n['uri'])
-                if (node1, node2) in dict:
-                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[(node1, node2)])}]
-                elif (node2, node1) in cluster['links']:
-                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[(node2, node1)])}]
+                if str(hash((node1, node2))) in dict:
+                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node1, node2)))]), 'color': 'black'}]
+                elif str(hash((node2, node1))) in dict:
+                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node2, node1)))]), 'color': 'black'}]
 
-        # print links
+        # print cluster['nodes'], cluster['links'], cluster['dict']
         obj_metrics = plots.metric(cluster['links'])
         message = obj_metrics['message'].replace('\n','</br>')
 
@@ -2692,13 +2671,114 @@ def datasetLinkingClusterDetails():
             except:
                 print 'Missing confidence value, set to 1.'
                 confidence = 1
-            plot_graph = {'id': cluster['id'], 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
+
+            # Processig the extesion
+            result_extension = None
+            print alignments[0], cluster_linkset_extension
+            if cluster_linkset_extension:
+                result_extension = Clt.links_clustering(alignments[0], limit=None, reset=False,
+                                                    cluster2extend_id=cluster_id, related_linkset=cluster_linkset_extension)
+            # print result_extension
+
+            if result_extension and 'links' in result_extension and 'clusters_subset' in result_extension:
+
+                related_links = result_extension['links']
+                # print 'Related links', related_links
+                # for l in related_links:
+                #     links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": 1, 'color': 'blue'}]
+
+                related_clusters = result_extension['clusters_subset']
+                # print 'Related clusters', related_clusters
+                for key, rel_cluster in related_clusters.items():
+                    response = Clt.cluster_values_plus(research_question, rel_cluster['nodes'], targets, distinct_values=(distinctValues=='yes'))
+                    # print response
+                    if response['result'] and len(response['result']) > 1:
+
+                        header = response['result'][0][:-1]
+                        results_x = response['result'][1:]
+                        # print 'Results ', results_x
+
+                        results = []
+                        group = []
+                        for r in results_x:
+                            results += [map(process_table_columns, r[:-1]) ]
+                            dataset = results[-1][0]
+                            node_names = results[-1][3]
+                            node_names = node_names[1:-1].split('] [')
+                            node_name = 'None'
+                            for i in range(len(node_names)):
+                                n = node_names[i]
+                                if i == len(node_names)-1: # if it is the last/unique then take it
+                                    node_name = n
+                                else: # then there can always be another option (the bigger the better)
+                                    if n.startswith("http") or n.startswith("<http") or n.startswith("www"):
+                                        pass
+                                    elif len(n) < len(node_names[i+1]):
+                                        pass
+                                    else:
+                                        node_name = n
+                                        break
+                            try:
+                                index = group.index(dataset)
+                            except:
+                                index = len(group)
+                                group += [dataset]
+
+                            add = True
+                            for n in nodes:
+                                if n['id'] == node_name+"("+dataset+" "+results[-1][1]+")":
+                                    add = False
+                                    # print 'found'
+                                    break
+                            if add:
+                                nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index, 'size': '5'}]
+                                # print 'new node', node_name+"("+dataset+" "+results[-1][1]+")"
+
+                            dict = rel_cluster['strengths']
+                            ## check for possible links with all the nodes before the one just inserted
+                            for n in nodes[:-1]:
+                                node1 = nodes[-1]['uri'] if Ut.is_nt_format(nodes[-1]['uri']) else '<{}>'.format(nodes[-1]['uri'])
+                                node2 = n['uri'] if Ut.is_nt_format(n['uri']) else '<{}>'.format(n['uri'])
+                                if str(hash((node1, node2))) in dict:
+                                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node1, node2)))]), 'color': 'black'}]
+                                elif str(hash((node2, node1))) in dict:
+                                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node2, node1)))]), 'color': 'black'}]
+
+                                if (node1, node2) in related_links:
+                                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": 1, 'color': 'purple', 'dash': "20,10,5,5,5,10"}]
+                                elif (node2, node1) in related_links:
+                                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": 1, 'color': 'purple', 'dash': "20,10,5,5,5,10"}]
+
+
+            plot_graph = {'id': cluster_id, 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
+
+            # N300384714573186178
             # print plot_graph
+            # related_links = [{'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Jacob, John (fl. 1679)(STCN 070145814)', 'value': 4, 'distance': 150}, {'source': u'Cornelis van Heusden(Ecartico 33164)', 'strenght': '1', 'target': u'Johannes Jacobs(Ecartico 17130)', 'value': 4, 'distance': 150}]
+            # related_clusters = [{'links': [{'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 11130)', 'value': 4, 'distance': 150}, {'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 33164)', 'value': 4, 'distance': 150}],
+            #      'nodes': [{'group': 0, 'id': u'Cornelis van Heusden(Ecartico 11130)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/11130'}, {'group': 0, 'id': u'Cornelis van Heusden(Ecartico 33164)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/33164'}, {'group': 1, 'id': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'uri': 'http://data.kb.nl/thesaurus/069790329'}],
+            #      'id': 'N8018610589344964695'}]
+            # related_clusters = [{'nodes': [u'Heusden, Cornelis van (-1741)(STCN 069790329)', u'Cornelis van Heusden(Ecartico 33164)'], 'cluster': 'N8018610589344964695'}]
+            # related_clusters = [{'confidence': 1.0, 'links': [{'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 11130)', 'value': 4, 'distance': 150}, {'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 33164)', 'value': 4, 'distance': 150}], 'messageConf': '', 'decision': 0.777, 'metrics': '</br>METRICS READING: THE CLOSER TO ZERO, THE BETTER</br></br>\tAverage Degree [1.0] </br>Bridges [2] normalised to [1.0] 1.0</br>Diameter [2]  normalised to [1.0] 1.0</br>Closure [2/3][0.667] normalised to [0.33]</br></br>>>> Decision Support [0.777] 0.777 <<<</br></br>Interpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE</br></br>Evidence: NEED BRIDGE INVESTIGATION', 'nodes': [{'group': 0, 'id': u'Cornelis van Heusden(Ecartico 11130)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/11130'}, {'group': 0, 'id': u'Cornelis van Heusden(Ecartico 33164)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/33164'}, {'group': 1, 'id': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'uri': 'http://data.kb.nl/thesaurus/069790329'}], 'id': 'N8018610589344964695'}]
+            # ### adding nodes and links from the related links but also from related clusters
+            # for c in related_clusters:
+            #     # for n in c['nodes']:
+            #     #     n['color'] = 'blue'
+            #     plot_graph['nodes'] += c['nodes']
+            #     # for l in c['links']:
+            #     #     l['color'] = 'blue'
+            #     plot_graph['links'] += c['links']
+            # for l in related_links:
+            #     l['color'] = 'blue'
+            #     plot_graph['links'] += [l]
+
+
 
         message = "Have a look at the result in the table below"
         return json.dumps({'message': message,
                            'result': render_template('viewsDetails_list.html', header = header, results = results),
-                           'graph': plot_graph})
+                           'graph': plot_graph,
+                           'related_clusters': ['N8018610589344964695']})
     else:
         message = "The query was successfully run with no result to show. " \
                   "<br/>Probably the selected properties need some revising."
