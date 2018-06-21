@@ -2690,6 +2690,11 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     # RECOMPUTED AGAIN WHEN REQUESTED FOR. THE SERIALISED CLUSTER IS LINKED TO THE GENERIC METADATA
     # OF THE GRAPH
 
+    if related_linkset is None:
+        print Ut.headings("LINK CLUSTERING")
+    else:
+        print Ut.headings("LINK CLUSTERING EXTENSION")
+
     print "\nDIRECTORY:", serialisation_dir
 
     if os.path.isdir(serialisation_dir) is False:
@@ -2708,7 +2713,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     ask = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
 
     if Qry.boolean_endpoint_response(ask) == "true":
-        print ">>> THE CLUSTERED HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+        print ">>> THE CLUSTER HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
 
         # QUERY FOR THE SERIALISATION
         s_query = """SELECT *
@@ -2769,11 +2774,15 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
                 # RETURNING THE CLUSTER EXTENSION FOR PLOT
                 clusters_subset = {}
-                print "SUBSET"
+                is_subset = False
+                print "\n\tSUBSET...?"
                 for cluster_id in extension_dict['extensions']:
                     if cluster_id != cluster2extend_id:
+                        is_subset = True
                         clusters_subset[cluster_id] = clusters[cluster_id]
                         print "\t", clusters[cluster_id]
+                if is_subset is False:
+                    print "\tNO SUBSET FOUND"
 
                 # ADD THE CLUSTER SUBSET TO THE RETURNED DICTIONARY
                 extension_dict['clusters_subset'] = clusters_subset
