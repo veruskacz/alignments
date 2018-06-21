@@ -640,6 +640,7 @@ function filterListGroup(input,div_id,counter_div='') {
     }
 }
 
+
 function filterTableRow(input,div_id,counter_div='') {
 
     var filter, ul, rows, cols, i, k, display, counter;
