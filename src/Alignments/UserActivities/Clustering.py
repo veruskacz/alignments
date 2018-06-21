@@ -3378,7 +3378,7 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
             returned = {'clusters':new_clusters, 'node2cluster_id':root}
 
             # SERIALISATION
-            print "\n5. SERIALISING THE DICTIONARIES"
+            print "\n5. SERIALISING THE DICTIONARIES..."
             Qry.endpoint("""INSERT DATA {{
                 <{}> <{}serialisedClusters> '''{}'''
             }}""".format(graph, Ns.alivocab, returned))

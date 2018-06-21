@@ -8,6 +8,12 @@ import Alignments.Server_Settings as Svr
 from Alignments.Utility import headings
 import os
 
+database = Svr.settings[St.database]
+stardog_bin = Svr.settings[St.stardog_path]
+stardog_db = Svr.settings[St.database]
+stardog_uri = Svr.settings[St.stardog_uri]
+stardog_address = Svr.settings[St.stardog_uri].replace("/{}".format(database), "")
+
 
 namespaces = """
     {0}stardog namespace add {1} --prefix owl --uri http://www.w3.org/2002/07/owl#
@@ -43,16 +49,16 @@ namespaces = """
 
 stardog_cmds = {
 
-    "server_status": "\"{}stardog-admin\" server status",
+    "server_status": "\"{}stardog-admin\" --server {} server status",
 
     # 0. STARDOG BIN
-    "query_list": "\"{}stardog-admin\" query list",
+    "query_list": "\"{}stardog-admin\" --server {} query list",
 
     # 0. STARDOG BIN    1. QUERY ID
-    "query_kill": "\"{}stardog-admin\" query kill {}",
+    "query_kill": "\"{}stardog-admin\" --server {} query kill {}",
 
     # 0. STARDOG BIN    1. QUERY ID
-    "query_status": "\"{}stardog-admin\" query status {}",
+    "query_status": "\"{}stardog-admin\" --server {} query status {}",
 
     # 0. STARDOG BIN    1.DATASET     2.OURPUT FILE PATH
     "export_db": "\"{}stardog\" data export --named-graph ALL --format TRIG {} {}",
@@ -92,10 +98,6 @@ std_queries = {
 
     # GRAPH/ALIGNMENT/LINKSET/LENS/SINGLETONS
     "metadata": "SELECT * {{ <{}> ?predicate ?object .}} "}
-
-database = Svr.settings[St.database]
-stardog_bin = Svr.settings[St.stardog_path]
-stardog_db = Svr.settings[St.database]
 
 def reset_ll_port(port):
     env = os.environ
@@ -178,7 +180,7 @@ def stardog_query_list():
     print headings("QUERYING STARDOG FOR THE CURRENT LIST OF QUERIES")
 
     try:
-        cmd = stardog_cmds["query_list"].format(stardog_bin)
+        cmd = stardog_cmds["query_list"].format(stardog_bin, stardog_address)
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
@@ -194,7 +196,7 @@ def stardog_status():
     print headings("QUERYING STARDOG FOR THE CURRENT LIST OF QUERIES")
 
     try:
-        cmd = stardog_cmds["server_status"].format(stardog_bin)
+        cmd = stardog_cmds["server_status"].format(stardog_bin, stardog_address)
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
@@ -210,7 +212,7 @@ def stardog_query_kill(query_id):
     print headings("TERMINATING A SPECIFIC QUERY BASED ON ID")
 
     try:
-        cmd = stardog_cmds["query_kill"].format(stardog_bin, query_id)
+        cmd = stardog_cmds["query_kill"].format(stardog_bin, stardog_address, query_id)
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
@@ -227,7 +229,7 @@ def stardog_query_status(query_id):
 
 
     try:
-        cmd = stardog_cmds["query_status"].format(stardog_bin, query_id)
+        cmd = stardog_cmds["query_status"].format(stardog_bin, stardog_address, query_id)
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
@@ -243,7 +245,7 @@ def stardog_export_db(file_path, database=None):
     print headings("EXPORTING AN ENTIRE STARDOG DATABASE")
 
     if database is None:
-        database = stardog_db
+        database = stardog_uri
 
     try:
         cmd = stardog_cmds["export_db"].format(stardog_bin, database, file_path)
@@ -262,7 +264,7 @@ def stardog_export_graph(file_path, graph, database=None):
     print headings("EXPORTING AN ENTIRE STARDOG GRAPH")
 
     if database is None:
-        database = stardog_db
+        database = stardog_uri
 
     try:
         cmd = stardog_cmds["export_graph"].format(stardog_bin, graph, database, file_path)
@@ -290,7 +292,7 @@ def stardog_data_add_folder(folder_path, named_graph=None, database=None, add=Tr
     print headings("ADDING DATA TO STARDOG FROM A FOLDER")
 
     if database is None:
-        database = stardog_db
+        database = stardog_uri
 
     if named_graph is not None:
         graph = "-g {}".format(named_graph.strip())
@@ -328,7 +330,7 @@ def stardog_data_add_file(file_path, graph=None, database=None, add=True, activa
     print headings("ADDING DATA TO STARDOG FROM A FILE")
 
     if database is None:
-        database = stardog_db
+        database = stardog_uri
 
     if graph is not None:
         graph = "-g {}".format(graph.strip())
@@ -361,11 +363,12 @@ def query(query):
     print headings("QUERYING STARDOG")
 
     try:
-        cmd = std_queries["query"].format(stardog_bin, stardog_db, query)
-        remove = "\"{}stardog\" query {} \"".format(stardog_bin, stardog_db)
+        cmd = std_queries["query"].format(stardog_bin, stardog_uri, query)
+        remove = "\"{}stardog\" query {} \"".format(stardog_bin, stardog_uri)
         print "{:12} : {}".format("QUERY", cmd[0:-1].replace(remove, ""))
         cmd = cmd.replace("\n", "")
         return subprocess.check_output(cmd, shell=True)
+
     except Exception as err:
         return err
 
@@ -378,8 +381,8 @@ def query_generic(graph, limit=100):
     print headings("GENERIC QUERY FOR STARDOG")
 
     try:
-        cmd = std_queries["query_generic"].format(stardog_bin, stardog_db, graph, limit)
-        remove = "\"{}stardog\" query {} \"".format(stardog_bin, stardog_db)
+        cmd = std_queries["query_generic"].format(stardog_bin, stardog_uri, graph, limit)
+        remove = "\"{}stardog\" query {} \"".format(stardog_bin, stardog_uri)
         print "{:12} : {}".format("QUERY", cmd[0:-1].replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
     except Exception as err:
