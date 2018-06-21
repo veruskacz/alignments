@@ -145,7 +145,7 @@ def refining(specs, insert_query, activated=False):
     # print matrix[St.result][1][0]
 
     specs[St.insert_query] = insert_query(specs)
-    print specs[St.insert_query]
+    # print specs[St.insert_query]
 
     # IF THE INSERT QUERY IS NOT A LIST
     if type(specs[St.insert_query]) == str:
@@ -168,6 +168,10 @@ def refining(specs, insert_query, activated=False):
         print "\n7. RUNNING THE FINDING QUERY"
         print specs[St.insert_query][3]
         is_run = Qry.boolean_endpoint_response(specs[St.insert_query][3])
+
+        print "\n7. RUNNING THE FINAL DROP"
+        print specs[St.insert_query][4]
+        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][4])
 
     print "\n>>> RUN SUCCESSFULLY:", is_run.upper()
 
@@ -493,6 +497,15 @@ def refine_numeric_query(specs):
         Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name]
     )
 
+    drop_final = """
+        PREFIX tempG: <{0}>
+        DROP SILENT GRAPH tempG:load_{1}_01 ;
+        DROP SILENT GRAPH tempG:load_{1}_02 ;
+        """.format(
+        # 0           1
+        Ns.tmpgraph,  specs[St.refined_name]
+    )
+
     source = """
     PREFIX ll:    <{0}>
     PREFIX prov:  <{1}>
@@ -570,65 +583,6 @@ def refine_numeric_query(specs):
         Ns.alivocab, Ns.prov, Ns.tmpgraph, trg_name, specs[St.linkset], trg_uri, trg_aligns, specs[St.refined_name])
 
 
-    # extract = """
-    # PREFIX ll:    <{0}>
-    # PREFIX prov:  <{1}>
-    # PREFIX tempG: <{2}>
-    #
-    # DROP SILENT GRAPH tempG:load01 ;
-    # DROP SILENT GRAPH tempG:load02 ;
-    # DROP SILENT GRAPH <{3}> ;
-    # DROP SILENT GRAPH <{4}{5}> ;
-    #
-    # ### 1. LOADING SOURCE AND TARGET TO A TEMPORARY GRAPH
-    # INSERT
-    # {{
-    #     GRAPH tempG:load01
-    #     {{
-    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-    #         ?{8}_1 ll:relatesTo1 ?srcTrimmed .
-    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
-    #         ?{9}_2 ll:relatesTo3 ?trgTrimmed .
-    #     }}
-    # }}
-    # WHERE
-    # {{
-    #     ### LINKSET TO REFINE
-    #     graph <{7}>
-    #     {{
-    #         ?{8}_1 ?pred  ?{9}_2 .
-    #     }}
-    #
-    #     ### SOURCE DATASET
-    #     graph <{10}>
-    #     {{
-    #         ### SOURCE DATASET AND ITS ALIGNED PREDICATE
-    #         ?{8}_1 {12} ?value_1 .
-    #         bind (lcase(str(?value_1)) as ?src_value)
-    #
-    #         # VALUE TRIMMING
-    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-    #         BIND(REPLACE(?src_value, ?regexp, '$1$2') AS ?srcTrimmed)
-    #     }}
-    #
-    #     ### TARGET DATASET
-    #     graph <{11}>
-    #     {{
-    #         ### TARGET DATASET AND ITS ALIGNED PREDICATE
-    #         ?{9}_2 {13} ?value_2 .
-    #         bind (lcase(str(?value_2)) as ?trg_value)
-    #
-    #         # VALUE TRIMMING
-    #         BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp)
-    #         BIND(REPLACE(?trg_value, ?regexp, '$1$2') AS ?trgTrimmed)
-    #     }}
-    # }} """.format(
-    #     # 0          1         2           3                  4              5
-    #     Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name],
-    #     # 6           7                  8         9         10       11       12          13
-    #     Ns.tmpvocab, specs[St.linkset], src_name, trg_name, src_uri, trg_uri, src_aligns, trg_aligns
-    # )
-
     find = """
     ### 2. FINDING CANDIDATE MATCH BETWEEN THE SOURCE AND TARGET
     PREFIX ll:    <{0}>
@@ -678,7 +632,7 @@ def refine_numeric_query(specs):
         # 8                  9                      10                 11             12
         specs[St.mechanism], specs[St.sameAsCount], specs[St.refined], Ns.singletons, specs[St.refined_name])
 
-    return [drop, source, target, find]
+    return [drop, source, target, find, drop_final]
 
 ########################################################################################
 # SINGLE PREDICATE ALIGNMENT FOR LINKSET REFINEMENT BASED ON INTERMEDIATE
@@ -910,7 +864,7 @@ def refine_metadata(specs):
             construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.refined]), 1)
 
         # WRITE TO FILE
-        print "\t>>> WRITING THE METADATA  YO FILE TO FILE"
+        print "\t>>> WRITING THE METADATA TO FILE TO FILE"
         write_to_file(graph_name=specs[St.refined_name], metadata=metadata["query"].replace("INSERT DATA", ""),
                       correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
 
