@@ -491,7 +491,7 @@ def refine_numeric_query(specs):
     DROP SILENT GRAPH tempG:load_{5}_01 ;
     DROP SILENT GRAPH tempG:load_{5}_02 ;
     DROP SILENT GRAPH <{3}> ;
-    DROP SILENT GRAPH <{4}{5}> ;
+    DROP SILENT GRAPH <{4}{5}>
     """.format(
         # 0          1         2           3                  4              5
         Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name]
@@ -500,7 +500,7 @@ def refine_numeric_query(specs):
     drop_final = """
         PREFIX tempG: <{0}>
         DROP SILENT GRAPH tempG:load_{1}_01 ;
-        DROP SILENT GRAPH tempG:load_{1}_02 ;
+        DROP SILENT GRAPH tempG:load_{1}_02
         """.format(
         # 0           1
         Ns.tmpgraph,  specs[St.refined_name]
