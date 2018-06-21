@@ -1,4 +1,5 @@
 from os import path
+import traceback
 import subprocess
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
@@ -8,11 +9,11 @@ import Alignments.Server_Settings as Svr
 from Alignments.Utility import headings
 import os
 
-database = Svr.settings[St.database]
+# database = Svr.settings[St.database]
 stardog_bin = Svr.settings[St.stardog_path]
 stardog_db = Svr.settings[St.database]
 stardog_uri = Svr.settings[St.stardog_uri]
-stardog_address = Svr.settings[St.stardog_uri].replace("/{}".format(database), "")
+stardog_address = Svr.settings[St.stardog_uri].replace("/{}".format(stardog_db), "")
 
 
 namespaces = """
@@ -99,6 +100,7 @@ std_queries = {
     # GRAPH/ALIGNMENT/LINKSET/LENS/SINGLETONS
     "metadata": "SELECT * {{ <{}> ?predicate ?object .}} "}
 
+
 def reset_ll_port(port):
     env = os.environ
 
@@ -116,19 +118,23 @@ def reset_ll_port(port):
 """ STARDOG FROM COMMAND LINE """
 # ********************************************************************************
 
+
 def add_namespace(namespace, uri):
 
     print headings("ADDING A NAMESPACE")
     print "NAMESPACE LABEL:".format(namespace)
     print "NAMESPACE URIS :".format(uri)
     # PLATFORM DEPENDENT CMD
-    cmd = "stardog namespace add {} --prefix {} --uri {}".format(Svr.settings[St.stardog_uri], namespace, uri)
-    return subprocess.check_output(cmd, shell=True)
+    try:
+        cmd = "stardog namespace add {} --prefix {} --uri {}".format(Svr.settings[St.stardog_uri], namespace, uri)
+        return subprocess.check_output(cmd, shell=True)
+    except ValueError:
+        traceback.print_exc()
 
 
 def load_default_namespaces(directory):
 
-    print headings("LOADING DEFAULT NAMESPACES TO STARDOG [{}]".format(database))
+    print headings("LOADING DEFAULT NAMESPACES TO STARDOG [{}]".format(stardog_db))
 
     if path.isdir(directory) is False:
         return "\n>>> [{}] IS NOT A DIRECTORY ".format(directory)
@@ -154,21 +160,26 @@ def main_alignment(alignment):
     # GIVEN AN ALIGNMENT, RETURN THE MAIN ONE
     # ****************************************************************************
 
-    # LOCAL NAME OF THE GRAPH
-    name = Ut.get_uri_local_name_plus(alignment)
-    print "{:12} : {}".format("LOCAL NAME", name)
-    query = std_queries["graphs_search"].format(name)
-    response = Qry.sparql_xml_to_matrix(query)
-    results = response["result"]
-    if results is not None:
-        for i in range(1, len(results)):
-            if results[i][0].__contains__("singletons") is False:
-                return results[i][0]
+    try:
+        # LOCAL NAME OF THE GRAPH
+        name = Ut.get_uri_local_name_plus(alignment)
+        print "{:12} : {}".format("LOCAL NAME", name)
+        query_search = std_queries["graphs_search"].format(name)
+        response = Qry.sparql_xml_to_matrix(query_search)
+        results = response["result"]
+        if results is not None:
+            for i in range(1, len(results)):
+                if results[i][0].__contains__("singletons") is False:
+                    return results[i][0]
 
-    if str(alignment).__contains__(Ns.singletons):
-        return str(alignment).replace(Ns.singletons, Ns.linkset)
+        if str(alignment).__contains__(Ns.singletons):
+            return str(alignment).replace(Ns.singletons, Ns.linkset)
 
-    else:
+        else:
+            return alignment
+
+    except ValueError:
+        traceback.print_exc()
         return alignment
 
 
@@ -227,12 +238,12 @@ def stardog_query_status(query_id):
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     print headings("ASSESSING THE STATUS OF A SPECIFIC CURRENTLY RUNNING QUERY")
 
-
     try:
         cmd = stardog_cmds["query_status"].format(stardog_bin, stardog_address, query_id)
         remove = "{}".format(stardog_bin)
         print "{:12} : {}".format("STARDOG COMMAND", cmd.replace("\"", "").replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
+
     except Exception as err:
         return err
 
@@ -275,8 +286,8 @@ def stardog_export_graph(file_path, graph, database=None):
         return err
 
 
-def stardog_data_add_folder(folder_path, named_graph=None, database=None, add=True, fies_format="trig", activated=False):
-
+def stardog_data_add_folder(
+        folder_path, named_graph=None, database=None, add=True, fies_format="trig", activated=False):
 
     if activated is False:
         message = "THE FUNCTION [stardog_data_add_folder] IS NOT ACTIVATED"
@@ -314,6 +325,7 @@ def stardog_data_add_folder(folder_path, named_graph=None, database=None, add=Tr
         return result
 
     except Exception as err:
+        traceback.print_exc()
         return err
 
 
@@ -347,6 +359,7 @@ def stardog_data_add_file(file_path, graph=None, database=None, add=True, activa
         return result
 
     except Exception as err:
+        traceback.print_exc()
         return err
 
 
@@ -355,7 +368,7 @@ def stardog_data_add_file(file_path, graph=None, database=None, add=True, activa
 # ##############################################################################
 
 
-def query(query):
+def query(query_search):
 
     """""""""""""""""""""""""""""
     #   QUERYING STARDOG
@@ -363,13 +376,14 @@ def query(query):
     print headings("QUERYING STARDOG")
 
     try:
-        cmd = std_queries["query"].format(stardog_bin, stardog_uri, query)
+        cmd = std_queries["query"].format(stardog_bin, stardog_uri, query_search)
         remove = "\"{}stardog\" query {} \"".format(stardog_bin, stardog_uri)
         print "{:12} : {}".format("QUERY", cmd[0:-1].replace(remove, ""))
         cmd = cmd.replace("\n", "")
         return subprocess.check_output(cmd, shell=True)
 
     except Exception as err:
+        traceback.print_exc()
         return err
 
 
@@ -385,7 +399,9 @@ def query_generic(graph, limit=100):
         remove = "\"{}stardog\" query {} \"".format(stardog_bin, stardog_uri)
         print "{:12} : {}".format("QUERY", cmd[0:-1].replace(remove, ""))
         return subprocess.check_output(cmd, shell=True)
+
     except Exception as err:
+        traceback.print_exc()
         return err
 
 
@@ -451,7 +467,8 @@ leiden = "D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRank
 #
 # # LEIDEN
 # stardog_data_add_folder(
-#     folder_path="D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRanking_2015.2017-08-03\University",
+#     folder_path=
+# "D:\Linking2GRID\Data\Leiden Ranking 2015 extended\converted\leidenRanking_2015.2017-08-03\University",
 #     database="risis", fies_format="trig", add=True, activated=False)
 
 query_str = """
@@ -481,8 +498,9 @@ select (count(distinct ?grid) as ?total)
 """
 
 # print query(query_str)
-
-# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\grid_20180501_NL.trig", "http://risis.eu/dataset/grid_20180501_NL", database=None)
-# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\eter_2014_enriched.trig", "http://risis.eu/dataset/eter_2014_enriched", database=None)
-# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\grid_20180501_enriched.trig", "http://risis.eu/dataset/grid_20180501_enriched", database=None)
-
+# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\grid_20180501_NL.trig",
+# "http://risis.eu/dataset/grid_20180501_NL", database=None)
+# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\eter_2014_enriched.trig",
+# "http://risis.eu/dataset/eter_2014_enriched", database=None)
+# stardog_export_graph("C:\Git\RISIS-2018-course\datasets\grid_20180501_enriched.trig",
+# "http://risis.eu/dataset/grid_20180501_enriched", database=None)

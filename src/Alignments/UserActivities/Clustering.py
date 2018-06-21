@@ -1,4 +1,5 @@
 import ast
+import os
 import datetime
 import rdflib
 import traceback
@@ -2681,13 +2682,18 @@ def links_clustering_improved(graph, limit=1000):
 #   - [STRENGTHS]
 # ************************************************
 # ************************************************
-def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=True, limit=10000):
+def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=True, limit=10000):
 
 
     # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
     # ONCE THE CLUSTER IS COMPUTED, THE IDEA IS TO SERIALISE IT SO THAT IT WOULD NOT NEED TO BE
     # RECOMPUTED AGAIN WHEN REQUESTED FOR. THE SERIALISED CLUSTER IS LINKED TO THE GENERIC METADATA
     # OF THE GRAPH
+
+    print "\nDIRECTORY:", serialisation_dir
+
+    if os.path.isdir(serialisation_dir) is False:
+        os.mkdir(serialisation_dir)
 
     clusters = {}
     extension_dict = {}
@@ -2700,11 +2706,16 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
     # 1. CHECK IF THE ALIGNMENT HAS A TRIPLE ABLE THE CLUSTER
     # **************************************************************************************************
     ask = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
+
     if Qry.boolean_endpoint_response(ask) == "true":
-        print "\n>>> THE CLUSTERED HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+        print ">>> THE CLUSTERED HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
 
         # QUERY FOR THE SERIALISATION
-        s_query = "SELECT * {{ <{}> <{}serialisedClusters> ?serialised .}}".format(graph, Ns.alivocab)
+        s_query = """SELECT *
+        {{
+            <{0}>   <{1}serialisedClusters>   ?serialised .
+            <{0}>   <{1}numberOfClusters>     ?numberOfClusters .
+        }}""".format(graph, Ns.alivocab)
         start = time.time()
 
         # FETCH THE SERIALISATION
@@ -2716,12 +2727,29 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
 
         # GET THE SERIALISED CLUSTERS
         if s_query_result is not None:
-            serialised = s_query_result[1][0]
-            start = time.time()
+
+            # EXTRACTING THE NUMBER OF CLUSTERS ABD THE SERIALISED FILE NAME
+            serialised_hash = s_query_result[1][0]
+            cluster_count = s_query_result[1][1]
+            print "\t{} CLUSTERS FOUND AND DATA SAVED IN THE FILE [{}].TXT".format(cluster_count, serialised_hash)
+
+            # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
+            try:
+                s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
+                serialised = s_file.read()
+
+            except Exception:
+                print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
+                    serialised_hash)
+                traceback.print_exc()
+                return links_clustering(
+                    graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=True, limit=limit)
 
             # DE-SERIALISE THE SERIALISED
+            start = time.time()
             serialised = ast.literal_eval(serialised)
             diff = datetime.timedelta(seconds=time.time() - start)
+
             print "\tDe-serialised in {}".format(diff)
             clusters = serialised['clusters']
             root = serialised['node2cluster_id']
@@ -2745,7 +2773,7 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
                 for cluster_id in extension_dict['extensions']:
                     if cluster_id != cluster2extend_id:
                         clusters_subset[cluster_id] = clusters[cluster_id]
-                        print "\T", clusters[cluster_id]
+                        print "\t", clusters[cluster_id]
 
                 # ADD THE CLUSTER SUBSET TO THE RETURNED DICTIONARY
                 extension_dict['clusters_subset'] = clusters_subset
@@ -3376,12 +3404,21 @@ def links_clustering(graph, cluster2extend_id=None, related_linkset=None, reset=
                     root[node] = new_key
 
             returned = {'clusters':new_clusters, 'node2cluster_id':root}
+            returned_hashed = hash(returned.__str__())
 
             # SERIALISATION
             print "\n5. SERIALISING THE DICTIONARIES..."
+            s_file = os.path.join(serialisation_dir, "{}.txt".format(returned_hashed))
+            with open(s_file, 'wb') as writer:
+                writer.write(returned.__str__())
+
+            print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE"
             Qry.endpoint("""INSERT DATA {{
-                <{}> <{}serialisedClusters> '''{}'''
-            }}""".format(graph, Ns.alivocab, returned))
+                <{0}> <{1}serialisedClusters> '''{2}''' .
+                <{0}> <{1}numberOfClusters> {3} .
+            }}""".format(graph, Ns.alivocab, returned_hashed, len(clusters)))
+
+            print "\n7. SERIALISATION IS COMPLETED..."
             diff = datetime.timedelta(seconds=time.time() - start)
             print "\t{} triples serialised in {}".format(size, diff)
 
@@ -3413,6 +3450,8 @@ def cluster_extension(nodes, node2cluster, linkset):
     # EXISTING CLUSTER WITH NODE ON THE OTHER SIDE OF THE LINK HOPPING THAT THE OTHER
     # SIDE IS A CLUSTER.
     # ***********************************************************************************
+
+    print "\n\t> CHECKING FOR EXTENSION"
 
     # 1. PICK A CLUSTER
     # picked_cluster = clusters[clusters.keys()[0]]
@@ -3462,7 +3501,7 @@ def cluster_extension(nodes, node2cluster, linkset):
     # EXTENSION IS THE LIST OF CLUSTER ID THAT EXTEND THE GIVEN CLUSTER
     to_return = {'links': links, 'extensions': list(set(extension))}
     print "\tNUMBER OF LINKS FOUND:", len(links)
-    print "NUMBER OF EXTENSION IDS FOUND", len(to_return['extensions'])
+    print "\tNUMBER OF EXTENSION IDS FOUND", len(to_return['extensions'])
     for ex_id in to_return['extensions']:
         print "\t\t", ex_id
     print "\tTHE EXTENSION:", to_return
@@ -3474,14 +3513,16 @@ def delete_serialised_clusters(graph):
     query = """
     delete
     {{
-        <{0}> <http://risis.eu/alignment/predicate/serialisedClusters> ?serialised .
+        <{0}> <{1}serialisedClusters> ?serialised .
+        <{0}> <{1}numberOfClusters> ?numberOfClusters .
     }}
 
     where
     {{
-        <{0}> <http://risis.eu/alignment/predicate/serialisedClusters> ?serialised .
+        <{0}> <{1}serialisedClusters> ?serialised .
+        <{0}> <{1}numberOfClusters> ?numberOfClusters .
     }}
-    """.format(graph)
+    """.format(graph, Ns.alivocab)
     Qry.endpoint(query=query)
     print "DONE1!!"
 
@@ -3941,4 +3982,3 @@ TO DELETE FROM THE FILE
 
 
 # links_clustering("", limit=1000)
-

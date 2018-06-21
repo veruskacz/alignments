@@ -5779,7 +5779,7 @@ function calculateDatasetCluster(th)
         }
 
         var cluster_limit =  $('#cluster_limit_text').val();
-        if (cluster_limit == "-- Type size --")
+        if (cluster_limit == "-- Enter size --")
             { cluster_limit = '-1'; }
         if (cluster_limit != '-1')
             {

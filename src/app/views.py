@@ -2484,7 +2484,8 @@ def datasetLinkingClusters():
 
         # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
         # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
-        clusters = Clt.links_clustering(alignments[0], limit=None, reset=False)
+        file_dir = os.path.join(os.getcwd(),"serialisations")
+        clusters = Clt.links_clustering(alignments[0],  serialisation_dir=file_dir, limit=None, reset=False)
         # print clusters
 
         # for each cluster-matrix
@@ -2544,6 +2545,8 @@ def datasetLinkingClusterDetails():
     cluster_json = request.args.get('cluster', '') #{nodes:[a,b,c], links:[(a,b)], dict: {(a,b):strenght} }
     cluster_id = request.args.get('clusterId', '')
     cluster_linkset_extension = request.args.get('cluster_linkset_extension', None)
+    cluster_linkset_extension = None if cluster_linkset_extension == "-- Enter linkset extension --" \
+        else cluster_linkset_extension
 
     properties = []
     targets = []
@@ -2676,8 +2679,10 @@ def datasetLinkingClusterDetails():
             result_extension = None
             print alignments[0], cluster_linkset_extension
             if cluster_linkset_extension:
-                result_extension = Clt.links_clustering(alignments[0], limit=None, reset=False,
-                                                    cluster2extend_id=cluster_id, related_linkset=cluster_linkset_extension)
+                file_dir = os.path.join(os.getcwd(), "serialisations")
+                result_extension = Clt.links_clustering(
+                    alignments[0], serialisation_dir=file_dir, limit=None, reset=False,
+                    cluster2extend_id=cluster_id, related_linkset=cluster_linkset_extension)
             # print result_extension
 
             if result_extension and 'links' in result_extension and 'clusters_subset' in result_extension:
@@ -2854,7 +2859,8 @@ def datasetLinkingClusters2():
 
     # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
-    clusters = Clt.links_clustering(alignments[0], limit=None)
+    file_dir = os.path.join(os.getcwd(), "serialisations")
+    clusters = Clt.links_clustering(alignments[0], serialisation_dir=file_dir, limit=None)
     # print clusters
 
     # for each cluster-matrix
@@ -2940,7 +2946,8 @@ def datasetLinkingClusters2_old():
 
     # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
     # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
-    clusters = Clt.links_clustering(alignments[0], limit=None)
+    file_dir = os.path.join(os.getcwd(), "serialisations")
+    clusters = Clt.links_clustering(alignments[0], serialisation_dir=file_dir, limit=None)
     # print clusters
 
     # for each cluster-matrix
