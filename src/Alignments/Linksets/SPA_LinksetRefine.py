@@ -173,6 +173,9 @@ def refining(specs, insert_query, activated=False):
         print specs[St.insert_query][4]
         is_run = Qry.boolean_endpoint_response(specs[St.insert_query][4])
 
+        print specs[St.insert_query][5]
+        is_run = Qry.boolean_endpoint_response(specs[St.insert_query][5])
+
     print "\n>>> RUN SUCCESSFULLY:", is_run.upper()
 
     # NO INSERTION HAPPENED
@@ -497,13 +500,20 @@ def refine_numeric_query(specs):
         Ns.alivocab, Ns.prov, Ns.tmpgraph, specs[St.refined], Ns.singletons, specs[St.refined_name]
     )
 
-    drop_final = """
-        PREFIX tempG: <{0}>
-        DROP SILENT GRAPH tempG:load_{1}_01 ;
-        DROP SILENT GRAPH tempG:load_{1}_02
+    drop_final_1 = """
+    PREFIX tempG: <{0}>
+    DROP SILENT GRAPH tempG:load_{1}_01
         """.format(
         # 0           1
         Ns.tmpgraph,  specs[St.refined_name]
+    )
+
+    drop_final_2 = """
+    PREFIX tempG: <{0}>
+    DROP SILENT GRAPH tempG:load_{1}_02
+            """.format(
+        # 0           1
+        Ns.tmpgraph, specs[St.refined_name]
     )
 
     source = """
@@ -632,7 +642,7 @@ def refine_numeric_query(specs):
         # 8                  9                      10                 11             12
         specs[St.mechanism], specs[St.sameAsCount], specs[St.refined], Ns.singletons, specs[St.refined_name])
 
-    return [drop, source, target, find, drop_final]
+    return [drop, source, target, find, drop_final_1, drop_final_2]
 
 ########################################################################################
 # SINGLE PREDICATE ALIGNMENT FOR LINKSET REFINEMENT BASED ON INTERMEDIATE
