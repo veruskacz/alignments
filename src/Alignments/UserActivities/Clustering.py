@@ -3592,6 +3592,61 @@ def list_extended_clusters(serialised_path, related_linkset):
         print "\tLOADED in {}, THE FILE CONTAINS {}.".format(diff, len(clusters))
 
         # 3. FETCH THE PAIRED NODES
+        extended_clusters = set()
+        start = time.time()
+        fetch_q = """
+        select ?sub ?obj
+        {{
+            GRAPH <{}>
+            {{
+                ?sub ?pred ?obj .
+            }}
+        }}""".format(related_linkset)
+        fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
+        fetched = fetched_res[St.result]
+
+        # ITERATE THROUGH THE PAIRED FOR ENTENSIONS
+        print "\tCLUSTER SIZE: {}".format(len(fetched) - 1)
+        for i in range(1, len(fetched)):
+            sub = "<{}>".format(fetched[i][0])
+            obj = "<{}>".format(fetched[i][1])
+
+            # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
+            if sub in node2cluster and obj in node2cluster:
+                extended_clusters.add(node2cluster[sub])
+                extended_clusters.add(node2cluster[obj])
+
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
+
+        return extended_clusters
+
+
+def list_extended_clusters0(serialised_path, related_linkset):
+
+
+    # s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_path)), 'rb')
+    s_file = open(serialised_path, 'rb')
+
+    # 1. READ FROM FILE
+    try:
+        print '\nREADING FROM: {}'.format(serialised_path)
+        serialised = s_file.read()
+
+    except Exception:
+        print "\nCAN NOT GO ANY FURTHER AS THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(s_file)
+
+    else:
+        # 2. DE-SERIALISE THE SERIALISED CLUSTERS DICTIONARY
+        start = time.time()
+        de_serialised = ast.literal_eval(serialised)
+        diff = datetime.timedelta(seconds=time.time() - start)
+
+        clusters = de_serialised['clusters']
+        node2cluster = de_serialised['node2cluster_id']
+        print "\tLOADED in {}, THE FILE CONTAINS {}.".format(diff, len(clusters))
+
+        # 3. FETCH THE PAIRED NODES
         extended_clusters = []
         found = 0
         start = time.time()
@@ -3603,10 +3658,12 @@ def list_extended_clusters(serialised_path, related_linkset):
                 # print "CLUSTER IS NOT NONE"
                 for i in range(1, len(query_result)):
                     # node = "<{}>".format(query_result[i][0])
-                    paired = "<{}>".format(query_result[i][2])
-                    if paired in node2cluster:
+                    # paired = "<{}>".format(query_result[i][2])
+
+                    if "<{}>".format(query_result[i][2]) in node2cluster:
                         extended_clusters += [cluster_id]
                         found += 1
+                        break
         diff = datetime.timedelta(seconds=time.time() - start)
         print "\tFOUND: {} IN {}".format(found, diff)
 
@@ -3614,8 +3671,8 @@ def list_extended_clusters(serialised_path, related_linkset):
     # ITERATE THROUGH THE CLUSTERS AND EXTRACT THOSE WITH EXTENSION
 
 
-# list_extended_clusters("C:\Users\Al\PycharmProjects\AlignmentUI\src\serialisations\-454969644.txt",
-#                        "http://risis.eu/lens/union_LeidenRanking_2015_Eter_2014_Grid_20180501_P905814616")
+list_extended_clusters("C:\Users\Al\PycharmProjects\AlignmentUI\src\serialisations\-454969644.txt",
+                       "http://risis.eu/lens/union_LeidenRanking_2015_Eter_2014_Grid_20180501_P905814616")
 
 """""""""
 # TESTING THE CLUSTER ANALYSIS
