@@ -3606,15 +3606,16 @@ def list_extended_clusters(serialised_path, related_linkset):
         fetched = fetched_res[St.result]
 
         # ITERATE THROUGH THE PAIRED FOR ENTENSIONS
-        print "\tCLUSTER SIZE: {}".format(len(fetched) - 1)
+        print "\tRELATED LINKSET SIZE: {}".format(len(fetched) - 1)
         for i in range(1, len(fetched)):
             sub = "<{}>".format(fetched[i][0])
             obj = "<{}>".format(fetched[i][1])
 
             # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
             if sub in node2cluster and obj in node2cluster:
-                extended_clusters.add(node2cluster[sub])
-                extended_clusters.add(node2cluster[obj])
+                if node2cluster[sub] != node2cluster[obj]:
+                    extended_clusters.add(node2cluster[sub])
+                    extended_clusters.add(node2cluster[obj])
 
         diff = datetime.timedelta(seconds=time.time() - start)
         print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
