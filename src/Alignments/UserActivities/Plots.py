@@ -237,12 +237,16 @@ def metric(graph):
     PRINTING MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
     analysis_builder.write(
-        "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n"
-        "\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}] {}\nDiameter [{}]  normalised to [{}] {}"
-        "\nClosure [{}/{}][{}] normalised to [{}]\n\n>>> Decision Support [{}] {} <<<".
-        format(average_node_connectivity, bridges, normalised_bridge, nb_used,
-               diameter, normalised_diameter, nd_used,
-               edge_discovered, edge_derived, closure, normalised_closure, interpretation, estimated_quality))
+        # "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n"
+        # "\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}] {}\nDiameter [{}]  normalised to [{}] {}"
+        # "\nClosure [{}/{}][{}] normalised to [{}]\n\n>>> Decision Support [{}] {} <<<".
+        # format(average_node_connectivity, bridges, normalised_bridge, nb_used,
+        #        diameter, normalised_diameter, nd_used,
+        #        edge_discovered, edge_derived, closure, normalised_closure, interpretation, estimated_quality))
+
+            "\tAverage Degree [{}] | Bridges {} | Diameter {} | Closure [{}/{}] > [{}] | >>> QUALITY [{}] {} <<<".
+            format(average_node_connectivity, nb_used, nd_used, edge_discovered,
+                   edge_derived, normalised_closure, interpretation, estimated_quality))
 
     # if ratio == 1:
     #     analysis_builder.write("\n\nDiagnose: VERY GOOD")
@@ -252,7 +256,8 @@ def metric(graph):
     #     analysis_builder.write("\n\nDiagnose : NEED BRIDGE INVESTIGATION")
 
     if estimated_quality <= 0.1:
-        analysis_builder.write("\n\nInterpretation: GOOD")
+        # analysis_builder.write("\n\nInterpretation: GOOD")
+        analysis_builder.write("\nInterpretation: GOOD")
         auto_decision = "GOOD [{}]".format(estimated_quality)
 
     elif (bridges == 0) and (diameter < 3):
@@ -260,21 +265,26 @@ def metric(graph):
         auto_decision = "ACCEPTABLE [{}]".format(estimated_quality)
 
     elif ((estimated_quality > 0.1) and (estimated_quality < 0.25)) or (bridges == 0):
-        analysis_builder.write("\n\nInterpretation: UNCERTAIN")
+        # analysis_builder.write("\n\nInterpretation: UNCERTAIN")
+        analysis_builder.write("\nInterpretation: UNCERTAIN")
         auto_decision = "UNCERTAIN [{}]".format(estimated_quality)
 
     else:
-        analysis_builder.write("\n\nInterpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
+        # analysis_builder.write("\n\nInterpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
+        analysis_builder.write("\nInterpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
         auto_decision = "BAD [{}]".format(estimated_quality)
 
     if bridges > 0:
-        analysis_builder.write("\n\nEvidence: NEED BRIDGE INVESTIGATION")
+        # analysis_builder.write("\n\nEvidence: NEED BRIDGE INVESTIGATION")
+        analysis_builder.write(" | Evidence: NEED BRIDGE INVESTIGATION")
 
     if diameter > 2:
-        analysis_builder.write("\n\nEvidence:  TOO MANY INTERMEDIATES")
+        # analysis_builder.write("\n\nEvidence:  TOO MANY INTERMEDIATES")
+        analysis_builder.write(" | Evidence:  TOO MANY INTERMEDIATES")
 
     if bridges == 0 and diameter <= 2:
-        analysis_builder.write("\n\nEvidence:  LESS INTERMEDIATES AND NO BRIDGE")
+        # analysis_builder.write("\n\nEvidence:  LESS INTERMEDIATES AND NO BRIDGE")
+        analysis_builder.write(" | Evidence:  LESS INTERMEDIATES AND NO BRIDGE")
 
     return {'message': analysis_builder.getvalue(), 'decision':estimated_quality, 'AUTOMATED_DECISION': auto_decision}
 
