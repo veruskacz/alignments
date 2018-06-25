@@ -244,9 +244,9 @@ def metric(graph):
         #        diameter, normalised_diameter, nd_used,
         #        edge_discovered, edge_derived, closure, normalised_closure, interpretation, estimated_quality))
 
-            "\tAverage Degree [{}] | Bridges {} | Diameter {} | Closure [{}/{}] > [{}] | >>> QUALITY [{}] {} <<<".
+            "\tAverage Degree [{}]   Bridges [{}]   Diameter [{}]   Closure [{}/{}] -> [{}]   >>> QUALITY [{}]<<<".
             format(average_node_connectivity, nb_used, nd_used, edge_discovered,
-                   edge_derived, normalised_closure, interpretation, estimated_quality))
+                   edge_derived, normalised_closure, 1 - estimated_quality))
 
     # if ratio == 1:
     #     analysis_builder.write("\n\nDiagnose: VERY GOOD")
