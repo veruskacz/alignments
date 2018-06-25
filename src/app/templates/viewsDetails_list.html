@@ -11,7 +11,16 @@
         clusterId = "{{ clustersList[loop.index0] }}"
     {% endif %} >
     {% for col in row %}
-    <TD >{{ col }}</TD>
+    <TD
+        {% if (col == "yes")  %}
+            style="color:blue; font-weight:bold;"
+        {% elif (col == "cyc")  %}
+            style="color:purple; font-weight:bold;"
+        {% endif %}
+        {% if (col == "no") %}
+            style="color:red; font-weight:bold;"
+        {% endif %}
+    > {{ col }} </TD>
     {% endfor %}
  {% endfor %}
  </tbody>

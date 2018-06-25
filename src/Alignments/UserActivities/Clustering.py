@@ -2759,8 +2759,12 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
             clusters = serialised['clusters']
             root = serialised['node2cluster_id']
 
+            # CALCULATE THE CLUSTERS THAT EXTEND GIVEN A RELATED LINKSET
+            if cluster2extend_id is None and related_linkset is not None:
+                return clusters, list_extended_clusters(root, related_linkset)
+
             # EXTEND THE GIVEN CLUSTER
-            if cluster2extend_id is not None and related_linkset is not None:
+            elif cluster2extend_id is not None and related_linkset is not None:
                 if cluster2extend_id in clusters:
                     """
                     # {'links': links, 'extensions': list(set(extension))}
@@ -3567,7 +3571,64 @@ def delete_serialised_clusters(graph):
     print "DONE1!!"
 
 
-def list_extended_clusters(serialised_path, related_linkset):
+def list_extended_clusters(node2cluster, related_linkset):
+
+    # 1. FETCH THE PAIRED NODES
+    extended_clusters = set()
+    list_extended_clusters_cycle = set()
+    dict_clusters_pairs = {}
+    start = time.time()
+    fetch_q = """
+    select distinct ?sub ?obj
+    {{
+         GRAPH <{}>
+        {{
+           {{ ?sub ?pred ?obj . }}
+            union
+           {{ ?obj ?pred ?sub . }}
+           filter (str(?sub) < str(?obj))
+        }}
+
+    }}""".format(related_linkset)
+    fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
+    fetched = fetched_res[St.result]
+
+    # ITERATE THROUGH THE PAIRED FOR ENTENSIONS
+    print "\tRELATED LINKSET SIZE: {}".format(len(fetched) - 1)
+    for i in range(1, len(fetched)):
+        sub = "<{}>".format(fetched[i][0])
+        obj = "<{}>".format(fetched[i][1])
+
+        # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
+        if sub in node2cluster and obj in node2cluster:
+            if node2cluster[sub] != node2cluster[obj]:
+                extended_clusters.add(node2cluster[sub])
+                extended_clusters.add(node2cluster[obj])
+
+                if node2cluster[sub] < node2cluster[obj]:
+                    if (node2cluster[sub],node2cluster[obj]) in dict_clusters_pairs.keys():
+                        dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])].add((sub,obj))
+                    else:
+                        dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])] = set([(sub,obj)])
+                else:
+                    if (node2cluster[obj],node2cluster[sub]) in dict_clusters_pairs.keys():
+                        dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])].add((sub,obj))
+                    else:
+                        dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])] = set([(sub,obj)])
+
+    for cluster_pair, node_pairs in dict_clusters_pairs.items():
+        if len(node_pairs) > 1:
+            list_extended_clusters_cycle.add(cluster_pair[0])
+            list_extended_clusters_cycle.add(cluster_pair[1])
+
+    diff = datetime.timedelta(seconds=time.time() - start)
+    print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
+    print "\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
+
+    return (extended_clusters, list_extended_clusters_cycle)
+
+
+def list_extended_clusters_long(serialised_path, related_linkset):
 
 
     # s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_path)), 'rb')
@@ -3593,14 +3654,21 @@ def list_extended_clusters(serialised_path, related_linkset):
 
         # 3. FETCH THE PAIRED NODES
         extended_clusters = set()
+        pre_extended_pair_clusters = set()
+        list_extended_clusters_cycle = set()
+        dict_clusters_pairs = {}
         start = time.time()
         fetch_q = """
-        select ?sub ?obj
+        select distinct ?sub ?obj
         {{
-            GRAPH <{}>
+             GRAPH <{}>
             {{
-                ?sub ?pred ?obj .
+               {{ ?sub ?pred ?obj . }}
+                union
+               {{ ?obj ?pred ?sub . }}
+               filter (str(?sub) < str(?obj))
             }}
+
         }}""".format(related_linkset)
         fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
         fetched = fetched_res[St.result]
@@ -3617,10 +3685,42 @@ def list_extended_clusters(serialised_path, related_linkset):
                     extended_clusters.add(node2cluster[sub])
                     extended_clusters.add(node2cluster[obj])
 
+                    if node2cluster[sub] < node2cluster[obj]:
+                        if (node2cluster[sub],node2cluster[obj]) in dict_clusters_pairs.keys():
+                            dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])].add((sub,obj))
+                            # s
+                        else:
+                            dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])] = set([(sub,obj)])
+                    else:
+                        if (node2cluster[obj],node2cluster[sub]) in dict_clusters_pairs.keys():
+                            dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])].add((sub,obj))
+                            # s.add((sub,obj))
+                        else:
+                            dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])] = set([(sub,obj)])
+
+                    # if node2cluster[sub] < node2cluster[obj]:
+                    #     if (node2cluster[sub],node2cluster[obj]) in pre_extended_pair_clusters:
+                    #         list_extended_clusters_cycle.add(node2cluster[sub])
+                    #         list_extended_clusters_cycle.add(node2cluster[obj])
+                    #     else:
+                    #         pre_extended_pair_clusters.add((node2cluster[sub],node2cluster[obj]))
+                    # else:
+                    #     if (node2cluster[obj],node2cluster[sub]) in pre_extended_pair_clusters:
+                    #         list_extended_clusters_cycle.add(node2cluster[sub])
+                    #         list_extended_clusters_cycle.add(node2cluster[obj])
+                    #     else:
+                    #         pre_extended_pair_clusters.add((node2cluster[obj],node2cluster[sub]))
+
+        for cluster_pair, node_pairs in dict_clusters_pairs.items():
+            if len(node_pairs) > 1:
+                list_extended_clusters_cycle.add(cluster_pair[0])
+                list_extended_clusters_cycle.add(cluster_pair[1])
+
         diff = datetime.timedelta(seconds=time.time() - start)
         print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
+        print "\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
 
-        return extended_clusters
+        return (extended_clusters, list_extended_clusters_cycle)
 
 
 def list_extended_clusters0(serialised_path, related_linkset):
@@ -3672,8 +3772,8 @@ def list_extended_clusters0(serialised_path, related_linkset):
     # ITERATE THROUGH THE CLUSTERS AND EXTRACT THOSE WITH EXTENSION
 
 
-list_extended_clusters("C:\Users\Al\PycharmProjects\AlignmentUI\src\serialisations\-454969644.txt",
-                       "http://risis.eu/lens/union_LeidenRanking_2015_Eter_2014_Grid_20180501_P905814616")
+# list_extended_clusters("/Users/veruskazamborlini/Documents/PyApps/InstallTest/alignments/src/serialisations/6654197500506537051.txt",
+#                        "http://risis.eu/lens/union_Marriage003_0to20_N7133181036765133347")
 
 """""""""
 # TESTING THE CLUSTER ANALYSIS

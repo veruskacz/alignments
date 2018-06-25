@@ -126,7 +126,6 @@
                     <div class="checkbox"><label><input type="checkbox" id="cluster1_equal" value="=" checked="checked">= </label></div>
                </TD>
                <td align="right"> &nbsp;&nbsp; </td>
-               <td valign="center"><div class="loading"></div></td>
                <td align="right">
                     <button type="button" class="btn btn-primary" id="dataset_linking_cluster_calculate_button"
                     onclick='calculateDatasetCluster(this);'
@@ -138,7 +137,38 @@
                     </button>
                </td>
             <tr align="right">
-                <td colspan="7" align="right"><div id="dataset_linking_cluster_message_col"></div></td>
+
+                <td>
+                    <div class="row">
+                       <div class="col-md-12">
+                         <span class="glyphicon glyphicon glyphicon-search"></span>
+                         <input type="text" onkeyup='filterTableRow(this,"dataset_linking_stats_cluster_results","linking_cluster_counter_names")' placeholder="Search for names.." style='width: 83%'>
+                          <span id="linking_cluster_counter_names" class="badge"></span>
+                       </div>
+                     </div>
+                </td>
+                <td colspan="5" align="right"><div id="dataset_linking_cluster_message_col"></div></td>
+                <td valign="center"><div class="loading"></div></td>
+            <!--<tr align="right">-->
+
+                <!--<td>-->
+                    <!--<div class="row">-->
+                       <!--<div class="col-md-12">-->
+                         <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                         <!--<input type="text" onkeyup='filterListGroup(this,"dataset_linking_stats_cluster_results","linking_cluster_counter_names")' placeholder="Search for names.." style='width: 83%'>-->
+                          <!--<span id="linking_cluster_counter_names" class="badge"></span>-->
+                       <!--</div>-->
+                     <!--</div>-->
+                <!--</td>-->
+                <!--<td>-->
+                    <!--<div class="row">-->
+                       <!--<div class="col-md-12">-->
+                         <!--<span class="glyphicon glyphicon glyphicon-search"></span>-->
+                         <!--<input type="number" onkeyup='filterTablePerColumnIntValue(this,"dataset_linking_stats_cluster_results",2,"linking_cluster_counter_size")' placeholder="Search for size.." style='width: 83%'>-->
+                          <!--<span id="linking_cluster_counter_size" class="badge"></span>-->
+                       <!--</div>-->
+                     <!--</div>-->
+                <!--</td>-->
 
             </table>
           </div>
@@ -174,12 +204,22 @@
                 <div class="col-md-8" id="cluster_metrics_scale_col" >
 
                     <div class="row" >
-                            <svg width="700" height="60">
-                            <g id="axis1" class="axis" transform="translate(20,40)">
-                            </g>
-                            <g id="wrapper" transform="translate(20,10)">
-                            </g>
-                           </svg>
+                        <table>
+                            <tr>
+                                <td align="left">  GOOD </td>
+                                <td align="right"> BAD </td>
+                            </tr>
+
+                            <tr>
+                                <td colspan="2" align="center">
+                                <svg width="700" height="60">
+                                <g id="axis1" class="axis" transform="translate(20,40)">
+                                </g>
+                                <g id="wrapper" transform="translate(20,10)">
+                                </g>
+                               </svg>
+                                </td>
+                        </table>
                     </div>
                     <!--<div class="row" >-->
                             <!--<svg width="700" height="60">-->
@@ -198,10 +238,11 @@
 
 
             <div class="row" style="background-color:#FFFFE0;" >
-                <div class="col-md-4" id="cluster_metrics_col" >
+                <div class="col-md-12" id="cluster_metrics_col" >
                 </div>
-
-                <div class="col-md-8" style='height: 30em; width:100%, scroll: both; overflow: auto;' >
+            </div>
+            <div class="row" style="background-color:#FFFFE0;" >
+                <div class="col-md-12" style='height: 40em; width:100%, scroll: both; overflow: auto;' >
 
                 <style>
                 .links line {

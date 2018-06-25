@@ -2445,7 +2445,9 @@ def datasetLinkingClusters():
     alignments = request.args.getlist('alignments[]')
     network_size = int(request.args.get('network_size', '-1'))
     greater_equal = (request.args.get('greater_equal', 'false')) == 'true'
-    print
+    cluster_linkset_extension = request.args.get('cluster_linkset_extension', None)
+
+    # print
 
     try:
         targets = []
@@ -2485,12 +2487,24 @@ def datasetLinkingClusters():
         # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
         # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
         file_dir = os.path.join(os.getcwd(),"serialisations")
-        clusters = Clt.links_clustering(alignments[0],  serialisation_dir=file_dir, limit=None, reset=False)
+        if cluster_linkset_extension is None:
+            clusters = Clt.links_clustering(alignments[0],  serialisation_dir=file_dir, limit=None, reset=False)
+        else:
+            clusters, (list_extended_clusters, list_extended_clusters_cycle)  = Clt.links_clustering(
+                alignments[0],  serialisation_dir=file_dir, related_linkset=cluster_linkset_extension,
+                limit=None, reset=False)
         # print clusters
+        # list_extended_clusters("/Users/veruskazamborlini/Documents/PyApps/InstallTest/alignments/src/serialisations/6654197500506537051.txt",
+        #                        "http://risis.eu/lens/union_Marriage003_0to20_N7133181036765133347")
+        # cluster_linkset_extension = "http://risis.eu/lens/union_Marriage003_0to20_N7133181036765133347"
+        #
+        # (list_extended_clusters, list_extended_clusters_cycle) = Clt.list_extended_clusters(
+        #     serialised_path="/Users/veruskazamborlini/Documents/PyApps/InstallTest/alignments/src/serialisations/6654197500506537051.txt",
+        #     related_linkset=cluster_linkset_extension)
 
         # for each cluster-matrix
         counter = 0
-        header = ['ID', 'count', 'size', 'prop', 'sample']
+        header = ['Ext', 'ID', 'count', 'size', 'prop', 'sample']
         results = []
         clustersDict = {}
         key_list = []
@@ -2498,6 +2512,8 @@ def datasetLinkingClusters():
             nodes = values['nodes']
             links = values['links']
             strengths = values['strengths']
+
+            ext = 'cyc' if cluster_id in list_extended_clusters_cycle else 'yes' if cluster_id in list_extended_clusters else 'no'
 
             children = nodes
             n_children = len(children)
@@ -2511,15 +2527,15 @@ def datasetLinkingClusters():
             counter +=1
             key_list += [cluster_id]
             if sample['result'] and len(sample['result']) > 1:
-                results += [[cluster_id, str(counter), str(len(nodes)), Ut.pipe_split_plus(sample['result'][1][2],sep='/') , sample['result'][1][3].decode('utf-8')]]
+                results += [[ext, cluster_id, str(counter), str(len(nodes)), Ut.pipe_split_plus(sample['result'][1][2],sep='/') , sample['result'][1][3].decode('utf-8')]]
             else:
-                results += [[cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
+                results += [[ext, cluster_id, str(counter), str(len(nodes)), "-", "No value found"]]
 
         if len(results) > 1:
             message = "Have a look at the result in the table below"
             return json.dumps({'message': message,
                                'clustersList': clustersDict,
-                               'result': render_template('viewsDetails_list.html', header = header, results=results, clustersList=key_list)})
+                               'result': render_template('viewsDetails_list.html', header=header, results=results, clustersList=key_list)})
         else:
             message = "The query was successfully run with no result to show. " \
                       "<br/>Probably the selected properties need some revising."
@@ -2644,7 +2660,7 @@ def datasetLinkingClusterDetails():
 
         # print cluster['nodes'], cluster['links'], cluster['dict']
         obj_metrics = plots.metric(cluster['links'])
-        message = obj_metrics['message'].replace('\n','</br>')
+        message = obj_metrics['message'].replace('\n','</br>').replace('   ','&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
 
         # confidence = min(cluster['dict'].items(), key=lambda value: value[1])[1]
         # confidence = min(cluster['dict'].items(), key=lambda value: value[1] if len(value[1]) > 0 else 2)[1]

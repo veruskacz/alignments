@@ -5795,24 +5795,18 @@ function calculateDatasetCluster(th)
     if ((alignments.length > 0) && (datasets_properties.length > 0) && ((cluster_limit == '-1')||(isInt(cluster_limit))))
     {
       $('#dataset_linking_cluster_message_col').html(addNote('The query is running.',cl='warning'));
-      loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2);
-
-//      $.get('/getDatasetLinkingClustersOld2',data={'dataset': $('#selected_dataset').attr('uri'),
-//                                     'entityType': $('#dts_selected_entity-type').attr('uri'),
-//                                     'alignments[]': alignments,
-//                                     'properties[]': properties,
-//                                     'network_size': cluster_limit,
-//                                     'greater_equal': greater_equal}, function(data)
+      loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 3);
 
       $.get('/getDatasetLinkingClusters',data={'research_question': $('#dataset_inspection_selected_RQ').attr('uri'),
                                      'alignments[]': alignments,
                                      'datasets_properties[]': datasets_properties,
                                      'network_size': cluster_limit,
+                                     'cluster_linkset_extension':  $('#cluster_linkset_extension').val(),
                                      'greater_equal': greater_equal}, function(data)
       {
         var obj = JSON.parse(data);
         var clustersDict = obj.clustersList;
-        loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 2, show = false);
+        loadingGif(document.getElementById('dataset_linking_cluster_message_col'), 3, show = false);
 
         if ((Object.keys(obj).length) && (obj.message.length > 0))
         {
@@ -5835,6 +5829,11 @@ function calculateDatasetCluster(th)
                     console.log($(this).attr('clusterId'));
                     console.log(clustersDict);
                     console.log(clustersDict[$(this).attr('clusterId')]);
+                    $('#dataset_linking_stats_cluster_results_details').html("");
+                    $('#cluster_id_col').html("");
+                    $('#cluster_metrics_col').html("");
+                    d3.select(".plot").selectAll("*").remove();
+                    $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
                     $.get('/getDatasetLinkingClusterDetails',data={'research_question': $('#dataset_inspection_selected_RQ').attr('uri'),
                                                                    'alignments[]': alignments,
                                                                    'clusterId': $(this).attr('clusterId'),
@@ -6226,7 +6225,6 @@ function plotClusterGraph(graph)
         height = +svg.attr("height");
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
-//    var color = d3.scale.ordinal(d3.schemeCategory20)
 
     var simulation = d3.forceSimulation()
         .force("link", d3.forceLink().id(function(d) { return d.id; }).distance(function(d) {return d.distance;}))
@@ -6280,7 +6278,7 @@ function plotClusterGraph(graph)
     .data(graph.nodes)
     .enter().append("g")
 
-  var circles = node.append("circle")
+  node.append("circle")
       .attr("r", function(d) { if (d.size)
                                   return d.size;
                                else return 5; })
@@ -6290,7 +6288,7 @@ function plotClusterGraph(graph)
           .on("drag", dragged)
           .on("end", dragended));
 
-  var lables = node.append("text")
+  node.append("text")
       .text(function(d) {
         return d.id;
       })
