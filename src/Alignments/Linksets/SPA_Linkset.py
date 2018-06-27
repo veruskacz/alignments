@@ -33,7 +33,7 @@ SINGLE PREDICATE ALIGNMENT
 """
 
 
-def spa_linksets(specs, identity=False, display=False, activated=False, check_file=False):
+def spa_linksets(specs, identity=False, display=False, activated=False, check_file=False, save=False):
 
     # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
     # if activated is False:
@@ -127,8 +127,17 @@ def spa_linksets(specs, identity=False, display=False, activated=False, check_fi
             ########################################################################
             print """ 4. DROPPING TEMPORARY GRAPHS                               """
             ########################################################################
-            print insertqueries[5]
-            Qry.boolean_endpoint_response(insertqueries[5])
+
+            # DROP ALL TEMPORARY GRAPHS IN ONE GO
+            if type(insertqueries[5]) is str:
+                print insertqueries[5]
+                Qry.boolean_endpoint_response(insertqueries[5])
+
+            # ITERATE THROUGH THE DROP OF TEMPORARY GRAPHS
+            elif type(insertqueries[5]) is list:
+                for drop in insertqueries[5]:
+                    print drop
+                    Qry.boolean_endpoint_response(drop)
 
             ########################################################################
             print """ 5. GENERATING LINKSET METADATA                             """
@@ -144,16 +153,16 @@ def spa_linksets(specs, identity=False, display=False, activated=False, check_fi
 
                 Qry.boolean_endpoint_response(metadata)
 
-                ########################################################################
-                print """ 6. WRITING TO FILE                                         """
-                ########################################################################
-                src = [source[St.graph_name], "", source[St.entity_ns]]
-                trg = [target[St.graph_name], "", target[St.entity_ns]]
+                if save is True:
+                    ########################################################################
+                    print """ 6. WRITING TO FILE                                         """
+                    print "\t>>> WRITING TO FILE"
+                    ########################################################################
+                    src = [source[St.graph_name], "", source[St.entity_ns]]
+                    trg = [target[St.graph_name], "", target[St.entity_ns]]
+                    linkset_path = DIRECTORY
+                    writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=check_file)
 
-                print "\t>>> WRITING TO FILE"
-                # linkset_path = "D:\datasets\Linksets\ExactName"
-                linkset_path = DIRECTORY
-                writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=check_file)
                 server_message = "Linksets created as: {}".format(specs[St.linkset])
                 message = "The linkset was created as [{}] with {} triples found!".format(
                     specs[St.linkset], specs[St.triples])
@@ -443,11 +452,9 @@ def insert_query_reduce(specs, match_numeric=False):
     DROP SILENT GRAPH <{2}{3}>
     """.format(Ns.tmpgraph, specs[St.linkset], Ns.singletons, specs[St.linkset_name])
 
-    drop_q2 = """
-    DROP SILENT GRAPH <{0}load_{1}_1> ;
-    DROP SILENT GRAPH <{0}load_{1}_2> ;
-    DROP SILENT GRAPH <{0}load_{1}_3>
-    """.format(Ns.tmpgraph, specs[St.linkset_name])
+    drop_q2 = ['DROP SILENT GRAPH <{0}load_{1}_1>'.format(Ns.tmpgraph, specs[St.linkset_name]),
+        'DROP SILENT GRAPH <{0}load_{1}_2>'.format(Ns.tmpgraph, specs[St.linkset_name]),
+        'DROP SILENT GRAPH <{0}load_{1}_3>'.format(Ns.tmpgraph, specs[St.linkset_name])]
 
     source_extract = extract_query(specs, is_source=True)
     target_extract = "" if is_de_duplication is True else extract_query(specs, is_source=False)
@@ -895,13 +902,9 @@ def spa_linkset_identity_query(specs):
         load_linkset,
     )
 
-    drop_query = "{}\n\n{}\n\t{} ;\n\t{} ;\n\t{}".format(
-        prefix,
-        "### 4.0 DROP temporary graphs",
-        drop_tmp00,
-        drop_tmp01,
-        drop_tmp
-    )
+    drop_query = ["{}\n\n{}\n\t{} ".format(prefix, "### 4.1 DROP temporary graphs", drop_tmp00),
+                  "{}\n\n{}\n\t{} ".format(prefix, "### 4.2 DROP temporary graphs", drop_tmp00),
+                  "{}\n\n{}\n\t{} ".format(prefix, "### 4.3 DROP temporary graphs", drop_tmp00)]
 
     queries = [early_drop_query, src_query, trg_query, matched_query, linkset_query, drop_query]
     # print query01
@@ -1524,11 +1527,9 @@ def spa_linkset_intermediate_query(specs):
     #     Ns.singletons, specs[St.linkset_name], Ns.alivocab, Ns.prov
     # )
 
-    drop_query = """
-    DROP SILENT GRAPH <{0}load_{1}_00> ;
-    DROP SILENT GRAPH <{0}load_{1}_01> ;
-    DROP SILENT GRAPH <{0}load_{1}_02>
-    """.format(Ns.tmpgraph, specs[St.linkset_name])
+    drop_query = ['DROP SILENT GRAPH <{0}load_{1}_00>'.format(Ns.tmpgraph, specs[St.linkset_name]),
+                  'DROP SILENT GRAPH <{0}load_{1}_01>'.format(Ns.tmpgraph, specs[St.linkset_name]),
+                  'DROP SILENT GRAPH <{0}load_{1}_02>'.format(Ns.tmpgraph, specs[St.linkset_name])]
 
     # print insert
     # return insert
