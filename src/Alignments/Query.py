@@ -1620,8 +1620,8 @@ def cluster_rsc_strengths_query(resources, alignments):
             GRAPH <{2}>
             {{
                 ?predicate  prov:wasDerivedFrom*  ?DerivedFrom  .
-                OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
-                OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
+                # OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
+                # OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
             }}
             GRAPH ?g
             {{
