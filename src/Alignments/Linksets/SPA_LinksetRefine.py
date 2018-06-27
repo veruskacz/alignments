@@ -59,7 +59,7 @@ def refine(specs, activated=False):
         return {'refined': refined, 'difference': diff}
 
 
-def refining(specs, insert_query, activated=False):
+def refining(specs, insert_query, save=False, activated=False):
 
     refined = {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
     diff = {St.message: Ec.ERROR_CODE_4, St.error_code: 1, St.result: None}
@@ -188,7 +188,7 @@ def refining(specs, insert_query, activated=False):
         # AND WRITE THEM ALL TO FILE
 
         print "GENERATING THE METADATA"
-        pro_message = refine_metadata(specs)
+        pro_message = refine_metadata(specs, save=save)
 
         # SET THE RESULT ASSUMING IT WENT WRONG
         refined = {St.message: Ec.ERROR_CODE_4, St.error_code: 4, St.result: None}
@@ -821,18 +821,13 @@ def refine_intermediate_query_1(specs):
     return insert
 
 
-
-
-
 ########################################################################################
 # SINGLE PREDICATE ALIGNMENT IDENTITY
 # ALIGNING SUBJECTS FROM DIFFERENT GRAPHS THAT HAVE THE SAME RESOURCE URI IDENTIFIER
 ########################################################################################
 
 
-
-
-def refine_metadata(specs):
+def refine_metadata(specs, save=False):
 
     # GENERATE GENERIC METADATA
     metadata = Gn.linkset_refined_metadata(specs)
@@ -843,40 +838,42 @@ def refine_metadata(specs):
         is_inserted = Qry.boolean_endpoint_response(metadata["query"])
         print ">>> THE METADATA IS SUCCESSFULLY INSERTED:", is_inserted
 
-        # GENERATE LINKSET CONSTRUCT QUERY
-        construct_query = "\n{}\n{}\n{}\n{}\n{}\n".format(
-            "PREFIX predicate: <{}>".format(Ns.alivocab),
-            "PREFIX src{}: <{}>".format(specs[St.source][St.graph_name], specs[St.source][St.graph_ns]),
-            "PREFIX trg{}: <{}>".format(specs[St.target][St.graph_name], specs[St.target][St.graph_ns]),
-            "construct { ?x ?y ?z }",
-            "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.refined]),
-        )
 
-        # GENERATE LINKSET SINGLETON METADATA QUERY
-        singleton_metadata_query = "\n{}\n{}\n{}\n{}\n{}\n{}\n\n".format(
-            "PREFIX singMetadata:   <{}>".format(Ns.singletons),
-            "PREFIX predicate:      <{}>".format(Ns.alivocab),
-            "PREFIX prov:           <{}>".format(Ns.prov),
-            "PREFIX rdf:            <{}>".format(Ns.rdf),
-            "construct { ?x ?y ?z }",
-            "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.singleton]),
-        )
+        if save is True:
+            # GENERATE LINKSET CONSTRUCT QUERY
+            construct_query = "\n{}\n{}\n{}\n{}\n{}\n".format(
+                "PREFIX predicate: <{}>".format(Ns.alivocab),
+                "PREFIX src{}: <{}>".format(specs[St.source][St.graph_name], specs[St.source][St.graph_ns]),
+                "PREFIX trg{}: <{}>".format(specs[St.target][St.graph_name], specs[St.target][St.graph_ns]),
+                "construct { ?x ?y ?z }",
+                "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.refined]),
+            )
 
-        # GET THE CORRESPONDENCES INSERTED USING A THE CONSTRUCT QUERY
-        singleton_construct = Qry.endpointconstruct(singleton_metadata_query)
-        if singleton_construct is not None:
-            singleton_construct = \
-                singleton_construct.replace('{', "singMetadata:{}\n{{".format(specs[St.refined_name]), 1)
+            # GENERATE LINKSET SINGLETON METADATA QUERY
+            singleton_metadata_query = "\n{}\n{}\n{}\n{}\n{}\n{}\n\n".format(
+                "PREFIX singMetadata:   <{}>".format(Ns.singletons),
+                "PREFIX predicate:      <{}>".format(Ns.alivocab),
+                "PREFIX prov:           <{}>".format(Ns.prov),
+                "PREFIX rdf:            <{}>".format(Ns.rdf),
+                "construct { ?x ?y ?z }",
+                "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.singleton]),
+            )
 
-        # GET THE SINGLETON METADATA USING THE CONSTRUCT QUERY
-        construct_response = Qry.endpointconstruct(construct_query)
-        if construct_response is not None:
-            construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.refined]), 1)
+            # GET THE CORRESPONDENCES INSERTED USING A THE CONSTRUCT QUERY
+            singleton_construct = Qry.endpointconstruct(singleton_metadata_query)
+            if singleton_construct is not None:
+                singleton_construct = \
+                    singleton_construct.replace('{', "singMetadata:{}\n{{".format(specs[St.refined_name]), 1)
 
-        # WRITE TO FILE
-        print "\t>>> WRITING THE METADATA TO FILE TO FILE"
-        write_to_file(graph_name=specs[St.refined_name], metadata=metadata["query"].replace("INSERT DATA", ""),
-                      correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
+            # GET THE SINGLETON METADATA USING THE CONSTRUCT QUERY
+            construct_response = Qry.endpointconstruct(construct_query)
+            if construct_response is not None:
+                construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.refined]), 1)
+
+            # WRITE TO FILE
+            print "\t>>> WRITING THE METADATA TO FILE TO FILE"
+            write_to_file(graph_name=specs[St.refined_name], metadata=metadata["query"].replace("INSERT DATA", ""),
+                          correspondences=construct_response, singletons=singleton_construct, directory=DIRECTORY)
 
     return metadata["message"]
 
