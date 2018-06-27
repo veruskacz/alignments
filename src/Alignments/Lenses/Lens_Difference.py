@@ -11,7 +11,7 @@ import Alignments.Server_Settings as Ss
 DIRECTORY = Ss.settings[St.lens_Diff_dir]
 
 
-def difference(specs, activated=False):
+def difference(specs, save=False, activated=False):
 
     # print "LINKSET FUNCTION ACTIVATED: {}".format(activated)
     if activated is False:
@@ -86,24 +86,26 @@ def difference(specs, activated=False):
         insertion_metadata = Qry.boolean_endpoint_response(metadata)
         print "\tDIFFERENCE INSERTED METADATA: {}".format(insertion_metadata)
 
-        # GENERATE LINKSET CONSTRUCT QUERY
-        construct_query = "\n{}\n{}\n{}\n".format(
-            "PREFIX alivocab:<{}>".format(Ns.alivocab),
-            "construct { ?x ?y ?z }",
-            "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.lens]),
-        )
-        # print construct_query
+        if save is True:
 
-        # GET THE SINGLETON METADATA USING THE CONSTRUCT QUERY
-        construct_response = Qry.endpointconstruct(construct_query)
-        if construct_response is not None:
-            construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.lens]), 1)
-            # print construct_response
+            # GENERATE LINKSET CONSTRUCT QUERY
+            construct_query = "\n{}\n{}\n{}\n".format(
+                "PREFIX alivocab:<{}>".format(Ns.alivocab),
+                "construct { ?x ?y ?z }",
+                "where     {{ graph <{}> {{ ?x ?y ?z }} }}".format(specs[St.lens]),
+            )
+            # print construct_query
 
-        # WRITE TO FILE
-        print "\t>>> WRITING THE DIFFERENCE TO FILE"
-        write_to_file(graph_name=specs[St.lens_name], metadata=metadata.replace("INSERT DATA", ""),
-                      correspondences=construct_response, singletons=None, directory=DIRECTORY)
+            # GET THE SINGLETON METADATA USING THE CONSTRUCT QUERY
+            construct_response = Qry.endpointconstruct(construct_query)
+            if construct_response is not None:
+                construct_response = construct_response.replace('{', "<{}>\n{{".format(specs[St.lens]), 1)
+                # print construct_response
+
+            # WRITE TO FILE
+            print "\t>>> WRITING THE DIFFERENCE TO FILE"
+            write_to_file(graph_name=specs[St.lens_name], metadata=metadata.replace("INSERT DATA", ""),
+                          correspondences=construct_response, singletons=None, directory=DIRECTORY)
 
         server_message = "LENS created as: {}".format(specs[St.lens])
         message = "The LENS DIFFERENCE was created as<br/> {}" \
