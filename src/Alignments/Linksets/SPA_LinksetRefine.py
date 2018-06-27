@@ -218,7 +218,7 @@ def refining(specs, insert_query, save=False, activated=False):
                     St.subjectsTarget: specs[St.linkset],
                     St.objectsTarget: specs[St.refined]
                 }
-                diff = Df.difference(diff_lens_specs, activated=activated)
+                diff = Df.difference(diff_lens_specs, save=save, activated=activated)
                 message_2 = "\t>>> {} CORRESPONDENCES INSERTED AS THE DIFFERENCE".format(diff_lens_specs[St.triples])
                 print message_2
             except Exception as err:
