@@ -2487,8 +2487,12 @@ def datasetLinkingClusters():
         # print "\nPROCESSING THE RESULT OF THE DATASET CLUSTER ..."
         # clusters = Clt.cluster_dataset(dataset, entityType, alignments)
         file_dir = os.path.join(os.getcwd(),"serialisations")
-        if cluster_linkset_extension is None:
+        list_extended_clusters_cycle = []
+        list_extended_clusters = []
+        # print "Extension:", cluster_linkset_extension
+        if cluster_linkset_extension == "-- Enter linkset extension --" or cluster_linkset_extension is None:
             clusters = Clt.links_clustering(alignments[0],  serialisation_dir=file_dir, limit=None, reset=False)
+
         else:
             clusters, (list_extended_clusters, list_extended_clusters_cycle)  = Clt.links_clustering(
                 alignments[0],  serialisation_dir=file_dir, related_linkset=cluster_linkset_extension,
