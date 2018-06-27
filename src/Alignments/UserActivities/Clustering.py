@@ -2691,9 +2691,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     # OF THE GRAPH
 
     if related_linkset is None:
-        print Ut.headings("LINK CLUSTERING")
+        print Ut.headings("LINK CLUSTERING...")
     else:
-        print Ut.headings("LINK CLUSTERING EXTENSION")
+        print Ut.headings("LINK CLUSTERING EXTENSION...")
 
     print "\nDIRECTORY:", serialisation_dir
 
@@ -2802,7 +2802,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     # 2. RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
     # **************************************************************************************************
     else:
-        print Ut.headings("LINK CLUSTERING...")
+
         # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
         root = dict()
         count = 0
@@ -3346,7 +3346,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
                 # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN
                 if iteration == check:
-                    print "\tRESOURCE {:>10}:   {} =    {}".format(count, subject, t_object)
+                    print "\tRESOURCE {:>10}:   {}    =    {}".format(count, subject, t_object)
                     check += standard
                 iteration += 1
                 # print strength
@@ -3419,23 +3419,28 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
             returned = {'clusters':new_clusters, 'node2cluster_id':root}
             returned_hashed = hash(returned.__str__())
 
-            # SERIALISATION
-            print "\n5. SERIALISING THE DICTIONARIES..."
-            s_file = os.path.join(serialisation_dir, "{}.txt".format(returned_hashed))
-            with open(s_file, 'wb') as writer:
-                writer.write(returned.__str__())
+            if len(new_clusters) != 0 and len(root) != 0:
 
-            print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE"
-            Qry.endpoint("""INSERT DATA {{
-                <{0}> <{1}serialisedClusters> '''{2}''' .
-                <{0}> <{1}numberOfClusters> {3} .
-            }}""".format(graph, Ns.alivocab, returned_hashed, len(clusters)))
+                # SERIALISATION
+                print "\n5. SERIALISING THE DICTIONARIES..."
+                s_file = os.path.join(serialisation_dir, "{}.txt".format(returned_hashed))
+                with open(s_file, 'wb') as writer:
+                    writer.write(returned.__str__())
 
-            print "\n7. SERIALISATION IS COMPLETED..."
-            diff = datetime.timedelta(seconds=time.time() - start)
-            print "\t{} triples serialised in {}".format(size, diff)
+                print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(returned_hashed)
+                Qry.endpoint("""INSERT DATA {{
+                    <{0}> <{1}serialisedClusters> '''{2}''' .
+                    <{0}> <{1}numberOfClusters> {3} .
+                }}""".format(graph, Ns.alivocab, returned_hashed, len(clusters)))
 
-            print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+                print "\n7. SERIALISATION IS COMPLETED..."
+                diff = datetime.timedelta(seconds=time.time() - start)
+                print "\t{} triples serialised in {}".format(size, diff)
+
+                print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+
+            else:
+                print "THE RETURNED DICTIONARY IS EMPTY."
 
             # print clusters
             # print new_clusters
