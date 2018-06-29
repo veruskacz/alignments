@@ -3,6 +3,7 @@
 import re
 from math import ceil
 import time
+import datetime
 import urllib
 import urllib2
 import logging
@@ -1579,28 +1580,33 @@ def get_cluster_rsc_strengths(resources, alignments):
 
     try:
         print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION"
+        start = time.time()
         result_count_resp = sparql_xml_to_matrix(cluster_rsc_strengths_query(resources, alignments, count=True))
         result_count = int(result_count_resp[St.result][1][0])
-        print "\t{} TRIPLES FOUD!".format(result_count)
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\t{} TRIPLES FOUND in {}!".format(result_count, diff)
 
     except Exception:
         print traceback.print_exc()
         return response_dic
 
-    iterations = int(ceil(result_count / float(limit)))
+
 
     # ITERATE FOR OFFSETS
-    for i in range(0, iterations):
-        print "\titeration {:<6} of {}".format(i + 1, iterations)
+    print "\t>>> PROCESSING THE DOWNLOADED DATA..."
+    iterations = int(ceil(result_count / float(limit)))
+
+    for x in range(0, iterations):
+
+        print "\tIteration {:<6} of {}".format(x + 1, iterations)
         query = cluster_rsc_strengths_query(resources, alignments, limit=limit, offset=offset)
+        query_start = time.time()
         # print query
         # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
         response = sparql_xml_to_matrix(query)
         result = response[St.result]
-        print "\t>>> PROCESSING THE DOWNLOADED DATA..."
 
         # DICTIONARY KEY: (SUBJECT, OBJECT) VALUE: LIST OF STRENGTHS
-
         if result:
             for i in range(1, len(result)):
                 # print result[i]
@@ -1610,7 +1616,13 @@ def get_cluster_rsc_strengths(resources, alignments):
                 else:
                     response_dic[key] += [result[i][2]]
 
-        offset = i * limit + 1
+        offset = x * limit + 1
+
+        diff = datetime.timedelta(seconds=time.time() - query_start)
+        print '\t\t- {:35} -> {}'.format("The query iteration {:5} ran in".format(x + 1), diff)
+
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print '\t\t- {:35} -> {}'.format("The time spent so far is", diff)
 
     # display_matrix(response, is_activated=True)
     return response_dic
@@ -1671,7 +1683,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
     # print query
 
     if count is True:
-        query = query.replace('SELECT', 'SELECT (COUNT (?predicate) AS ?TOTAL) # ')
+        query = query.replace('SELECT', 'SELECT (COUNT (DISTINCT ?predicate) AS ?TOTAL) # ')
     return query
 
 

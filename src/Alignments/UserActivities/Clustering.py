@@ -3426,7 +3426,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     root[node] = new_key
 
             returned = {'clusters':new_clusters, 'node2cluster_id':root}
-            returned_hashed = hash(returned.__str__())
+            returned_hashed = str(hash(returned.__str__()))
+            returned_hashed = returned_hashed.replace("-", "Cluster_N") if returned_hashed.startswith("-")\
+                else "Cluster_P{}".format(returned_hashed)
 
             if len(new_clusters) != 0 and len(root) != 0:
 
