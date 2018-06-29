@@ -1614,7 +1614,7 @@ def get_cluster_rsc_strengths(resources, alignments):
                 else:
                     response_dic[key] += [result[i][2]]
 
-        offset = x * limit + 1
+        offset = (x + 1) * limit + 1
 
         diff = datetime.timedelta(seconds=time.time() - query_start)
         print '\t\t- {:35} -> {}'.format("The query iteration {:5} ran in".format(x + 1), diff)

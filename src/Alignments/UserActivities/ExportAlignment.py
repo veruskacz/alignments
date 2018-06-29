@@ -686,7 +686,7 @@ def enrich(specs, directory, endpoint):
         # print "\t\t2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
         writer.write(Qry.virtuoso_request(virtuoso, endpoint)["result"])
 
-        offset = i * 20000 + 1
+        offset = (i + 1) * 20000 + 1
 
     writer.close()
     print "\n4. RUNNING THE BATCH FILE"
