@@ -1575,42 +1575,45 @@ def get_cluster_rsc_strengths(resources, alignments):
     limit = 10000
     offset = 0
     response_dic = dict()
+    result_count = 0
+
     try:
+        print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION"
         result_count_resp = sparql_xml_to_matrix(cluster_rsc_strengths_query(resources, alignments, count=True))
         result_count = int(result_count_resp[St.result][1][0])
+        print "\t{} TRIPLES FOUD!".format(result_count)
 
     except Exception:
-        traceback.print_exc()
+        print traceback.print_exc()
         return response_dic
 
-    else:
-        iterations = ceil(result_count / limit)
+    iterations = int(ceil(result_count / float(limit)))
 
-        # ITERATE FOR OFFSETS
-        for i in range(0, iterations):
-            print "\titeration {:<6} of {}".format(i + 1, iterations)
-            query = cluster_rsc_strengths_query(resources, alignments, limit=limit, offset=offset)
-            # print query
-            # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
-            response = sparql_xml_to_matrix(query)
-            result = response[St.result]
-            print "\t>>> PROCESSING THE DOWNLOADED DATA..."
+    # ITERATE FOR OFFSETS
+    for i in range(0, iterations):
+        print "\titeration {:<6} of {}".format(i + 1, iterations)
+        query = cluster_rsc_strengths_query(resources, alignments, limit=limit, offset=offset)
+        # print query
+        # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+        response = sparql_xml_to_matrix(query)
+        result = response[St.result]
+        print "\t>>> PROCESSING THE DOWNLOADED DATA..."
 
-            # DICTIONARY KEY: (SUBJECT, OBJECT) VALUE: LIST OF STRENGTHS
+        # DICTIONARY KEY: (SUBJECT, OBJECT) VALUE: LIST OF STRENGTHS
 
-            if result:
-                for i in range(1, len(result)):
-                    # print result[i]
-                    key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
-                    if key not in response_dic:
-                        response_dic[key] = [result[i][2]]
-                    else:
-                        response_dic[key] += [result[i][2]]
+        if result:
+            for i in range(1, len(result)):
+                # print result[i]
+                key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
+                if key not in response_dic:
+                    response_dic[key] = [result[i][2]]
+                else:
+                    response_dic[key] += [result[i][2]]
 
-            offset = i * limit + 1
+        offset = i * limit + 1
 
-        # display_matrix(response, is_activated=True)
-        return response_dic
+    # display_matrix(response, is_activated=True)
+    return response_dic
 
 
 def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, count=False):
@@ -1659,13 +1662,16 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
         #         ?predicate  ll:hasStrength  ?Strength .
         #     }}
         # }} # CONSTRAINTS IF ANY
-        {6}LIMIT {8}
-        {7}OFFSET {9}
-    }}""".format(resources, alignments, from_alignment2singleton(alignments),
+
+    }}
+    {6}LIMIT {8}
+    {7}OFFSET {9}
+    """.format(resources, alignments, from_alignment2singleton(alignments),
                  Ns.prov, Ns.alivocab, comment, comment_limit, comment_offset, limit, offset)
     # print query
 
-    query = query.replace('SELECT', 'SELECT (COUNT (?predicate) AS ?TOTAL) # ')
+    if count is True:
+        query = query.replace('SELECT', 'SELECT (COUNT (?predicate) AS ?TOTAL) # ')
     return query
 
 

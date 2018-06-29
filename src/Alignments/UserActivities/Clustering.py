@@ -3342,6 +3342,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
             diff = datetime.timedelta(seconds=time.time() - start)
             print "\t{} triples downloaded in {}".format(size, diff)
 
+            if len(data) == 0:
+                print "\tNO ITERATION AS THE GRAPH IS EMPTY"
+                return {}
+
             print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
             start = time.time()
             for (subject, t_object), strength in data.items():
