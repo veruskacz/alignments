@@ -1590,15 +1590,13 @@ def get_cluster_rsc_strengths(resources, alignments):
         print traceback.print_exc()
         return response_dic
 
-
-
     # ITERATE FOR OFFSETS
     print "\t>>> PROCESSING THE DOWNLOADED DATA..."
     iterations = int(ceil(result_count / float(limit)))
 
     for x in range(0, iterations):
 
-        print "\tIteration {:<6} of {}".format(x + 1, iterations)
+        print "\tIteration {:<6} of {} with offset {}".format(x + 1, iterations, offset)
         query = cluster_rsc_strengths_query(resources, alignments, limit=limit, offset=offset)
         query_start = time.time()
         # print query

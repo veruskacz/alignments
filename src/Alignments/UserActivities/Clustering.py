@@ -2748,7 +2748,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     serialised_hash)
                 traceback.print_exc()
                 return links_clustering(
-                    graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=True, limit=limit)
+                    graph, serialisation_dir, cluster2extend_id=cluster2extend_id,
+                    related_linkset=related_linkset, reset=True, limit=limit)
 
             # DE-SERIALISE THE SERIALISED
             start = time.time()
