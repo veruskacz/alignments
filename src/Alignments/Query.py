@@ -1,6 +1,7 @@
 # encoding=utf-8
 
 import re
+from math import ceil
 import time
 import urllib
 import urllib2
@@ -1571,29 +1572,51 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
 
 def get_cluster_rsc_strengths(resources, alignments):
 
-    query = cluster_rsc_strengths_query(resources, alignments)
-    # print query
-    # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
-    response = sparql_xml_to_matrix(query)
-    result = response[St.result]
-    print "\t>>> PROCESSING THE DOWNLOADED DATA..."
-
-    # DICTIONARY KEY: (SUBJECT, OBJECT) VALUE: LIST OF STRENGTHS
+    limit = 10000
+    offset = 0
     response_dic = dict()
-    if result:
-        for i in range(1, len(result)):
-            # print result[i]
-            key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
-            if key not in response_dic:
-                response_dic[key] = [result[i][2]]
-            else:
-                response_dic[key] += [result[i][2]]
+    try:
+        result_count_resp = sparql_xml_to_matrix(cluster_rsc_strengths_query(resources, alignments, count=True))
+        result_count = int(result_count_resp[St.result][1][0])
 
-    # display_matrix(response, is_activated=True)
-    return response_dic
+    except Exception:
+        traceback.print_exc()
+        return response_dic
+
+    else:
+        iterations = ceil(result_count / limit)
+
+        # ITERATE FOR OFFSETS
+        for i in range(0, iterations):
+            print "\titeration {:<6} of {}".format(i + 1, iterations)
+            query = cluster_rsc_strengths_query(resources, alignments, limit=limit, offset=offset)
+            # print query
+            # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
+            response = sparql_xml_to_matrix(query)
+            result = response[St.result]
+            print "\t>>> PROCESSING THE DOWNLOADED DATA..."
+
+            # DICTIONARY KEY: (SUBJECT, OBJECT) VALUE: LIST OF STRENGTHS
+
+            if result:
+                for i in range(1, len(result)):
+                    # print result[i]
+                    key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
+                    if key not in response_dic:
+                        response_dic[key] = [result[i][2]]
+                    else:
+                        response_dic[key] += [result[i][2]]
+
+            offset = i * limit + 1
+
+        # display_matrix(response, is_activated=True)
+        return response_dic
 
 
-def cluster_rsc_strengths_query(resources, alignments):
+def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, count=False):
+
+    comment_limit = "# " if limit is None else ""
+    comment_offset = "# " if offset is None else ""
 
     check = resources is None or len(resources) == 0
     comment = "# " if check is True else ""
@@ -1629,15 +1652,20 @@ def cluster_rsc_strengths_query(resources, alignments):
                               prov:wasDerivedFrom*/ll:hasEvidence  ?Evidence .
             }}
 
-        }} UNION
-        {{
-        GRAPH <{2}>
-            {{
-                ?predicate  ll:hasStrength  ?Strength .
-            }}
-        }} # CONSTRAINTS IF ANY
-    }}""".format(resources, alignments, from_alignment2singleton(alignments), Ns.prov, Ns.alivocab, comment)
+        }}
+        # UNION {{
+        # GRAPH <{2}>
+        #     {{
+        #         ?predicate  ll:hasStrength  ?Strength .
+        #     }}
+        # }} # CONSTRAINTS IF ANY
+        {6}LIMIT {8}
+        {7}OFFSET {9}
+    }}""".format(resources, alignments, from_alignment2singleton(alignments),
+                 Ns.prov, Ns.alivocab, comment, comment_limit, comment_offset, limit, offset)
     # print query
+
+    query = query.replace('SELECT', 'SELECT (COUNT (?predicate) AS ?TOTAL) # ')
     return query
 
 

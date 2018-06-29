@@ -2490,7 +2490,14 @@ def datasetLinkingClusters():
         list_extended_clusters_cycle = []
         list_extended_clusters = []
         # print "Extension:", cluster_linkset_extension
-        if cluster_linkset_extension == "-- Enter linkset extension --" or cluster_linkset_extension is None:
+
+        if alignments is None or len(alignments) == 0:
+            file_path = "C:\Productivity\LinkAnalysis\Clip\Center_0.75.json"
+            data = open(file_path, 'rb')
+            clusters = ast.literal_eval(data.readline())
+            print len(clusters)
+
+        elif cluster_linkset_extension == "-- Enter linkset extension --" or cluster_linkset_extension is None:
             clusters = Clt.links_clustering(alignments[0],  serialisation_dir=file_dir, limit=None, reset=False)
 
         else:
@@ -2657,10 +2664,19 @@ def datasetLinkingClusterDetails():
             for n in nodes[:-1]:
                 node1 = nodes[-1]['uri'] if Ut.is_nt_format(nodes[-1]['uri']) else '<{}>'.format(nodes[-1]['uri'])
                 node2 = n['uri'] if Ut.is_nt_format(n['uri']) else '<{}>'.format(n['uri'])
-                if str(hash((node1, node2))) in dict:
-                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node1, node2)))]), 'color': 'black'}]
-                elif str(hash((node2, node1))) in dict:
-                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node2, node1)))]), 'color': 'black'}]
+
+                key_1 = "key_{}".format(str(hash((node1, node2))).replace("-", "N"))
+                key_2 = "key_{}".format(str(hash((node2, node1))).replace("-", "N"))
+
+                if key_1 in dict:
+                    links += [
+                        {"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150,
+                         "strenght": max(dict[key_1]), 'color': 'black'}]
+
+                elif key_2 in dict:
+                    links += [
+                        {"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150,
+                         "strenght": max(dict[key_2]), 'color': 'black'}]
 
         # print cluster['nodes'], cluster['links'], cluster['dict']
         obj_metrics = plots.metric(cluster['links'])
@@ -2697,7 +2713,7 @@ def datasetLinkingClusterDetails():
 
             # Processig the extesion
             result_extension = None
-            print alignments[0], cluster_linkset_extension
+            # print alignments[0], cluster_linkset_extension
             if cluster_linkset_extension:
                 file_dir = os.path.join(os.getcwd(), "serialisations")
                 result_extension = Clt.links_clustering(

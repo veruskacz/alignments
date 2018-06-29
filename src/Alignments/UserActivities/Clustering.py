@@ -3198,8 +3198,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
 
                 # THE CLUSTER COMPOSED OF NODES, LINKS AND STRENGTHS
+                key_1 = "key_{}".format(str(hash(link)).replace("-", "N"))
                 clusters[parent] = {
-                    'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {str(hash(link)): strength}}
+                    'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {key_1: strength}}
                 # print "1",clusters[parent]
 
                 # print parent, child_1, child_2
@@ -3248,7 +3249,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                         link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
                         clusters[parent1]['links'].add(link)
 
-                        link_hash = str(hash(link))
+                        # link_hash = str(hash(link))
+                        link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
                         if link_hash in clusters[parent1]['strengths']:
                             clusters[parent1]['strengths'][link_hash] += strength
                         else:
@@ -3260,7 +3262,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
                     clusters[parent]['links'].add(link)
 
-                    link_hash = str(hash(link))
+                    # link_hash = str(hash(link))
+                    link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
                     if link_hash in clusters[parent]['strengths']:
                         clusters[parent]['strengths'][link_hash] += strength
                     else:
@@ -3284,7 +3287,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 clusters[parent]['links'].add(link)
                 clusters[parent]['nodes'].add(child_2)
 
-                link_hash = str(hash(link))
+                # link_hash = str(hash(link))
+                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
                 if link_hash in clusters[parent]['strengths']:
                     clusters[parent]['strengths'][link_hash] += strength
                 else:
@@ -3309,7 +3313,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 clusters[parent]['links'].add(link)
                 clusters[parent]['nodes'].add(child_1)
 
-                link_hash = str(hash(link))
+                # link_hash = str(hash(link))
+                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
                 if link_hash in clusters[parent]['strengths']:
                     clusters[parent]['strengths'][link_hash] += strength
                 else:

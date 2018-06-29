@@ -672,9 +672,9 @@ def enrich(specs, directory, endpoint):
     batch_writer.close()
 
     # RUN THE ITERATIONS
+    offset = 0
     for i in range(0, iterations):
 
-        offset = i * 20000 + 1
         print "\tROUND: {} OFFSET: {}".format(i + 1, offset)
 
         # print "\t\t1. GENERATING THE ENRICHMENT QUERY"
@@ -685,6 +685,8 @@ def enrich(specs, directory, endpoint):
 
         # print "\t\t2. RUNNING THE QUERY + WRITE THE RESULT TO FILE"
         writer.write(Qry.virtuoso_request(virtuoso, endpoint)["result"])
+
+        offset = i * 20000 + 1
 
     writer.close()
     print "\n4. RUNNING THE BATCH FILE"
