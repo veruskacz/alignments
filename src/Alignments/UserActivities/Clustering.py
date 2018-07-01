@@ -3607,36 +3607,62 @@ def list_extended_clusters(node2cluster, related_linkset):
         }}
 
     }}""".format(related_linkset)
+    print "FETCHING THE RELATED ALIGNMENT TRIPLES"
     fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
     fetched = fetched_res[St.result]
 
     # ITERATE THROUGH THE PAIRED FOR ENTENSIONS
-    print "\tRELATED LINKSET SIZE: {}".format(len(fetched) - 1)
+    print "\tRELATED LINKSET SIZE: {}\nCOMPUTING THE EXTENSIONS".format(len(fetched) - 1)
     for i in range(1, len(fetched)):
         sub = "<{}>".format(fetched[i][0])
         obj = "<{}>".format(fetched[i][1])
 
         # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
         if sub in node2cluster and obj in node2cluster:
-            if node2cluster[sub] != node2cluster[obj]:
-                extended_clusters.add(node2cluster[sub])
-                extended_clusters.add(node2cluster[obj])
 
-                if node2cluster[sub] < node2cluster[obj]:
-                    if (node2cluster[sub],node2cluster[obj]) in dict_clusters_pairs.keys():
-                        dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])].add((sub,obj))
-                    else:
-                        dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])] = set([(sub,obj)])
+            curr_sub_cluster = node2cluster[sub]
+            curr_obj_cluster = node2cluster[obj]
+
+            # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
+            # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
+            if curr_sub_cluster != curr_obj_cluster:
+                extended_clusters.add(curr_sub_cluster)
+                extended_clusters.add(curr_obj_cluster)
+
+                if (curr_sub_cluster, curr_obj_cluster) in dict_clusters_pairs.keys():
+                    # IT HAS A CYCLE
+                    list_extended_clusters_cycle.add(curr_sub_cluster)
+                    list_extended_clusters_cycle.add(curr_obj_cluster)
+
                 else:
-                    if (node2cluster[obj],node2cluster[sub]) in dict_clusters_pairs.keys():
-                        dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])].add((sub,obj))
-                    else:
-                        dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])] = set([(sub,obj)])
+                    # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
+                    # DOCUMENTING FIRST OCCURRENCE
+                    dict_clusters_pairs[(curr_sub_cluster , curr_obj_cluster)] = ""
+                    dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] = ""
 
-    for cluster_pair, node_pairs in dict_clusters_pairs.items():
-        if len(node_pairs) > 1:
-            list_extended_clusters_cycle.add(cluster_pair[0])
-            list_extended_clusters_cycle.add(cluster_pair[1])
+                # if curr_sub_cluster < curr_obj_cluster:
+                #
+                #     if (curr_sub_cluster, curr_obj_cluster) in dict_clusters_pairs.keys():
+                #         # IT HAS A CYCLE
+                #         list_extended_clusters_cycle.add(curr_sub_cluster)
+                #         list_extended_clusters_cycle.add(curr_obj_cluster)
+                #
+                #     else:
+                #         # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
+                #         # DOCUMENTING FIRST OCCURRENCE
+                #         dict_clusters_pairs[(curr_sub_cluster , curr_obj_cluster)] = ""
+
+                # else:
+                #     if (curr_obj_cluster, curr_sub_cluster ) in dict_clusters_pairs.keys():
+                #         # IT HAS A CYCLE
+                #         list_extended_clusters_cycle.add(curr_sub_cluster)
+                #         list_extended_clusters_cycle.add(curr_obj_cluster)
+                #
+                #     else:
+                #         # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
+                #         # DOCUMENTING FIRST OCCURRENCE
+                #         dict_clusters_pairs[(curr_obj_cluster,curr_sub_cluster )] = ""
+
 
     diff = datetime.timedelta(seconds=time.time() - start)
     print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
@@ -4247,3 +4273,4 @@ TO DELETE FROM THE FILE
 
 
 # links_clustering("", limit=1000)
+
