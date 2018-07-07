@@ -1061,7 +1061,7 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     long_line = "{:->105}\n".format("")
     short_line = "{:19}{:->35}\n".format("", "")
     end_line = "{:19}{:->86}\n".format("", "")
-    short_line_base = "{:^19}{:->35}\n".format("*** BASE LINE ***", "")
+    short_line_base = "{:^19}{:->35}\n".format("*** BASE LINE ***" if zero_rule is True else "", "")
 
     base = "\\tiny *** BASE" if zero_rule is False else ""
     base_line = "\\tiny LINE ***" if zero_rule is False else ""
@@ -1089,8 +1089,8 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
 
     # LINE 4
     confusion.write("{:7} {:->97}\n".format("PREDICT", ""))
-    confusion.write("{:8}| Negative | {:^14} | {:^14} | {:^19} | {:^25} |\n".format(
-        "", "False Negative", "True Negative", "False omission rate", "Negative predictive value "))
+    confusion.write("{:^8}| Negative | {:^14} | {:^14} | {:^19} | {:^25} |\n".format(
+        str(positives + negatives), "False Negative", "True Negative", "False omission rate", "Negative predictive value "))
     confusion.write("{:8}| {:^8} | {:^14} | {:^14} | {:^19} | {:^26} |\n".format(
         "", negatives, false_n, true_n, omission, n_pred_value))
 
@@ -1214,8 +1214,11 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
 
     print confusion.getvalue()
 
+
     if latex is True:
         print latex_cmd
+
+    return f_1
 
 
 def generate_bat_for_RQ(directory):
