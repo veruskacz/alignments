@@ -2740,6 +2740,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             try:
+                print "\tREADING FROM FILE..."
                 s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
                 serialised = s_file.read()
 
@@ -2762,7 +2763,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
             # CALCULATE THE CLUSTERS THAT EXTEND GIVEN A RELATED LINKSET
             if cluster2extend_id is None and related_linkset is not None:
-                return clusters, list_extended_clusters(root, related_linkset)
+                return clusters, list_extended_clusters(graph, root, related_linkset, serialisation_dir)
 
             # EXTEND THE GIVEN CLUSTER
             elif cluster2extend_id is not None and related_linkset is not None:
@@ -2772,6 +2773,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     # LINKS         : LIST OF TUPLE OF THE TYPE (NODE, PAIRED)
                     # EXTENSIONS    : UNIQUE LIST OF CLUSTER ID THAT EXTENT THE ORIGINAL CLUSTER USING PAIRED
                     """
+                    print "EXTENDING THE CLUSTER ID"
                     extension_dict = cluster_extension(
                         nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
                 else:
