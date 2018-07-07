@@ -3588,13 +3588,70 @@ def delete_serialised_clusters(graph):
     print "DONE1!!"
 
 
-def list_extended_clusters(node2cluster, related_linkset):
+def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_dir):
 
     # 1. FETCH THE PAIRED NODES
+    size = Qry.get_namedgraph_size(graph)
     extended_clusters = set()
     list_extended_clusters_cycle = set()
     dict_clusters_pairs = {}
     start = time.time()
+    data = {'extended_clusters': None, 'list_extended_clusters_cycle': None}
+
+    # **************************************************************************************************
+    # 1. CHECK IF THE ALIGNMENT HAS ALREADY BEEN EXTENDED
+    # **************************************************************************************************
+    ask = "ASK {{ <{}>  <{}extendedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
+
+    if Qry.boolean_endpoint_response(ask) == "true":
+
+        print ">>> THE CLUSTER HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+
+        # QUERY FOR THE SERIALISATION
+        s_query = """SELECT *
+                {{
+                    <{0}>   <{1}extended_clusters>   ?serialised .
+                }}""".format(graph, Ns.alivocab)
+        start = time.time()
+
+        # FETCH THE SERIALISATION
+        s_query_result = Qry.sparql_xml_to_matrix(s_query)[St.result]
+
+        # Qry.display_result(s_query, is_activated=True)
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\tLOADED in {}".format(diff)
+
+        # GET THE SERIALISED CLUSTERS
+        serialised = ""
+        if s_query_result is not None:
+
+            # EXTRACTING THE NUMBER OF CLUSTERS ABD THE SERIALISED FILE NAME
+            serialised_hash = s_query_result[1][0]
+            print "\tCLUSTERS FOUND AND DATA SAVED IN THE FILE [{}].TXT".format(serialised_hash)
+
+            # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
+            try:
+                s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
+                serialised = s_file.read()
+
+            except Exception:
+                print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
+                    serialised_hash)
+                traceback.print_exc()
+                "todo"
+
+            # DE-SERIALISE THE SERIALISED
+            start = time.time()
+            serialised = ast.literal_eval(serialised)
+            diff = datetime.timedelta(seconds=time.time() - start)
+
+            print "\tDe-serialised in {}".format(diff)
+            return serialised
+
+
+    # **************************************************************************************************
+    # 2. ALIGNMENT HAS NOT YET BEEN EXTENDED AND SERIALISED
+    # **************************************************************************************************
     fetch_q = """
     select distinct ?sub ?obj
     {{
@@ -3611,9 +3668,11 @@ def list_extended_clusters(node2cluster, related_linkset):
     fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
     fetched = fetched_res[St.result]
 
-    # ITERATE THROUGH THE PAIRED FOR ENTENSIONS
+    # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
     print "\tRELATED LINKSET SIZE: {}\nCOMPUTING THE EXTENSIONS".format(len(fetched) - 1)
+
     for i in range(1, len(fetched)):
+
         sub = "<{}>".format(fetched[i][0])
         obj = "<{}>".format(fetched[i][1])
 
@@ -3657,7 +3716,34 @@ def list_extended_clusters(node2cluster, related_linkset):
     print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
     print "\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
 
-    return (extended_clusters, list_extended_clusters_cycle)
+    if len(extended_clusters) != 0 and len(list_extended_clusters_cycle) != 0:
+
+        # SERIALISATION
+        data = {'extended_clusters': extended_clusters, 'list_extended_clusters_cycle': list_extended_clusters_cycle}
+        file_name = "ExtendedBy_{}".format(Ut.get_uri_local_name_plus(related_linkset))
+        # file_name = file_name.replace("-", "Cluster_N") \
+        #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
+
+        print "\n5. SERIALISING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
+        s_file = os.path.join(serialisation_dir, "{}.txt".format(file_name))
+        with open(s_file, 'wb') as writer:
+            writer.write(data.__str__())
+
+        print "\n6. SAVING THE HASH OF EXTENDED CLUSTERS TO THE TRIPLE STORE AS: {}".format(file_name)
+        Qry.endpoint("""INSERT DATA {{
+        <{0}> <{1}extendedClusters> '''{2}''' .
+        }}""".format(graph, Ns.alivocab, file_name))
+
+        print "\n7. SERIALISATION IS COMPLETED..."
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\t{} triples serialised in {}".format(size, diff)
+
+        print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+
+    else:
+        print "THE RETURNED DICTIONARY IS EMPTY."
+
+    return data
 
 
 def list_extended_clusters_short_problem(node2cluster, related_linkset):
