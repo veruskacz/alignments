@@ -2501,17 +2501,9 @@ def datasetLinkingClusters():
             clusters = Clt.links_clustering(alignments[0],  serialisation_dir=file_dir, limit=None, reset=False)
 
         else:
-            clusters, (list_extended_clusters, list_extended_clusters_cycle)  = Clt.links_clustering(
+            clusters, (list_extended_clusters, list_extended_clusters_cycle) = Clt.links_clustering(
                 alignments[0],  serialisation_dir=file_dir, related_linkset=cluster_linkset_extension,
                 limit=None, reset=False)
-        # print clusters
-        # list_extended_clusters("/Users/veruskazamborlini/Documents/PyApps/InstallTest/alignments/src/serialisations/6654197500506537051.txt",
-        #                        "http://risis.eu/lens/union_Marriage003_0to20_N7133181036765133347")
-        # cluster_linkset_extension = "http://risis.eu/lens/union_Marriage003_0to20_N7133181036765133347"
-        #
-        # (list_extended_clusters, list_extended_clusters_cycle) = Clt.list_extended_clusters(
-        #     serialised_path="/Users/veruskazamborlini/Documents/PyApps/InstallTest/alignments/src/serialisations/6654197500506537051.txt",
-        #     related_linkset=cluster_linkset_extension)
 
         # for each cluster-matrix
         counter = 0
@@ -2724,10 +2716,6 @@ def datasetLinkingClusterDetails():
             if result_extension and 'links' in result_extension and 'clusters_subset' in result_extension:
 
                 related_links = result_extension['links']
-                # print 'Related links', related_links
-                # for l in related_links:
-                #     links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": 1, 'color': 'blue'}]
-
                 related_clusters = result_extension['clusters_subset']
                 # print 'Related clusters', related_clusters
                 for key, rel_cluster in related_clusters.items():
@@ -2780,38 +2768,23 @@ def datasetLinkingClusterDetails():
                             for n in nodes[:-1]:
                                 node1 = nodes[-1]['uri'] if Ut.is_nt_format(nodes[-1]['uri']) else '<{}>'.format(nodes[-1]['uri'])
                                 node2 = n['uri'] if Ut.is_nt_format(n['uri']) else '<{}>'.format(n['uri'])
-                                if str(hash((node1, node2))) in dict:
-                                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node1, node2)))]), 'color': 'black'}]
-                                elif str(hash((node2, node1))) in dict:
-                                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[str(hash((node2, node1)))]), 'color': 'black'}]
+
+                                key_1 = "key_{}".format(str(hash((node1, node2))).replace("-", "N"))
+                                key_2 = "key_{}".format(str(hash((node2, node1))).replace("-", "N"))
+
+                                if key_1 in dict:
+                                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": max(dict[key_1]), 'color': 'black'}]
+                                elif key_2 in dict:
+                                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": max(dict[key_2]), 'color': 'black'}]
 
                                 if (node1, node2) in related_links:
-                                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 150, "strenght": 1, 'color': 'purple', 'dash': "20,10,5,5,5,10"}]
+                                    links += [{"source": nodes[-1]['id'], "target": n['id'], "value": 4, "distance": 250, "strenght": 1, 'color': 'purple', 'dash': "20,10,5,5,5,10"}]
                                 elif (node2, node1) in related_links:
-                                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 150, "strenght": 1, 'color': 'purple', 'dash': "20,10,5,5,5,10"}]
+                                    links += [{"source": n['id'], "target": nodes[-1]['id'], "value": 4, "distance": 250, "strenght": 1, 'color': 'purple', 'dash': "20,10,5,5,5,10"}]
 
 
-            plot_graph = {'id': cluster_id, 'nodes': nodes, 'links': links, 'metrics': message, 'decision': obj_metrics['decision'], 'confidence':round(confidence,2), 'messageConf': messageConf}
-
-            # N300384714573186178
-            # print plot_graph
-            # related_links = [{'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Jacob, John (fl. 1679)(STCN 070145814)', 'value': 4, 'distance': 150}, {'source': u'Cornelis van Heusden(Ecartico 33164)', 'strenght': '1', 'target': u'Johannes Jacobs(Ecartico 17130)', 'value': 4, 'distance': 150}]
-            # related_clusters = [{'links': [{'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 11130)', 'value': 4, 'distance': 150}, {'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 33164)', 'value': 4, 'distance': 150}],
-            #      'nodes': [{'group': 0, 'id': u'Cornelis van Heusden(Ecartico 11130)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/11130'}, {'group': 0, 'id': u'Cornelis van Heusden(Ecartico 33164)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/33164'}, {'group': 1, 'id': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'uri': 'http://data.kb.nl/thesaurus/069790329'}],
-            #      'id': 'N8018610589344964695'}]
-            # related_clusters = [{'nodes': [u'Heusden, Cornelis van (-1741)(STCN 069790329)', u'Cornelis van Heusden(Ecartico 33164)'], 'cluster': 'N8018610589344964695'}]
-            # related_clusters = [{'confidence': 1.0, 'links': [{'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 11130)', 'value': 4, 'distance': 150}, {'source': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'strenght': '1', 'target': u'Cornelis van Heusden(Ecartico 33164)', 'value': 4, 'distance': 150}], 'messageConf': '', 'decision': 0.777, 'metrics': '</br>METRICS READING: THE CLOSER TO ZERO, THE BETTER</br></br>\tAverage Degree [1.0] </br>Bridges [2] normalised to [1.0] 1.0</br>Diameter [2]  normalised to [1.0] 1.0</br>Closure [2/3][0.667] normalised to [0.33]</br></br>>>> Decision Support [0.777] 0.777 <<<</br></br>Interpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE</br></br>Evidence: NEED BRIDGE INVESTIGATION', 'nodes': [{'group': 0, 'id': u'Cornelis van Heusden(Ecartico 11130)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/11130'}, {'group': 0, 'id': u'Cornelis van Heusden(Ecartico 33164)', 'uri': 'http://www.vondel.humanities.uva.nl/ecartico/persons/33164'}, {'group': 1, 'id': u'Heusden, Cornelis van (-1741)(STCN 069790329)', 'uri': 'http://data.kb.nl/thesaurus/069790329'}], 'id': 'N8018610589344964695'}]
-            # ### adding nodes and links from the related links but also from related clusters
-            # for c in related_clusters:
-            #     # for n in c['nodes']:
-            #     #     n['color'] = 'blue'
-            #     plot_graph['nodes'] += c['nodes']
-            #     # for l in c['links']:
-            #     #     l['color'] = 'blue'
-            #     plot_graph['links'] += c['links']
-            # for l in related_links:
-            #     l['color'] = 'blue'
-            #     plot_graph['links'] += [l]
+            decision_value = 0.01 if obj_metrics['decision'] == 0 else obj_metrics['decision']
+            plot_graph = {'id': cluster_id, 'nodes': nodes, 'links': links, 'metrics': message, 'decision': decision_value, 'confidence':round(confidence,2), 'messageConf': messageConf}
 
 
 

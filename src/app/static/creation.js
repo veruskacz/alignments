@@ -6355,8 +6355,8 @@ var linearScale2 = d3.scaleLinear()
 	.domain([0, 100])
 	.range([0, 600]);
 
-//var myData = d3.range(0, value*100, 1);
-var myData = d3.range(0, value*100 +1, 1);
+var myData = d3.range(0, value*100, 1);
+//var myData = d3.range(0, value*100 +1, 1);
 
 var p = d3.select('#wrapper');
 
@@ -6377,9 +6377,8 @@ p.selectAll("*").remove();
 	.style('fill', function(d) {
 		return quantizeScale(d);
 	});
-
-
 }
+
 
 function plot_Cluster_Scale2(value, axisName='axis1', wraperName='wraper1')
 {

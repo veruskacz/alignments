@@ -3588,6 +3588,78 @@ def delete_serialised_clusters(graph):
     print "DONE1!!"
 
 
+def list_extended_clusters(node2cluster, related_linkset):
+
+    # 1. FETCH THE PAIRED NODES
+    extended_clusters = set()
+    list_extended_clusters_cycle = set()
+    dict_clusters_pairs = {}
+    start = time.time()
+    fetch_q = """
+    select distinct ?sub ?obj
+    {{
+         GRAPH <{}>
+        {{
+           {{ ?sub ?pred ?obj . }}
+            union
+           {{ ?obj ?pred ?sub . }}
+           filter (str(?sub) < str(?obj))
+        }}
+
+    }}""".format(related_linkset)
+    print "FETCHING THE RELATED ALIGNMENT TRIPLES"
+    fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
+    fetched = fetched_res[St.result]
+
+    # ITERATE THROUGH THE PAIRED FOR ENTENSIONS
+    print "\tRELATED LINKSET SIZE: {}\nCOMPUTING THE EXTENSIONS".format(len(fetched) - 1)
+    for i in range(1, len(fetched)):
+        sub = "<{}>".format(fetched[i][0])
+        obj = "<{}>".format(fetched[i][1])
+
+        # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
+        if sub in node2cluster and obj in node2cluster:
+
+            curr_sub_cluster = node2cluster[sub]
+            curr_obj_cluster = node2cluster[obj]
+
+            # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
+            # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
+            if curr_sub_cluster != curr_obj_cluster:
+                extended_clusters.add(curr_sub_cluster)
+                extended_clusters.add(curr_obj_cluster)
+
+                if curr_sub_cluster < curr_obj_cluster:
+
+                    if (curr_sub_cluster, curr_obj_cluster) in dict_clusters_pairs.keys():
+                        # IT HAS A CYCLE
+                        list_extended_clusters_cycle.add(curr_sub_cluster)
+                        list_extended_clusters_cycle.add(curr_obj_cluster)
+
+                    else:
+                        # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
+                        # DOCUMENTING FIRST OCCURRENCE
+                        dict_clusters_pairs[(curr_sub_cluster , curr_obj_cluster)] = ""
+
+                else:
+                    if (curr_obj_cluster, curr_sub_cluster ) in dict_clusters_pairs.keys():
+                        # IT HAS A CYCLE
+                        list_extended_clusters_cycle.add(curr_sub_cluster)
+                        list_extended_clusters_cycle.add(curr_obj_cluster)
+
+                    else:
+                        # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
+                        # DOCUMENTING FIRST OCCURRENCE
+                        dict_clusters_pairs[(curr_obj_cluster,curr_sub_cluster )] = ""
+
+
+    diff = datetime.timedelta(seconds=time.time() - start)
+    print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
+    print "\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
+
+    return (extended_clusters, list_extended_clusters_cycle)
+
+
 def list_extended_clusters_short_problem(node2cluster, related_linkset):
 
     # 1. FETCH THE PAIRED NODES
