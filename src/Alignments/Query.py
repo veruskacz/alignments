@@ -1571,12 +1571,12 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
 #######################################################################################
 
 
-def get_cluster_rsc_strengths(resources, alignments):
+def get_cluster_rsc_strengths(resources, alignments, limit=500000):
 
-    limit = 10000
+    # limit = 10000
+    # result_count = 0
     offset = 0
     response_dic = dict()
-    result_count = 0
 
     try:
         print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION"
@@ -1677,7 +1677,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
     {6}LIMIT {8}
     {7}OFFSET {9}
     """.format(resources, alignments, from_alignment2singleton(alignments),
-                 Ns.prov, Ns.alivocab, comment, comment_limit, comment_offset, limit, offset)
+               Ns.prov, Ns.alivocab, comment, comment_limit, comment_offset, limit, offset)
     # print query
 
     if count is True:
