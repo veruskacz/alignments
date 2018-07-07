@@ -3658,20 +3658,21 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                 serialised = s_file.read()
                 s_file.close()
 
+                # DE-SERIALISE THE SERIALISED
+                start = time.time()
+                serialised = ast.literal_eval(serialised)
+                diff = datetime.timedelta(seconds=time.time() - start)
+
+                print "\tDe-serialised in {}".format(diff)
+                print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+                return serialised
+
             except Exception:
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
                     serialised_hash)
-                traceback.print_exc()
-                print "DELETING THE SERIALISED DATA FROM: {}".format(graph)
+                # traceback.print_exc()
+                print "DELETING THE EXTENDED SERIALISED SERIALISED DATA FROM: {}".format(graph)
                 delete_serialised_extended_clusters(graph)
-
-            # DE-SERIALISE THE SERIALISED
-            start = time.time()
-            serialised = ast.literal_eval(serialised)
-            diff = datetime.timedelta(seconds=time.time() - start)
-
-            print "\tDe-serialised in {}".format(diff)
-            return serialised
 
 
     # **************************************************************************************************
@@ -3690,7 +3691,7 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
     }}""".format(related_linkset)
     print "FETCHING THE RELATED ALIGNMENT TRIPLES"
-    fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
+    fetched_res = Qry.sparql_xml_to_matrix(fetch_q).
     fetched = fetched_res[St.result]
 
     # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
