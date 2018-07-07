@@ -2682,7 +2682,7 @@ def links_clustering_improved(graph, limit=1000):
 #   - [STRENGTHS]
 # ************************************************
 # ************************************************
-def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=True, limit=10000):
+def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=False, limit=10000):
 
 
     # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
@@ -2740,9 +2740,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             try:
-                print "\tREADING FROM FILE..."
+                print "\tREADING FROM SERIALISED FILE..."
                 s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
                 serialised = s_file.read()
+                s_file.close()
 
             except Exception:
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
@@ -3590,7 +3591,23 @@ def delete_serialised_clusters(graph):
     print "DONE1!!"
 
 
-def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_dir):
+def delete_serialised_extended_clusters(graph):
+    query = """
+    delete
+    {{
+        <{0}> <{1}extendedClusters> ?serialised .
+    }}
+
+    where
+    {{
+        <{0}> <{1}extendedClusters> ?serialised .
+    }}
+    """.format(graph, Ns.alivocab)
+    Qry.endpoint(query=query)
+    print "DONE1!!"
+
+
+def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_dir, reset=False):
 
     # 1. FETCH THE PAIRED NODES
     size = Qry.get_namedgraph_size(graph)
@@ -3600,6 +3617,10 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
     start = time.time()
     data = {'extended_clusters': None, 'list_extended_clusters_cycle': None}
 
+    if reset is True:
+        print "DELETING THE SERIALISED DATA FROM: {}".format(graph)
+        delete_serialised_extended_clusters(graph)
+
     # **************************************************************************************************
     # 1. CHECK IF THE ALIGNMENT HAS ALREADY BEEN EXTENDED
     # **************************************************************************************************
@@ -3607,13 +3628,13 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
     if Qry.boolean_endpoint_response(ask) == "true":
 
-        print ">>> THE CLUSTER HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+        print "\n>>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
 
         # QUERY FOR THE SERIALISATION
         s_query = """SELECT *
-                {{
-                    <{0}>   <{1}extended_clusters>   ?serialised .
-                }}""".format(graph, Ns.alivocab)
+        {{
+            <{0}>   <{1}extendedClusters>   ?serialised .
+        }}""".format(graph, Ns.alivocab)
         start = time.time()
 
         # FETCH THE SERIALISATION
@@ -3629,12 +3650,13 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
             # EXTRACTING THE NUMBER OF CLUSTERS ABD THE SERIALISED FILE NAME
             serialised_hash = s_query_result[1][0]
-            print "\tCLUSTERS FOUND AND DATA SAVED IN THE FILE [{}].TXT".format(serialised_hash)
+            print "\tEXTENDED CLUSTERS FOUND AND DATA SAVED IN THE FILE [{}.txt]".format(serialised_hash)
 
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             try:
                 s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
                 serialised = s_file.read()
+                s_file.close()
 
             except Exception:
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
