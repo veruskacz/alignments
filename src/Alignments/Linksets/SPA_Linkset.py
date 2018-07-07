@@ -1848,66 +1848,76 @@ def geo_specs_2_linkset(specs, activated=False, check_file=False):
         print check
 
         message = Ec.ERROR_CODE_4.replace('\n', "<br/>")
-        if activated is True:
-            ls_start = time.time()
-            # REGISTER THE ALIGNMENT
-            if check[St.message].__contains__("ALREADY EXISTS"):
-                Urq.register_alignment_mapping(specs, created=False)
-            else:
-                ########################################################################
-                print """\n1. EXECUTING THE GEO-MATCH                                   """
-                ########################################################################
-                geo_match(specs)
-
-                ########################################################################
-                print """\n2. EXTRACT THE NUMBER OF TRIPLES                           """
-                ########################################################################
-                specs[St.triples] = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, specs[St.linkset_name]))
-
-                ########################################################################
-                print """\n3. ASSIGN THE SPARQL INSERT QUERY                         """
-                ########################################################################
-                specs[St.insert_query] = "{} ;\n{};\n{}".format(
-                    geo_query(specs, True), geo_query(specs, False), geo_match_query(specs))
-                # print "INSERT QUERY: {}".format(specs[St.insert_query])
-
-                ls_end = time.time()
-                diff = ls_end - ls_start
-                print ">>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
-
-                if specs[St.triples] > 0:
+        try:
+            if activated is True:
+                ls_start = time.time()
+                # REGISTER THE ALIGNMENT
+                if check[St.message].__contains__("ALREADY EXISTS"):
+                    Urq.register_alignment_mapping(specs, created=False)
+                else:
+                    ########################################################################
+                    print """\n1. EXECUTING THE GEO-MATCH                                   """
+                    ########################################################################
+                    geo_match(specs)
 
                     ########################################################################
-                    print """\n4. INSERTING THE GENERIC METADATA                         """
+                    print """\n2. EXTRACT THE NUMBER OF TRIPLES                           """
                     ########################################################################
-                    metadata = Gn.linkset_geo_metadata(specs)
-                    Qry.boolean_endpoint_response(metadata)
+                    specs[St.triples] = Qry.get_namedgraph_size("{0}{1}".format(Ns.linkset, specs[St.linkset_name]))
 
                     ########################################################################
-                    print """\n5. WRITING TO FILE                                         """
+                    print """\n3. ASSIGN THE SPARQL INSERT QUERY                         """
                     ########################################################################
-                    src = [source[St.graph_name], "", source[St.entity_ns]]
-                    trg = [target[St.graph_name], "", target[St.entity_ns]]
+                    specs[St.insert_query] = "{} ;\n{};\n{}".format(
+                        geo_query(specs, True), geo_query(specs, False), geo_match_query(specs))
+                    # print "INSERT QUERY: {}".format(specs[St.insert_query])
 
-                    # linkset_path = "D:\datasets\Linksets\ExactName"
-                    linkset_path = DIRECTORY
-                    writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=check_file)
-                    server_message = "Linksets created as: {}".format(specs[St.linkset])
-                    message = "The linkset was created as [{}] with {} triples found!".format(
-                        specs[St.linkset], specs[St.triples])
+                    ls_end = time.time()
+                    diff = ls_end - ls_start
+                    print ">>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
 
-                    print "\n\t", server_message
+                    if int(specs[St.triples]) > 0:
 
-                    Urq.register_alignment_mapping(specs, created=True)
+                        ########################################################################
+                        print """\n4. INSERTING THE GENERIC METADATA                         """
+                        ########################################################################
+                        metadata = Gn.linkset_geo_metadata(specs)
+                        Qry.boolean_endpoint_response(metadata)
 
-                    ls_end_2 = time.time()
-                    diff = ls_end_2 - ls_end
-                    print ">>> Executed in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
+                        ########################################################################
+                        print """\n5. WRITING TO FILE                                         """
+                        ########################################################################
+                        src = [source[St.graph_name], "", source[St.entity_ns]]
+                        trg = [target[St.graph_name], "", target[St.entity_ns]]
+
+                        # linkset_path = "D:\datasets\Linksets\ExactName"
+                        linkset_path = DIRECTORY
+                        writelinkset(src, trg, specs[St.linkset_name], linkset_path, metadata, check_file=check_file)
+                        server_message = "Linksets created as: {}".format(specs[St.linkset])
+                        message = "The linkset was created as [{}] with {} triples found!".format(
+                            specs[St.linkset], specs[St.triples])
+
+                        print "\n\t", server_message
+
+                        Urq.register_alignment_mapping(specs, created=True)
+
+                        ls_end_2 = time.time()
+                        diff = ls_end_2 - ls_end
+                        print ">>> Executed in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
+
+
+                    else:
+                        print "The linkset was not generated as no match could be found"
+
                     print "\t*** JOB DONE! ***"
 
-            return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+                return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
 
-        return {St.message: message, St.error_code: 4, St.result: None}
+            return {St.message: message, St.error_code: 4, St.result: None}
+
+        except Exception as err:
+            traceback.print_exc()
+            return {St.message: Ec.ERROR_CODE_1, St.error_code: 5, St.result: None}
 
     else:
         print Ec.ERROR_CODE_1
