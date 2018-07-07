@@ -3662,7 +3662,8 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
                     serialised_hash)
                 traceback.print_exc()
-                "todo"
+                print "DELETING THE SERIALISED DATA FROM: {}".format(graph)
+                delete_serialised_extended_clusters(graph)
 
             # DE-SERIALISE THE SERIALISED
             start = time.time()
@@ -3743,7 +3744,8 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
     if len(extended_clusters) != 0 and len(list_extended_clusters_cycle) != 0:
 
         # SERIALISATION
-        data = {'extended_clusters': extended_clusters, 'list_extended_clusters_cycle': list_extended_clusters_cycle}
+        data = {'extended_clusters': list(extended_clusters),
+                'list_extended_clusters_cycle': list(list_extended_clusters_cycle)}
         file_name = "ExtendedBy_{}".format(Ut.get_uri_local_name_plus(related_linkset))
         # file_name = file_name.replace("-", "Cluster_N") \
         #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
