@@ -2501,9 +2501,11 @@ def datasetLinkingClusters():
             clusters = Clt.links_clustering(alignments[0],  serialisation_dir=file_dir, limit=None, reset=False)
 
         else:
-            clusters, (list_extended_clusters, list_extended_clusters_cycle) = Clt.links_clustering(
+            clusters, dict_extended = Clt.links_clustering(
                 alignments[0],  serialisation_dir=file_dir, related_linkset=cluster_linkset_extension,
                 limit=None, reset=False)
+            list_extended_clusters = dict_extended['extended_clusters']
+            list_extended_clusters_cycle = dict_extended['list_extended_clusters_cycle']
 
         # for each cluster-matrix
         counter = 0
