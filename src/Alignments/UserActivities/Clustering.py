@@ -2783,17 +2783,22 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 # RETURNING THE CLUSTER EXTENSION FOR PLOT
                 clusters_subset = {}
                 is_subset = False
+                nodes_extension = []
                 print "\n\tSUBSET...?"
                 for cluster_id in extension_dict['extensions']:
                     if cluster_id != cluster2extend_id:
                         is_subset = True
                         clusters_subset[cluster_id] = clusters[cluster_id]
                         print "\t", clusters[cluster_id]
+                        nodes_extension += clusters[cluster_id]['nodes']
                 if is_subset is False:
                     print "\tNO SUBSET FOUND"
 
                 # ADD THE CLUSTER SUBSET TO THE RETURNED DICTIONARY
                 extension_dict['clusters_subset'] = clusters_subset
+
+                links = cluster_links_between_extension(nodes_extension, related_linkset)
+                extension_dict['links'] += links
 
                 # THIS ASSUMES THAT THE USER HAS THE CLUSTERS
                 # BUT REQUEST FOR A SPECIFIC CLUSTER EXTENSION
@@ -3570,8 +3575,6 @@ def cluster_extension(nodes, node2cluster, linkset):
         print "\t\t", ex_id
     print "\tTHE EXTENSION:", to_return
 
-    links = cluster_links_between_extension(nodes, linkset)
-    to_return['links'] += links
 
     return to_return
 
@@ -3588,7 +3591,7 @@ def cluster_links_between_extension(nodes, linkset):
     # THE GOAL IS TO VERIFY IF THE EXTESIONS OF A CLUSTER ARE LINKED AMONG THEM
     # ***********************************************************************************
 
-    print "\n\t> CHECKING FOR LINKS BETWEEN THE GIVEN NODES"
+    print "\n\t> CHECKING FOR LINKS BETWEEN THE NODES OF THE EXTESIONS"
 
     picked_nodes_csv = "\n\t\t\t".join(str(s) for s in nodes)
 
@@ -3602,7 +3605,7 @@ def cluster_links_between_extension(nodes, linkset):
         VALUES ?node2 {{
             {0} }}
 
-        # NODE PAIRED TO THE LINKSET FROM OBJECT
+        # LINKS BETWEEN THE GIVEN NODES
         {{
             GRAPH <{1}>
             {{
