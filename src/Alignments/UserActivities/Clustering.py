@@ -2783,17 +2783,22 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 # RETURNING THE CLUSTER EXTENSION FOR PLOT
                 clusters_subset = {}
                 is_subset = False
+                nodes_extension = []
                 print "\n\tSUBSET...?"
                 for cluster_id in extension_dict['extensions']:
                     if cluster_id != cluster2extend_id:
                         is_subset = True
                         clusters_subset[cluster_id] = clusters[cluster_id]
                         print "\t", clusters[cluster_id]
+                        nodes_extension += clusters[cluster_id]['nodes']
                 if is_subset is False:
                     print "\tNO SUBSET FOUND"
 
                 # ADD THE CLUSTER SUBSET TO THE RETURNED DICTIONARY
                 extension_dict['clusters_subset'] = clusters_subset
+
+                links = cluster_links_between_extension(nodes_extension, related_linkset)
+                extension_dict['links'] += links
 
                 # THIS ASSUMES THAT THE USER HAS THE CLUSTERS
                 # BUT REQUEST FOR A SPECIFIC CLUSTER EXTENSION
@@ -3570,7 +3575,60 @@ def cluster_extension(nodes, node2cluster, linkset):
         print "\t\t", ex_id
     print "\tTHE EXTENSION:", to_return
 
+
     return to_return
+
+
+def cluster_links_between_extension(nodes, linkset):
+
+    """
+    :param nodes:           THE SET OF NODES RELATED BY A SAME AS LINK.
+    :param linkset:         THE LINKSET USED FOR EXTENDING A CLUSTER STEMMED FROM THE MOTHER CLUSTER
+    :return:                A DICTIONARY {'links': links, 'extensions': list(set(extension))}
+    """
+    # ***********************************************************************************
+    # THIS FUNCTION CHECKS FOR LINKS BETWEEN A GIVEN ET OF NODES
+    # THE GOAL IS TO VERIFY IF THE EXTESIONS OF A CLUSTER ARE LINKED AMONG THEM
+    # ***********************************************************************************
+
+    print "\n\t> CHECKING FOR LINKS BETWEEN THE NODES OF THE EXTESIONS"
+
+    picked_nodes_csv = "\n\t\t\t".join(str(s) for s in nodes)
+
+    # EXTRACT LINKS BETWEEN THE GIVEN NODES
+    query = """
+    SELECT ?node1 ?pred ?node2
+    {{
+        VALUES ?node1 {{
+            {0} }}
+
+        VALUES ?node2 {{
+            {0} }}
+
+        # LINKS BETWEEN THE GIVEN NODES
+        {{
+            GRAPH <{1}>
+            {{
+                ?node1 ?pred ?node2 .
+            }}
+        }}
+    }}
+            """.format(picked_nodes_csv, linkset)
+    # print query
+    query_response = Qry.sparql_xml_to_matrix(query=query)
+    query_result = query_response[St.result]
+    # Qry.display_result(query, is_activated=True)
+
+    links = []
+    if query_result is not None:
+        for i in range(1, len(query_result)):
+            node1 = "<{}>".format(query_result[i][0])
+            node2 = "<{}>".format(query_result[i][2])
+            links += [(node1, node2)]
+
+    print "\tNUMBER OF LINKS FOUND:", len(links)
+
+    return links
 
 
 def delete_serialised_clusters(graph):
@@ -3688,8 +3746,9 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
            {{ ?obj ?pred ?sub . }}
            filter (str(?sub) < str(?obj))
         }}
-
     }}""".format(related_linkset)
+
+
     print "FETCHING THE RELATED ALIGNMENT TRIPLES"
     fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
     fetched = fetched_res[St.result]
@@ -3974,6 +4033,7 @@ def list_extended_clusters0(serialised_path, related_linkset):
 
         return extended_clusters
     # ITERATE THROUGH THE CLUSTERS AND EXTRACT THOSE WITH EXTENSION
+
 
 
 # list_extended_clusters("/Users/veruskazamborlini/Documents/PyApps/InstallTest/alignments/src/serialisations/6654197500506537051.txt",
