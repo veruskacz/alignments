@@ -23,6 +23,7 @@ UPLOAD_ARCHIVE = "{0}{1}{1}UploadedArchive".format(os.getcwd(), SEP)
 # SERVER_WIN = "localhost:5820"
 # STARDOG_PATH_WIN = 'C:\\Program Files\\stardog-5.3.0\\bin\\'
 # STARDOG_DATA_PATH_WIN = "C:\\Productivity\\data\\stardog"
+
 DEFAULT_SERVER = "localhost:5820"
 LENTICULAR_LENS_PORT = int(os.getenv("LL_PORT", 5077))
 SERVER = os.getenv("LL_STARDOG_SERVER", DEFAULT_SERVER)

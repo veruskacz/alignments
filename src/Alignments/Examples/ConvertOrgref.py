@@ -1,4 +1,5 @@
 import Alignments.ToRDF.CSV as CSV
+
 """ CONVERTING ORGREF 2017 07 03 """
 
 # ORGREF
@@ -107,6 +108,12 @@ convert_12 = CSV.CSV(
     database="eter20171005", is_trig=True, subject_id=1,
     file_to_convert=eter_1,
     separator=";", entity_type="higher_education", rdftype=[], embedded_uri=None, activated=False)
+
+# eureca = "C:\Productivity\queryResults.csv"
+# convert_13 = CSV.CSV(
+#     database="Eureca_20180601", is_trig=True, subject_id=1,
+#     file_to_convert=eureca,
+#     separator=";", entity_type="EurecaProjects", rdftype=[4, 9], embedded_uri=None, activated=True)
 
 
 

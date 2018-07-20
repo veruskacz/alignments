@@ -6,7 +6,7 @@ echo Loading data
 		call stardog namespace add --prefix prov  			--uri http://www.w3.org/ns/prov#						risis
 		call stardog namespace add --prefix skos  			--uri http://www.w3.org/2004/02/skos/core#				risis
 		call stardog namespace add --prefix lens 			--uri http://risis.eu/lens/ 							risis
-		call stardog namespace add --prefix risis 			--uri http://risis.eu/ risis							risis
+		call stardog namespace add --prefix risis 			--uri http://risis.eu/risis/ 							risis
 		call stardog namespace add --prefix riclass 		--uri http://risis.eu/class/ 							risis
 		call stardog namespace add --prefix schema 			--uri http://risis.eu/ontology/ 						risis
 		call stardog namespace add --prefix dataset 		--uri http://risis.eu/dataset/ 							risis

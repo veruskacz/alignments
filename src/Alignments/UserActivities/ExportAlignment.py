@@ -21,6 +21,8 @@ from Alignments.UserActivities.Import_Data import download_stardog_data
 # TODO: THE download_stardog_data FUNCTIION FROM import_data.py COULD BE THE WAY TO GO
 def export_alignment_all(alignment, directory=None, limit=5000):
 
+    print Ut.headings("EXPORTING THE ALIGNMENT WITH ALL METADATA")
+
     directory = os.path.join(directory, "")
     print directory
     if os.path.isdir(os.path.dirname(directory)) is False or os.path.exists(directory) is False:
@@ -81,6 +83,7 @@ def export_alignment_all(alignment, directory=None, limit=5000):
     alignment_construct = Qry.endpointconstruct(query, clean=False)
     if alignment_construct:
         alignment_construct = alignment_construct.replace("{", "{}\n{{".format(alignment))
+
     # print alignment_construct
     with open(os.path.join(directory, "linkset.trig"), "wb") as links:
         links.write(alignment_construct)
@@ -121,6 +124,8 @@ def export_alignment_all(alignment, directory=None, limit=5000):
         singletons.write(singleton_construct)
 
     # LOAD THE METADATA USING RDFLIB
+    # THIS IS A QUICK FIX FOR THE PROPERTY PATH ISSUE
+    meta_construct = meta_construct.replace('<<', '"""<').replace('>>', '>"""').replace('\>', '>')
     sg = rdflib.Graph()
     sg.parse(data=meta_construct, format="turtle")
 
@@ -164,6 +169,8 @@ def export_alignment_all(alignment, directory=None, limit=5000):
 
 # FLAT ALIGNMENT
 def export_flat_alignment(alignment):
+
+    print Ut.headings("EXPORTING THE ALIGNMENT WITH NO METADATA")
 
     print "Export for: {}".format(alignment)
     alignment = str(alignment).strip()
@@ -253,6 +260,8 @@ def export_alignment(alignment, limit=5000):
     # This function returns all the links + some metadata about the alignment.
     # METADATA: source dataset, target dataset and mechanism
 
+    print Ut.headings("EXPORTING THE ALIGNMENT FOR VISUALISATION")
+
     use = alignment
     alignment = str(alignment).strip()
     row_alignment = alignment
@@ -276,9 +285,11 @@ def export_alignment(alignment, limit=5000):
     # print meta
 
     # GET THE METADATA OF THE ALIGNMENT: RUN THE QUERY
+    print "GETTING THE METADATA OF THE ALIGNMENT: RUN THE QUERY"
     meta_construct = Qry.endpointconstruct(meta, clean=False)
     meta_construct = meta_construct.replace("{", "").replace("}", "")
-    # print meta_construct
+    meta_construct = meta_construct.replace('<<', '"""<').replace('>>', '>"""').replace('\>', '>')
+    print meta_construct
 
     # LOAD THE METADATA USING RDFLIB
     sg = rdflib.Graph()

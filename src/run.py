@@ -21,6 +21,8 @@ RESET_SERVER_BATS = True
 _line = "--------------------------------------------------------------" \
         "--------------------------------------------------------------"
 
+# https://www.shanelynn.ie/asynchronous-updates-to-a-webpage-with-flask-and-socket-io/
+
 if __name__ == "__main__":
 
     try:
@@ -98,4 +100,5 @@ if __name__ == "__main__":
         # LAUNCHING THE LL USING FLASK
         app.run(host="0.0.0.0", port=port, threaded=True, use_reloader=True)
 
+# print >>  sys.stderr, '\r', "\tCURRENT LINE: {}".format(n),
 # LL_PORT=5077 LL_STARDOG_DATABASE="risis" python run.py

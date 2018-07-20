@@ -1009,6 +1009,8 @@ def network_examples():
 def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
                      ground_truth_p=0, observations=0, latex=False, zero_rule=True):
 
+    # OBSERVATIONS IS THE TOTAL OF ITEMS IN THE GROUND TRUTH
+
     if zero_rule is True:
         if ground_truth_p > observations - ground_truth_p:
             confusion_matrix(true_p=ground_truth_p, false_p=observations - ground_truth_p, true_n=0, false_n=0,

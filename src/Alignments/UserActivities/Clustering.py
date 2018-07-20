@@ -3691,7 +3691,7 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
     }}""".format(related_linkset)
     print "FETCHING THE RELATED ALIGNMENT TRIPLES"
-    fetched_res = Qry.sparql_xml_to_matrix(fetch_q).
+    fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
     fetched = fetched_res[St.result]
 
     # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
