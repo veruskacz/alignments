@@ -2771,7 +2771,11 @@ function refineLensClick()
         ($('#refine_lens_selected_meth').attr('uri') != 'intermediate' || intermediate) &&
       (linkset) &&
         ($('#refine_lens_selected_meth').attr('uri') != 'approxNbrSim' ||
-            ($('#refine_lens_approx_delta').val() && $('#refine_lens_approx_num_type').val() ))
+            ($('#refine_lens_approx_delta').val() && $('#refine_lens_approx_num_type').val() )) &&
+        ($('#refine_lens_selected_meth').attr('uri') != 'geoSim' ||
+            ($('#refine_lens__geo_match_nbr').val() && $('#refine_lens__geo_match_unit').find("option:selected").text()
+             && $('#refine_lens_source_lat_selected_pred').attr('uri') && $('#refine_lens_source_long_selected_pred').attr('uri')
+             && $('#refine_lens_target_lat_selected_pred').attr('uri') && $('#refine_lens_target_long_selected_pred').attr('uri') ))
       )
   {
 
@@ -2796,6 +2800,12 @@ function refineLensClick()
         'delta': $('#refine_lens_approx_delta').val() ,
         'numeric_approx_type': $('#refine_lens_approx_num_type').val()
       }
+
+      if ($('#selected_meth').attr('uri') == 'geoSim')
+        {
+          specs['geo_dist'] = $('#refine_lens_geo_match_nbr').val() ;
+          specs['geo_unit'] = $('#refine_lens_geo_match_unit').find("option:selected").text();
+        }
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
       $('#lens_refine_message_col').html(addNote(message,cl='warning'));
@@ -4582,6 +4592,9 @@ function methodClickLens(th)
     $('#refine_lens_int_red_graph_row').hide();
     $('#refine_lens_aprox_settings_row').hide();
     $('#refine_lens_aprox_nbr_settings_row').hide();
+    $('#refine_lens_geo_match_settings_row').hide();
+    $('#refine_lens_source_geoSim_params').hide();
+    $('#refine_lens_target_geoSim_params').hide();
 
     if (method == 'identity')
     {
@@ -4663,7 +4676,12 @@ function methodClickLens(th)
         }
         else if (method == 'geoSim')
         {
-          description = 'The method <b>GEO SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by detecting whether the values of the selected <b>properties</b> of source and target appear within the same geographical boundary.';
+          description = 'The method <b>GEO SIMILARITY</b> is used to align the <b>source</b> and the <b>target</b> by detecting whether the values of the selected <b>LATITUDE</b> and <b>LONGITUTE</b> properties of source and target appear within a certain distance. Observe that the selection of <b>property to Align</b> in this method has a mere function of visualization of the aligned results (e.g. the name can be selected).';
+          $('#refine_lens_geo_match_settings_row').show();
+          $('#refine_lens_source_geoSim_params').show();
+          $('#refine_lens_target_geoSim_params').show();
+          $('#refine_lens_div_sourceAlignProp').html('<h4>Property for cross-checking</h4>');
+          $('#div_sourceAlignProp').html('<h4>Property for cross-checking</h4>');
         }
         else if (method == 'intermediate')
         {

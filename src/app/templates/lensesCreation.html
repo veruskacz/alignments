@@ -477,6 +477,8 @@
                       <div class="col-md-4 entity-list" id="refine_lens_button-src-entity-type-col"
                             graph_uri=""
                             targetTxt="refine_lens_src_selected_entity-type"
+                            targetList2="refine_lens_source_lat_predicates_col"
+                            targetList3="refine_lens_source_long_predicates_col"
                             targetList="refine_lens_src_predicates_col"
                             hiddenDiv="refine_lens_hidden_src_entType_div">
                         <!-- will be rendered via server -->
@@ -561,10 +563,132 @@
               </div>
             </div>
 
+          <div id="refine_lens_source_geoSim_params" style='display:none'>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-bottom: 10px;">
+
+            <div class="row" >
+                <div class="col-md-12">
+                    <h4>Latitude</h4>
+                </div>
+            </div>
+
+            <div class="row" id = "refine_lens_source_lat_selected_pred_row">
+             <div class="col-md-11" style="padding-right: 1px;">
+                 <div class="well well-sm" id="refine_lens_source_lat_selected_pred" uri="" >
+                     Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                 </div>
+             </div>
+             <div class="col-md-1" style="padding-left: 0px;">
+                 <span class="glyphicon glyphicon-remove-circle"
+                       onclick='resetDivSelectedEntity("refine_lens_button-src-entity-type-col","targetList2")'></span>
+             </div>
+            </div>
+
+
+            <div class="row" id = "refine_lens_source_lat_list_pred_row">
+                <div class="col-md-12">
+                     <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"refine_lens_source_lat_predicates_col","refine_lens_source_lat_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                        <span id="refine_lens_source_lat_pred_counter" class="badge"></span>
+                       </div>
+                     </div>
+                     <div class="row"> &nbsp </div>
+                 <div class="row">
+                     <div class="col-md-7">
+                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                             </strong></small>
+                     </div>
+                     <div class="col-md-5" align="right">
+                         <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="refine_lens_source_lat_enable_prop_path"
+                                checked="checked">
+                                <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                             Enable Prop. Path</label></div></small>
+                     </div>
+                 </div>
+                 <div class="row">
+                     <div class="col-md-12 pred-list" id="refine_lens_source_lat_predicates_col"
+                          badge_counter="refine_lens_source_lat_pred_counter"
+                          targetList="refine_lens_source_lat_predicates_col"
+                          targetTxt="refine_lens_source_lat_selected_pred"
+                          propPathCheckBok="refine_lens_source_lat_enable_prop_path"
+                          propPath="enabled"> </div>
+                 </div>
+                </div>
+                </div>
+
+
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-bottom: 10px;">
+
+            <div class="row" >
+                <div class="col-md-12">
+                    <h4>Longitude</h4>
+                </div>
+            </div>
+
+            <div class="row" id = "refine_lens_source_long_selected_pred_row">
+             <div class="col-md-11" style="padding-right: 1px;">
+                 <div class="well well-sm" id="refine_lens_source_long_selected_pred" uri="" >
+                     Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                 </div>
+             </div>
+             <div class="col-md-1" style="padding-left: 0px;">
+                 <span class="glyphicon glyphicon-remove-circle"
+                       onclick='resetDivSelectedEntity("refine_lens_button-src-entity-type-col","targetList3")'></span>
+             </div>
+            </div>
+
+
+            <div class="row" id = "refine_lens_source_long_list_pred_row">
+                <div class="col-md-12">
+                     <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"refine_lens_source_long_predicates_col","refine_lens_source_long_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                        <span id="refine_lens_source_long_pred_counter" class="badge"></span>
+                       </div>
+                     </div>
+                     <div class="row"> &nbsp </div>
+                 <div class="row">
+                     <div class="col-md-7">
+                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                             </strong></small>
+                     </div>
+                     <div class="col-md-5" align="right">
+                         <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="refine_lens_source_long_enable_prop_path"
+                                checked="checked">
+                                <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                             Enable Prop. Path</label></div></small>
+                     </div>
+                 </div>
+                 <div class="row">
+                     <div class="col-md-12 pred-list" id="refine_lens_source_long_predicates_col"
+                          badge_counter="refine_lens_source_long_pred_counter"
+                          targetList="refine_lens_source_long_predicates_col"
+                          targetTxt="refine_lens_source_long_selected_pred"
+                          propPathCheckBok="refine_lens_source_long_enable_prop_path"
+                          propPath="enabled"> </div>
+                 </div>
+                </div>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
+
+
           <div class="panel panel-default">
           <div class="panel-body">
             <div class="row">
-                  <div class="col-md-12">
+                  <div class="col-md-12" id="refine_lens_div_sourceAlignProp">
                       <h4>Property to align</h4>
                   </div>
             </div>
@@ -649,6 +773,8 @@
                       <div class="col-md-4 entity-list" id="refine_lens_button-trg-entity-type-col"
                             graph_uri=""
                             targetTxt="refine_lens_trg_selected_entity-type"
+                            targetList2="refine_lens_target_lat_predicates_col"
+                            targetList3="refine_lens_target_long_predicates_col"
                             targetList="refine_lens_trg_predicates_col">
                         <!-- will be rendered via server -->
                         <div class="hiddenDiv" id="refine_lens_hidden_trg_entType_div" style='display:none' uri="" label="" ></div>
@@ -735,6 +861,127 @@
                    </div>
               </div>
             </div>
+
+          <div id="refine_lens_target_geoSim_params" style='display:none'>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-bottom: 10px;">
+
+            <div class="row" >
+                <div class="col-md-12">
+                    <h4>Latitude</h4>
+                </div>
+            </div>
+
+            <div class="row" id = "refine_lens_target_lat_selected_pred_row">
+             <div class="col-md-11" style="padding-right: 1px;">
+                 <div class="well well-sm" id="refine_lens_target_lat_selected_pred" uri="" >
+                     Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                 </div>
+             </div>
+             <div class="col-md-1" style="padding-left: 0px;">
+                 <span class="glyphicon glyphicon-remove-circle"
+                       onclick='resetDivSelectedEntity("refine_lens_button-trg-entity-type-col","targetList2")'></span>
+             </div>
+            </div>
+
+
+            <div class="row" id = "refine_lens_target_lat_list_pred_row">
+                <div class="col-md-12">
+                     <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"refine_lens_target_lat_predicates_col","refine_lens_target_lat_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                        <span id="refine_lens_target_lat_pred_counter" class="badge"></span>
+                       </div>
+                     </div>
+                     <div class="row"> &nbsp </div>
+                 <div class="row">
+                     <div class="col-md-7">
+                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                             </strong></small>
+                     </div>
+                     <div class="col-md-5" align="right">
+                         <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="refine_lens_target_lat_enable_prop_path"
+                                checked="checked">
+                                <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                             Enable Prop. Path</label></div></small>
+                     </div>
+                 </div>
+                 <div class="row">
+                     <div class="col-md-12 pred-list" id="refine_lens_target_lat_predicates_col"
+                          badge_counter="refine_lens_target_lat_pred_counter"
+                          targetList="refine_lens_target_lat_predicates_col"
+                          targetTxt="refine_lens_target_lat_selected_pred"
+                          propPathCheckBok="refine_lens_target_lat_enable_prop_path"
+                          propPath="enabled"> </div>
+                 </div>
+                </div>
+                </div>
+
+
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-body" style="padding-bottom: 10px;">
+
+            <div class="row" >
+                <div class="col-md-12">
+                    <h4>Longitude</h4>
+                </div>
+            </div>
+
+            <div class="row" id = "refine_lens_target_long_selected_pred_row">
+             <div class="col-md-11" style="padding-right: 1px;">
+                 <div class="well well-sm" id="refine_lens_target_long_selected_pred" uri="" >
+                     Select a Property + <span style="color:blue"><strong> example value </strong></span>
+                 </div>
+             </div>
+             <div class="col-md-1" style="padding-left: 0px;">
+                 <span class="glyphicon glyphicon-remove-circle"
+                       onclick='resetDivSelectedEntity("refine_lens_button-trg-entity-type-col","targetList3")'></span>
+             </div>
+            </div>
+
+
+            <div class="row" id = "refine_lens_target_long_list_pred_row">
+                <div class="col-md-12">
+                     <div class="row">
+                         <div class="col-md-12">
+                        <span class="glyphicon glyphicon glyphicon-search"></span>
+                       <input type="text" onkeyup='filterListGroup(this,"refine_lens_target_long_predicates_col","refine_lens_target_long_pred_counter")' placeholder="Search for names.." style='width: 80%'>
+                        <span id="refine_lens_target_long_pred_counter" class="badge"></span>
+                       </div>
+                     </div>
+                     <div class="row"> &nbsp </div>
+                 <div class="row">
+                     <div class="col-md-7">
+                         <small><strong> <span style="color:blue">no empty values </span> | <span style="color:red"> empty values</span>
+                             </strong></small>
+                     </div>
+                     <div class="col-md-5" align="right">
+                         <small><div class="checkbox-inline" style='display:none'><label><input type="checkbox" id="refine_lens_target_long_enable_prop_path"
+                                checked="checked">
+                                <!--onclick='resetDivSelectedEntity("button-dts-entity-type-col","predicate","targetList2")' >-->
+                             Enable Prop. Path</label></div></small>
+                     </div>
+                 </div>
+                 <div class="row">
+                     <div class="col-md-12 pred-list" id="refine_lens_target_long_predicates_col"
+                          badge_counter="refine_lens_target_long_pred_counter"
+                          targetList="refine_lens_target_long_predicates_col"
+                          targetTxt="refine_lens_target_long_selected_pred"
+                          propPathCheckBok="refine_lens_target_long_enable_prop_path"
+                          propPath="enabled"> </div>
+                 </div>
+                </div>
+                </div>
+
+
+              </div>
+            </div>
+          </div>
 
 
             <div class="panel panel-default">
@@ -908,6 +1155,43 @@
               </div>
             </div>
         </div>
+
+        <div class="row" id="refine_lens_geo_match_settings_row" style='display:none' >
+                        <div class="col-md-12">
+                          <div class="panel panel-default">
+                          <div class="panel-heading"></div>
+                          <div class="panel-body">
+                           <div class="row">
+                                  <div class="col-md-3" style="padding-right: 0px;">
+                                      <h5>Geo distance</h5>
+                                  </div>
+                               <div class="col-md-9"  >
+                                    <input type="text" class="form-control" id="refine_lens_geo_match_nbr" value="1">
+                               </div>
+                             </div>
+                            <div class="row">
+                                  <div class="col-md-3" style="padding-right: 0px;">
+                                      <h5>Unit</h5>
+                                  </div>
+                               <div class="col-md-9"  >
+                                    <div class="form-group">
+                                        <select class="form-control" id="refine_lens_geo_match_unit">
+                                        <option>Kilometer</option>
+                                        <option>Meter</option>
+                                        <option>Centimeter</option>
+                                        <option>MileUSStatute</option>
+                                        <option>Yard</option>
+                                        <option>Foot</option>
+                                        <option>Inch</option>
+                                        </select>
+                                    </div>
+                               </div>
+                             </div>
+                          </div>
+                          </div>
+                        </div>
+                    </div>
+
         <div class="row" id="refine_lens_int_red_graph_row">
             <div class="col-md-4 graph-list" id="refine_lens_button_int_red_graph"
                   targetTxt="refine_lens_selected_int_red_graph" targetBtn="" targetList="">
