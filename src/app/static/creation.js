@@ -1481,6 +1481,14 @@ function createLinksetClick()
         {
           specs['geo_dist'] = $('#linkset_geo_match_nbr').val() ;
           specs['geo_unit'] = $('#linkset_geo_match_unit').find("option:selected").text();
+
+          if ($('#source_lat_selected_pred').attr('uri'))
+            {   specs['src_lat'] = $('#source_lat_selected_pred').attr('uri');
+                specs['src_long'] = $('#source_long_selected_pred').attr('uri');
+                specs['trg_lat'] = $('#target_lat_selected_pred').attr('uri');
+                specs['trg_long'] = $('#target_long_selected_pred').attr('uri');
+            }
+
         }
 
         if (($('#selected_meth').attr('uri') == 'embededAlignment') || ($('#selected_meth').attr('uri') == 'identity'))
@@ -2773,7 +2781,7 @@ function refineLensClick()
         ($('#refine_lens_selected_meth').attr('uri') != 'approxNbrSim' ||
             ($('#refine_lens_approx_delta').val() && $('#refine_lens_approx_num_type').val() )) &&
         ($('#refine_lens_selected_meth').attr('uri') != 'geoSim' ||
-            ($('#refine_lens__geo_match_nbr').val() && $('#refine_lens__geo_match_unit').find("option:selected").text()
+            ($('#refine_lens_geo_match_nbr').val() && $('#refine_lens_geo_match_unit').find("option:selected").text()
              && $('#refine_lens_source_lat_selected_pred').attr('uri') && $('#refine_lens_source_long_selected_pred').attr('uri')
              && $('#refine_lens_target_lat_selected_pred').attr('uri') && $('#refine_lens_target_long_selected_pred').attr('uri') ))
       )
@@ -2801,10 +2809,18 @@ function refineLensClick()
         'numeric_approx_type': $('#refine_lens_approx_num_type').val()
       }
 
-      if ($('#selected_meth').attr('uri') == 'geoSim')
+      if ($('#refine_lens_selected_meth').attr('uri') == 'geoSim')
         {
           specs['geo_dist'] = $('#refine_lens_geo_match_nbr').val() ;
           specs['geo_unit'] = $('#refine_lens_geo_match_unit').find("option:selected").text();
+
+          if ($('#source_lat_selected_pred').attr('uri'))
+          {   specs['src_lat'] = $('#refine_lens_source_lat_selected_pred').attr('uri');
+              specs['src_long'] = $('#refine_lens_source_long_selected_pred').attr('uri');
+              specs['trg_lat'] = $('#refine_lens_target_lat_selected_pred').attr('uri');
+              specs['trg_long'] = $('#refine_lens_target_long_selected_pred').attr('uri');
+          }
+
         }
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
