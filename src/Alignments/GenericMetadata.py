@@ -365,7 +365,7 @@ def linkset_geo_metadata(specs, display=False):
 
     # specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
     specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.linkset_name])
-    specs[St.link] = "{}{}{}".format(Ns.alivocab, "exactStrSim", specs[St.sameAsCount])
+    specs[St.link] = "{}{}{}".format(Ns.alivocab, "nearbyGeoSim", specs[St.sameAsCount])
     specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.linkset_name])
     specs[St.justification] = "{}{}".format(Ns.justification, specs[St.linkset_name])
     specs[St.link_comment] = "The predicate <{}> used in this linkset is a property that reflects an entity " \
@@ -454,6 +454,131 @@ def linkset_geo_metadata(specs, display=False):
 
                "}")
     print query
+    if display is True:
+        print query
+    return query
+
+
+def lens_refine_geo_metadata(specs, display=False):
+
+    extra = ""
+    if St.reducer in specs[St.source] and len(specs[St.source][St.reducer]) > 0:
+        extra += "\n        ll:subjectsReducer      <{}> ;".format(specs[St.source][St.reducer])
+
+    if St.reducer in specs[St.target] and len(specs[St.target][St.reducer]) > 0:
+        extra += "\n        ll:objectsReducer       <{}> ;".format(specs[St.target][St.reducer])
+
+    if St.intermediate_graph in specs and len(specs[St.intermediate_graph]) > 0:
+        extra += "\n        ll:intermediate         <{}> ;".format(specs[St.intermediate_graph])
+
+    if St.threshold in specs and len(str(specs[St.threshold])) > 0:
+        extra += "\n        ll:threshold            {} ;".format(str(specs[St.threshold]))
+
+    if St.delta in specs and len(str(specs[St.delta])) > 0:
+        extra += "\n        ll:delta                {} ;".format(str(specs[St.delta]))
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    src_cross_check = Ls.format_aligns(source[St.crossCheck])
+    src_long = Ls.format_aligns(source[St.longitude])
+    src_lat = Ls.format_aligns(source[St.latitude])
+
+    trg_cross_check = Ls.format_aligns(target[St.crossCheck])
+    trg_long = Ls.format_aligns(target[St.longitude])
+    trg_lat = Ls.format_aligns(target[St.latitude])
+
+    # specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+    specs[St.singleton] = "{}{}".format(Ns.singletons, specs[St.lens_name])
+    specs[St.link] = "{}{}{}".format(Ns.alivocab, "nearbyGeoSim", specs[St.sameAsCount])
+    specs[St.assertion_method] = "{}{}".format(Ns.method, specs[St.lens_name])
+    specs[St.justification] = "{}{}".format(Ns.justification, specs[St.lens_name])
+    specs[St.link_comment] = "The predicate <{}> used in this linkset is a property that reflects an entity " \
+                             "linking approach based on the <{}{}> mechanism.". \
+        format(specs[St.link], Ns.mechanism, specs[St.mechanism])
+
+    if str(specs[St.mechanism]).lower() == "nearbygeosim":
+        specs[St.link_name] = "Near by Geo-Similarity"
+        specs[St.link_subpropertyof] = "http://risis.eu/linkset/predicate/{}".format(specs[St.mechanism])
+        specs[St.justification_comment] = "This includes entities near each other by at most {} <{}>.". \
+            format(specs[St.unit_value], specs[St.unit])
+        specs[St.lens_comment] = "Linking <{}> to <{}> based on their nearby Geo-Similarity" \
+                                    " using the mechanism: {}". \
+            format(source[St.graph], target[St.graph], specs[St.mechanism])
+
+    specs[St.triples] = Qry.get_namedgraph_size(specs[St.lens], isdistinct=False)
+    print "\t>>> {} CORRESPONDENCES INSERTED".format(specs[St.triples])
+
+    query = "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}" \
+            "\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}". \
+        format("##################################################################",
+               "### METADATA FOR {}".format(specs[St.lens]),
+               "##################################################################",
+               "PREFIX prov:        <{}>".format(Ns.prov),
+               "PREFIX ll:          <{}>".format(Ns.alivocab),
+               "PREFIX rdfs:        <{}>".format(Ns.rdfs),
+               "PREFIX void:        <{}>".format(Ns.void),
+               "PREFIX bdb:         <{}>".format(Ns.bdb),
+
+               "INSERT",
+               "{",
+               "    <{}>".format(specs[St.lens]),
+               "        rdfs:label                  \"{}\" ; ".format(specs[St.lens_name]),
+               "        a                           bdb:Lens ;",
+               "        void:triples                {} ;".format(specs[St.triples]),
+               "        ll:sameAsCount              {} ;".format(specs[St.sameAsCount]),
+               "        ll:alignsMechanism          <{}{}> ;".format(Ns.mechanism, specs[St.mechanism]),
+               "        void:subjectsTarget         <{}> ;".format(source[St.graph]),
+               "        void:objectsTarget          <{}> ;".format(target[St.graph]),
+               "        void:linkPredicate          <{}> ;".format(specs[St.link]),
+               "        bdb:subjectsDatatype        <{}> ;".format(source[St.entity_datatype]),
+               "        bdb:objectsDatatype         <{}> ;".format(target[St.entity_datatype]),
+               "        ll:singletonGraph           <{}> ;".format(specs[St.singleton]),
+               "        bdb:assertionMethod         <{}> ;".format(specs[St.assertion_method]),
+               "        bdb:linksetJustification    <{}> ;{}".format(specs[St.justification], extra),
+               "        ll:crossCheckSubject        ?src_crossCheck ;",
+               "        ll:crossCheckObject         ?trg_crossCheck ;",
+
+               "        ll:unit                     <{}> ;".format(specs[St.unit]),
+               "        ll:unitValue                {} ;".format(specs[St.unit_value]),
+
+               "        ll:alignsSubjects           ( ?src_long ?src_lat ) ;",
+               "        ll:alignsObjects            ( ?trg_long ?trg_lat ) ;",
+
+               "        rdfs:comment                \"\"\"{}\"\"\" .".format(specs[St.lens_comment]),
+
+               "\n    ### METADATA ABOUT THE LINKTYPE",
+               "      <{}>".format(specs[St.link]),
+               "        rdfs:comment                \"\"\"{}\"\"\" ;".format(specs[St.link_comment]),
+               "        rdfs:label                  \"{} {}\" ;".format(specs[St.link_name], specs[St.sameAsCount]),
+               "        rdfs:subPropertyOf          <{}> .".format(specs[St.link_subpropertyof]),
+
+               "\n    ### METADATA ABOUT THE LINKSET JUSTIFICATION",
+               "    <{}>".format(specs[St.justification]),
+               "        rdfs:comment              \"\"\"{}\"\"\" .".format(specs[St.justification_comment]),
+
+               "\n    ### ASSERTION METHOD",
+               "    <{}>".format(specs[St.assertion_method]),
+               "        ll:sparql                   \"\"\"{}\"\"\" .".format(specs[St.insert_query]),
+               "}",
+
+               "WHERE",
+               "{",
+               "    BIND(iri({}) AS ?src_crossCheck)".format(src_cross_check),
+               "    BIND(iri({}) AS ?trg_crossCheck)".format(trg_cross_check),
+
+               "    BIND(iri({}) AS ?src_long)".format(src_long),
+               "    BIND(iri({}) AS ?src_lat)".format(src_lat),
+
+               "    BIND(iri({}) AS ?trg_long)".format(trg_long),
+               "    BIND(iri({}) AS ?trg_lat)".format(trg_lat),
+
+               "}")
+    # print query
     if display is True:
         print query
     return query
@@ -587,6 +712,58 @@ def union_meta(specs):
                  specs[St.lens_target_triples], specs[St.triples], specs[St.expectedTriples],
                  specs[St.removedDuplicates], Ns.method, specs[St.lens_name],
                  specs[St.insert_query], Ns.singletons)
+
+    # print metadata
+    return metadata
+
+
+def intersection_meta(specs):
+    """
+    :param specs: is of type dictionary.
+    For this, it needs the following keys:
+        lens_name: the name of this lens
+        lens: the URI of the lens about to be created
+        lens_target_triples: predicate object for each graph directly involved in the lens
+        triples: The number of triples in this graph
+        expectedTriples: Because of possible triple removal, this provides the sum of all correspondences
+        from all direct target graphs
+        removedDuplicates: The number of removed triples in case of duplicates
+        insert_query: the insert query that let to the creation of the current lens.
+    :return:
+    """
+
+    metadata = """
+    ##################################################################
+    ### METADATA
+    ### for the lens: {0}
+    ##################################################################
+    PREFIX rdfs:        <{1}>
+    PREFIX alivocab:    <{2}>
+    PREFIX void:        <{3}>
+    PREFIX bdb:         <{4}>
+    PREFIX lensOp:      <{5}>
+    PREFIX specific:    <{11}>
+
+    INSERT DATA
+    {{
+        ### RESOURCE
+        <{0}>
+            a                                   bdb:Lens ;
+            rdfs:label                          "{9}" ;
+            alivocab:operator                   lensOp:intersection ;{6}
+            void:triples                        {7} ;
+            alivocab:singletonGraph             specific:{9} ;
+            bdb:assertionMethod                 <{8}{9}> .
+        ### ASSERTION METHOD"
+        <{8}{9}>
+            alivocab:sparql           \"\"\"{10}\"\"\" .
+    }}""".format(
+        # 0             1        2            3        4       5
+        specs[St.lens], Ns.rdfs, Ns.alivocab, Ns.void, Ns.bdb, Ns.lensOp,
+        # 6                            7                  8          9
+        specs[St.lens_target_triples], specs[St.triples], Ns.method, specs[St.lens_name],
+        # 10                    11       11
+        specs[St.insert_query], Ns.singletons)
 
     # print metadata
     return metadata

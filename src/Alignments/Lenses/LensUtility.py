@@ -14,8 +14,8 @@ PREFIX = """
     PREFIX prov:        <http://www.w3.org/ns/prov#>
 """
 
-
-def diff_lens_name(specs):
+def lens_name(specs, lens_type):
+    # LENS TYPES: REFINE - DIFFERENCE = TRANSITIVE - COMPOSITION - UNION
     specs[St.lens_operation] = Ns.lensOpd
     # THE NAMES ARE HASHED AS THEY APPEAR TO BE TOO LONG FOR A FILE NAME
     # THIS IS AN EXAMPLE
@@ -24,8 +24,91 @@ def diff_lens_name(specs):
     #           "_approxStrSim_English_Institution_Name_P255977302-Metadata-20180107.t")
     src_name = Ut.hash_it(get_uri_local_name(specs[St.subjectsTarget]))
     trg_name = Ut.hash_it(get_uri_local_name(specs[St.objectsTarget]))
-    specs[St.lens] = "{}diff_{}_{}".format(Ns.lens, src_name, trg_name)
+    specs[St.lens] = u"{}{}_{}_{}".format(Ns.lens, lens_type, src_name, trg_name)
     update_specification(specs)
+
+
+def lens_refine_name(specs, lens_type):
+
+
+    extra = ""
+
+    source = specs[St.source]
+    target = specs[St.target]
+
+    if St.reducer in source:
+        extra += source[St.reducer]
+
+    # GEO DATA
+    unit_value = ""
+
+    if St.longitude in source:
+        extra += source[St.longitude]
+
+    if St.latitude in source:
+        extra += source[St.latitude]
+
+    if St.longitude in target:
+        extra += target[St.longitude]
+
+    if St.latitude in source:
+        extra += target[St.latitude]
+
+    if St.unit in specs:
+        extra += str(specs[St.unit])
+        unit = Ut.get_uri_local_name(str(specs[St.unit]))
+
+    if St.unit_value in specs:
+        extra += str(specs[St.unit_value])
+        unit_value = str(specs[St.unit_value])
+
+    if St.reducer in specs[St.target]:
+        extra += target[St.reducer]
+
+    if St.intermediate_graph in specs:
+        intermediate = str(specs[St.intermediate_graph])
+
+    if St.threshold in specs:
+        extra += str(specs[St.threshold])
+
+    if St.delta in specs:
+        extra += str(specs[St.delta])
+
+    if St.aligns_name in source:
+        extra += source[St.aligns_name]
+    elif St.latitude_name in source:
+        # src_aligns += source[St.latitude_name]
+        extra += "Latitude"
+        if St.longitude_name in source:
+            # src_aligns += source[St.longitude_name]
+            extra += "Longitude"
+
+    if St.aligns_name in target:
+        extra += target[St.aligns_name]
+    elif St.latitude_name in target:
+        # trg_aligns += target[St.latitude_name]
+        extra += "Latitude"
+        if St.longitude_name in target:
+            # trg_aligns += target[St.longitude_name]
+            extra += "Longitude"
+
+    unique = Ut.hash_it(extra)
+    specs[St.lens] = u"{}refine_{}_{}".format(unique, Ns.lens, specs[St.refined_name])
+    update_specification(specs)
+
+
+def diff_lens_name(specs):
+    # specs[St.lens_operation] = Ns.lensOpd
+    # # THE NAMES ARE HASHED AS THEY APPEAR TO BE TOO LONG FOR A FILE NAME
+    # # THIS IS AN EXAMPLE
+    # # print len("diff_eter_2014_orgreg_20170718_nearbyGeoSim1Kilometer_University_LatitudeLongitude_P871330770"
+    # #           "_refined_eter_2014_orgreg_20170718_nearbyGeoSim1Kilometer_University_LatitudeLongitude_P871330770"
+    # #           "_approxStrSim_English_Institution_Name_P255977302-Metadata-20180107.t")
+    # src_name = Ut.hash_it(get_uri_local_name(specs[St.subjectsTarget]))
+    # trg_name = Ut.hash_it(get_uri_local_name(specs[St.objectsTarget]))
+    # specs[St.lens] = "{}diff_{}_{}".format(Ns.lens, src_name, trg_name)
+    # update_specification(specs)
+    lens_name(specs, "diff")
 
 
 def composition_lens_name(specs):
@@ -81,7 +164,7 @@ def lens_targets_unique(unique_list, graph):
 
         return u_query
 
-    # THIS FUNCTION TAKES AS INPUT A LENS AND FILS IN THE  THE DICTIONARY
+    # THIS FUNCTION TAKES AS INPUT A LENS AND FILLS IN THE DICTIONARY
     # ARGUMENT WITH UNIQUE DATASETS INVOLVED IN THE LENS
 
     # GET THE TYPE OF THE GRAPH: e.g.: http://rdfs.org/ns/void#Linkset
@@ -154,7 +237,7 @@ def unique_targets(datasets):
     return unique_list
 
 
-def generate_lens_name(datasets):
+def generate_lens_name(datasets, operator="union"):
 
     datasets.sort()
     ds_concat = ""
@@ -182,9 +265,27 @@ def generate_lens_name(datasets):
 
     hash_value = str(hash_value).replace("-", "N") if str(hash_value).__contains__("-") else "P{}".format(hash_value)
 
-    name = "union_{}_{}".format(name, hash_value)
+    name = "{}_{}_{}".format(operator, name, hash_value)
 
     # print name
     # print query
     # print hash(name)
     return {"name": name, "query": query}
+
+
+def print_specs(specs):
+
+    print Ut.headings("SPECIFICATIONS DATA")
+    # PRINT SPECS
+    for key, data in specs.items():
+        if key == "target" or key == "source":
+            new_line = "\n"
+        else:
+            new_line = ""
+        print "{}\t{:22}{}".format(new_line, key, "{}".format(
+            ": {}".format(data) if (type(data) == unicode or type(data) == str or type(data) == int)else ""))
+
+        if type(data) == dict:
+            for detail, val in data.items():
+                print "\t\t{:18}: {}".format(detail, val)
+            print ""

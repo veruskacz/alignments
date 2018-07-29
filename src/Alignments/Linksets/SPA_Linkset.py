@@ -1630,6 +1630,61 @@ def cluster_specs_2_linksets(specs, activated=False):
     GEO-SIMILARITY
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+# GEO-SIM DOES NOT WORK WELL WITH LINKSETS
+# prefix rsc: <http://geotest/>
+# prefix unit: <http://qudt.org/vocab/unit#>
+# prefix wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+# graph rsc:geodataset
+# {
+#     rsc:A 	a 			rsc:Location ;
+#             rsc:label	"A";
+#             wgs:lat 	"0.0"^^xsd:float ;
+#             wgs:long 	"0.0"^^xsd:float .
+#
+#     rsc:B 	a 			rsc:Location ;
+#         rsc:label	"B";
+#         wgs:lat 	"0.02"^^xsd:float ;
+#         wgs:long 	"0.0"^^xsd:float .
+#
+#
+#     rsc:C 	a 		rsc:Location ;
+#         rsc:label	"C";
+#         wgs:lat 	"0.02"^^xsd:float ;
+#         wgs:long 	"0.02"^^xsd:float .
+#
+#     rsc:D 	a 		rsc:Location ;
+#         rsc:label	"D";
+#         wgs:lat 	"0.0"^^xsd:float ;
+#         wgs:long 	"0.02"^^xsd:float .
+# }
+#
+# graph rsc:geodalinkset
+# {
+#     rsc:A 	rsc:linkedTo	rsc:D  .
+#
+#     rsc:B 	rsc:linkedTo	rsc:C  .
+# }
+#
+#
+# prefix rsc: <http://geotest/>
+# prefix unit: <http://qudt.org/vocab/unit#>
+# prefix wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+# prefix geof: <http://www.opengis.net/def/function/geosparql/>
+# select *
+# {
+#   graph rsc:geodalinkset {?a ?b ?c}
+#   graph rsc:geodataset {?a rsc:label ?la. ?c rsc:label ?lc.}
+#   ?a geof:nearby (?c 3 unit:Kilometer) ;
+#   filter (str(?a) != str(?c))
+# }
+#
+#
+#  a					 b							 c					la	lc
+#  http://geotest/B	 http://geotest/linkedTo	 http://geotest/C	B	C
+#  http://geotest/D	 http://geotest/linkedTo	 http://geotest/C	D	C
+#  http://geotest/C	 http://geotest/linkedTo	 http://geotest/D	C	D
+#  http://geotest/A	 http://geotest/linkedTo	 http://geotest/D	A	D
+
 
 def geo_query(specs, is_source):
 
@@ -1874,9 +1929,9 @@ def geo_specs_2_linkset(specs, activated=False, check_file=False):
 
                     ls_end = time.time()
                     diff = ls_end - ls_start
-                    print ">>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
+                    print "\n\t>>> Executed so far in    : {:<14}".format(str(datetime.timedelta(seconds=diff)))
 
-                    if int(specs[St.triples]) > 0:
+                    if [St.triples] is not None and int(specs[St.triples]) > 0:
 
                         ########################################################################
                         print """\n4. INSERTING THE GENERIC METADATA                         """

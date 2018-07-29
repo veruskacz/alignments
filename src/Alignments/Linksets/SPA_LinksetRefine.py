@@ -644,6 +644,10 @@ def refine_numeric_query(specs):
 
     return [drop, source, target, find, drop_final_1, drop_final_2]
 
+
+def refine_nearby_geo_query(specs):
+    ""
+
 ########################################################################################
 # SINGLE PREDICATE ALIGNMENT FOR LINKSET REFINEMENT BASED ON INTERMEDIATE
 ########################################################################################
@@ -880,6 +884,8 @@ def refine_metadata(specs, save=False):
 
 def is_refinable(graph):
 
+    print Ut.headings("IS {} REFINABLE?".format(graph))
+
     # x = "http://risis.eu/lens/union_Grid_20170712_H2020_P1626350579"
     description = Buffer.StringIO()
 
@@ -905,7 +911,7 @@ def is_refinable(graph):
     if response:
         result = response[St.result]
         if result is not None and len(result) == 2:
-            description.write("\n{}\nIS REFINABLE AS ALL LINKSETS INVOLVED IN "
+            description.write("\n>>> {} IS REFINABLE... \n>>> AS ALL LINKSETS INVOLVED IN "
                               "THE LENS SHARE THE SAME SPECIFICATION DESCRIBED BELOW ...".format(graph))
             for i in range(1, len(result)):
                 description.write("\n\n\t{:17}: {}".format(result[0][0], result[i][0]))

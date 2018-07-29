@@ -35,14 +35,14 @@ DIRECTORY = Ss.settings[St.lens_Union__dir]
 #################################################################
 
 
-def run_checks(specs, query):
+def run_checks(specs, query, operator="union"):
 
     print "\n3. RUNNING GOOD TO GO CHECK"
     # print "QUERY FOR CHECK:", query
     # CHECK-1: CHECK WHETHER THE LENS EXIST BY ASKING ITS METADATA WHETHER IT IS COMPOSED OF THE SAME GRAPHS
-    print "QUERY:", query
+    # print "QUERY:", query
     ask = Qry.sparql_xml_to_matrix(query)
-    print"\t3.1 ANSWER 1:", ask['message']
+    print"\n\t3.1 ANSWER 1:", ask['message']
 
     # ASK IS NOT SUPPOSED TO BE NONE
     # CHECK-1-RESULT: PROBLEM CONNECTING WITH THE SERVER
@@ -53,17 +53,27 @@ def run_checks(specs, query):
 
     # CHECK-1-RESULT: ASK HAS A RESULT, MEANING THE LENS EXIT UNDER THE SAME COMPOSITION OF GRAPHS
     elif ask[St.message] != "NO RESPONSE":
-        print "\tFOUND"
+
         if ask[St.result]:
+            print "\n\t    FOUND"
             for i in range(1, len(ask[St.result])):
                 print "\t\t- {}".format(ask[St.result][i][0])
+
         # IF THERE IS RESULT WITH THE SAME NUMBER OF TARGETS THEN THE LENS ALREADY EXISTS
-        if ask[St.result] and len(ask[St.result]) - 1 == len(specs[St.datasets]):
+        if operator == "union" and ask[St.result] and len(ask[St.result]) - 1 == len(specs[St.datasets]):
 
             message = Ec.ERROR_CODE_7.replace("#", specs[St.lens]).replace("@", ask[St.result][1][0])
             print message
             return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: specs[St.lens]}
-        print "\tCHECK 1: THERE IS NO METADATA FOR TIS LENS"
+
+        if ask[St.result] is not None and len(ask[St.result]) == 0:
+            print "\n\t    CHECK 1: THERE IS NO METADATA FOR TIS LENS\n"
+        elif ask['message'] == "NO RESULT FOR THE QUERY":
+            pass
+        else:
+            message = Ec.ERROR_CODE_71.replace("#", specs[St.lens])
+            print "\n\t", message
+            return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: specs[St.lens]}
         # ELSE
         # WITH THE UNSTATED ELSE, WE GET OUT AND PROCEED TO THE CREATION OF A NEW LENS
     else:
@@ -83,14 +93,14 @@ def run_checks(specs, query):
 
     if ask is None:
         # PROBLEM CONNECTING WITH THE SERVER
-        print " CHECK 2: PROBLEM CONNECTING WITH THE SERVER"
+        print "\t3.2 CHECK 2: PROBLEM CONNECTING WITH THE SERVER"
         print Ec.ERROR_CODE_1
         return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: specs[St.lens]}
 
     if ask == "true":
-        print " CHECK 2: THE LINKSET ALREADY EXISTS"
-        message = Ec.ERROR_CODE_6.replace("#", specs[St.lens])
-        print message
+        print "\t3.2 CHECK 2: BUT, THE LENS ITSELF ALREADY EXISTS"
+        message = Ec.ERROR_CODE_71.replace("#", specs[St.lens])
+        print "\t", message
         return {St.message: message.replace("\n", "<br/>"), St.error_code: 1, St.result: specs[St.lens]}
 
     print "\n\tDIAGNOSTICS: GOOD TO GO\n"

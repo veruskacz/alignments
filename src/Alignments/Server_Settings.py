@@ -76,6 +76,7 @@ settings = {
     St.linkset_Emb_dir: '{0}{1}{1}Linkset{1}{1}Embedded'.format(DIR, SEP),
     St.linkset_ID_dir: '{0}{1}{1}Linkset{1}{1}Identifier'.format(DIR, SEP),
     St.linkset_Refined_dir: '{0}{1}{1}Linkset{1}{1}Refined'.format(DIR, SEP),
+    St.lens_Refined_dir: '{0}{1}{1}Lens{1}{1}Refined'.format(DIR, SEP),
 
     # LENS FOLDER
     St.lens_dir: '{0}{1}{1}Lens'.format(DIR, SEP),

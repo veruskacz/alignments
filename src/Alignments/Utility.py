@@ -1118,7 +1118,7 @@ def stardog_off(bat_path):
             # print "IS DICTIONARY"
             print ">>> RESPONSE: {}".format(off['result'])
             # lock_file = [name for name in os.listdir(Svr.settings[St.stardog_data_path]) if name.endswith('.lock')]
-            if off['result'].lower().__contains__("successfully") and len(lock_file) > 0:
+            if off['result'] is not None and off['result'].lower().__contains__("successfully") and len(lock_file) > 0:
                 # MAKE SURE AS SOMETIMES IT TAKES TIME FOR THE LOCK FILE TO BE REMOVED BY STARDOG
                 if path.exists(join(directory, lock_file[0])):
                     os.remove(join(directory, lock_file[0]))

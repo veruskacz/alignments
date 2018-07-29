@@ -166,7 +166,7 @@ def register_alignment_mapping(alignment_mapping, created):
     print "\nREGISTERING AN [ALIGNMENT-MAPPING]"
     question_uri = alignment_mapping[St.researchQ_URI]
 
-    # MAKE URE THE WRITE URI IS USED WHEN REGISTERING A REFINED LINKSET
+    # MAKE SURE THE WRITE URI IS USED WHEN REGISTERING A REFINED LINKSET
     linkset_uri = alignment_mapping[St.refined] if St.refined in alignment_mapping else alignment_mapping[St.linkset]
     print "\tLINKSET TO REGISTER:", linkset_uri
 

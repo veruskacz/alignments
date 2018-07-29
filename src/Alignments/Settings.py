@@ -188,6 +188,7 @@ linkset_Emb_dir = "linkset_Emb_dir"
 linkset_ID_dir = "linkset_ID_dir"
 linkset_Refined_dir = "linkset_Refined_dir"
 linkset_Subset_dir = "linkset_Subset_dir"
+lens_Refined_dir = "lens_Refined_dir"
 
 lens_Diff_dir = "lens_Diff_dir"
 lens_transitive__dir = "lens_transitive__dir"

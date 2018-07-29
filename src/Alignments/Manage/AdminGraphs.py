@@ -378,6 +378,7 @@ def drop_a_lens(lens, display=False, activated=False):
     """.format(Ns.void, Ns.bdb, Ns.alivocab, lens)
 
     if activated is True:
+
         print "{}{}{}".format(
             "======================================================="
             "=======================================================\n",
@@ -389,15 +390,18 @@ def drop_a_lens(lens, display=False, activated=False):
         drop_start = time.time()
         drops_response = endpoint(queries)
         drop_end = time.time()
+        print drops_response , "Done!!!"
 
         if drops_response[St.result] is not None:
             if len(drops_response[St.result]) == 0:
                 return error
             drops_doc = xmltodict.parse(drops_response[St.result])
             print "\t>>> Query executed : {:<14}".format(drops_doc['sparql']['boolean'])
-            print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
-            if display is True:
-                print ">>> Query details  : {}\n".format(queries)
+
+        print "\t>>> Executed in    : {:<14} minute(s)".format(str((drop_end - drop_start) / 60))
+
+        if display is True:
+            print ">>> Query details  : {}\n".format(queries)
         print ""
 
 

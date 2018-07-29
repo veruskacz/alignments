@@ -33,6 +33,7 @@ if CREATION_ACTIVE:
     import Alignments.ErrorCodes as Ec
     import Alignments.Manage.AdminGraphs as adm
     from Alignments.Lenses.Lens_Union import union
+    from Alignments.Lenses.Lens_Intersection import intersecting
     from Alignments.Lenses.Lens_Difference import difference as diff
     from Alignments.Lenses.Lens_transitive import lens_transitive as trans
     import Alignments.UserActivities.UserRQ as Urq
@@ -1892,6 +1893,18 @@ def spa_lens():
                     St.lens_operation: operator }
                 lens_result = trans(specs, activated=True)
 
+            elif str(operator).lower() == "intersection":
+                graphs = request.args.getlist('graphs[]')
+                specs = {
+                    St.researchQ_URI: rq_uri,
+                    St.datasets: graphs,
+                    St.lens_operation: operator }
+                print specs
+                lens_result = intersecting(specs, activated=True)
+                # lens_result = {'message': 'implementing it now!',
+                #                'error_code': -1,
+                #                St.result: None}
+
             else:
                 lens_result = {'message': 'Operation not implemented!',
                                'error_code': -1,
@@ -1916,7 +1929,7 @@ def spa_lens():
 def refineAlignment():
 
     alignment = request.args.get('alignment_uri', '')
-    print alignment
+    # print alignment
     is_refinable = refine.is_refinable(alignment)
 
     if is_refinable['message'] == True:
@@ -1947,10 +1960,77 @@ def refineAlignment():
             St.numeric_approx_type: request.args.get('numeric_approx_type', ''),
         }
 
-        print specs
+
+
+        if request.args.get('check_rdf', 'true') == 'true':
+            check_rdf = True
+        else:
+            check_rdf = False
+
+        if len(request.args.get('intermediate_graph', '')) > 0:
+            specs[St.intermediate_graph] = request.args.get('intermediate_graph', '')
+
+        if len(request.args.get('src_reducer', '')) > 0:
+            specs[St.source][St.reducer] = request.args.get('src_reducer', '')
+
+        if len(request.args.get('trg_reducer', '')) > 0:
+            specs[St.target][St.reducer] = request.args.get('trg_reducer', '')
+
+        if len(request.args.get('corresp_reducer', '')) > 0:
+            specs[St.corr_reducer] = request.args.get('corresp_reducer', '')
+
+        if len(request.args.get('src_lat', '')) > 0:
+            specs[St.source][St.latitude] = request.args.get('src_lat', '')
+            specs[St.source][St.crossCheck] = specs[St.source][St.aligns]
+            del specs[St.source][St.aligns]
+
+        if len(request.args.get('src_long', '')) > 0:
+            specs[St.source][St.longitude] = request.args.get('src_long', '')
+
+        if len(request.args.get('trg_lat', '')) > 0:
+            specs[St.target][St.latitude] = request.args.get('trg_lat', '')
+            specs[St.target][St.crossCheck] = specs[St.target][St.aligns]
+            del specs[St.target][St.aligns]
+
+        if len(request.args.get('trg_long', '')) > 0:
+            specs[St.target][St.longitude] = request.args.get('trg_long', '')
+
+        # ADDING AN EXTENDED SOURCE GRAPH IF SELECTED
+        temp_src = request.args.get('src_graph_enriched', '')
+        if temp_src:
+            specs[St.source][St.extended_graph] = temp_src
+        # print "temp_src:", temp_src
+
+        # ADDING AN EXTENDED TARGET GRAPH IS SELECTED
+        temp_trg = request.args.get('trg_graph_enriched', '')
+        if temp_trg:
+            specs[St.target][St.extended_graph] = temp_trg
+        # print "temp_trg:", temp_trg
+
+        # ADDING A DELTA VALUE IF GIVEN
+        temp_delta = request.args.get('delta', '')
+        if temp_delta:
+            specs[St.delta] = temp_delta
+
+        # ADDING A NUMERIC APPROXIMATION
+        temp_num_approx = request.args.get('numeric_approx_type', '')
+        if temp_num_approx:
+            specs[St.numeric_approx_type] = temp_num_approx
+
+
+
+
+        # PRINT SPECS
+        # print specs
+        for targets, data in specs.items():
+            print "\n\t{:22}{}".format(targets, "{}".format(": {}".format(data) if type(data) == unicode else ""))
+            if type(data) == dict:
+                for detail, val in data.items():
+                    print "\t\t{:18}: {}".format(detail, val)
+
 
         if CREATION_ACTIVE:
-            print specs['mechanism']
+            # print specs['mechanism']
 
             if specs['mechanism'] == 'exactStrSim':
                 result = refine.refine(specs, activated=True)
@@ -1971,7 +2051,13 @@ def refineAlignment():
                                         stop_symbols_string=stop_symbols)
 
             elif specs['mechanism'] == 'geoSim':
-                result = None
+                # result = None
+                specs['mechanism'] = 'nearbyGeoSim'
+                result = spa_linkset2.geo_specs_2_linkset(specs, activated=FUNCTION_ACTIVATED,
+                                                                  check_file=check_rdf)
+                # print linkset_result
+
+
 
             elif specs[St.mechanism] == "intermediate":
                 result = refine.refine(specs, activated=True)

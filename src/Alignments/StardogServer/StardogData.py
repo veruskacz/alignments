@@ -428,7 +428,7 @@ def query_graph_search(search_exp):
 
 def query_graph_metadata(graph):
 
-    print headings("QUERYING STARDOG FOR TGHE GENERIC METADATA OF A GRAPH")
+    print headings("QUERYING STARDOG FOR THE GENERIC METADATA OF A GRAPH")
     print "{:12} : {}".format("INPUT GRAPH ", graph)
     graph = main_alignment(graph)
     print "{:12} : {}".format("MAIN GRAPH", graph)
