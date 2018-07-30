@@ -1631,7 +1631,22 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
     comment_limit = "# " if limit is None else ""
     comment_offset = "# " if offset is None else ""
 
-    checkStrength = graph_exists(from_alignment2singleton(alignments))
+    #checkStrength = graph_exists(from_alignment2singleton(alignments))
+    ask_strenght = """
+    ASK {{
+            GRAPH <{}>
+            {{
+                ?predicate  prov:wasDerivedFrom*  ?DerivedFrom  .
+            }}
+            GRAPH ?g
+            {{
+                ?DerivedFrom  prov:wasDerivedFrom*/ll:hasStrength  ?Strength ;
+                              prov:wasDerivedFrom*/ll:hasEvidence  ?Evidence .
+            }}
+        }}
+    """.format(from_alignment2singleton(alignments))
+    checkStrength = boolean_endpoint_response(ask_strenght)
+
     comment_singleton = "# " if checkStrength is False else ""
 
     check = resources is None or len(resources) == 0
@@ -1656,7 +1671,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
         {5}}}
 
         # FETCH CORRESPONDENCE STRENGTH
-        {10}{{
+        {10} {{
         {10}    GRAPH <{2}>
         {10}    {{
         {10}        ?predicate  prov:wasDerivedFrom*  ?DerivedFrom  .
