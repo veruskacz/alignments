@@ -246,7 +246,10 @@ def extract_query(specs, is_source):
     {{
         GRAPH <{1}>
         {{
+            # RESOURCE IS OF A CERTAIN TYPE
             ?{5}  {2}  <{7}> .
+
+            # EXTRACT THE PROPERTY-VALUE TO ALIGN
             ?{5}  {3}  ?object .
 
             # LOWER CASE OF THE VALUE
@@ -267,8 +270,10 @@ def extract_query(specs, is_source):
         {6}    }}
         {6}}}
     }}
-    """.format(Ns.tmpgraph, uri, rdf_pred, aligns,
-               reducer, name, reducer_comment, info[St.entity_datatype], load)
+    """.format(
+        # 0          1    2         3       4 `      5     6                7                         8
+        Ns.tmpgraph, uri, rdf_pred, aligns, reducer, name, reducer_comment, info[St.entity_datatype], load
+    )
     return query
 
 
