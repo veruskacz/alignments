@@ -830,16 +830,25 @@ def write_2_disc(file_directory, file_name, data, extension="txt"):
                 document.close()
 
 
-def get_writers(graph_name, directory):
+def get_writers(graph_name, directory, expands, is_source):
+
+    # expands: A BOOLEAN PARAMETER TO SPECIFIED WHETHER THE LINKSET IS BEING EXPANDED
+    # is_source: TO SPECIFY IF THIS ES BEING EXPANDED FROM THE SOURCE OR THE TARGET.
+    if expands is True and is_source is True:
+        unique = "_expands_source_"
+    elif expands is True and is_source is False:
+        unique = "_expands_target_"
+    else:
+        unique = ""
 
     #  print graph_name
     """ 2. FILE NAME SETTINGS """
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
     dir_name = directory  # write_to_path  # os.path.dirname(f_path)
-    batch_file = "{}_batch_{}{}".format(graph_name, date, batch_extension())
-    linkset_file = "{}(Linksets)-{}.trig".format(graph_name, date)
-    metadata_file = "{}(Metadata)-{}.sparql".format(graph_name, date)
-    singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(graph_name, date)
+    batch_file = "{}_batch{}_{}{}".format(graph_name, unique, date, batch_extension())
+    linkset_file = "{}(Linksets){}-{}.trig".format(graph_name, unique, date)
+    metadata_file = "{}{}(Metadata)-{}.sparql".format(graph_name, unique, date)
+    singleton_metadata_file = "{}{}(SingletonMetadata)-{}.trig".format(graph_name, unique, date)
     dir_name = dir_name.replace("\\", "/")
     dir_name = dir_name.replace("//", "/")
 
