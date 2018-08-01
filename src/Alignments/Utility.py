@@ -52,12 +52,15 @@ def activation(activated, function, heading):
         return False
 
 
-def headings(message):
+def headings(message, line=True):
     _format = "It is %a %b %d %Y %H:%M:%S"
     date = datetime.datetime.today()
-    _line = "--------------------------------------------------------------" \
-            "--------------------------------------------------------------"
-    return "\n\n{0}\n{2:>117}\n{1:>117}\n{0}\n".format(_line, message, date.strftime(_format))
+    if line is True:
+        _line = "--------------------------------------------------------------" \
+                "--------------------------------------------------------------"
+    else:
+        _line = ""
+    return "\n{0}\n{2:>117}\n{1:>117}\n{0}".format(_line, message, date.strftime(_format))
 
 
 def zip_dir(file_path, zip_name):
@@ -403,6 +406,10 @@ def update_specification(specs):
     if St.refined in specs:
         specs[St.refined_name] = get_uri_local_name(specs[St.refined])
         specs[St.refined_ns] = str(specs[St.refined]).replace(specs[St.refined_name], '')
+
+    if St.expands in specs:
+        specs[St.expands_name] = get_uri_local_name(specs[St.expands])
+        specs[St.expands_ns] = str(specs[St.expands]).replace(specs[St.expands_name], '')
 
     # print "DONE WITH SPECS UPDATE"
 
@@ -830,7 +837,7 @@ def write_2_disc(file_directory, file_name, data, extension="txt"):
                 document.close()
 
 
-def get_writers(graph_name, directory, expands, is_source):
+def get_writers(graph_name, directory, expands=False, is_source=True):
 
     # expands: A BOOLEAN PARAMETER TO SPECIFIED WHETHER THE LINKSET IS BEING EXPANDED
     # is_source: TO SPECIFY IF THIS ES BEING EXPANDED FROM THE SOURCE OR THE TARGET.
@@ -1505,4 +1512,3 @@ def get_resource_value(resources, targets):
 #                 BIND(<{0}> AS ?dataset)
 #                 ?resource a <{1}> .
 #                 ?resource {2} ?value
-

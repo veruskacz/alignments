@@ -1788,10 +1788,109 @@ def remove_duplicates(graph):
 
         FILTER (str(?s) > str(?o) )
     }}""".format(graph, Ns.singletons)
-    # print query
+    print query
     response = boolean_endpoint_response(query)
     response = True if response == "true" else False
     return response
+
+
+def remove_repetition_same_direction(graph):
+
+    # THIS QUERY REMOVES REPEATED SUBJECT - OBJECT WITH THE SAME GRAPH
+    # NOTE THAT THIS EXPECT THE REPETITION TO HAVE THE SAME EVIDENCE
+
+    singleton = from_alignment2singleton(graph)
+    query = """
+
+    ### 1. DELETE FROM THE GIVEN GRAPH ALL REPEATED TRIPLES
+    DELETE
+    {{
+        GRAPH <{0}>
+        {{
+            ?s ?p ?o
+        }}
+    }}
+    WHERE
+    {{
+        GRAPH <{0}>
+        {{
+            ?s ?p ?o
+        }}
+
+        FILTER NOT EXISTS
+        {{
+            {{
+                SELECT ?s (max(?p2) as ?p) ?o
+                {{
+                    GRAPH <{0}>
+                    {{
+                        ?s ?p2 ?o
+                    }}
+               }} GROUP BY ?s ?o
+            }}
+        }}
+    }};
+
+    ### 2. DELETE FROM THE SINGLETON GRAPH THE SINGLETONS DELETED FROM THE GIVEN GRAPH
+    DELETE
+    {{
+          GRAPH <{1}>
+          {{
+                ?singleton ?p ?o
+          }}
+    }}
+    WHERE
+    {{
+         GRAPH <{1}>
+         {{
+                ?singleton ?p ?o
+         }}
+
+        FILTER NOT EXISTS
+        {{
+            {{
+                SELECT ?singleton
+                {{
+                    GRAPH <{0}>
+                    {{
+                        ?s ?singleton ?o
+                    }}
+               }}
+            }}
+        }}
+    }} ;
+
+    ### 3. MODIFY THE TOTAL NUMBER OF TRIPLES
+    PREFIX void:        <{2}>
+    DELETE
+    {{
+        <{0}> void:triples ?total .
+    }}
+    WHERE
+    {{
+        <{0}> void:triples ?total .
+    }};
+
+    ### 4. INSERT NEW COUNT
+    PREFIX void:        <{2}>
+    INSERT
+    {{
+        <{0}> void:triples ?total .
+    }}
+    WHERE
+    {{
+        SELECT (COUNT(?predicate) as ?total)
+        {{
+            GRAPH <{0}>
+            {{
+                ?subject ?predicate ?object .
+            }}
+        }}
+    }}
+
+    """.format(graph, singleton, Ns.void)
+    # print query
+    return boolean_endpoint_response(query)
 
 
 def graph_exists(graph):

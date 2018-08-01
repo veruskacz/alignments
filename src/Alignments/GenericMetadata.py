@@ -161,7 +161,7 @@ def linkset_metadata(specs, display=False):
                "    BIND(iri({}) AS ?src_aligns)".format(src_aligns),
                "    BIND(iri({}) AS ?trg_aligns){}".format(trg_aligns, cross_check_where),
                "}")
-    print query
+    # print query
     if display is True:
         print query
     return query

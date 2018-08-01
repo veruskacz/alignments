@@ -3,6 +3,7 @@ import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.Utility as Ut
 from Alignments.Utility import get_uri_local_name, update_specification  # write_to_file,
+from kitchen.text.converters import to_unicode, to_bytes
 
 PREFIX = """
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
@@ -275,15 +276,23 @@ def generate_lens_name(datasets, operator="union"):
 
 def print_specs(specs):
 
-    print Ut.headings("SPECIFICATIONS DATA")
+    print Ut.headings("SPECIFICATIONS DATA", line=False)
     # PRINT SPECS
     for key, data in specs.items():
         if key == "target" or key == "source":
             new_line = "\n"
         else:
             new_line = ""
+
+        if type(data) == str or type(data) == int or type(data) == unicode:
+            value = to_unicode(data)  #.encode(encoding='utf-8')
+        elif type(data) == float or type(data) == int:
+            value = to_unicode(data)
+        else:
+            value = type(data)
+
         print "{}\t{:22}{}".format(new_line, key, "{}".format(
-            ": {}".format(data) if (type(data) == unicode or type(data) == str or type(data) == int)else ""))
+            ": {}".format(to_bytes(value))))
 
         if type(data) == dict:
             for detail, val in data.items():

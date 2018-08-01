@@ -156,9 +156,9 @@ refined = "refined"
 refined_name = "refined_name"
 refined_ns = "refined_ns"
 
-expanded = "expanded"
-expanded_name = "expanded_name"
-expanded_ns = "expanded_ns"
+expands = "expands"
+expands_name = "expands_name"
+expands_ns = "expands_ns"
 
 derivedfrom = "derived from"
 

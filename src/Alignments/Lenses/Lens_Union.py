@@ -371,3 +371,5 @@ def union_insert_q(lens, source, label):
     """.format(Ns.prov, Ns.tmpgraph, source, Ns.alivocab, lens, Ns.tmpvocab, lens_name, Ns.singletons)
     return query
 # Codes for manipulating stardog data and querying stardog from shell
+
+# remove_repetition_same_direction("http://risis.eu/linkset/expands_INDRecognisedSponsors_grid_20170712_exactStrSim_Organigasion_Organisation_N1231646853_N1917253162")

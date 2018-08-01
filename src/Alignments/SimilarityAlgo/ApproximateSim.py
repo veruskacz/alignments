@@ -18,6 +18,7 @@ from kitchen.text.converters import to_unicode, to_bytes
 from Alignments.CheckRDFFile import check_rdf_file
 import Alignments.Server_Settings as Svr
 import Alignments.ErrorCodes as Ec
+import Alignments.Lenses.LensUtility as lensUt
 DIRECTORY = Svr.settings[St.linkset_Approx_dir]
 
 
@@ -340,7 +341,8 @@ def edit_distance(token_x, token_y):
 
 
 def prefixed_inverted_index(
-        specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None, check_file=False):
+        specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None,
+        expands=False, is_source=True, linkset2expand=None, check_file=False):
 
     #################################################################
     # BACKGROUND
@@ -396,7 +398,29 @@ def prefixed_inverted_index(
     #################################################################
 
     # HELPER FOR EXTRACTING SPA VALUES FROM A GRAPH
-    def get_table(dataset_specs, reducer=None):
+    def get_table(dataset_specs, reducer=None, expands=False, is_source=True, linkset2expand=None):
+
+        if expands is True and linkset2expand is not None:
+
+            if is_source is True:
+                expansion = """
+            GRAPH <{0}>
+            {{
+                ?subject ?singleton ?target .
+            }}
+        """.format(linkset2expand)
+
+            else:
+                expansion = """
+            GRAPH <{0}>
+            {{
+                ?source ?singleton ?subject .
+            }}
+        """.format(linkset2expand)
+
+
+        else:
+            expansion = ""
 
         # ADD THE REDUCER IF SET. THE REDUCER OR (DATASET REDUCER) HELPS ELIMINATING
         # THE COMPUTATION OF SIMILARITY FOR INSTANCES THAT WHERE ALREADY MATCHED
@@ -410,14 +434,15 @@ def prefixed_inverted_index(
         aligns = dataset_specs[St.aligns] if Ut.is_nt_format(dataset_specs[St.aligns]) \
             else "<{}>".format(dataset_specs[St.aligns])
         query = """
-        SELECT DISTINCT *
+        # LOADING PREDICATE-VALUES
+        SELECT DISTINCT ?subject ?object
         {{
             GRAPH <{0}>
             {{
                 ?subject
                     a       <{1}> ;
                     {2}    ?object .
-            }}
+            }}{6}
             {4}FILTER NOT EXISTS
             {4}{{
             {4}    GRAPH <{3}>
@@ -430,7 +455,7 @@ def prefixed_inverted_index(
         }} {5}
         """.format(
             dataset_specs[St.graph], dataset_specs[St.entity_datatype], aligns,
-            reducer, reducer_comment, LIMIT)
+            reducer, reducer_comment, LIMIT, expansion)
         table_matrix = Qry.sparql_xml_to_matrix(query)
         # Qry.display_matrix(table_matrix, is_activated=True)
         # print table_matrix
@@ -680,6 +705,15 @@ def prefixed_inverted_index(
     specs["stop_words_string"] = stop_words_string
     specs["stop_symbols_string"] = stop_symbols_string
     specs[St.threshold] = theta
+    if expands is True and linkset2expand is not None:
+        specs[St.expands] = linkset2expand
+        Ut.update_specification(specs)
+
+    # *******************************************
+    lensUt.print_specs(specs)
+    # *******************************************
+    # print specs
+    # return {St.message: "testing", St.error_code: 0, St.result: "TESTING"}
 
     debug = False
     start = time()
@@ -690,15 +724,24 @@ def prefixed_inverted_index(
     target = specs[St.target]
     Ut.update_specification(source)
     Ut.update_specification(target)
-    Ls.set_linkset_name(specs)
 
-    print "LINKSET: {}".format(specs[St.linkset_name])
+    # ********************************************
+    # LINKSET NAME
+    # ********************************************
+    if expands is True and linkset2expand is not None:
+        Ls.set_linkset_expands_name(specs)
+    else:
+        Ls.set_linkset_name(specs)
+
+    # print "\nLINKSET SET TO: {}".format(specs[St.linkset_name])
 
     specs[St.graph] = specs[St.linkset]
     specs[St.sameAsCount] = Qry.get_same_as_count(specs[St.mechanism])
     specs[St.insert_query] = "The generated triple file was uploaded to the server."
 
+    # *******************************************
     # STOP WORD LIST
+    # *******************************************
     stop_words_string = stop_words_string.lower()
     stop_word = stop_words_string.split(" ")
     # if stop_words_string is not None and len(stop_words_string) > 0:
@@ -707,19 +750,37 @@ def prefixed_inverted_index(
     #         if stop not in stop_word:
     #             stop_word[stop] = stop
 
+    # ******************************************************************
     # GENERATE THE ALIGNMENT REDUCER IF PROVIDED. IT WILL HELP IN
     # REDUCING TIME COMPLEXITY BY AVOIDING REESTABLISHING EQUIVALENCE
+    # ******************************************************************
     if St.corr_reducer in specs:
         corr_reducer = get_corr_reducer(specs[St.corr_reducer])
     else:
         corr_reducer = None
 
+    # ******************************************************************
     # CHECK WHETHER OR NOT THE LINKSET WAS ALREADY CREATED
     # print "BEFORE CHECK {}".format(specs[St.linkset])
-    check = Ls.run_checks(specs, check_type="linkset")
+    # ******************************************************************
+    if expands is True and linkset2expand is not None:
+        check = Ls.run_checks_expands(specs, check_type="linkset")
+    else:
+        check = Ls.run_checks(specs, check_type="linkset")
+
+    # return {St.message: "testing", St.error_code: 0, St.result: "TESTING"}
+
     # print "AFTER CHECK {}".format(specs[St.linkset])
     if check[St.result] != "GOOD TO GO":
-        return check
+        # EXPAND NEED TO RUN THE SAME ALGORITHM TWICE. SO DISABLE THE CHECK FOR THE SECOND RUN
+
+        # CONTINUE IS EXPANDS IS TRUE
+        if expands is True and linkset2expand is not None and is_source is False:
+            print "\tNOT GOOD TO GO IS DISABLE FOR EXPAND IS TRUE AND LINKSET TO EXPAND IS NOT NONE..."
+
+        # EXIT IF EXPAND IS FALSE AND THE LINKSET EXITS
+        else:
+            return check
     # print "LINKSET: {}".format(specs[St.linkset_name])
 
     link = "alivocab:approxStrSim"
@@ -761,20 +822,46 @@ def prefixed_inverted_index(
     is_equal_inputs = source[St.graph] == target[St.graph] and source[St.entity_datatype] == target[St.entity_datatype]
 
     writer = Buffer.StringIO()
-    src_dataset = get_table(source) if St.reducer not in source else get_table(source, reducer=source[St.reducer])
+
+    # *********************************************
+    # DOWNLOADING SOURCE AND TARGET DATASETS
+    # *********************************************
+    src_reducer = source[St.reducer] if St.reducer in source else None
+
+    # DOWNLOAD ARGUMENTS FOR EXPANSION ON THE SOURCE
+    if is_source is True and expands is True:
+        src_dataset = get_table(source, reducer=src_reducer,
+                                is_source=is_source, expands=expands, linkset2expand=linkset2expand)
+
+    # DOWNLOAD ARGUMENTS FOR NO EXPANSION ON THE SOURCE
+    else:
+        src_dataset = get_table(source, reducer=src_reducer)
 
     # >>> SAME SOURCE AND TARGET DATASETS
-    if is_equal_inputs:
+    if is_equal_inputs is True and expands is False:
         trg_dataset = src_dataset
+
+    # DIFFERENT DATASETS
     else:
-        trg_dataset = get_table(target) if St.reducer not in target else get_table(target, reducer=target[St.reducer])
+        trg_reducer = target[St.reducer] if St.reducer in target else None
+
+        # DOWNLOAD ARGUMENTS FOR EXPANSION ON THE TARGET
+        if is_source is False and expands is True:
+            trg_dataset = get_table(target, reducer=trg_reducer,
+                                    is_source=is_source, expands=expands, linkset2expand=linkset2expand)
+
+        # DOWNLOAD ARGUMENTS FOR NO EXPANSION ON THE TARGET
+        else:
+            trg_dataset = get_table(target, reducer=trg_reducer)
 
     Ut.update_specification(specs)
 
+    # *******************************************************************
     # SET THE PATH WHERE THE LINKSET WILL BE SAVED AND GET THE WRITERS
+    # *******************************************************************
     # Ut.write_to_path = "C:\Users\Al\Dropbox\Linksets\ApproxSim"
     # Ut.write_to_path = DIRECTORY
-    writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY)
+    writers = Ut.get_writers(specs[St.linkset_name], directory=DIRECTORY, expands=expands, is_source=is_source)
     for key, writer in writers.items():
         # BECAUSE THE DICTIONARY ALSO CONTAINS OUTPUT PATH
         if type(writer) is not str:
@@ -790,12 +877,14 @@ def prefixed_inverted_index(
 
     print "\n2. VALIDATING THE TABLES"
     if (src_dataset is not None) and (trg_dataset is None):
-        print "WE COULD NOT EXTRACT PREDICATE VALUES FROM THE TARGET DATASET"
-        return None
+        message = "WE COULD NOT EXTRACT PREDICATE VALUES FROM THE TARGET DATASET\n"
+        print message
+        return {St.message: message, St.error_code: 0, St.result: None, 'inserted': 0}
 
     elif (src_dataset is None) and (trg_dataset is not None):
-        print "WE COULD NOT EXTRACT PREDICATE VALUES FROM THE SOURCE DATASET"
-        return None
+        message = "WE COULD NOT EXTRACT PREDICATE VALUES FROM THE SOURCE DATASET\n"
+        print message
+        return {St.message: message, St.error_code: 0, St.result: None, 'inserted': 0}
 
     elif (src_dataset is not None) and (trg_dataset is not None):
         # DISPLAY THE MERGE IN ACTIVATE IS TRUE
@@ -1084,14 +1173,26 @@ def prefixed_inverted_index(
         writers[St.meta_writer].write(to_unicode(metadata))
 
         if int(specs[St.triples]) > 0:
-            Qry.boolean_endpoint_response(metadata)
+            if expands is True and linkset2expand is not None and is_source is True:
+                # *****************************************************
+                print "\n\t>>> THE METADATA WILL BE REGISTER A THE SECOND PASS"
+                # *****************************************************
+                pass
+            else:
+                Qry.boolean_endpoint_response(metadata)
         writers[St.meta_writer].close()
 
         # REGISTER THE ALIGNMENT
-        if check[St.result].__contains__("ALREADY EXISTS"):
-                Urq.register_alignment_mapping(specs, created=False)
+        if expands is True and linkset2expand is not None and is_source is True:
+            # *********************************************************
+            print "\n\t>>> THE LINKSET WILL BE REGISTERED AT THE SECOND PASS"
+            # *********************************************************
+            pass
         else:
-            Urq.register_alignment_mapping(specs, created=True)
+            if check[St.result].__contains__("ALREADY EXISTS"):
+                    Urq.register_alignment_mapping(specs, created=False)
+            else:
+                Urq.register_alignment_mapping(specs, created=True)
 
         # WRITE TO FILE
         if check_file is True:
@@ -1103,7 +1204,7 @@ def prefixed_inverted_index(
         print "\t*** JOB DONE! ***"
 
         message = "The linkset was created as {} with {} triples.".format(specs[St.linkset], count)
-        return {St.message: message, St.error_code: 0, St.result: specs[St.linkset]}
+        return {St.message: message, St.error_code: 0, St.result: specs[St.linkset], 'inserted': count}
 
     else:
         message = "\tLinkset was not created because no match was found: ", specs[St.linkset_name]
@@ -1111,6 +1212,46 @@ def prefixed_inverted_index(
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
 
+# spec = {
+#     'target':
+#         {'aligns': u'<http://www.w3.org/2000/01/rdf-schema#label>',
+#          'graph': u'http://risis.eu/dataset/grid_20170712',
+#          'entity_datatype': u'http://xmlns.com/foaf/0.1/Organization'},
+#     'researchQ_URI': u'http://risis.eu/activity/idea_9cc1e7',
+#     'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
+#     'mechanism': u'approxStrSim',
+#
+#     'source': {'aligns': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#                'graph': u'http://risis.eu/dataset/INDRecognisedSponsors',
+#                'link_old': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#                'entity_datatype': u'http://risis.eu/INDRecognisedSponsors/ontology/class/Organigasion'},
+#     'threshold': 0.8, 'specs': 0.8,
+#     'stop_words_string': u'THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV'}
+#
+#
+# spec_2 = {
+#     'target':
+#         {'aligns': u'<http://www.w3.org/2000/01/rdf-schema#label>',
+#          'graph': u'http://risis.eu/dataset/grid_20170712',
+#          'entity_datatype': u'http://xmlns.com/foaf/0.1/Organization'},
+#     'researchQ_URI': u'http://risis.eu/activity/idea_9cc1e7',
+#     'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
+#     'mechanism': u'approxStrSim',
+#     'source':
+#         {'aligns': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#          'graph': u'http://risis.eu/dataset/INDRecognisedSponsors',
+#          'link_old': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#          'entity_datatype': u'http://risis.eu/INDRecognisedSponsors/ontology/class/Organigasion'},
+#     'threshold': 0.8,
+#     'specs': 0.8,
+#     'stop_words_string': u'THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV'}
+#
+#
+# linkset = "http://risis.eu/linkset/INDRecognisedSponsors_grid_20170712_exactStrSim_Organigasion_Organisation_N1231646853"
+# prefixed_inverted_index( spec_2, theta=0.8, reorder=True,
+#                          stop_words_string="THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV",
+#                          stop_symbols_string="\.\-\,\+'\?;()–", expands=True, is_source=False, linkset2expand=linkset,
+#                          check_file=False)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     REFINE LINKSET USING APPROXIMATE SIMILARITY
@@ -1377,7 +1518,8 @@ def get_tokens_to_include(string, threshold, tf, stop_word, stop_symbols_string)
 
 
 def refine_approx(
-        specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None, activated=True, check_file=False):
+        specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None,
+        activated=True, check_file=False):
 
     debug = False
     sim = 0

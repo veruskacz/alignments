@@ -494,10 +494,9 @@ def refine_lens(specs, activated=False, check_file=False):
 
             # traceback.print_exception()
 
-import Alignments.Manage.AdminGraphs as adm
-
-adm.drop_a_lens("http://risis.eu/lens/refine_union_Grid_20170712_Eter_2014_N291690309", display=True, activated=True)
-refine_lens(specs_example, activated=True, check_file=False)
+# import Alignments.Manage.AdminGraphs as adm
+# adm.drop_a_lens("http://risis.eu/lens/refine_union_Grid_20170712_Eter_2014_N291690309", display=True, activated=True)
+# refine_lens(specs_example, activated=True, check_file=False)
 #
 # adm.drop_a_lens("http://risis.eu/lens/refine_union_Orgreg_20170718_Eter_2014_P1061032980", display=True, activated=True)
 # refine_lens(specs_example_2, activated=True, check_file=False)

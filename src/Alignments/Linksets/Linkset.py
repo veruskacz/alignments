@@ -212,6 +212,98 @@ def set_linkset_name(specs, inverse=False):
         return specs[St.linkset]
 
 
+def set_linkset_expands_name(specs):
+
+    unique = ""
+    source = specs[St.source]
+    target = specs[St.target]
+
+    if St.reducer in source:
+        unique += source[St.reducer]
+
+    # GEO DATA
+    unit_value = ""
+
+    if St.longitude in source:
+        unique += source[St.longitude]
+
+    if St.latitude in source:
+        unique += source[St.latitude]
+
+    if St.longitude in target:
+        unique += target[St.longitude]
+
+    if St.latitude in source:
+        unique += target[St.latitude]
+
+    if St.unit in specs:
+        unique += str(specs[St.unit])
+        unit = Ut.get_uri_local_name(str(specs[St.unit]))
+
+    if St.unit_value in specs:
+        unique += str(specs[St.unit_value])
+        unit_value = str(specs[St.unit_value])
+
+    if St.reducer in specs[St.target]:
+        unique += target[St.reducer]
+
+    if St.intermediate_graph in specs:
+        unique = str(specs[St.intermediate_graph])
+
+    if St.threshold in specs:
+        unique += str(specs[St.threshold])
+
+    if St.delta in specs:
+        unique += str(specs[St.delta])
+
+    if St.aligns_name in source:
+        unique += source[St.aligns_name]
+
+    elif St.latitude_name in source:
+        # src_aligns += source[St.latitude_name]
+        unique += "Latitude"
+        if St.longitude_name in source:
+            # src_aligns += source[St.longitude_name]
+            unique += "Longitude"
+
+    if St.aligns_name in target:
+        unique += target[St.aligns_name]
+
+    elif St.latitude_name in target:
+        # trg_aligns += target[St.latitude_name]
+        unique += "Latitude"
+        if St.longitude_name in target:
+            # trg_aligns += target[St.longitude_name]
+            unique += "Longitude"
+
+    dir_name = DIRECTORY
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+
+    unique = Ut.hash_it(
+        specs[St.mechanism] + source[St.graph_name] + target[St.graph_name] +
+        source[St.entity_datatype] + target[St.entity_datatype] + unique)
+
+    if St.expands in specs:
+
+        specs[St.linkset_name] = "expands_{}_{}".format(specs[St.expands_name], unique)
+        specs[St.linkset] = "{}{}".format(Ns.linkset, specs[St.linkset_name])
+
+        singleton_metadata_file = "{}(SingletonMetadata)-{}.trig".format(specs[St.linkset_name], date)
+        singleton_metadata_output = "{}/{}".format(dir_name, singleton_metadata_file)
+        future_path = os.path.join(DIRECTORY, singleton_metadata_output)
+        future_path = future_path.replace("\\", "/").replace("//", "/")
+
+        if len(future_path) > 255:
+            full_hashed = Ut.hash_it(specs[St.linkset_name])
+            specs[St.linkset_name] = "expands_{}_{}_{}".format(source[St.graph_name], specs[St.mechanism], full_hashed)
+
+        print "\t- specs[St.linkset]", specs[St.linkset]
+        return specs[St.linkset]
+
+    else:
+        return set_linkset_name(specs)
+
+
 def set_cluster_linkset_name(specs):
 
     intermediate = ""
@@ -524,6 +616,59 @@ def run_checks(specs, check_type):
 
     return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
+
+def run_checks_expands(specs, check_type):
+
+    heading = "\nRUNNING LINKSET SPECS CHECK FOR EXPANSION" \
+              "\n=========================================="
+    print heading
+
+    ask = "ASK {{ <#> ?p ?o . }}"
+
+    linkset = specs[St.linkset]
+
+    """
+    # CHECK WHETHER THE SOURCE & TARGET GRAPHS EXIST
+    """
+    g_exist_q = "ASK { GRAPH <@> {?s ?p ?o} }"
+    src_g_exist = Qry.boolean_endpoint_response(g_exist_q.replace("@", specs[St.source][St.graph]))
+    trg_g_exist = Qry.boolean_endpoint_response(g_exist_q.replace("@", specs[St.target][St.graph]))
+    if (src_g_exist == "false") or (trg_g_exist == "false"):
+        print Ec.ERROR_CODE_10
+        return {St.message: Ec.ERROR_CODE_10, St.error_code: 10, St.result: None}
+
+    """
+    # CHECK THE TASK SPECIFIC PREDICATE COUNT
+    """
+    if specs[St.sameAsCount] is None:
+        print Ec.ERROR_CODE_1
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: None}
+
+    """
+    # CHECK WHETHER THE LINKSET WAS ALREADY CREATED AND ITS ALTERNATIVE NAME REPRESENTATION
+    """
+
+    # CHECK WHETHER THE CURRENT LINKSET NAME EXIST IN THE GENERIC METADATA
+    # print ask.replace("#", linkset)
+    ask_1 = Qry.boolean_endpoint_response(ask.replace("#", linkset))
+    # print ask_1
+
+    # THE CURRENT AME EXIST
+    if ask_1 == "true":
+
+        print "ASK_1:\n\t- YES, THE CURRENT NAME EXIST"
+        message = Ec.ERROR_CODE_2.replace('#', linkset)
+        print "\t", message
+        return {St.message: message.replace("\n", "<br/>"), St.error_code: 2, St.result: linkset, 'inserted': 0}
+
+    elif ask_1 == "false":
+
+        print "\nASK_1:\n\t- NO, THE CURRENT NAME DOES NOT EXIST"
+        print "\t- LINKSET {} \n\t- DOES NOT HAVE ANY GENERIC METADATA.".format(linkset)
+        return {St.message: "GOOD TO GO", St.result: "GOOD TO GO", St.error_code: 0, 'inserted': 0}
+
+
+    # return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
 
 def run_checks_id(specs):
 
