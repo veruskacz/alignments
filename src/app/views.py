@@ -2815,12 +2815,12 @@ def datasetLinkingClusterDetails():
                         results_x = response['result'][1:]
                         # print 'Results ', results_x
 
-                        results = []
-                        group = []
+                        results2 = []
+                        #group = []
                         for r in results_x:
-                            results += [map(process_table_columns, r[:-1]) ]
-                            dataset = results[-1][0]
-                            node_names = results[-1][3]
+                            results2 += [map(process_table_columns, r[:-1]) ]
+                            dataset = results2[-1][0]
+                            node_names = results2[-1][3]
                             node_names = node_names[1:-1].split('] [')
                             node_name = 'None'
                             for i in range(len(node_names)):
@@ -2843,12 +2843,12 @@ def datasetLinkingClusterDetails():
 
                             add = True
                             for n in nodes:
-                                if n['id'] == node_name+"("+dataset+" "+results[-1][1]+")":
+                                if n['id'] == node_name+"("+dataset+" "+results2[-1][1]+")":
                                     add = False
                                     # print 'found'
                                     break
                             if add:
-                                nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index, 'size': '5'}]
+                                nodes += [{"id": node_name+"("+dataset+" "+results2[-1][1]+")", 'uri':r[1] , "group": index, 'size': '5'}]
                                 # print 'new node', node_name+"("+dataset+" "+results[-1][1]+")"
 
                             dict = rel_cluster['strengths']

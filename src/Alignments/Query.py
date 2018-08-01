@@ -1631,8 +1631,27 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
     comment_limit = "# " if limit is None else ""
     comment_offset = "# " if offset is None else ""
 
+    #checkStrength = graph_exists(from_alignment2singleton(alignments))
+    ask_strenght = """
+    ASK {{
+            GRAPH <{}>
+            {{
+                ?predicate  prov:wasDerivedFrom*  ?DerivedFrom  .
+            }}
+            GRAPH ?g
+            {{
+                ?DerivedFrom  prov:wasDerivedFrom*/ll:hasStrength  ?Strength ;
+                              prov:wasDerivedFrom*/ll:hasEvidence  ?Evidence .
+            }}
+        }}
+    """.format(from_alignment2singleton(alignments))
+    checkStrength = boolean_endpoint_response(ask_strenght)
+
+    comment_singleton = "# " if checkStrength is False else ""
+
     check = resources is None or len(resources) == 0
     comment = "# " if check is True else ""
+
     query = """
     PREFIX prov: <{3}>
     PREFIX ll: <{4}>
@@ -1652,20 +1671,20 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
         {5}}}
 
         # FETCH CORRESPONDENCE STRENGTH
-        {{
-            GRAPH <{2}>
-            {{
-                ?predicate  prov:wasDerivedFrom*  ?DerivedFrom  .
-                # OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength . }}
-                # OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
-            }}
-            GRAPH ?g
-            {{
-                ?DerivedFrom  prov:wasDerivedFrom*/ll:hasStrength  ?Strength ;
-                              prov:wasDerivedFrom*/ll:hasEvidence  ?Evidence .
-            }}
-
-        }}
+        {10} {{
+        {10}    GRAPH <{2}>
+        {10}    {{
+        {10}        ?predicate  prov:wasDerivedFrom*  ?DerivedFrom  .
+        {10}        # OPTIONAL {{ ?DerivedFrom  ll:hasStrength  ?Strength_ . }}
+        {10}        # OPTIONAL {{ ?DerivedFrom  ll:hasEvidence  ?Evidence . }}
+        {10}    }}
+        {10}    GRAPH ?g
+        {10}    {{
+        {10}        ?DerivedFrom  prov:wasDerivedFrom*/ll:hasStrength  ?Strength_ ;
+        {10}                      prov:wasDerivedFrom*/ll:hasEvidence  ?Evidence .
+        {10}    }}
+        {10}}}
+        BIND (IF(bound(?Strength_), ?Strength_ , 1) AS ?Strength)
         # UNION {{
         # GRAPH <{2}>
         #     {{
@@ -1677,7 +1696,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
     {6}LIMIT {8}
     {7}OFFSET {9}
     """.format(resources, alignments, from_alignment2singleton(alignments),
-               Ns.prov, Ns.alivocab, comment, comment_limit, comment_offset, limit, offset)
+               Ns.prov, Ns.alivocab, comment, comment_limit, comment_offset, limit, offset, comment_singleton)
     # print query
 
     if count is True:
