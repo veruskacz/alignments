@@ -1212,46 +1212,6 @@ def prefixed_inverted_index(
         print "\t*** JOB DONE! ***"
         return {St.message: message, St.error_code: 0, St.result: None}
 
-# spec = {
-#     'target':
-#         {'aligns': u'<http://www.w3.org/2000/01/rdf-schema#label>',
-#          'graph': u'http://risis.eu/dataset/grid_20170712',
-#          'entity_datatype': u'http://xmlns.com/foaf/0.1/Organization'},
-#     'researchQ_URI': u'http://risis.eu/activity/idea_9cc1e7',
-#     'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
-#     'mechanism': u'approxStrSim',
-#
-#     'source': {'aligns': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
-#                'graph': u'http://risis.eu/dataset/INDRecognisedSponsors',
-#                'link_old': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
-#                'entity_datatype': u'http://risis.eu/INDRecognisedSponsors/ontology/class/Organigasion'},
-#     'threshold': 0.8, 'specs': 0.8,
-#     'stop_words_string': u'THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV'}
-#
-#
-# spec_2 = {
-#     'target':
-#         {'aligns': u'<http://www.w3.org/2000/01/rdf-schema#label>',
-#          'graph': u'http://risis.eu/dataset/grid_20170712',
-#          'entity_datatype': u'http://xmlns.com/foaf/0.1/Organization'},
-#     'researchQ_URI': u'http://risis.eu/activity/idea_9cc1e7',
-#     'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
-#     'mechanism': u'approxStrSim',
-#     'source':
-#         {'aligns': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
-#          'graph': u'http://risis.eu/dataset/INDRecognisedSponsors',
-#          'link_old': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
-#          'entity_datatype': u'http://risis.eu/INDRecognisedSponsors/ontology/class/Organigasion'},
-#     'threshold': 0.8,
-#     'specs': 0.8,
-#     'stop_words_string': u'THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV'}
-#
-#
-# linkset = "http://risis.eu/linkset/INDRecognisedSponsors_grid_20170712_exactStrSim_Organigasion_Organisation_N1231646853"
-# prefixed_inverted_index( spec_2, theta=0.8, reorder=True,
-#                          stop_words_string="THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV",
-#                          stop_symbols_string="\.\-\,\+'\?;()–", expands=True, is_source=False, linkset2expand=linkset,
-#                          check_file=False)
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     REFINE LINKSET USING APPROXIMATE SIMILARITY

@@ -170,24 +170,40 @@ def expand_approx(specs, theta, stop_words_string, stop_symbols_string, linkset2
         # print data
 
 
-spec_2 = {
-    'target':
-        {'aligns': u'<http://www.w3.org/2000/01/rdf-schema#label>',
-         'graph': u'http://risis.eu/dataset/grid_20170712',
-         'entity_datatype': u'http://xmlns.com/foaf/0.1/Organization'},
-    'researchQ_URI': u'http://risis.eu/activity/idea_9cc1e7',
-    'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
-    'mechanism': u'approxStrSim',
-    'source':
-        {'aligns': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
-         'graph': u'http://risis.eu/dataset/INDRecognisedSponsors',
-         'link_old': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
-         'entity_datatype': u'http://risis.eu/INDRecognisedSponsors/ontology/class/Organigasion'},
-    'threshold': 0.8,
-    'specs': 0.8,
-    'stop_words_string': u'THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV'}
+# spec = {
+#     'target':
+#         {'aligns': u'<http://www.w3.org/2000/01/rdf-schema#label>',
+#          'graph': u'http://risis.eu/dataset/grid_20170712',
+#          'entity_datatype': u'http://xmlns.com/foaf/0.1/Organization'},
+#     'researchQ_URI': u'http://risis.eu/activity/idea_9cc1e7',
+#     'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
+#     'mechanism': u'approxStrSim',
+#
+#     'source': {'aligns': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#                'graph': u'http://risis.eu/dataset/INDRecognisedSponsors',
+#                'link_old': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#                'entity_datatype': u'http://risis.eu/INDRecognisedSponsors/ontology/class/Organigasion'},
+#     'threshold': 0.8, 'specs': 0.8,
+#     'stop_words_string': u'THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV'}
 
-
-linkset = "http://risis.eu/linkset/INDRecognisedSponsors_grid_20170712_exactStrSim_Organigasion_Organisation_N1231646853"
-expand_approx(spec_2, theta=0.8, stop_words_string=spec_2['stop_words_string'],
-              stop_symbols_string=spec_2['stop_symbols_string'], linkset2expand=linkset, reorder=True)
+# spec_2 = {
+#     'target':
+#         {'aligns': u'<http://www.w3.org/2000/01/rdf-schema#label>',
+#          'graph': u'http://risis.eu/dataset/grid_20170712',
+#          'entity_datatype': u'http://xmlns.com/foaf/0.1/Organization'},
+#     'researchQ_URI': u'http://risis.eu/activity/idea_9cc1e7',
+#     'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
+#     'mechanism': u'approxStrSim',
+#     'source':
+#         {'aligns': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#          'graph': u'http://risis.eu/dataset/INDRecognisedSponsors',
+#          'link_old': u'<http://risis.eu/INDRecognisedSponsors/ontology/predicate/Organisation>',
+#          'entity_datatype': u'http://risis.eu/INDRecognisedSponsors/ontology/class/Organigasion'},
+#     'threshold': 0.8,
+#     'specs': 0.8,
+#     'stop_words_string': u'THE FOR IN THAT AT AND OF ON DE DES LA LES INC. LTD. B.V. INC LTD BV'}
+#
+#
+# linkset = "http://risis.eu/linkset/INDRecognisedSponsors_grid_20170712_exactStrSim_Organigasion_Organisation_N1231646853"
+# expand_approx(spec_2, theta=0.8, stop_words_string=spec_2['stop_words_string'],
+#               stop_symbols_string=spec_2['stop_symbols_string'], linkset2expand=linkset, reorder=True)
