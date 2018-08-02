@@ -635,14 +635,14 @@ def run_checks_expands(specs, check_type):
     trg_g_exist = Qry.boolean_endpoint_response(g_exist_q.replace("@", specs[St.target][St.graph]))
     if (src_g_exist == "false") or (trg_g_exist == "false"):
         print Ec.ERROR_CODE_10
-        return {St.message: Ec.ERROR_CODE_10, St.error_code: 10, St.result: None}
+        return {St.message: Ec.ERROR_CODE_10, St.error_code: 10, St.result: None, 'inserted': 0}
 
     """
     # CHECK THE TASK SPECIFIC PREDICATE COUNT
     """
     if specs[St.sameAsCount] is None:
         print Ec.ERROR_CODE_1
-        return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: None}
+        return {St.message: Ec.ERROR_CODE_1, St.error_code: 1, St.result: None, 'inserted': 0}
 
     """
     # CHECK WHETHER THE LINKSET WAS ALREADY CREATED AND ITS ALTERNATIVE NAME REPRESENTATION

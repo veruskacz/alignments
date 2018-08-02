@@ -132,6 +132,12 @@ def expand_approx(specs, theta, stop_words_string, stop_symbols_string, linkset2
 
         count += 1
         print Ut.headings("********* PASS {} *********").format(count)
+
+        if is_source is False:
+            specs[St.corr_reducer] = data[St.result]
+            print data[St.result]
+
+
         data = prefixed_inverted_index( specs, theta=theta, reorder=reorder, stop_words_string=stop_words_string,
                              stop_symbols_string=stop_symbols_string, expands=True, is_source=is_source,
                              linkset2expand=linkset2expand, check_file=False)
@@ -207,3 +213,28 @@ def expand_approx(specs, theta, stop_words_string, stop_symbols_string, linkset2
 # linkset = "http://risis.eu/linkset/INDRecognisedSponsors_grid_20170712_exactStrSim_Organigasion_Organisation_N1231646853"
 # expand_approx(spec_2, theta=0.8, stop_words_string=spec_2['stop_words_string'],
 #               stop_symbols_string=spec_2['stop_symbols_string'], linkset2expand=linkset, reorder=True)
+
+spec_2 = {
+    'target':
+        {'aligns': u'<http://goldenagents.org/uva/SAA/ontology/full_name>',
+         'graph': u'http://goldenagents.org/datasets/BaptismRegistries002_0to5',
+         'entity_datatype': u'http://goldenagents.org/uva/SAA/ontology/Person',
+          #'reducer': u'http://risis.eu/linkset/refined_approxNbrSim_N2843981611761022069'
+         },
+    'researchQ_URI': u'http://risis.eu/activity/idea_e89d9c',
+    'stop_symbols_string': u"\\.\\-\\,\\+'\\?;()\u2013",
+    'mechanism': u'approxStrSim',
+    'source':
+        {'aligns': u'<http://goldenagents.org/uva/SAA/ontology/full_name>',
+         'graph': u'http://goldenagents.org/datasets/BaptismRegistries002_0to5',
+         'entity_datatype': u'http://goldenagents.org/uva/SAA/ontology/Person',
+         # 'reducer': u'http://risis.eu/linkset/refined_approxNbrSim_N2843981611761022069'
+         },
+    #'corr_reducer': u'http://risis.eu/linkset/refined_approxNbrSim_N2843981611761022069',
+    'threshold': 0.9,
+    'specs': 0.9,
+    'stop_words_string': u''}
+
+linkset = "http://risis.eu/linkset/refined_approxNbrSim_N1447745871626231026"
+expand_approx(spec_2, theta=0.9, stop_words_string=spec_2['stop_words_string'],
+              stop_symbols_string=spec_2['stop_symbols_string'], linkset2expand=linkset, reorder=True)

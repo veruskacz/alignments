@@ -899,7 +899,7 @@ def prefixed_inverted_index(
 
     print "\n3. GENERATE THE TERM FREQUENCY OF THE SOURCE DATASET"
     # >>> SAME SOURCE AND TARGET DATASETS
-    if is_equal_inputs:
+    if is_equal_inputs and expands is False:
         universe_tf = get_tf_2([src_dataset])
     else:
         universe_tf = get_tf_2([src_dataset, trg_dataset])
