@@ -829,6 +829,7 @@ def prefixed_inverted_index(
     src_reducer = source[St.reducer] if St.reducer in source else None
 
     # DOWNLOAD ARGUMENTS FOR EXPANSION ON THE SOURCE
+    print "DOWNLOADING THE PREDICATE-VALUES OF THE SOURCE"
     if is_source is True and expands is True:
         src_dataset = get_table(source, reducer=src_reducer,
                                 is_source=is_source, expands=expands, linkset2expand=linkset2expand)
@@ -843,6 +844,7 @@ def prefixed_inverted_index(
 
     # DIFFERENT DATASETS
     else:
+        print "DOWNLOADING THE PREDICATE-VALUES OF THE TARGET"
         trg_reducer = target[St.reducer] if St.reducer in target else None
 
         # DOWNLOAD ARGUMENTS FOR EXPANSION ON THE TARGET
