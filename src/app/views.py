@@ -1825,8 +1825,8 @@ def refineExpandLinkset():
                     # linkset_result = None
                     threshold = request.args.get('threshold', '0.8')
                     threshold = float(threshold.strip())
-                    stop_words = request.args.get('stop_words', '')
-                    stop_symbols = request.args.get('stop_symbols', '')
+                    stop_words = to_unicode(request.args.get('stop_words', ''))
+                    stop_symbols = to_unicode(request.args.get('stop_symbols', ''))
 
                     print threshold, stop_words, stop_symbols
 
