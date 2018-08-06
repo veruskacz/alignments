@@ -133,10 +133,9 @@ def expand_approx(specs, theta, stop_words_string, stop_symbols_string, linkset2
         count += 1
         print Ut.headings("********* PASS {} *********").format(count)
 
-        if is_source is False:
-            specs[St.corr_reducer] = data[St.result]
-            print data[St.result]
-
+        # if is_source is False:
+        #     specs[St.corr_reducer] = data[St.result]
+            # print data[St.result]
 
         data = prefixed_inverted_index( specs, theta=theta, reorder=reorder, stop_words_string=stop_words_string,
                              stop_symbols_string=stop_symbols_string, expands=True, is_source=is_source,
@@ -236,5 +235,5 @@ spec_2 = {
     'stop_words_string': u''}
 
 linkset = "http://risis.eu/linkset/refined_approxNbrSim_N1447745871626231026"
-expand_approx(spec_2, theta=0.9, stop_words_string=spec_2['stop_words_string'],
-              stop_symbols_string=spec_2['stop_symbols_string'], linkset2expand=linkset, reorder=True)
+# expand_approx(spec_2, theta=0.9, stop_words_string=spec_2['stop_words_string'],
+#               stop_symbols_string=spec_2['stop_symbols_string'], linkset2expand=linkset, reorder=True)

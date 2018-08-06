@@ -6,7 +6,6 @@ import json
 import logging
 import os
 import os.path as path
-import re
 import urllib
 import urllib2
 import traceback
@@ -16,6 +15,7 @@ import requests
 import xmltodict
 from Alignments.UserActivities.Import_Data import export_research_question
 from flask import render_template, request, redirect, jsonify # url_for, make_response, g
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -41,6 +41,7 @@ if CREATION_ACTIVE:
     import Alignments.Linksets.Linkset as Ls
     import Alignments.Linksets.SPA_Linkset as spa_linkset2
     import Alignments.Linksets.SPA_LinksetRefine as refine
+    from Alignments.Linksets.SPA_Expand import expand_approx
     import Alignments.UserActivities.User_Validation as UVld
     from Alignments.UserActivities import Import_Data as Ipt
     import Alignments.Linksets.SPA_LinksetSubset as spa_subset
@@ -1691,8 +1692,11 @@ def spa_linkset():
         return json.dumps(linkset_result)
 
 
-@app.route('/refineLinkset')
-def refineLinkset():
+@app.route('/refineExpandLinkset')
+def refineExpandLinkset():
+
+    mode = request.args.get('mode', 'refine')
+    print mode
 
     specs = {
 
@@ -1769,62 +1773,85 @@ def refineLinkset():
     if temp_num_approx:
         specs[St.numeric_approx_type] = temp_num_approx
 
+    linkset_result = None
+
     try:
         if CREATION_ACTIVE:
-            if specs['mechanism'] == 'exactStrSim':
-                linkset_result = refine.refine(specs, activated=True)
-
-            elif specs['mechanism'] == 'identity':
-                linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
-
-            elif specs['mechanism'] == 'approxStrSim':
-                # linkset_result = None
-                threshold = request.args.get('threshold', '0.8')
-                threshold = float(threshold.strip())
-                stop_words = request.args.get('stop_words', '')
-                stop_symbols = request.args.get('stop_symbols', '')
-
-                print threshold, stop_words, stop_symbols
-                # linkset_result = prefixed_inverted_index(specs, threshold, check_type="refine",
-                #                                          stop_words_string=stop_words, stop_symbols_string=stop_symbols)
-
-                linkset_result = refine_approx(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
-
-            elif specs['mechanism'] == 'geoSim':
-                linkset_result = None
-
-            elif specs[St.mechanism] == "intermediate":
-                linkset_result = refine.refine(specs, activated=True)
-                # print linkset_result
-                #linkset_result = result['refined']
-
-            elif specs['mechanism'] == 'approxNbrSim':
-                try:
-                    print "Delta", specs[St.delta]
-                    delta = float(specs[St.delta])
-                    specs[St.delta] = delta
-                    # print "2"
+            if mode == 'refine':
+                if specs['mechanism'] == 'exactStrSim':
                     linkset_result = refine.refine(specs, activated=True)
-                        # spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
-                        #                                           activated=FUNCTION_ACTIVATED)
-                except Exception as err:
-                    print "Error:", str(err)
-                    linkset_result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
 
-            else:
-                linkset_result = None
+                elif specs['mechanism'] == 'identity':
+                    linkset_result = spa_linkset2.specs_2_linkset_id(specs, display=False, activated=True)
+
+                elif specs['mechanism'] == 'approxStrSim':
+                    # linkset_result = None
+                    threshold = request.args.get('threshold', '0.8')
+                    threshold = float(threshold.strip())
+                    stop_words = request.args.get('stop_words', '')
+                    stop_symbols = request.args.get('stop_symbols', '')
+
+                    print threshold, stop_words, stop_symbols
+                    # linkset_result = prefixed_inverted_index(specs, threshold, check_type="refine",
+                    #                                          stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+
+                    linkset_result = refine_approx(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+
+                elif specs['mechanism'] == 'geoSim':
+                    linkset_result = None
+
+                elif specs[St.mechanism] == "intermediate":
+                    linkset_result = refine.refine(specs, activated=True)
+                    # print linkset_result
+                    #linkset_result = result['refined']
+
+                elif specs['mechanism'] == 'approxNbrSim':
+                    try:
+                        print "Delta", specs[St.delta]
+                        delta = float(specs[St.delta])
+                        specs[St.delta] = delta
+                        # print "2"
+                        linkset_result = refine.refine(specs, activated=True)
+                            # spa_linkset2.specs_2_linkset(specs=specs, match_numeric=True, display=False,
+                            #                                           activated=FUNCTION_ACTIVATED)
+                    except Exception as err:
+                        print "Error:", str(err)
+                        linkset_result = {'message': 'Approximate number could not run!', 'error_code': -1, St.result: None}
+
+                else:
+                    linkset_result = None
+            elif mode == 'expand':
+                if specs['mechanism'] == 'approxStrSim':
+                    # linkset_result = None
+                    threshold = request.args.get('threshold', '0.8')
+                    threshold = float(threshold.strip())
+                    stop_words = request.args.get('stop_words', '')
+                    stop_symbols = request.args.get('stop_symbols', '')
+
+                    print threshold, stop_words, stop_symbols
+
+                    linkset_result = expand_approx(specs, theta=threshold, stop_words_string=stop_words,
+                                                   stop_symbols_string=stop_symbols,
+                                                   linkset2expand=request.args.get('linkset_uri', ''), reorder=True)
+
+                else:
+                    linkset_result = {'message': 'Linkset operation is inactive!',
+                               'error_code': -1,
+                               'linkset': ''}
         else:
-            linkset_result = {'message': 'Linkset refinement is inactive!',
+            linkset_result = {'message': 'Linkset operation is inactive!',
                                'error_code': -1,
                                'linkset': ''}
 
         # print "\n\nERRO CODE: ", linkset_result['error_code'], type(linkset_result['error_code'])
         if linkset_result:
-            if St.refined in linkset_result:
+            if mode == 'refine' and St.refined in linkset_result:
                 refined = linkset_result[St.refined]
                 if refined:
                     if refined[St.error_code] == 0:
                         return json.dumps(refined)
+            elif mode == 'expand' and St.linkset in linkset_result:
+                pass
             else:
                 linkset_result = {'message': linkset_result[St.message],
                                   'error_code': -1,
