@@ -430,14 +430,14 @@ def refine_intermediate_query(specs):
             bind (lcase(str(?value_4)) as ?trg_val)
 
             # VALUE TRIMMING
-            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp
-    }} ;
-
-    DROP SILENT GRAPH <{0}load01> ;)
+            BIND('^\\\\s+(.*?)\\\\s*$|^(.*?)\\\\s+$' AS ?regexp )
             BIND(REPLACE(?src_val, ?regexp, '$1$2') AS ?src_trimmed)
             BIND(REPLACE(?trg_val, ?regexp, '$1$2') AS ?trg_trimmed)
             BIND(concat("[", ?src_trimmed, "] aligns with [", ?trg_trimmed, "]") AS ?evidence)
         }}
+    }} ;
+
+    DROP SILENT GRAPH <{0}load01> ;
     DROP SILENT GRAPH <{0}load02>
     """.format(
         # 0          1         2           3         4

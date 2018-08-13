@@ -5,6 +5,7 @@ import Alignments.Utility as Ut
 from Alignments.Utility import get_uri_local_name, update_specification  # write_to_file,
 from kitchen.text.converters import to_unicode, to_bytes
 
+
 PREFIX = """
     PREFIX bdb:         <http://vocabularies.bridgedb.org/ops#>
     PREFIX rdf:         <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -12,8 +13,8 @@ PREFIX = """
     PREFIX void:        <http://rdfs.org/ns/void#>
     PREFIX alivocab:    <http://risis.eu/alignment/predicate/>
     PREFIX tmpgraph:    <http://risis.eu/alignment/temp-match/>
-    PREFIX prov:        <http://www.w3.org/ns/prov#>
-"""
+    PREFIX prov:        <http://www.w3.org/ns/prov#> """
+
 
 def lens_name(specs, lens_type):
     # LENS TYPES: REFINE - DIFFERENCE = TRANSITIVE - COMPOSITION - UNION
@@ -277,6 +278,7 @@ def generate_lens_name(datasets, operator="union"):
 def print_specs(specs):
 
     print Ut.headings("SPECIFICATIONS DATA", line=False)
+
     # PRINT SPECS
     for key, data in specs.items():
         if key == "target" or key == "source":
