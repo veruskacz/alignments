@@ -29,6 +29,12 @@
                 activateTargetDiv(targetId="refine_linkset_heading",cl="panel-heading");
                 inspect_linkset_activate(mode="refine")'
                 >Refine</button>
+        <button type="button" id="btn_expand_linkset" class="btn btn-primary disabled"
+                onclick='newSelectButton(this);
+                activateTargetDiv(targetId="inspect_linkset_row",cl="row creation");
+                activateTargetDiv(targetId="expand_linkset_heading",cl="panel-heading");
+                inspect_linkset_activate(mode="expand")'
+                >Expand</button>
         <div class="btn-group">
             <button type="button" class="btn btn-primary dropdown-toggle disabled" data-toggle="dropdown"
                 id="btn_export_linkset"
@@ -241,8 +247,35 @@
                            <td valign="center"><div class="loading"></div></td>
                            <td align="right"><button type="button" id="refineLinksetButton"
                                class="btn btn-success btn btn-primary"
-                               onclick = 'refineLinksetClick();'
+                               onclick = 'refineExpandLinksetClick(mode="refine");'
                                >Refine Linkset
+                            <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
+                           </button></td>
+                   </table>
+               </div>
+             </div>
+           </div>
+
+           <div class="panel-heading" id="expand_linkset_heading" style='display:none'>
+             <div class="row">
+               <div class="col-md-4"><h4></h4>
+                  <h4 class="panel-title">
+                    <a id="link_collapse_linkset_expand"
+                         data-toggle="collapse" href="#collapse_linkset_create">
+                        <span class="badge alert-info"><strong>-</strong></span></a>
+                    Expand Linkset
+                  </h4>
+               </div>
+               <!--<h5><div class="col-md-6 text-right" style="color:red" id="linkset_refine_message_col"></div></h5>-->
+               <div class="col-md-8 text-right">
+                   <table align="right">
+                       <tr align="right">
+                           <td  align="right"><div style="width:100%; scroll:horizontal; overflow:auto" id="linkset_expand_message_col"></div></td>
+                           <td valign="center"><div class="loading"></div></td>
+                           <td align="right"><button type="button" id="expandLinksetButton"
+                               class="btn btn-success btn btn-primary"
+                               onclick = 'refineExpandLinksetClick(mode="expand");'
+                               >Expand Linkset
                             <span class="badge alert-info chronotime" style='display:none'>0:00:00:00</span>
                            </button></td>
                    </table>
@@ -288,7 +321,8 @@
              target="link_collapse_linkset_create"
              target2="link_collapse_linkset_edit"
              target3="link_collapse_linkset_refine"
-             target4="link_collapse_linkset_export">
+             target4="link_collapse_linkset_expand"
+             target5="link_collapse_linkset_export">
 
                <div class="panel-body" id="create_panel_body">
 

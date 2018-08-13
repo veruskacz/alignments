@@ -1118,7 +1118,7 @@ function inspect_linkset_activate(mode='default')
 
                 get_filter(rq_uri, linkset_uri);
 
-                if (mode == 'refine' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
+                if (mode == 'refine' || mode == 'expand' || mode == 'edit' || mode == 'reject-refine' || mode == 'export')
                 {
                    $('#creation_linkset_row').show();
                    loadEditPanel(obj.metadata, mode);
@@ -1163,7 +1163,7 @@ function inspect_linkset_activate(mode='default')
     if ((mode == 'inspect') || (mode == 'inspect_linkset_cluster')) {
         $('#creation_linkset_row').hide();
     }
-    else if (mode == 'refine') {
+    else if ((mode == 'refine') || (mode == 'expand')) {
       $('#creation_linkset_row').hide();
       $('#item_identity').hide();
     }
@@ -1210,7 +1210,7 @@ function loadEditPanel(obj, mode)
     if (mode == 'edit')
         mode = ''
 
-    if (mode == 'refine' || mode == 'edit')
+    if (mode == 'refine' || mode == 'expand' || mode == 'edit')
     {
         datasetClick(document.getElementById('hidden_src_div'));
         datasetClick(document.getElementById('hidden_trg_div'));
@@ -1232,7 +1232,7 @@ function loadEditPanel(obj, mode)
     }
 
 
-    if (mode == 'refine' || mode == 'edit')
+    if (mode == 'refine' || mode == 'expand' || mode == 'edit')
     {
         var ancestorType = "entity-list";
 
@@ -1263,7 +1263,7 @@ function loadEditPanel(obj, mode)
         setAttr('trg_selected_pred','style','background-color:lightblue');
     }
 
-    if (mode == 'refine' || mode == 'reject-refine')
+    if (mode == 'refine' || mode == 'expand' || mode == 'reject-refine')
     {
     $('#button-src-entity-type-col').hide();
     $('#button-trg-entity-type-col').hide();
@@ -1564,7 +1564,7 @@ $("[type='number']").keypress(function (evt) {
     evt.preventDefault();
 });
 
-function refineLinksetClick()
+function refineExpandLinksetClick(mode='refine')
 {
 
   var reducer = ''; intermediate = '';
@@ -1614,6 +1614,7 @@ function refineLinksetClick()
   {
 
       var specs = {
+        'mode': mode,
         'rq_uri': $('#creation_linkset_selected_RQ').attr('uri'),
         'linkset_uri': linkset,
 
@@ -1641,28 +1642,35 @@ function refineLinksetClick()
         'threshold': $('#linkset_approx_threshold').val()
       }
 
+      if (mode == 'expand')
+        message_col = 'linkset_expand_message_col'
+      else
+        message_col = 'linkset_refine_message_col'
+
+
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
       $('#linkset_refine_message_col').html(addNote(message,cl='warning'));
-      loadingGif(document.getElementById('linkset_refine_message_col'), 2);
+      loadingGif(document.getElementById(message_col), 2);
 
       // call function that creates the linkset
       // HERE!!!!
-      $.get('/refineLinkset', specs, function(data)
+      $.get('/refineExpandLinkset', specs, function(data)
       {
             var obj = JSON.parse(data);
-            loadingGif(document.getElementById('linkset_refine_message_col'), 2, show=false);
+            loadingGif(document.getElementById(message_col), 2, show=false);
 
             if ((Object.keys(obj).length) && (obj.message.length > 0))
-                $('#linkset_refine_message_col').html(addNote(obj.message,cl='info'));
+                $('#'+message_col).html(addNote(obj.message,cl='info'));
             else
-                $('#linkset_refine_message_col').html(addNote("Something went wrong!"));
+                $('#'+message_col).html(addNote("Something went wrong!"));
       });
 
   }
   else {
-    $('#linkset_refine_message_col').html(addNote(missing_feature));
+    $('#'+message_col).html(addNote(missing_feature));
   }
 }
+
 
 
 function exportPlotLinksetClick(elem)
