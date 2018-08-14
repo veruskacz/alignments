@@ -1634,6 +1634,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
     #checkStrength = graph_exists(from_alignment2singleton(alignments))
     ask_strenght = """
     PREFIX prov: <{1}>
+    PREFIX ll: <{2}>
     ASK {{
             GRAPH <{0}>
             {{
@@ -1645,7 +1646,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
                               prov:wasDerivedFrom*/ll:hasEvidence  ?Evidence .
             }}
         }}
-    """.format(from_alignment2singleton(alignments),Ns.prov)
+    """.format(from_alignment2singleton(alignments),Ns.prov,Ns.alivocab)
     checkStrength = boolean_endpoint_response(ask_strenght)
 
     comment_singleton = "# " if checkStrength is False else ""
