@@ -145,7 +145,7 @@ def load_default_namespaces(directory):
     if Ut.is_windows():
         cmd = namespaces.format("call ", Svr.settings[St.stardog_uri])
     else:
-        cmd = namespaces.format("", Svr.settings[St.stardog_uri],)
+        cmd = namespaces.format(stardog_bin, Svr.settings[St.stardog_uri],)
 
     # EXECUTE THE CMD
     result = Ut.run_cdm(cmd, f_path, delete_after=True, output=False)
