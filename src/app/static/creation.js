@@ -1649,7 +1649,7 @@ function refineExpandLinksetClick(mode='refine')
 
 
       var message = "EXECUTING YOUR LINKSET SPECS.</br>PLEASE WAIT UNTIL THE COMPLETION OF YOUR EXECUTION";
-      $('#linkset_refine_message_col').html(addNote(message,cl='warning'));
+      $('#'+message_col).html(addNote(message,cl='warning'));
       loadingGif(document.getElementById(message_col), 2);
 
       // call function that creates the linkset

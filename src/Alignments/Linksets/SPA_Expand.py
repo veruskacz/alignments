@@ -174,6 +174,8 @@ def expand_approx(specs, theta, stop_words_string, stop_symbols_string, linkset2
         print "\tTOTAL CORRESPONDENCES INSERTED         : {}".format(final_inserted)
         # print data
 
+        return data
+
 
 # spec = {
 #     'target':
