@@ -2753,6 +2753,8 @@ def datasetLinkingClusterDetails():
                 else: # then there can always be another option (the bigger the better)
                     if n.startswith("http") or n.startswith("<http") or n.startswith("www"):
                         pass
+                    elif n[0].isdigit():
+                        pass
                     elif len(n) < len(node_names[i+1]):
                         pass
                     else:
