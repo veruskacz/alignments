@@ -1,4 +1,5 @@
 import Alignments.Utility as Ut
+from Alignments.Utility import get_uri_local_name_plus as local_name
 
 # CLUSTER ID
 # CLUSTER SIZE
@@ -50,12 +51,15 @@ def test(data, resources):
     }
     """
 
+    count_union = 0
     sub_query = ""
 
     template_1 =     """\t{}
-        GRAPH {}
-        {{ \n\t\t\t{}\n{}
-        }} """
+        {{
+            GRAPH {}
+            {{ \n\t\t\t\t{}\n{}
+            }}
+        }}"""
 
     template_2 = """
     SELECT *
@@ -67,25 +71,32 @@ def test(data, resources):
 
     """
 
+    # CONVERTING THE LIST INTO A SPACE SEPARATED LIST
     resource_enumeration = " ".join(resources)
 
-    count_union = 0
     for dataset, properties in data.items():
 
+        # GENERATE THE SUB-QUERY
         sub = "\n".join(
-            "\t\t\t?resource {0} ?{1}_{2} .".format(Ut.to_nt_format(item), dataset, item) for item in properties)
-        bind = "BIND( {} as ?{})".format(Ut.to_nt_format(dataset), Ut.get_uri_local_name_plus(dataset))
+            "\t\t\t\t?resource {0} ?{1} .".format(
+                Ut.to_nt_format(uri), alternative if len(alternative) > 0 else
+                "{}_{}".format(local_name(dataset), local_name(uri)) ) for uri, alternative in properties)
+
+        # BIND THE DATASET TO HAVE IT IN THE SELECT
+        bind = "BIND( {} as ?dataset)".format(Ut.to_nt_format(dataset))
+
+        # ACCUMULATE THE SUB-QUERIES
         sub_query += template_1.format("UNION\n" if count_union > 0 else "", Ut.to_nt_format(dataset), bind, sub)
         count_union += 1
 
-    print template_2.format(resource_enumeration, sub_query)
+    return template_2.format(resource_enumeration, sub_query)
 
 
 # TESTING
 info = {
-        'dataset-1': ['property-1', 'property-10', 'property-15'],
-        'dataset-2': ['property-2', 'property-23', 'property-30'],
-        'dataset-3': ['property-3', 'property-36', 'property-33']
+        'dataset-1': [('property-1', 'name'), ('property-10', ""), ('property-15', '')],
+        'dataset-2': [('property-2', 'name'), ('property-23', ""), ('property-30', "")],
+        'dataset-3': [('property-3', 'name'), ('property-36', ""), ('property-33', "")]
     }
 rscs= ['resource-1', 'resource-2', 'resource-3']
-test(info, rscs)
+print test(info, rscs)
