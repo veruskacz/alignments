@@ -1204,6 +1204,8 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
     \"{0}{2}stardog-admin\" --server {3} db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n {1}
     """.format(stardog_bin_path, db_name, os.path.sep, endpoint)
 
+    print create_db
+
     writer = open(db_bat_path, "wb")
     writer.write(create_db)
     writer.close()
