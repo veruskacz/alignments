@@ -222,7 +222,7 @@ def set_linkset_expands_name(specs):
         unique += source[St.reducer]
 
     # GEO DATA
-    unit_value = ""
+    # unit_value = ""
 
     if St.longitude in source:
         unique += source[St.longitude]
@@ -239,10 +239,12 @@ def set_linkset_expands_name(specs):
     if St.unit in specs:
         unique += str(specs[St.unit])
         unit = Ut.get_uri_local_name(str(specs[St.unit]))
+        unique += unit
 
     if St.unit_value in specs:
         unique += str(specs[St.unit_value])
         unit_value = str(specs[St.unit_value])
+        unique += unit_value
 
     if St.reducer in specs[St.target]:
         unique += target[St.reducer]
@@ -477,7 +479,6 @@ def set_refined_name(specs):
 
     append = str(hashed).replace("-", "N") if str(hashed).__contains__("-") else "P{}".format(hashed)
 
-
     specs[St.refined_name] = "refined_{}_{}_{}_{}".format(
         specs[St.linkset_name], specs[St.mechanism], specs[St.source][St.aligns_name], append)
 
@@ -667,8 +668,8 @@ def run_checks_expands(specs, check_type):
         print "\t- LINKSET {} \n\t- DOES NOT HAVE ANY GENERIC METADATA.".format(linkset)
         return {St.message: "GOOD TO GO", St.result: "GOOD TO GO", St.error_code: 0, 'inserted': 0}
 
-
     # return {St.message: "GOOD TO GO", St.error_code: 0, St.result: "GOOD TO GO"}
+
 
 def run_checks_id(specs):
 

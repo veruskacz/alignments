@@ -1,3 +1,5 @@
+import datetime
+from os.path import join
 import Alignments.Utility as Ut
 import Alignments.Query as Qry
 from Alignments.Utility import get_uri_local_name_plus as local_name
@@ -9,7 +11,8 @@ from Alignments.Utility import get_uri_local_name_plus as local_name
 # RESOURCES
 
 
-def test(data, resources):
+
+def investigate_resources(data, resources):
 
     # DATASET AND THE PROPERTIES OF INTEREST. EACH PROPERTY CAN BE PROVIDED WITH AN ALTERNATIVE NAME
     # data = {
@@ -121,11 +124,62 @@ def test(data, resources):
             "UNION\n" if count_union > 0 else "", Ut.to_nt_format(dataset), bind, sub_mandatory, sub_optional)
         count_union += 1
 
+    # THE FINAL QUERY
     query = template_2.format(resource_enumeration, sub_query)
+    # Qry.display_result(query, is_activated=True)
 
-    Qry.display_result(query, is_activated=True)
+    response = Qry.sparql_xml_to_matrix(query)
 
-    return query
+    if response is None:
+        return None
+    else:
+        return response['result']
+
+
+def write_record(record_format, matrix, writer, cluster_id=""):
+
+    count = 0
+    format_template = "{{:{}}}".format(50)
+
+    for record in matrix:
+        count += 1
+        record_line = " | ".join(
+            format_template.format("") if item is None or len(item) == 0
+            else format_template.format(local_name(item)) for item in record)
+        # print record_line
+        if count == 1:
+            writer.write(record_format.format(cluster_id, len(matrix) - 1, "--", "--", record_line))
+        else:
+            writer.write(record_format.format("", "", "", "", record_line))
+
+
+def process_cluster(data, resources, directory, cluster_id=""):
+
+    # RECORD ITEM SEPARATOR
+    separator_size = 14
+
+    # FILE DATE
+    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+
+    # THE WRITER
+    writer = open(join(directory, "EvalSheet_{}.txt".format(date)), 'wb')
+
+    # RECORD FORMAT
+    record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(separator_size)
+
+    # THE HEADER OF THE FILE
+    header = record_format.format("CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "RESOURCES")
+    writer.write(header)
+
+    # FETCH DATA ABOUT THE PROVIDED RESOURCES
+    matrix = investigate_resources(data, resources)
+
+    # WRITE THE FETCHED DATA TO SOURCE
+    write_record(record_format, matrix, writer, cluster_id)
+
+    # END OF FILE
+    writer.close()
+
 
 
 # TESTING
@@ -147,10 +201,9 @@ info = {
 info_2 = {
         'http://risis.eu/dataset/grid_20180625': {
             'mandatory':[
-                ('http://www.w3.org/2004/02/skos/core#altLabel', ''),
-                ('http://www.w3.org/2000/01/rdf-schema#label', "name"),
-                ('<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>', '')],
-            'optional': []
+                ('http://www.w3.org/2000/01/rdf-schema#label', 'name')],
+            'optional': [('<http://www.grid.ac/ontology/hasAddress>/<http://www.grid.ac/ontology/countryCode>', ''),
+                         ('http://www.w3.org/2004/02/skos/core#altLabel', "")]
         },
         'http://risis.eu/dataset/orgref_20180301': {
             'mandatory':[
@@ -167,4 +220,5 @@ info_2 = {
 rscs= ['http://risis.eu/orgref_20180301/resource/10039929',
        'http://risis.eu/orgref_20180301/resource/13967334',
        'http://www.grid.ac/institutes/grid.1001.0', 'http://www.grid.ac/institutes/grid.413314.0']
-test(info_2, rscs)
+
+process_cluster(info_2, rscs, "C:\Productivity\\1 - GA - VALIDATION", cluster_id="ad15fdc8")
