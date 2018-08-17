@@ -140,7 +140,8 @@ def investigate_resources(data, resources):
         return response['result']
 
 
-def write_record(size, record_format, matrix, writer, cluster_id="", separator_size=40, machine_decision=""):
+def write_record(
+        size, record_format, matrix, writer, cluster_id="", separator_size=40, machine_decision="", has_cycle='no'):
 
     count = 0
     format_template = "{{:{}}}".format(separator_size)
@@ -156,26 +157,28 @@ def write_record(size, record_format, matrix, writer, cluster_id="", separator_s
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item.upper())) for item in record)
                 writer.write(record_format.format(
-                    cluster_id, size, "-{}-".format(machine_decision), "--", "", "", record_line))
+                    cluster_id, size, "-{}-".format(machine_decision), "--", has_cycle, "", "", record_line))
             else:
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item)) for item in record)
-                writer.write(record_format.format("", "", "", "", "--", "--", record_line))
+                writer.write(record_format.format("", "", "", "", "", "- -", "- -", record_line))
 
     else:
         print "THE MATRIX IS EMPTY"
 
 
 def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40):
-
+    cycles = None
     count = 0
     extended = None
     heder_separator_size = 23
     if related_alignment is None:
         clusters = links_clustering( graph=graph, serialisation_dir=serialisation_dir)
     else:
-        clusters, extended = links_clustering( graph=graph, serialisation_dir=serialisation_dir, related_linkset=graph)
+        clusters, extended = links_clustering(
+            graph=graph, serialisation_dir=serialisation_dir, related_linkset=related_alignment)
+        cycles = extended['list_extended_clusters_cycle']
 
     print extended
 
@@ -188,11 +191,11 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     writer = open(join(directory, "EvalSheet_{}.txt".format(date)), 'wb')
 
     # RECORD FORMAT
-    record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(heder_separator_size)
+    record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(heder_separator_size)
 
     # RECORD HEADER
     header = record_format.format(
-            "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "NOT GOOD", "CYCLE", "RESOURCES")
+            "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES")
 
     # WRITE THE FILE HEADER
     writer.write(header)
@@ -204,6 +207,11 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
         count += 1
         nodes = cluster['nodes']
 
+        if cycles is None:
+            contain_cycle = "no"
+        else:
+            contain_cycle = 'yes' if cluster_id in cycles else 'no'
+
         # COMPUTE THE MACHINE EVALUATION
         decision = metric(cluster['links'])["AUTOMATED_DECISION"]
 
@@ -211,12 +219,11 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
         matrix = investigate_resources(data, resources=nodes)
 
         # WRITE THE FETCHED DATA TO SOURCE
-        write_record(len(nodes), record_format=record_format, matrix=matrix, writer=writer,
-                     cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size)
+        write_record(len(nodes), record_format=record_format, matrix=matrix, writer=writer, cluster_id=cluster_id,
+                     machine_decision=decision, separator_size=separator_size, has_cycle=contain_cycle)
 
         # ADD A NEW LINE
         writer.write("\n")
-
 
         if count % 10 == 0 or count == 1:
             print "{:6} {:25}{:6}".format(count, cluster_id, decision)
@@ -250,7 +257,7 @@ def process_cluster(data, resources, network, writer, with_header, machine_decis
     # FETCH DATA ABOUT THE PROVIDED RESOURCES
     matrix = investigate_resources(data, resources)
 
-    decision = metric(network)["AUTOMATED_DECISION"]
+    # decision = metric(network)["AUTOMATED_DECISION"]
 
     # WRITE THE FETCHED DATA TO SOURCE
     write_record(record_format=record_format, matrix=matrix, writer=writer,
