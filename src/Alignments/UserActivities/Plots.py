@@ -207,28 +207,28 @@ def metric(graph):
     MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
 
-    print "NODES AVERAGE"
+    # print "NODES AVERAGE"
     node_count = len(nodes)
     # average_node_connectivity = nx.average_node_connectivity(g)
     average_node_connectivity = 0
     # ratio = average_node_connectivity / (len(nodes) - 1)
 
-    print "EDGES DISCOVERED"
+    # print "EDGES DISCOVERED"
     edge_discovered = len(graph)
     edge_derived = node_count * (node_count - 1) / 2
 
-    print "DIAMETER"
+    # print "DIAMETER"
     diameter = nx.diameter(g)  # / float(node_count - 1)
     if len(nodes) > 2:
         normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3)
     else:
         normalised_diameter = float(diameter - 1)
 
-    print "BRIDGE"
+    # print "BRIDGE"
     bridges = len(list(nx.bridges(g)))
     normalised_bridge = round(float(bridges / float(len(nodes) - 1)), 3)
 
-    print "CLOSURE"
+    # print "CLOSURE"
     closure = round(float(edge_discovered) / float(edge_derived), 3)
     normalised_closure = round(1 - closure, 2)
 

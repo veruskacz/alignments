@@ -2682,6 +2682,7 @@ def links_clustering_improved(graph, limit=1000):
 #   - [STRENGTHS]
 # ************************************************
 # ************************************************
+
 def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=False, limit=10000):
 
 
@@ -2695,7 +2696,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     else:
         print Ut.headings("LINK CLUSTERING EXTENSION...")
 
-    print "\nDIRECTORY:", serialisation_dir
+    print "\nSERIALISATION DIRECTORY:", serialisation_dir
 
     if os.path.isdir(serialisation_dir) is False:
         os.mkdir(serialisation_dir)
@@ -2712,7 +2713,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     # **************************************************************************************************
     ask = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
 
+    # ALREADY SERIALIZED
     if Qry.boolean_endpoint_response(ask) == "true":
+
         print ">>> THE CLUSTER HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
 
         # QUERY FOR THE SERIALISATION
@@ -2804,7 +2807,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 # BUT REQUEST FOR A SPECIFIC CLUSTER EXTENSION
                 return extension_dict
 
-        # RHIS ASSUMES THAT YOU REQUEST THE CLUSTER
+        # THIS ASSUMES THAT YOU REQUEST THE CLUSTER
         return clusters
 
     # **************************************************************************************************
