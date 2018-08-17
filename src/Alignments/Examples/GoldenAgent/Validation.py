@@ -87,7 +87,7 @@ def investigate_resources(data, resources):
         }}"""
 
     template_2 = """
-    SELECT *
+    SELECT DISTINCT *
     {{
         # LIST OR RESOURCES TO INVESTIGATE
         VALUES ?resource {{ {} }}
@@ -140,7 +140,7 @@ def investigate_resources(data, resources):
         return response['result']
 
 
-def write_record(record_format, matrix, writer, cluster_id="", separator_size=40, machine_decision=""):
+def write_record(size, record_format, matrix, writer, cluster_id="", separator_size=40, machine_decision=""):
 
     count = 0
     format_template = "{{:{}}}".format(separator_size)
@@ -156,7 +156,7 @@ def write_record(record_format, matrix, writer, cluster_id="", separator_size=40
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item.upper())) for item in record)
                 writer.write(record_format.format(
-                    cluster_id, len(matrix) - 1, "-{}-".format(machine_decision), "--", "", "", record_line))
+                    cluster_id, size, "-{}-".format(machine_decision), "--", "", "", record_line))
             else:
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
@@ -202,15 +202,16 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     for cluster_id, cluster in clusters.items():
 
         count += 1
+        nodes = cluster['nodes']
 
         # COMPUTE THE MACHINE EVALUATION
         decision = metric(cluster['links'])["AUTOMATED_DECISION"]
 
         # FETCH DATA ABOUT THE PROVIDED RESOURCES
-        matrix = investigate_resources(data, resources= cluster['nodes'])
+        matrix = investigate_resources(data, resources=nodes)
 
         # WRITE THE FETCHED DATA TO SOURCE
-        write_record(record_format=record_format, matrix=matrix, writer=writer,
+        write_record(len(nodes), record_format=record_format, matrix=matrix, writer=writer,
                      cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size)
 
         # ADD A NEW LINE
@@ -218,9 +219,9 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 
 
         if count % 10 == 0 or count == 1:
-            print "{:6} {:12}{:6}".format(count, cluster_id, decision)
+            print "{:6} {:25}{:6}".format(count, cluster_id, decision)
 
-        if count == 30:
+        if count == 20:
             break
 
     writer.close()
