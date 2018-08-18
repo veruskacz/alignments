@@ -3670,6 +3670,10 @@ def delete_serialised_extended_clusters(graph):
 
 def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_dir, reset=False):
 
+
+
+    print "\nCOMPUTING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
+
     # 1. FETCH THE PAIRED NODES
     size = Qry.get_namedgraph_size(graph)
     extended_clusters = set()
@@ -3689,7 +3693,7 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
     if Qry.boolean_endpoint_response(ask) == "true":
 
-        print "\n>>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+        print "\>>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
 
         # QUERY FOR THE SERIALISATION
         s_query = """SELECT *
@@ -3752,12 +3756,12 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
     }}""".format(related_linkset)
 
 
-    print "FETCHING THE RELATED ALIGNMENT TRIPLES"
+    print "\tFETCHING THE RELATED ALIGNMENT TRIPLES"
     fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
     fetched = fetched_res[St.result]
 
     # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
-    print "\tRELATED LINKSET SIZE: {}\nCOMPUTING THE EXTENSIONS".format(len(fetched) - 1)
+    print "\t\tRELATED LINKSET SIZE: {}\n\tCOMPUTING THE EXTENSIONS".format(len(fetched) - 1)
 
     for i in range(1, len(fetched)):
 
@@ -3801,8 +3805,8 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
 
     diff = datetime.timedelta(seconds=time.time() - start)
-    print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
-    print "\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
+    print "\t\tFOUND: {} IN {}".format(len(extended_clusters), diff)
+    print "\t\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
 
     if len(extended_clusters) != 0 and len(list_extended_clusters_cycle) != 0:
 
@@ -3830,7 +3834,7 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
         print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
 
     else:
-        print "THE RETURNED DICTIONARY IS EMPTY."
+        print "\tTHE RETURNED DICTIONARY IS EMPTY."
 
     return data
 
