@@ -1,3 +1,4 @@
+import time
 import datetime
 from os.path import join
 import Alignments.Utility as Ut
@@ -216,9 +217,10 @@ def write_record( size, record_format, matrix, writer, cluster_id="",
 # **************************************************************************************
 def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40):
 
+    start = time.time()
     count = 0
     cycles = None
-    extended = None
+    # extended = None
     heder_separator_size = 23
 
     # FILE DATE
@@ -282,12 +284,15 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
         writer.write("\n")
 
         if count % 10 == 0 or count == 1:
+            print datetime.timedelta(seconds=time.time() - start)
             print "{:6} {:25}{:6}".format(count, cluster_id, decision)
 
         if count == 2:
             break
 
     writer.close()
+
+    print "Job Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
 
 def process_cluster(data, resources, network, writer, with_header, machine_decision, separator_size=20, cluster_id=""):
