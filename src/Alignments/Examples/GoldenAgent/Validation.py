@@ -227,7 +227,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
 
     # THE WRITER
-    writer = open(join(directory, "EvalSheet_{}.txt".format(date)), 'wb')
+    writer = open(join(directory, "EvalSheet_{}_{}.txt".format(Ut.hash_it(graph), date)), 'wb')
 
     # RECORD FORMAT
     record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(
