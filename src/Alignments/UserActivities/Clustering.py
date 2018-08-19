@@ -2777,7 +2777,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     # LINKS         : LIST OF TUPLE OF THE TYPE (NODE, PAIRED)
                     # EXTENSIONS    : UNIQUE LIST OF CLUSTER ID THAT EXTENT THE ORIGINAL CLUSTER USING PAIRED
                     """
-                    print "EXTENDING THE CLUSTER ID"
+                    print "\nEXTENDING THE CLUSTER ID"
                     extension_dict = cluster_extension(
                         nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
                 else:
@@ -2815,6 +2815,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     # **************************************************************************************************
     else:
 
+        print ">>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. \n>>      MAYBE TIME FOR A COFFEE?."
         # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
         root = dict()
         count = 0
@@ -3523,7 +3524,7 @@ def cluster_extension(nodes, node2cluster, linkset):
     # SIDE IS A CLUSTER.
     # ***********************************************************************************
 
-    print "\n\t> CHECKING FOR EXTENSION"
+    print "\t> CHECKING FOR EXTENSION"
 
     # 1. PICK A CLUSTER
     # picked_cluster = clusters[clusters.keys()[0]]
@@ -3670,8 +3671,6 @@ def delete_serialised_extended_clusters(graph):
 
 def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_dir, reset=False):
 
-
-
     print "\nCOMPUTING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
 
     # 1. FETCH THE PAIRED NODES
@@ -3693,7 +3692,7 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
     if Qry.boolean_endpoint_response(ask) == "true":
 
-        print "\>>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+        print ">>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
 
         # QUERY FOR THE SERIALISATION
         s_query = """SELECT *

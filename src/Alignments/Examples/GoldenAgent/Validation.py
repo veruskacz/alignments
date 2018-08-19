@@ -96,7 +96,7 @@ def investigate_resources(data, resources):
         # LIST OR RESOURCES TO INVESTIGATE
         VALUES ?resource {{ {} }}
         {}
-    }}
+    }} ORDER BY ?dataset ?resource
 
     """
 
@@ -252,7 +252,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
             graph=graph, serialisation_dir=serialisation_dir, related_linkset=related_alignment)
         cycles = extended['list_extended_clusters_cycle']
 
-        print "\n", extended
+        # print "\n", extended
 
     print ""
     # **************************************************************************************
