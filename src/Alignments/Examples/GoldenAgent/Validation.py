@@ -215,23 +215,24 @@ def write_record( size, record_format, matrix, writer, cluster_id="",
 #   "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL",
 #   "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES"
 # **************************************************************************************
-def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40):
+def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40, size=None):
 
     start = time.time()
     count = 0
     cycles = None
     # extended = None
-    heder_separator_size = 23
+    header_separator_size = 23
 
     # FILE DATE
     date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
 
     # THE WRITER
     writer = open(join(directory, "EvalSheet_{}_{}.txt".format(Ut.hash_it(graph), date)), 'wb')
+    writer_2= open(join(directory, "EvalSheet_{}_{}_biggerThan{}.txt".format(Ut.hash_it(graph), date, size)), 'wb')
 
     # RECORD FORMAT
     record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(
-        heder_separator_size)
+        header_separator_size)
 
     # RECORD HEADER
     header = record_format.format(
@@ -239,6 +240,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 
     # WRITING THE FILE HEADER
     writer.write(header)
+    writer_2.write(header)
 
     # **************************************************************************************
     # 1. GENERATING / EXTRACTING CLUSTERS, EXTENDED CLUSTERS AND LIST OF CLUSTERS IN A CYCLE
@@ -264,6 +266,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 
         count += 1
         nodes = cluster['nodes']
+        cluster_size = len(nodes)
 
         if cycles is None:
             contain_cycle = "no"
@@ -273,24 +276,31 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
         # COMPUTE THE MACHINE EVALUATION
         decision = metric(cluster['links'])["AUTOMATED_DECISION"]
 
-        # FETCH DATA ABOUT THE PROVIDED RESOURCES
-        matrix = investigate_resources(data, resources=nodes)
+        if size is None or cluster_size <= size:
 
-        # WRITE THE FETCHED DATA TO SOURCE
-        write_record(len(nodes), record_format=record_format, matrix=matrix, writer=writer, cluster_id=cluster_id,
-                     machine_decision=decision, separator_size=separator_size, has_cycle=contain_cycle)
 
-        # ADD A NEW LINE
-        writer.write("\n")
 
-        if count % 10 == 0 or count == 1:
-            print "{:6} {:25}{:6}".format(count, cluster_id, decision), \
-                "so far {} has passed".format(datetime.timedelta(seconds=time.time() - start))
+            # FETCH DATA ABOUT THE PROVIDED RESOURCES
+            matrix = investigate_resources(data, resources=nodes)
 
-        if count == 10:
+            # WRITE THE FETCHED DATA TO SOURCE
+            write_record(cluster_size, record_format=record_format, matrix=matrix, writer=writer, cluster_id=cluster_id,
+                         machine_decision=decision, separator_size=separator_size, has_cycle=contain_cycle)
+
+            # ADD A NEW LINE
+            writer.write("\n")
+
+            if count % 10 == 0 or count == 1:
+                print "{:6} {:25}{:6}".format(count, cluster_id, decision), \
+                    "so far {} has passed".format(datetime.timedelta(seconds=time.time() - start))
+        else:
+            writer_2.write(record_format.format(cluster_id, cluster_size, decision, "", "", "", "", ""))
+
+        if count == 50:
             break
 
     writer.close()
+    writer_2.close()
 
     print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
