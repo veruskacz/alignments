@@ -284,15 +284,15 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
         writer.write("\n")
 
         if count % 10 == 0 or count == 1:
-            print datetime.timedelta(seconds=time.time() - start)
-            print "{:6} {:25}{:6}".format(count, cluster_id, decision)
+            print "{:6} {:25}{:6}".format(count, cluster_id, decision), \
+                "so far {} has passed".format(datetime.timedelta(seconds=time.time() - start))
 
-        if count == 2:
+        if count == 10:
             break
 
     writer.close()
 
-    print "Job Done in {}".format(datetime.timedelta(seconds=time.time() - start))
+    print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
 
 def process_cluster(data, resources, network, writer, with_header, machine_decision, separator_size=20, cluster_id=""):
