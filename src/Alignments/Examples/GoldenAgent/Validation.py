@@ -344,6 +344,9 @@ def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignm
 
     start = time.time()
     count = 0
+    count_c = 0
+    count_b = 0
+    count_nc = 0
     cycles = None
     # extended = None
     header_separator_size = 23
@@ -351,29 +354,33 @@ def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignm
     # FILE DATE
     # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
     date = (str(datetime.datetime.utcnow())[:-7]).replace('-', '').replace(':', '').replace(' ', '-')
+    hashed = Ut.hash_it(graph)
+    directory = join(directory, hashed)
+
+    if isdir(directory) is False:
+        makedirs(directory)
 
     # THE WRITER
-    writer = open(join(directory, "EvalSheet_{}_{}.txt".format(Ut.hash_it(graph), date)), 'wb')
-    writer_2= open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(Ut.hash_it(graph), date, size)), 'wb')
+    writer_cycle = open(join(directory, "EvalSheet_{}_{}_cycle.txt".format(hashed, date)), 'wb')
+    writer_no_cycle = open(join(directory, "EvalSheet_{}_{}_noCycle.txt".format(hashed, date)), 'wb')
+    writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hashed, date, size)), 'wb')
 
     # RECORD FORMAT
-    record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(
+    record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
         header_separator_size)
+    print record_format
 
     # RECORD HEADER
     header = record_format.format(
-        "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES")
-
-    # WRITING THE FILE HEADER
-
-    writer_2.write(header)
+        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE",
+        "RESOURCES")
 
     # **************************************************************************************
     # 1. GENERATING / EXTRACTING CLUSTERS, EXTENDED CLUSTERS AND LIST OF CLUSTERS IN A CYCLE
     # **************************************************************************************
     # 1.1 IF THE RELATED ALIGNMENT IS NOT PROVIDED, ONLY THE CLUSTERS DICTIONARY IS RETURNED
     if related_alignment is None:
-        clusters = links_clustering( graph=graph, serialisation_dir=serialisation_dir)
+        clusters = links_clustering(graph=graph, serialisation_dir=serialisation_dir)
 
     # 1.2 IF THE RELATED ALIGNMENT IS PROVIDED, THEN THE EXTENDED CLUSTERS AND CLUSTERS IN A CYCLE
     # IS COMPUTED IF NT SERIALISED OR READ FROM FILE IF SERIALISED
@@ -390,7 +397,7 @@ def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignm
     # **************************************************************************************
     for cluster_id, cluster in clusters.items():
 
-
+        count += 1
         nodes = cluster['nodes']
         cluster_size = len(nodes)
 
@@ -402,29 +409,59 @@ def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignm
         # COMPUTE THE MACHINE EVALUATION
         decision = metric(cluster['links'])["AUTOMATED_DECISION"]
 
-        if (size is None or cluster_size <= size) and contain_cycle == 'yes':
-
-            count += 1
+        if size is None or cluster_size <= size:
 
             # FETCH DATA ABOUT THE PROVIDED RESOURCES
             matrix = investigate_resources(data, resources=nodes)
 
-            # WRITE THE FETCHED DATA TO SOURCE
-            writer.write(header)
-            write_record(cluster_size, record_format=record_format, matrix=matrix, writer=writer, cluster_id=cluster_id,
-                         machine_decision=decision, separator_size=separator_size, has_cycle=contain_cycle)
+            if contain_cycle == 'yes':
 
-            # ADD A NEW LINE
-            writer.write("\n")
+                count_c += 1
+                # WRITING THE FILE HEADER
+                writer_cycle.write(header)
 
-            if count % 10 == 0 or count == 1:
+                # WRITE THE FETCHED DATA TO SOURCE
+                write_record(count_c, cluster_size, record_format=record_format, matrix=matrix, writer=writer_cycle,
+                             cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
+                             has_cycle=contain_cycle)
+
+                # ADD A NEW LINE
+                writer_cycle.write("\n")
+
+                if count_c == 150:
+                    break
+
+            else:
+
+                count_nc += 1
+                # WRITING THE FILE HEADER
+                writer_no_cycle.write(header)
+
+                # WRITE THE FETCHED DATA TO SOURCE
+                write_record(count_nc, cluster_size, record_format=record_format, matrix=matrix, writer=writer_no_cycle,
+                             cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
+                             has_cycle=contain_cycle)
+
+                # ADD A NEW LINE
+                writer_no_cycle.write("\n")
+
+            # if count % 10 == 0 or count == 1:
+            if count % 10 == 0:
                 print "{:6} {:25}{:6}".format(count, cluster_id, decision), \
                     "so far {} has passed".format(datetime.timedelta(seconds=time.time() - start))
 
-            if count == 150:
-                break
+        else:
+            count_b += 1
+            # WRITING THE FILE HEADER
+            writer_2.write(header)
+            writer_2.write(
+                record_format.format(count_b, cluster_id, cluster_size, decision, "", contain_cycle, "", "", ""))
 
-    writer.close()
+        # if count == 50:
+        #     break
+
+    writer_cycle.close()
+    writer_no_cycle.close()
     writer_2.close()
 
     print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
