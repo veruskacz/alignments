@@ -246,7 +246,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     # RECORD FORMAT
     record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
         header_separator_size)
-    print record_format
+    # print record_format
 
     # RECORD HEADER
     header = record_format.format(
@@ -289,7 +289,10 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
             contain_cycle = 'yes' if cluster_id in cycles else 'no'
 
         # COMPUTE THE MACHINE EVALUATION
-        decision = metric(cluster['links'])["AUTOMATED_DECISION"]
+        if cluster_size > 500:
+            decision = "NOT COMPUTED [NA]"
+        else:
+            decision = metric(cluster['links'])["AUTOMATED_DECISION"]
 
         if size is None or cluster_size <= size:
 
@@ -407,7 +410,10 @@ def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignm
             contain_cycle = 'yes' if cluster_id in cycles else 'no'
 
         # COMPUTE THE MACHINE EVALUATION
-        decision = metric(cluster['links'])["AUTOMATED_DECISION"]
+        if cluster_size > 500:
+            decision = "NOT COMPUTED [NA]"
+        else:
+            decision = metric(cluster['links'])["AUTOMATED_DECISION"]
 
         if size is None or cluster_size <= size:
 
