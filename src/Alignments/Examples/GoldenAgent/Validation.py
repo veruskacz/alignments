@@ -195,7 +195,7 @@ def write_record( size, record_format, matrix, writer, cluster_id="",
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item.upper())) for item in record)
                 writer.write(record_format.format(
-                    cluster_id, size, "-{}-".format(machine_decision), "--", has_cycle, "", "", record_line))
+                    cluster_id, size, "-{}-".format(machine_decision), "- -", has_cycle, "", "", record_line))
             else:
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
