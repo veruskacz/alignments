@@ -220,23 +220,24 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 
     start = time.time()
     count = 0
+    count_c = 0
+    count_b = 0
+    count_nc = 0
     cycles = None
     # extended = None
     header_separator_size = 23
 
     # FILE DATE
-    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    hased = Ut.hash_it(graph)
-
-    directory =  join(directory, hased)
-
+    # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    date = (str(datetime.datetime.utcnow())[:-7]).replace('-','').replace(':','').replace(' ', '-')
+    hashed = Ut.hash_it(graph)
+    directory =  join(directory, hashed)
     makedirs(directory)
 
-
     # THE WRITER
-    writer_cycle = open(join(directory, "EvalSheet_{}_{}_cycle.txt".format(hased, date)), 'wb')
-    writer_no_cycle = open(join(directory, "EvalSheet_{}_{}_noCycle.txt".format(hased, date)), 'wb')
-    writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hased, date, size)), 'wb')
+    writer_cycle = open(join(directory, "EvalSheet_{}_{}_cycle.txt".format(hashed, date)), 'wb')
+    writer_no_cycle = open(join(directory, "EvalSheet_{}_{}_noCycle.txt".format(hashed, date)), 'wb')
+    writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hashed, date, size)), 'wb')
 
     # RECORD FORMAT
     record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(
@@ -336,7 +337,8 @@ def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignm
     header_separator_size = 23
 
     # FILE DATE
-    date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    date = (str(datetime.datetime.utcnow())[:-7]).replace('-', '').replace(':', '').replace(' ', '-')
 
     # THE WRITER
     writer = open(join(directory, "EvalSheet_{}_{}.txt".format(Ut.hash_it(graph), date)), 'wb')
