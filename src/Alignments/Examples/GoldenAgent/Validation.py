@@ -1,7 +1,8 @@
+from sys import stderr
 from os import makedirs
 import time
 import datetime
-from os.path import join
+from os.path import join, isdir
 import Alignments.Utility as Ut
 import Alignments.Query as Qry
 from Alignments.Utility import get_uri_local_name_plus as local_name
@@ -178,12 +179,13 @@ def get_context(matrix, cluster_id="", separator_size=40):
 # BUT INSERTS THE LINES INTO A BIGGER FRAME FOR VALIDATION INVESTIGATION.
 # THE DATA IS FINALLY WRITTEN TO FILE
 # **************************************************************************************
-def write_record( size, record_format, matrix, writer, cluster_id="",
+def write_record(count_record, size, record_format, matrix, writer, cluster_id="",
                   separator_size=40, machine_decision="", has_cycle='no'):
 
     count = 0
     format_template = "{{:{}}}".format(separator_size)
-    # print format_template
+    # print >> stderr, count_record, '\r',
+    print "{:<5}".format(count_record),
 
     if matrix is not None:
         for record in matrix:
@@ -194,13 +196,13 @@ def write_record( size, record_format, matrix, writer, cluster_id="",
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item.upper())) for item in record)
-                writer.write(record_format.format(
+                writer.write(record_format.format(count_record,
                     cluster_id, size, "-{}-".format(machine_decision), "- -", has_cycle, "", "", record_line))
             else:
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item)) for item in record)
-                writer.write(record_format.format("", "", "", "", "", "- -", "- -", record_line))
+                writer.write(record_format.format("", "", "", "", "", "", "- -", "- -", record_line))
 
     else:
         print "THE MATRIX IS EMPTY"
@@ -232,7 +234,9 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     date = (str(datetime.datetime.utcnow())[:-7]).replace('-','').replace(':','').replace(' ', '-')
     hashed = Ut.hash_it(graph)
     directory =  join(directory, hashed)
-    makedirs(directory)
+
+    if isdir(directory) is False:
+        makedirs(directory)
 
     # THE WRITER
     writer_cycle = open(join(directory, "EvalSheet_{}_{}_cycle.txt".format(hashed, date)), 'wb')
@@ -240,12 +244,13 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hashed, date, size)), 'wb')
 
     # RECORD FORMAT
-    record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(
+    record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
         header_separator_size)
+    print record_format
 
     # RECORD HEADER
     header = record_format.format(
-        "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES")
+        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES")
 
     # WRITING THE FILE HEADER
     writer_cycle.write(header)
@@ -293,8 +298,10 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 
             if contain_cycle == 'yes':
 
+                count_c += 1
+
                 # WRITE THE FETCHED DATA TO SOURCE
-                write_record(cluster_size, record_format=record_format, matrix=matrix, writer=writer_cycle,
+                write_record(count_c, cluster_size, record_format=record_format, matrix=matrix, writer=writer_cycle,
                              cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
                              has_cycle=contain_cycle)
 
@@ -303,8 +310,10 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 
             else:
 
+                count_nc += 1
+
                 # WRITE THE FETCHED DATA TO SOURCE
-                write_record(cluster_size, record_format=record_format, matrix=matrix, writer=writer_no_cycle,
+                write_record(count_nc, cluster_size, record_format=record_format, matrix=matrix, writer=writer_no_cycle,
                              cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
                              has_cycle=contain_cycle)
 
@@ -312,11 +321,14 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
                 writer_no_cycle.write("\n")
 
 
-            if count % 10 == 0 or count == 1:
+            # if count % 10 == 0 or count == 1:
+            if count % 10 == 0:
                 print "{:6} {:25}{:6}".format(count, cluster_id, decision), \
                     "so far {} has passed".format(datetime.timedelta(seconds=time.time() - start))
+
         else:
-            writer_2.write(record_format.format(cluster_id, cluster_size, decision, "", contain_cycle, "", "", ""))
+            count_b += 1
+            writer_2.write(record_format.format(count_b, cluster_id, cluster_size, decision, "", contain_cycle, "", "", ""))
 
         if count == 50:
             break
