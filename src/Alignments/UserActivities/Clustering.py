@@ -2556,7 +2556,6 @@ def links_clustering_improved(graph, limit=1000):
             root[child_1] = parent
             root[child_2] = parent
 
-
             link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
             clusters[parent] = {'nodes': set([child_1, child_2]), 'links': set([link])}
 
@@ -2685,7 +2684,6 @@ def links_clustering_improved(graph, limit=1000):
 
 def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=False, limit=10000):
 
-
     # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
     # ONCE THE CLUSTER IS COMPUTED, THE IDEA IS TO SERIALISE IT SO THAT IT WOULD NOT NEED TO BE
     # RECOMPUTED AGAIN WHEN REQUESTED FOR. THE SERIALISED CLUSTER IS LINKED TO THE GENERIC METADATA
@@ -2748,7 +2746,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 serialised = s_file.read()
                 s_file.close()
 
-            except Exception:
+            except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
                     serialised_hash)
                 traceback.print_exc()
@@ -3429,7 +3427,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     smallest_hash).startswith("-") else "P{}".format(smallest_hash)
 
                 # CONVERTING SET TO LIST AS AST OR JASON DO NOT DEAL WITH SET
-                new_clusters[new_key] = {'nodes': [], 'strengths': [], 'links':[]}
+                new_clusters[new_key] = {'nodes': [], 'strengths': [], 'links': []}
                 new_clusters[new_key]['nodes'] = list(data['nodes'])
                 new_clusters[new_key]['strengths'] = data['strengths']
                 new_clusters[new_key]['links'] = list(data['links'])
@@ -3438,7 +3436,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 for node in data['nodes']:
                     root[node] = new_key
 
-            returned = {'clusters':new_clusters, 'node2cluster_id':root}
+            returned = {'clusters': new_clusters, 'node2cluster_id': root}
             returned_hashed = str(hash(returned.__str__()))
             returned_hashed = returned_hashed.replace("-", "Cluster_N") if returned_hashed.startswith("-")\
                 else "Cluster_P{}".format(returned_hashed)
@@ -3579,7 +3577,6 @@ def cluster_extension(nodes, node2cluster, linkset):
         print "\t\t", ex_id
     print "\tTHE EXTENSION:", to_return
 
-
     return to_return
 
 
@@ -3709,7 +3706,7 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
         print "\tLOADED in {}".format(diff)
 
         # GET THE SERIALISED CLUSTERS
-        serialised = ""
+        # serialised = ""
         if s_query_result is not None:
 
             # EXTRACTING THE NUMBER OF CLUSTERS ABD THE SERIALISED FILE NAME
@@ -3731,13 +3728,12 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                 print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
                 return serialised
 
-            except Exception:
+            except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
                     serialised_hash)
                 # traceback.print_exc()
                 print "DELETING THE EXTENDED SERIALISED SERIALISED DATA FROM: {}".format(graph)
                 delete_serialised_extended_clusters(graph)
-
 
     # **************************************************************************************************
     # 2. ALIGNMENT HAS NOT YET BEEN EXTENDED AND SERIALISED
@@ -3754,18 +3750,21 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
         }}
     }}""".format(related_linkset)
 
-
     print "\tFETCHING THE RELATED ALIGNMENT TRIPLES"
     fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
-    fetched = fetched_res[St.result]
+    related = fetched_res[St.result]
 
     # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
-    print "\t\tRELATED LINKSET SIZE: {}\n\tCOMPUTING THE EXTENSIONS".format(len(fetched) - 1)
+    print "\t\tRELATED LINKSET SIZE: {}\n\tCOMPUTING THE EXTENSIONS".format(len(related) - 1)
 
-    for i in range(1, len(fetched)):
+    cycle_paths = {}
 
-        sub = "<{}>".format(fetched[i][0])
-        obj = "<{}>".format(fetched[i][1])
+    # ITERATING THROUGH THE RELATED LIST OF NODES
+    for i in range(1, len(related)):
+
+        # RELATED NODES
+        sub = "<{}>".format(related[i][0])
+        obj = "<{}>".format(related[i][1])
 
         # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
         if sub in node2cluster and obj in node2cluster:
@@ -3776,31 +3775,55 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
             # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
             # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
             if curr_sub_cluster != curr_obj_cluster:
+
+                # **********************************************************************************
+                # 1. CHECKING FOR EXTENSION
+                # IF THE CLUSTER TO WHICH THE NODES BELONG ARE NOT THE SAME THEN THE CLUSTERS EXTEND
+                # **********************************************************************************
                 extended_clusters.add(curr_sub_cluster)
                 extended_clusters.add(curr_obj_cluster)
+
+                # **********************************************************************************
+                # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
+                # **********************************************************************************
 
                 if curr_sub_cluster < curr_obj_cluster:
 
                     if (curr_sub_cluster, curr_obj_cluster) in dict_clusters_pairs.keys():
+
                         # IT HAS A CYCLE
                         list_extended_clusters_cycle.add(curr_sub_cluster)
                         list_extended_clusters_cycle.add(curr_obj_cluster)
+
+                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                        dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] += [(sub, obj)]
+
+                        for related_nodes in dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)]:
+                            cycle_paths["curr_sub_cluster"] += [(related_nodes[0], sub)]
+                            cycle_paths["curr_obj_cluster"] += [(related_nodes[1], obj)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
                         # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(curr_sub_cluster , curr_obj_cluster)] = ""
+                        dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] = [(sub, obj)]
 
                 else:
-                    if (curr_obj_cluster, curr_sub_cluster ) in dict_clusters_pairs.keys():
+                    if (curr_obj_cluster, curr_sub_cluster) in dict_clusters_pairs.keys():
                         # IT HAS A CYCLE
                         list_extended_clusters_cycle.add(curr_sub_cluster)
                         list_extended_clusters_cycle.add(curr_obj_cluster)
 
+                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                        dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] += [(obj, sub)]
+
+                        for related_nodes in dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)]:
+                            cycle_paths["curr_sub_cluster"]+= [(related_nodes[1], sub)]
+                            cycle_paths["curr_obj_cluster"] += [(related_nodes[0], obj)]
+
                     else:
                         # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
                         # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(curr_obj_cluster,curr_sub_cluster )] = ""
+                        dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] = [(obj, sub)]
 
 
     diff = datetime.timedelta(seconds=time.time() - start)
@@ -3811,7 +3834,8 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
         # SERIALISATION
         data = {'extended_clusters': list(extended_clusters),
-                'list_extended_clusters_cycle': list(list_extended_clusters_cycle)}
+                'list_extended_clusters_cycle': list(list_extended_clusters_cycle),
+                'cycle_paths': cycle_paths}
         file_name = "ExtendedBy_{}".format(Ut.get_uri_local_name_plus(related_linkset))
         # file_name = file_name.replace("-", "Cluster_N") \
         #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
@@ -3887,18 +3911,17 @@ def list_extended_clusters_short_problem(node2cluster, related_linkset):
                 else:
                     # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
                     # DOCUMENTING FIRST OCCURRENCE
-                    dict_clusters_pairs[(curr_sub_cluster , curr_obj_cluster)] = ""
+                    dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] = ""
                     dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] = ""
 
     diff = datetime.timedelta(seconds=time.time() - start)
     print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
     print "\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
 
-    return (extended_clusters, list_extended_clusters_cycle)
+    return extended_clusters, list_extended_clusters_cycle
 
 
 def list_extended_clusters_long(serialised_path, related_linkset):
-
 
     # s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_path)), 'rb')
     s_file = open(serialised_path, 'rb')
@@ -3908,7 +3931,7 @@ def list_extended_clusters_long(serialised_path, related_linkset):
         print '\nREADING FROM: {}'.format(serialised_path)
         serialised = s_file.read()
 
-    except Exception:
+    except (IOError, ValueError):
         print "\nCAN NOT GO ANY FURTHER AS THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(s_file)
 
     else:
@@ -3923,7 +3946,7 @@ def list_extended_clusters_long(serialised_path, related_linkset):
 
         # 3. FETCH THE PAIRED NODES
         extended_clusters = set()
-        pre_extended_pair_clusters = set()
+        # pre_extended_pair_clusters = set()
         list_extended_clusters_cycle = set()
         dict_clusters_pairs = {}
         start = time.time()
@@ -3942,7 +3965,7 @@ def list_extended_clusters_long(serialised_path, related_linkset):
         fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
         fetched = fetched_res[St.result]
 
-        # ITERATE THROUGH THE PAIRED FOR ENTENSIONS
+        # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
         print "\tRELATED LINKSET SIZE: {}".format(len(fetched) - 1)
         for i in range(1, len(fetched)):
             sub = "<{}>".format(fetched[i][0])
@@ -3955,17 +3978,17 @@ def list_extended_clusters_long(serialised_path, related_linkset):
                     extended_clusters.add(node2cluster[obj])
 
                     if node2cluster[sub] < node2cluster[obj]:
-                        if (node2cluster[sub],node2cluster[obj]) in dict_clusters_pairs.keys():
-                            dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])].add((sub,obj))
+                        if (node2cluster[sub], node2cluster[obj]) in dict_clusters_pairs.keys():
+                            dict_clusters_pairs[(node2cluster[sub], node2cluster[obj])].add((sub,obj))
                             # s
                         else:
                             dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])] = set([(sub,obj)])
                     else:
                         if (node2cluster[obj],node2cluster[sub]) in dict_clusters_pairs.keys():
-                            dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])].add((sub,obj))
+                            dict_clusters_pairs[(node2cluster[obj], node2cluster[sub])].add((sub,obj))
                             # s.add((sub,obj))
                         else:
-                            dict_clusters_pairs[(node2cluster[obj],node2cluster[sub])] = set([(sub,obj)])
+                            dict_clusters_pairs[(node2cluster[obj], node2cluster[sub])] = set([(sub,obj)])
 
                     # if node2cluster[sub] < node2cluster[obj]:
                     #     if (node2cluster[sub],node2cluster[obj]) in pre_extended_pair_clusters:
@@ -3989,11 +4012,10 @@ def list_extended_clusters_long(serialised_path, related_linkset):
         print "\tFOUND: {} IN {}".format(len(extended_clusters), diff)
         print "\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
 
-        return (extended_clusters, list_extended_clusters_cycle)
+        return extended_clusters, list_extended_clusters_cycle
 
 
 def list_extended_clusters0(serialised_path, related_linkset):
-
 
     # s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_path)), 'rb')
     s_file = open(serialised_path, 'rb')
@@ -4003,7 +4025,7 @@ def list_extended_clusters0(serialised_path, related_linkset):
         print '\nREADING FROM: {}'.format(serialised_path)
         serialised = s_file.read()
 
-    except Exception:
+    except (IOError, ValueError):
         print "\nCAN NOT GO ANY FURTHER AS THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(s_file)
 
     else:
@@ -4039,11 +4061,6 @@ def list_extended_clusters0(serialised_path, related_linkset):
 
         return extended_clusters
     # ITERATE THROUGH THE CLUSTERS AND EXTRACT THOSE WITH EXTENSION
-
-
-
-# list_extended_clusters("/Users/veruskazamborlini/Documents/PyApps/InstallTest/alignments/src/serialisations/6654197500506537051.txt",
-#                        "http://risis.eu/lens/union_Marriage003_0to20_N7133181036765133347")
 
 """""""""
 # TESTING THE CLUSTER ANALYSIS
@@ -4500,4 +4517,3 @@ TO DELETE FROM THE FILE
 
 
 # links_clustering("", limit=1000)
-
