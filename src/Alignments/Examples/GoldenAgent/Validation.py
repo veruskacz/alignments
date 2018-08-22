@@ -284,7 +284,10 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
         if type(results) is tuple:
             clusters, extended = results
             cycles = extended['list_extended_clusters_cycle']
-            cycle_paths = extended['cycle_paths']
+            if 'cycle_paths' in extended:
+                cycle_paths = extended['cycle_paths']
+            else:
+                cycle_paths = None
 
         else:
             clusters = results
@@ -373,6 +376,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     writer_no_cycle.close()
     writer_2.close()
 
+    print "RESULT CA BE FOUND IN {}.".format(directory)
     print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
 
