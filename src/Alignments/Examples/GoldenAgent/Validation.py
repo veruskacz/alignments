@@ -203,8 +203,9 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
                     "- -", has_cycle, "", "", record_line))
             else:
 
-                if node_in_cycle is not None and node_count < len(node_in_cycle):
-                    node = local_name(record[0]) if local_name(record[0]) in node_in_cycle else ""
+                if node_in_cycle is not None:
+                    print local_name(record[0])
+                    node = "-X-" if record[0] in node_in_cycle else "- -"
                 else:
                     node = "- -"
 
