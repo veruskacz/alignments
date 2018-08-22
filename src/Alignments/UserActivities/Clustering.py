@@ -3787,6 +3787,9 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                 # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
                 # **********************************************************************************
 
+                cycle_paths[curr_sub_cluster] = []
+                cycle_paths[curr_obj_cluster] = []
+
                 if curr_sub_cluster < curr_obj_cluster:
 
                     if (curr_sub_cluster, curr_obj_cluster) in dict_clusters_pairs.keys():
@@ -3799,8 +3802,8 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                         dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] += [(sub, obj)]
 
                         for related_nodes in dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)]:
-                            cycle_paths["curr_sub_cluster"] += [(related_nodes[0], sub)]
-                            cycle_paths["curr_obj_cluster"] += [(related_nodes[1], obj)]
+                            cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
+                            cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
@@ -3817,8 +3820,8 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                         dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] += [(obj, sub)]
 
                         for related_nodes in dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)]:
-                            cycle_paths["curr_sub_cluster"]+= [(related_nodes[1], sub)]
-                            cycle_paths["curr_obj_cluster"] += [(related_nodes[0], obj)]
+                            cycle_paths[curr_sub_cluster]+= [(related_nodes[1], sub)]
+                            cycle_paths[curr_obj_cluster] += [(related_nodes[0], obj)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
