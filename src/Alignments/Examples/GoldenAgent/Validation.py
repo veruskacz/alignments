@@ -204,7 +204,7 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
             else:
 
                 if node_in_cycle is not None and node_count < len(node_in_cycle):
-                    node = record[0] if record[0] in node_in_cycle else ""
+                    node = local_name(record[0]) if local_name(record[0]) in node_in_cycle else ""
                 else:
                     node = "- -"
 
@@ -328,7 +328,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
                 if cycle_paths is not None:
                     start_end_paths = cycle_paths[cluster_id]
                     for start_node, end_node in start_end_paths:
-                        path_nodes = shortest_paths(clusters["links"], start_node, end_node)
+                        path_nodes = shortest_paths(cluster["links"], start_node, end_node)
                         for path_list in path_nodes:
                             for node in path_list:
                                 final.add(node)
@@ -376,7 +376,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     writer_no_cycle.close()
     writer_2.close()
 
-    print "RESULT CA BE FOUND IN {}.".format(directory)
+    print "RESULT CAN BE FOUND IN {}.".format(directory)
     print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
 
