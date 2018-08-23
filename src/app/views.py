@@ -2721,6 +2721,7 @@ def datasetLinkingClusterDetails():
 
     print "\n\t>>> CLUSTER", cluster_id
     print "\t>>> PROPERTIES:", properties
+    # print dict_graph
     # print cluster['nodes']
     # print cluster['links']
     # print cluster['dict']
@@ -2788,7 +2789,7 @@ def datasetLinkingClusterDetails():
                          "strenght": max(dict[key_2]), 'color': 'black'}]
 
         # print cluster['nodes'], cluster['links'], cluster['dict']
-        obj_metrics = plots.metric(cluster['links'])
+        obj_metrics = plots.metric(cluster['links'], cluster['dict'])
         message = obj_metrics['message'].replace('\n','</br>').replace('   ','&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
 
         # confidence = min(cluster['dict'].items(), key=lambda value: value[1])[1]

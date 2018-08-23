@@ -1,4 +1,5 @@
 import os
+import math
 import datetime
 import networkx as nx
 import cStringIO as Buffer
@@ -6,11 +7,9 @@ import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
-# import matplotlib.pyplot as plt
-import Alignments.Server_Settings as Srv
-
-import math
 import Alignments.UserActivities.Clustering as Cls
+# import matplotlib.pyplot as plt
+# import Alignments.Server_Settings as Srv
 
 
 def sigmoid(x):
@@ -131,7 +130,6 @@ def draw_graph(graph, file_path=None, show_image=False):
     analysis_builder.write("\n\tSUMMARY 2: BRIDGE {} CLOSURE {} DIAMETER {} QUALITY {} QUALITY USED {}".format(
         nb_used, normalised_closure, nd_used, interpretation, estimated_quality))
 
-
     """""""""""""""""""""""""""""""""""""""
     PRINTING MATRIX COMPUTATIONS IN PLOT
     """""""""""""""""""""""""""""""""""""""
@@ -183,7 +181,27 @@ def draw_graph(graph, file_path=None, show_image=False):
 
 
 # METRIC DESCRIBING THE QUALITY OF A LINKED NETWORK
-def metric(graph):
+def metric(graph, strengths=None):
+
+    max_stengths = {}
+    min_strength = 1
+    average_strength = 1
+
+    if strengths is not None:
+
+        for key, val in strengths.items():
+            max_stengths[key] = float(max(val))
+
+        min_strength = min(strengths.items(), key=lambda strength_tuple: max(strength_tuple[1]))
+        min_strength = float(max(min_strength[1]))
+
+        average_strength = sum(max_stengths.values()) / len(max_stengths)
+
+        print "strengths", strengths
+        print "max", max_stengths
+        print "min_strength:", min_strength
+        print "average_strength:", average_strength
+        # link, link_min_strengths = min(cluster['dict'].items(), key=lambda tuple: max(tuple[1]))
 
     # THE GRAPH IN AN ARRAY OF TUPLE
     # WHERE THE TUPLE IS A SET OF NODES IN A BINARY RELATIONSHIP
@@ -210,7 +228,7 @@ def metric(graph):
     # print "NODES AVERAGE"
     node_count = len(nodes)
     # average_node_connectivity = nx.average_node_connectivity(g)
-    average_node_connectivity = 0
+    # average_node_connectivity = 0
     # ratio = average_node_connectivity / (len(nodes) - 1)
 
     # print "EDGES DISCOVERED"
@@ -233,26 +251,38 @@ def metric(graph):
     normalised_closure = round(1 - closure, 2)
 
     # conclusion = round((normalised_closure * normalised_diameter + normalised_bridge) / 2, 3)
-    interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
+    # interpretation = round((normalised_closure + normalised_diameter + normalised_bridge) / 3, 3)
 
     nb_used = round(sigmoid(bridges) if sigmoid(bridges) > normalised_bridge else normalised_bridge, 3)
     nd_used = round(sigmoid(diameter - 1) if sigmoid(diameter - 1) > normalised_diameter else normalised_diameter, 3)
-    estimated_quality = round((nb_used + nd_used + normalised_closure) / float(3), 3)
+    impact = round((nb_used + nd_used + normalised_closure) / float(3), 3)
+    estimated_quality = 1 - impact
+
+    # weighted_eq_1 = (estimated_quality + min_strength) / 2, (estimated_quality + average_strength) / 2
+
+    weighted_eq = estimated_quality * min_strength, estimated_quality * average_strength
+
+    # weighted_eq_1 = 0
+    # weighted_eq_2 = 0
 
     """""""""""""""""""""""""""""""""""""""
     PRINTING MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
-    analysis_builder.write(
-        # "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n"
-        # "\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}] {}\nDiameter [{}]  normalised to [{}] {}"
-        # "\nClosure [{}/{}][{}] normalised to [{}]\n\n>>> Decision Support [{}] {} <<<".
-        # format(average_node_connectivity, bridges, normalised_bridge, nb_used,
-        #        diameter, normalised_diameter, nd_used,
-        #        edge_discovered, edge_derived, closure, normalised_closure, interpretation, estimated_quality))
+    test = "[MIN: {}]   |   [AVERAGE: {}]".format(str(weighted_eq[0]), str(weighted_eq[1]))
+    # analysis_builder.write(
+    #     # "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n"
+    #     # "\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}] {}\nDiameter [{}]  normalised to [{}] {}"
+    #     # "\nClosure [{}/{}][{}] normalised to [{}]\n\n>>> Decision Support [{}] {} <<<".
+    #     # format(average_node_connectivity, bridges, normalised_bridge, nb_used,
+    #     #        diameter, normalised_diameter, nd_used,
+    #     #        edge_discovered, edge_derived, closure, normalised_closure, interpretation, estimated_quality))
+    #
+    #         ">>>\tESTIMATED QUALITY [{} | {}]\t<<<"
+    #         "\n\tBridges [{}]   Diameter [{}]   Closure [{}/{}] -> [{}]".
+    #         format(estimated_quality, test, nb_used, nd_used, edge_discovered,
+    #                edge_derived, normalised_closure))
 
-            "\tAverage Degree [{}]   Bridges [{}]   Diameter [{}]   Closure [{}/{}] -> [{}]   >>> QUALITY [{}]<<<".
-            format(average_node_connectivity, nb_used, nd_used, edge_discovered,
-                   edge_derived, normalised_closure, 1 - estimated_quality))
+    analysis_builder.write("\t{:25} :  [{}]   |   {}\t".format("ESTIMATED QUALITY", estimated_quality, test))
 
     # if ratio == 1:
     #     analysis_builder.write("\n\nDiagnose: VERY GOOD")
@@ -261,38 +291,42 @@ def metric(graph):
     # elif bridges > 0:
     #     analysis_builder.write("\n\nDiagnose : NEED BRIDGE INVESTIGATION")
 
-    if estimated_quality <= 0.1:
+    if impact <= 0.1:
         # analysis_builder.write("\n\nInterpretation: GOOD")
-        analysis_builder.write("\nInterpretation: GOOD")
-        auto_decision = "GOOD [{}]".format(estimated_quality)
+        analysis_builder.write("\n{:25} : GOOD".format("INTERPRETATION"))
+        auto_decision = "GOOD [{}]".format(impact)
 
     elif (bridges == 0) and (diameter < 3):
         analysis_builder.write("ACCEPTABLE")
-        auto_decision = "ACCEPTABLE [{}]".format(estimated_quality)
+        auto_decision = "ACCEPTABLE [{}]".format(impact)
 
-    elif ((estimated_quality > 0.1) and (estimated_quality < 0.25)) or (bridges == 0):
+    elif ((impact > 0.1) and (impact < 0.25)) or (bridges == 0):
         # analysis_builder.write("\n\nInterpretation: UNCERTAIN")
-        analysis_builder.write("\nInterpretation: UNCERTAIN")
-        auto_decision = "UNCERTAIN [{}]".format(estimated_quality)
+        analysis_builder.write("\n{:25} : UNCERTAIN".format("INTERPRETATION"))
+        auto_decision = "UNCERTAIN [{}]".format(impact)
 
     else:
         # analysis_builder.write("\n\nInterpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
-        analysis_builder.write("\nInterpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
-        auto_decision = "BAD [{}]".format(estimated_quality)
+        analysis_builder.write(
+            "\n{:25} : The network is not a good representation of a unique resource".format("INTERPRETATION"))
+        auto_decision = "BAD [{}]".format(impact)
 
     if bridges > 0:
         # analysis_builder.write("\n\nEvidence: NEED BRIDGE INVESTIGATION")
-        analysis_builder.write(" | Evidence: NEED BRIDGE INVESTIGATION")
+        analysis_builder.write(" BECAUSE it needs a bridge investigation")
 
     if diameter > 2:
         # analysis_builder.write("\n\nEvidence:  TOO MANY INTERMEDIATES")
-        analysis_builder.write(" | Evidence:  TOO MANY INTERMEDIATES")
+        analysis_builder.write(" BECAUSE it has too many intermediates")
 
     if bridges == 0 and diameter <= 2:
         # analysis_builder.write("\n\nEvidence:  LESS INTERMEDIATES AND NO BRIDGE")
-        analysis_builder.write(" | Evidence:  LESS INTERMEDIATES AND NO BRIDGE")
+        analysis_builder.write(" BECAUSE there are less intermediate(s) and no bridge")
 
-    return {'message': analysis_builder.getvalue(), 'decision':estimated_quality, 'AUTOMATED_DECISION': auto_decision}
+    analysis_builder.write("\n{:23} : Bridges [{}]   Diameter [{}]   Closure [{}/{} = {}]".format(
+        "NETWORK METRICS USED", nb_used, nd_used, edge_discovered, edge_derived, normalised_closure))
+
+    return {'message': analysis_builder.getvalue(), 'decision': impact, 'AUTOMATED_DECISION': auto_decision}
 
 
 def eval_sheet(targets, count, smallest_hash, a_builder, alignment, children, automated_decision):
@@ -329,9 +363,10 @@ def eval_sheet(targets, count, smallest_hash, a_builder, alignment, children, au
             a_builder.write("{:108}{}\n".format("", temp))
 
 
-def cluster_d_test_mtx(linkset, network_size=3, targets=None,
-                   directory=None, greater_equal=True, print_it=False, limit=None, activated=False):
-    network = []
+def cluster_d_test_mtx(linkset, network_size=3, targets=None, directory=None,
+                       greater_equal=True, print_it=False, limit=None, activated=False):
+
+    # network = []
     print "LINK NETWORK INVESTIGATION"
     if activated is False:
         print "\tTHE FUNCTION I NOT ACTIVATED"
@@ -345,7 +380,6 @@ def cluster_d_test_mtx(linkset, network_size=3, targets=None,
     sheet_builder.write("Count	ID					STRUCTURE	E-STRUCTURE-SIZE	A. NETWORK QUALITY"
                         "		M. NETWORK QUALITY		REFERENCE\n")
     linkset = linkset.strip()
-    check = False
 
     # RUN THE CLUSTER
     clusters_0 = Cls.links_clustering_matrix(linkset, limit)
@@ -505,7 +539,6 @@ def cluster_d_test_mtx(linkset, network_size=3, targets=None,
                                 data=analysis_builder.getvalue(), extension="txt")
                 analysis_builder = Buffer.StringIO()
 
-
                 if network:
                     automated_decision = metric(network)["AUTOMATED_DECISION"]
                     eval_sheet(targets, count_2, "{}_{}".format(cluster_size, file_name),
@@ -535,8 +568,8 @@ def cluster_d_test_mtx(linkset, network_size=3, targets=None,
     # print sheet_builder.getvalue()
 
 
-def cluster_d_test_statss(linkset, network_size=3, targets=None,
-                   directory=None, greater_equal=True, print_it=False, limit=None, activated=False):
+def cluster_d_test_statss(linkset, network_size=3, targets=None, directory=None,
+                          greater_equal=True, print_it=False, limit=None, activated=False):
     network = []
     print "LINK NETWORK INVESTIGATION"
     if activated is False:
@@ -551,7 +584,6 @@ def cluster_d_test_statss(linkset, network_size=3, targets=None,
     sheet_builder.write("Count	ID					STRUCTURE	E-STRUCTURE-SIZE	A. NETWORK QUALITY"
                         "		M. NETWORK QUALITY		REFERENCE\n")
     linkset = linkset.strip()
-    check = False
 
     # RUN THE CLUSTER
     clusters_0 = Cls.links_clustering(linkset, limit)
@@ -741,8 +773,8 @@ def cluster_d_test_statss(linkset, network_size=3, targets=None,
     # print sheet_builder.getvalue()
 
 
-def cluster_d_test_stats(linkset, network_size=3, targets=None,
-                   directory=None, greater_equal=True, print_it=False, limit=None, activated=False):
+def cluster_d_test_stats(linkset, network_size=3, targets=None, directory=None,
+                         greater_equal=True, print_it=False, limit=None, activated=False):
     network = []
     print "LINK NETWORK INVESTIGATION"
     if activated is False:
@@ -757,7 +789,6 @@ def cluster_d_test_stats(linkset, network_size=3, targets=None,
     sheet_builder.write("Count	ID					STRUCTURE	E-STRUCTURE-SIZE	A. NETWORK QUALITY"
                         "		M. NETWORK QUALITY		REFERENCE\n")
     linkset = linkset.strip()
-    check = False
 
     # RUN THE CLUSTER
     clusters_0 = Cls.links_clustering(linkset, limit)
@@ -769,7 +800,7 @@ def cluster_d_test_stats(linkset, network_size=3, targets=None,
         uri_size = 0
         count_1 += 1
         children = list(cluster_val["nodes"])
-        strengths = cluster_val["strengths"]
+        # strengths = cluster_val["strengths"]
         cluster_size = len(children)
         # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
         #     continue
@@ -803,7 +834,6 @@ def cluster_d_test_stats(linkset, network_size=3, targets=None,
                     smallest_hash).startswith("-") \
                     else "P{}".format(smallest_hash)
 
-
                 # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
                 query = Qry.cluster_rsc_strengths_query(resources, linkset)
                 response = Qry.sparql_xml_to_matrix(query)
@@ -827,7 +857,6 @@ def cluster_d_test_stats(linkset, network_size=3, targets=None,
                 else:
                     analysis_builder.write(Cls.disambiguate_network_2(children, targets))
 
-
                 # GENERATING THE NETWORK AS A TUPLE WHERE A TUPLE REPRESENT TWO RESOURCES IN A RELATIONSHIP :-)
                 network = []
                 link_count = 0
@@ -836,7 +865,6 @@ def cluster_d_test_stats(linkset, network_size=3, targets=None,
                     name_1 = "{}".format(Ut.get_uri_local_name(link[0]))
                     name_2 = "{}".format(Ut.get_uri_local_name(link[1]))
                     network += [(name_1, name_2)]
-
 
             if print_it:
                 print ""
@@ -898,7 +926,7 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
 
     # FOR CONSTRAINTS TO WORK, IT SHOULD NOT BE NONE
 
-    network = []
+    # network = []
     print "\nLINK NETWORK INVESTIGATION"
     if activated is False:
         print "\tTHE FUNCTION I NOT ACTIVATED"
@@ -915,7 +943,7 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
     if network_size_max - network_size == 0:
         greater_equal = False
 
-    check = False
+    # check = False
 
     # RUN THE CLUSTER
     clusters_0 = Cls.links_clustering(linkset, limit)
@@ -952,13 +980,13 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
            }}
        }}
        """.format(graph, prop)
-                c_builder.write(graph_q) if len(c_builder.getvalue()) == 0  else \
+                c_builder.write(graph_q) if len(c_builder.getvalue()) == 0 else \
                     c_builder.write("UNION {}".format(graph_q))
 
             # WRITING THE FILTER
             if len(c_builder.getvalue()) > 0:
                 for i in range(0, len(text)):
-                    if i == 0 :
+                    if i == 0:
                         c_builder.write("""
        FILTER (LCASE(STR(?constraint)) = "{}" """.format(text[i].strip()))
                     else:
@@ -966,13 +994,12 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
        || LCASE(STR(?constraint)) = "{}" """.format(text[i].strip()))
                 c_builder.write(")")
 
-
         # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
-        query = Qry.cluster_rsc_strengths_query(resources, linkset)
-        query = query.replace("# CONSTRAINTS IF ANY", c_builder.getvalue())
+        constraint = Qry.cluster_rsc_strengths_query(resources, linkset)
+        constraint = constraint.replace("# CONSTRAINTS IF ANY", c_builder.getvalue())
         # print query
-        response = Qry.sparql_xml_to_matrix(query)
-        if response[St.result] is None:
+        constraint_response = Qry.sparql_xml_to_matrix(constraint)
+        if constraint_response[St.result] is None:
             return False
         return True
 
@@ -994,7 +1021,7 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
             uri_size = 0
             count_1 += 1
             children = list(cluster_val["nodes"])
-            strengths = cluster_val["strengths"]
+            # strengths = cluster_val["strengths"]
             cluster_size = len(children)
             # if "<http://www.grid.ac/institutes/grid.10493.3f>" not in children:
             #     continue
@@ -1044,7 +1071,6 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
                 info2 = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_1, file_name, cluster_size)
                 analysis_builder.write("{}\n".format(info))
 
-
                 analysis_builder.write("RESOURCES INVOLVED\n")
                 analysis_builder.write(child_list)
                 analysis_builder.write("\nCORRESPONDENT FOUND ")
@@ -1071,7 +1097,6 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
 
                 #  GET THE AUTOMATED FLAG
 
-
                 if print_it:
                     print ""
                     print analysis_builder.getvalue()
@@ -1091,7 +1116,6 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
                                    sheet_builder, linkset, children, automated_decision)
                     else:
                         print network
-
 
                     # linkset_name = Ut.get_uri_local_name(linkset)
                     # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
@@ -1136,4 +1160,3 @@ def cluster_d_test(linkset, network_size=3, network_size_max=3, targets=None, co
 
         if directory is None:
             return "{}\t{}".format(curr_network_size, count_2)
-
