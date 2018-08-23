@@ -2707,11 +2707,13 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
         delete_serialised_clusters(graph)
 
     # **************************************************************************************************
-    # 1. CHECK IF THE ALIGNMENT HAS A TRIPLE ABLE THE CLUSTER
+    # 0. CHECK IF THE ALIGNMENT HAS A TRIPLE DOCUMENTING WHETHER IT CLUSTER WAS SERIALISED
     # **************************************************************************************************
     ask = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
 
-    # ALREADY SERIALIZED
+    # **************************************************************************************************
+    # 1. THE CLUSTER HAS ALREADY BEEN SERIALIZED => IT JUST NEED TO BE DE-SERIALISED
+    # **************************************************************************************************
     if Qry.boolean_endpoint_response(ask) == "true":
 
         print ">>> THE CLUSTER HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
@@ -2809,15 +2811,22 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
         return clusters
 
     # **************************************************************************************************
-    # 2. RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
+    # 2. THE CLUSTER HAS NOT BEEN SERIALIZED YET
+    # RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
     # **************************************************************************************************
     else:
 
         print ">>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. \n>>      MAYBE TIME FOR A COFFEE?."
+
+        count = 0
         # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
         root = dict()
-        count = 0
+        # THE CLUSTERS DICTIONARY
         clusters = dict()
+        # THE DICTIONARY MAPPING EACH NODE TO ITS CLUSTER
+        root_mtx = {}
+        clusters_mtx = {}
+
         # EXAMPLE
         #   P1832892825 	{
         #       'nodes': set(['<http://www.grid.ac/institutes/grid.449957.2>',
@@ -2829,10 +2838,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
         #       'links': set([('<http://risis.eu/eter_2014/resource/NL0028>',
         #                  '<http://www.grid.ac/institutes/grid.449957.2>')])
         # }
-        root_mtx = {}
-        # count_mtx = 0
-        clusters_mtx = {}
 
+        # **************************************************************************************************
+        # HELPER FUNCTIONS
+        # **************************************************************************************************
         def merge_d_matrices(parent, pop_parent):
 
             # COPYING LESSER MATRIX TO BIGGER MATRIX
@@ -3337,11 +3346,11 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
             return counter
 
+        # **************************************************************************************************
+        # RUNNING THE LINK CLUSTER ALGORITHM
+        # **************************************************************************************************
         try:
 
-            # *******************************************
-            # RUN THE LINK CLUSTER
-            # *******************************************
             standard = 50000
             check = 1
             iteration = 1
@@ -3666,6 +3675,12 @@ def delete_serialised_extended_clusters(graph):
     print "DONE1!!"
 
 
+def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentage=10):
+
+    penalty = (100 - penalty_percentage * (evidence_diameter - 1)) / float(100)
+    return 0 if penalty < 0 else (1 / float(investigated_diameter)) * penalty
+
+
 def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_dir, reset=False):
 
     print "\nCOMPUTING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
@@ -3801,9 +3816,18 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                         # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
                         dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] += [(sub, obj)]
 
+                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
                         for related_nodes in dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)]:
                             cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
                             cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
+
+                            # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
+                            # sub_diameter = shortest_paths(link_network, start_node=related_nodes[0], end_node=sub)
+                            # COMPUTE THE EVIDENCE'S STRENGTH
+                            # evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentage=10)
+
+                            # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
+                            # obj_diameter = shortest_paths(link_network, start_node=related_nodes[1], end_node=obj)
 
                     else:
                         # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
@@ -3811,7 +3835,9 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                         dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] = [(sub, obj)]
 
                 else:
+
                     if (curr_obj_cluster, curr_sub_cluster) in dict_clusters_pairs.keys():
+
                         # IT HAS A CYCLE
                         list_extended_clusters_cycle.add(curr_sub_cluster)
                         list_extended_clusters_cycle.add(curr_obj_cluster)
@@ -3819,15 +3845,15 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
                         # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
                         dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] += [(obj, sub)]
 
+                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
                         for related_nodes in dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)]:
-                            cycle_paths[curr_sub_cluster]+= [(related_nodes[1], sub)]
+                            cycle_paths[curr_sub_cluster] += [(related_nodes[1], sub)]
                             cycle_paths[curr_obj_cluster] += [(related_nodes[0], obj)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
                         # DOCUMENTING FIRST OCCURRENCE
                         dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] = [(obj, sub)]
-
 
     diff = datetime.timedelta(seconds=time.time() - start)
     print "\t\tFOUND: {} IN {}".format(len(extended_clusters), diff)
