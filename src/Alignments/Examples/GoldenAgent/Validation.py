@@ -405,7 +405,8 @@ def shortest_paths(link_network, start_node, end_node):
         g.add_edge(edge[0], edge[1])
 
     # GET THE LIT OF PATHS
-    results = list(nx.shortest_simple_paths(g, source=start_node, target=end_node))
+    # results = list(nx.shortest_simple_paths(g, source=start_node, target=end_node))
+    results = shortest_pahts_new(g, source=start_node, target=end_node)
 
     # EXTRACT THE SHORTEST PATH
     for item in results:
@@ -416,7 +417,7 @@ def shortest_paths(link_network, start_node, end_node):
         else:
             break
 
-    print "DONE COMPUTING ATH!"
+    print "DONE COMPUTING PATH!"
     return final
 
 
@@ -452,6 +453,49 @@ def shortest_path_nodes(link_network, start_node, end_node):
             break
 
     return list(final)
+
+
+def shortest_pahts_new(g, source, target, weight=None):
+
+    # print g
+
+    # get the shortest but not necessarily unique path
+    result = nx.shortest_path(g, source=source, target=target)
+    results = []
+
+    # if result is a path, add it to the list and try to find other pathts of same size
+    if result is not None:
+        results = [result]
+        size = len(result)
+
+        # for each of the results of same size found, remove edges to try and find other paths
+        for result in results:
+            # print result
+            partials = []
+
+            # for each pair in the path, remove the link and check the shortest path and add it again
+            for i in range(len(result)-1):
+                # print "removing ", result[i], ', ', result[i+1]
+                g.remove_edge(result[i],result[i+1])
+                try:
+                    partial = nx.shortest_path(g, source=source, target=target)
+                except:
+                    partial = []
+
+                # if there is a path of same size, keep it in a set (there can be repetition)
+                if len(partial) == size:
+                    if partial not in partials:
+                        partials += [partial]
+
+                g.add_edge(result[i],result[i+1])
+
+            # add whatever paht found if so
+            for p in partials:
+                if p not in results:
+                    results += [p]
+            # print 'new paths: ', partials
+
+    return results
 
 
 def nodes_in_cycle(specs):
