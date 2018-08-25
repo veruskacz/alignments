@@ -3818,16 +3818,23 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
 
                         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
                         for related_nodes in dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)]:
-                            cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
-                            cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
 
                             # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
                             # sub_diameter = shortest_paths(link_network, start_node=related_nodes[0], end_node=sub)
-                            # COMPUTE THE EVIDENCE'S STRENGTH
-                            # evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentage=10)
 
                             # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
                             # obj_diameter = shortest_paths(link_network, start_node=related_nodes[1], end_node=obj)
+
+                            # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
+                            # subj_strength = evidence_penalty(
+                            #   investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
+
+                            # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
+                            # obj_strength evidence_penalty(
+                            #   investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
+
+                            cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
+                            cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY

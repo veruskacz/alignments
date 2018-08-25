@@ -184,7 +184,6 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
                  separator_size=40, machine_decision="", has_cycle='no', node_in_cycle=None):
 
     count = 0
-    node_count = 0
     format_template = "{{:{}}}".format(separator_size)
     # print >> stderr, count_record, '\r',
     print "{:<5}".format(count_record),
@@ -204,8 +203,8 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
             else:
 
                 if node_in_cycle is not None:
-                    print local_name(record[0])
-                    node = "-X-" if record[0] in node_in_cycle else "- -"
+                    # print local_name(record[0])
+                    node = "-X-" if Ut.to_nt_format(record[0]) in node_in_cycle else "- -"
                 else:
                     node = "- -"
 
@@ -274,7 +273,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     # 1.1 IF THE RELATED ALIGNMENT IS NOT PROVIDED, ONLY THE CLUSTERS DICTIONARY IS RETURNED
     if related_alignment is None:
         clusters = links_clustering(graph=graph, serialisation_dir=serialisation_dir)
-        cycle_paths =None
+        cycle_paths = None
 
     # 1.2 IF THE RELATED ALIGNMENT IS PROVIDED, THEN THE EXTENDED CLUSTERS AND CLUSTERS IN A CYCLE
     # IS COMPUTED IF NT SERIALISED OR READ FROM FILE IF SERIALISED
@@ -336,7 +335,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 
                 final = list(final) if len(final) > 0 else None
 
-                print "NODES IN CYCLE:", final
+                # print "NODES IN CYCLE:", final
 
                 count_c += 1
 
@@ -388,6 +387,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 # **************************************************************************************
 def shortest_paths(link_network, start_node, end_node):
 
+    print "COMPUTING PATH..."
     final = []
 
     # EXTRACT THE NODES FROM THE NETWORK OF LINKS
@@ -416,6 +416,7 @@ def shortest_paths(link_network, start_node, end_node):
         else:
             break
 
+    print "DONE COMPUTING ATH!"
     return final
 
 
@@ -444,8 +445,8 @@ def shortest_path_nodes(link_network, start_node, end_node):
     for item in results:
 
         if len(item) == len(results[0]):
-             for data in item:
-                 final.add(data)
+            for data in item:
+                final.add(data)
 
         else:
             break
@@ -474,6 +475,24 @@ def nodes_in_cycle(specs):
     for item in nodes:
         print item
 
+
+def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentage=10):
+
+    penalty = (100 - penalty_percentage * (evidence_diameter - 1)) / float(100)
+    return 0 if penalty < 0 else (1 / float(investigated_diameter)) * penalty
+
+
+def path_factorial(paths):
+
+    size = len(paths)
+    for i in range(0, size):
+        print paths[i]
+
+        for j in range(i+1, size):
+            print "\t", paths[i], paths[j]
+
+
+# path_factorial(["1", "2", "3", "4"])
 
 def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40, size=None):
 
