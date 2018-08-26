@@ -388,7 +388,6 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
 def shortest_paths(link_network, start_node, end_node):
 
     print "COMPUTING PATH..."
-    final = []
 
     # EXTRACT THE NODES FROM THE NETWORK OF LINKS
     nodes = set([n1 for n1, n2 in link_network] + [n2 for n1, n2 in link_network])
@@ -406,19 +405,19 @@ def shortest_paths(link_network, start_node, end_node):
 
     # GET THE LIT OF PATHS
     # results = list(nx.shortest_simple_paths(g, source=start_node, target=end_node))
-    results = shortest_pahts_new(g, source=start_node, target=end_node)
+    results = shortest_paths_lite(g, source=start_node, target=end_node)
 
-    # EXTRACT THE SHORTEST PATH
-    for item in results:
-
-        if len(item) == len(results[0]):
-            final += [item]
-
-        else:
-            break
+    # EXTRACT THE SHORTEST PATH  OF THE SMALLEST SIZE
+    # for item in results:
+    #
+    #     if len(item) == len(results[0]):
+    #         final += [item]
+    #
+    #     else:
+    #         break
 
     print "DONE COMPUTING PATH!"
-    return final
+    return results
 
 
 def shortest_path_nodes(link_network, start_node, end_node):
@@ -455,7 +454,7 @@ def shortest_path_nodes(link_network, start_node, end_node):
     return list(final)
 
 
-def shortest_pahts_new(g, source, target, weight=None):
+def shortest_paths_lite(g, source, target, weight=None):
 
     # print g
 

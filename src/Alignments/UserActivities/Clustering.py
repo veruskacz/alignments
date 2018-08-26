@@ -3,6 +3,7 @@ import os
 import datetime
 import rdflib
 import traceback
+import networkx as nx
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
 import Alignments.UserActivities.ExportAlignment as Exp
@@ -2767,7 +2768,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
             # CALCULATE THE CLUSTERS THAT EXTEND GIVEN A RELATED LINKSET
             if cluster2extend_id is None and related_linkset is not None:
-                return clusters, list_extended_clusters(graph, root, related_linkset, serialisation_dir)
+                return clusters, list_extended_clusters(graph, serialised, related_linkset, serialisation_dir)
 
             # EXTEND THE GIVEN CLUSTER
             elif cluster2extend_id is not None and related_linkset is not None:
@@ -3363,7 +3364,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
             print "\t{} triples downloaded in {}".format(size, diff)
 
             if len(data) == 0:
-                print "\tNO ITERATION AS THE GRAPH IS EMPTY"
+                print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
                 return {}
 
             print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
@@ -3513,6 +3514,65 @@ def fetch_paired(nodes_list, linkset):
     query_response = Qry.sparql_xml_to_matrix(query=query)
     # Qry.display_result(query, is_activated=True)
     return query_response[St.result]
+
+
+def shortest_paths_lite(link_network, start_node, end_node, weight=None):
+
+
+    print "COMPUTING PATH..."
+
+    # EXTRACT THE NODES FROM THE NETWORK OF LINKS
+    nodes = set([n1 for n1, n2 in link_network] + [n2 for n1, n2 in link_network])
+
+    # INSTANTIATE THE GRAPH
+    g = nx.Graph()
+
+    # add nodes
+    for node in nodes:
+        g.add_node(node)
+
+    # add edges
+    for edge in link_network:
+        g.add_edge(edge[0], edge[1])
+
+
+    # get the shortest but not necessarily unique path
+    result = nx.shortest_path(g, source=source, target=target)
+    results = []
+
+    # if result is a path, add it to the list and try to find other pathts of same size
+    if result is not None:
+        results = [result]
+        size = len(result)
+
+        # for each of the results of same size found, remove edges to try and find other paths
+        for result in results:
+            # print result
+            partials = []
+
+            # for each pair in the path, remove the link and check the shortest path and add it again
+            for i in range(len(result)-1):
+                # print "removing ", result[i], ', ', result[i+1]
+                g.remove_edge(result[i],result[i+1])
+                try:
+                    partial = nx.shortest_path(g, source=source, target=target)
+                except:
+                    partial = []
+
+                # if there is a path of same size, keep it in a set (there can be repetition)
+                if len(partial) == size:
+                    if partial not in partials:
+                        partials += [partial]
+
+                g.add_edge(result[i],result[i+1])
+
+            # add whatever paht found if so
+            for p in partials:
+                if p not in results:
+                    results += [p]
+            # print 'new paths: ', partials
+
+    return results
 
 
 def cluster_extension(nodes, node2cluster, linkset):
@@ -3681,7 +3741,54 @@ def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentag
     return 0 if penalty < 0 else (1 / float(investigated_diameter)) * penalty
 
 
-def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_dir, reset=False):
+def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
+
+    # 1. DOCUMENTING START AND END OF PATHS IN A CYCLE
+    # 2. AND CALCULATING THE WEIGHT OF THE LINKS IN THE PATH
+    def cycle_helper(src_node, trg_node, source_cluster, target_cluster):
+
+        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
+        for related_nodes in dict_clusters_pairs[(source_cluster, target_cluster)]:
+
+            # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
+            sub_link_network = clusters[source_cluster]['links']
+            sub_diameter = shortest_paths_lite(
+                sub_link_network, start_node=related_nodes[0], end_node=src_node)
+
+            # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
+            obj_link_network = clusters[target_cluster]['links']
+            obj_diameter = shortest_paths_lite(
+                obj_link_network, start_node=related_nodes[1], end_node=trg_node)
+
+            # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
+            subj_strength = evidence_penalty(
+                investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
+
+            # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
+            obj_strength = evidence_penalty(
+                investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
+
+            # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
+            if len(cycle_paths[source_cluster]) == 0:
+                cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
+
+            else:
+                for start_n, end_n, strength in cycle_paths[source_cluster]:
+                    if (start_n, end_n) == (related_nodes[0], src_node) and strength < subj_strength:
+                        list(cycle_paths[source_cluster]).remove((start_n, end_n, strength))
+                        cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
+
+            if len(cycle_paths[target_cluster]) == 0:
+                cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
+
+            else:
+                for start_n, end_n, strength in cycle_paths[target_cluster]:
+                    if (start_n, end_n) == (related_nodes[1], trg_node) and strength < obj_strength:
+                        list(cycle_paths[target_cluster]).remove((start_n, end_n, strength))
+                        cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
+
+    clusters = clusters_dictionary['clusters']
+    node2cluster = clusters_dictionary['node2cluster_id']
 
     print "\nCOMPUTING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
 
@@ -3784,83 +3891,110 @@ def list_extended_clusters(graph, node2cluster, related_linkset, serialisation_d
         # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
         if sub in node2cluster and obj in node2cluster:
 
-            curr_sub_cluster = node2cluster[sub]
-            curr_obj_cluster = node2cluster[obj]
+            src_cluster = node2cluster[sub]
+            trg_cluster = node2cluster[obj]
 
             # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
             # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
-            if curr_sub_cluster != curr_obj_cluster:
+            if src_cluster != trg_cluster:
 
                 # **********************************************************************************
                 # 1. CHECKING FOR EXTENSION
                 # IF THE CLUSTER TO WHICH THE NODES BELONG ARE NOT THE SAME THEN THE CLUSTERS EXTEND
                 # **********************************************************************************
-                extended_clusters.add(curr_sub_cluster)
-                extended_clusters.add(curr_obj_cluster)
+                extended_clusters.add(src_cluster)
+                extended_clusters.add(trg_cluster)
 
                 # **********************************************************************************
                 # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
                 # **********************************************************************************
 
-                cycle_paths[curr_sub_cluster] = []
-                cycle_paths[curr_obj_cluster] = []
+                cycle_paths[src_cluster] = []
+                cycle_paths[trg_cluster] = []
 
-                if curr_sub_cluster < curr_obj_cluster:
+                if src_cluster < trg_cluster:
 
-                    if (curr_sub_cluster, curr_obj_cluster) in dict_clusters_pairs.keys():
+                    if (src_cluster, trg_cluster) in dict_clusters_pairs.keys():
 
                         # IT HAS A CYCLE
-                        list_extended_clusters_cycle.add(curr_sub_cluster)
-                        list_extended_clusters_cycle.add(curr_obj_cluster)
+                        list_extended_clusters_cycle.add(src_cluster)
+                        list_extended_clusters_cycle.add(trg_cluster)
 
                         # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] += [(sub, obj)]
+                        dict_clusters_pairs[(src_cluster, trg_cluster)] += [(sub, obj)]
 
                         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-                        for related_nodes in dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)]:
+                        cycle_helper(src_node=sub, trg_node=obj, source_cluster=src_cluster, target_cluster=trg_cluster)
 
-                            # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
-                            # sub_diameter = shortest_paths(link_network, start_node=related_nodes[0], end_node=sub)
+                        # for related_nodes in dict_clusters_pairs[(src_cluster, trg_cluster)]:
+                        #
+                        #     # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
+                        #     sub_link_network = clusters[src_cluster]['links']
+                        #     sub_diameter = shortest_paths_lite(
+                        #         sub_link_network, start_node=related_nodes[0], end_node=sub)
+                        #
+                        #     # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
+                        #     obj_link_network = clusters[trg_cluster]['links']
+                        #     obj_diameter = shortest_paths_lite(
+                        #         obj_link_network, start_node=related_nodes[1], end_node=obj)
+                        #
+                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
+                        #     subj_strength = evidence_penalty(
+                        #         investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
+                        #
+                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
+                        #     obj_strength = evidence_penalty(
+                        #         investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
+                        #
+                        #     # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
+                        #     if len(cycle_paths[src_cluster]) == 0:
+                        #         cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
+                        #
+                        #     else:
+                        #         for start_n, end_n, strength in cycle_paths[src_cluster]:
+                        #             if (start_n, end_n) == (related_nodes[0], sub) and strength < subj_strength:
+                        #                 list(cycle_paths[src_cluster]).remove((start_n, end_n, strength))
+                        #                 cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
+                        #
+                        #
+                        #     if len(cycle_paths[trg_cluster]) == 0:
+                        #         cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
+                        #
+                        #     else:
+                        #         for start_n, end_n, strength in cycle_paths[trg_cluster]:
+                        #             if (start_n, end_n) == (related_nodes[1], obj) and strength < obj_strength:
+                        #                 list(cycle_paths[trg_cluster]).remove((start_n, end_n, strength))
+                        #                 cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
 
-                            # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
-                            # obj_diameter = shortest_paths(link_network, start_node=related_nodes[1], end_node=obj)
-
-                            # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
-                            # subj_strength = evidence_penalty(
-                            #   investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
-
-                            # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
-                            # obj_strength evidence_penalty(
-                            #   investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
-
-                            cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
-                            cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
+                            # cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
+                            # cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
                         # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(curr_sub_cluster, curr_obj_cluster)] = [(sub, obj)]
+                        dict_clusters_pairs[(src_cluster, trg_cluster)] = [(sub, obj)]
 
                 else:
 
-                    if (curr_obj_cluster, curr_sub_cluster) in dict_clusters_pairs.keys():
+                    if (trg_cluster, src_cluster) in dict_clusters_pairs.keys():
 
                         # IT HAS A CYCLE
-                        list_extended_clusters_cycle.add(curr_sub_cluster)
-                        list_extended_clusters_cycle.add(curr_obj_cluster)
+                        list_extended_clusters_cycle.add(src_cluster)
+                        list_extended_clusters_cycle.add(trg_cluster)
 
                         # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] += [(obj, sub)]
+                        dict_clusters_pairs[(trg_cluster, src_cluster)] += [(obj, sub)]
 
                         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-                        for related_nodes in dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)]:
-                            cycle_paths[curr_sub_cluster] += [(related_nodes[1], sub)]
-                            cycle_paths[curr_obj_cluster] += [(related_nodes[0], obj)]
+                        cycle_helper(src_node=obj, trg_node=sub, source_cluster=trg_cluster, target_cluster=src_cluster)
+                        # for related_nodes in dict_clusters_pairs[(trg_cluster, src_cluster)]:
+                        #     cycle_paths[src_cluster] += [(related_nodes[1], sub)]
+                        #     cycle_paths[trg_cluster] += [(related_nodes[0], obj)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
                         # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(curr_obj_cluster, curr_sub_cluster)] = [(obj, sub)]
+                        dict_clusters_pairs[(trg_cluster, src_cluster)] = [(obj, sub)]
 
     diff = datetime.timedelta(seconds=time.time() - start)
     print "\t\tFOUND: {} IN {}".format(len(extended_clusters), diff)
