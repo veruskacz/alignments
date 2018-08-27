@@ -327,7 +327,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
                 final = set()
                 if cycle_paths is not None:
                     start_end_paths = cycle_paths[cluster_id]
-                    for start_node, end_node in start_end_paths:
+                    for start_node, end_node, strength in start_end_paths:
                         path_nodes = shortest_paths(cluster["links"], start_node, end_node)
                         for path_list in path_nodes:
                             for node in path_list:
@@ -369,7 +369,7 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
             writer_2.write(record_format.format(
                 count_b, cluster_id, cluster_size, decision, "", contain_cycle, "", "", ""))
 
-        if count == 50:
+        if count == 5:
             break
 
     writer_cycle.close()

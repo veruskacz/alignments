@@ -2682,7 +2682,7 @@ def datasetLinkingClusterDetails():
     cluster_linkset_extension = None if cluster_linkset_extension == "-- Enter linkset extension --" \
         else cluster_linkset_extension
 
-    properties = []
+    # properties = []
     targets = []
     if True:
 
@@ -2720,10 +2720,10 @@ def datasetLinkingClusterDetails():
     cluster = ast.literal_eval(cluster_json)
 
     print "\n\t>>> CLUSTER", cluster_id
-    print "\t>>> PROPERTIES:", properties
+    # print "\t>>> PROPERTIES:", properties
     # print dict_graph
     # print cluster['nodes']
-    # print cluster['links']
+    print cluster['links']
     # print cluster['dict']
 
 
@@ -2767,7 +2767,7 @@ def datasetLinkingClusterDetails():
                 index = len(group)
                 group += [dataset]
 
-            nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1] , "group": index, 'size': '10'}]
+            nodes += [{"id": node_name+"("+dataset+" "+results[-1][1]+")", 'uri':r[1], "group": index, 'size': '10'}]
 
             dict = cluster['dict']
             ## check for possible links with all the nodes before the one just inserted
@@ -2835,6 +2835,40 @@ def datasetLinkingClusterDetails():
 
                 related_links = result_extension['links']
                 related_clusters = result_extension['clusters_subset']
+
+                corroborated_dict = result_extension['corroborated_dict']
+
+                ### ADDING CORROBORATED LINKS TO THE GARPH
+                dict = corroborated_dict
+                ## check for possible links with all the nodes before the one just inserted
+                for i in range(len(nodes)-1):
+                    for j in range(i+1,len(nodes)):
+                        node1 = nodes[i]['uri'] if Ut.is_nt_format(nodes[i]['uri']) else '<{}>'.format(nodes[i]['uri'])
+                        node2 = nodes[j]['uri'] if Ut.is_nt_format(nodes[j]['uri']) else '<{}>'.format(nodes[j]['uri'])
+
+                        key_1 = "key_{}".format(str(hash((node1, node2))).replace("-", "N"))
+                        key_2 = "key_{}".format(str(hash((node2, node1))).replace("-", "N"))
+
+                        if key_1 in dict:
+                            print 'adding link... source {}, target {}, strength {}'.format(nodes[i]['id'], nodes[j]['id'],  max(dict[key_1]))
+                            links += [
+                                {"source": nodes[i]['id'], "target": nodes[j]['id'], "value": 6, "distance": 150,
+                                 "strenght": max(dict[key_1]), 'color': 'black'}]
+
+                        elif key_2 in dict:
+                            print 'adding link... source {}, target {}, strength {}'.format( nodes[j]['id'], nodes[i]['id'],  max(dict[key_2]))
+                            links += [
+                                {"source": nodes[j]['id'], "target": nodes[i]['id'], "value": 6, "distance": 150,
+                                 "strenght": max(dict[key_2]), 'color': 'black'}]
+
+                        if [node2, node1] not in cluster['links'] and [node1, node2] not in cluster['links']:
+                            cluster['links'] += [[node1, node2]]
+
+                # print cluster['nodes'], cluster['links'], cluster['dict']
+                obj_metrics = plots.metric(cluster['links'], corroborated_dict)
+                message = obj_metrics['message'].replace('\n','</br>').replace('   ','&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp')
+
+                # ADDING LINKS TO NODES IN RELATED CLUSTERS
                 # print 'Related clusters', related_clusters
                 for key, rel_cluster in related_clusters.items():
                     response = Clt.cluster_values_plus(research_question, rel_cluster['nodes'], targets, distinct_values=(distinctValues=='yes'))

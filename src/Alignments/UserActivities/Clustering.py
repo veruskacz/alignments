@@ -2781,6 +2781,22 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     print "\nEXTENDING THE CLUSTER ID"
                     extension_dict = cluster_extension(
                         nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
+                    all_extenstions = list_extended_clusters(graph, serialised, related_linkset, serialisation_dir)
+
+
+                    corroborated_links = all_extenstions['cycle_paths'][cluster2extend_id]
+                    print corroborated_links
+                    corroborated_dict = {}
+
+                    for node1, node2, strength in corroborated_links:
+                        key = "key_{}".format(str(hash((node1, node2))).replace("-", "N"))
+                        if key not in corroborated_dict:
+                            corroborated_dict[key] = [strength]
+                        else:
+                            corroborated_dict[key] += [strength]
+
+                    extension_dict['corroborated_dict'] = corroborated_dict
+
                 else:
                     print "THE CLUSTER ID DOES NOT EXIST."
 
@@ -3537,7 +3553,7 @@ def shortest_paths_lite(link_network, start_node, end_node, weight=None):
 
 
     # get the shortest but not necessarily unique path
-    result = nx.shortest_path(g, source=source, target=target)
+    result = nx.shortest_path(g, source=start_node, target=end_node)
     results = []
 
     # if result is a path, add it to the list and try to find other pathts of same size
@@ -3573,6 +3589,16 @@ def shortest_paths_lite(link_network, start_node, end_node, weight=None):
             # print 'new paths: ', partials
 
     return results
+
+
+def shortest_paths_lite_size(link_network, start_node, end_node, weight=None):
+
+    results = shortest_paths_lite(link_network, start_node, end_node, weight=None)
+
+    if results is not None:
+        return len(results[0]) - 1
+    else:
+        return 0
 
 
 def cluster_extension(nodes, node2cluster, linkset):
@@ -3738,7 +3764,7 @@ def delete_serialised_extended_clusters(graph):
 def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentage=10):
 
     penalty = (100 - penalty_percentage * (evidence_diameter - 1)) / float(100)
-    return 0 if penalty < 0 else (1 / float(investigated_diameter)) * penalty
+    return 0 if penalty < 0 or investigated_diameter == 0 else (1 / float(investigated_diameter)) * penalty
 
 
 def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
@@ -3747,17 +3773,21 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
     # 2. AND CALCULATING THE WEIGHT OF THE LINKS IN THE PATH
     def cycle_helper(src_node, trg_node, source_cluster, target_cluster):
 
+        # print '\n Starting helper for'
+        # print '\t Source:', source_cluster, src_node
+        # print '\t Target:', target_cluster, trg_node
+
         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
         for related_nodes in dict_clusters_pairs[(source_cluster, target_cluster)]:
 
             # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
             sub_link_network = clusters[source_cluster]['links']
-            sub_diameter = shortest_paths_lite(
+            sub_diameter = shortest_paths_lite_size(
                 sub_link_network, start_node=related_nodes[0], end_node=src_node)
 
             # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
             obj_link_network = clusters[target_cluster]['links']
-            obj_diameter = shortest_paths_lite(
+            obj_diameter = shortest_paths_lite_size(
                 obj_link_network, start_node=related_nodes[1], end_node=trg_node)
 
             # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
@@ -3768,24 +3798,65 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
             obj_strength = evidence_penalty(
                 investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
 
+            # print '\n\t Computed strengths:'
+            # print '\t\t Source start_node={}, end_node={}, strength={}'.format(related_nodes[0], src_node, subj_strength)
+            # print '\t\t Target start_node={}, end_node={}, strength={}'.format(related_nodes[1], trg_node, obj_strength)
+
             # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
-            if len(cycle_paths[source_cluster]) == 0:
-                cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
+            if source_cluster not in cycle_paths or len(cycle_paths[source_cluster]) == 0:
+                cycle_paths[source_cluster] = [(related_nodes[0], src_node, subj_strength)]
+                # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(source_cluster, related_nodes[0], src_node, subj_strength)
 
             else:
+                # print '\t\tThe was some path-strengths there, ',
+                add = True
                 for start_n, end_n, strength in cycle_paths[source_cluster]:
-                    if (start_n, end_n) == (related_nodes[0], src_node) and strength < subj_strength:
-                        list(cycle_paths[source_cluster]).remove((start_n, end_n, strength))
-                        cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
 
-            if len(cycle_paths[target_cluster]) == 0:
-                cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
+                    # UPDATING AN EXISTING PATH-STRENGTH
+                    if (start_n, end_n) == (related_nodes[0], src_node):
+
+                        # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
+                        if strength < subj_strength:
+                            list(cycle_paths[source_cluster]).remove((start_n, end_n, strength))
+                            # print 'and there was this particular one with smaller strength, removing... '
+
+                        # THE DISCOVERED PATH IS NOT UPDATED FOR ITS STRENGTH IS BIGGER OR EQUAL
+                        else:
+                            add = False
+                            # print 'and there was this particular one with bigger or equal strength, let it there... '
+
+                # WE REACH THIS POINT IF THE PATH WAS NOT THERE OR IF THE STRENGTH IS SMALLER AND NEEDS UPDATE
+                if add is True:
+                    # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(source_cluster, related_nodes[0], src_node, subj_strength)
+                    cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
+
+            if target_cluster not in cycle_paths or len(cycle_paths[target_cluster]) == 0:
+                # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(target_cluster, related_nodes[1], trg_node, obj_strength)
+                cycle_paths[target_cluster] = [(related_nodes[1], trg_node, obj_strength)]
 
             else:
+                # print '\t\tThe was some path-strengths there, ',
+                add = True
                 for start_n, end_n, strength in cycle_paths[target_cluster]:
-                    if (start_n, end_n) == (related_nodes[1], trg_node) and strength < obj_strength:
-                        list(cycle_paths[target_cluster]).remove((start_n, end_n, strength))
-                        cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
+
+                    # UPDATING AN EXISTING PATH-STRENGTH
+                    if (start_n, end_n) == (related_nodes[1], trg_node):
+
+                        # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
+                        if strength < obj_strength:
+                            list(cycle_paths[target_cluster]).remove((start_n, end_n, strength))
+                            # print 'and there was this particular one with smaller strength, removing... '
+
+                        # THE DISCOVERED PATH IS NOT UPDATED FOR ITS STRENGTH IS BIGGER OR EQUAL
+                        else:
+                            add = False
+                            # print 'and there was this particular one with bigger or equal strength, let it there... '
+
+                # WE REACH THIS POINT IF THE PATH WAS NOT THERE OR IF THE STRENGTH IS SMALLER AND NEEDS UPDATE
+                if add is True:
+                    cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
+                    # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(target_cluster, related_nodes[1], trg_node, obj_strength)
+
 
     clusters = clusters_dictionary['clusters']
     node2cluster = clusters_dictionary['node2cluster_id']
@@ -3894,6 +3965,10 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
             src_cluster = node2cluster[sub]
             trg_cluster = node2cluster[obj]
 
+            # condition = src_cluster == 'N6849355419779822524' or trg_cluster == 'N6849355419779822524'
+            # if condition is False:
+            #     continue
+
             # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
             # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
             if src_cluster != trg_cluster:
@@ -3909,8 +3984,8 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                 # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
                 # **********************************************************************************
 
-                cycle_paths[src_cluster] = []
-                cycle_paths[trg_cluster] = []
+                # cycle_paths[src_cluster] = []
+                # cycle_paths[trg_cluster] = []
 
                 if src_cluster < trg_cluster:
 
@@ -3920,11 +3995,11 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                         list_extended_clusters_cycle.add(src_cluster)
                         list_extended_clusters_cycle.add(trg_cluster)
 
-                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(src_cluster, trg_cluster)] += [(sub, obj)]
-
                         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
                         cycle_helper(src_node=sub, trg_node=obj, source_cluster=src_cluster, target_cluster=trg_cluster)
+
+                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                        dict_clusters_pairs[(src_cluster, trg_cluster)] += [(sub, obj)]
 
                         # for related_nodes in dict_clusters_pairs[(src_cluster, trg_cluster)]:
                         #
@@ -3982,14 +4057,14 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                         list_extended_clusters_cycle.add(src_cluster)
                         list_extended_clusters_cycle.add(trg_cluster)
 
-                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(trg_cluster, src_cluster)] += [(obj, sub)]
-
                         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
                         cycle_helper(src_node=obj, trg_node=sub, source_cluster=trg_cluster, target_cluster=src_cluster)
                         # for related_nodes in dict_clusters_pairs[(trg_cluster, src_cluster)]:
                         #     cycle_paths[src_cluster] += [(related_nodes[1], sub)]
                         #     cycle_paths[trg_cluster] += [(related_nodes[0], obj)]
+
+                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                        dict_clusters_pairs[(trg_cluster, src_cluster)] += [(obj, sub)]
 
                     else:
                         # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
