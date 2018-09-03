@@ -1,6 +1,8 @@
 # from sys import stderr
+import re
 import networkx as nx
 from os import makedirs
+from sys import stderr
 import time
 import datetime
 from os.path import join, isdir
@@ -10,6 +12,7 @@ from Alignments.Utility import get_uri_local_name_plus as local_name
 from Alignments.UserActivities.Clustering import links_clustering
 from Alignments.UserActivities.Plots import metric
 import cStringIO as Buffer
+from Alignments.Utility import confusion_matrix
 
 
 # CLUSTER ID
@@ -535,8 +538,6 @@ def path_factorial(paths):
             print "\t", paths[i], paths[j]
 
 
-# path_factorial(["1", "2", "3", "4"])
-
 def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40, size=None):
 
     start = time.time()
@@ -667,36 +668,199 @@ def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignm
     print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
 
-# def process_cluster(
-#         data, resources, network, writer, with_header, machine_decision, separator_size=20, cluster_id=""):
-#
-#     # RECORD ITEM SEPARATOR
-#     # separator_size = 20
-#
-#     # FILE DATE
-#     # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-#
-#     # THE WRITER
-#     # writer = open(join(directory, "EvalSheet_{}.txt".format(date)), 'wb')
-#
-#     # RECORD FORMAT
-#     record_format = "{{:{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}{{:<{0}}}\n".format(separator_size)
-#     # print record_format
-#
-#     # THE HEADER OF THE FILE
-#     # header = record_format.format(
-#     #     "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "NOT GOOD", "CYCLE", "RESOURCES")
-#     # writer.write(header)
-#
-#     # FETCH DATA ABOUT THE PROVIDED RESOURCES
-#     matrix = investigate_resources(data, resources)
-#
-#     # decision = metric(network)["AUTOMATED_DECISION"]
-#
-#     # WRITE THE FETCHED DATA TO SOURCE
-#     write_record(record_format=record_format, matrix=matrix, writer=writer,
-#                  cluster_id=cluster_id, machine_decision=machine_decision)
-#     writer.write("\n")
-#
-#     # END OF FILE
-#     # writer.close()
+def print_tuple(tuple_list, return_print=False):
+
+    if return_print is False:
+        print " | ".join(tuple_list)
+        return ""
+
+    else:
+        return " | ".join(tuple_list)
+
+
+def print_list(data_list, comment="", return_print=False):
+
+    builder = Buffer.StringIO()
+    if  return_print is True:
+
+        for item in data_list:
+            try:
+                if type(item) == tuple:
+                    builder.write("{}\n".format(print_tuple(item, return_print=return_print)))
+
+                elif type(item) == list:
+                    builder.write("{}\n".format(print_list(item)))
+
+                else:
+                    builder.write("{}\n".format(item))
+
+            except IOError:
+                print "PROBLEM!!!"
+
+        builder.write(Ut.headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_list))) + "\n\n")
+        return builder.getvalue()
+
+
+    print ""
+    for item in data_list:
+        try:
+            if type(item) == tuple:
+                print_tuple(item)
+
+            elif type(item) == list:
+                print_list(item)
+
+            else:
+                print item
+
+        except IOError:
+            print "PROBLEM!!!"
+
+    if len(comment) == 0:
+       "\n{}\nLIST SIZE : {}".format(comment, len(data_list))
+
+    else:
+        print Ut.headings("\n{}\nLIST SIZE : {}".format(comment, len(data_list)))
+
+    return ""
+
+
+def print_dict(data_dict, comment="", return_print=False):
+
+    if return_print is True:
+        builder = Buffer.StringIO()
+        for key, value in data_dict.items():
+            try:
+                builder.write("KEY: {:<10}  ITEM SIZE: {:<6} ITEM: {}\n".format(key, len(value), str(value)))
+
+            except IOError:
+                print "PROBLEM!!!"
+
+        builder.write(Ut.headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_dict))) + "\n\n")
+        return builder.getvalue()
+
+    print ""
+    for key, value in data_dict.items():
+        try:
+            print "KEY: {:<6}  SIZE: {:<6} ITEM: {}".format(key, len(value), str(value))
+
+        except IOError:
+            print "PROBLEM!!!"
+
+    print Ut.headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_dict)))
+
+
+def extract_eval(eval_sheet_path, save_in):
+
+    size_two_clusters = []
+    machine_good_results = []
+    machine_bad_results = []
+    line_pattern = "(\d+) +([NP]\d+) +(\d+) +-(.+) \[\d.\d+\]- +-(.)- +(\w+) +"
+    m_good_frequency = {}
+    m_bad_frequency = {}
+    true_positive = []
+    false_positive = []
+    true_negative = []
+    false_negative = []
+    good_size_two = []
+    bad_size_two = []
+    positive_ground_truth = []
+
+    count = 0
+    with open(eval_sheet_path, 'rb') as reader:
+
+        for line in reader:
+
+            count += 1
+
+            # EXTRACT THE EVALUATION LINE
+            matched = re.findall(line_pattern, line)
+
+            print '\r', ">>> Line {}".format(count),
+
+            if len(matched) > 0:
+
+                good = filter(lambda x : x[3].upper() == "GOOD", matched)
+                cluster = matched[0][1]
+                size = matched[0][2]
+                eval_machine = matched[0][3]
+                eval_human = matched[0][4]
+                has_cycle = matched[0][5]
+                output = [(cluster, eval_machine, eval_human, has_cycle)]
+                # print "{:<15} {:<15} {:<15}".format(matched[0][2], matched[0][3], matched[0][4])
+
+                if size != "2":
+
+                    # MACHINE EVALUATED GOOD
+                    if len(good) > 0:
+
+                        # DOCUMENTING GOOD RESULTS
+                        machine_good_results += matched
+
+                        # COMPUTE CLUSTER SIZE FREQUENCY
+                        if size not in m_good_frequency:
+                            m_good_frequency[size] = output
+                        else:
+                            m_good_frequency[size] += output
+
+                        # HUMAN EVALUATION
+                        if eval_human.upper() == "G":
+                            positive_ground_truth += output
+                            true_positive += output
+                        else:
+                            false_positive += output
+
+                    # MACHINE EVALUATED BAD
+                    else:
+
+                        # DOCUMENTING BAD RESULTS
+                        machine_bad_results += matched
+
+                        # COMPUTE CLUSTER SIZE FREQUENCY
+                        if size not in m_bad_frequency:
+                            m_bad_frequency[size] = output
+                        else:
+                            m_bad_frequency[size] += output
+
+
+                        # HUMAN EVALUATION
+                        if eval_human.upper() == "B":
+                            true_negative += output
+                        else:
+                            positive_ground_truth += output
+                            false_negative  += output
+
+                # SIZE TWO CLUSTERS
+                else:
+                    # DOCUMENTING CLUSTERS OF SIZE 6
+                    size_two_clusters += output
+
+                    if eval_human.upper() == "G":
+                        good_size_two += output
+                    else:
+                        bad_size_two += output
+    true_pos = len(true_positive)
+    fale_pos = len(false_positive)
+
+    true_neg = len(true_negative)
+    false_neg = len(false_negative)
+
+    pos_ground_truth = len(positive_ground_truth)
+    observed = len(machine_good_results) + len(machine_bad_results)
+
+    with open(join(save_in, "ANALYSIS.text"), 'wb') as writer:
+        writer.write(print_dict(m_good_frequency, "FREQUENCY OF MACHINE GOOD", return_print=True))
+        writer.write(print_dict(m_bad_frequency, "FREQUENCY OF MACHINE BAD", return_print=True))
+        writer.write(print_list(true_positive, "TRUE POSITIVE", return_print=True))
+        writer.write(print_list(false_positive, "FALSE POSITIVE", return_print=True))
+        writer.write(print_list(true_negative, "TRUE NEGATIVE", return_print=True))
+        writer.write(print_list(false_negative, "FALSE NEGATIVE", return_print=True))
+        writer.write(print_list(good_size_two, "GOOD SIZE 2", return_print=True))
+        writer.write(print_list(bad_size_two, "BAD SIZE 2", return_print=True))
+        confusion = confusion_matrix( true_pos, fale_pos, true_neg, false_neg, pos_ground_truth,
+                          observations=observed, latex=false_neg, zero_rule=True)
+        writer.write("{}\n".format(confusion[0]))
+
+    # print "POSITIVES: [{}/{}]  NEGATIVES: [{}/{}] OUT OF [{}]".format(true_pos, fale_pos, true_neg, false_neg, observed)
+    # print "TOTAL {} GOOD AND {} BAD ARE FOUND".format(len(machine_good_results), len(machine_bad_results))
+

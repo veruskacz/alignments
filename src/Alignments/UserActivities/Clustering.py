@@ -3764,8 +3764,9 @@ def delete_serialised_extended_clusters(graph):
 def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentage=10):
 
     penalty = (100 - penalty_percentage * (evidence_diameter - 1)) / float(100)
-    return 0 if penalty < 0 or investigated_diameter == 0 else (1 / float(investigated_diameter)) * penalty
+    return 0 if penalty < 0 else (1 / float(investigated_diameter)) * penalty
 
+# print evidence_penalty(2, 5)
 
 def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
 

@@ -2,9 +2,9 @@
 # coding=utf-8
 
 import sys
-
 from Alignments.ToRDF.RDF import *
 from Alignments.Utility import win_bat as bat
+from Alignments.Utility import headings
 from kitchen.text.converters import to_bytes, to_unicode
 
 __name__ = """CSV"""
@@ -208,8 +208,18 @@ class CSV(RDF):
         database = database.strip().replace(" ", "_")
 
         if activated is False:
-            print "The function [CSV init] has not been activated."
+            print headings("The function [CSV init] has not been activated.")
             return
+
+        specs = "\t{:18}: {}\n\t{:18}: {:18}\n\t{:18}: {}\n\t{:18}: [{}]\n\t{:18}: {}\n\t{:18}: {}".format(
+            "DATABASE NAME", database,
+            "ENTITY-TYPE", entity_type,
+            "SUBJECT ID", subject_id,
+            "COLUMN SEPARATOR", separator,
+            "TRIG FORMAT", str(is_trig),
+            "FILE", file_to_convert)
+
+        print headings("CONVERTING TO RDF WITH THE FOLLOWING SPECS\n{}".format(specs))
 
         # embedded_uri is an array of dictionaries.
         # For each dictionary, We have:
@@ -316,7 +326,9 @@ class CSV(RDF):
         self.pvFormat = u"{0:>" + u"{0}".format(
             str(sub_position)) + u"} {1:" + u"{0}".format(str(pre_position)) + u"} {2}"
 
+        # GENERATING THE RDF SCHEMA
         schema = self.get_schema(entity_type=entity_type, field_metadata=self.fieldMetadata)
+
         # print schema
         RDF.__init__(self, input_path=self.inputPath, database=database, entity_type=entity_type,
                      is_trig=is_trig, namespace=self.get_namespace(database), schema=schema)
@@ -596,6 +608,7 @@ class CSV(RDF):
         builder.close()
         return sample
 
+    # GENERATING THE RDF SCHEMA BASED ON THE CSV HEADER
     def get_schema(self, entity_type, field_metadata=None):
         """ This function gets the set of attribute header as the NEUTRAL implicit Orgref RDF schema """
         schema = cStringIO.StringIO()
@@ -756,13 +769,13 @@ class CSV(RDF):
                 self.refreshCount = 0
                 self.refresh()
 
-            # Write the subject
+            # 1. Write the subject
             self.instanceCount += 1
             self.write_line("\t### [ " + str(self.instanceCount) + " ]")
             # self.write_line(u"\t{0}:".format(self.data_prefix) + subject_resource.replace(" ", "_"))
             resource_uri = u"\t{0}:".format(self.data_prefix) + self.check_for_uri(subject_resource)
 
-            # WRITE ABOUT THE INVERSE RESOURCE THAT POINTS HTO THE SUBJECT
+            # 2. WRITE ABOUT THE INVERSE RESOURCE THAT POINTS HTO THE SUBJECT
             if embedded_uri is not None:
                 for specs in embedded_uri:
                     if specs['reverse'] is True:
@@ -783,16 +796,14 @@ class CSV(RDF):
                         self.write_line( self.pvFormat.format("", predicate, resource_uri) + " .")
                         self.write_line("")
 
-
-
-            # WRITE ABOUT THE RESOURCE
+            # 3. WRITE ABOUT THE RESOURCE
             self.write_line(resource_uri)
 
             if self.entityType is not None and self.entityType != "":
                 self.write_line(self.pvFormat.format("", 'rdf:type', u"{0}:{1} ;".format(
                     entity_type_prefix, self.entityType)))
 
-            # Write the values
+            # 4. Write the values
             self.write_record_values(record, embedded_uri, field_metadata)
             # print record
 
@@ -1057,3 +1068,8 @@ class CSV(RDF):
 #     database="Eureca_20180601", is_trig=True, subject_id=0,
 #     file_to_convert=eureca,
 #     separator=",", entity_type="EurecaProjects", rdftype=[], embedded_uri=None, activated=True)
+
+database = "orgref_20170703"
+file_to_convert = "C:\Users\Al\Dropbox\ISWC 2018 Experiments\data\orgref_20170703\orgref.csv"
+test = CSV(database, is_trig=False, file_to_convert=file_to_convert, separator=",", entity_type="Organisation",
+                 rdftype=None, subject_id=1, embedded_uri=None, field_metadata=None, activated=True)

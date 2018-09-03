@@ -60,7 +60,9 @@ def headings(message, line=True):
                 "--------------------------------------------------------------"
     else:
         _line = ""
-    return "\n{0}\n{2:>117}\n{1:>117}\n{0}".format(_line, message, date.strftime(_format))
+    return "\n{0}\n{2:>117}\n{1:>{3}}\n{0}".format(
+        _line, message if str(message).startswith("\n") is False else message[1:],
+        date.strftime(_format), 117 if str(message).startswith("\n") is False else "")
 
 
 def zip_dir(file_path, zip_name):
@@ -1514,3 +1516,227 @@ def get_resource_value(resources, targets):
 #                 BIND(<{0}> AS ?dataset)
 #                 ?resource a <{1}> .
 #                 ?resource {2} ?value
+
+
+def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
+                     positive_ground_truth=0, observations=0, latex=False, zero_rule=True):
+
+    # OBSERVATIONS IS THE TOTAL OF ITEMS IN THE GROUND TRUTH
+    confusion_zero = ("", "", "", 0)
+
+    if zero_rule is True:
+
+        if positive_ground_truth > observations - positive_ground_truth:
+            confusion_zero = confusion_matrix(
+                true_p=positive_ground_truth, false_p=observations - positive_ground_truth, true_n=0, false_n=0,
+                positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False)
+        else:
+
+            confusion_zero = confusion_matrix(
+                true_p=0, false_p=0, true_n=observations - positive_ground_truth, false_n=positive_ground_truth,
+                positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False)
+
+    # confusion_matrix(true_p=231, false_p=58, ground_truth_p=272, false_n=41, true_n=61, observations=391)
+
+    # PREDICT
+    confusion = Buffer.StringIO()
+
+    recall = "-"
+    precision = "-"
+    ground_truth_n = "-"
+    fall_out = "-"
+    omission = "-"
+    f_disc_rate = "-"
+    n_pred_value = "-"
+    likelihood_ratio = "-"
+    f_1 = "-"
+
+    positives = true_p + false_p
+    negatives = false_n + true_n
+
+    if positives > 0:
+        recall = true_p / float(positives)
+        f_disc_rate = round(false_p / float(positives), 3)
+
+    if negatives > 0:
+        omission = round(false_n / float(negatives), 3)
+        n_pred_value = round(true_n / float(negatives), 3)
+
+    if positive_ground_truth > 0:
+        precision = true_p / float(positive_ground_truth)
+
+    if observations >= positive_ground_truth:
+        ground_truth_n = observations - positive_ground_truth
+        if ground_truth_n > 0:
+            fall_out = round(false_p / float(ground_truth_n), 3)
+
+    if fall_out != "-" and fall_out > 0:
+        likelihood_ratio = round(recall/fall_out, 3)
+
+    if precision != "-" and recall != "-" and recall * precision > 0:
+        f_1 = round(2 * (precision * recall)/(recall + precision), 3)
+
+    long_line = "{:->105}\n".format("")
+    short_line = "{:19}{:->35}\n".format("", "")
+    end_line = "{:19}{:->86}\n".format("", "")
+    short_line_base = "{:^19}{:->35}\n".format("*** BASE LINE ***" if zero_rule is True else "", "")
+
+    base = "\\tiny *** BASE" if zero_rule is False else ""
+    base_line = "\\tiny LINE ***" if zero_rule is False else ""
+
+    # LINE 1
+    confusion.write(short_line)
+    confusion.write("{:>19}|{:^32} |\n".format("", "{} GROUND TRUTHS".format(observations)))
+
+    # LINE 2
+    bae_1 = "*** ZERO RULE ***" if zero_rule is False else ""
+    bae_2 = "*** BASE LINE ***" if zero_rule is False else ""
+    confusion.write(short_line_base) if zero_rule is False else confusion.write(short_line)
+    confusion.write("{:^19}| {:^14} | {:^14} |\n".format(bae_1, "GT Positive", "GT Negative"))
+    confusion.write("{:^19}| {:^14} | {:^14} |\n".format(bae_2, positive_ground_truth, ground_truth_n))
+
+    # LINE 3
+    confusion.write(long_line)
+    confusion.write("{:8}| Positive | {:^14} | {:^14} | {:^19} | {:^25} |\n".format(
+        "", "True Positive", "False Positive", "Precision", "False discovery rate (FDR)"))
+
+    if recall != "-":
+        confusion.write("{:8}| {:^8} | {:^14} | {:^14} | {:^19} | {:^26} |\n".format(
+            "", positives, true_p, false_p, round(recall, 3), f_disc_rate))
+    else:
+        confusion.write("{:8}| {:^8} | {:^14} | {:^14} | {:^19} | {:^26} |\n".format(
+            "", positives, true_p, false_p, "-", f_disc_rate))
+
+    # LINE 4
+    confusion.write("{:7} {:->97}\n".format("PREDICT", ""))
+    confusion.write("{:^8}| Negative | {:^14} | {:^14} | {:^19} | {:^25} |\n".format(
+        str(positives + negatives),
+        "False Negative", "True Negative", "False omission rate", "Negative predictive value "))
+    confusion.write("{:8}| {:^8} | {:^14} | {:^14} | {:^19} | {:^26} |\n".format(
+        "", negatives, false_n, true_n, omission, n_pred_value))
+
+    # LINE 5
+    confusion.write(long_line)
+    confusion.write("{:8}           | {:^14} | {:^14} |{:^20} | {:^13}{:^13} |\n".format(
+        "", "Recall", "Fall-out", " P. Likelihood Ratio", "F1 score", "Accuracy"))
+
+    accuracy = round((true_p + true_n) / float(observations), 3)
+
+    if precision != "-":
+        confusion.write("{:8}           | {:^14} | {:^14} |{:^20} | {:^13}{:^13} |\n".format(
+            "", round(precision, 3), fall_out, likelihood_ratio, f_1, accuracy))
+    else:
+        confusion.write("{:8}           | {:^14} | {:^14} |{:^20} | {:^13} {:^13}|\n".format(
+            "", precision, fall_out, likelihood_ratio, f_1, accuracy))
+
+    # LINE 6
+    confusion.write(end_line)
+
+    if zero_rule is True:
+        confusion.write("\nPrecision                  PPV   = Positive Predicted Value  = TP / (TP + FP)\n")
+        confusion.write("Recall                     TPR   = True Positive Rate        = TP / GT\n")
+        confusion.write("False discovery rate       FDR   = Σ False positive / Σ Predicted condition positive\n")
+        confusion.write("Negative predictive value  NPV   = Σ True negative / Σ Predicted condition negative\n")
+        confusion.write("False omission rate        FOR   = Σ False negative / Σ Predicted condition negative\n")
+        confusion.write("Positive likelihood ratio  LR+   = TPR / FPR\n")
+        confusion.write("False positive rate        FPR   = Σ False positive / Σ Condition negative\n")
+        confusion.write("FPR a.k.a Fall-out, probability of false alarm")
+
+    latex_cmd = """
+\\newcolumntype{{s}}{{>{{\columncolor[HTML]{{AAACED}}}} p{{3cm}}}}
+\\renewcommand{{\\arraystretch}}{{1.2}}
+\\begin{{table}}[h!]
+    \\vspace{{-0.5cm}}
+    \centering
+    {{\scriptsize
+    \\begin{{tabular}}{{
+    >{{\centering\\arraybackslash}}p{{0.5cm}}
+    >{{\centering\\arraybackslash}}p{{1.5cm}} |
+    >{{\centering\\arraybackslash}}p{{1.6cm}} |
+    >{{\centering\\arraybackslash}}p{{1.6cm}} |
+    >{{\centering\\arraybackslash}}p{{2.2cm}}
+    >{{\centering\\arraybackslash}}p{{2.3cm}} }} \cline{{3-4}}
+     % RAW 1 ************************************
+     \cline{{3-4}}
+    &
+    & \multicolumn{{2}}{{ c| }}{{\cellcolor{{gray!10}} \\tiny {0} GROUND TRUTHS}}
+    &
+    & \\\\
+    % RAW 2 ************************************
+    \cline{{3-4}} \cline{{3-4}}
+    \cline{{3-4}}
+    & {18}
+    & GT. Pos.
+    & GT. neg.
+    &
+    & \\\\
+    % RAW 3 ************************************
+    & {19}
+    & {1}
+    & {2}
+    &
+    & \\\\
+    % RAW 4 ************************************
+    \cline{{1-6}}
+     \multicolumn{{1}}{{ |c| }}{{\cellcolor{{gray!10}}}}
+    &  \\tiny POSITIVE
+    & True Pos.
+    & False Pos.
+    & {{\cellcolor{{green!10}} Precision}}
+    & \multicolumn{{1}}{{ |c| }}{{False Discovery Rate}} \\\\
+    % RAW 5 ************************************
+    \multicolumn{{1}}{{ |c| }}{{\cellcolor{{gray!10}}}}
+    & {15}
+    & {3}
+    & {4}
+    & {{\cellcolor{{green!10}} {5}}}
+    & \multicolumn{{1}}{{ |c| }}{{{6}}} \\\\
+    % RAW 6 ************************************
+     \cline{{2-6}}\multicolumn{{1}}{{ |c| }}{{\cellcolor{{gray!10}}}}
+    & \\tiny NEGATIVE
+    & False Neg.
+    & True Neg.
+    & F. Omission Rate
+    & \multicolumn{{1}}{{ |c| }}{{Neg. Predictive Value}} \\\\
+     % RAW 7 ************************************
+    \multicolumn{{1}}{{ |c| }}{{\multirow{{-4}}{{*}}{{\\rotatebox[origin=c]{{90}}
+    {{\cellcolor{{gray!10}} \\tiny  \\textbf{{PREDICT}}}}}}}}
+    & {16}
+    & {7}
+    & {8}
+    & {9}
+    & \multicolumn{{1}}{{ |c| }}{{{10}}} \\\\
+    % RAW 8 ************************************
+    \cline{{1-6}}\multicolumn{{1}}{{  c  }}{{       }}
+    &
+    & {{ \cellcolor{{green!10}} Recall}}
+    & Fall-out
+    & Positive L. Ratio
+    & \multicolumn{{1}}{{ |c| }}{{\cellcolor{{green!10}} F1 score | Accuracy}} \\\\
+    % RAW 9 ************************************
+    \multicolumn{{1}}{{  c  }}{{       }}
+    &
+    & {{ \cellcolor{{green!10}} {11}  }}
+    & {12}
+    & {13}
+    & \multicolumn{{1}}{{ |c| }}{{\cellcolor{{green!10}} {14} | {17}}}  \\\\
+    \cline{{3-6}}
+    \end{{tabular}}
+    \\vspace{{5pt}}
+    \caption{{Confusion matrix for link-networks of size 8.}}
+    \label{{table_confusion_matrix}}
+    }}
+    \\vspace{{-1cm}}
+\end{{table}}
+    """.format(observations, positive_ground_truth, ground_truth_n, true_p, false_p,
+               round(recall, 3) if recall != "-" else "-", f_disc_rate,
+               false_n, true_n, omission, n_pred_value, round(precision, 3),
+               fall_out, likelihood_ratio, f_1, positives, negatives, accuracy, base, base_line)
+
+    print "\n{}".format(confusion.getvalue())
+
+
+    if latex is True:
+        print latex_cmd
+
+    return "{}{}".format(confusion_zero[0], confusion.getvalue()) , "{}{}".format(confusion_zero[2], latex), f_1
