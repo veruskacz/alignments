@@ -2684,7 +2684,8 @@ def links_clustering_improved(graph, limit=1000):
 # ************************************************
 # ************************************************
 
-def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_linkset=None, reset=False, limit=10000):
+def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
+                     related_linkset=None, reset=False, limit=10000, stop_at=None):
 
     # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
     # ONCE THE CLUSTER IS COMPUTED, THE IDEA IS TO SERIALISE IT SO THAT IT WOULD NOT NEED TO BE
@@ -2753,10 +2754,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
             except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
                     serialised_hash)
-                traceback.print_exc()
+                # traceback.print_exc()
                 return links_clustering(
                     graph, serialisation_dir, cluster2extend_id=cluster2extend_id,
-                    related_linkset=related_linkset, reset=True, limit=limit)
+                    related_linkset=related_linkset, reset=True, limit=limit, stop_at=stop_at)
 
             # DE-SERIALISE THE SERIALISED
             start = time.time()
@@ -2836,7 +2837,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
     # **************************************************************************************************
     else:
 
-        print ">>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. \n>>      MAYBE TIME FOR A COFFEE?."
+        print "\n>>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. " \
+              "\n>>> *** MAYBE TIME FOR A COFFEE?. ***"
 
         count = 0
         # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
@@ -3378,7 +3380,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
             print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE:\n\t{} of {} triples".format(graph, size)
             start = time.time()
-            data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph)
+            data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph, limit=limit, stop_at=stop_at)
             diff = datetime.timedelta(seconds=time.time() - start)
             print "\t{} triples downloaded in {}".format(size, diff)
 

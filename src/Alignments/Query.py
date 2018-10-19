@@ -1571,7 +1571,7 @@ def display_matrix(matrix, spacing=50, limit=100, output=False, line_feed='.', i
 #######################################################################################
 
 
-def get_cluster_rsc_strengths(resources, alignments, limit=500000):
+def get_cluster_rsc_strengths(resources, alignments, limit=500000, stop_at=None):
 
     # limit = 10000
     # result_count = 0
@@ -1579,22 +1579,28 @@ def get_cluster_rsc_strengths(resources, alignments, limit=500000):
     response_dic = dict()
 
     try:
-        print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION"
+        print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION WITH LIMIT {}.".format(limit)
         start = time.time()
         result_count_resp = sparql_xml_to_matrix(cluster_rsc_strengths_query(resources, alignments, count=True))
         result_count = int(result_count_resp[St.result][1][0])
         diff = datetime.timedelta(seconds=time.time() - start)
         print "\t{} TRIPLES FOUND in {}!".format(result_count, diff)
 
+        iterations = int(ceil(result_count / float(limit)))
+
     except Exception:
         print traceback.print_exc()
         return response_dic
 
     # ITERATE FOR OFFSETS
-    print "\t>>> PROCESSING THE DOWNLOADED DATA..."
-    iterations = int(ceil(result_count / float(limit)))
+
+    print "\n\t>>> PROCESSING THE DOWNLOADED DATA IN {} ITERATIONS...".format(iterations)
 
     for x in range(0, iterations):
+
+        if stop_at is not None and x == stop_at:
+            print "\t~~~~~~~~~ STOPPING!!! ~~~~~~~~~~~~~~~~"
+            break
 
         print "\tIteration {:<6} of {} with offset {}".format(x + 1, iterations, offset)
         query = cluster_rsc_strengths_query(resources, alignments, limit=limit, offset=offset)
