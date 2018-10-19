@@ -180,3 +180,16 @@ reconciled_strength = (100 - 10 * (2*diameter - weighted_sum - 1)) / float(100)
 # chi = chi2.isf(q=0.05, df=1)
 # print chi
 
+
+
+import pickle
+
+pickle_file = "C:\Productivity\\2 - MatchingTools\\pickle.txt"
+# data = open(pickle_file, "wb")
+# data.write(str(pickle.dumps(info_2)))
+
+myopen = open(pickle_file, "rb")
+# print "data:", myopen.read()
+Ut.print_dict(pickle.loads(myopen.read()))
+
+# print pickle.loads(myopen.read())

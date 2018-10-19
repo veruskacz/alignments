@@ -2,6 +2,7 @@ import ast
 import os
 import datetime
 import rdflib
+import pickle
 import traceback
 import networkx as nx
 import Alignments.Settings as St
@@ -2759,16 +2760,18 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
 
             # DE-SERIALISE THE SERIALISED
             start = time.time()
-            serialised = ast.literal_eval(serialised)
+            # serialised = ast.literal_eval(serialised)
+            de_serialised = pickle.loads(serialised)
+
             diff = datetime.timedelta(seconds=time.time() - start)
 
             print "\tDe-serialised in {}".format(diff)
-            clusters = serialised['clusters']
-            root = serialised['node2cluster_id']
+            clusters = de_serialised['clusters']
+            root = de_serialised['node2cluster_id']
 
             # CALCULATE THE CLUSTERS THAT EXTEND GIVEN A RELATED LINKSET
             if cluster2extend_id is None and related_linkset is not None:
-                return clusters, list_extended_clusters(graph, serialised, related_linkset, serialisation_dir)
+                return clusters, list_extended_clusters(graph, de_serialised, related_linkset, serialisation_dir)
 
             # EXTEND THE GIVEN CLUSTER
             elif cluster2extend_id is not None and related_linkset is not None:
@@ -2781,7 +2784,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     print "\nEXTENDING THE CLUSTER ID"
                     extension_dict = cluster_extension(
                         nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
-                    all_extensions = list_extended_clusters(graph, serialised, related_linkset, serialisation_dir)
+                    all_extensions = list_extended_clusters(graph, de_serialised, related_linkset, serialisation_dir)
 
 
                     corroborated_links = all_extensions['cycle_paths'][cluster2extend_id]
@@ -3473,7 +3476,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                 print "\n5. SERIALISING THE DICTIONARIES..."
                 s_file = os.path.join(serialisation_dir, "{}.txt".format(returned_hashed))
                 with open(s_file, 'wb') as writer:
-                    writer.write(returned.__str__())
+                    # writer.write(returned.__str__())
+                    writer.write(pickle.dumps(returned, protocol=pickle.HIGHEST_PROTOCOL))
 
                 print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(returned_hashed)
                 Qry.endpoint("""INSERT DATA {{
@@ -3915,12 +3919,13 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
 
                 # DE-SERIALISE THE SERIALISED
                 start = time.time()
-                serialised = ast.literal_eval(serialised)
+                # serialised = ast.literal_eval(serialised)
+                de_serialised = pickle.loads(serialised)
                 diff = datetime.timedelta(seconds=time.time() - start)
 
                 print "\tDe-serialised in {}".format(diff)
                 print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
-                return serialised
+                return de_serialised
 
             except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
@@ -4089,7 +4094,8 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
         print "\n5. SERIALISING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
         s_file = os.path.join(serialisation_dir, "{}.txt".format(file_name))
         with open(s_file, 'wb') as writer:
-            writer.write(data.__str__())
+            # writer.write(data.__str__())
+            writer.write(pickle.dumps(data, protocol=pickle.HIGHEST_PROTOCOL))
 
         print "\n6. SAVING THE HASH OF EXTENDED CLUSTERS TO THE TRIPLE STORE AS: {}".format(file_name)
         Qry.endpoint("""INSERT DATA {{
@@ -4183,7 +4189,8 @@ def list_extended_clusters_long(serialised_path, related_linkset):
     else:
         # 2. DE-SERIALISE THE SERIALISED CLUSTERS DICTIONARY
         start = time.time()
-        de_serialised = ast.literal_eval(serialised)
+        # de_serialised = ast.literal_eval(serialised)
+        de_serialised = pickle.loads(serialised)
         diff = datetime.timedelta(seconds=time.time() - start)
 
         clusters = de_serialised['clusters']
@@ -4277,7 +4284,8 @@ def list_extended_clusters0(serialised_path, related_linkset):
     else:
         # 2. DE-SERIALISE THE SERIALISED CLUSTERS DICTIONARY
         start = time.time()
-        de_serialised = ast.literal_eval(serialised)
+        # de_serialised = ast.literal_eval(serialised)
+        de_serialised = pickle.loads(serialised)
         diff = datetime.timedelta(seconds=time.time() - start)
 
         clusters = de_serialised['clusters']
