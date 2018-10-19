@@ -751,10 +751,9 @@ def insertgraphs(dataset_name, dir_path):
 #################################################################
 
 
-def write_to_file(graph_name, directory, metadata=None, correspondences=None, singletons=None, check_file=False):
-
+def write_to_file(graph_name, directory, metadata=None, correspondences=None, singletons=None):
+    # check_file = False
     # print graph_name
-
     """
         2. FILE NAME SETTINGS
     """
@@ -1067,7 +1066,7 @@ def stardog_on(bat_path):
 
         if batch_extension() == ".bat":
             # os.system(bat_path)
-           subprocess.call(bat_path, shell=False)
+            subprocess.call(bat_path, shell=False)
         else:
             os.system("OPEN -a Terminal.app {}".format(bat_path))
         # time.sleep(waiting_time)
@@ -1153,7 +1152,6 @@ def stardog_off(bat_path):
 
 def run_cdm(cmd, batch_path, delete_after=True, output=False):
 
-
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     # CREATE THE BATCH FILE FOR CHECKING PIP PYTHON AND VIRTUALENV
     """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -1189,7 +1187,6 @@ def run_cdm(cmd, batch_path, delete_after=True, output=False):
 
         # DELETE THE BATCH COMMAND AFTER EXECUTION
 
-
     except Exception as err:
         return err.message
 
@@ -1203,7 +1200,8 @@ def create_database(stardog_bin_path, db_bat_path, db_name):
 
     # CREATING THE DATABASE IN STARDOG
     create_db = """
-    \"{0}{2}stardog-admin\" --server {3} db create -o spatial.enabled=true search.enabled=true strict.parsing=false -n {1}
+    \"{0}{2}stardog-admin\" --server {3} db create -o
+    spatial.enabled=true search.enabled=true strict.parsing=false -n {1}
     """.format(stardog_bin_path, db_name, os.path.sep, endpoint)
 
     print create_db
@@ -1426,7 +1424,8 @@ def zip_folder(input_folder_path, output_file_path=None):
 
     if output_file_path is None or path.isdir(path.dirname(output_file_path)) is False:
         print "CREATING THE DIRECTORY"
-        output_file_path = os.path.join(os.path.abspath(os.path.join(input_folder_path, os.pardir)), "exportResearch.zip")
+        output_file_path = os.path.join(os.path.abspath(
+            os.path.join(input_folder_path, os.pardir)), "exportResearch.zip")
 
     # parent_dir = os.path.abspath(os.path.join(input_folder_path, os.pardir))
 
@@ -1519,23 +1518,28 @@ def get_resource_value(resources, targets):
 
 
 def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
-                     positive_ground_truth=0, observations=0, latex=False, zero_rule=True):
+                     positive_ground_truth=0, observations=0, latex=False, zero_rule=True, code=1):
 
+    # CODE IS JUST FOR THE ZERO RULE
     # OBSERVATIONS IS THE TOTAL OF ITEMS IN THE GROUND TRUTH
-    confusion_zero = ("", "", "", 0)
+    confusion_zero = []
 
     if zero_rule is True:
 
         if positive_ground_truth > observations - positive_ground_truth:
-            confusion_zero = confusion_matrix(
+            confusion_zero += confusion_matrix(
                 true_p=positive_ground_truth, false_p=observations - positive_ground_truth, true_n=0, false_n=0,
-                positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False)
+                positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False,
+                code=0)
+
         else:
-
-            confusion_zero = confusion_matrix(
+            confusion_zero += confusion_matrix(
                 true_p=0, false_p=0, true_n=observations - positive_ground_truth, false_n=positive_ground_truth,
-                positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False)
+                positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False,
+                code=0)
 
+    # else:
+    #     confusion_zero = [("-", "-", "-", "-")]
     # confusion_matrix(true_p=231, false_p=58, ground_truth_p=272, false_n=41, true_n=61, observations=391)
 
     # PREDICT
@@ -1589,8 +1593,17 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     confusion.write("{:>19}|{:^32} |\n".format("", "{} GROUND TRUTHS".format(observations)))
 
     # LINE 2
-    bae_1 = "*** ZERO RULE ***" if zero_rule is False else ""
-    bae_2 = "*** BASE LINE ***" if zero_rule is False else ""
+    bae_1 = "*** ZERO RULE ***" if code == 0 else ""
+    bae_2 = "*** BASE LINE ***" if code == 0 else ""
+
+    # if zero_rule is True:
+    #     print confusion_zero[0]
+    #     f1_0 = 0 if confusion_zero[0][2].rstrip() == "-" else confusion_zero[0][2]
+    #     f1_1 = 0 if confusion_zero[1][2] == "-" else confusion_zero[1][2]
+    #     print f1_0,"---" , f1_1, "---", confusion_zero[0][2].rstrip()
+    #     bae_1 = "BETTER  THAN" if f1_1 > f1_0 else "WORST THAN"
+    #     bae_2 = "THE BASELINE"
+
     confusion.write(short_line_base) if zero_rule is False else confusion.write(short_line)
     confusion.write("{:^19}| {:^14} | {:^14} |\n".format(bae_1, "GT Positive", "GT Negative"))
     confusion.write("{:^19}| {:^14} | {:^14} |\n".format(bae_2, positive_ground_truth, ground_truth_n))
@@ -1620,7 +1633,7 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     confusion.write("{:8}           | {:^14} | {:^14} |{:^20} | {:^13}{:^13} |\n".format(
         "", "Recall", "Fall-out", " P. Likelihood Ratio", "F1 score", "Accuracy"))
 
-    accuracy = round((true_p + true_n) / float(observations), 3)
+    accuracy = round((true_p + true_n) / float(observations), 3) if observations > 0 else 0
 
     if precision != "-":
         confusion.write("{:8}           | {:^14} | {:^14} |{:^20} | {:^13}{:^13} |\n".format(
@@ -1730,13 +1743,147 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
 \end{{table}}
     """.format(observations, positive_ground_truth, ground_truth_n, true_p, false_p,
                round(recall, 3) if recall != "-" else "-", f_disc_rate,
-               false_n, true_n, omission, n_pred_value, round(precision, 3),
+               false_n, true_n, omission, n_pred_value, round(precision, 3) if precision != "-" else "-",
                fall_out, likelihood_ratio, f_1, positives, negatives, accuracy, base, base_line)
 
     print "\n{}".format(confusion.getvalue())
-
-
     if latex is True:
         print latex_cmd
 
-    return "{}{}".format(confusion_zero[0], confusion.getvalue()) , "{}{}".format(confusion_zero[2], latex), f_1
+    # if code == 1:
+    #     return confusion_zero, "".format(confusion.getvalue()), latex_cmd, f_1, accuracy
+    # print "\n\n>>> CONFUSION", ("".format(confusion.getvalue()), f_1, accuracy)
+
+    confusion_zero += [(confusion.getvalue(), latex_cmd, f_1, accuracy)]
+    return confusion_zero
+
+
+# PRINT/RETURN TUPLES AS A STRING WITH [ | ] AS SEPARATOR
+def print_tuple(tuple_list, return_print=False):
+
+    if return_print is False:
+        print " | ".join(x.__str__() for x in tuple_list)
+        return ""
+
+    else:
+        return " | ".join(x.__str__() for x in tuple_list)
+
+
+# PRINT/RETURN  A LIST AS A STRING
+def print_list(data_list, comment="", return_print=False):
+
+    builder = Buffer.StringIO()
+
+    if return_print is True:
+
+        for item in data_list:
+            try:
+                if type(item) == tuple:
+                    builder.write("{}\n".format(print_tuple(item, return_print=return_print)))
+
+                elif type(item) == list:
+                    builder.write("{}\n".format(print_list(item)))
+
+                else:
+                    builder.write("{}\n".format(item))
+
+            except IOError:
+                print "PROBLEM!!!"
+
+        builder.write(headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_list))) + "\n\n")
+        return builder.getvalue()
+
+    print ""
+    for item in data_list:
+
+        try:
+            if type(item) == tuple:
+                print_tuple(item)
+
+            elif type(item) == list:
+                print_list(item)
+
+            else:
+                print item
+
+        except IOError:
+            print "PROBLEM!!!"
+
+    if len(comment) == 0:
+        print "\n{}\nLIST SIZE : {}".format(comment, len(data_list))
+
+    else:
+        print headings("\n{}\nLIST SIZE : {}".format(comment, len(data_list)))
+
+    return ""
+
+
+# PRINT/RETURN  A LIST AS A STRING WHERE EACH LINE PRINTS THE DICTIONARY'S KEY ITEM-SIZE AND ITEM
+def print_dict(data_dict, comment="", return_print=False):
+
+    keys = dict(data_dict).keys()
+    data = []
+    for x in keys:
+        data += [len(x)]
+
+    max_length = max(data) if len(data) != 0 else 6
+
+    if return_print is True:
+
+        builder = Buffer.StringIO()
+        for key, value in data_dict.items():
+            try:
+                builder.write(
+                    "ITEM KEY: {1:<23}  ITEM SIZE: {2:<6} ITEM: {3}\n".format(max_length, key, len(value), str(value)))
+
+            except IOError:
+                print "PROBLEM!!!"
+
+        builder.write(headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_dict))) + "\n\n")
+        return builder.getvalue()
+
+    print ""
+    for key, value in data_dict.items():
+        try:
+            print "ITEM KEY: {1:<{0}}  ITEM SIZE: {2:<6} ITEM: {3}".format(max_length, key, len(value), str(value))
+
+        except IOError:
+            print "PROBLEM!!!"
+
+    print headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_dict)))
+
+
+def combinations(paths):
+
+    # RETURN ALL POSSIBLE COMBINATIONS
+    # OF TWO ITEM REGARDLESS OF THE DIRECTION
+    combined = []
+    size = len(paths)
+    for i in range(0, size):
+        # print paths[i]
+
+        for j in range(i+1, size):
+            # print "\t", paths[i], paths[j]
+            combined += [(paths[i], paths[j])]
+
+    return combined
+
+
+def sample_size(population_size, confidence_level=0.05, degree_freedom=1):
+
+    # CHI SQUARE WITH 1 DEGREE OF FREEDOM (0.10) = 2.71
+    # CHI SQUARE WITH 1 DEGREE OF FREEDOM ( (0.05) = 3.84
+    # CHI SQUARE WITH 1 DEGREE OF FREEDOM ( (0.01) = 6.64
+    # CHI SQUARE WITH 1 DEGREE OF FREEDOM ( (0.001) = 10.83
+    from math import pow
+    from scipy.stats import chi2
+    chi = chi2.isf(q=confidence_level, df=degree_freedom)
+
+    # R.V. Krejcie and D.W. Morgan,
+    # Determining sample size for research activities,
+    # Educational and Psychological Measurement 30 (1970), 607–610
+
+    n = population_size     # POPULATION SIZE
+    p = 0.50                # POPULATION PROPORTION
+    d = confidence_level    # DEGREE OF ACCURACY
+    return round((chi * n * p * (1 - p)) / (pow(d, 2) * (n - 1) + chi * p * (1 - p)), 0)

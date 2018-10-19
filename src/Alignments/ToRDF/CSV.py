@@ -1069,7 +1069,7 @@ class CSV(RDF):
 #     file_to_convert=eureca,
 #     separator=",", entity_type="EurecaProjects", rdftype=[], embedded_uri=None, activated=True)
 
-database = "orgref_20170703"
-file_to_convert = "C:\Users\Al\Dropbox\ISWC 2018 Experiments\data\orgref_20170703\orgref.csv"
-test = CSV(database, is_trig=False, file_to_convert=file_to_convert, separator=",", entity_type="Organisation",
-                 rdftype=None, subject_id=1, embedded_uri=None, field_metadata=None, activated=True)
+# database = "orgref_20170703"
+# file_to_convert = "C:\Users\Al\Dropbox\ISWC 2018 Experiments\data\orgref_20170703\orgref.csv"
+# test = CSV(database, is_trig=False, file_to_convert=file_to_convert, separator=",", entity_type="Organisation",
+#                  rdftype=None, subject_id=1, embedded_uri=None, field_metadata=None, activated=True)

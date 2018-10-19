@@ -1,11 +1,10 @@
-# from sys import stderr
 import re
 import networkx as nx
 from os import makedirs
 from sys import stderr
 import time
 import datetime
-from os.path import join, isdir
+from os.path import join, isdir, isfile
 import Alignments.Utility as Ut
 import Alignments.Query as Qry
 from Alignments.Utility import get_uri_local_name_plus as local_name
@@ -184,12 +183,13 @@ def get_context(matrix, separator_size=40):
 # THE DATA IS FINALLY WRITTEN TO FILE
 # **************************************************************************************
 def write_record(count_record, size, record_format, matrix, writer, cluster_id="",
-                 separator_size=40, machine_decision="", has_cycle='no', node_in_cycle=None):
+                 separator_size=40, machine_decision="", weighted_decision=None, has_cycle='no', node_in_cycle=None):
 
     count = 0
     format_template = "{{:{}}}".format(separator_size)
     # print >> stderr, count_record, '\r',
-    print "{:<5}".format(count_record),
+    # TRAILING COMMA FORCES THE COUNT TO REMAIN ON THE SAME LINE
+    print "{:>5}".format(count_record),
 
     if matrix is not None:
         for record in matrix:
@@ -202,7 +202,8 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
                     else format_template.format(local_name(item.upper())) for item in record)
                 writer.write(record_format.format(
                     count_record, cluster_id, size, "-{}-".format(machine_decision),
-                    "- -", has_cycle, "", "", record_line))
+                    "-{}-".format(weighted_decision["min"]), "-{}-".format(weighted_decision["avg"]),
+                    "-{}-".format(weighted_decision["bcd"]), "- -", has_cycle, "", "", record_line))
             else:
 
                 if node_in_cycle is not None:
@@ -214,7 +215,7 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item)) for item in record)
-                writer.write(record_format.format("", "", "", "", "", "", "- -", node, record_line))
+                writer.write(record_format.format("", "", "", "", "", "", "", "", "", "- -", node, record_line))
 
     else:
         print "THE MATRIX IS EMPTY"
@@ -230,7 +231,24 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
 #   "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL",
 #   "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES"
 # **************************************************************************************
-def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40, size=None):
+def generate_sheet(data, directory, graph, serialisation_dir,
+                   related_alignment=None, separator_size=40, size=None, activated=False):
+
+    """
+    :param data: DICTIONARY PROVIDING INFO ON DATASET AND THE PROPERTIES OF INTEREST. EACH PROPERTY
+        CAN BE PROVIDED WITH AN ALTERNATIVE NAME. SEE COMMENT IN nvestigate_resources(data, resources)
+    :param directory: THE DIRECTORY WHERE THE SHEET WOULD BE SAVED
+    :param graph: THE ALIGNMENT GRAPH WITH MATCHED INSTANCES TO BE CLUSTERED
+    :param serialisation_dir: THE SERIALISATION DIRECTORY IN THE EVEN THE CLUSTER HAS ALREADY PROCESSED
+    :param related_alignment:
+    :param separator_size: ATTRIBUTE SEPARATOR WHITE SPACE FOR EVAL SHEET FORMATTING
+    :param size: CLUSTER SIZE
+    :return:
+    """
+
+    if activated is False:
+        print "\n>>> THE FUNCTION [generate_sheet] IS NOT ACTIVATED."
+        return
 
     start = time.time()
     count = 0
@@ -256,14 +274,15 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hashed, date, size)), 'wb')
 
     # RECORD FORMAT
-    record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
+    record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}" \
+                    "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
         header_separator_size)
     # print record_format
 
     # RECORD HEADER
     header = record_format.format(
-        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL",
-        "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES")
+        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "MACHINE-MIN-EVAL", "MACHINE-AVG-EVAL",
+        "MACHINE-ALL-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES")
 
     # WRITING THE FILE HEADER
     writer_cycle.write(header)
@@ -317,8 +336,11 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
         # COMPUTE THE MACHINE EVALUATION
         if cluster_size > 500:
             decision = "NOT COMPUTED [NA]"
+            weighted_decision = {"min": "NA", "avg": "NA", "bcd": "na"}
         else:
-            decision = metric(cluster['links'])["AUTOMATED_DECISION"]
+            estimations = metric(cluster['links'], strengths=cluster['strengths'])
+            decision = estimations["AUTOMATED_DECISION"]
+            weighted_decision = estimations["WEIGHTED_DECISION"]
 
         if size is None or cluster_size <= size:
 
@@ -343,9 +365,10 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
                 count_c += 1
 
                 # WRITE THE FETCHED DATA TO SOURCE
+                # THE FUNCTION HAS A TRAILING COMMA FORCING THE COUNT TO REMAIN ON THE SAME LINE
                 write_record(count_c, cluster_size, record_format=record_format, matrix=matrix, writer=writer_cycle,
                              cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
-                             has_cycle=contain_cycle, node_in_cycle=final)
+                             has_cycle=contain_cycle, node_in_cycle=final, weighted_decision=weighted_decision)
 
                 # ADD A NEW LINE
                 writer_cycle.write("\n")
@@ -355,9 +378,10 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
                 count_nc += 1
 
                 # WRITE THE FETCHED DATA TO SOURCE
+                # THE FUNCTION HAS A TRAILING COMMA FORCING THE COUNT TO REMAIN ON THE SAME LINE
                 write_record(count_nc, cluster_size, record_format=record_format, matrix=matrix, writer=writer_no_cycle,
                              cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
-                             has_cycle=contain_cycle)
+                             has_cycle=contain_cycle, weighted_decision=weighted_decision)
 
                 # ADD A NEW LINE
                 writer_no_cycle.write("\n")
@@ -380,6 +404,139 @@ def generate_sheet(data, directory, graph, serialisation_dir, related_alignment=
     writer_2.close()
 
     print "RESULT CAN BE FOUND IN {}.".format(directory)
+    print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
+
+
+def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40, size=None):
+
+    start = time.time()
+    count = 0
+    count_c = 0
+    count_b = 0
+    count_nc = 0
+    cycles = None
+    # extended = None
+    header_separator_size = 23
+
+    # FILE DATE
+    # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
+    date = (str(datetime.datetime.utcnow())[:-7]).replace('-', '').replace(':', '').replace(' ', '-')
+    hashed = Ut.hash_it(graph)
+    directory = join(directory, hashed)
+
+    if isdir(directory) is False:
+        makedirs(directory)
+
+    # THE WRITER
+    writer_cycle = open(join(directory, "EvalSheet_{}_{}_cycle.txt".format(hashed, date)), 'wb')
+    writer_no_cycle = open(join(directory, "EvalSheet_{}_{}_noCycle.txt".format(hashed, date)), 'wb')
+    writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hashed, date, size)), 'wb')
+
+    # RECORD FORMAT
+    record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
+        header_separator_size)
+    print record_format
+
+    # RECORD HEADER
+    header = record_format.format(
+        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE",
+        "RESOURCES")
+
+    # **************************************************************************************
+    # 1. GENERATING / EXTRACTING CLUSTERS, EXTENDED CLUSTERS AND LIST OF CLUSTERS IN A CYCLE
+    # **************************************************************************************
+    # 1.1 IF THE RELATED ALIGNMENT IS NOT PROVIDED, ONLY THE CLUSTERS DICTIONARY IS RETURNED
+    if related_alignment is None:
+        clusters = links_clustering(graph=graph, serialisation_dir=serialisation_dir)
+
+    # 1.2 IF THE RELATED ALIGNMENT IS PROVIDED, THEN THE EXTENDED CLUSTERS AND CLUSTERS IN A CYCLE
+    # IS COMPUTED IF NT SERIALISED OR READ FROM FILE IF SERIALISED
+    else:
+        clusters, extended = links_clustering(
+            graph=graph, serialisation_dir=serialisation_dir, related_linkset=related_alignment)
+        cycles = extended['list_extended_clusters_cycle']
+
+        # print "\n", extended
+
+    print ""
+    # **************************************************************************************
+    # 2. ITERATE THROUGH EACH CLUSTER FOR GENERATING CONTEXTUAL INFORMATION FOR VALIDATION
+    # **************************************************************************************
+    for cluster_id, cluster in clusters.items():
+
+        count += 1
+        nodes = cluster['nodes']
+        cluster_size = len(nodes)
+
+        if cycles is None:
+            contain_cycle = "no"
+        else:
+            contain_cycle = 'yes' if cluster_id in cycles else 'no'
+
+        # COMPUTE THE MACHINE EVALUATION
+        if cluster_size > 500:
+            decision = "NOT COMPUTED [NA]"
+        else:
+            decision = metric(cluster['links'])["AUTOMATED_DECISION"]
+
+        if size is None or cluster_size <= size:
+
+            # FETCH DATA ABOUT THE PROVIDED RESOURCES
+            matrix = investigate_resources(data, resources=nodes)
+
+            if contain_cycle == 'yes':
+
+                count_c += 1
+                # WRITING THE FILE HEADER
+                writer_cycle.write(header)
+
+                # WRITE THE FETCHED DATA TO SOURCE
+                write_record(count_c, cluster_size, record_format=record_format, matrix=matrix, writer=writer_cycle,
+                             cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
+                             has_cycle=contain_cycle)
+
+                # ADD A NEW LINE
+                writer_cycle.write("\n")
+
+                if count_c == 150:
+                    break
+
+            else:
+
+                count_nc += 1
+
+                # ****************************************
+                # WRITING THE FILE HEADER FOR CONVENIENCE
+                # ****************************************
+                writer_no_cycle.write(header)
+
+                # WRITE THE FETCHED DATA TO SOURCE
+                write_record(count_nc, cluster_size, record_format=record_format, matrix=matrix, writer=writer_no_cycle,
+                             cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
+                             has_cycle=contain_cycle)
+
+                # ADD A NEW LINE
+                writer_no_cycle.write("\n")
+
+            # if count % 10 == 0 or count == 1:
+            if count % 10 == 0:
+                print "{:6} {:25}{:6}".format(count, cluster_id, decision), \
+                    "so far {} has passed".format(datetime.timedelta(seconds=time.time() - start))
+
+        else:
+            count_b += 1
+            # WRITING THE FILE HEADER
+            writer_2.write(header)
+            writer_2.write(
+                record_format.format(count_b, cluster_id, cluster_size, decision, "", contain_cycle, "", "", ""))
+
+        # if count == 50:
+        #     break
+
+    writer_cycle.close()
+    writer_no_cycle.close()
+    writer_2.close()
+
     print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
 
@@ -522,7 +679,7 @@ def nodes_in_cycle(specs):
         print item
 
 
-def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentage=10):
+def reconciliation_strength(investigated_diameter, evidence_diameter, penalty_percentage=10):
 
     penalty = (100 - penalty_percentage * (evidence_diameter - 1)) / float(100)
     return 0 if penalty < 0 else (1 / float(investigated_diameter)) * penalty
@@ -536,136 +693,6 @@ def path_factorial(paths):
 
         for j in range(i+1, size):
             print "\t", paths[i], paths[j]
-
-
-def generate_sheet_cyc(data, directory, graph, serialisation_dir, related_alignment=None, separator_size=40, size=None):
-
-    start = time.time()
-    count = 0
-    count_c = 0
-    count_b = 0
-    count_nc = 0
-    cycles = None
-    # extended = None
-    header_separator_size = 23
-
-    # FILE DATE
-    # date = datetime.date.isoformat(datetime.date.today()).replace('-', '')
-    date = (str(datetime.datetime.utcnow())[:-7]).replace('-', '').replace(':', '').replace(' ', '-')
-    hashed = Ut.hash_it(graph)
-    directory = join(directory, hashed)
-
-    if isdir(directory) is False:
-        makedirs(directory)
-
-    # THE WRITER
-    writer_cycle = open(join(directory, "EvalSheet_{}_{}_cycle.txt".format(hashed, date)), 'wb')
-    writer_no_cycle = open(join(directory, "EvalSheet_{}_{}_noCycle.txt".format(hashed, date)), 'wb')
-    writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hashed, date, size)), 'wb')
-
-    # RECORD FORMAT
-    record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
-        header_separator_size)
-    print record_format
-
-    # RECORD HEADER
-    header = record_format.format(
-        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE",
-        "RESOURCES")
-
-    # **************************************************************************************
-    # 1. GENERATING / EXTRACTING CLUSTERS, EXTENDED CLUSTERS AND LIST OF CLUSTERS IN A CYCLE
-    # **************************************************************************************
-    # 1.1 IF THE RELATED ALIGNMENT IS NOT PROVIDED, ONLY THE CLUSTERS DICTIONARY IS RETURNED
-    if related_alignment is None:
-        clusters = links_clustering(graph=graph, serialisation_dir=serialisation_dir)
-
-    # 1.2 IF THE RELATED ALIGNMENT IS PROVIDED, THEN THE EXTENDED CLUSTERS AND CLUSTERS IN A CYCLE
-    # IS COMPUTED IF NT SERIALISED OR READ FROM FILE IF SERIALISED
-    else:
-        clusters, extended = links_clustering(
-            graph=graph, serialisation_dir=serialisation_dir, related_linkset=related_alignment)
-        cycles = extended['list_extended_clusters_cycle']
-
-        # print "\n", extended
-
-    print ""
-    # **************************************************************************************
-    # 2. ITERATE THROUGH EACH CLUSTER FOR GENERATING CONTEXTUAL INFORMATION FOR VALIDATION
-    # **************************************************************************************
-    for cluster_id, cluster in clusters.items():
-
-        count += 1
-        nodes = cluster['nodes']
-        cluster_size = len(nodes)
-
-        if cycles is None:
-            contain_cycle = "no"
-        else:
-            contain_cycle = 'yes' if cluster_id in cycles else 'no'
-
-        # COMPUTE THE MACHINE EVALUATION
-        if cluster_size > 500:
-            decision = "NOT COMPUTED [NA]"
-        else:
-            decision = metric(cluster['links'])["AUTOMATED_DECISION"]
-
-        if size is None or cluster_size <= size:
-
-            # FETCH DATA ABOUT THE PROVIDED RESOURCES
-            matrix = investigate_resources(data, resources=nodes)
-
-            if contain_cycle == 'yes':
-
-                count_c += 1
-                # WRITING THE FILE HEADER
-                writer_cycle.write(header)
-
-                # WRITE THE FETCHED DATA TO SOURCE
-                write_record(count_c, cluster_size, record_format=record_format, matrix=matrix, writer=writer_cycle,
-                             cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
-                             has_cycle=contain_cycle)
-
-                # ADD A NEW LINE
-                writer_cycle.write("\n")
-
-                if count_c == 150:
-                    break
-
-            else:
-
-                count_nc += 1
-                # WRITING THE FILE HEADER
-                writer_no_cycle.write(header)
-
-                # WRITE THE FETCHED DATA TO SOURCE
-                write_record(count_nc, cluster_size, record_format=record_format, matrix=matrix, writer=writer_no_cycle,
-                             cluster_id=cluster_id, machine_decision=decision, separator_size=separator_size,
-                             has_cycle=contain_cycle)
-
-                # ADD A NEW LINE
-                writer_no_cycle.write("\n")
-
-            # if count % 10 == 0 or count == 1:
-            if count % 10 == 0:
-                print "{:6} {:25}{:6}".format(count, cluster_id, decision), \
-                    "so far {} has passed".format(datetime.timedelta(seconds=time.time() - start))
-
-        else:
-            count_b += 1
-            # WRITING THE FILE HEADER
-            writer_2.write(header)
-            writer_2.write(
-                record_format.format(count_b, cluster_id, cluster_size, decision, "", contain_cycle, "", "", ""))
-
-        # if count == 50:
-        #     break
-
-    writer_cycle.close()
-    writer_no_cycle.close()
-    writer_2.close()
-
-    print "\nJob Done in {}".format(datetime.timedelta(seconds=time.time() - start))
 
 
 def print_tuple(tuple_list, return_print=False):
@@ -750,12 +777,22 @@ def print_dict(data_dict, comment="", return_print=False):
     print Ut.headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_dict)))
 
 
-def extract_eval(eval_sheet_path, save_in):
+# THIS FUNCTION COMPUTES THE CONFUSION MATRIX FOR VALIDATED SHEETS AND PROVIDES SOME ADDITIONAL STATS.
+def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_stats=False, activated=False):
+
+    if activated is False:
+        print "\n>>> THE FUNCTION [extract_eval] IS NOT ACTIVATED."
+        return
+
+    if isfile(eval_sheet_path) is False:
+        print "\n>>> THE FILE {}\nDOES NOT EXITS".format(eval_sheet_path)
+        return
 
     size_two_clusters = []
     machine_good_results = []
     machine_bad_results = []
-    line_pattern = "(\d+) +([NP]\d+) +(\d+) +-(.+) \[\d.\d+\]- +-(.)- +(\w+) +"
+    metric_result_pattern = "-(\w+) \[\d.\d+\]-"
+    line_pattern = "(\d+) +([NP]\d+) +(\d+) +{0} +\|{0} +\|{0} +\|{0} +\|-(\w)- +(\w+) +".format(metric_result_pattern)
     m_good_frequency = {}
     m_bad_frequency = {}
     true_positive = []
@@ -767,32 +804,35 @@ def extract_eval(eval_sheet_path, save_in):
     positive_ground_truth = []
 
     count = 0
+    print ""
     with open(eval_sheet_path, 'rb') as reader:
 
         for line in reader:
 
             count += 1
+            print '\r', ">>> Line {:<6}".format(count),
 
             # EXTRACT THE EVALUATION LINE
             matched = re.findall(line_pattern, line)
-
-            print '\r', ">>> Line {}".format(count),
-
             if len(matched) > 0:
 
-                good = filter(lambda x : x[3].upper() == "GOOD", matched)
+                # print "\n", matched
+                # good = filter(lambda x : x.upper() == "GOOD", matched[0])
+
                 cluster = matched[0][1]
                 size = matched[0][2]
-                eval_machine = matched[0][3]
-                eval_human = matched[0][4]
-                has_cycle = matched[0][5]
+                eval_machine = matched[0][2 + metric_index]
+                eval_human = matched[0][7]
+                has_cycle = matched[0][8]
                 output = [(cluster, eval_machine, eval_human, has_cycle)]
+
+                # print "{:15} {:15}".format(eval_machine, eval_human)
                 # print "{:<15} {:<15} {:<15}".format(matched[0][2], matched[0][3], matched[0][4])
 
                 if size != "2":
 
                     # MACHINE EVALUATED GOOD
-                    if len(good) > 0:
+                    if  eval_machine == "GOOD":
 
                         # DOCUMENTING GOOD RESULTS
                         machine_good_results += matched
@@ -822,7 +862,6 @@ def extract_eval(eval_sheet_path, save_in):
                         else:
                             m_bad_frequency[size] += output
 
-
                         # HUMAN EVALUATION
                         if eval_human.upper() == "B":
                             true_negative += output
@@ -839,6 +878,7 @@ def extract_eval(eval_sheet_path, save_in):
                         good_size_two += output
                     else:
                         bad_size_two += output
+
     true_pos = len(true_positive)
     fale_pos = len(false_positive)
 
@@ -848,19 +888,29 @@ def extract_eval(eval_sheet_path, save_in):
     pos_ground_truth = len(positive_ground_truth)
     observed = len(machine_good_results) + len(machine_bad_results)
 
-    with open(join(save_in, "ANALYSIS.text"), 'wb') as writer:
-        writer.write(print_dict(m_good_frequency, "FREQUENCY OF MACHINE GOOD", return_print=True))
-        writer.write(print_dict(m_bad_frequency, "FREQUENCY OF MACHINE BAD", return_print=True))
-        writer.write(print_list(true_positive, "TRUE POSITIVE", return_print=True))
-        writer.write(print_list(false_positive, "FALSE POSITIVE", return_print=True))
-        writer.write(print_list(true_negative, "TRUE NEGATIVE", return_print=True))
-        writer.write(print_list(false_negative, "FALSE NEGATIVE", return_print=True))
-        writer.write(print_list(good_size_two, "GOOD SIZE 2", return_print=True))
-        writer.write(print_list(bad_size_two, "BAD SIZE 2", return_print=True))
+    with open(join(save_in, "ANALYSIS.txt"), 'wb') as writer:
+
+        if print_stats:
+            writer.write(print_dict(m_good_frequency, "FREQUENCY OF MACHINE GOOD", return_print=True) if print_stats else "")
+            writer.write(print_dict(m_bad_frequency, "FREQUENCY OF MACHINE BAD", return_print=True) if print_stats else "")
+            writer.write(print_list(true_positive, "TRUE POSITIVE", return_print=True) if print_stats else "")
+            writer.write(print_list(false_positive, "FALSE POSITIVE", return_print=True) if print_stats else "")
+            writer.write(print_list(true_negative, "TRUE NEGATIVE", return_print=True) if print_stats else "")
+            writer.write(print_list(false_negative, "FALSE NEGATIVE", return_print=True) if print_stats else "")
+            writer.write(print_list(good_size_two, "GOOD SIZE 2", return_print=True) if print_stats else "")
+            writer.write(print_list(bad_size_two, "BAD SIZE 2", return_print=True) if print_stats else "")
+
         confusion = confusion_matrix( true_pos, fale_pos, true_neg, false_neg, pos_ground_truth,
-                          observations=observed, latex=false_neg, zero_rule=True)
-        writer.write("{}\n".format(confusion[0]))
+                          observations=observed, latex=False, zero_rule=zero_rule)
+
+        # print "\nlength", len(confusion)
+        # for data in confusion:
+        #     for val in data:
+        #         print val
+
+        writer.write("{}\n".format(confusion[0][0]))
+        if zero_rule is True:
+            writer.write("{}\n".format(confusion[1][0]))
 
     # print "POSITIVES: [{}/{}]  NEGATIVES: [{}/{}] OUT OF [{}]".format(true_pos, fale_pos, true_neg, false_neg, observed)
     # print "TOTAL {} GOOD AND {} BAD ARE FOUND".format(len(machine_good_results), len(machine_bad_results))
-

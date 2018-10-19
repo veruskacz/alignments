@@ -1608,6 +1608,7 @@ def get_cluster_rsc_strengths(resources, alignments, limit=500000):
         if result:
             for i in range(1, len(result)):
                 # print result[i]
+                # THE FIRST IS ALWAYS THE SMALLEST
                 key = (result[i][0], result[i][1]) if result[i][0] < result[i][1] else (result[i][1], result[i][0])
                 if key not in response_dic:
                     response_dic[key] = [result[i][2]]

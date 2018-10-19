@@ -2781,10 +2781,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None, related_l
                     print "\nEXTENDING THE CLUSTER ID"
                     extension_dict = cluster_extension(
                         nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
-                    all_extenstions = list_extended_clusters(graph, serialised, related_linkset, serialisation_dir)
+                    all_extensions = list_extended_clusters(graph, serialised, related_linkset, serialisation_dir)
 
 
-                    corroborated_links = all_extenstions['cycle_paths'][cluster2extend_id]
+                    corroborated_links = all_extensions['cycle_paths'][cluster2extend_id]
                     print corroborated_links
                     corroborated_dict = {}
 
@@ -3571,7 +3571,7 @@ def shortest_paths_lite(link_network, start_node, end_node, weight=None):
                 # print "removing ", result[i], ', ', result[i+1]
                 g.remove_edge(result[i],result[i+1])
                 try:
-                    partial = nx.shortest_path(g, source=source, target=target)
+                    partial = nx.shortest_path(g, source=start_node, target=end_node)
                 except:
                     partial = []
 
@@ -3580,7 +3580,7 @@ def shortest_paths_lite(link_network, start_node, end_node, weight=None):
                     if partial not in partials:
                         partials += [partial]
 
-                g.add_edge(result[i],result[i+1])
+                g.add_edge(result[i], result[i+1])
 
             # add whatever paht found if so
             for p in partials:
