@@ -11,6 +11,7 @@ import Alignments.UserActivities.ExportAlignment as Exp
 from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
+import cStringIO as buffer
 # import Alignments.UserActivities.Plots as Plt
 import time
 
@@ -2751,14 +2752,17 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             #     # writer.write(returned.__str__())
             #     writer.write(pickle.dumps(returned['node2cluster_id'], protocol=pickle.HIGHEST_PROTOCOL))
 
-
-
-
+            # *************************************************
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
+            # *************************************************
             try:
                 print "\tREADING FROM SERIALISED FILE..."
                 with open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb') as s_file_1:
-                    serialised_clusters = s_file_1.read()
+                    clusters = {}
+                    for line in s_file_1:
+                        clusters.update(ast.literal_eval(line))
+                    # serialised_clusters = s_file_1.read()
+
                 with open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb') as s_file_2:
                     serialised_node2cluster_id = s_file_2.read()
 
@@ -2775,7 +2779,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # serialised = ast.literal_eval(serialised)
             # de_serialised = {'clusters': pickle.loads(serialised_clusters),
             #                  'node2cluster_id': pickle.loads(serialised_node2cluster_id)}
-            de_serialised = {'clusters': ast.literal_eval(serialised_clusters),
+            de_serialised = {'clusters': clusters,
                              'node2cluster_id': ast.literal_eval(serialised_node2cluster_id)}
 
             diff = datetime.timedelta(seconds=time.time() - start)
@@ -3406,7 +3410,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
 
             with open(os.path.join(serialisation_dir, "data.txt"), "wb") as graph_data:
                 graph_data.write(data.__str__())
-                
+
             # **************************************************************************************************
             print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
             # **************************************************************************************************
@@ -3504,8 +3508,25 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 # **************************************************************************************************
                 s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(returned_hashed))
                 s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(returned_hashed))
+
+
+                builder = buffer.StringIO()
                 with open(s_file_1, 'wb') as writer:
-                    writer.write(returned['clusters'].__str__())
+
+                    size = len(new_clusters)
+                    counter = 10
+                    counting = 0
+                    iterations = size/1000000 * 1
+                    sub_cluster = {}
+                    for key, value in new_clusters.items():
+                        counting += 1
+                        sub_cluster[key] = value
+
+                        if counting == counter:
+                            writer.write(sub_cluster.__str__() + "\n")
+                            sub_cluster = {}
+                            counting = 0
+
                     # writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
                 with open(s_file_2, 'wb') as writer:
                     writer.write(returned['node2cluster_id'].__str__())
