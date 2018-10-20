@@ -2757,12 +2757,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             try:
                 print "\tREADING FROM SERIALISED FILE..."
-                s_file_1 = open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb')
-                s_file_2 = open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb')
-                serialised_clusters = s_file_1.read()
-                serialised_node2cluster_id = s_file_2.read()
-                s_file_1.close()
-                s_file_2.close()
+                with open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb') as s_file_1:
+                    serialised_clusters = s_file_1.read()
+                with open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb') as s_file_2:
+                    serialised_node2cluster_id = s_file_2.read()
 
             except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
@@ -2775,8 +2773,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # DE-SERIALISE THE SERIALISED
             start = time.time()
             # serialised = ast.literal_eval(serialised)
-            de_serialised = {'clusters': pickle.loads(serialised_clusters),
-                             'node2cluster_id': pickle.loads(serialised_node2cluster_id)}
+            # de_serialised = {'clusters': pickle.loads(serialised_clusters),
+            #                  'node2cluster_id': pickle.loads(serialised_node2cluster_id)}
+            de_serialised = {'clusters': ast.literal_eval(serialised_clusters),
+                             'node2cluster_id': ast.literal_eval(serialised_node2cluster_id)}
 
             diff = datetime.timedelta(seconds=time.time() - start)
 
@@ -3404,6 +3404,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
                 return {}
 
+            with open(os.path.join(serialisation_dir, "data.txt"), "wb") as graph_data:
+                graph_data.write(data.__str__())
+                
             # **************************************************************************************************
             print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
             # **************************************************************************************************
@@ -3413,7 +3416,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 # CALLING THE MAIN HELPER FUNCTION
                 count = cluster_helper_set(count, annotate=False)
 
-                # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN
+                # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN EVERY STANDARD ITERATIONS
                 if iteration == check:
                     print "\tRESOURCE {:>10}:   {}    =    {}".format(count, subject, t_object)
                     check += standard
@@ -3502,19 +3505,35 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(returned_hashed))
                 s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(returned_hashed))
                 with open(s_file_1, 'wb') as writer:
-                    # writer.write(returned.__str__())
-                    writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
+                    writer.write(returned['clusters'].__str__())
+                    # writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
                 with open(s_file_2, 'wb') as writer:
-                    # writer.write(returned.__str__())
-                    writer.write(pickle.dumps(returned['node2cluster_id'], protocol=pickle.HIGHEST_PROTOCOL))
+                    writer.write(returned['node2cluster_id'].__str__())
+                    # writer.write(pickle.dumps(returned['node2cluster_id'], protocol=pickle.HIGHEST_PROTOCOL))
 
+                # TRYING JOBLIB
+                # try:
+                #     # from sklearn
+                #     with open(os.path.join(serialisation_dir, "{}-joblib-1.txt".format(returned_hashed)), 'wb') \
+                #             as writer:
+                #         writer.write(returned['clusters'].__str__())
+                #     with open(os.path.join(serialisation_dir, "{}-joblib-2.txt".format(returned_hashed)), 'wb') \
+                #             as writer:
+                #         writer.write(returned['node2cluster_id'].__str__())
+                # except Exception as err:
+                #     print err.message
+
+                # **************************************************************************************************
                 print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(returned_hashed)
+                # **************************************************************************************************
                 Qry.endpoint("""INSERT DATA {{
                     <{0}> <{1}serialisedClusters> '''{2}''' .
                     <{0}> <{1}numberOfClusters> {3} .
                 }}""".format(graph, Ns.alivocab, returned_hashed, len(clusters)))
 
+                # **************************************************************************************************
                 print "\n7. SERIALISATION IS COMPLETED..."
+                # **************************************************************************************************
                 diff = datetime.timedelta(seconds=time.time() - start)
                 print "\t{} triples serialised in {}".format(size, diff)
 
