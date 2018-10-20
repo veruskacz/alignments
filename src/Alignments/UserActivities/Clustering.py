@@ -3409,7 +3409,23 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 return {}
 
             with open(os.path.join(serialisation_dir, "data.txt"), "wb") as graph_data:
-                graph_data.write(data.__str__())
+
+                counter = 1000000
+                counting = 0
+                data_segment = {}
+
+                for key, value in data.items():
+                    counting += 1
+                    data_segment[key] = value
+
+                    if counting == counter:
+                        graph_data.write(data_segment.__str__() + "\n")
+                        sub_cluster = {}
+                        counting = 0
+
+                if counting != 0:
+                    graph_data.write(data_segment.__str__() + "\n")
+
 
             # **************************************************************************************************
             print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
@@ -3510,14 +3526,12 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(returned_hashed))
 
 
-                builder = buffer.StringIO()
                 with open(s_file_1, 'wb') as writer:
 
-                    size = len(new_clusters)
-                    counter = 10
+                    counter = 1000000
                     counting = 0
-                    iterations = size/1000000 * 1
                     sub_cluster = {}
+
                     for key, value in new_clusters.items():
                         counting += 1
                         sub_cluster[key] = value
@@ -3526,6 +3540,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                             writer.write(sub_cluster.__str__() + "\n")
                             sub_cluster = {}
                             counting = 0
+
+                    if counting != 0:
+                        writer.write(sub_cluster.__str__() + "\n")
 
                     # writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
                 with open(s_file_2, 'wb') as writer:
