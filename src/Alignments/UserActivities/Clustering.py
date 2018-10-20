@@ -2744,12 +2744,25 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             cluster_count = s_query_result[1][1]
             print "\t{} CLUSTERS FOUND AND DATA SAVED IN THE FILE [{}].TXT".format(cluster_count, serialised_hash)
 
+            # with open(s_file_1, 'wb') as writer:
+            #     # writer.write(returned.__str__())
+            #     writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
+            # with open(s_file_2, 'wb') as writer:
+            #     # writer.write(returned.__str__())
+            #     writer.write(pickle.dumps(returned['node2cluster_id'], protocol=pickle.HIGHEST_PROTOCOL))
+
+
+
+
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             try:
                 print "\tREADING FROM SERIALISED FILE..."
-                s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
-                serialised = s_file.read()
-                s_file.close()
+                s_file_1 = open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb')
+                s_file_2 = open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb')
+                serialised_clusters = s_file_1.read()
+                serialised_node2cluster_id = s_file_2.read()
+                s_file_1.close()
+                s_file_2.close()
 
             except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
@@ -2762,7 +2775,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # DE-SERIALISE THE SERIALISED
             start = time.time()
             # serialised = ast.literal_eval(serialised)
-            de_serialised = pickle.loads(serialised)
+            de_serialised = {'clusters': pickle.loads(serialised_clusters),
+                             'node2cluster_id': pickle.loads(serialised_node2cluster_id)}
 
             diff = datetime.timedelta(seconds=time.time() - start)
 
@@ -3378,7 +3392,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             iteration = 1
             size = Qry.get_namedgraph_size(graph)
 
+            # **************************************************************************************************
             print "\n1. DOWNLOADING THE GRAPH FROM THE TRIPLE STORE:\n\t{} of {} triples".format(graph, size)
+            # **************************************************************************************************
             start = time.time()
             data = Qry.get_cluster_rsc_strengths(resources=None, alignments=graph, limit=limit, stop_at=stop_at)
             diff = datetime.timedelta(seconds=time.time() - start)
@@ -3388,7 +3404,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
                 return {}
 
+            # **************************************************************************************************
             print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
+            # **************************************************************************************************
             start = time.time()
             for (subject, t_object), strength in data.items():
 
@@ -3431,8 +3449,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # sizes = sorted(sizes)
             # sizes2 = sorted(sizes2)
             # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
-
+            # **************************************************************************************************
             print "\n3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
+            # **************************************************************************************************
 
             # for (key, val) in clusters.items():
             #     print key, "\t", val
@@ -3440,7 +3459,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # for (key, val) in root.items():
             #     print key, "\t", val
 
+            # **************************************************************************************************
             print "\n4. PROCESSING THE CLUSTERS FOR UNIQUE ID AND PREPARING FOR SERIALISATION"
+            # **************************************************************************************************
             new_clusters = dict()
             start = time.time()
             for (key, data) in clusters.items():
@@ -3475,11 +3496,17 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             if len(new_clusters) != 0 and len(root) != 0:
 
                 # SERIALISATION
+                # **************************************************************************************************
                 print "\n5. SERIALISING THE DICTIONARIES..."
-                s_file = os.path.join(serialisation_dir, "{}.txt".format(returned_hashed))
-                with open(s_file, 'wb') as writer:
+                # **************************************************************************************************
+                s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(returned_hashed))
+                s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(returned_hashed))
+                with open(s_file_1, 'wb') as writer:
                     # writer.write(returned.__str__())
-                    writer.write(pickle.dumps(returned, protocol=pickle.HIGHEST_PROTOCOL))
+                    writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
+                with open(s_file_2, 'wb') as writer:
+                    # writer.write(returned.__str__())
+                    writer.write(pickle.dumps(returned['node2cluster_id'], protocol=pickle.HIGHEST_PROTOCOL))
 
                 print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(returned_hashed)
                 Qry.endpoint("""INSERT DATA {{
