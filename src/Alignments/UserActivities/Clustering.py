@@ -3839,7 +3839,7 @@ def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentag
 # print evidence_penalty(2, 5)
 
 def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
-    
+
     print ">>> RUNNING THE FUNCTION [list_extended_clusters]"
     # 1. DOCUMENTING START AND END OF PATHS IN A CYCLE
     # 2. AND CALCULATING THE WEIGHT OF THE LINKS IN THE PATH
@@ -4082,7 +4082,7 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
 
                 # cycle_paths[src_cluster] = []
                 # cycle_paths[trg_cluster] = []
-
+                print '\r', i,
                 if src_cluster < trg_cluster:
 
                     if (src_cluster, trg_cluster) in dict_clusters_pairs.keys():
