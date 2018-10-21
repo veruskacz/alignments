@@ -2745,23 +2745,22 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             cluster_count = s_query_result[1][1]
             print "\t{} CLUSTERS FOUND AND DATA SAVED IN THE FILE [{}].TXT".format(cluster_count, serialised_hash)
 
-            # with open(s_file_1, 'wb') as writer:
-            #     # writer.write(returned.__str__())
-            #     writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
-            # with open(s_file_2, 'wb') as writer:
-            #     # writer.write(returned.__str__())
-            #     writer.write(pickle.dumps(returned['node2cluster_id'], protocol=pickle.HIGHEST_PROTOCOL))
-
             # *************************************************
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             # *************************************************
             try:
                 print "\tREADING FROM SERIALISED FILE..."
+                line_count = 0
+                reading_start = time.time()
                 with open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb') as s_file_1:
                     clusters = {}
                     for line in s_file_1:
+                        line_count += 1
+                        reading_start_2 = time.time()
                         clusters.update(ast.literal_eval(line))
-                    # serialised_clusters = s_file_1.read()
+                        print "FINISH READING LINE {} IN {}".format(
+                            line_count, datetime.timedelta(seconds=time.time() - reading_start_2))
+                print "DONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
 
                 with open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb') as s_file_2:
                     serialised_node2cluster_id = s_file_2.read()
@@ -3408,23 +3407,24 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
                 return {}
 
-            with open(os.path.join(serialisation_dir, "data.txt"), "wb") as graph_data:
-
-                counter = 1000000
-                counting = 0
-                data_segment = {}
-
-                for key, value in data.items():
-                    counting += 1
-                    data_segment[key] = value
-
-                    if counting == counter:
-                        graph_data.write(data_segment.__str__() + "\n")
-                        sub_cluster = {}
-                        counting = 0
-
-                if counting != 0:
-                    graph_data.write(data_segment.__str__() + "\n")
+            # BACKING UP THE GRAPH DATA
+            # with open(os.path.join(serialisation_dir, "data.txt"), "wb") as graph_data:
+            #
+            #     counter = 1000000
+            #     counting = 0
+            #     data_segment = {}
+            #
+            #     for key, value in data.items():
+            #         counting += 1
+            #         data_segment[key] = value
+            #
+            #         if counting == counter:
+            #             graph_data.write(data_segment.__str__() + "\n")
+            #             sub_cluster = {}
+            #             counting = 0
+            #
+            #     if counting != 0:
+            #         graph_data.write(data_segment.__str__() + "\n")
 
 
             # **************************************************************************************************
@@ -3524,11 +3524,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 # **************************************************************************************************
                 s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(returned_hashed))
                 s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(returned_hashed))
-
-
                 with open(s_file_1, 'wb') as writer:
 
-                    counter = 1000000
+                    cluster_limit = 1000
                     counting = 0
                     sub_cluster = {}
 
@@ -3536,7 +3534,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                         counting += 1
                         sub_cluster[key] = value
 
-                        if counting == counter:
+                        if counting == cluster_limit:
                             writer.write(sub_cluster.__str__() + "\n")
                             sub_cluster = {}
                             counting = 0
@@ -3544,22 +3542,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                     if counting != 0:
                         writer.write(sub_cluster.__str__() + "\n")
 
-                    # writer.write(pickle.dumps(returned['clusters'], protocol=pickle.HIGHEST_PROTOCOL))
                 with open(s_file_2, 'wb') as writer:
                     writer.write(returned['node2cluster_id'].__str__())
-                    # writer.write(pickle.dumps(returned['node2cluster_id'], protocol=pickle.HIGHEST_PROTOCOL))
-
-                # TRYING JOBLIB
-                # try:
-                #     # from sklearn
-                #     with open(os.path.join(serialisation_dir, "{}-joblib-1.txt".format(returned_hashed)), 'wb') \
-                #             as writer:
-                #         writer.write(returned['clusters'].__str__())
-                #     with open(os.path.join(serialisation_dir, "{}-joblib-2.txt".format(returned_hashed)), 'wb') \
-                #             as writer:
-                #         writer.write(returned['node2cluster_id'].__str__())
-                # except Exception as err:
-                #     print err.message
 
                 # **************************************************************************************************
                 print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(returned_hashed)
@@ -3999,6 +3983,35 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
 
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             try:
+
+                de_serialised = {}
+                de_serialised['cycle_paths'] = {}
+                s_file = os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)) + "-{}"
+
+                with open(s_file.format(1), 'rb') as writer:
+                    start_de = time.time()
+                    de_serialised['extended_clusters'] = ast.literal_eval(writer.read())
+                    print "DONE DE-SERIALISING ['extended_clusters'] in {}".format(
+                        datetime.timedelta(seconds=time.time() - start_de))
+
+                with open(s_file.format(2), 'rb') as writer:
+                    start_de = time.time()
+                    de_serialised['list_extended_clusters_cycle'] = ast.literal_eval(writer.read())
+                    print "DONE DE-SERIALISING ['list_extended_clusters_cycle'] in {}".format(
+                        datetime.timedelta(seconds=time.time() - start_de))
+
+                with open(s_file.format(3), 'rb') as reader:
+                    start_de = time.time()
+                    count_line = 0
+                    for line in reader:
+                        count_line += 1
+                        start_de_2 = time.time()
+                        de_serialised['cycle_paths'].update(ast.literal_eval(reader.read()))
+                        print "LINE {} DE-SERIALISED IN {}".format(
+                            count_line, datetime.timedelta(seconds=time.time() - start_de_2))
+                    print "DONE DE-SERIALISING ['cycle_paths'] in {}".format(
+                        datetime.timedelta(seconds=time.time() - start_de))
+
                 s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
                 serialised = s_file.read()
                 s_file.close()
@@ -4177,11 +4190,36 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
         # file_name = file_name.replace("-", "Cluster_N") \
         #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
 
+        # ***************************************************************************************************
         print "\n5. SERIALISING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
-        s_file = os.path.join(serialisation_dir, "{}.txt".format(file_name))
-        with open(s_file, 'wb') as writer:
-            # writer.write(data.__str__())
-            writer.write(pickle.dumps(data, protocol=pickle.HIGHEST_PROTOCOL))
+        # ***************************************************************************************************
+        s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(file_name))
+        s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(file_name))
+        s_file_3 = os.path.join(serialisation_dir, "{}-3.txt".format(file_name))
+
+        with open(s_file_1, 'wb') as writer:
+            writer.write(data['extended_clusters'].__str__())
+
+        with open(s_file_2, 'wb') as writer:
+            writer.write(data['list_extended_clusters_cycle'].__str__())
+
+        with open(s_file_3, 'wb') as writer:
+
+            cluster_limit = 1000
+            counting = 0
+            sub_cluster = {}
+
+            for key, value in cycle_paths.items():
+                counting += 1
+                sub_cluster[key] = value
+
+                if counting == cluster_limit:
+                    writer.write(sub_cluster.__str__() + "\n")
+                    sub_cluster = {}
+                    counting = 0
+
+            if counting != 0:
+                writer.write(sub_cluster.__str__() + "\n")
 
         print "\n6. SAVING THE HASH OF EXTENDED CLUSTERS TO THE TRIPLE STORE AS: {}".format(file_name)
         Qry.endpoint("""INSERT DATA {{
