@@ -3605,7 +3605,7 @@ def fetch_paired(nodes_list, linkset):
 def shortest_paths_lite(link_network, start_node, end_node, weight=None):
 
 
-    print "COMPUTING PATH..."
+    print "COMPUTING PATH USING [shortest_paths_lite]..."
 
     # EXTRACT THE NODES FROM THE NETWORK OF LINKS
     nodes = set([n1 for n1, n2 in link_network] + [n2 for n1, n2 in link_network])
