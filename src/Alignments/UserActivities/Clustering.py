@@ -2,7 +2,6 @@ import ast
 import os
 import datetime
 import rdflib
-import pickle
 import traceback
 import networkx as nx
 import Alignments.Settings as St
@@ -2775,9 +2774,6 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
 
             # DE-SERIALISE THE SERIALISED
             start = time.time()
-            # serialised = ast.literal_eval(serialised)
-            # de_serialised = {'clusters': pickle.loads(serialised_clusters),
-            #                  'node2cluster_id': pickle.loads(serialised_node2cluster_id)}
             de_serialised = {'clusters': clusters,
                              'node2cluster_id': ast.literal_eval(serialised_node2cluster_id)}
 
@@ -3843,7 +3839,8 @@ def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentag
 # print evidence_penalty(2, 5)
 
 def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
-
+    
+    print ">>> RUNNING THE FUNCTION [list_extended_clusters]"
     # 1. DOCUMENTING START AND END OF PATHS IN A CYCLE
     # 2. AND CALCULATING THE WEIGHT OF THE LINKS IN THE PATH
     def cycle_helper(src_node, trg_node, source_cluster, target_cluster):
@@ -3982,8 +3979,10 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
             print "\tEXTENDED CLUSTERS FOUND AND DATA SAVED IN THE FILE [{}.txt]".format(serialised_hash)
 
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
-            try:
+            start = time.time()
 
+            # DE-SERIALISE THE SERIALISED
+            try:
                 de_serialised = {}
                 de_serialised['cycle_paths'] = {}
                 s_file = os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)) + "-{}"
@@ -4012,14 +4011,6 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                     print "DONE DE-SERIALISING ['cycle_paths'] in {}".format(
                         datetime.timedelta(seconds=time.time() - start_de))
 
-                s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_hash)), 'rb')
-                serialised = s_file.read()
-                s_file.close()
-
-                # DE-SERIALISE THE SERIALISED
-                start = time.time()
-                # serialised = ast.literal_eval(serialised)
-                de_serialised = pickle.loads(serialised)
                 diff = datetime.timedelta(seconds=time.time() - start)
 
                 print "\tDe-serialised in {}".format(diff)
@@ -4239,7 +4230,7 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
 
 
 def list_extended_clusters_short_problem(node2cluster, related_linkset):
-
+    print ">>> RUNNING THE FUNCTION [list_extended_clusters_short_problem]"
     # 1. FETCH THE PAIRED NODES
     extended_clusters = set()
     list_extended_clusters_cycle = set()
@@ -4299,6 +4290,7 @@ def list_extended_clusters_short_problem(node2cluster, related_linkset):
 
 def list_extended_clusters_long(serialised_path, related_linkset):
 
+    print ">>> RUNNING THE FUNCTION [list_extended_clusters_long]"
     # s_file = open(os.path.join(serialisation_dir, "{}.txt".format(serialised_path)), 'rb')
     s_file = open(serialised_path, 'rb')
 
@@ -4313,8 +4305,7 @@ def list_extended_clusters_long(serialised_path, related_linkset):
     else:
         # 2. DE-SERIALISE THE SERIALISED CLUSTERS DICTIONARY
         start = time.time()
-        # de_serialised = ast.literal_eval(serialised)
-        de_serialised = pickle.loads(serialised)
+        de_serialised = ast.literal_eval(serialised)
         diff = datetime.timedelta(seconds=time.time() - start)
 
         clusters = de_serialised['clusters']
@@ -4408,8 +4399,7 @@ def list_extended_clusters0(serialised_path, related_linkset):
     else:
         # 2. DE-SERIALISE THE SERIALISED CLUSTERS DICTIONARY
         start = time.time()
-        # de_serialised = ast.literal_eval(serialised)
-        de_serialised = pickle.loads(serialised)
+        de_serialised = ast.literal_eval(serialised)
         diff = datetime.timedelta(seconds=time.time() - start)
 
         clusters = de_serialised['clusters']
