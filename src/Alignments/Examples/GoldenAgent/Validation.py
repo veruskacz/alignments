@@ -274,8 +274,8 @@ def generate_sheet(data, directory, graph, serialisation_dir,
     writer_2 = open(join(directory, "EvalSheet_{}_{}_biggerThan_{}.txt".format(hashed, date, size)), 'wb')
 
     # RECORD FORMAT
-    record_format = "{{:<7}}{{:<{0}}}{{:<14}}{{:<{0}}}" \
-                    "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
+    record_format = "{{:<7}}{{:<{0}}}{{:<14}}|{{:<{0}}}" \
+                    "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}|{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
         header_separator_size)
     # print record_format
 
@@ -792,7 +792,7 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
     machine_good_results = []
     machine_bad_results = []
     metric_result_pattern = "-(\w+) \[\d.\d+\]-"
-    line_pattern = "(\d+) +([NP]\d+) +(\d+) +{0} +\|{0} +\|{0} +\|{0} +\|-(\w)- +(\w+) +".format(metric_result_pattern)
+    line_pattern = "(\d+) +([NP]\d+) +(\d+) +\|{0} +\|{0} +\|{0} +\|{0} +\|-(.)- +\|(\w+)".format(metric_result_pattern)
     m_good_frequency = {}
     m_bad_frequency = {}
     true_positive = []
@@ -802,8 +802,10 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
     good_size_two = []
     bad_size_two = []
     positive_ground_truth = []
+    # print line_pattern
 
     count = 0
+    count_clusters = 0
     print ""
     with open(eval_sheet_path, 'rb') as reader:
 
@@ -816,7 +818,9 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
             matched = re.findall(line_pattern, line)
             if len(matched) > 0:
 
-                # print "\n", matched
+                count_clusters += 1
+                # if count <= 9:
+                #     print "\n", matched
                 # good = filter(lambda x : x.upper() == "GOOD", matched[0])
 
                 cluster = matched[0][1]
@@ -880,7 +884,7 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
                         bad_size_two += output
 
     true_pos = len(true_positive)
-    fale_pos = len(false_positive)
+    false_pos = len(false_positive)
 
     true_neg = len(true_negative)
     false_neg = len(false_negative)
@@ -900,8 +904,8 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
             writer.write(print_list(good_size_two, "GOOD SIZE 2", return_print=True) if print_stats else "")
             writer.write(print_list(bad_size_two, "BAD SIZE 2", return_print=True) if print_stats else "")
 
-        confusion = confusion_matrix( true_pos, fale_pos, true_neg, false_neg, pos_ground_truth,
-                          observations=observed, latex=False, zero_rule=zero_rule)
+        confusion = confusion_matrix( true_pos, false_pos, true_neg, false_neg, pos_ground_truth,
+                                      observations=observed, latex=False, zero_rule=zero_rule)
 
         # print "\nlength", len(confusion)
         # for data in confusion:
@@ -909,6 +913,14 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
         #         print val
 
         writer.write("{}\n".format(confusion[0][0]))
+        smaller = len(size_two_clusters)
+        smaller_per = round((smaller/float(count_clusters)) * 100, 3)
+        bigger = count_clusters - smaller
+        bigger_per = round((bigger / float(count_clusters)) * 100, 3)
+
+        print "WITH A TOTAL OF {} CLUSTERS COMPOSED of : " \
+              "\n\t- {:>6} ({}%) CLUSTERS OF SIZE 2 AND \n\t- {:>6} ({}%) OF SIZE 3 AND BIGGER.".format(
+            count_clusters, smaller,smaller_per, bigger, bigger_per)
         if zero_rule is True:
             writer.write("{}\n".format(confusion[1][0]))
 

@@ -1582,7 +1582,9 @@ def get_cluster_rsc_strengths(resources, alignments, limit=500000, stop_at=None)
         print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION WITH LIMIT {}.".format(limit)
         start = time.time()
         result_count_resp = sparql_xml_to_matrix(cluster_rsc_strengths_query(resources, alignments, count=True))
-        result_count = int(result_count_resp[St.result][1][0])
+        result_count = 0
+        if result_count_resp[St.result] is not None:
+            result_count = int(result_count_resp[St.result][1][0])
         diff = datetime.timedelta(seconds=time.time() - start)
         print "\t{} TRIPLES FOUND in {}!".format(result_count, diff)
 
