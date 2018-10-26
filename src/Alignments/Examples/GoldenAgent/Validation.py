@@ -1,17 +1,17 @@
 import re
-import networkx as nx
-from os import makedirs
-from sys import stderr
 import time
 import datetime
-from os.path import join, isdir, isfile
-import Alignments.Utility as Ut
+import networkx as nx
+from os import makedirs
+import cStringIO as Buffer
 import Alignments.Query as Qry
+import Alignments.Utility as Ut
+from os.path import join, isdir, isfile
+from Alignments.Utility import confusion_matrix
 from Alignments.Utility import get_uri_local_name_plus as local_name
 from Alignments.UserActivities.Clustering import links_clustering
 from Alignments.UserActivities.Plots import metric
-import cStringIO as Buffer
-from Alignments.Utility import confusion_matrix
+# from sys import stderr
 
 
 # CLUSTER ID
@@ -209,13 +209,16 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
                 if node_in_cycle is not None:
                     # print local_name(record[0])
                     node = "-X-" if Ut.to_nt_format(record[0]) in node_in_cycle else "- -"
+                    group = "-1-" if Ut.to_nt_format(record[0]) in node_in_cycle else "- -"
                 else:
                     node = "- -"
+                    group = "- -"
 
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item)) for item in record)
-                writer.write(record_format.format("", "", "", "", "", "", "", "", "", "- -", node, record_line))
+
+                writer.write(record_format.format("", "", "", "", "", "", "", "", "", group, node, record_line))
 
     else:
         print "THE MATRIX IS EMPTY"
@@ -236,13 +239,14 @@ def generate_sheet(data, directory, graph, serialisation_dir,
 
     """
     :param data: DICTIONARY PROVIDING INFO ON DATASET AND THE PROPERTIES OF INTEREST. EACH PROPERTY
-        CAN BE PROVIDED WITH AN ALTERNATIVE NAME. SEE COMMENT IN nvestigate_resources(data, resources)
+        CAN BE PROVIDED WITH AN ALTERNATIVE NAME. SEE COMMENT IN investigate_resources(data, resources)
     :param directory: THE DIRECTORY WHERE THE SHEET WOULD BE SAVED
     :param graph: THE ALIGNMENT GRAPH WITH MATCHED INSTANCES TO BE CLUSTERED
     :param serialisation_dir: THE SERIALISATION DIRECTORY IN THE EVEN THE CLUSTER HAS ALREADY PROCESSED
     :param related_alignment:
     :param separator_size: ATTRIBUTE SEPARATOR WHITE SPACE FOR EVAL SHEET FORMATTING
     :param size: CLUSTER SIZE
+    :param activated: activation boolean argument
     :return:
     """
 
@@ -275,8 +279,8 @@ def generate_sheet(data, directory, graph, serialisation_dir,
 
     # RECORD FORMAT
     record_format = "{{:<7}}{{:<{0}}}{{:<14}}|{{:<{0}}}" \
-                    "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}|{{:<12}}{{:<10}}{{:<7}}{{:<{0}}}\n".format(
-        header_separator_size)
+                    "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}|{{:<12}}" \
+                    "{{:<10}}{{:<7}}{{:<{0}}}\n".format(header_separator_size)
     # print record_format
 
     # RECORD HEADER
@@ -614,7 +618,7 @@ def shortest_path_nodes(link_network, start_node, end_node):
     return list(final)
 
 
-def shortest_paths_lite(g, source, target, weight=None):
+def shortest_paths_lite(g, source, target):
 
     # print g
 
@@ -635,10 +639,10 @@ def shortest_paths_lite(g, source, target, weight=None):
             # for each pair in the path, remove the link and check the shortest path and add it again
             for i in range(len(result)-1):
                 # print "removing ", result[i], ', ', result[i+1]
-                g.remove_edge(result[i],result[i+1])
+                g.remove_edge(result[i], result[i+1])
                 try:
                     partial = nx.shortest_path(g, source=source, target=target)
-                except:
+                except IOError:
                     partial = []
 
                 # if there is a path of same size, keep it in a set (there can be repetition)
@@ -646,7 +650,7 @@ def shortest_paths_lite(g, source, target, weight=None):
                     if partial not in partials:
                         partials += [partial]
 
-                g.add_edge(result[i],result[i+1])
+                g.add_edge(result[i], result[i+1])
 
             # add whatever paht found if so
             for p in partials:
@@ -708,7 +712,7 @@ def print_tuple(tuple_list, return_print=False):
 def print_list(data_list, comment="", return_print=False):
 
     builder = Buffer.StringIO()
-    if  return_print is True:
+    if return_print is True:
 
         for item in data_list:
             try:
@@ -727,7 +731,6 @@ def print_list(data_list, comment="", return_print=False):
         builder.write(Ut.headings("\n{}\nDICTIONARY SIZE : {}".format(comment, len(data_list))) + "\n\n")
         return builder.getvalue()
 
-
     print ""
     for item in data_list:
         try:
@@ -744,7 +747,7 @@ def print_list(data_list, comment="", return_print=False):
             print "PROBLEM!!!"
 
     if len(comment) == 0:
-       "\n{}\nLIST SIZE : {}".format(comment, len(data_list))
+        "\n{}\nLIST SIZE : {}".format(comment, len(data_list))
 
     else:
         print Ut.headings("\n{}\nLIST SIZE : {}".format(comment, len(data_list)))
@@ -778,7 +781,8 @@ def print_dict(data_dict, comment="", return_print=False):
 
 
 # THIS FUNCTION COMPUTES THE CONFUSION MATRIX FOR VALIDATED SHEETS AND PROVIDES SOME ADDITIONAL STATS.
-def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_stats=False, activated=False):
+def extract_eval(
+        eval_sheet_path, metric_index, save_in, keyword=1, zero_rule=False, print_stats=False, activated=False):
 
     if activated is False:
         print "\n>>> THE FUNCTION [extract_eval] IS NOT ACTIVATED."
@@ -787,6 +791,8 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
     if isfile(eval_sheet_path) is False:
         print "\n>>> THE FILE {}\nDOES NOT EXITS".format(eval_sheet_path)
         return
+
+    description = str(keyword).replace(" ", "_")
 
     size_two_clusters = []
     machine_good_results = []
@@ -836,7 +842,7 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
                 if size != "2":
 
                     # MACHINE EVALUATED GOOD
-                    if  eval_machine == "GOOD":
+                    if eval_machine == "GOOD":
 
                         # DOCUMENTING GOOD RESULTS
                         machine_good_results += matched
@@ -871,7 +877,7 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
                             true_negative += output
                         else:
                             positive_ground_truth += output
-                            false_negative  += output
+                            false_negative += output
 
                 # SIZE TWO CLUSTERS
                 else:
@@ -892,11 +898,13 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
     pos_ground_truth = len(positive_ground_truth)
     observed = len(machine_good_results) + len(machine_bad_results)
 
-    with open(join(save_in, "ANALYSIS.txt"), 'wb') as writer:
+    with open(join(save_in, "ANALYSIS-{}.txt".format(description)), 'wb') as writer:
 
         if print_stats:
-            writer.write(print_dict(m_good_frequency, "FREQUENCY OF MACHINE GOOD", return_print=True) if print_stats else "")
-            writer.write(print_dict(m_bad_frequency, "FREQUENCY OF MACHINE BAD", return_print=True) if print_stats else "")
+            writer.write(print_dict(m_good_frequency,
+                                    "FREQUENCY OF MACHINE GOOD", return_print=True) if print_stats else "")
+            writer.write(print_dict(m_bad_frequency,
+                                    "FREQUENCY OF MACHINE BAD", return_print=True) if print_stats else "")
             writer.write(print_list(true_positive, "TRUE POSITIVE", return_print=True) if print_stats else "")
             writer.write(print_list(false_positive, "FALSE POSITIVE", return_print=True) if print_stats else "")
             writer.write(print_list(true_negative, "TRUE NEGATIVE", return_print=True) if print_stats else "")
@@ -904,8 +912,8 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
             writer.write(print_list(good_size_two, "GOOD SIZE 2", return_print=True) if print_stats else "")
             writer.write(print_list(bad_size_two, "BAD SIZE 2", return_print=True) if print_stats else "")
 
-        confusion = confusion_matrix( true_pos, false_pos, true_neg, false_neg, pos_ground_truth,
-                                      observations=observed, latex=False, zero_rule=zero_rule)
+        confusion = confusion_matrix(true_pos, false_pos, true_neg, false_neg, pos_ground_truth,
+                                     observations=observed, latex=False, zero_rule=zero_rule)
 
         # print "\nlength", len(confusion)
         # for data in confusion:
@@ -918,11 +926,13 @@ def extract_eval(eval_sheet_path, metric_index, save_in, zero_rule=False, print_
         bigger = count_clusters - smaller
         bigger_per = round((bigger / float(count_clusters)) * 100, 3)
 
-        print "WITH A TOTAL OF {} CLUSTERS COMPOSED of : " \
-              "\n\t- {:>6} ({}%) CLUSTERS OF SIZE 2 AND \n\t- {:>6} ({}%) OF SIZE 3 AND BIGGER.".format(
-            count_clusters, smaller,smaller_per, bigger, bigger_per)
+        stats = "\nWITH A TOTAL OF {} CLUSTERS COMPOSED of : " \
+                "\n\t- {:>6} ({}%) CLUSTERS OF SIZE 2 AND \n\t- {:>6} ({}%) " \
+                "OF SIZE 3 AND BIGGER.".format(count_clusters, smaller, smaller_per, bigger, bigger_per)
+
         if zero_rule is True:
             writer.write("{}\n".format(confusion[1][0]))
 
-    # print "POSITIVES: [{}/{}]  NEGATIVES: [{}/{}] OUT OF [{}]".format(true_pos, fale_pos, true_neg, false_neg, observed)
-    # print "TOTAL {} GOOD AND {} BAD ARE FOUND".format(len(machine_good_results), len(machine_bad_results))
+        writer.write("\n{}".format(stats))
+
+        print stats

@@ -184,10 +184,14 @@ def draw_graph(graph, file_path=None, show_image=False):
 # METRIC DESCRIBING THE QUALITY OF A LINKED NETWORK
 def metric(graph, strengths=None, alt_keys=None):
 
+    # print "\n- STRENGTHS:", strengths
+    # print "- ALT KEYS:", alt_keys
+
     """
     :param graph: THE GRAPH TO EVALUATE
     :param strengths: STRENGTH OF THE GRAPHS'S EDGES
-    :param alt_keys: IF GIVEN, IS THE KEY MAPPING OF GHE COMPUTED KEY HERE AND THE REAL KEY
+    :param alt_keys: IF GIVEN, IS THE KEY MAPPING OF GHE COMPUTED KEY HERE AND THE REAL KEY.
+    AN EXAMPLE CA BE FOUND IN THE FUNCTION cluster_d_test IN THIS CODE
     :return:
     """
 
@@ -215,17 +219,19 @@ def metric(graph, strengths=None, alt_keys=None):
         # RECOMPOSE THE KEY FOR EXTRACTING THE WEIGHT OF AN EDGE
         strength_key = "key_{}".format(str(hash((edge[0], edge[1]))).replace("-", "N")) if edge[0] < edge[1] \
             else "key_{}".format(str(hash((edge[1], edge[0]))).replace("-", "N"))
+        # print "- CURRENT KEY:", strength_key
 
         if alt_keys is not None:
             strength_key = alt_keys[strength_key]
 
         # MAXIMUM WEIGHT FROM THE LIST OF WEIGHTS AVAILABLE FOR THE CURRENT EDGE
-        strength_value = max(strengths[strength_key])
+        if strength_key in strengths:
+            strength_value = max(strengths[strength_key])
 
-        # g.add_edges_from([(edge[0], edge[1], {'capacity': 12, 'weight': 2 - float(strength_value)})])
-        # ADDING THE EDGE, THE EDGE'S WEIGHT AND CAPACITY
-        # print edge[0], edge[1]
-        g.add_edge(edge[0], edge[1], capacity=2, weight=float(strength_value))
+            # g.add_edges_from([(edge[0], edge[1], {'capacity': 12, 'weight': 2 - float(strength_value)})])
+            # ADDING THE EDGE, THE EDGE'S WEIGHT AND CAPACITY
+            # print edge[0], edge[1]
+            g.add_edge(edge[0], edge[1], capacity=2, weight=float(strength_value))
 
     """""""""""""""""""""""""""""""""""""""
     NON WEIGHTED METRIC COMPUTATIONS...
@@ -294,10 +300,14 @@ def metric(graph, strengths=None, alt_keys=None):
         for key, val in strengths.items():
             max_strengths[key] = float(max(val))
 
-        min_strength = min(strengths.items(), key=lambda strength_tuple: max(strength_tuple[1]))
-        min_strength = float(max(min_strength[1]))
+        min_strength = 0
+        if len(strengths.items()) > 0:
+            min_strength = min(strengths.items(), key=lambda strength_tuple: max(strength_tuple[1]))
+            min_strength = float(max(min_strength[1]))
 
-        average_strength = sum(max_strengths.values()) / len(max_strengths)
+        average_strength = 0
+        if len(max_strengths) > 0:
+            average_strength = sum(max_strengths.values()) / len(max_strengths)
 
     weighted_eq = round(estimated_quality * min_strength, 3), round(estimated_quality * average_strength, 3)
 
@@ -375,7 +385,8 @@ def metric(graph, strengths=None, alt_keys=None):
     """""""""""""""""""""""""""""""""""""""
     PRINTING MATRIX COMPUTATIONS
     """""""""""""""""""""""""""""""""""""""
-    test = "[MIN: {}]   |   [AVERAGE: {}]".format(str(weighted_eq[0]), str(weighted_eq[1]))
+    test = "[MIN: {}]   |   [AVERAGE: {}]   |   [COMPLETE: {}]".format(
+        str(weighted_eq[0]), str(weighted_eq[1]), weighted_eq_2)
     # analysis_builder.write(
     #     # "\nMETRICS READING: THE CLOSER TO ZERO, THE BETTER\n"
     #     # "\n\tAverage Degree [{}] \nBridges [{}] normalised to [{}] {}\nDiameter [{}]  normalised to [{}] {}"
@@ -460,7 +471,7 @@ def metric(graph, strengths=None, alt_keys=None):
 
     analysis_builder.write("\n{:23} : Bridges [{}]   Diameter [{}]   Closure [{}/{} = {}]"
                            "   impact: [{}]   quality: [{}]".format(
-        "NETWORK METRICS USED", weighted_nb_used, weighted_nd_used, weighted_edge_discovered,
+        "NETWORK METRICS USED", weighted_nb_used, weighted_nd_used, round(weighted_edge_discovered, 3),
         edge_derived, weighted_nc_used, weighted_impact, 1 - weighted_impact))
 
     return {'message': analysis_builder.getvalue(), 'decision': impact,
@@ -1278,6 +1289,8 @@ def cluster_d_test(serialisation_dir, linkset, network_size=3, network_size_max=
                 network = []
                 link_count = 0
                 alt_keys = {}
+
+                # COMPUTE ALTERNATIVE KEYS
                 for link in cluster_val["links"]:
                     link_count += 1
                     name_1 = "{}-{}".format(Ut.hash_it(link[0]), Ut.get_uri_local_name(link[0]))

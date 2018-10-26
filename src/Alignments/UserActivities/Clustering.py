@@ -2673,14 +2673,14 @@ def links_clustering_improved(graph, limit=1000):
     return clusters
 
 
-# ************************************************
-# ************************************************
+# ****************************************************
+# ****************************************************
 # USING
 #   - [SET]
 #   - [TABLE OF RESOURCES] AND THEIR
 #   - [STRENGTHS]
-# ************************************************
-# ************************************************
+# ****************************************************
+# ****************************************************
 
 def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                      related_linkset=None, reset=False, limit=10000, stop_at=None):
@@ -2755,9 +2755,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                         line_count += 1
                         reading_start_2 = time.time()
                         clusters.update(ast.literal_eval(line))
-                        print "FINISH READING LINE {} IN {}".format(
+                        print "\n\tFINISH READING LINE {} IN {}".format(
                             line_count, datetime.timedelta(seconds=time.time() - reading_start_2))
-                print "DONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
+                print "\tDONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
 
                 with open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb') as s_file_2:
                     serialised_node2cluster_id = s_file_2.read()
@@ -2793,21 +2793,23 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                     # LINKS         : LIST OF TUPLE OF THE TYPE (NODE, PAIRED)
                     # EXTENSIONS    : UNIQUE LIST OF CLUSTER ID THAT EXTENT THE ORIGINAL CLUSTER USING PAIRED
                     """
-                    print "\nEXTENDING THE CLUSTER ID"
+                    print "\n>>> EXTENDING THE CLUSTER ID"
                     extension_dict = cluster_extension(
                         nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
                     all_extensions = list_extended_clusters(graph, de_serialised, related_linkset, serialisation_dir)
 
-                    corroborated_links = all_extensions['cycle_paths'][cluster2extend_id]
-                    print corroborated_links
                     corroborated_dict = {}
+                    if 'cycle_paths' in all_extensions:
+                        if cluster2extend_id in all_extensions['cycle_paths']:
+                            corroborated_links = all_extensions['cycle_paths'][cluster2extend_id]
+                            print corroborated_links
 
-                    for node1, node2, strength in corroborated_links:
-                        key = "key_{}".format(str(hash((node1, node2))).replace("-", "N"))
-                        if key not in corroborated_dict:
-                            corroborated_dict[key] = [strength]
-                        else:
-                            corroborated_dict[key] += [strength]
+                            for node1, node2, strength in corroborated_links:
+                                key = "key_{}".format(str(hash((node1, node2))).replace("-", "N"))
+                                if key not in corroborated_dict:
+                                    corroborated_dict[key] = [strength]
+                                else:
+                                    corroborated_dict[key] += [strength]
 
                     extension_dict['corroborated_dict'] = corroborated_dict
 
@@ -3568,6 +3570,456 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             return clusters
 
 
+# ****************************************************
+# BASED ON ASSOCIATION RELATIONSHIPS [related_linkset]
+# THIS FUNCTION EXTENDS A GRAPH
+# ****************************************************
+def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
+
+    print "\n>>> RUNNING THE FUNCTION [list_extended_clusters]"
+    # 1. DOCUMENTING START AND END OF PATHS IN A CYCLE
+    # 2. AND CALCULATING THE WEIGHT OF THE LINKS IN THE PATH
+
+    def cycle_helper(src_node, trg_node, source_cluster, target_cluster):
+
+        # print '\n Starting helper for'
+        # print '\t Source:', source_cluster, src_node
+        # print '\t Target:', target_cluster, trg_node
+
+        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
+        for related_nodes in dict_clusters_pairs[(source_cluster, target_cluster)]:
+
+            # 1.1 COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
+            sub_link_network = clusters[source_cluster]['links']
+            sub_strengths = clusters[source_cluster]['strengths']
+
+            # 1.2 COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
+            obj_link_network = clusters[target_cluster]['links']
+            obj_strengths = clusters[target_cluster]['strengths']
+
+            # 2.1 GET THE DIAMETER AND WEIGHTED DIAMETER OF THE SUBJECT
+            sub_diameter_weighted_diameter = shortest_paths_lite(
+                sub_link_network, start_node=related_nodes[0], end_node=src_node, strengths=sub_strengths)
+
+            # 2.2 ET THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT
+            obj_diameter_weighted_diameter = shortest_paths_lite(
+                obj_link_network, start_node=related_nodes[1], end_node=trg_node, strengths=obj_strengths)
+
+            # 3.1 [SOURCE] FETCH THE STRENGTH OF THE RECONCILED NODES IF THE LINK EXISTS
+            link = (related_nodes[0], src_node) if related_nodes[0] < src_node else (src_node, related_nodes[0])
+            key_1 = "key_{}".format(str(hash(link)).replace("-", "N"))
+            if key_1 in sub_strengths:
+                sub_strength = max(sub_strengths[key_1])
+            else:
+                print "NO KEY FOR: {}\n\t{}".format(key_1, link)
+                sub_strength = 0
+
+            # 3.2 [TARGET] FETCH THE STRENGTH OF THE RECONCILED NODES IF THE LINK EXISTS
+            link = (related_nodes[1], trg_node) if related_nodes[1] < trg_node else (trg_node, related_nodes[1])
+            key_2 = "key_{}".format(str(hash(link)).replace("-", "N"))
+            if key_2 in obj_strengths:
+                obj_strength = max(obj_strengths[key_2])
+            else:
+                print "NO KEY FOR: {}\n\t{}".format(key_2, link)
+                obj_strength = 0
+
+            print sub_strength, obj_strength
+
+            # 4.1 COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
+            subj_strength = reconciliation_strength(sub_strength, ev_diameter=obj_diameter_weighted_diameter[0],
+                                                    ev_w_diameter=obj_diameter_weighted_diameter[1], c_penalty=10)
+
+            # 4.2 COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
+            obj_strength = reconciliation_strength(obj_strength, ev_diameter=sub_diameter_weighted_diameter[0],
+                                                   ev_w_diameter=sub_diameter_weighted_diameter[1], c_penalty=10)
+
+            # ****************************************************************************************************
+
+            old = False
+            if old:
+                sub_diameter = shortest_paths_lite_size(
+                    sub_link_network, start_node=related_nodes[0], end_node=src_node)
+
+                obj_diameter = shortest_paths_lite_size(
+                    obj_link_network, start_node=related_nodes[1], end_node=trg_node)
+
+                # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
+                subj_strength = evidence_penalty(
+                    investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
+
+                # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
+                obj_strength = evidence_penalty(
+                    investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
+
+            # print '\n\t Computed strengths:'
+            # print '\t\t Source start_node={}, end_node={}, strength={}'.format(
+            #   related_nodes[0], src_node, subj_strength)
+            # print '\t\t Target start_node={}, end_node={}, strength={}'.format(
+            #   related_nodes[1], trg_node, obj_strength)
+
+            # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
+            if source_cluster not in cycle_paths or len(cycle_paths[source_cluster]) == 0:
+                cycle_paths[source_cluster] = [(related_nodes[0], src_node, subj_strength)]
+                # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(
+                #     source_cluster, related_nodes[0], src_node, subj_strength)
+
+            else:
+                # print '\t\tThe was some path-strengths there, ',
+                add = True
+                for start_n, end_n, strength in cycle_paths[source_cluster]:
+
+                    # UPDATING AN EXISTING PATH-STRENGTH
+                    if (start_n, end_n) == (related_nodes[0], src_node):
+
+                        # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
+                        if strength < subj_strength:
+                            list(cycle_paths[source_cluster]).remove((start_n, end_n, strength))
+                            # print 'and there was this particular one with smaller strength, removing... '
+
+                        # THE DISCOVERED PATH IS NOT UPDATED FOR ITS STRENGTH IS BIGGER OR EQUAL
+                        else:
+                            add = False
+                            # print 'and there was this particular one with bigger or equal strength, let it there... '
+
+                # WE REACH THIS POINT IF THE PATH WAS NOT THERE OR IF THE STRENGTH IS SMALLER AND NEEDS UPDATE
+                if add is True:
+                    # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(
+                    #   source_cluster, related_nodes[0], src_node, subj_strength)
+                    cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
+
+            if target_cluster not in cycle_paths or len(cycle_paths[target_cluster]) == 0:
+                # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(
+                #   target_cluster, related_nodes[1], trg_node, obj_strength)
+                cycle_paths[target_cluster] = [(related_nodes[1], trg_node, obj_strength)]
+
+            else:
+                # print '\t\tThe was some path-strengths there, ',
+                add = True
+                for start_n, end_n, strength in cycle_paths[target_cluster]:
+
+                    # UPDATING AN EXISTING PATH-STRENGTH
+                    if (start_n, end_n) == (related_nodes[1], trg_node):
+
+                        # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
+                        if strength < obj_strength:
+                            list(cycle_paths[target_cluster]).remove((start_n, end_n, strength))
+                            # print 'and there was this particular one with smaller strength, removing... '
+
+                        # THE DISCOVERED PATH IS NOT UPDATED FOR ITS STRENGTH IS BIGGER OR EQUAL
+                        else:
+                            add = False
+                            # print 'and there was this particular one with bigger or equal strength, let it there... '
+
+                # WE REACH THIS POINT IF THE PATH WAS NOT THERE OR IF THE STRENGTH IS SMALLER AND NEEDS UPDATE
+                if add is True:
+                    cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
+                    # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(
+                    # target_cluster, related_nodes[1], trg_node, obj_strength)
+
+    # **************************************************************************************************
+    # **************************************************************************************************
+    # 1. FETCH THE PAIRED NODES
+    # size = Qry.get_namedgraph_size(graph)
+    extended_clusters = set()               # LIST OF ALL CLUSTERS THAT EXTEND
+    list_extended_clusters_cycle = set()    # LIST OF ALL CLUSTERS THAT EXTENDS AND CONTAIN A CYCLES
+    dict_clusters_pairs = {}
+    start = time.time()
+
+    clusters = clusters_dictionary['clusters']
+    node2cluster = clusters_dictionary['node2cluster_id']
+    data = {'extended_clusters': None, 'list_extended_clusters_cycle': None}
+    print "\tCOMPUTING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
+
+    if reset is True:
+        print "DELETING THE SERIALISED DATA FROM: {}".format(graph)
+        delete_serialised_extended_clusters(graph)
+
+    # **************************************************************************************************
+    # 1. CHECK IF THE ALIGNMENT HAS ALREADY BEEN EXTENDED
+    # **************************************************************************************************
+    ask = "ASK {{ <{}>  <{}extendedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
+
+    if Qry.boolean_endpoint_response(ask) == "true":
+
+        print "\n>>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
+
+        # QUERY FOR THE SERIALISATION
+        s_query = """SELECT *
+        {{
+            <{0}>   <{1}extendedClusters>   ?serialised .
+        }}""".format(graph, Ns.alivocab)
+        start = time.time()
+
+        # FETCH THE SERIALISATION
+        s_query_result = Qry.sparql_xml_to_matrix(s_query)[St.result]
+
+        # Qry.display_result(s_query, is_activated=True)
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\tLOADED in {}".format(diff)
+
+        # GET THE SERIALISED CLUSTERS
+        # serialised = ""
+        if s_query_result is not None:
+
+            # EXTRACTING THE NUMBER OF CLUSTERS ABD THE SERIALISED FILE NAME
+            serialised_hash = s_query_result[1][0]
+            print "\tEXTENDED CLUSTERS FOUND AND DATA SAVED IN THE FILE \n\t\v [{}.txt]\n".format(serialised_hash)
+
+            # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
+            start = time.time()
+
+            # DE-SERIALISE THE SERIALISED
+            try:
+                de_serialised = {'cycle_paths': {}}
+                s_file = os.path.join(serialisation_dir, "{}".format(serialised_hash)) + "-{}.txt"
+
+                with open(s_file.format(1), 'rb') as writer:
+                    start_de = time.time()
+                    de_serialised['extended_clusters'] = ast.literal_eval(writer.read())
+                    print "DONE DE-SERIALISING ['extended_clusters'] in {}".format(
+                        datetime.timedelta(seconds=time.time() - start_de))
+
+                with open(s_file.format(2), 'rb') as writer:
+                    start_de = time.time()
+                    de_serialised['list_extended_clusters_cycle'] = ast.literal_eval(writer.read())
+                    print "DONE DE-SERIALISING ['list_extended_clusters_cycle'] in {}".format(
+                        datetime.timedelta(seconds=time.time() - start_de))
+
+                with open(s_file.format(3), 'rb') as reader:
+                    start_de = time.time()
+                    count_line = 0
+                    for line in reader:
+                        count_line += 1
+                        start_de_2 = time.time()
+                        de_serialised['cycle_paths'].update(ast.literal_eval(line))
+                        print "LINE {} DE-SERIALISED IN {}".format(
+                            count_line, datetime.timedelta(seconds=time.time() - start_de_2))
+                    print "DONE DE-SERIALISING ['cycle_paths'] in {}".format(
+                        datetime.timedelta(seconds=time.time() - start_de))
+
+                diff = datetime.timedelta(seconds=time.time() - start)
+
+                print "DE-SERIALISED IN  {}".format(diff)
+                print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+                return de_serialised
+
+            except (IOError, ValueError):
+                print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
+                    serialised_hash)
+                # traceback.print_exc()
+                print "DELETING THE EXTENDED SERIALISED SERIALISED DATA FROM: {}".format(graph)
+                delete_serialised_extended_clusters(graph)
+
+    # **************************************************************************************************
+    # 2. ALIGNMENT HAS NOT YET BEEN EXTENDED AND SERIALISED
+    # **************************************************************************************************
+
+    cycle_paths = {}
+    print "\tFETCHING THE RELATED ALIGNMENT TRIPLES"
+    fetch_q = """
+    select distinct ?sub ?obj
+    {{
+         GRAPH <{}>
+        {{
+           {{ ?sub ?pred ?obj . }}
+            union
+           {{ ?obj ?pred ?sub . }}
+           filter (str(?sub) < str(?obj))
+        }}
+    }}""".format(related_linkset)
+    fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
+    related = fetched_res[St.result]
+    size = len(related)
+    print "\t\tRELATED LINKSET SIZE: {}\n\tCOMPUTING THE EXTENSIONS".format(size - 1)
+
+    # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
+
+    # ITERATING THROUGH THE RELATED LIST OF NODES
+    for i in range(1, size):
+
+        print '\r', "{} / {}".format(i, size),
+
+        # RELATED NODES
+        sub = "<{}>".format(related[i][0])
+        obj = "<{}>".format(related[i][1])
+
+        # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
+        if sub in node2cluster and obj in node2cluster:
+
+            src_cluster_id = node2cluster[sub]
+            trg_cluster_id = node2cluster[obj]
+
+            # ****************************************************************
+            # TO SAVE TIME, WE DO NOT EVALUATE CLUSTERS OF SIZE BIGGER THAN 30
+            # ****************************************************************
+            condition = len(clusters[src_cluster_id]['nodes']) <= 30 and len(clusters[trg_cluster_id]['nodes']) <= 30
+            if condition is False:
+                continue
+
+            # condition = src_cluster == 'N6849355419779822524' or trg_cluster == 'N6849355419779822524'
+            # if condition is False:
+            #     continue
+
+            # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
+            if src_cluster_id != trg_cluster_id:
+
+                # **********************************************************************************
+                # 1. CHECKING FOR EXTENSION
+                # IF THE CLUSTER TO WHICH THE NODES BELONG ARE NOT THE SAME THEN THE CLUSTERS EXTEND
+                # **********************************************************************************
+                # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
+                extended_clusters.add(src_cluster_id)
+                extended_clusters.add(trg_cluster_id)
+
+                # **********************************************************************************
+                # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
+                # **********************************************************************************
+                # print '\r', "\tLINE: {}".format(i),
+                if src_cluster_id < trg_cluster_id:
+
+                    if (src_cluster_id, trg_cluster_id) in dict_clusters_pairs.keys():
+
+                        # IT HAS A CYCLE
+                        list_extended_clusters_cycle.add(src_cluster_id)
+                        list_extended_clusters_cycle.add(trg_cluster_id)
+
+                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
+                        cycle_helper(
+                            src_node=sub, trg_node=obj, source_cluster=src_cluster_id, target_cluster=trg_cluster_id)
+
+                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                        dict_clusters_pairs[(src_cluster_id, trg_cluster_id)] += [(sub, obj)]
+
+                        # for related_nodes in dict_clusters_pairs[(src_cluster, trg_cluster)]:
+                        #
+                        #     # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
+                        #     sub_link_network = clusters[src_cluster]['links']
+                        #     sub_diameter = shortest_paths_lite(
+                        #         sub_link_network, start_node=related_nodes[0], end_node=sub)
+                        #
+                        #     # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
+                        #     obj_link_network = clusters[trg_cluster]['links']
+                        #     obj_diameter = shortest_paths_lite(
+                        #         obj_link_network, start_node=related_nodes[1], end_node=obj)
+                        #
+                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
+                        #     subj_strength = evidence_penalty(
+                        #         investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
+                        #
+                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
+                        #     obj_strength = evidence_penalty(
+                        #         investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
+                        #
+                        #     # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
+                        #     if len(cycle_paths[src_cluster]) == 0:
+                        #         cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
+                        #
+                        #     else:
+                        #         for start_n, end_n, strength in cycle_paths[src_cluster]:
+                        #             if (start_n, end_n) == (related_nodes[0], sub) and strength < subj_strength:
+                        #                 list(cycle_paths[src_cluster]).remove((start_n, end_n, strength))
+                        #                 cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
+                        #
+                        #
+                        #     if len(cycle_paths[trg_cluster]) == 0:
+                        #         cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
+                        #
+                        #     else:
+                        #         for start_n, end_n, strength in cycle_paths[trg_cluster]:
+                        #             if (start_n, end_n) == (related_nodes[1], obj) and strength < obj_strength:
+                        #                 list(cycle_paths[trg_cluster]).remove((start_n, end_n, strength))
+                        #                 cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
+
+                        #     cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
+                        #     cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
+
+                    else:
+                        # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
+                        # DOCUMENTING FIRST OCCURRENCE
+                        dict_clusters_pairs[(src_cluster_id, trg_cluster_id)] = [(sub, obj)]
+
+                else:
+
+                    if (trg_cluster_id, src_cluster_id) in dict_clusters_pairs.keys():
+
+                        # IT HAS A CYCLE
+                        list_extended_clusters_cycle.add(src_cluster_id)
+                        list_extended_clusters_cycle.add(trg_cluster_id)
+
+                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
+                        cycle_helper(
+                            src_node=obj, trg_node=sub, source_cluster=trg_cluster_id, target_cluster=src_cluster_id)
+
+                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                        dict_clusters_pairs[(trg_cluster_id, src_cluster_id)] += [(obj, sub)]
+
+                    else:
+                        # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
+                        # DOCUMENTING FIRST OCCURRENCE
+                        dict_clusters_pairs[(trg_cluster_id, src_cluster_id)] = [(obj, sub)]
+
+    diff = datetime.timedelta(seconds=time.time() - start)
+    print "\n\t\tFOUND: {} IN {}".format(len(extended_clusters), diff)
+    print "\t\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
+
+    if len(extended_clusters) != 0 and len(list_extended_clusters_cycle) != 0:
+
+        # SERIALISATION
+        data = {'extended_clusters': list(extended_clusters),
+                'list_extended_clusters_cycle': list(list_extended_clusters_cycle),
+                'cycle_paths': cycle_paths}
+        file_name = "ExtendedBy_{}".format(Ut.get_uri_local_name_plus(related_linkset))
+        # file_name = file_name.replace("-", "Cluster_N") \
+        #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
+
+        # ***************************************************************************************************
+        print "\n5. SERIALISING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
+        # ***************************************************************************************************
+        s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(file_name))
+        s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(file_name))
+        s_file_3 = os.path.join(serialisation_dir, "{}-3.txt".format(file_name))
+
+        with open(s_file_1, 'wb') as writer:
+            writer.write(data['extended_clusters'].__str__())
+
+        with open(s_file_2, 'wb') as writer:
+            writer.write(data['list_extended_clusters_cycle'].__str__())
+
+        with open(s_file_3, 'wb') as writer:
+
+            cluster_limit = 1000
+            counting = 0
+            sub_cluster = {}
+
+            for key, value in cycle_paths.items():
+                counting += 1
+                sub_cluster[key] = value
+
+                if counting == cluster_limit:
+                    writer.write(sub_cluster.__str__() + "\n")
+                    sub_cluster = {}
+                    counting = 0
+
+            if counting != 0:
+                writer.write(sub_cluster.__str__() + "\n")
+
+        print "\n6. SAVING THE HASH OF EXTENDED CLUSTERS TO THE TRIPLE STORE AS: {}".format(file_name)
+        Qry.endpoint("""INSERT DATA {{
+        <{0}> <{1}extendedClusters> '''{2}''' .
+        }}""".format(graph, Ns.alivocab, file_name))
+
+        print "\n7. SERIALISATION IS COMPLETED..."
+        diff = datetime.timedelta(seconds=time.time() - start)
+        print "\t{} triples serialised in {}".format(size, diff)
+
+        print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+
+    else:
+        print "\tTHE RETURNED DICTIONARY IS EMPTY."
+
+    return data
+
+
 def fetch_paired(nodes_list, linkset):
     picked_nodes_csv = "\n\t\t\t".join(str(s) for s in nodes_list)
     query = """
@@ -3602,7 +4054,7 @@ def fetch_paired(nodes_list, linkset):
 # RETURNS ALL POSSIBLE SHORTEST PATHS
 def shortest_paths_lite(link_network, start_node, end_node, strengths=None):
 
-    print "COMPUTING PATH USING [shortest_paths_lite]..."
+    print "\nCOMPUTING PATH USING [shortest_paths_lite]..."
 
     diameter = 0
 
@@ -3621,7 +4073,10 @@ def shortest_paths_lite(link_network, start_node, end_node, strengths=None):
         g.add_edge(edge[0], edge[1])
 
     # GET THE SHORTEST PATH (THE FUNCTION RETURNS ONLY ONE PATH)
+    # print "GRAPH-1:", g.__str__()
+    print "\t\v ", start_node, "AND", end_node
     result = nx.shortest_path(g, source=start_node, target=end_node)
+    # print "RESULT-1:", result
     results = []
 
     # FIND OTHER PATHS OF THE SAME SIZE
@@ -3639,11 +4094,17 @@ def shortest_paths_lite(link_network, start_node, end_node, strengths=None):
             # for each pair in the path, remove the link and check the shortest path and add it again
             for i in range(len(result)-1):
                 # print "removing ", result[i], ', ', result[i+1]
+                # print "GRAPH-2:", g.__str__()
+                # print start_node, "AND" , end_node
                 g.remove_edge(result[i], result[i+1])
+                # print "REMOVED:", result[i], result[i+1]
                 try:
                     partial = nx.shortest_path(g, source=start_node, target=end_node)
 
                 except IOError:
+                    partial = []
+
+                except nx.NetworkXNoPath:
                     partial = []
 
                 # if there is a path of same size, keep it in a set (there can be repetition)
@@ -3666,7 +4127,8 @@ def shortest_paths_lite(link_network, start_node, end_node, strengths=None):
         for i in range(0, diameter):
             link = (path[i], path[i + 1]) if path[i] < path[i + 1] else (path[i + 1], path[i])
             key = "key_{}".format(str(hash(link)).replace("-", "N"))
-            weight += max(strengths[key])
+            # print "strengths:", strengths[key]
+            weight += max(map(float, strengths[key]))
         weighted_paths += [weight]
 
     weighted_diameter = max(weighted_paths) if len(weighted_paths) > 0 else 0
@@ -3870,452 +4332,11 @@ def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentag
 
 def reconciliation_strength(sim, ev_diameter, ev_w_diameter, c_penalty=10):
 
-    strength = min(sim, (100 - c_penalty * (2 * ev_diameter - ev_w_diameter - 1)) / float(100))
+    print "SIM DATA:", sim, ev_diameter, ev_w_diameter, c_penalty
+    validation_strength = (100 - c_penalty * (2 * ev_diameter - ev_w_diameter - 1)) / float(100)
+    strength = min(sim, validation_strength) if sim > 0 else validation_strength
+    print "\t>>> RECONCILED:", 0 if strength < 0 else strength
     return 0 if strength < 0 else strength
-
-
-def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
-
-    print ">>> RUNNING THE FUNCTION [list_extended_clusters]"
-    # 1. DOCUMENTING START AND END OF PATHS IN A CYCLE
-    # 2. AND CALCULATING THE WEIGHT OF THE LINKS IN THE PATH
-
-    def cycle_helper(src_node, trg_node, source_cluster, target_cluster):
-
-        # print '\n Starting helper for'
-        # print '\t Source:', source_cluster, src_node
-        # print '\t Target:', target_cluster, trg_node
-
-        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-        for related_nodes in dict_clusters_pairs[(source_cluster, target_cluster)]:
-
-            # 1.1 COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
-            sub_link_network = clusters[source_cluster]['links']
-            sub_strengths = clusters[source_cluster]['strengths']
-
-            # 1.2 COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
-            obj_link_network = clusters[target_cluster]['links']
-            obj_strengths = clusters[target_cluster]['strengths']
-
-            # 2.1 GET THE DIAMETER AND WEIGHTED DIAMETER OF THE SUBJECT
-            sub_diameter_weighted_diameter = shortest_paths_lite(
-                sub_link_network, start_node=related_nodes[0], end_node=src_node, strengths=sub_strengths)
-
-            # 2.2 ET THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT
-            obj_diameter_weighted_diameter = shortest_paths_lite(
-                obj_link_network, start_node=related_nodes[1], end_node=trg_node, strengths=obj_strengths)
-
-            # 3.1 [SOURCE] FETCH THE STRENGTH OF THE RECONCILED NODES IF THE LINK EXISTS
-            link = (related_nodes[0], src_node) if related_nodes[0] < src_node else (src_node, related_nodes[0])
-            key_1 = "key_{}".format(str(hash(link)).replace("-", "N"))
-            if key_1 in sub_strengths:
-                sub_strength = max(sub_strengths[key_1])
-            else:
-                sub_strength = 0
-
-            # 3.2 [TARGET] FETCH THE STRENGTH OF THE RECONCILED NODES IF THE LINK EXISTS
-            link = (related_nodes[1], trg_node) if related_nodes[1] < trg_node else (trg_node, related_nodes[1])
-            key_2 = "key_{}".format(str(hash(link)).replace("-", "N"))
-            if key_2 in obj_strengths:
-                obj_strength = max(obj_strengths[key_2])
-            else:
-                obj_strength = 0
-
-            # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
-            subj_strength = reconciliation_strength(sub_strength, ev_diameter=obj_diameter_weighted_diameter[0],
-                                                    ev_w_diameter=obj_diameter_weighted_diameter[1], c_penalty=10)
-
-            # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
-            obj_strength = reconciliation_strength(obj_strength, ev_diameter=sub_diameter_weighted_diameter[0],
-                                                   ev_w_diameter=sub_diameter_weighted_diameter[1], c_penalty=10)
-
-            # ****************************************************************************************************
-
-            old = False
-            if old:
-                sub_diameter = shortest_paths_lite_size(
-                    sub_link_network, start_node=related_nodes[0], end_node=src_node)
-
-                obj_diameter = shortest_paths_lite_size(
-                    obj_link_network, start_node=related_nodes[1], end_node=trg_node)
-
-                # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
-                subj_strength = evidence_penalty(
-                    investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
-
-                # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
-                obj_strength = evidence_penalty(
-                    investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
-
-            # print '\n\t Computed strengths:'
-            # print '\t\t Source start_node={}, end_node={}, strength={}'.format(
-            #   related_nodes[0], src_node, subj_strength)
-            # print '\t\t Target start_node={}, end_node={}, strength={}'.format(
-            #   related_nodes[1], trg_node, obj_strength)
-
-            # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
-            if source_cluster not in cycle_paths or len(cycle_paths[source_cluster]) == 0:
-                cycle_paths[source_cluster] = [(related_nodes[0], src_node, subj_strength)]
-                # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(
-                #     source_cluster, related_nodes[0], src_node, subj_strength)
-
-            else:
-                # print '\t\tThe was some path-strengths there, ',
-                add = True
-                for start_n, end_n, strength in cycle_paths[source_cluster]:
-
-                    # UPDATING AN EXISTING PATH-STRENGTH
-                    if (start_n, end_n) == (related_nodes[0], src_node):
-
-                        # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
-                        if strength < subj_strength:
-                            list(cycle_paths[source_cluster]).remove((start_n, end_n, strength))
-                            # print 'and there was this particular one with smaller strength, removing... '
-
-                        # THE DISCOVERED PATH IS NOT UPDATED FOR ITS STRENGTH IS BIGGER OR EQUAL
-                        else:
-                            add = False
-                            # print 'and there was this particular one with bigger or equal strength, let it there... '
-
-                # WE REACH THIS POINT IF THE PATH WAS NOT THERE OR IF THE STRENGTH IS SMALLER AND NEEDS UPDATE
-                if add is True:
-                    # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(
-                    #   source_cluster, related_nodes[0], src_node, subj_strength)
-                    cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
-
-            if target_cluster not in cycle_paths or len(cycle_paths[target_cluster]) == 0:
-                # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(
-                #   target_cluster, related_nodes[1], trg_node, obj_strength)
-                cycle_paths[target_cluster] = [(related_nodes[1], trg_node, obj_strength)]
-
-            else:
-                # print '\t\tThe was some path-strengths there, ',
-                add = True
-                for start_n, end_n, strength in cycle_paths[target_cluster]:
-
-                    # UPDATING AN EXISTING PATH-STRENGTH
-                    if (start_n, end_n) == (related_nodes[1], trg_node):
-
-                        # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
-                        if strength < obj_strength:
-                            list(cycle_paths[target_cluster]).remove((start_n, end_n, strength))
-                            # print 'and there was this particular one with smaller strength, removing... '
-
-                        # THE DISCOVERED PATH IS NOT UPDATED FOR ITS STRENGTH IS BIGGER OR EQUAL
-                        else:
-                            add = False
-                            # print 'and there was this particular one with bigger or equal strength, let it there... '
-
-                # WE REACH THIS POINT IF THE PATH WAS NOT THERE OR IF THE STRENGTH IS SMALLER AND NEEDS UPDATE
-                if add is True:
-                    cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
-                    # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(
-                    # target_cluster, related_nodes[1], trg_node, obj_strength)
-
-    # **************************************************************************************************
-    # **************************************************************************************************
-    clusters = clusters_dictionary['clusters']
-    node2cluster = clusters_dictionary['node2cluster_id']
-
-    print "\nCOMPUTING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
-
-    # 1. FETCH THE PAIRED NODES
-    # size = Qry.get_namedgraph_size(graph)
-    extended_clusters = set()
-    list_extended_clusters_cycle = set()
-    dict_clusters_pairs = {}
-    start = time.time()
-    data = {'extended_clusters': None, 'list_extended_clusters_cycle': None}
-
-    if reset is True:
-        print "DELETING THE SERIALISED DATA FROM: {}".format(graph)
-        delete_serialised_extended_clusters(graph)
-
-    # **************************************************************************************************
-    # 1. CHECK IF THE ALIGNMENT HAS ALREADY BEEN EXTENDED
-    # **************************************************************************************************
-    ask = "ASK {{ <{}>  <{}extendedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
-
-    if Qry.boolean_endpoint_response(ask) == "true":
-
-        print ">>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
-
-        # QUERY FOR THE SERIALISATION
-        s_query = """SELECT *
-        {{
-            <{0}>   <{1}extendedClusters>   ?serialised .
-        }}""".format(graph, Ns.alivocab)
-        start = time.time()
-
-        # FETCH THE SERIALISATION
-        s_query_result = Qry.sparql_xml_to_matrix(s_query)[St.result]
-
-        # Qry.display_result(s_query, is_activated=True)
-        diff = datetime.timedelta(seconds=time.time() - start)
-        print "\tLOADED in {}".format(diff)
-
-        # GET THE SERIALISED CLUSTERS
-        # serialised = ""
-        if s_query_result is not None:
-
-            # EXTRACTING THE NUMBER OF CLUSTERS ABD THE SERIALISED FILE NAME
-            serialised_hash = s_query_result[1][0]
-            print "\tEXTENDED CLUSTERS FOUND AND DATA SAVED IN THE FILE [{}.txt]".format(serialised_hash)
-
-            # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
-            start = time.time()
-
-            # DE-SERIALISE THE SERIALISED
-            try:
-                de_serialised = {'cycle_paths': {}}
-                s_file = os.path.join(serialisation_dir, "{}".format(serialised_hash)) + "-{}.txt"
-
-                with open(s_file.format(1), 'rb') as writer:
-                    start_de = time.time()
-                    de_serialised['extended_clusters'] = ast.literal_eval(writer.read())
-                    print "DONE DE-SERIALISING ['extended_clusters'] in {}".format(
-                        datetime.timedelta(seconds=time.time() - start_de))
-
-                with open(s_file.format(2), 'rb') as writer:
-                    start_de = time.time()
-                    de_serialised['list_extended_clusters_cycle'] = ast.literal_eval(writer.read())
-                    print "DONE DE-SERIALISING ['list_extended_clusters_cycle'] in {}".format(
-                        datetime.timedelta(seconds=time.time() - start_de))
-
-                with open(s_file.format(3), 'rb') as reader:
-                    start_de = time.time()
-                    count_line = 0
-                    for line in reader:
-                        count_line += 1
-                        start_de_2 = time.time()
-                        de_serialised['cycle_paths'].update(ast.literal_eval(line))
-                        print "LINE {} DE-SERIALISED IN {}".format(
-                            count_line, datetime.timedelta(seconds=time.time() - start_de_2))
-                    print "DONE DE-SERIALISING ['cycle_paths'] in {}".format(
-                        datetime.timedelta(seconds=time.time() - start_de))
-
-                diff = datetime.timedelta(seconds=time.time() - start)
-
-                print "\tDe-serialised in {}".format(diff)
-                print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
-                return de_serialised
-
-            except (IOError, ValueError):
-                print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
-                    serialised_hash)
-                # traceback.print_exc()
-                print "DELETING THE EXTENDED SERIALISED SERIALISED DATA FROM: {}".format(graph)
-                delete_serialised_extended_clusters(graph)
-
-    # **************************************************************************************************
-    # 2. ALIGNMENT HAS NOT YET BEEN EXTENDED AND SERIALISED
-    # **************************************************************************************************
-
-    cycle_paths = {}
-    print "\tFETCHING THE RELATED ALIGNMENT TRIPLES"
-    fetch_q = """
-    select distinct ?sub ?obj
-    {{
-         GRAPH <{}>
-        {{
-           {{ ?sub ?pred ?obj . }}
-            union
-           {{ ?obj ?pred ?sub . }}
-           filter (str(?sub) < str(?obj))
-        }}
-    }}""".format(related_linkset)
-    fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
-    related = fetched_res[St.result]
-    size = len(related)
-    print "\t\tRELATED LINKSET SIZE: {}\n\tCOMPUTING THE EXTENSIONS".format(size - 1)
-
-    # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
-
-    # ITERATING THROUGH THE RELATED LIST OF NODES
-    for i in range(1, size):
-
-        print '\r', "{} / {}".format(i, size),
-
-        # RELATED NODES
-        sub = "<{}>".format(related[i][0])
-        obj = "<{}>".format(related[i][1])
-
-        # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
-        if sub in node2cluster and obj in node2cluster:
-
-            src_cluster = node2cluster[sub]
-            trg_cluster = node2cluster[obj]
-
-            # ****************************************************************
-            # TO SAVE TIME, WE DO NOT EVALUATE CLUSTERS OF SIZE BIGGER THAN 30
-            # ****************************************************************
-            condition = len(clusters[src_cluster]['nodes']) <= 30 and len(clusters[trg_cluster]['nodes']) <= 30
-            if condition is False:
-                continue
-
-            # condition = src_cluster == 'N6849355419779822524' or trg_cluster == 'N6849355419779822524'
-            # if condition is False:
-            #     continue
-
-            # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
-            # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
-            if src_cluster != trg_cluster:
-
-                # **********************************************************************************
-                # 1. CHECKING FOR EXTENSION
-                # IF THE CLUSTER TO WHICH THE NODES BELONG ARE NOT THE SAME THEN THE CLUSTERS EXTEND
-                # **********************************************************************************
-                extended_clusters.add(src_cluster)
-                extended_clusters.add(trg_cluster)
-
-                # **********************************************************************************
-                # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
-                # **********************************************************************************
-                print '\r', i,
-                if src_cluster < trg_cluster:
-
-                    if (src_cluster, trg_cluster) in dict_clusters_pairs.keys():
-
-                        # IT HAS A CYCLE
-                        list_extended_clusters_cycle.add(src_cluster)
-                        list_extended_clusters_cycle.add(trg_cluster)
-
-                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-                        cycle_helper(src_node=sub, trg_node=obj, source_cluster=src_cluster, target_cluster=trg_cluster)
-
-                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(src_cluster, trg_cluster)] += [(sub, obj)]
-
-                        # for related_nodes in dict_clusters_pairs[(src_cluster, trg_cluster)]:
-                        #
-                        #     # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
-                        #     sub_link_network = clusters[src_cluster]['links']
-                        #     sub_diameter = shortest_paths_lite(
-                        #         sub_link_network, start_node=related_nodes[0], end_node=sub)
-                        #
-                        #     # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
-                        #     obj_link_network = clusters[trg_cluster]['links']
-                        #     obj_diameter = shortest_paths_lite(
-                        #         obj_link_network, start_node=related_nodes[1], end_node=obj)
-                        #
-                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
-                        #     subj_strength = evidence_penalty(
-                        #         investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
-                        #
-                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
-                        #     obj_strength = evidence_penalty(
-                        #         investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
-                        #
-                        #     # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
-                        #     if len(cycle_paths[src_cluster]) == 0:
-                        #         cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
-                        #
-                        #     else:
-                        #         for start_n, end_n, strength in cycle_paths[src_cluster]:
-                        #             if (start_n, end_n) == (related_nodes[0], sub) and strength < subj_strength:
-                        #                 list(cycle_paths[src_cluster]).remove((start_n, end_n, strength))
-                        #                 cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
-                        #
-                        #
-                        #     if len(cycle_paths[trg_cluster]) == 0:
-                        #         cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
-                        #
-                        #     else:
-                        #         for start_n, end_n, strength in cycle_paths[trg_cluster]:
-                        #             if (start_n, end_n) == (related_nodes[1], obj) and strength < obj_strength:
-                        #                 list(cycle_paths[trg_cluster]).remove((start_n, end_n, strength))
-                        #                 cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
-
-                        #     cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
-                        #     cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
-
-                    else:
-                        # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
-                        # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(src_cluster, trg_cluster)] = [(sub, obj)]
-
-                else:
-
-                    if (trg_cluster, src_cluster) in dict_clusters_pairs.keys():
-
-                        # IT HAS A CYCLE
-                        list_extended_clusters_cycle.add(src_cluster)
-                        list_extended_clusters_cycle.add(trg_cluster)
-
-                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-                        cycle_helper(src_node=obj, trg_node=sub, source_cluster=trg_cluster, target_cluster=src_cluster)
-                        # for related_nodes in dict_clusters_pairs[(trg_cluster, src_cluster)]:
-                        #     cycle_paths[src_cluster] += [(related_nodes[1], sub)]
-                        #     cycle_paths[trg_cluster] += [(related_nodes[0], obj)]
-
-                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(trg_cluster, src_cluster)] += [(obj, sub)]
-
-                    else:
-                        # WE DO NOT USE THE VALUE OF GTHE DICTIONARY SO ITS EMPTY
-                        # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(trg_cluster, src_cluster)] = [(obj, sub)]
-
-    diff = datetime.timedelta(seconds=time.time() - start)
-    print "\t\tFOUND: {} IN {}".format(len(extended_clusters), diff)
-    print "\t\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
-
-    if len(extended_clusters) != 0 and len(list_extended_clusters_cycle) != 0:
-
-        # SERIALISATION
-        data = {'extended_clusters': list(extended_clusters),
-                'list_extended_clusters_cycle': list(list_extended_clusters_cycle),
-                'cycle_paths': cycle_paths}
-        file_name = "ExtendedBy_{}".format(Ut.get_uri_local_name_plus(related_linkset))
-        # file_name = file_name.replace("-", "Cluster_N") \
-        #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
-
-        # ***************************************************************************************************
-        print "\n5. SERIALISING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
-        # ***************************************************************************************************
-        s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(file_name))
-        s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(file_name))
-        s_file_3 = os.path.join(serialisation_dir, "{}-3.txt".format(file_name))
-
-        with open(s_file_1, 'wb') as writer:
-            writer.write(data['extended_clusters'].__str__())
-
-        with open(s_file_2, 'wb') as writer:
-            writer.write(data['list_extended_clusters_cycle'].__str__())
-
-        with open(s_file_3, 'wb') as writer:
-
-            cluster_limit = 1000
-            counting = 0
-            sub_cluster = {}
-
-            for key, value in cycle_paths.items():
-                counting += 1
-                sub_cluster[key] = value
-
-                if counting == cluster_limit:
-                    writer.write(sub_cluster.__str__() + "\n")
-                    sub_cluster = {}
-                    counting = 0
-
-            if counting != 0:
-                writer.write(sub_cluster.__str__() + "\n")
-
-        print "\n6. SAVING THE HASH OF EXTENDED CLUSTERS TO THE TRIPLE STORE AS: {}".format(file_name)
-        Qry.endpoint("""INSERT DATA {{
-        <{0}> <{1}extendedClusters> '''{2}''' .
-        }}""".format(graph, Ns.alivocab, file_name))
-
-        print "\n7. SERIALISATION IS COMPLETED..."
-        diff = datetime.timedelta(seconds=time.time() - start)
-        print "\t{} triples serialised in {}".format(size, diff)
-
-        print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
-
-    else:
-        print "\tTHE RETURNED DICTIONARY IS EMPTY."
-
-    return data
 
 
 def list_extended_clusters_short_problem(node2cluster, related_linkset):
