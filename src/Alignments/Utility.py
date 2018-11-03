@@ -1821,6 +1821,10 @@ def print_list(data_list, comment="", return_print=False):
 # PRINT/RETURN  A LIST AS A STRING WHERE EACH LINE PRINTS THE DICTIONARY'S KEY ITEM-SIZE AND ITEM
 def print_dict(data_dict, comment="", return_print=False):
 
+    if type(data_dict) is not dict:
+        print "THIS IS NOT A DICTIONARY"
+        return ""
+
     keys = dict(data_dict).keys()
     data = []
     for x in keys:
@@ -1855,8 +1859,7 @@ def print_dict(data_dict, comment="", return_print=False):
 
 def combinations(paths):
 
-    # RETURN ALL POSSIBLE COMBINATIONS
-    # OF TWO ITEM REGARDLESS OF THE DIRECTION
+    # RETURN ALL POSSIBLE COMBINATIONS OF TWO ITEM REGARDLESS OF THE DIRECTION
     combined = []
     size = len(paths)
     for i in range(0, size):
@@ -1869,12 +1872,37 @@ def combinations(paths):
     return combined
 
 
+def ordered_combinations(paths):
+
+    # RETURN ALL POSSIBLE COMBINATIONS OF TWO ITEM REGARDLESS OF THE DIRECTION
+    combined = []
+    size = len(paths)
+    for i in range(0, size):
+        for j in range(i+1, size):
+            combined += [(paths[i], paths[j])] if paths[i] < paths[j] else [(paths[j], paths[i])]
+    return combined
+
+
+def full_combinations(paths):
+
+    # RETURN ALL POSSIBLE COMBINATIONS OF TWO ITEM REGARDLESS OF THE DIRECTION
+    combined = []
+    size = len(paths)
+    for i in range(0, size):
+        for j in range(i+1, size):
+            combined += [(paths[i], paths[j])]
+            combined += [(paths[j], paths[i])]
+    return combined
+
+
 def sample_size(population_size, confidence_level=0.05, degree_freedom=1):
 
     # CHI SQUARE WITH 1 DEGREE OF FREEDOM (0.10) = 2.71
     # CHI SQUARE WITH 1 DEGREE OF FREEDOM ( (0.05) = 3.84
     # CHI SQUARE WITH 1 DEGREE OF FREEDOM ( (0.01) = 6.64
     # CHI SQUARE WITH 1 DEGREE OF FREEDOM ( (0.001) = 10.83
+    # https: // www.surveysystem.com / sscalc.htm
+    # https://www.surveymonkey.com/mp/sample-size-calculator/
     from math import pow
     from scipy.stats import chi2
     chi = chi2.isf(q=confidence_level, df=degree_freedom)
@@ -1887,3 +1915,12 @@ def sample_size(population_size, confidence_level=0.05, degree_freedom=1):
     p = 0.50                # POPULATION PROPORTION
     d = confidence_level    # DEGREE OF ACCURACY
     return round((chi * n * p * (1 - p)) / (pow(d, 2) * (n - 1) + chi * p * (1 - p)), 0)
+
+
+def get_key(node_1, node_2):
+    strength_key = "key_{}".format(str(hash((node_1, node_2))).replace("-", "N")) if node_1 < node_2 \
+        else "key_{}".format(str(hash((node_2, node_1))).replace("-", "N"))
+    return strength_key
+
+
+# print sample_size(350000000)
