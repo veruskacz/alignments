@@ -11,9 +11,11 @@ import Alignments.UserActivities.ExportAlignment as Exp
 from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
+# from Alignments.UserActivities.Plots import metric
 # import cStringIO as buffer
-# import Alignments.UserActivities.Plots as Plt
+import Alignments.UserActivities.Plots as Plt
 # _format = "%a %b %d %H:%M:%S:%f %Y"
+from Alignments.UserActivities.Plots import metric
 
 _format = "It is %a %b %d %Y %H:%M:%S"
 date = datetime.datetime.today()
@@ -2744,6 +2746,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
 
             # *************************************************
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
+            # reconciled-
             # *************************************************
             try:
                 print "\tREADING FROM SERIALISED FILE..."
@@ -2783,7 +2786,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
 
             # CALCULATE THE CLUSTERS THAT EXTEND GIVEN A RELATED LINKSET
             if cluster2extend_id is None and related_linkset is not None:
-                return clusters, list_extended_clusters(graph, de_serialised, related_linkset, serialisation_dir)
+                return clusters, list_extended_clusters(
+                    graph, reconciled_name=serialised_hash, clusters_dictionary=de_serialised,
+                    related_linkset=related_linkset, serialisation_dir=serialisation_dir)
 
             # EXTEND THE GIVEN CLUSTER
             elif cluster2extend_id is not None and related_linkset is not None:
@@ -3569,22 +3574,23 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             print err.message
             return clusters
 
-
 # ****************************************************
 # BASED ON ASSOCIATION RELATIONSHIPS [related_linkset]
 # THIS FUNCTION EXTENDS A GRAPH
 # ****************************************************
-def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
+def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
 
     print "\n>>> RUNNING THE FUNCTION [list_extended_clusters]"
     # 1. DOCUMENTING START AND END OF PATHS IN A CYCLE
     # 2. AND CALCULATING THE WEIGHT OF THE LINKS IN THE PATH
 
-    def cycle_helper(src_node, trg_node, source_cluster, target_cluster):
+    def cycle_helper(src_node, trg_node, source_cluster, target_cluster, detail=False):
 
         # print '\n Starting helper for'
         # print '\t Source:', source_cluster, src_node
         # print '\t Target:', target_cluster, trg_node
+
+        old = False
 
         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
         for related_nodes in dict_clusters_pairs[(source_cluster, target_cluster)]:
@@ -3598,10 +3604,14 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
             obj_strengths = clusters[target_cluster]['strengths']
 
             # 2.1 GET THE DIAMETER AND WEIGHTED DIAMETER OF THE SUBJECT
+            # print "\n\tGETTING THE DIAMETER AND WEIGHTED DIAMETER OF THE SUBJECT CLUSTER FOR START AND END NODES:"
+            # print "\t\t\v ", related_nodes[0], "AND", src_node
             sub_diameter_weighted_diameter = shortest_paths_lite(
                 sub_link_network, start_node=related_nodes[0], end_node=src_node, strengths=sub_strengths)
 
             # 2.2 ET THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT
+            # print "\tGETTING THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT CLUSTER FOR START AND END NODES:"
+            # print "\t\t\v ", related_nodes[1], "AND", trg_node
             obj_diameter_weighted_diameter = shortest_paths_lite(
                 obj_link_network, start_node=related_nodes[1], end_node=trg_node, strengths=obj_strengths)
 
@@ -3611,7 +3621,7 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
             if key_1 in sub_strengths:
                 sub_strength = max(sub_strengths[key_1])
             else:
-                print "NO KEY FOR: {}\n\t{}".format(key_1, link)
+                # print "\nNO KEY FOR: {}\n\t{}".format(key_1, link)
                 sub_strength = 0
 
             # 3.2 [TARGET] FETCH THE STRENGTH OF THE RECONCILED NODES IF THE LINK EXISTS
@@ -3620,22 +3630,81 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
             if key_2 in obj_strengths:
                 obj_strength = max(obj_strengths[key_2])
             else:
-                print "NO KEY FOR: {}\n\t{}".format(key_2, link)
+                # print "\nNO KEY FOR: {}\n\t{}".format(key_2, link)
                 obj_strength = 0
 
-            print sub_strength, obj_strength
-
             # 4.1 COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
-            subj_strength = reconciliation_strength(sub_strength, ev_diameter=obj_diameter_weighted_diameter[0],
-                                                    ev_w_diameter=obj_diameter_weighted_diameter[1], c_penalty=10)
+            # print "\t", "COMPUTING THE EVIDENCE'S STRENGTH OF THE SUBJECT CLUSTER FOR START AND END NODES:"
+            # print "\t\t>>> SIM DATA:", "sim = ", "ev_diameter = ", obj_diameter_weighted_diameter, \
+            #     "ev_W_diameter = ", obj_diameter_weighted_diameter
+            subj_r_strength = reconciliation_strength(
+                sub_strength, ev_diameter=obj_diameter_weighted_diameter[0],
+                ev_w_diameter=obj_diameter_weighted_diameter[1], c_penalty=10)
+            # print "\t\t>>> RECONCILED:", 0 if strength < 0 else strength
 
             # 4.2 COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
-            obj_strength = reconciliation_strength(obj_strength, ev_diameter=sub_diameter_weighted_diameter[0],
-                                                   ev_w_diameter=sub_diameter_weighted_diameter[1], c_penalty=10)
+            # print "\t", "COMPUTING THE EVIDENCE'S STRENGTH OF THE OBJECT CLUSTER FOR START AND END NODES:"
+            # print "\t\t>>> SIM DATA:", "sim = ", "ev_diameter = ", sub_diameter_weighted_diameter, \
+            #     "ev_W_diameter = ", sub_diameter_weighted_diameter
+            obj_r_strength = reconciliation_strength(
+                obj_strength, ev_diameter=sub_diameter_weighted_diameter[0],
+                ev_w_diameter=sub_diameter_weighted_diameter[1], c_penalty=10)
+            # print "\t\t>>> RECONCILED:", 0 if strength < 0 else strength
 
-            # ****************************************************************************************************
+            # BUILDING THE  NETWORKS FOR RECONCILED NODES
+            key_1 = Ut.get_key(related_nodes[0], src_node)
+            key_2 = Ut.get_key(related_nodes[1], trg_node)
+            if source_cluster not in reconciled_nodes:
+                reconciled_nodes[source_cluster] = {"links": [(related_nodes[0], src_node, "R")],
+                                                    "strengths": {key_1: [subj_r_strength]}}
+            else:
+                if "links" not in reconciled_nodes[source_cluster]:
+                    reconciled_nodes[source_cluster]["links"] = [(related_nodes[0], src_node, "R")]
+                    reconciled_nodes[source_cluster]["strengths"] = {key_1: [subj_r_strength]}
+                else:
+                    reconciled_nodes[source_cluster]["links"] += [(related_nodes[0], src_node, "R")]
 
-            old = False
+                    if key_1 in reconciled_nodes[source_cluster]["strengths"]:
+                        reconciled_nodes[source_cluster]["strengths"][key_1] += [subj_r_strength]
+                    else:
+                        reconciled_nodes[source_cluster]["strengths"][key_1] = [subj_r_strength]
+
+            # BUILDING THE  NETWORKS
+            if target_cluster not in reconciled_nodes:
+                reconciled_nodes[target_cluster] = {"links": [(related_nodes[1], trg_node, "R")],
+                                                    "strengths": {key_2: [obj_r_strength]}}
+            else:
+                if "links" not in reconciled_nodes[target_cluster]:
+                    reconciled_nodes[target_cluster]["links"] = [(related_nodes[1], trg_node, "R")]
+                    reconciled_nodes[target_cluster]["strengths"] = {key_2: [obj_r_strength]}
+                else:
+                    reconciled_nodes[target_cluster]["links"] += [(related_nodes[1], trg_node, "R")]
+
+                    if key_2 in reconciled_nodes[target_cluster]["strengths"]:
+                        reconciled_nodes[target_cluster]["strengths"][key_2] += [obj_r_strength]
+                    else:
+                        reconciled_nodes[target_cluster]["strengths"][key_2] = [obj_r_strength]
+
+            if detail:
+
+                # ****************************************************************************************************
+                # PROCESS COMMENT FOR SUBJECT CLUSTER
+                # ****************************************************************************************************
+                print "\n\tGETTING THE DIAMETER AND WEIGHTED DIAMETER OF THE SUBJECT CLUSTER FOR START AND END NODES:"
+                print "\t\t\v {} AND {}".format(related_nodes[0], src_node)
+                print "\t", "COMPUTING THE EVIDENCE'S STRENGTH OF THE SUBJECT CLUSTER FOR START AND END NODES:"
+                print "\t\t>>> SIM DATA: sim={} ev_diameter={} ev_W_diameter={}\n\t\t>>> RECONCILED: {}".format(
+                    sub_strength, sub_diameter_weighted_diameter[0], sub_diameter_weighted_diameter[1], subj_r_strength)
+
+                # ****************************************************************************************************
+                # PROCESS COMMENT FOR OBJECT CLUSTER
+                # ****************************************************************************************************
+                print "\n\tGETTING THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT CLUSTER FOR START AND END NODES:"
+                print "\t\t\v {} AND {}".format(related_nodes[1], trg_node)
+                print "\t", "COMPUTING THE EVIDENCE'S STRENGTH OF THE OBJECT CLUSTER FOR START AND END NODES:"
+                print "\t\t>>> SIM DATA: sim={} ev_diameter={} ev_W_diameter={}\n\t\t>>> RECONCILED: {}".format(
+                    obj_strength, sub_diameter_weighted_diameter[0], sub_diameter_weighted_diameter[1], obj_r_strength)
+
             if old:
                 sub_diameter = shortest_paths_lite_size(
                     sub_link_network, start_node=related_nodes[0], end_node=src_node)
@@ -3644,11 +3713,11 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                     obj_link_network, start_node=related_nodes[1], end_node=trg_node)
 
                 # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
-                subj_strength = evidence_penalty(
+                subj_r_strength = evidence_penalty(
                     investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
 
                 # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
-                obj_strength = evidence_penalty(
+                obj_r_strength = evidence_penalty(
                     investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
 
             # print '\n\t Computed strengths:'
@@ -3659,7 +3728,7 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
 
             # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
             if source_cluster not in cycle_paths or len(cycle_paths[source_cluster]) == 0:
-                cycle_paths[source_cluster] = [(related_nodes[0], src_node, subj_strength)]
+                cycle_paths[source_cluster] = [(related_nodes[0], src_node, subj_r_strength)]
                 # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(
                 #     source_cluster, related_nodes[0], src_node, subj_strength)
 
@@ -3672,7 +3741,7 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                     if (start_n, end_n) == (related_nodes[0], src_node):
 
                         # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
-                        if strength < subj_strength:
+                        if strength < subj_r_strength:
                             list(cycle_paths[source_cluster]).remove((start_n, end_n, strength))
                             # print 'and there was this particular one with smaller strength, removing... '
 
@@ -3685,12 +3754,12 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                 if add is True:
                     # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(
                     #   source_cluster, related_nodes[0], src_node, subj_strength)
-                    cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_strength)]
+                    cycle_paths[source_cluster] += [(related_nodes[0], src_node, subj_r_strength)]
 
             if target_cluster not in cycle_paths or len(cycle_paths[target_cluster]) == 0:
                 # print '\n\t\tThe was no path-strength at all for {}, adding ({}, {}, {})'.format(
                 #   target_cluster, related_nodes[1], trg_node, obj_strength)
-                cycle_paths[target_cluster] = [(related_nodes[1], trg_node, obj_strength)]
+                cycle_paths[target_cluster] = [(related_nodes[1], trg_node, obj_r_strength)]
 
             else:
                 # print '\t\tThe was some path-strengths there, ',
@@ -3701,7 +3770,7 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                     if (start_n, end_n) == (related_nodes[1], trg_node):
 
                         # THE DISCOVERED PATH IS UPDATED FOR ITS STRENGTH IS SMALLER
-                        if strength < obj_strength:
+                        if strength < obj_r_strength:
                             list(cycle_paths[target_cluster]).remove((start_n, end_n, strength))
                             # print 'and there was this particular one with smaller strength, removing... '
 
@@ -3712,14 +3781,93 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
 
                 # WE REACH THIS POINT IF THE PATH WAS NOT THERE OR IF THE STRENGTH IS SMALLER AND NEEDS UPDATE
                 if add is True:
-                    cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_strength)]
+                    cycle_paths[target_cluster] += [(related_nodes[1], trg_node, obj_r_strength)]
                     # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(
                     # target_cluster, related_nodes[1], trg_node, obj_strength)
 
-    # **************************************************************************************************
-    # **************************************************************************************************
+        # **************************************************************************************************
+        # END OF HELPER CODE
+        # **************************************************************************************************
+
+    def derive_reconciliation(cluster_id, detail=False):
+
+        print "CLUSTER: {}".format(cluster_id)
+        temp = []
+        investigated = reconciled_nodes[cluster_id]
+        # POSSIBLE CONNECTIONS IN A DIRECTED GRAPH
+        combinations = Ut.ordered_combinations(list(investigated["nodes"]))
+        # NETWORK OF ALL POSSIBLE LINKS BASED ON ALL NODE RECONCILED
+        network = nx.DiGraph(Ut.full_combinations(list(investigated["nodes"])))
+        # print Ut.print_dict(dict_clusters_pairs)
+        # print Ut.print_dict(reconciled_nodes)
+
+        # test = nx.DiGraph(investigated["links"])
+        # nx.draw(test)
+        # plt.show()
+
+        while True:
+            remain = 0
+            for c1, c2 in combinations:
+
+                # THIS IS A RECONCILED LINK
+                if (c1, c2, "R") in investigated["links"] or (c1, c2, "D") in investigated["links"]:
+                    if detail:
+                        print "\tIN: ", (c1, c2, "R/D")
+
+                # THIS HAS NOT BEEN RECONCILED BUT CAN BE DERIVED
+                else:
+
+                    if detail:
+                        print "\tOUT:", (c1, c2, "R")
+
+                    # FIND ALL BASE CYCLE FROM THE FULLY CONNECTED GRAPH
+                    base_cycles = filter(lambda x: len(x) == 3, list(nx.all_simple_paths(network, c1, c2)))
+                    if len(base_cycles) > 0:
+                        remain += 1
+
+                    for base_cycles in base_cycles:
+                        key_1 = Ut.get_key(base_cycles[0], base_cycles[1])
+                        key_2 = Ut.get_key(base_cycles[1], base_cycles[2])
+                        if key_1 in investigated["strengths"]:
+                            if key_2 in investigated["strengths"]:
+                                strength = max(investigated["strengths"][key_2]) * max(
+                                    investigated["strengths"][key_1])
+                                if detail:
+                                    print "\t>> Keys {} * {} = {}".format(
+                                        investigated["strengths"][key_1], investigated["strengths"][key_2], strength)
+                                temp += [(c1, c2, Ut.get_key(c1, c2), strength)]
+            if detail:
+                print "\n\t******************************************************************************\n"
+
+            if remain == 0:
+                break
+
+            for node1, node2, key, strength in temp:
+
+                # NEW LINK
+                if (node1, node2, "D") not in investigated["links"]:
+                    investigated["links"] += [(node1, node2, "D")]
+
+                # NEW STRENGTH
+                if key in investigated["strengths"]:
+                    investigated["strengths"][key] += [strength]
+                else:
+                    investigated["strengths"][key] = [strength]
+            temp = []
+
+        for key, value in investigated["strengths"].items():
+            if len(value) > 1:
+                investigated["strengths"][key] = [max(value)]
+
+        # if detail:
+        #     Ut.print_list(investigated["links"], comment="LINKS")
+        #     Ut.print_dict(investigated["strengths"], comment="STRENGTHS")
+            # print metric(investigated["links"], investigated["strengths"])
+
     # 1. FETCH THE PAIRED NODES
     # size = Qry.get_namedgraph_size(graph)
+    reconciled_nodes = {}                   # ABOUT THE RECONCILED NODES
+                                            # ==> BUILDING A DICT WITH NODES - LINKS - STRENGTHS
     extended_clusters = set()               # LIST OF ALL CLUSTERS THAT EXTEND
     list_extended_clusters_cycle = set()    # LIST OF ALL CLUSTERS THAT EXTENDS AND CONTAIN A CYCLES
     dict_clusters_pairs = {}
@@ -3738,7 +3886,6 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
     # 1. CHECK IF THE ALIGNMENT HAS ALREADY BEEN EXTENDED
     # **************************************************************************************************
     ask = "ASK {{ <{}>  <{}extendedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
-
     if Qry.boolean_endpoint_response(ask) == "true":
 
         print "\n>>> THE CLUSTER EXTENSION HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
@@ -3770,7 +3917,7 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
 
             # DE-SERIALISE THE SERIALISED
             try:
-                de_serialised = {'cycle_paths': {}}
+                de_serialised = {'cycle_paths': {}, 'reconciled': {}}
                 s_file = os.path.join(serialisation_dir, "{}".format(serialised_hash)) + "-{}.txt"
 
                 with open(s_file.format(1), 'rb') as writer:
@@ -3792,9 +3939,21 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                         count_line += 1
                         start_de_2 = time.time()
                         de_serialised['cycle_paths'].update(ast.literal_eval(line))
-                        print "LINE {} DE-SERIALISED IN {}".format(
+                        print "> CYCLE PATHS LINE {} DE-SERIALISED IN {}".format(
                             count_line, datetime.timedelta(seconds=time.time() - start_de_2))
-                    print "DONE DE-SERIALISING ['cycle_paths'] in {}".format(
+                    print "\tDONE DE-SERIALISING ['cycle_paths'] in {}".format(
+                        datetime.timedelta(seconds=time.time() - start_de))
+
+                with open(s_file.format(4), 'rb') as reader:
+                    start_de = time.time()
+                    count_line = 0
+                    for line in reader:
+                        count_line += 1
+                        start_de_2 = time.time()
+                        de_serialised['reconciled'].update(ast.literal_eval(line))
+                        print "> LINE {} DE-SERIALISED IN {}".format(
+                            count_line, datetime.timedelta(seconds=time.time() - start_de_2))
+                    print "\tDONE DE-SERIALISING ['reconciled'] in {}".format(
                         datetime.timedelta(seconds=time.time() - start_de))
 
                 diff = datetime.timedelta(seconds=time.time() - start)
@@ -3803,7 +3962,8 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
                 print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
                 return de_serialised
 
-            except (IOError, ValueError):
+            except (IOError, ValueError) as err:
+                print err.message
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
                     serialised_hash)
                 # traceback.print_exc()
@@ -3814,208 +3974,283 @@ def list_extended_clusters(graph, clusters_dictionary, related_linkset, serialis
     # 2. ALIGNMENT HAS NOT YET BEEN EXTENDED AND SERIALISED
     # **************************************************************************************************
 
-    cycle_paths = {}
-    print "\tFETCHING THE RELATED ALIGNMENT TRIPLES"
-    fetch_q = """
-    select distinct ?sub ?obj
-    {{
-         GRAPH <{}>
+    if True:
+        cycle_paths = {}
+        print "\tFETCHING THE RELATED ALIGNMENT TRIPLES"
+        fetch_q = """
+        select distinct ?sub ?obj
         {{
-           {{ ?sub ?pred ?obj . }}
-            union
-           {{ ?obj ?pred ?sub . }}
-           filter (str(?sub) < str(?obj))
-        }}
-    }}""".format(related_linkset)
-    fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
-    related = fetched_res[St.result]
-    size = len(related)
-    print "\t\tRELATED LINKSET SIZE: {}\n\tCOMPUTING THE EXTENSIONS".format(size - 1)
+             GRAPH <{}>
+            {{
+               {{ ?sub ?pred ?obj . }}
+                union
+               {{ ?obj ?pred ?sub . }}
+               filter (str(?sub) < str(?obj))
+            }}
+        }}""".format(related_linkset)
+        fetched_res = Qry.sparql_xml_to_matrix(fetch_q)
+        related = fetched_res[St.result]
+        size = len(related)
+        print "\t\tRELATED LINKSET SIZE: {}\n\tCOMPUTING THE EXTENSIONS\n".format(size - 1)
 
-    # ITERATE THROUGH THE PAIRED FOR EXTENSIONS
+        # 2.1 ITERATE THROUGH THE PAIRED FOR EXTENSIONS
+        #     ITERATING THROUGH THE RELATED LIST OF NODES
+        # *******************************************
+        for i in range(1, size):
 
-    # ITERATING THROUGH THE RELATED LIST OF NODES
-    for i in range(1, size):
+            print '\r', "{} / {}".format(i, size),
 
-        print '\r', "{} / {}".format(i, size),
+            # RELATED NODES
+            sub = "<{}>".format(related[i][0])
+            obj = "<{}>".format(related[i][1])
 
-        # RELATED NODES
-        sub = "<{}>".format(related[i][0])
-        obj = "<{}>".format(related[i][1])
+            # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
+            if sub in node2cluster and obj in node2cluster:
 
-        # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
-        if sub in node2cluster and obj in node2cluster:
+                src_cluster_id = node2cluster[sub]
+                trg_cluster_id = node2cluster[obj]
 
-            src_cluster_id = node2cluster[sub]
-            trg_cluster_id = node2cluster[obj]
+                # ****************************************************************
+                # TO SAVE TIME, WE DO NOT EVALUATE CLUSTERS OF SIZE BIGGER THAN 30
+                # ****************************************************************
+                condition = len(clusters[src_cluster_id]['nodes']) <= 30 and len(clusters[trg_cluster_id]['nodes']) <= 30
+                if condition is False:
+                    continue
 
-            # ****************************************************************
-            # TO SAVE TIME, WE DO NOT EVALUATE CLUSTERS OF SIZE BIGGER THAN 30
-            # ****************************************************************
-            condition = len(clusters[src_cluster_id]['nodes']) <= 30 and len(clusters[trg_cluster_id]['nodes']) <= 30
-            if condition is False:
-                continue
+                # condition = src_cluster == 'N6849355419779822524' or trg_cluster == 'N6849355419779822524'
+                # if condition is False:
+                #     continue
 
-            # condition = src_cluster == 'N6849355419779822524' or trg_cluster == 'N6849355419779822524'
-            # if condition is False:
-            #     continue
+                # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
+                if src_cluster_id != trg_cluster_id:
 
-            # list_extended_clusters_cycle IS THE LIST OF ALL CLUSTERS THAT EXTEND AND HAVE A CYCLE
-            if src_cluster_id != trg_cluster_id:
+                    # **********************************************************************************
+                    # 1. CHECKING FOR EXTENSION
+                    # IF THE CLUSTER TO WHICH THE NODES BELONG ARE NOT THE SAME THEN THE CLUSTERS EXTEND
+                    # **********************************************************************************
+                    # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
+                    extended_clusters.add(src_cluster_id)
+                    extended_clusters.add(trg_cluster_id)
 
-                # **********************************************************************************
-                # 1. CHECKING FOR EXTENSION
-                # IF THE CLUSTER TO WHICH THE NODES BELONG ARE NOT THE SAME THEN THE CLUSTERS EXTEND
-                # **********************************************************************************
-                # extended_clusters IS THE LIST OF ALL CLUSTERS THAT EXTEND
-                extended_clusters.add(src_cluster_id)
-                extended_clusters.add(trg_cluster_id)
+                    # **********************************************************************************
+                    # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
+                    # **********************************************************************************
+                    # print '\r', "\tLINE: {}".format(i),
+                    if src_cluster_id < trg_cluster_id:
 
-                # **********************************************************************************
-                # CHECKING AND DOCUNENTING CYCLES IN A SPECIFIC ORDER TO MAKE SURE OF A UNIQUE LIST
-                # **********************************************************************************
-                # print '\r', "\tLINE: {}".format(i),
-                if src_cluster_id < trg_cluster_id:
+                        if (src_cluster_id, trg_cluster_id) in dict_clusters_pairs.keys():
 
-                    if (src_cluster_id, trg_cluster_id) in dict_clusters_pairs.keys():
+                            # IT HAS A CYCLE
+                            list_extended_clusters_cycle.add(src_cluster_id)
+                            list_extended_clusters_cycle.add(trg_cluster_id)
 
-                        # IT HAS A CYCLE
-                        list_extended_clusters_cycle.add(src_cluster_id)
-                        list_extended_clusters_cycle.add(trg_cluster_id)
+                            # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
+                            cycle_helper(
+                                src_node=sub, trg_node=obj, source_cluster=src_cluster_id, target_cluster=trg_cluster_id)
 
-                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-                        cycle_helper(
-                            src_node=sub, trg_node=obj, source_cluster=src_cluster_id, target_cluster=trg_cluster_id)
+                            # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                            dict_clusters_pairs[(src_cluster_id, trg_cluster_id)] += [(sub, obj)]
 
-                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(src_cluster_id, trg_cluster_id)] += [(sub, obj)]
+                            # for related_nodes in dict_clusters_pairs[(src_cluster, trg_cluster)]:
+                            #
+                            #     # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
+                            #     sub_link_network = clusters[src_cluster]['links']
+                            #     sub_diameter = shortest_paths_lite(
+                            #         sub_link_network, start_node=related_nodes[0], end_node=sub)
+                            #
+                            #     # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
+                            #     obj_link_network = clusters[trg_cluster]['links']
+                            #     obj_diameter = shortest_paths_lite(
+                            #         obj_link_network, start_node=related_nodes[1], end_node=obj)
+                            #
+                            #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
+                            #     subj_strength = evidence_penalty(
+                            #         investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
+                            #
+                            #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
+                            #     obj_strength = evidence_penalty(
+                            #         investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
+                            #
+                            #     # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
+                            #     if len(cycle_paths[src_cluster]) == 0:
+                            #         cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
+                            #
+                            #     else:
+                            #         for start_n, end_n, strength in cycle_paths[src_cluster]:
+                            #             if (start_n, end_n) == (related_nodes[0], sub) and strength < subj_strength:
+                            #                 list(cycle_paths[src_cluster]).remove((start_n, end_n, strength))
+                            #                 cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
+                            #
+                            #
+                            #     if len(cycle_paths[trg_cluster]) == 0:
+                            #         cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
+                            #
+                            #     else:
+                            #         for start_n, end_n, strength in cycle_paths[trg_cluster]:
+                            #             if (start_n, end_n) == (related_nodes[1], obj) and strength < obj_strength:
+                            #                 list(cycle_paths[trg_cluster]).remove((start_n, end_n, strength))
+                            #                 cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
 
-                        # for related_nodes in dict_clusters_pairs[(src_cluster, trg_cluster)]:
-                        #
-                        #     # COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
-                        #     sub_link_network = clusters[src_cluster]['links']
-                        #     sub_diameter = shortest_paths_lite(
-                        #         sub_link_network, start_node=related_nodes[0], end_node=sub)
-                        #
-                        #     # COMPUTE THE SHORTEST PATH SIZE FOR T(DIAMETER) THESE START AND END NODES (TARGET)
-                        #     obj_link_network = clusters[trg_cluster]['links']
-                        #     obj_diameter = shortest_paths_lite(
-                        #         obj_link_network, start_node=related_nodes[1], end_node=obj)
-                        #
-                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE SUBJECT
-                        #     subj_strength = evidence_penalty(
-                        #         investigated_diameter=sub_diameter, evidence_diameter=obj_diameter)
-                        #
-                        #     # COMPUTE THE EVIDENCE'S STRENGTH OF THE OBJECT
-                        #     obj_strength = evidence_penalty(
-                        #         investigated_diameter=obj_diameter, evidence_diameter=sub_diameter)
-                        #
-                        #     # MAKING SURE WE HAVE THE HIGHEST WEIGHT FOR THE LINKS IN THE SHORTEST PATH
-                        #     if len(cycle_paths[src_cluster]) == 0:
-                        #         cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
-                        #
-                        #     else:
-                        #         for start_n, end_n, strength in cycle_paths[src_cluster]:
-                        #             if (start_n, end_n) == (related_nodes[0], sub) and strength < subj_strength:
-                        #                 list(cycle_paths[src_cluster]).remove((start_n, end_n, strength))
-                        #                 cycle_paths[src_cluster] += [(related_nodes[0], sub, subj_strength)]
-                        #
-                        #
-                        #     if len(cycle_paths[trg_cluster]) == 0:
-                        #         cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
-                        #
-                        #     else:
-                        #         for start_n, end_n, strength in cycle_paths[trg_cluster]:
-                        #             if (start_n, end_n) == (related_nodes[1], obj) and strength < obj_strength:
-                        #                 list(cycle_paths[trg_cluster]).remove((start_n, end_n, strength))
-                        #                 cycle_paths[trg_cluster] += [(related_nodes[1], obj, obj_strength)]
+                            #     cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
+                            #     cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
 
-                        #     cycle_paths[curr_sub_cluster] += [(related_nodes[0], sub)]
-                        #     cycle_paths[curr_obj_cluster] += [(related_nodes[1], obj)]
+                        else:
+                            # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
+                            # DOCUMENTING FIRST OCCURRENCE
+                            dict_clusters_pairs[(src_cluster_id, trg_cluster_id)] = [(sub, obj)]
 
                     else:
-                        # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
-                        # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(src_cluster_id, trg_cluster_id)] = [(sub, obj)]
 
+                        if (trg_cluster_id, src_cluster_id) in dict_clusters_pairs.keys():
+
+                            # IT HAS A CYCLE
+                            list_extended_clusters_cycle.add(src_cluster_id)
+                            list_extended_clusters_cycle.add(trg_cluster_id)
+
+                            # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
+                            cycle_helper(
+                                src_node=obj, trg_node=sub, source_cluster=trg_cluster_id, target_cluster=src_cluster_id)
+
+                            # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
+                            dict_clusters_pairs[(trg_cluster_id, src_cluster_id)] += [(obj, sub)]
+
+                        else:
+                            # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
+                            # DOCUMENTING FIRST OCCURRENCE
+                            dict_clusters_pairs[(trg_cluster_id, src_cluster_id)] = [(obj, sub)]
+
+        # 2.2 EXTRACT ALL RECONCILED NODES PER EXTENDED CLUSTER
+        #     INSTANTIATING reconciled_nodes WITH THE NODES
+        # **************************************************
+        for key, value in dict_clusters_pairs.items():
+
+            if key[0] not in reconciled_nodes:
+                reconciled_nodes[key[0]]["nodes"] = set()
+                for item in value:
+                    reconciled_nodes[key[0]]["nodes"].add(item[0])
+            else:
+                if "nodes" not in reconciled_nodes[key[0]]:
+                    reconciled_nodes[key[0]]["nodes"] = set()
+                    for item in value:
+                        reconciled_nodes[key[0]]["nodes"].add(item[0])
                 else:
+                    for item in value:
+                        reconciled_nodes[key[0]]["nodes"].add(item[0])
 
-                    if (trg_cluster_id, src_cluster_id) in dict_clusters_pairs.keys():
+            if key[1] not in reconciled_nodes:
+                reconciled_nodes[key[1]]["nodes"] = set()
+                for item in value:
+                    reconciled_nodes[key[1]]["nodes"].add(item[1])
+            else:
+                if "nodes" not in reconciled_nodes[key[1]]:
+                    reconciled_nodes[key[1]]["nodes"] = set()
+                    for item in value:
+                        reconciled_nodes[key[1]]["nodes"].add(item[1])
+                else:
+                    for item in value:
+                        reconciled_nodes[key[1]]["nodes"].add(item[1])
 
-                        # IT HAS A CYCLE
-                        list_extended_clusters_cycle.add(src_cluster_id)
-                        list_extended_clusters_cycle.add(trg_cluster_id)
+        # ***********************************************************
+        # 2.3 COMPUTING THE DERIVED RECONCILIATION STRENGTHS
+        # ***********************************************************
+        print "*** COMPUTING THE DERIVED STRENGTHS ***"
+        for key in reconciled_nodes.keys():
+            reconciled_nodes[key]['nodes'] = list(reconciled_nodes[key]['nodes'])
+            derive_reconciliation(key, detail=True)
+            # print key
+        # derive_reconciliation('P1935396683', detail=True)
+        # derive_reconciliation('N1096153044', detail=True)
+        Ut.print_dict(reconciled_nodes)
 
-                        # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-                        cycle_helper(
-                            src_node=obj, trg_node=sub, source_cluster=trg_cluster_id, target_cluster=src_cluster_id)
+        # BUILDING UP CLUSTER DATA
+        related_graph_mane = Ut.get_uri_local_name_plus(related_linkset)
+        c_data = []
+        for key, cluster in reconciled_nodes.items():
+            strengths = cluster['strengths']
+            for link in cluster['links']:
+                c_data += [(link[0], link[1], strengths[Ut.get_key(link[0], link[1])])]
 
-                        # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
-                        dict_clusters_pairs[(trg_cluster_id, src_cluster_id)] += [(obj, sub)]
+        Ut.print_list(c_data)
 
-                    else:
-                        # WE DO NOT USE THE VALUE OF THE DICTIONARY SO ITS EMPTY
-                        # DOCUMENTING FIRST OCCURRENCE
-                        dict_clusters_pairs[(trg_cluster_id, src_cluster_id)] = [(obj, sub)]
+        links_list_clustering(c_data, serialisation_dir, reconciled_name=reconciled_name, stop_at=None)
 
-    diff = datetime.timedelta(seconds=time.time() - start)
-    print "\n\t\tFOUND: {} IN {}".format(len(extended_clusters), diff)
-    print "\t\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
-
-    if len(extended_clusters) != 0 and len(list_extended_clusters_cycle) != 0:
-
-        # SERIALISATION
-        data = {'extended_clusters': list(extended_clusters),
-                'list_extended_clusters_cycle': list(list_extended_clusters_cycle),
-                'cycle_paths': cycle_paths}
-        file_name = "ExtendedBy_{}".format(Ut.get_uri_local_name_plus(related_linkset))
-        # file_name = file_name.replace("-", "Cluster_N") \
-        #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
-
-        # ***************************************************************************************************
-        print "\n5. SERIALISING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
-        # ***************************************************************************************************
-        s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(file_name))
-        s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(file_name))
-        s_file_3 = os.path.join(serialisation_dir, "{}-3.txt".format(file_name))
-
-        with open(s_file_1, 'wb') as writer:
-            writer.write(data['extended_clusters'].__str__())
-
-        with open(s_file_2, 'wb') as writer:
-            writer.write(data['list_extended_clusters_cycle'].__str__())
-
-        with open(s_file_3, 'wb') as writer:
-
-            cluster_limit = 1000
-            counting = 0
-            sub_cluster = {}
-
-            for key, value in cycle_paths.items():
-                counting += 1
-                sub_cluster[key] = value
-
-                if counting == cluster_limit:
-                    writer.write(sub_cluster.__str__() + "\n")
-                    sub_cluster = {}
-                    counting = 0
-
-            if counting != 0:
-                writer.write(sub_cluster.__str__() + "\n")
-
-        print "\n6. SAVING THE HASH OF EXTENDED CLUSTERS TO THE TRIPLE STORE AS: {}".format(file_name)
-        Qry.endpoint("""INSERT DATA {{
-        <{0}> <{1}extendedClusters> '''{2}''' .
-        }}""".format(graph, Ns.alivocab, file_name))
-
-        print "\n7. SERIALISATION IS COMPLETED..."
         diff = datetime.timedelta(seconds=time.time() - start)
-        print "\t{} triples serialised in {}".format(size, diff)
+        print "\n\t\tFOUND: {} IN {}".format(len(extended_clusters), diff)
+        print "\t\tFOUND: {} CYCLES".format(len(list_extended_clusters_cycle))
 
-        print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+        if len(extended_clusters) != 0 and len(list_extended_clusters_cycle) != 0:
 
-    else:
-        print "\tTHE RETURNED DICTIONARY IS EMPTY."
+            # SERIALISATION
+            data = {'extended_clusters': list(extended_clusters),
+                    'list_extended_clusters_cycle': list(list_extended_clusters_cycle),
+                    'cycle_paths': cycle_paths}
+            file_name = "ExtendedBy_{}".format(related_graph_mane)
+            # file_name = file_name.replace("-", "Cluster_N") \
+            #     if file_name.startswith("-") else "Cluster_P{}".format(file_name)
+
+            # ***************************************************************************************************
+            print "\n5. SERIALISING THE EXTENDED CLUSTERS DICTIONARIES AND THE LIST OF CLUSTERS IN A CYCLE..."
+            # ***************************************************************************************************
+            s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(file_name))
+            s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(file_name))
+            s_file_3 = os.path.join(serialisation_dir, "{}-3.txt".format(file_name))
+            s_file_4 = os.path.join(serialisation_dir, "{}-4.txt".format(file_name))
+
+            with open(s_file_1, 'wb') as writer:
+                writer.write(data['extended_clusters'].__str__())
+
+            with open(s_file_2, 'wb') as writer:
+                writer.write(data['list_extended_clusters_cycle'].__str__())
+
+            with open(s_file_3, 'wb') as writer:
+
+                cluster_limit = 1000
+                counting = 0
+                sub_cluster = {}
+
+                for key, value in cycle_paths.items():
+                    counting += 1
+                    sub_cluster[key] = value
+
+                    if counting == cluster_limit:
+                        writer.write(sub_cluster.__str__() + "\n")
+                        sub_cluster = {}
+                        counting = 0
+
+                if counting != 0:
+                    writer.write(sub_cluster.__str__() + "\n")
+
+            with open(s_file_4, 'wb') as writer:
+
+                cluster_limit = 1000
+                counting = 0
+                sub_cluster = {}
+
+                for key, value in reconciled_nodes.items():
+                    counting += 1
+                    sub_cluster[key] = value
+
+                    if counting == cluster_limit:
+                        writer.write(sub_cluster.__str__() + "\n")
+                        sub_cluster = {}
+                        counting = 0
+
+                if counting != 0:
+                    writer.write(sub_cluster.__str__() + "\n")
+
+            print "\n6. SAVING THE HASH OF EXTENDED CLUSTERS TO THE TRIPLE STORE AS: {}".format(file_name)
+            Qry.endpoint("""INSERT DATA {{
+            <{0}> <{1}extendedClusters> '''{2}''' .
+            }}""".format(graph, Ns.alivocab, file_name))
+
+            print "\n7. SERIALISATION IS COMPLETED..."
+            diff = datetime.timedelta(seconds=time.time() - start)
+            print "\t{} triples serialised in {}".format(size, diff)
+
+            print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+
+        else:
+            print "\tTHE RETURNED DICTIONARY IS EMPTY."
 
     return data
 
@@ -4054,12 +4289,12 @@ def fetch_paired(nodes_list, linkset):
 # RETURNS ALL POSSIBLE SHORTEST PATHS
 def shortest_paths_lite(link_network, start_node, end_node, strengths=None):
 
-    print "\nCOMPUTING PATH USING [shortest_paths_lite]..."
+    # print "\nCOMPUTING PATH USING [shortest_paths_lite]..."
 
     diameter = 0
 
     # EXTRACT THE NODES FROM THE NETWORK OF LINKS
-    nodes = set([n1 for n1, n2 in link_network] + [n2 for n1, n2 in link_network])
+    nodes = set([data[0] for data in link_network] + [data[1] for data in link_network])
 
     # INSTANTIATE THE GRAPH
     g = nx.Graph()
@@ -4074,7 +4309,7 @@ def shortest_paths_lite(link_network, start_node, end_node, strengths=None):
 
     # GET THE SHORTEST PATH (THE FUNCTION RETURNS ONLY ONE PATH)
     # print "GRAPH-1:", g.__str__()
-    print "\t\v ", start_node, "AND", end_node
+    # print "\t\t\v ", start_node, "AND", end_node
     result = nx.shortest_path(g, source=start_node, target=end_node)
     # print "RESULT-1:", result
     results = []
@@ -4141,7 +4376,7 @@ def shortest_paths_lite_size(link_network, start_node, end_node):
     print "COMPUTING SHORTEST PATH USING [shortest_paths_lite]..."
 
     # EXTRACT THE NODES FROM THE NETWORK OF LINKS
-    nodes = set([n1 for n1, n2 in link_network] + [n2 for n1, n2 in link_network])
+    nodes = set([data[0] for data in link_network] + [data[1] for data in link_network])
 
     # INSTANTIATE THE GRAPH
     g = nx.Graph()
@@ -4332,10 +4567,10 @@ def evidence_penalty(investigated_diameter, evidence_diameter, penalty_percentag
 
 def reconciliation_strength(sim, ev_diameter, ev_w_diameter, c_penalty=10):
 
-    print "SIM DATA:", sim, ev_diameter, ev_w_diameter, c_penalty
+    # print "\t\t>>> SIM DATA:", "sim = ", "ev_diameter = ", ev_diameter, "ev_W_diameter = ", ev_w_diameter
     validation_strength = (100 - c_penalty * (2 * ev_diameter - ev_w_diameter - 1)) / float(100)
     strength = min(sim, validation_strength) if sim > 0 else validation_strength
-    print "\t>>> RECONCILED:", 0 if strength < 0 else strength
+    # print "\t\t>>> RECONCILED:", 0 if strength < 0 else strength
     return 0 if strength < 0 else strength
 
 
@@ -4995,3 +5230,731 @@ TO DELETE FROM THE FILE
 
 
 # links_clustering("", limit=1000)
+
+
+
+
+def links_list_clustering(data, serialisation_dir, reconciled_name=None, stop_at=None):
+
+    # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
+    # ONCE THE CLUSTER IS COMPUTED, THE IDEA IS TO SERIALISE IT SO THAT IT WOULD NOT NEED TO BE
+    # RECOMPUTED AGAIN WHEN REQUESTED FOR. THE SERIALISED CLUSTER IS LINKED TO THE GENERIC METADATA
+    # OF THE GRAPH
+
+    print Ut.headings("LINK LIST CLUSTERING...")
+
+    if os.path.isdir(serialisation_dir) is False:
+        os.mkdir(serialisation_dir)
+
+    clusters = {}
+    extension_dict = {}
+
+    # **************************************************************************************************
+    # 0. CHECK IF THE ALIGNMENT HAS A TRIPLE DOCUMENTING WHETHER IT CLUSTER WAS SERIALISED
+    # **************************************************************************************************
+
+    # **************************************************************************************************
+    # 1. THE CLUSTER HAS ALREADY BEEN SERIALIZED => IT JUST NEED TO BE DE-SERIALISED
+    # **************************************************************************************************
+
+    # **************************************************************************************************
+    # 2. THE CLUSTER HAS NOT BEEN SERIALIZED YET
+    # RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
+    # **************************************************************************************************
+    if True:
+
+        print "\n>>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. " \
+              "\n>>> *** MAYBE TIME FOR A COFFEE?. ***"
+
+        count = 0
+        # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
+        root = dict()
+        # THE CLUSTERS DICTIONARY
+        clusters = dict()
+        # THE DICTIONARY MAPPING EACH NODE TO ITS CLUSTER
+        root_mtx = {}
+        clusters_mtx = {}
+
+        hashed_name = data.__str__()
+        # EXAMPLE
+        #   P1832892825 	{
+        #       'nodes': set(['<http://www.grid.ac/institutes/grid.449957.2>',
+        #                     '<http://risis.eu/eter_2014/resource/NL0028>']),
+
+        #       'strengths': {('<http://risis.eu/eter_2014/resource/NL0028>',
+        #                  '<http://www.grid.ac/institutes/grid.449957.2>'): ['1', '1']},
+
+        #       'links': set([('<http://risis.eu/eter_2014/resource/NL0028>',
+        #                  '<http://www.grid.ac/institutes/grid.449957.2>')])
+        # }
+
+        # **************************************************************************************************
+        # HELPER FUNCTIONS
+        # **************************************************************************************************
+        def merge_d_matrices(parent, pop_parent):
+
+            # COPYING LESSER MATRIX TO BIGGER MATRIX
+
+            index = parent[St.row]
+            pop_row = pop_parent[St.row]
+            cur_mxd = parent[St.matrix_d]
+            pop_mxd = pop_parent[St.matrix_d]
+            # position_add = clusters[parent][St.row] - 1
+
+            # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
+            # print "\tADD VALUE: {}".format(position_add)
+
+            # COPY MATRIX
+            # print "\tPOP HEADER: {}".format(pop_mx[0][:])
+            for row in range(1, pop_row):
+
+                # ADD HEADER IF NOT ALREADY IN
+                # print "\tCURRENT HEADER ADDED: {}".format(cur_mx[0:])
+                if pop_mxd[(row, 0)] not in cur_mxd:
+                    pop_item_row = pop_mxd[(row, 0)]
+                    cur_mxd[(index, 0)] = pop_item_row
+                    cur_mxd[(0, index)] = pop_item_row
+                    index += 1
+                    parent[St.row] = index
+                    # print "\tHEADER ADDED: {}".format(pop_item_row)
+
+                    # FOR THAT HEADER, COPY THE SUB-MATRIX
+                    for col in range(1, pop_row):
+
+                        # THE HEADER ARE ALREADY IN THERE
+                        if (row, col) in pop_mxd and pop_mxd[(row, col)] != 0:
+                            # find header in current matrix
+                            for col_item in range(1, len(cur_mxd)):
+                                if (0, col_item) in cur_mxd and (0, col) in pop_mxd and \
+                                                cur_mxd[(0, col_item)] == pop_mxd[(0, col)]:
+                                    # print "\tIN2 ({}, {})".format(index - 1, col_item)
+                                    cur_mxd[(index - 1, col_item)] = 1
+
+        def cluster_helper_mtx(counter, annotate=False):
+
+            counter += 1
+            # child_1 = subject.n3().strip()
+            # child_2 = obj.n3().strip()
+            child_1 = subject.strip()
+            child_2 = t_object.strip()
+
+            # DATE CREATION
+            # date = "{}".format(datetime.datetime.today().strftime(_format))
+
+            # CHECK WHETHER A CHILD HAS A PARENT
+            has_parent_1 = True if child_1 in root_mtx else False
+            has_parent_2 = True if child_2 in root_mtx else False
+            # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
+
+            # 1. START BOTH CHILD ARE ORPHANS
+            if has_parent_1 is False and has_parent_2 is False:
+
+                # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                # GENERATE THE PARENT
+                # hash_value = hash(date + str(count) + graph)
+                hash_value = hash(child_1 + child_2 + hashed_name)
+                parent = "{}".format(str(hash_value).replace("-", "N")) if str(
+                    hash_value).startswith("-") \
+                    else "P{}".format(hash_value)
+
+                # ASSIGN A PARENT TO BOTH CHILD
+                root[child_1] = parent
+                root[child_2] = parent
+
+                # CREATE A CLUSTER
+                if parent not in clusters:
+                    # MATRIX
+                    # mx = matrix(matrix_size, matrix_size)
+                    mxd = dict()
+                    # ROW
+                    # mx[0][1] = child_1
+                    # mx[0][2] = child_2
+
+                    mxd[(0, 1)] = child_1
+                    mxd[(0, 2)] = child_2
+
+                    # COLUMNS
+                    # mx[1][0] = child_1
+                    # mx[2][0] = child_2
+
+                    mxd[(1, 0)] = child_1
+                    mxd[(2, 0)] = child_2
+
+                    # RELATION
+                    # mx[1][2] = 1
+                    # mx[2][1] = 1
+                    mxd[(2, 1)] = 1
+
+                    clusters[parent] = {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
+                    if annotate:
+                        clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
+
+                # print "\tPOSITION: {}".format(3)
+                # print "\tIT WILL BE PRINTED AT: ({}, {})".format(2, 1)
+
+            # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
+            elif has_parent_1 is True and has_parent_2 is True:
+
+                # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+                if root_mtx[child_1] == root_mtx[child_2]:
+                    # print "CLUSTER SIZE IS {} BUT THERE IS NOTHING TO DO\n".format(len(clusters))
+                    # print "\nSAME PARENTS {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+                    # cur_mx = clusters[root[child_1]][St.matrix]
+                    cur_mxd = clusters[root[child_1]][St.matrix_d]
+
+                    row_1 = 0
+                    row_2 = 0
+
+                    # FIND ROW
+                    # row_1 = clusters[root[child_1]][St.row]
+                    # for row in range(1, clusters[root[child_1]][St.row]):
+                    #     if cur_mx[row][0] == child_1:
+                    #         row_1 = row
+                    #
+                    # for col in range(1, clusters[root[child_1]][St.row]):
+                    #     if cur_mx[0][col] == child_2:
+                    #         row_2 = col
+
+                    for row in range(1, clusters[root[child_1]][St.row]):
+                        if (row, 0) in cur_mxd and cur_mxd[(row, 0)] == child_1:
+                            row_1 = row
+
+                    for col in range(1, clusters[root[child_1]][St.row]):
+                        if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
+                            row_2 = col
+
+                    # row_2 = clusters[root[child_2]][St.row]
+
+                    # print "\tPOSITIONS: {} | {}".format(row_2, row_1)
+                    # cur_mx[row_2][row_1] = 1
+                    cur_mxd[(row_2, row_1)] = 1
+
+                    if annotate:
+                        clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1, child_2)
+
+                    # COPY THE SUB-MATRIX
+                    # for col in range(1, row_1):
+                    #     if cur_mx[0][col] == child_2:
+                    #         print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+                    #         print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
+                    #         cur_mx[row_1 - 1][col] = 1
+
+                    # continue
+                    return counter
+
+                # THE PARENT WITH THE MOST CHILD GET THE CHILD OF THE OTHER PARENT
+                # fFETCHING THE RESOURCES IN THE CLUSTER (CHILDREN)
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                children_1 = (clusters_mtx[root_mtx[child_1]])[St.children]
+                children_2 = (clusters_mtx[root_mtx[child_2]])[St.children]
+
+                # 2.2 CHOOSE A PARENT
+                if len(children_1) >= len(children_2):
+                    # print "\tPARENT 1"
+                    parent = root_mtx[child_1]
+                    pop_parent = root_mtx[child_2]
+                    # root[child_2] = parent
+
+                else:
+                    # print "\tPARENT 2"
+                    parent = root_mtx[child_2]
+                    pop_parent = root_mtx[child_1]
+                    # root[child_1] = parent
+
+                # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+                for offspring in clusters_mtx[pop_parent][St.children]:
+                    root_mtx[offspring] = parent
+                    clusters_mtx[parent][St.children] += [offspring]
+
+                # MERGE CURRENT WITH LESSER (CHILDREN) MATRICES, ANNOTATE AND POOP LESSER (CHILDREN) MATRICES
+                merge_d_matrices(clusters_mtx[parent], clusters_mtx[pop_parent])
+
+                if annotate:
+                    clusters_mtx[parent][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
+                cluster_helper_mtx(count)
+                # cluster_helper(count)
+
+                # COPYING LESSER MATRIX TO BIGGER MATRIX
+                # index = clusters[parent][St.row]
+                # pop_row = clusters[pop_parent][St.row]
+                # cur_mx = clusters[parent][St.matrix]
+                # pop_mx = clusters[pop_parent][St.matrix]
+                # # position_add = clusters[parent][St.row] - 1
+                #
+                # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
+                # # print "\tADD VALUE: {}".format(position_add)
+                #
+                # # # ADD HEADER
+                # # for x in range(1, pop_index):
+                # #     cur_mx[0][index - 1 + x] = pop_mx[0][x]
+                # #     cur_mx[index - 1 + x][0] = pop_mx[0][x]
+                # #     clusters[parent][St.row] += 1
+                #
+                # # COPY MATRIX
+                # print "\tPOP HEADER: {}".format(pop_mx[0][:])
+                # for row in range(1, pop_row):
+                #
+                #     # ADD HEADER IF NOT ALREADY IN
+                #     # print "\tCURREENT HEADER ADDED: {}".format(cur_mx[0:])
+                #     if pop_mx[row][0] not in cur_mx[0:]:
+                #         pop_item_row = pop_mx[row][0]
+                #         cur_mx[index][0] = pop_item_row
+                #         cur_mx[0][index] = pop_item_row
+                #         index += 1
+                #         clusters[parent][St.row] = index
+                #         print "\tHEADER ADDED: {}".format(pop_item_row)
+                #
+                #
+                #         # FOR THAT HEADER, COPY THE SUB-MATRIX
+                #         for col in range(1, pop_row):
+                #
+                #             # THE HEADER IS NOT IN
+                #             if pop_mx[row][col] != 0 and pop_mx[row][0] not in cur_mx[1:-1]:
+                #                 print "\tIN ({}, {})".format(index-1, col )
+                #                 # index += 1
+                #                 # clusters[parent][St.row] = index
+                #
+                #             # THE HEADER ARE ALREADY IN THERE
+                #             if pop_mx[row][col] != 0:
+                #                 # find header in current matrix
+                #                 for col_item in range(1, len(cur_mx[1:-1])):
+                #                     if cur_mx[0][col_item] == pop_mx[0][col]:
+                #                         print "\tIN2 ({}, {})".format(index-1, col_item)
+                # cur_mx[row + position_add][col + position_add] = pop_mx[row][col]
+
+                # cur_mx[0][position_add+ row] = pop_mx[row][0]
+
+                # cur_mx[y + position_add][x + position_add] = pop_mx[y][x]
+
+                # POP THE PARENT WITH THE LESSER CHILD
+
+                if annotate:
+                    clusters_mtx[parent][St.annotate] += clusters_mtx[pop_parent][St.annotate]
+                clusters_mtx.pop(pop_parent)
+
+            # 3. ONE CHILD [CHILD 1] HAVE A PARENT OF HIS OWN
+            elif has_parent_1 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_1]
+                root[child_2] = parent
+                clusters[parent][St.children] += [child_2]
+                # print "\t>>> {} is in root {}".format(child_2, child_2 in root)
+
+                # cur_mx = clusters[parent][St.matrix]
+                cur_mxd = clusters[parent][St.matrix_d]
+                row_1 = clusters[parent][St.row]
+
+                # ADD HEADER
+                # cur_mx[row_1][0] = child_2
+                # cur_mx[0][row_1] = child_2
+
+                cur_mxd[(row_1, 0)] = child_2
+                cur_mxd[(0, row_1)] = child_2
+
+                # INCREMENT POSITION
+                row_1 += 1
+                # print "\tPOSITION: {}".format(row_1)
+                clusters[parent][St.row] = row_1
+
+                # COPY MATRIX
+                # for col in range(1, row_1):
+                #     # print cur_mx[0][x], child_1
+                #     if cur_mx[0][col] == child_1:
+                #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+                #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
+                #         # cur_mx[position_1 - 1][x] = 1
+                #         cur_mx[row_1 - 1][col] = 1
+                #         clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                #             child_1, child_2)
+
+                for col in range(1, row_1):
+                    if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_1:
+                        cur_mxd[(row_1 - 1, col)] = 1
+                        if annotate:
+                            clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                                child_1, child_2)
+
+            # 4. ONE CHILD [CHILD 2] HAVE A PARENT OF HIS OWN
+            elif has_parent_2 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_2]
+                root[child_1] = parent
+                clusters[parent][St.children] += [child_1]
+                # print "\t>>> {} is in root {}".format(child_1, child_1 in root)
+
+                # cur_mx = clusters[parent][St.matrix]
+                cur_mxd = clusters[parent][St.matrix_d]
+                row_2 = clusters[parent][St.row]
+
+                # ADD HEADER
+                # print row_2
+                # cur_mx[row_2][0] = child_1
+                # cur_mx[0][row_2] = child_1
+
+                cur_mxd[(row_2, 0)] = child_1
+                cur_mxd[(0, row_2)] = child_1
+
+                # INCREMENT POSITION
+                row_2 += 1
+                # print "\tPOSITION: {}".format(row_2)
+                clusters[parent][St.row] = row_2
+
+                # COPY MATRIX
+                # for col in range(1, row_2):
+                #     # print cur_mx[0][x], child_1
+                #     if cur_mx[0][col] == child_2:
+                #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+                #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_2 - 1, col)
+                #         # cur_mx[position_2 - 1][x] = 1
+                #         cur_mx[row_2 - 1][col] = 1
+                #         clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                #             child_2, child_1)
+
+                for col in range(1, row_2):
+                    if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
+                        cur_mxd[(row_2 - 1, col)] = 1
+                        if annotate:
+                            clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                                child_2, child_1)
+
+            return counter
+
+        def cluster_helper_set(counter, annotate=False):
+
+            counter += 1
+            # child_1 = subject.strip()
+            # child_2 = obj.strip()
+
+            child_1 = subject.strip()
+            child_2 = t_object.strip()
+            child_1 = child_1 if Ut.is_nt_format(child_1) else "<{}>".format(child_1)
+            child_2 = child_2 if Ut.is_nt_format(child_2) else "<{}>".format(child_2)
+
+            # DATE CREATION
+            the_date = "{}".format(datetime.datetime.today().strftime(_format))
+
+            # CHECK WHETHER A CHILD HAS A PARENT
+            has_parent_1 = True if child_1 in root else False
+            has_parent_2 = True if child_2 in root else False
+            # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
+
+            # *******************************************
+            # 1. START BOTH CHILD ARE ORPHANS
+            # *******************************************
+            if has_parent_1 is False and has_parent_2 is False:
+
+                # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                # GENERATE THE PARENT
+                hash_value = hash(the_date + str(count) + hashed_name)
+                parent = "{}".format(str(hash_value).replace("-", "N")) if str(
+                    hash_value).startswith("-") \
+                    else "P{}".format(hash_value)
+
+                # ASSIGN A PARENT TO BOTH CHILD
+                root[child_1] = parent
+                root[child_2] = parent
+
+                # THE SUBJECT AND OBJECT LINK
+                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+
+                # THE CLUSTER COMPOSED OF NODES, LINKS AND STRENGTHS
+                key_1 = "key_{}".format(str(hash(link)).replace("-", "N"))
+                clusters[parent] = {
+                    'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {key_1: strength}}
+                # print "1",clusters[parent]
+
+                # print parent, child_1, child_2
+                if annotate:
+                    clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
+
+            # *******************************************
+            # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
+            # *******************************************
+            elif has_parent_1 is True and has_parent_2 is True:
+
+                # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+                if root[child_1] != root[child_2]:
+
+                    parent1 = root[child_1]
+                    parent2 = root[child_2]
+                    # root2[child_2] = parent1
+
+                    if annotate:
+                        clusters[parent1][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
+                    # print parent1, parent2
+
+                    if parent2 in clusters:
+                        # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+                        # check this
+                        for child in clusters[parent2]['nodes']:
+                            root[child] = parent1
+
+                        # print 'before', clusters2[parent1]['nodes']
+                        # RE-ASSIGNING THE NODES OF CHILD 2
+                        clusters[parent1]['nodes'] = clusters[parent1]['nodes'].union(clusters[parent2]['nodes'])
+                        # RE-ASSIGNING THE LINKS OF CHILD 2
+
+                        clusters[parent1]['links'] = clusters[parent1]['links'].union(clusters[parent2]['links'])
+
+                        # RE-ASSIGNING THE STRENGTHS OF CHILD 2
+                        for i_key, link_strengths in clusters[parent2]['strengths'].items():
+                            if i_key not in clusters[parent1]['strengths']:
+                                clusters[parent1]['strengths'][i_key] = link_strengths
+                            else:
+                                clusters[parent1]['strengths'][i_key] += link_strengths
+
+                        # print 'after', clusters2[parent1]['nodes']
+
+                        # add the current link (child_1, child_2)
+                        link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                        clusters[parent1]['links'].add(link)
+
+                        # link_hash = str(hash(link))
+                        link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                        if link_hash in clusters[parent1]['strengths']:
+                            clusters[parent1]['strengths'][link_hash] += strength
+                        else:
+                            clusters[parent1]['strengths'][link_hash] = strength
+
+                        clusters.pop(parent2)
+                else:
+                    parent = root[child_1]
+                    link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                    clusters[parent]['links'].add(link)
+
+                    # link_hash = str(hash(link))
+                    link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                    if link_hash in clusters[parent]['strengths']:
+                        clusters[parent]['strengths'][link_hash] += strength
+                    else:
+                        clusters[parent]['strengths'][link_hash] = strength
+
+                    if annotate:
+                        clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1, child_2)
+
+            # *******************************************
+            # 3. BOTH CHILD HAVE DIFFERENT PARENTS
+            # *******************************************
+            elif has_parent_1 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_1]
+                root[child_2] = parent
+
+                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                clusters[parent]['links'].add(link)
+                clusters[parent]['nodes'].add(child_2)
+
+                # link_hash = str(hash(link))
+                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                if link_hash in clusters[parent]['strengths']:
+                    clusters[parent]['strengths'][link_hash] += strength
+                else:
+                    clusters[parent]['strengths'][link_hash] = strength
+
+                if annotate:
+                    clusters[parent][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                                child_1, child_2)
+
+            # *******************************************
+            # 4. BOTH CHILD HAVE DIFFERENT PARENTS
+            # *******************************************
+            elif has_parent_2 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_2]
+                root[child_1] = parent
+
+                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                clusters[parent]['links'].add(link)
+                clusters[parent]['nodes'].add(child_1)
+
+                # link_hash = str(hash(link))
+                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                if link_hash in clusters[parent]['strengths']:
+                    clusters[parent]['strengths'][link_hash] += strength
+                else:
+                    clusters[parent]['strengths'][link_hash] = strength
+
+                if annotate:
+                    clusters[parent][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                                child_2, child_1)
+
+            return counter
+
+        # **************************************************************************************************
+        # RUNNING THE LINK CLUSTER ALGORITHM
+        # **************************************************************************************************
+        try:
+
+            standard = 50000
+            check = 1
+            iteration = 1
+            size = len(data)
+
+            # **************************************************************************************************
+            print "\n1. THE GRAPH IS OF {} LINKS".format(size)
+            # **************************************************************************************************
+            if len(data) == 0:
+                print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
+                return {}
+
+            # **************************************************************************************************
+            print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
+            # **************************************************************************************************
+            start = time.time()
+            for connection in data:
+
+                subject, t_object, strength = connection[0], connection[1], connection[2]
+
+                # CALLING THE MAIN HELPER FUNCTION
+                count = cluster_helper_set(count, annotate=False)
+
+                # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN EVERY STANDARD ITERATIONS
+                if iteration == check:
+                    print "\tRESOURCE {:>10}:   {}    =    {}".format(count, subject, t_object)
+                    check += standard
+                iteration += 1
+                # print strength
+                # break
+            diff = datetime.timedelta(seconds=time.time() - start)
+            print "\t{} triples clustered in {}".format(size, diff)
+            # COMPARING HELPERS
+            # for subject, predicate, obj in g:
+            #
+            #     count = cluster_helper_set(count, annotate=False)
+            #     # count_mtx = cluster_helper_mtx(count_mtx)
+            #     if iteration == check:
+            #         print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
+            #         check = check + standard
+            #     iteration += 1
+
+            # sizes = set()
+            # sizes2 = set()
+            # for p, c in clusters.items():
+            #     # {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
+            #     # print c
+            #     mdx = c[St.matrix_d]
+            #     countLinks = 0
+            #     for x, y in mdx.items():
+            #         if y == 1:
+            #             countLinks += 1
+            #     sizes.add((len(c[St.children]), countLinks))
+            # for p, c in clusters2.items():
+            #     sizes2.add((len(c['nodes']), len(c['links'])))
+            #
+            # sizes = sorted(sizes)
+            # sizes2 = sorted(sizes2)
+            # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
+            # **************************************************************************************************
+            print "\n3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
+            # **************************************************************************************************
+
+            # for (key, val) in clusters.items():
+            #     print key, "\t", val
+
+            # for (key, val) in root.items():
+            #     print key, "\t", val
+
+            # **************************************************************************************************
+            print "\n4. PROCESSING THE CLUSTERS FOR UNIQUE ID AND PREPARING FOR SERIALISATION"
+            # **************************************************************************************************
+            new_clusters = dict()
+            start = time.time()
+            for (key, data) in clusters.items():
+
+                # RESETTING THE CLUSTER ID
+                smallest_hash = ""
+                for node in data['nodes']:
+                    # CREATE THE HASHED ID AS THE CLUSTER NAME
+                    hashed = hash(node)
+                    if hashed <= smallest_hash:
+                        smallest_hash = hashed
+
+                # CREATE A NE KEY
+                new_key = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                    smallest_hash).startswith("-") else "P{}".format(smallest_hash)
+
+                # CONVERTING SET TO LIST AS AST OR JASON DO NOT DEAL WITH SET
+                new_clusters[new_key] = {'nodes': [], 'strengths': [], 'links': []}
+                new_clusters[new_key]['nodes'] = list(data['nodes'])
+                new_clusters[new_key]['strengths'] = data['strengths']
+                new_clusters[new_key]['links'] = list(data['links'])
+
+                # UPDATE THE ROOT WITH THE NEW KEY
+                for node in data['nodes']:
+                    root[node] = new_key
+
+            returned = {'clusters': new_clusters, 'node2cluster_id': root}
+            # returned_hashed = str(hash(returned.__str__()))
+            # returned_hashed = returned_hashed.replace("-", "Cluster_N") if returned_hashed.startswith("-")\
+            #     else "Cluster_P{}".format(returned_hashed)
+
+            if len(new_clusters) != 0 and len(root) != 0:
+
+                # SERIALISATION
+                # **************************************************************************************************
+                print "\n5. SERIALISING THE DICTIONARIES..."
+                # **************************************************************************************************
+                s_file_1 = os.path.join(serialisation_dir, "{}-reconciled-1.txt".format(reconciled_name))
+                s_file_2 = os.path.join(serialisation_dir, "{}-reconciled-2.txt".format(reconciled_name))
+                with open(s_file_1, 'wb') as writer:
+
+                    cluster_limit = 1000
+                    counting = 0
+                    sub_cluster = {}
+
+                    for key, value in new_clusters.items():
+                        counting += 1
+                        sub_cluster[key] = value
+
+                        if counting == cluster_limit:
+                            writer.write(sub_cluster.__str__() + "\n")
+                            sub_cluster = {}
+                            counting = 0
+
+                    if counting != 0:
+                        writer.write(sub_cluster.__str__() + "\n")
+
+                with open(s_file_2, 'wb') as writer:
+                    writer.write(returned['node2cluster_id'].__str__())
+
+                # **************************************************************************************************
+                print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(reconciled_name)
+                # **************************************************************************************************
+
+
+                # **************************************************************************************************
+                print "\n7. SERIALISATION IS COMPLETED..."
+                # **************************************************************************************************
+                diff = datetime.timedelta(seconds=time.time() - start)
+                print "\t{} triples serialised in {}".format(size, diff)
+
+                print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+
+            else:
+                print "THE RETURNED DICTIONARY IS EMPTY."
+
+            # print clusters
+            # print new_clusters
+
+            return new_clusters
+
+        except Exception as err:
+            traceback.print_exc()
+            print err.message
+            return clusters
+

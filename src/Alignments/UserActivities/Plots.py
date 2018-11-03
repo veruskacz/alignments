@@ -8,7 +8,7 @@ import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
-import Alignments.UserActivities.Clustering as Cls
+# import Alignments.UserActivities.Clustering as Cls
 # import matplotlib.pyplot as plt
 # import Alignments.Server_Settings as Srv
 
@@ -30,8 +30,8 @@ def draw_graph(graph, file_path=None, show_image=False):
     # print "GRAPH:", graph
     analysis_builder = Buffer.StringIO()
     analysis_builder_2 = Buffer.StringIO()
-    nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
-
+    # nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
+    nodes = set([data[0] for data in graph] + [data[1] for data in graph])
     # create networkx graph
     g = nx.Graph()
 
@@ -182,7 +182,7 @@ def draw_graph(graph, file_path=None, show_image=False):
 
 
 # METRIC DESCRIBING THE QUALITY OF A LINKED NETWORK
-def metric(graph, strengths=None, alt_keys=None):
+def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_parameter_2=0.25, has_evidence=False):
 
     # print "\n- STRENGTHS:", strengths
     # print "- ALT KEYS:", alt_keys
@@ -197,9 +197,10 @@ def metric(graph, strengths=None, alt_keys=None):
 
     analysis_builder = Buffer.StringIO()
 
-    def get_key(node_1, node_2):
-        strength_key = "key_{}".format(str(hash((node_1, node_2))).replace("-", "N")) if node_1 < node_2 \
-            else "key_{}".format(str(hash((node_2, node_1))).replace("-", "N"))
+    # def get_key(node_1, node_2):
+    #     strength_key = "key_{}".format(str(hash((node_1, node_2))).replace("-", "N")) if node_1 < node_2 \
+    #         else "key_{}".format(str(hash((node_2, node_1))).replace("-", "N"))
+    #     return strength_key
 
     # CREATE THE NETWORKS GRAPH OBJECT
     g = nx.Graph()
@@ -208,7 +209,8 @@ def metric(graph, strengths=None, alt_keys=None):
     LOADING THE NETWORK GRAPH OBJECT...
     """""""""""""""""""""""""""""""""""""""
     # ADD NODE TO THE GRAPH OBJECT
-    nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
+    # nodes = set([n1 for n1, n2 in graph] + [n2 for n1, n2 in graph])
+    nodes = set([data[0] for data in graph] + [data[1] for data in graph])
     for node in nodes:
         g.add_node(node)
         # print "NODE:", node
@@ -236,9 +238,10 @@ def metric(graph, strengths=None, alt_keys=None):
     """""""""""""""""""""""""""""""""""""""
     NON WEIGHTED METRIC COMPUTATIONS...
     """""""""""""""""""""""""""""""""""""""
-    nb_used, nd_used, nc_used = "na", "na", "na"
+
     bridges_list = []
-    edge_derived, bridges = 0, 0
+    nb_used, nd_used, nc_used = "na", "na", "na"
+    edge_discovered, node_count, edge_derived, bridges = 0, 0, 0, 0
 
     try:
         # TOTAL NUMBER OF NODES IN THE GRAPH
@@ -254,7 +257,7 @@ def metric(graph, strengths=None, alt_keys=None):
         bridges_list = list(nx.bridges(g))
 
         # TOTAL NUMBER OF BRIDGES IN THE NETWORK
-        bridges = len(bridges_list)
+        bridges = 0 if has_evidence is True and node_count == 2 else len(bridges_list)
         # print "BRIDGES:", bridges
 
         # THE NETWORK DIAMETER
@@ -328,8 +331,11 @@ def metric(graph, strengths=None, alt_keys=None):
         combinations = Ut.combinations(periphery)
 
         # COMPUTING THE WEIGHTED BRIDGE
-        for node_1, node_2 in bridges_list:
-            weighted_bridges += (g.get_edge_data(node_1, node_2))['weight']
+        if has_evidence is True and node_count == 2:
+            weighted_bridges = 0
+        else:
+            for node_1, node_2 in bridges_list:
+                weighted_bridges += (g.get_edge_data(node_1, node_2))['weight']
 
         # COMPUTING THE WEIGHTED DIAMETER
         for start, end in combinations:
@@ -378,7 +384,7 @@ def metric(graph, strengths=None, alt_keys=None):
         # print "\t>>> Quality [{}] Weighted-Min [{}] Weighted-Avg [{}] Weighted-eQ [{}]".format(
         #     estimated_quality, weighted_eq[0], weighted_eq[1], weighted_eq_2)
 
-    except nx.NetworkXError as error:
+    except nx.NetworkXError:
 
         weighted_impact = 1
         weighted_eq_2 = 0
@@ -410,41 +416,42 @@ def metric(graph, strengths=None, alt_keys=None):
     #     analysis_builder.write("\n\nDiagnose : NEED BRIDGE INVESTIGATION")
 
     weighted_quality = {}
-
+    # hyper_parameter_1 = 0.1
+    # hyper_parameter_2 = 0.25
     # WEIGHT USING MINIMUM STRENGTH
-    if 1 - weighted_eq[0] <= 0.1:
+    if 1 - weighted_eq[0] <= hyper_parameter_1:
         weighted_quality["min"] = "GOOD [{}]".format(weighted_eq[0])
     else:
         weighted_quality["min"] = "BAD [{}]".format(weighted_eq[0])
 
     # WEIGHT USING AVERAGE STRENGTH
-    if 1 - weighted_eq[1] <= 0.1:
+    if 1 - weighted_eq[1] <= hyper_parameter_1:
         weighted_quality["avg"] = "GOOD [{}]".format(weighted_eq[1])
     else:
         weighted_quality["avg"] = "BAD [{}]".format(weighted_eq[1])
 
     # WEIGHT USING BRIDGE-CLOSURE-DIAMETER STRENGTH
-    if 1 - weighted_eq_2 <= 0.1:
+    if 1 - weighted_eq_2 <= hyper_parameter_1:
         weighted_quality["bcd"] = "GOOD [{}]".format(weighted_eq_2)
     else:
         weighted_quality["bcd"] = "BAD [{}]".format(weighted_eq_2)
 
-    if impact <= 0.1:
+    if impact <= hyper_parameter_1:
         # analysis_builder.write("\n\nInterpretation: GOOD")
         auto_decision = "GOOD [{}]".format(1 - impact)
-        analysis_builder.write("\n{:25} : The network is a GOOD representation of a unique real world object".
-            format("INTERPRETATION"))
+        analysis_builder.write("\n{:25} : The network is a GOOD representation of a unique real world object".format(
+            "INTERPRETATION"))
 
     elif (bridges == 0) and (diameter < 3):
         auto_decision = "ACCEPTABLE [{}]".format(1 - impact)
         analysis_builder.write("\n{:25} : The network is an ACCEPTABLE representation of a unique real world object".
-            format("INTERPRETATION"))
+                               format("INTERPRETATION"))
 
-    elif ((impact > 0.1) and (impact < 0.25)) or (bridges == 0):
+    elif ((impact > hyper_parameter_1) and (impact < hyper_parameter_2)) or (bridges == 0):
         # analysis_builder.write("\n\nInterpretation: UNCERTAIN")
         auto_decision = "UNCERTAIN [{}]".format(1 - impact)
         analysis_builder.write("\n{:25} : We are UNCERTAIN whether the network represents a unique real world object".
-            format("INTERPRETATION"))
+                               format("INTERPRETATION"))
 
     else:
         # analysis_builder.write("\n\nInterpretation: THE NETWORK IS NOT A GOOD REPRESENTATION OF A SINGLE RESOURCE")
@@ -470,9 +477,10 @@ def metric(graph, strengths=None, alt_keys=None):
         "NETWORK METRICS USED", nb_used, nd_used, edge_discovered, edge_derived, nc_used))
 
     analysis_builder.write("\n{:23} : Bridges [{}]   Diameter [{}]   Closure [{}/{} = {}]"
-                           "   impact: [{}]   quality: [{}]".format(
-        "NETWORK METRICS USED", weighted_nb_used, weighted_nd_used, round(weighted_edge_discovered, 3),
-        edge_derived, weighted_nc_used, weighted_impact, 1 - weighted_impact))
+                           "   impact: [{}]   quality: [{}]".
+                           format("NETWORK METRICS USED", weighted_nb_used, weighted_nd_used,
+                                  round(weighted_edge_discovered, 3), edge_derived, weighted_nc_used,
+                                  weighted_impact, 1 - weighted_impact))
 
     return {'message': analysis_builder.getvalue(), 'decision': impact,
             'AUTOMATED_DECISION': auto_decision, 'WEIGHTED_DECISION': weighted_quality}
@@ -494,10 +502,11 @@ def eval_sheet(targets, count, smallest_hash, a_builder, alignment, children, au
         a_builder.write(Cls.disambiguate_network(alignment, children))
 
     else:
+        temp = ""
         response = Cls.disambiguate_network_2(children, targets, output=False)
 
         if response:
-            temp = ""
+
             dataset = ""
             # for line in response:
             #     print line
@@ -523,7 +532,9 @@ def eval_sheet(targets, count, smallest_hash, a_builder, alignment, children, au
             a_builder.write("{:175}{}\n".format("", temp))
 
         else:
+            print "NEWLY ADDED ELSE..."
             temp = "{:23}: {}".format("", "")
+            a_builder.write("{:175}{}\n".format("", temp))
 
 
 def cluster_d_test_mtx(linkset, network_size=3, targets=None, directory=None,
@@ -704,8 +715,9 @@ def cluster_d_test_mtx(linkset, network_size=3, targets=None, directory=None,
 
                 if network:
                     automated_decision = metric(network)["AUTOMATED_DECISION"]
+                    weighted_decision = metric(network)["WEIGHTED_DECISION"]
                     eval_sheet(targets, count_2, "{}_{}".format(cluster_size, file_name),
-                               sheet_builder, linkset, children, automated_decision)
+                               sheet_builder, linkset, children, automated_decision, weighted_decision)
                 else:
                     print network
 
@@ -909,8 +921,9 @@ def cluster_d_test_statss(linkset, network_size=3, targets=None, directory=None,
 
             if network:
                 automated_decision = metric(network)["AUTOMATED_DECISION"]
+                weighted_decision = metric(network)["WEIGHTED_DECISION"]
                 eval_sheet(targets, count_2, "{}_{}".format(cluster_size, file_name),
-                           sheet_builder, linkset, children, automated_decision)
+                           sheet_builder, linkset, children, automated_decision, weighted_decision)
             else:
                 print network
 
@@ -1058,8 +1071,10 @@ def cluster_d_test_stats(linkset, network_size=3, targets=None, directory=None,
 
                 if network:
                     automated_decision = metric(network)["AUTOMATED_DECISION"]
+                    weighted_decision = metric(network)["WEIGHTED_DECISION"]
+
                     eval_sheet(targets, count_2, "{}_{}".format(cluster_size, file_name),
-                               sheet_builder, linkset, children, automated_decision)
+                               sheet_builder, linkset, children, automated_decision, weighted_decision)
                 else:
                     print network
 
@@ -1400,13 +1415,14 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
     :param greater_equal:
     :param limit:
     :param only_good:
+    :param disambiguate:
     :param activated:
     :return:
     """
 
     # FOR CONSTRAINTS TO WORK, IT SHOULD NOT BE NONE
 
-    BEGIN = time.time()
+    begin = time.time()
     print "\nLINK NETWORK INVESTIGATION"
 
     if activated is False:
@@ -1438,8 +1454,7 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
 
         print "\nGRATER OR EQUAL IS SET TO TRUE. " \
               "\nTHE SET CONTAINS {} CLUSTERS AND THE BIGGEST NETWORK IS OF SIZE {}." \
-              "\nWE WILL THEREFORE UPDATE network_size_max ACCORDINGLY.".format(
-            len(clusters_0), network_size_max)
+              "\nWE WILL THEREFORE UPDATE network_size_max ACCORDINGLY.".format(len(clusters_0), network_size_max)
 
     def check_constraint():
 
@@ -1585,7 +1600,7 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
                                    disambiguate=disambiguate)
 
                         print "\t>>> Executed so far in {:<14}\n".format(
-                            str(datetime.timedelta(seconds=time.time() - BEGIN)))
+                            str(datetime.timedelta(seconds=time.time() - begin)))
 
                     else:
                         print network
@@ -1610,7 +1625,7 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
         if directory is None:
             return "{}\t{}".format(curr_network_size, count_clusters_of_interest)
 
-        print "JOB DONE IN {:<14}".format(str(datetime.timedelta(seconds=time.time() - BEGIN)))
+        print "JOB DONE IN {:<14}".format(str(datetime.timedelta(seconds=time.time() - begin)))
 
         if greater_equal is True:
             # no need to continue as we already did all network greater of equal to "network-size" input
@@ -1618,7 +1633,7 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
 
 
 def compute_all(serialisation_dir, linkset, network_size=3, network_size_max=3, targets=None, constraint_targets=None,
-                 constraint_text="", directory=None, greater_equal=True, limit=None, only_good=False, disambiguate=True,
+                constraint_text="", directory=None, greater_equal=True, limit=None, only_good=False, disambiguate=True,
                 activated=False):
 
     """
@@ -1635,12 +1650,12 @@ def compute_all(serialisation_dir, linkset, network_size=3, network_size_max=3, 
     :param greater_equal:
     :param limit:
     :param only_good:
+    :param disambiguate:
     :param activated:
     :return:
     """
 
     # FOR CONSTRAINTS TO WORK, IT SHOULD NOT BE NONE
-
 
     print "\nLINK NETWORK INVESTIGATION"
 
@@ -1736,7 +1751,7 @@ def compute_all(serialisation_dir, linkset, network_size=3, network_size_max=3, 
         sheet_builder.write(header)
 
         print "\n>>> CLUSTERS OF SIZE {}".format(index)
-        BEGIN = time.time()
+        begin = time.time()
         for cluster, cluster_val in clusters_0.items():
 
             resources = ""
@@ -1812,7 +1827,7 @@ def compute_all(serialisation_dir, linkset, network_size=3, network_size_max=3, 
                                    linkset, children, automated_decision, weighted_decision, disambiguate=disambiguate)
 
                         print "\t>>> Executed so far in {:<14}\n".format(
-                            str(datetime.timedelta(seconds=time.time() - BEGIN)))
+                            str(datetime.timedelta(seconds=time.time() - begin)))
 
                     else:
                         print network
@@ -1840,4 +1855,4 @@ def compute_all(serialisation_dir, linkset, network_size=3, network_size_max=3, 
         if directory is None:
             return "{}\t{}".format(curr_network_size, count_2)
 
-        print "JOB DONE IN {:<14}".format(str(datetime.timedelta(seconds=time.time() - BEGIN)))
+        print "JOB DONE IN {:<14}".format(str(datetime.timedelta(seconds=time.time() - begin)))

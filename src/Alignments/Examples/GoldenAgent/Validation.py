@@ -200,10 +200,11 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
                 record_line = " | ".join(
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item.upper())) for item in record)
+
                 writer.write(record_format.format(
                     count_record, cluster_id, size, "-{}-".format(machine_decision),
                     "-{}-".format(weighted_decision["min"]), "-{}-".format(weighted_decision["avg"]),
-                    "-{}-".format(weighted_decision["bcd"]), "- -", has_cycle, "", "", record_line))
+                    "-{}-".format(weighted_decision["bcd"]), "- -", has_cycle, "", "", "", record_line))
             else:
 
                 if node_in_cycle is not None:
@@ -218,11 +219,53 @@ def write_record(count_record, size, record_format, matrix, writer, cluster_id="
                     format_template.format("") if item is None or len(item) == 0
                     else format_template.format(local_name(item)) for item in record)
 
-                writer.write(record_format.format("", "", "", "", "", "", "", "", "", group, node, record_line))
+                writer.write(record_format.format("", "", "", "", "", "", "", "", "", group, node, "", record_line))
 
     else:
         print "THE MATRIX IS EMPTY"
 
+
+def rewrite_record(count_record, size, record_format, matrix, writer, evaluation, cluster_id="",
+                 separator_size=40, has_cycle='no', node_in_cycle=None):
+
+    count = 0
+    format_template = "{{:{}}}".format(separator_size)
+    # print >> stderr, count_record, '\r',
+    # TRAILING COMMA FORCES THE COUNT TO REMAIN ON THE SAME LINE
+    # print "{:>5}".format(count_record),
+
+    if matrix is not None:
+        for record in matrix:
+            count += 1
+
+            # print record_line
+            if count == 1:
+                # print record
+
+
+                status = "-{}-".format(evaluation['NOT GOOD']) if 'NOT GOOD' in evaluation else ""
+
+                print record_format.format(
+                    count_record, cluster_id, size, "-{}-".format(evaluation['original']),
+                    "-{}-".format(evaluation["min"]), "-{}-".format(evaluation["avg"]),
+                    "-{}-".format(evaluation["bcd"]), "-{}-".format(evaluation["human"]), has_cycle, status, "", "", record)
+
+                writer.write(record_format.format(
+                    count_record, cluster_id, size, "-{}-".format(evaluation['original']),
+                    "-{}-".format(evaluation["min"]), "-{}-".format(evaluation["avg"]),
+                    "-{}-".format(evaluation["bcd"]), "-{}-".format(evaluation["human"]), has_cycle, status, "", "", record))
+            else:
+
+                node = "-{}-".format(record[1])
+                group = "-{}-".format(record[0])
+
+                # print record
+                print record_format.format("", "", "", "", "", "", "", "", "", group, node, "", record[2])
+
+                writer.write(record_format.format("", "", "", "", "", "", "", "", "", group, node, "", record[2]))
+
+    else:
+        print "THE MATRIX IS EMPTY"
 
 # **************************************************************************************
 #  THIS FUNCTION COMBINES
@@ -280,13 +323,13 @@ def generate_sheet(data, directory, graph, serialisation_dir,
     # RECORD FORMAT
     record_format = "{{:<7}}{{:<{0}}}{{:<14}}|{{:<{0}}}" \
                     "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}|{{:<12}}" \
-                    "{{:<10}}{{:<7}}{{:<{0}}}\n".format(header_separator_size)
+                    "{{:<10}}{{:<7}}|{{:<{0}}}|{{:<{0}}}\n".format(header_separator_size)
     # print record_format
 
     # RECORD HEADER
     header = record_format.format(
         "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "MACHINE-MIN-EVAL", "MACHINE-AVG-EVAL",
-        "MACHINE-ALL-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "RESOURCES")
+        "MACHINE-ALL-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "COMMENT", "RESOURCES")
 
     # WRITING THE FILE HEADER
     writer_cycle.write(header)
@@ -400,7 +443,7 @@ def generate_sheet(data, directory, graph, serialisation_dir,
             writer_2.write(record_format.format(
                 count_b, cluster_id, cluster_size, decision, "", contain_cycle, "", "", ""))
 
-        if count == 5:
+        if count == 500:
             break
 
     writer_cycle.close()
@@ -642,7 +685,14 @@ def shortest_paths_lite(g, source, target):
                 g.remove_edge(result[i], result[i+1])
                 try:
                     partial = nx.shortest_path(g, source=source, target=target)
+
                 except IOError:
+                    partial = []
+
+                except nx.NetworkXNoPath:
+                    partial = []
+
+                except Exception:
                     partial = []
 
                 # if there is a path of same size, keep it in a set (there can be repetition)
@@ -784,6 +834,8 @@ def print_dict(data_dict, comment="", return_print=False):
 def extract_eval(
         eval_sheet_path, metric_index, save_in, keyword=1, zero_rule=False, print_stats=False, activated=False):
 
+    evidence = True
+
     if activated is False:
         print "\n>>> THE FUNCTION [extract_eval] IS NOT ACTIVATED."
         return
@@ -809,6 +861,11 @@ def extract_eval(
     bad_size_two = []
     positive_ground_truth = []
     # print line_pattern
+
+    true_pos_two = 0
+    false_pos_two = 0
+    false_neg_two = 0
+    true_neg_two = 0
 
     count = 0
     count_clusters = 0
@@ -882,18 +939,28 @@ def extract_eval(
                 # SIZE TWO CLUSTERS
                 else:
                     # DOCUMENTING CLUSTERS OF SIZE 6
-                    size_two_clusters += output
 
+                    size_two_clusters += output
                     if eval_human.upper() == "G":
                         good_size_two += output
+                        if evidence is True:
+                            true_pos_two += 1
+                        else:
+                            false_pos_two +=1
+
                     else:
                         bad_size_two += output
+                        if evidence is True:
+                            false_neg_two += 1
+                        else:
+                            true_neg_two +=1
+
 
     true_pos = len(true_positive)
-    false_pos = len(false_positive)
-
     true_neg = len(true_negative)
+    false_pos = len(false_positive)
     false_neg = len(false_negative)
+
 
     pos_ground_truth = len(positive_ground_truth)
     observed = len(machine_good_results) + len(machine_bad_results)
@@ -912,7 +979,13 @@ def extract_eval(
             writer.write(print_list(good_size_two, "GOOD SIZE 2", return_print=True) if print_stats else "")
             writer.write(print_list(bad_size_two, "BAD SIZE 2", return_print=True) if print_stats else "")
 
-        confusion = confusion_matrix(true_pos, false_pos, true_neg, false_neg, pos_ground_truth,
+
+
+        confusion_2 = confusion_matrix(true_pos_two, false_pos_two, true_neg_two, false_neg_two, len(good_size_two),
+                                     observations=len(good_size_two) + len(bad_size_two), latex=False,
+                                       zero_rule=zero_rule)
+
+        confusion_bigger = confusion_matrix(true_pos, false_pos, true_neg, false_neg, pos_ground_truth,
                                      observations=observed, latex=False, zero_rule=zero_rule)
 
         # print "\nlength", len(confusion)
@@ -920,7 +993,7 @@ def extract_eval(
         #     for val in data:
         #         print val
 
-        writer.write("{}\n".format(confusion[0][0]))
+        writer.write("{}\n".format(confusion_bigger[0][0]))
         smaller = len(size_two_clusters)
         smaller_per = round((smaller/float(count_clusters)) * 100, 3)
         bigger = count_clusters - smaller
@@ -931,8 +1004,321 @@ def extract_eval(
                 "OF SIZE 3 AND BIGGER.".format(count_clusters, smaller, smaller_per, bigger, bigger_per)
 
         if zero_rule is True:
-            writer.write("{}\n".format(confusion[1][0]))
+            writer.write("{}\n".format(confusion_2[1][0]))
+            writer.write("{}\n".format(confusion_bigger[1][0]))
 
         writer.write("\n{}".format(stats))
 
         print stats
+
+
+# REEVALUATES AN EVALUATION SHEET BASED ON NEW THRESHOLD AND EXISTENT MEASURES
+def machine_reevaluation(file_path, threshold = 0.90):
+
+    clusters = {}
+    # file_path = "C:\Productivity\\1 - GA - VALIDATION\N1689818117\EvalSheet_N1689818117_20181031-213340_noCycle.txt"
+    metric_pattern = "\w+ \[(\d.\d+)\]"
+    metric_result_pattern = "-(\w+ \[\d.\d+\])-"
+    line_pattern = "(\d+) +([NP]\d+) +(\d+) +\|{0} +\|{0} +\|{0} +\|{0} +\|-(.)- +\|(\w+)".format(metric_result_pattern)
+    line_pattern_3 = "(\d+) +([NP]\d+) +(\d+) +\|{0} +\|{0} +\|{0} +\|{0} +\|-(.)- +\|(\w+) +-(.)-".format(
+        metric_result_pattern)
+    line_pattern_2 = " +-(.)- +-(.)-".format(metric_result_pattern)
+    count = 0
+
+
+    header_separator_size = 23
+    record_format = "{{:<7}}{{:<{0}}}{{:<14}}|{{:<{0}}}" \
+                    "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}|{{:<12}}" \
+                    "{{:<10}}{{:<7}}|{{:<{0}}}|{{:<{0}}}\n".format(header_separator_size)
+    header = record_format.format(
+        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "MACHINE-MIN-EVAL", "MACHINE-AVG-EVAL",
+        "MACHINE-ALL-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "COMMENT", "RESOURCES")
+
+    def reevaluation(metric_result):
+
+        matched = re.findall(metric_pattern, metric_result)
+
+        if float(matched[0]) >= threshold:
+            return "GOOD [{}]".format(matched[0])
+        return "BAD [{}]".format(matched[0])
+
+    file_rewrote = file_path.replace(".txt", "-reevaluated.txt")
+    writer = open(file_rewrote, 'wb')
+    writer.write(header)
+
+    with open(file_path, "rb") as info:
+
+        start = False
+        matrix = []
+        cluster_id = ""
+        for line in info:
+
+            match2 = re.findall(line_pattern_3, line)
+            match = re.findall(line_pattern, line) if len(match2) == 0 else match2
+
+            if len(match) > 0:
+                # print match, len(match)
+
+                if len(matrix) > 0 and start is True:
+                    count += 1
+                    # Ut.print_list(matrix)
+                    clusters[cluster_id]['matrix'] = matrix
+                    evaluation = {"min": clusters[cluster_id]['MACHINE-MIN-EVAL'],
+                                  "avg": clusters[cluster_id]['MACHINE-AVG-EVAL'],
+                                  "bcd": clusters[cluster_id]['MACHINE-ALL-EVAL'],
+                                  "human": clusters[cluster_id]['HUMAN-EVAL'],
+                                  "original": clusters[cluster_id]['MACHINE-EVAL']}
+                    if 'NOT GOOD' in clusters[cluster_id]:
+                        print "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", match[0], len(match[0])
+                        evaluation['NOT GOOD'] = clusters[cluster_id]['NOT GOOD']
+                    rewrite_record(count_record=count, size=clusters[cluster_id]['CLUSTER-SIZE'],
+                                   record_format=record_format, matrix=matrix, writer=writer, cluster_id=cluster_id,
+                                   separator_size=40, evaluation=evaluation, has_cycle='no', node_in_cycle=None)
+                    writer.write("\n")
+
+                start = True
+                matrix = [line[183:].rstrip()]
+                cluster_id = match[0][1]
+                clusters[match[0][1]] = {
+                    'CLUSTER-SIZE': match[0][2],
+                    'MACHINE-EVAL': reevaluation(match[0][3]),
+                    'MACHINE-MIN-EVAL': reevaluation(match[0][4]),
+                    'MACHINE-AVG-EVAL': reevaluation(match[0][5]),
+                    'MACHINE-ALL-EVAL': reevaluation(match[0][6]),
+                    'HUMAN-EVAL': match[0][7],
+                    'HAS-CYCLE': match[0][8]
+
+                }
+
+                if len(match[0]) == 10:
+                    clusters[match[0][1]]['NOT GOOD'] = match[0][9]
+
+            else:
+                input = line[183:].rstrip()
+                match = re.findall(line_pattern_2, line)
+                # if len(match) > 0:
+                #     evaluation['NOT GOOD'] = match[0][0]
+                #     evaluation['CYCLE'] = match[0][1]
+
+                if len(input) > 0 and len(match) > 0:
+                    # print "INPUT:", input, len(input)
+                    matrix += [(match[0][0], match[0][1], input)]
+
+                elif len(input) > 0 and len(match) == 0 and start is True:
+                    print "PROBLEM:", line
+                    exit(0)
+
+            # if count == 20:
+            #     break
+
+
+        # LOAD THE LEFT OVERS
+        if len(matrix) > 0 and start is True:
+            count += 1
+            # Ut.print_list(matrix)
+            clusters[cluster_id]['matrix'] = matrix
+            evaluation = {"min": clusters[cluster_id]['MACHINE-MIN-EVAL'],
+                          "avg": clusters[cluster_id]['MACHINE-AVG-EVAL'],
+                          "bcd": clusters[cluster_id]['MACHINE-ALL-EVAL'],
+                          "human": clusters[cluster_id]['HUMAN-EVAL'],
+                          "original": clusters[cluster_id]['MACHINE-EVAL']}
+            if 'NOT GOOD' in clusters[cluster_id]:
+                # print match[0], len(match[0])
+                evaluation['NOT GOOD'] = clusters[cluster_id]['NOT GOOD']
+            rewrite_record(count_record=count, size=clusters[cluster_id]['CLUSTER-SIZE'],
+                           record_format=record_format, matrix=matrix, writer=writer, cluster_id=cluster_id,
+                           separator_size=40, evaluation=evaluation, has_cycle='no', node_in_cycle=None)
+            writer.write("\n")
+    # Ut.print_dict(clusters)
+
+    return file_rewrote
+
+
+# TRANSFERS VALIDATIONS OF FILE 1 TO FILES 2 WITCH IS YET TO BE VALIDATED
+def transfer(file_1, file_2, save_in):
+
+    clusters_1 = {}
+    clusters_2 = {}
+    metric_result_pattern = "-(\w+ \[\d.\d+\])-"
+    line_pattern = "(\d+) +([NP]\d+) +(\d+) +\|{0} +\|{0} +\|{0} +\|{0} +\|-(.)- +\|(\w+)".format(metric_result_pattern)
+    line_pattern_2 = " +-(.)- +-(.)-".format(metric_result_pattern)
+    line_pattern_3 = "(\d+) +([NP]\d+) +(\d+) +\|{0} +\|{0} +\|{0} +\|{0} +\|-(.)- +\|(\w+) +-(.)-".format(
+        metric_result_pattern)
+    header_separator_size = 23
+    record_format = "{{:<7}}{{:<{0}}}{{:<14}}|{{:<{0}}}" \
+                    "|{{:<{0}}}|{{:<{0}}}|{{:<{0}}}|{{:<12}}|{{:<12}}" \
+                    "{{:<10}}{{:<7}}|{{:<{0}}}|{{:<{0}}}\n".format(header_separator_size)
+    header = record_format.format(
+        "COUNT", "CLUSTER-ID", "CLUSTER-SIZE", "MACHINE-EVAL", "MACHINE-MIN-EVAL", "MACHINE-AVG-EVAL",
+        "MACHINE-ALL-EVAL", "HUMAN-EVAL", "HAS-CYCLE", "NOT GOOD", "CYCLE", "COMMENT", "RESOURCES")
+    file_rewrote = file_2.replace(".txt", "-transferred.txt")
+    writer = open(file_rewrote, 'wb')
+    writer.write(header)
+
+    def load_dictionary(clusters, cur_file):
+
+        count = 0
+        with open(cur_file, "rb") as info:
+
+            start = False
+            matrix = []
+            cluster_id = ""
+            for line in info:
+
+                match2 = re.findall(line_pattern_3, line)
+                match = re.findall(line_pattern, line) if len(match2) == 0 else match2
+
+                if len(match) > 0:
+                    # print match, len(match)
+
+                    if len(matrix) > 0 and start is True:
+                        count += 1
+                        # Ut.print_list(matrix)
+                        clusters[cluster_id]['matrix'] = matrix
+
+                    start = True
+                    matrix = [line[183:].rstrip()]
+                    cluster_id = match[0][1]
+                    clusters[match[0][1]] = {
+                        'CLUSTER-SIZE': match[0][2],
+                        'MACHINE-EVAL': match[0][3],
+                        'MACHINE-MIN-EVAL': match[0][4],
+                        'MACHINE-AVG-EVAL': match[0][5],
+                        'MACHINE-ALL-EVAL': match[0][6],
+                        'HUMAN-EVAL': match[0][7],
+                        'HAS-CYCLE': match[0][8]
+                    }
+
+                    if len(match[0]) == 10:
+                        clusters[match[0][1]]['NOT GOOD'] = match[0][9]
+
+                else:
+                    input = line[183:].rstrip()
+                    match = re.findall(line_pattern_2, line)
+                    # if len(match) > 0:
+                    #     evaluation['NOT GOOD'] = match[0][0]
+                    #     evaluation['CYCLE'] = match[0][1]
+
+                    if len(input) > 0 and len(match) > 0:
+                        # print "INPUT:", input, len(input)
+                        matrix += [(match[0][0], match[0][1], input)]
+
+                    elif len(input) > 0 and len(match) == 0 and start is True:
+                        print "PROBLEM:", line
+                        exit(0)
+
+            # if count == 20:
+            #     break
+
+
+        # LOAD THE LEFT OVERS
+        if len(matrix) > 0 and start is True:
+            count += 1
+            # Ut.print_list(matrix)
+            clusters[cluster_id]['matrix'] = matrix
+            # evaluation = {"min": clusters[cluster_id]['MACHINE-MIN-EVAL'],
+            #               "avg": clusters[cluster_id]['MACHINE-AVG-EVAL'],
+            #               "bcd": clusters[cluster_id]['MACHINE-ALL-EVAL'],
+            #               "human": clusters[cluster_id]['HUMAN-EVAL'],
+            #               "original": clusters[cluster_id]['MACHINE-EVAL']}
+            # if 'NOT GOOD' in clusters[cluster_id]:
+            #     # print match[0], len(match[0])
+            #     evaluation['NOT GOOD'] = clusters[cluster_id]['NOT GOOD']
+            # rewrite_record(count_record=count, size=clusters[cluster_id]['CLUSTER-SIZE'],
+            #                record_format=record_format, matrix=matrix, writer=writer, cluster_id=cluster_id,
+            #                separator_size=40, evaluation=evaluation, has_cycle='no', node_in_cycle=None)
+            # writer.write("\n")
+
+
+
+    load_dictionary(clusters_1, file_1)
+    load_dictionary(clusters_2, file_2)
+
+    new_clusters = 0
+    for cluster in clusters_2:
+        if cluster not in clusters_1:
+            new_clusters += 1
+
+    print "STATISTICS\n\t{:39}: {}".format("VALIDATED CLUSTER", len(clusters_1))
+    print "\t{:39}: {}".format("NOT VALIDATED VALIDATED CLUSTER", len(clusters_2))
+    print "\t{:39}: {}".format("TOTAL OF NEW CLUSTERS", new_clusters)
+
+    with open(file_2, 'rb') as data:
+        for line in data:
+            match = re.findall('(\d+) +([NP]\d+)', line)
+
+            if len(match) > 0:
+                id = match[0][1]
+                count = match[0][0]
+                if id in clusters_2:
+
+
+                    if id in clusters_1:
+                        evaluation = {"min": clusters_1[id]['MACHINE-MIN-EVAL'],
+                                      "avg": clusters_1[id]['MACHINE-AVG-EVAL'],
+                                      "bcd": clusters_1[id]['MACHINE-ALL-EVAL'],
+                                      "human": clusters_1[id]['HUMAN-EVAL'],
+                                      "original": clusters_1[id]['MACHINE-EVAL']}
+
+                        if 'NOT GOOD' in clusters_1[id]:
+                            evaluation['NOT GOOD'] = clusters_1[id]['NOT GOOD']
+                        rewrite_record(count_record=count, size=clusters_1[id]['CLUSTER-SIZE'],
+                                       record_format=record_format, matrix=clusters_1[id]['matrix'], writer=writer,
+                                       cluster_id=id, separator_size=40, evaluation=evaluation,
+                                       has_cycle=clusters_1[id]['HAS-CYCLE'],
+                                       node_in_cycle=None)
+                        writer.write("\n")
+                    else:
+                        # print match
+                        evaluation = {"min": clusters_2[id]['MACHINE-MIN-EVAL'],
+                                      "avg": clusters_2[id]['MACHINE-AVG-EVAL'],
+                                      "bcd": clusters_2[id]['MACHINE-ALL-EVAL'],
+                                      "human": clusters_2[id]['HUMAN-EVAL'],
+                                      "original": clusters_2[id]['MACHINE-EVAL']}
+
+                        if 'NOT GOOD' in clusters_2[id]:
+                            evaluation['NOT GOOD'] = clusters_2[id]['NOT GOOD']
+                        rewrite_record(count_record=count, size=clusters_2[id]['CLUSTER-SIZE'],
+                                       record_format=record_format, matrix=clusters_2[id]['matrix'], writer=writer,
+                                       cluster_id=id, separator_size=40, evaluation=evaluation,
+                                       has_cycle=clusters_2[id]['HAS-CYCLE'],
+                                       node_in_cycle=None)
+                        writer.write("\n")
+
+
+directoty = "C:\Users\Al\Dropbox\@VU\Ve\Golden Agents\Transfering"
+file_1 = join(directoty, "EvalSheet_P2400376587025266230_20181026-112130_cycle.txt")
+file_2 = join(directoty, "EvalSheet_P2400376587025266230_20181102-163153_cycle_new.txt")
+# transfer(file_1, file_2, directoty)
+
+# sequence = ['<http://risis.eu/MatchingExample/resource/1_6>', '<http://risis.eu/MatchingExample/resource/1_1>',
+#             '<http://risis.eu/MatchingExample/resource/1_4>', '<http://risis.eu/MatchingExample/resource/1_7>']
+
+sequence = [(1,2), (3,1), (1,4), (2,3), (2,4), (3,4),
+            (2,1), (1,3), (4,1), (3,2), (4,2), (4,3)]
+
+# graph = nx.Graph()
+# nodes = set([n1 for n1, n2 in sequence] + [n2 for n1, n2  in sequence])
+# for node in nodes:
+#     graph.add_node(node)
+
+search = (2,3)
+# print Ut.ordered_combinations(sequence)
+
+# for data in sequence:
+#     if data != search and (search[0] in data) or (search[1] in data):
+#         print data
+
+G = nx.DiGraph(sequence)
+# G = nx.DiGraph([(0, 0), (0, 1), (0, 2), (1, 2), (2, 0), (2, 1), (2, 2)])
+# print list(nx.simple_cycles(G))
+
+# G=nx.path_graph(80)
+# print list(G)
+# paths = list(nx.all_simple_paths(G, 2, 3))
+#
+# print filter(lambda x: len(x) == 3, paths)
+#
+# import matplotlib.pyplot as plt
+# nx.draw(G)
+# plt.show()
