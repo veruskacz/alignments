@@ -3,6 +3,7 @@
 
 import re
 import os
+import ast
 import sys
 import time
 import rdflib
@@ -590,6 +591,58 @@ def dir_files(directory, extension_list):
 
     # print list
     return lst
+
+
+
+#################################################################
+"""
+    ABOUT SERIALISATION AND DE-SERIALISATION
+"""
+#################################################################
+
+
+def serialize_dict(directory, dictionary, name, cluster_limit=1000):
+    print "\tSERIALIZING DICTIONARY OF SIZE: {}...".format(len(dictionary))
+    start = time.time()
+
+    with open(join(directory, "SerializedCluster_{}".format(name)), 'wb') as writer:
+
+        counting = 0
+        sub_cluster = {}
+
+        for key, value in dictionary.items():
+            start_2 = time.time()
+            counting += 1
+            sub_cluster[key] = value
+
+            if counting == cluster_limit:
+                writer.write(sub_cluster.__str__() + "\n")
+                sub_cluster = {}
+                counting = 0
+
+            print "\n\tFINISH READING LINE {} IN {}".format(
+                counting, datetime.timedelta(seconds=time.time() - start_2))
+
+        if counting != 0:
+            writer.write(sub_cluster.__str__() + "\n")
+
+    print "\tDONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - start))
+
+
+def de_serialise_dict(serialised_directory_path, name):
+    print "\tREADING FROM SERIALISED FILE..."
+    line_count = 0
+    reading_start = time.time()
+    with open(join(serialised_directory_path, "{}".format(name)), 'rb') as s_file_1:
+        dictionary = {}
+        for line in s_file_1:
+            line_count += 1
+            reading_start_2 = time.time()
+            dictionary.update(ast.literal_eval(line))
+            print "\n\tFINISH READING LINE {} IN {}".format(
+                line_count, datetime.timedelta(seconds=time.time() - reading_start_2))
+    print "\tDONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
+    return dictionary
 
 
 #################################################################
@@ -1762,11 +1815,11 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
 def print_tuple(tuple_list, return_print=False):
 
     if return_print is False:
-        print " | ".join(x.__str__() for x in tuple_list)
+        print "\t", " | ".join(x.__str__() for x in tuple_list)
         return ""
 
     else:
-        return " | ".join(x.__str__() for x in tuple_list)
+        return "\t", " | ".join(x.__str__() for x in tuple_list)
 
 
 # PRINT/RETURN  A LIST AS A STRING
@@ -1779,13 +1832,13 @@ def print_list(data_list, comment="", return_print=False):
         for item in data_list:
             try:
                 if type(item) == tuple:
-                    builder.write("{}\n".format(print_tuple(item, return_print=return_print)))
+                    builder.write("\t{}\n".format(print_tuple(item, return_print=return_print)))
 
                 elif type(item) == list:
-                    builder.write("{}\n".format(print_list(item)))
+                    builder.write("\t{}\n".format(print_list(item)))
 
                 else:
-                    builder.write("{}\n".format(item))
+                    builder.write("\t{}\n".format(item))
 
             except IOError:
                 print "PROBLEM!!!"
@@ -1804,16 +1857,16 @@ def print_list(data_list, comment="", return_print=False):
                 print_list(item)
 
             else:
-                print item
+                print "\t", item
 
         except IOError:
             print "PROBLEM!!!"
 
     if len(comment) == 0:
-        print "\n{}\nLIST SIZE : {}".format(comment, len(data_list))
+        print "\n>>> {}\n>>LIST SIZE : {}".format(comment, len(data_list))
 
     else:
-        print headings("\n{}\nLIST SIZE : {}".format(comment, len(data_list)))
+        print headings("\n>>> {}\n>>LIST SIZE : {}".format(comment, len(data_list)))
 
     return ""
 
@@ -1849,7 +1902,8 @@ def print_dict(data_dict, comment="", return_print=False):
     print ""
     for key, value in data_dict.items():
         try:
-            print "ITEM KEY: {1:<{0}}  ITEM SIZE: {2:<6} ITEM: {3}".format(max_length, key, len(value), str(value))
+            print "ITEM KEY: {1:<{0}}  ITEM SIZE: {2:<6} ITEM: {3}".format(
+                max_length, key, len(value) if type(value) is not int else 1, str(value))
 
         except IOError:
             print "PROBLEM!!!"

@@ -13,9 +13,9 @@ import Alignments.Query as Qry
 import Alignments.Utility as Ut
 # from Alignments.UserActivities.Plots import metric
 # import cStringIO as buffer
-import Alignments.UserActivities.Plots as Plt
+# import Alignments.UserActivities.Plots as Plt
 # _format = "%a %b %d %H:%M:%S:%f %Y"
-from Alignments.UserActivities.Plots import metric
+# from Alignments.UserActivities.Plots import metric
 
 _format = "It is %a %b %d %Y %H:%M:%S"
 date = datetime.datetime.today()
@@ -2750,20 +2750,29 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # *************************************************
             try:
                 print "\tREADING FROM SERIALISED FILE..."
-                line_count = 0
-                reading_start = time.time()
-                with open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb') as s_file_1:
-                    clusters = {}
-                    for line in s_file_1:
-                        line_count += 1
-                        reading_start_2 = time.time()
-                        clusters.update(ast.literal_eval(line))
-                        print "\n\tFINISH READING LINE {} IN {}".format(
-                            line_count, datetime.timedelta(seconds=time.time() - reading_start_2))
-                print "\tDONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
 
-                with open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb') as s_file_2:
-                    serialised_node2cluster_id = s_file_2.read()
+                # DE-SERIALISING THE MAIN DICTIONARY OF CLUSTER
+                clusters = Ut.de_serialise_dict(
+                    serialised_directory_path=serialisation_dir, name="{}-1.txt".format(serialised_hash))
+
+                # DE-SERIALISING THE ROOT DICTIONARY SUPPORTING THE MAIN DICTIONARY OF CLUSTERS
+                node2cluster_id = Ut.de_serialise_dict(
+                    serialised_directory_path=serialisation_dir, name="{}-2.txt".format(serialised_hash))
+
+                # line_count = 0
+                # reading_start = time.time()
+                # with open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb') as s_file_1:
+                #     clusters = {}
+                #     for line in s_file_1:
+                #         line_count += 1
+                #         reading_start_2 = time.time()
+                #         clusters.update(ast.literal_eval(line))
+                #         print "\n\tFINISH READING LINE {} IN {}".format(
+                #             line_count, datetime.timedelta(seconds=time.time() - reading_start_2))
+                # print "\tDONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
+                #
+                # with open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb') as s_file_2:
+                #     serialised_node2cluster_id = s_file_2.read()
 
             except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
@@ -2775,8 +2784,9 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
 
             # DE-SERIALISE THE SERIALISED
             start = time.time()
-            de_serialised = {'clusters': clusters,
-                             'node2cluster_id': ast.literal_eval(serialised_node2cluster_id)}
+            # de_serialised = {'clusters': clusters,
+            #                  'node2cluster_id': ast.literal_eval(serialised_node2cluster_id)}
+            de_serialised = {'clusters': clusters, 'node2cluster_id': node2cluster_id}
 
             diff = datetime.timedelta(seconds=time.time() - start)
 
@@ -2801,7 +2811,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                     print "\n>>> EXTENDING THE CLUSTER ID"
                     extension_dict = cluster_extension(
                         nodes=clusters[cluster2extend_id]['nodes'], node2cluster=root, linkset=related_linkset)
-                    all_extensions = list_extended_clusters(graph, de_serialised, related_linkset, serialisation_dir)
+                    all_extensions = list_extended_clusters(
+                        graph, serialised_hash, de_serialised, related_linkset, serialisation_dir)
 
                     corroborated_dict = {}
                     if 'cycle_paths' in all_extensions:
@@ -3407,9 +3418,10 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
                 return {}
 
+            # **************************************************************************************************
             # BACKING UP THE GRAPH DATA
+            # **************************************************************************************************
             # with open(os.path.join(serialisation_dir, "data.txt"), "wb") as graph_data:
-            #
             #     counter = 1000000
             #     counting = 0
             #     data_segment = {}
@@ -3516,34 +3528,46 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             returned_hashed = returned_hashed.replace("-", "Cluster_N") if returned_hashed.startswith("-")\
                 else "Cluster_P{}".format(returned_hashed)
 
+            # **************************************************************************************************
+            print "\n5. SERIALISING THE DICTIONARIES..."
+            # **************************************************************************************************
             if len(new_clusters) != 0 and len(root) != 0:
 
                 # SERIALISATION
-                # **************************************************************************************************
-                print "\n5. SERIALISING THE DICTIONARIES..."
-                # **************************************************************************************************
-                s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(returned_hashed))
-                s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(returned_hashed))
-                with open(s_file_1, 'wb') as writer:
+                s_file_1 = "{}-1.txt".format(returned_hashed)
+                s_file_2 = "{}-2.txt".format(returned_hashed)
 
-                    cluster_limit = 1000
-                    counting = 0
-                    sub_cluster = {}
+                # SERIALISING THE CLUSTERS
+                Ut.serialize_dict(
+                    directory=serialisation_dir, dictionary=new_clusters, name=s_file_1, cluster_limit=1000)
 
-                    for key, value in new_clusters.items():
-                        counting += 1
-                        sub_cluster[key] = value
+                # SERIALISING THE CLUSTER ROOT
+                Ut.serialize_dict(
+                    directory=serialisation_dir,
+                    dictionary=returned['node2cluster_id'], name=s_file_2, cluster_limit=1000)
 
-                        if counting == cluster_limit:
-                            writer.write(sub_cluster.__str__() + "\n")
-                            sub_cluster = {}
-                            counting = 0
-
-                    if counting != 0:
-                        writer.write(sub_cluster.__str__() + "\n")
-
-                with open(s_file_2, 'wb') as writer:
-                    writer.write(returned['node2cluster_id'].__str__())
+                # s_file_1 = os.path.join(serialisation_dir, "{}-1.txt".format(returned_hashed))
+                # s_file_2 = os.path.join(serialisation_dir, "{}-2.txt".format(returned_hashed))
+                # with open(s_file_1, 'wb') as writer:
+                #
+                #     cluster_limit = 1000
+                #     counting = 0
+                #     sub_cluster = {}
+                #
+                #     for key, value in new_clusters.items():
+                #         counting += 1
+                #         sub_cluster[key] = value
+                #
+                #         if counting == cluster_limit:
+                #             writer.write(sub_cluster.__str__() + "\n")
+                #             sub_cluster = {}
+                #             counting = 0
+                #
+                #     if counting != 0:
+                #         writer.write(sub_cluster.__str__() + "\n")
+                #
+                # with open(s_file_2, 'wb') as writer:
+                #     writer.write(returned['node2cluster_id'].__str__())
 
                 # **************************************************************************************************
                 print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(returned_hashed)
@@ -3574,11 +3598,747 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             print err.message
             return clusters
 
+
+# CLUSTERING A LIST OF TUPLES (NODE-1, NODE-1, STRENGTH) INSTEAD OF THE GRAPH DOWNLOADED FROM STARDOG
+def links_list_clustering(data, serialisation_dir, reconciled_name=None, stop_at=None):
+
+    # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
+    # ONCE THE CLUSTER IS COMPUTED, THE IDEA IS TO SERIALISE IT SO THAT IT WOULD NOT NEED TO BE
+    # RECOMPUTED AGAIN WHEN REQUESTED FOR. THE SERIALISED CLUSTER IS LINKED TO THE GENERIC METADATA
+    # OF THE GRAPH
+
+    print Ut.headings("LINK LIST CLUSTERING...")
+
+    if os.path.isdir(serialisation_dir) is False:
+        os.mkdir(serialisation_dir)
+
+    clusters = {}
+    extension_dict = {}
+
+    # **************************************************************************************************
+    # 0. CHECK IF THE ALIGNMENT HAS A TRIPLE DOCUMENTING WHETHER IT CLUSTER WAS SERIALISED
+    # **************************************************************************************************
+
+    # **************************************************************************************************
+    # 1. THE CLUSTER HAS ALREADY BEEN SERIALIZED => IT JUST NEED TO BE DE-SERIALISED
+    # **************************************************************************************************
+
+    # **************************************************************************************************
+    # 2. THE CLUSTER HAS NOT BEEN SERIALIZED YET
+    # RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
+    # **************************************************************************************************
+    if True:
+
+        print "\n>>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. " \
+              "\n>>> *** MAYBE TIME FOR A COFFEE?. ***"
+
+        count = 0
+        # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
+        root = dict()
+        # THE CLUSTERS DICTIONARY
+        clusters = dict()
+        # THE DICTIONARY MAPPING EACH NODE TO ITS CLUSTER
+        root_mtx = {}
+        clusters_mtx = {}
+
+        hashed_name = data.__str__()
+
+        # EXAMPLE
+        #   P1832892825 	{
+        #       'nodes': set(['<http://www.grid.ac/institutes/grid.449957.2>',
+        #                     '<http://risis.eu/eter_2014/resource/NL0028>']),
+
+        #       'strengths': {('<http://risis.eu/eter_2014/resource/NL0028>',
+        #                  '<http://www.grid.ac/institutes/grid.449957.2>'): ['1', '1']},
+
+        #       'links': set([('<http://risis.eu/eter_2014/resource/NL0028>',
+        #                  '<http://www.grid.ac/institutes/grid.449957.2>')])
+        # }
+
+        # **************************************************************************************************
+        # HELPER FUNCTIONS
+        # **************************************************************************************************
+        def merge_d_matrices(parent, pop_parent):
+
+            # COPYING LESSER MATRIX TO BIGGER MATRIX
+
+            index = parent[St.row]
+            pop_row = pop_parent[St.row]
+            cur_mxd = parent[St.matrix_d]
+            pop_mxd = pop_parent[St.matrix_d]
+            # position_add = clusters[parent][St.row] - 1
+
+            # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
+            # print "\tADD VALUE: {}".format(position_add)
+
+            # COPY MATRIX
+            # print "\tPOP HEADER: {}".format(pop_mx[0][:])
+            for row in range(1, pop_row):
+
+                # ADD HEADER IF NOT ALREADY IN
+                # print "\tCURRENT HEADER ADDED: {}".format(cur_mx[0:])
+                if pop_mxd[(row, 0)] not in cur_mxd:
+                    pop_item_row = pop_mxd[(row, 0)]
+                    cur_mxd[(index, 0)] = pop_item_row
+                    cur_mxd[(0, index)] = pop_item_row
+                    index += 1
+                    parent[St.row] = index
+                    # print "\tHEADER ADDED: {}".format(pop_item_row)
+
+                    # FOR THAT HEADER, COPY THE SUB-MATRIX
+                    for col in range(1, pop_row):
+
+                        # THE HEADER ARE ALREADY IN THERE
+                        if (row, col) in pop_mxd and pop_mxd[(row, col)] != 0:
+                            # find header in current matrix
+                            for col_item in range(1, len(cur_mxd)):
+                                if (0, col_item) in cur_mxd and (0, col) in pop_mxd and \
+                                                cur_mxd[(0, col_item)] == pop_mxd[(0, col)]:
+                                    # print "\tIN2 ({}, {})".format(index - 1, col_item)
+                                    cur_mxd[(index - 1, col_item)] = 1
+
+        def cluster_helper_mtx(counter, annotate=False):
+
+            counter += 1
+            # child_1 = subject.n3().strip()
+            # child_2 = obj.n3().strip()
+            child_1 = subject.strip()
+            child_2 = t_object.strip()
+
+            # DATE CREATION
+            # date = "{}".format(datetime.datetime.today().strftime(_format))
+
+            # CHECK WHETHER A CHILD HAS A PARENT
+            has_parent_1 = True if child_1 in root_mtx else False
+            has_parent_2 = True if child_2 in root_mtx else False
+            # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
+
+            # 1. START BOTH CHILD ARE ORPHANS
+            if has_parent_1 is False and has_parent_2 is False:
+
+                # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                # GENERATE THE PARENT
+                # hash_value = hash(date + str(count) + graph)
+                hash_value = hash(child_1 + child_2 + hashed_name)
+                parent = "{}".format(str(hash_value).replace("-", "N")) if str(
+                    hash_value).startswith("-") \
+                    else "P{}".format(hash_value)
+
+                # ASSIGN A PARENT TO BOTH CHILD
+                root[child_1] = parent
+                root[child_2] = parent
+
+                # CREATE A CLUSTER
+                if parent not in clusters:
+                    # MATRIX
+                    # mx = matrix(matrix_size, matrix_size)
+                    mxd = dict()
+                    # ROW
+                    # mx[0][1] = child_1
+                    # mx[0][2] = child_2
+
+                    mxd[(0, 1)] = child_1
+                    mxd[(0, 2)] = child_2
+
+                    # COLUMNS
+                    # mx[1][0] = child_1
+                    # mx[2][0] = child_2
+
+                    mxd[(1, 0)] = child_1
+                    mxd[(2, 0)] = child_2
+
+                    # RELATION
+                    # mx[1][2] = 1
+                    # mx[2][1] = 1
+                    mxd[(2, 1)] = 1
+
+                    clusters[parent] = {St.children: [child_1, child_2], St.matrix: None, St.row: 3,
+                                        St.matrix_d: mxd}
+                    if annotate:
+                        clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
+
+                        # print "\tPOSITION: {}".format(3)
+                        # print "\tIT WILL BE PRINTED AT: ({}, {})".format(2, 1)
+
+            # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
+            elif has_parent_1 is True and has_parent_2 is True:
+
+                # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+                if root_mtx[child_1] == root_mtx[child_2]:
+                    # print "CLUSTER SIZE IS {} BUT THERE IS NOTHING TO DO\n".format(len(clusters))
+                    # print "\nSAME PARENTS {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+                    # cur_mx = clusters[root[child_1]][St.matrix]
+                    cur_mxd = clusters[root[child_1]][St.matrix_d]
+
+                    row_1 = 0
+                    row_2 = 0
+
+                    # FIND ROW
+                    # row_1 = clusters[root[child_1]][St.row]
+                    # for row in range(1, clusters[root[child_1]][St.row]):
+                    #     if cur_mx[row][0] == child_1:
+                    #         row_1 = row
+                    #
+                    # for col in range(1, clusters[root[child_1]][St.row]):
+                    #     if cur_mx[0][col] == child_2:
+                    #         row_2 = col
+
+                    for row in range(1, clusters[root[child_1]][St.row]):
+                        if (row, 0) in cur_mxd and cur_mxd[(row, 0)] == child_1:
+                            row_1 = row
+
+                    for col in range(1, clusters[root[child_1]][St.row]):
+                        if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
+                            row_2 = col
+
+                    # row_2 = clusters[root[child_2]][St.row]
+
+                    # print "\tPOSITIONS: {} | {}".format(row_2, row_1)
+                    # cur_mx[row_2][row_1] = 1
+                    cur_mxd[(row_2, row_1)] = 1
+
+                    if annotate:
+                        clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1,
+                                                                                                  child_2)
+
+                    # COPY THE SUB-MATRIX
+                    # for col in range(1, row_1):
+                    #     if cur_mx[0][col] == child_2:
+                    #         print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+                    #         print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
+                    #         cur_mx[row_1 - 1][col] = 1
+
+                    # continue
+                    return counter
+
+                # THE PARENT WITH THE MOST CHILD GET THE CHILD OF THE OTHER PARENT
+                # fFETCHING THE RESOURCES IN THE CLUSTER (CHILDREN)
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                children_1 = (clusters_mtx[root_mtx[child_1]])[St.children]
+                children_2 = (clusters_mtx[root_mtx[child_2]])[St.children]
+
+                # 2.2 CHOOSE A PARENT
+                if len(children_1) >= len(children_2):
+                    # print "\tPARENT 1"
+                    parent = root_mtx[child_1]
+                    pop_parent = root_mtx[child_2]
+                    # root[child_2] = parent
+
+                else:
+                    # print "\tPARENT 2"
+                    parent = root_mtx[child_2]
+                    pop_parent = root_mtx[child_1]
+                    # root[child_1] = parent
+
+                # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+                for offspring in clusters_mtx[pop_parent][St.children]:
+                    root_mtx[offspring] = parent
+                    clusters_mtx[parent][St.children] += [offspring]
+
+                # MERGE CURRENT WITH LESSER (CHILDREN) MATRICES, ANNOTATE AND POOP LESSER (CHILDREN) MATRICES
+                merge_d_matrices(clusters_mtx[parent], clusters_mtx[pop_parent])
+
+                if annotate:
+                    clusters_mtx[parent][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
+                cluster_helper_mtx(count)
+                # cluster_helper(count)
+
+                # COPYING LESSER MATRIX TO BIGGER MATRIX
+                # index = clusters[parent][St.row]
+                # pop_row = clusters[pop_parent][St.row]
+                # cur_mx = clusters[parent][St.matrix]
+                # pop_mx = clusters[pop_parent][St.matrix]
+                # # position_add = clusters[parent][St.row] - 1
+                #
+                # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
+                # # print "\tADD VALUE: {}".format(position_add)
+                #
+                # # # ADD HEADER
+                # # for x in range(1, pop_index):
+                # #     cur_mx[0][index - 1 + x] = pop_mx[0][x]
+                # #     cur_mx[index - 1 + x][0] = pop_mx[0][x]
+                # #     clusters[parent][St.row] += 1
+                #
+                # # COPY MATRIX
+                # print "\tPOP HEADER: {}".format(pop_mx[0][:])
+                # for row in range(1, pop_row):
+                #
+                #     # ADD HEADER IF NOT ALREADY IN
+                #     # print "\tCURREENT HEADER ADDED: {}".format(cur_mx[0:])
+                #     if pop_mx[row][0] not in cur_mx[0:]:
+                #         pop_item_row = pop_mx[row][0]
+                #         cur_mx[index][0] = pop_item_row
+                #         cur_mx[0][index] = pop_item_row
+                #         index += 1
+                #         clusters[parent][St.row] = index
+                #         print "\tHEADER ADDED: {}".format(pop_item_row)
+                #
+                #
+                #         # FOR THAT HEADER, COPY THE SUB-MATRIX
+                #         for col in range(1, pop_row):
+                #
+                #             # THE HEADER IS NOT IN
+                #             if pop_mx[row][col] != 0 and pop_mx[row][0] not in cur_mx[1:-1]:
+                #                 print "\tIN ({}, {})".format(index-1, col )
+                #                 # index += 1
+                #                 # clusters[parent][St.row] = index
+                #
+                #             # THE HEADER ARE ALREADY IN THERE
+                #             if pop_mx[row][col] != 0:
+                #                 # find header in current matrix
+                #                 for col_item in range(1, len(cur_mx[1:-1])):
+                #                     if cur_mx[0][col_item] == pop_mx[0][col]:
+                #                         print "\tIN2 ({}, {})".format(index-1, col_item)
+                # cur_mx[row + position_add][col + position_add] = pop_mx[row][col]
+
+                # cur_mx[0][position_add+ row] = pop_mx[row][0]
+
+                # cur_mx[y + position_add][x + position_add] = pop_mx[y][x]
+
+                # POP THE PARENT WITH THE LESSER CHILD
+
+                if annotate:
+                    clusters_mtx[parent][St.annotate] += clusters_mtx[pop_parent][St.annotate]
+                clusters_mtx.pop(pop_parent)
+
+            # 3. ONE CHILD [CHILD 1] HAVE A PARENT OF HIS OWN
+            elif has_parent_1 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_1]
+                root[child_2] = parent
+                clusters[parent][St.children] += [child_2]
+                # print "\t>>> {} is in root {}".format(child_2, child_2 in root)
+
+                # cur_mx = clusters[parent][St.matrix]
+                cur_mxd = clusters[parent][St.matrix_d]
+                row_1 = clusters[parent][St.row]
+
+                # ADD HEADER
+                # cur_mx[row_1][0] = child_2
+                # cur_mx[0][row_1] = child_2
+
+                cur_mxd[(row_1, 0)] = child_2
+                cur_mxd[(0, row_1)] = child_2
+
+                # INCREMENT POSITION
+                row_1 += 1
+                # print "\tPOSITION: {}".format(row_1)
+                clusters[parent][St.row] = row_1
+
+                # COPY MATRIX
+                # for col in range(1, row_1):
+                #     # print cur_mx[0][x], child_1
+                #     if cur_mx[0][col] == child_1:
+                #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+                #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
+                #         # cur_mx[position_1 - 1][x] = 1
+                #         cur_mx[row_1 - 1][col] = 1
+                #         clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                #             child_1, child_2)
+
+                for col in range(1, row_1):
+                    if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_1:
+                        cur_mxd[(row_1 - 1, col)] = 1
+                        if annotate:
+                            clusters[root[child_1]][
+                                St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                                child_1, child_2)
+
+            # 4. ONE CHILD [CHILD 2] HAVE A PARENT OF HIS OWN
+            elif has_parent_2 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_2]
+                root[child_1] = parent
+                clusters[parent][St.children] += [child_1]
+                # print "\t>>> {} is in root {}".format(child_1, child_1 in root)
+
+                # cur_mx = clusters[parent][St.matrix]
+                cur_mxd = clusters[parent][St.matrix_d]
+                row_2 = clusters[parent][St.row]
+
+                # ADD HEADER
+                # print row_2
+                # cur_mx[row_2][0] = child_1
+                # cur_mx[0][row_2] = child_1
+
+                cur_mxd[(row_2, 0)] = child_1
+                cur_mxd[(0, row_2)] = child_1
+
+                # INCREMENT POSITION
+                row_2 += 1
+                # print "\tPOSITION: {}".format(row_2)
+                clusters[parent][St.row] = row_2
+
+                # COPY MATRIX
+                # for col in range(1, row_2):
+                #     # print cur_mx[0][x], child_1
+                #     if cur_mx[0][col] == child_2:
+                #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
+                #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_2 - 1, col)
+                #         # cur_mx[position_2 - 1][x] = 1
+                #         cur_mx[row_2 - 1][col] = 1
+                #         clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                #             child_2, child_1)
+
+                for col in range(1, row_2):
+                    if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
+                        cur_mxd[(row_2 - 1, col)] = 1
+                        if annotate:
+                            clusters[root[child_1]][
+                                St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                                child_2, child_1)
+
+            return counter
+
+        def cluster_helper_set(counter, annotate=False):
+
+            counter += 1
+            # child_1 = subject.strip()
+            # child_2 = obj.strip()
+
+            child_1 = subject.strip()
+            child_2 = t_object.strip()
+            child_1 = child_1 if Ut.is_nt_format(child_1) else "<{}>".format(child_1)
+            child_2 = child_2 if Ut.is_nt_format(child_2) else "<{}>".format(child_2)
+
+            # DATE CREATION
+            the_date = "{}".format(datetime.datetime.today().strftime(_format))
+
+            # CHECK WHETHER A CHILD HAS A PARENT
+            has_parent_1 = True if child_1 in root else False
+            has_parent_2 = True if child_2 in root else False
+            # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
+
+            # *******************************************
+            # 1. START BOTH CHILD ARE ORPHANS
+            # *******************************************
+            if has_parent_1 is False and has_parent_2 is False:
+
+                # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                # GENERATE THE PARENT
+                hash_value = hash(the_date + str(count) + hashed_name)
+                parent = "{}".format(str(hash_value).replace("-", "N")) if str(
+                    hash_value).startswith("-") \
+                    else "P{}".format(hash_value)
+
+                # ASSIGN A PARENT TO BOTH CHILD
+                root[child_1] = parent
+                root[child_2] = parent
+
+                # THE SUBJECT AND OBJECT LINK
+                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+
+                # THE CLUSTER COMPOSED OF NODES, LINKS AND STRENGTHS
+                key_1 = "key_{}".format(str(hash(link)).replace("-", "N"))
+                clusters[parent] = {
+                    'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {key_1: strength}}
+                # print "1",clusters[parent]
+
+                # print parent, child_1, child_2
+                if annotate:
+                    clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
+
+            # *******************************************
+            # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
+            # *******************************************
+            elif has_parent_1 is True and has_parent_2 is True:
+
+                # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+                if root[child_1] != root[child_2]:
+
+                    parent1 = root[child_1]
+                    parent2 = root[child_2]
+                    # root2[child_2] = parent1
+
+                    if annotate:
+                        clusters[parent1][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
+                    # print parent1, parent2
+
+                    if parent2 in clusters:
+                        # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+                        # check this
+                        for child in clusters[parent2]['nodes']:
+                            root[child] = parent1
+
+                        # print 'before', clusters2[parent1]['nodes']
+                        # RE-ASSIGNING THE NODES OF CHILD 2
+                        clusters[parent1]['nodes'] = clusters[parent1]['nodes'].union(
+                            clusters[parent2]['nodes'])
+                        # RE-ASSIGNING THE LINKS OF CHILD 2
+
+                        clusters[parent1]['links'] = clusters[parent1]['links'].union(
+                            clusters[parent2]['links'])
+
+                        # RE-ASSIGNING THE STRENGTHS OF CHILD 2
+                        for i_key, link_strengths in clusters[parent2]['strengths'].items():
+                            if i_key not in clusters[parent1]['strengths']:
+                                clusters[parent1]['strengths'][i_key] = link_strengths
+                            else:
+                                clusters[parent1]['strengths'][i_key] += link_strengths
+
+                        # print 'after', clusters2[parent1]['nodes']
+
+                        # add the current link (child_1, child_2)
+                        link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                        clusters[parent1]['links'].add(link)
+
+                        # link_hash = str(hash(link))
+                        link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                        if link_hash in clusters[parent1]['strengths']:
+                            clusters[parent1]['strengths'][link_hash] += strength
+                        else:
+                            clusters[parent1]['strengths'][link_hash] = strength
+
+                        clusters.pop(parent2)
+                else:
+                    parent = root[child_1]
+                    link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                    clusters[parent]['links'].add(link)
+
+                    # link_hash = str(hash(link))
+                    link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                    if link_hash in clusters[parent]['strengths']:
+                        clusters[parent]['strengths'][link_hash] += strength
+                    else:
+                        clusters[parent]['strengths'][link_hash] = strength
+
+                    if annotate:
+                        clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1,
+                                                                                                  child_2)
+
+            # *******************************************
+            # 3. BOTH CHILD HAVE DIFFERENT PARENTS
+            # *******************************************
+            elif has_parent_1 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_1]
+                root[child_2] = parent
+
+                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                clusters[parent]['links'].add(link)
+                clusters[parent]['nodes'].add(child_2)
+
+                # link_hash = str(hash(link))
+                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                if link_hash in clusters[parent]['strengths']:
+                    clusters[parent]['strengths'][link_hash] += strength
+                else:
+                    clusters[parent]['strengths'][link_hash] = strength
+
+                if annotate:
+                    clusters[parent][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
+                        child_1, child_2)
+
+            # *******************************************
+            # 4. BOTH CHILD HAVE DIFFERENT PARENTS
+            # *******************************************
+            elif has_parent_2 is True:
+
+                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
+                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
+
+                parent = root[child_2]
+                root[child_1] = parent
+
+                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
+                clusters[parent]['links'].add(link)
+                clusters[parent]['nodes'].add(child_1)
+
+                # link_hash = str(hash(link))
+                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
+                if link_hash in clusters[parent]['strengths']:
+                    clusters[parent]['strengths'][link_hash] += strength
+                else:
+                    clusters[parent]['strengths'][link_hash] = strength
+
+                if annotate:
+                    clusters[parent][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
+                        child_2, child_1)
+
+            return counter
+
+        # **************************************************************************************************
+        # RUNNING THE LINK CLUSTER ALGORITHM
+        # **************************************************************************************************
+        try:
+
+            standard = 50000
+            check = 1
+            iteration = 1
+            size = len(data)
+
+            # **************************************************************************************************
+            print "\n1. THE GRAPH IS OF {} LINKS".format(size)
+            # **************************************************************************************************
+            if len(data) == 0:
+                print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
+                return {}
+
+            # **************************************************************************************************
+            print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
+            # **************************************************************************************************
+            start = time.time()
+            for connection in data:
+
+                subject, t_object, strength = connection[0], connection[1], connection[2]
+
+                # CALLING THE MAIN HELPER FUNCTION
+                count = cluster_helper_set(count, annotate=False)
+
+                # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN EVERY STANDARD ITERATIONS
+                if iteration == check:
+                    print "\tRESOURCE {:>10}:   {}    =    {}".format(count, subject, t_object)
+                    check += standard
+                iteration += 1
+                # print strength
+                # break
+            diff = datetime.timedelta(seconds=time.time() - start)
+            print "\t{} triples clustered in {}".format(size, diff)
+            # COMPARING HELPERS
+            # for subject, predicate, obj in g:
+            #
+            #     count = cluster_helper_set(count, annotate=False)
+            #     # count_mtx = cluster_helper_mtx(count_mtx)
+            #     if iteration == check:
+            #         print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
+            #         check = check + standard
+            #     iteration += 1
+
+            # sizes = set()
+            # sizes2 = set()
+            # for p, c in clusters.items():
+            #     # {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
+            #     # print c
+            #     mdx = c[St.matrix_d]
+            #     countLinks = 0
+            #     for x, y in mdx.items():
+            #         if y == 1:
+            #             countLinks += 1
+            #     sizes.add((len(c[St.children]), countLinks))
+            # for p, c in clusters2.items():
+            #     sizes2.add((len(c['nodes']), len(c['links'])))
+            #
+            # sizes = sorted(sizes)
+            # sizes2 = sorted(sizes2)
+            # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
+            # **************************************************************************************************
+            print "\n3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
+            # **************************************************************************************************
+
+            # for (key, val) in clusters.items():
+            #     print key, "\t", val
+
+            # for (key, val) in root.items():
+            #     print key, "\t", val
+
+            # **************************************************************************************************
+            print "\n4. PROCESSING THE CLUSTERS FOR UNIQUE ID AND PREPARING FOR SERIALISATION"
+            # **************************************************************************************************
+            new_clusters = dict()
+            start = time.time()
+            for (key, data) in clusters.items():
+
+                # RESETTING THE CLUSTER ID
+                smallest_hash = ""
+                for node in data['nodes']:
+                    # CREATE THE HASHED ID AS THE CLUSTER NAME
+                    hashed = hash(node)
+                    if hashed <= smallest_hash:
+                        smallest_hash = hashed
+
+                # CREATE A NE KEY
+                new_key = "{}".format(str(smallest_hash).replace("-", "N")) if str(
+                    smallest_hash).startswith("-") else "P{}".format(smallest_hash)
+
+                # CONVERTING SET TO LIST AS AST OR JASON DO NOT DEAL WITH SET
+                new_clusters[new_key] = {'nodes': [], 'strengths': [], 'links': []}
+                new_clusters[new_key]['nodes'] = list(data['nodes'])
+                new_clusters[new_key]['strengths'] = data['strengths']
+                new_clusters[new_key]['links'] = list(data['links'])
+
+                # UPDATE THE ROOT WITH THE NEW KEY
+                for node in data['nodes']:
+                    root[node] = new_key
+
+            returned = {'clusters': new_clusters, 'node2cluster_id': root}
+            # returned_hashed = str(hash(returned.__str__()))
+            # returned_hashed = returned_hashed.replace("-", "Cluster_N") if returned_hashed.startswith("-")\
+            #     else "Cluster_P{}".format(returned_hashed)
+
+            if len(new_clusters) != 0 and len(root) != 0:
+
+                # SERIALISATION
+                # **************************************************************************************************
+                print "\n5. SERIALISING THE DICTIONARIES..."
+                # **************************************************************************************************
+                s_file_1 = os.path.join(serialisation_dir, "{}-reconciled-1.txt".format(reconciled_name))
+                s_file_2 = os.path.join(serialisation_dir, "{}-reconciled-2.txt".format(reconciled_name))
+                with open(s_file_1, 'wb') as writer:
+
+                    cluster_limit = 1000
+                    counting = 0
+                    sub_cluster = {}
+
+                    for key, value in new_clusters.items():
+                        counting += 1
+                        sub_cluster[key] = value
+
+                        if counting == cluster_limit:
+                            writer.write(sub_cluster.__str__() + "\n")
+                            sub_cluster = {}
+                            counting = 0
+
+                    if counting != 0:
+                        writer.write(sub_cluster.__str__() + "\n")
+
+                with open(s_file_2, 'wb') as writer:
+                    writer.write(returned['node2cluster_id'].__str__())
+
+                # **************************************************************************************************
+                print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(reconciled_name)
+                # **************************************************************************************************
+
+
+                # **************************************************************************************************
+                print "\n7. SERIALISATION IS COMPLETED..."
+                # **************************************************************************************************
+                diff = datetime.timedelta(seconds=time.time() - start)
+                print "\t{} triples serialised in {}".format(size, diff)
+
+                print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
+
+            else:
+                print "THE RETURNED DICTIONARY IS EMPTY."
+
+            # print clusters
+            # print new_clusters
+
+            return new_clusters
+
+        except Exception as err:
+            traceback.print_exc()
+            print err.message
+            return clusters
+
+
 # ****************************************************
 # BASED ON ASSOCIATION RELATIONSHIPS [related_linkset]
 # THIS FUNCTION EXTENDS A GRAPH
 # ****************************************************
-def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
+def list_extended_clusters(
+        graph, reconciled_name, clusters_dictionary, related_linkset, serialisation_dir, reset=False):
 
     print "\n>>> RUNNING THE FUNCTION [list_extended_clusters]"
     # 1. DOCUMENTING START AND END OF PATHS IN A CYCLE
@@ -3592,8 +4352,14 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
 
         old = False
 
+        # CHECK WHETHER THE PAIR OF CLUSTERS IS IN A CYCLE.
+        # THIS IS THE CASE IF THE PAIR OF CLUSTER HAS AT LEAST TWO RELATED LINKS
+        list_of_related = dict_clusters_pairs[(source_cluster, target_cluster)]
+
         # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
-        for related_nodes in dict_clusters_pairs[(source_cluster, target_cluster)]:
+        # if list_of_related >= 2:
+
+        for related_nodes in list_of_related:
 
             # 1.1 COMPUTE THE SHORTEST PATH SIZE (DIAMETER) FOR THESE START AND END NODES (SUBJECT)
             sub_link_network = clusters[source_cluster]['links']
@@ -3609,15 +4375,15 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
             sub_diameter_weighted_diameter = shortest_paths_lite(
                 sub_link_network, start_node=related_nodes[0], end_node=src_node, strengths=sub_strengths)
 
-            # 2.2 ET THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT
+            # 2.2 GET THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT
             # print "\tGETTING THE DIAMETER AND WEIGHTED DIAMETER OF THE OBJECT CLUSTER FOR START AND END NODES:"
             # print "\t\t\v ", related_nodes[1], "AND", trg_node
             obj_diameter_weighted_diameter = shortest_paths_lite(
                 obj_link_network, start_node=related_nodes[1], end_node=trg_node, strengths=obj_strengths)
 
             # 3.1 [SOURCE] FETCH THE STRENGTH OF THE RECONCILED NODES IF THE LINK EXISTS
-            link = (related_nodes[0], src_node) if related_nodes[0] < src_node else (src_node, related_nodes[0])
-            key_1 = "key_{}".format(str(hash(link)).replace("-", "N"))
+            link_1 = (related_nodes[0], src_node) if related_nodes[0] < src_node else (src_node, related_nodes[0])
+            key_1 = "key_{}".format(str(hash(link_1)).replace("-", "N"))
             if key_1 in sub_strengths:
                 sub_strength = max(sub_strengths[key_1])
             else:
@@ -3625,8 +4391,8 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
                 sub_strength = 0
 
             # 3.2 [TARGET] FETCH THE STRENGTH OF THE RECONCILED NODES IF THE LINK EXISTS
-            link = (related_nodes[1], trg_node) if related_nodes[1] < trg_node else (trg_node, related_nodes[1])
-            key_2 = "key_{}".format(str(hash(link)).replace("-", "N"))
+            link_2 = (related_nodes[1], trg_node) if related_nodes[1] < trg_node else (trg_node, related_nodes[1])
+            key_2 = "key_{}".format(str(hash(link_2)).replace("-", "N"))
             if key_2 in obj_strengths:
                 obj_strength = max(obj_strengths[key_2])
             else:
@@ -3651,7 +4417,7 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
                 ev_w_diameter=sub_diameter_weighted_diameter[1], c_penalty=10)
             # print "\t\t>>> RECONCILED:", 0 if strength < 0 else strength
 
-            # BUILDING THE  NETWORKS FOR RECONCILED NODES
+            # BUILDING THE NETWORKS FOR RECONCILED NODES
             key_1 = Ut.get_key(related_nodes[0], src_node)
             key_2 = Ut.get_key(related_nodes[1], trg_node)
             if source_cluster not in reconciled_nodes:
@@ -3785,15 +4551,19 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
                     # print 'adding new path-strength for {}, adding ({}, {}, {})'.format(
                     # target_cluster, related_nodes[1], trg_node, obj_strength)
 
-        # **************************************************************************************************
-        # END OF HELPER CODE
-        # **************************************************************************************************
+    # **************************************************************************************************
+    # END OF HELPER CODE
+    # **************************************************************************************************
 
     def derive_reconciliation(cluster_id, detail=False):
 
         print "CLUSTER: {}".format(cluster_id)
         temp = []
         investigated = reconciled_nodes[cluster_id]
+
+        if 'links' not in investigated:
+            return
+
         # POSSIBLE CONNECTIONS IN A DIRECTED GRAPH
         combinations = Ut.ordered_combinations(list(investigated["nodes"]))
         # NETWORK OF ALL POSSIBLE LINKS BASED ON ALL NODE RECONCILED
@@ -3807,6 +4577,7 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
 
         while True:
             remain = 0
+
             for c1, c2 in combinations:
 
                 # THIS IS A RECONCILED LINK
@@ -3821,43 +4592,57 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
                         print "\tOUT:", (c1, c2, "R")
 
                     # FIND ALL BASE CYCLE FROM THE FULLY CONNECTED GRAPH
-                    base_cycles = filter(lambda x: len(x) == 3, list(nx.all_simple_paths(network, c1, c2)))
-                    if len(base_cycles) > 0:
-                        remain += 1
+                    base_cycles = filter(lambda x: len(x) == 3, list(nx.all_simple_paths(network, c1, c2, cutoff=2)))
+                    # if len(base_cycles) > 0:
+                    #     remain += 1
 
-                    for base_cycles in base_cycles:
-                        key_1 = Ut.get_key(base_cycles[0], base_cycles[1])
-                        key_2 = Ut.get_key(base_cycles[1], base_cycles[2])
+                    for base_cycle in base_cycles:
+
+                        if detail:
+                            print "CYCLE BASE", base_cycle
+
+                        key_1 = Ut.get_key(base_cycle[0], base_cycle[1])
+                        key_2 = Ut.get_key(base_cycle[1], base_cycle[2])
+
                         if key_1 in investigated["strengths"]:
+
                             if key_2 in investigated["strengths"]:
+                                remain += 1
                                 strength = max(investigated["strengths"][key_2]) * max(
                                     investigated["strengths"][key_1])
                                 if detail:
                                     print "\t>> Keys {} * {} = {}".format(
                                         investigated["strengths"][key_1], investigated["strengths"][key_2], strength)
                                 temp += [(c1, c2, Ut.get_key(c1, c2), strength)]
+
+                            # else:
+                            #     remain = 0 if remain - 1 < 0 else remain - 1
+
+                        # else:
+                        #     remain = 0 if remain - 1 < 0 else remain - 1
             if detail:
                 print "\n\t******************************************************************************\n"
 
             if remain == 0:
                 break
 
-            for node1, node2, key, strength in temp:
+            for node1, node2, link_key, strength in temp:
 
                 # NEW LINK
                 if (node1, node2, "D") not in investigated["links"]:
                     investigated["links"] += [(node1, node2, "D")]
 
                 # NEW STRENGTH
-                if key in investigated["strengths"]:
-                    investigated["strengths"][key] += [strength]
+                if link_key in investigated["strengths"]:
+                    investigated["strengths"][link_key] += [strength]
                 else:
-                    investigated["strengths"][key] = [strength]
+                    investigated["strengths"][link_key] = [strength]
             temp = []
 
-        for key, value in investigated["strengths"].items():
-            if len(value) > 1:
-                investigated["strengths"][key] = [max(value)]
+        if "strengths" in investigated:
+            for inv_key, inv_value in investigated["strengths"].items():
+                if len(inv_value) > 1:
+                    investigated["strengths"][inv_key] = [max(inv_value)]
 
         # if detail:
         #     Ut.print_list(investigated["links"], comment="LINKS")
@@ -4007,13 +4792,16 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
             # CHECK WHETHER EACH SIDE BELONG TO A CLUSTER
             if sub in node2cluster and obj in node2cluster:
 
+                # FETCH THE CLUSTER ID OF THE NODES IN THE ASSOCIATION
                 src_cluster_id = node2cluster[sub]
                 trg_cluster_id = node2cluster[obj]
 
                 # ****************************************************************
                 # TO SAVE TIME, WE DO NOT EVALUATE CLUSTERS OF SIZE BIGGER THAN 30
                 # ****************************************************************
-                condition = len(clusters[src_cluster_id]['nodes']) <= 30 and len(clusters[trg_cluster_id]['nodes']) <= 30
+                condition = \
+                    len(clusters[src_cluster_id]['nodes']) <= 30 and len(clusters[trg_cluster_id]['nodes']) <= 30
+
                 if condition is False:
                     continue
 
@@ -4046,7 +4834,8 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
 
                             # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
                             cycle_helper(
-                                src_node=sub, trg_node=obj, source_cluster=src_cluster_id, target_cluster=trg_cluster_id)
+                                src_node=sub, trg_node=obj,
+                                source_cluster=src_cluster_id, target_cluster=trg_cluster_id)
 
                             # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
                             dict_clusters_pairs[(src_cluster_id, trg_cluster_id)] += [(sub, obj)]
@@ -4109,7 +4898,8 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
 
                             # DOCUMENTING THE CYCLE START AND END FOR THIS SPECIFIC ORDER
                             cycle_helper(
-                                src_node=obj, trg_node=sub, source_cluster=trg_cluster_id, target_cluster=src_cluster_id)
+                                src_node=obj, trg_node=sub,
+                                source_cluster=trg_cluster_id, target_cluster=src_cluster_id)
 
                             # DOCUMENTING THE EXTENDED CLUSTERS AND RELATED NODES THAT EXTEND THE CLUSTERS
                             dict_clusters_pairs[(trg_cluster_id, src_cluster_id)] += [(obj, sub)]
@@ -4122,40 +4912,46 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
         # 2.2 EXTRACT ALL RECONCILED NODES PER EXTENDED CLUSTER
         #     INSTANTIATING reconciled_nodes WITH THE NODES
         # **************************************************
-        for key, value in dict_clusters_pairs.items():
 
-            if key[0] not in reconciled_nodes:
-                reconciled_nodes[key[0]]["nodes"] = set()
-                for item in value:
-                    reconciled_nodes[key[0]]["nodes"].add(item[0])
-            else:
-                if "nodes" not in reconciled_nodes[key[0]]:
-                    reconciled_nodes[key[0]]["nodes"] = set()
-                    for item in value:
-                        reconciled_nodes[key[0]]["nodes"].add(item[0])
-                else:
-                    for item in value:
-                        reconciled_nodes[key[0]]["nodes"].add(item[0])
+        for key, value in reconciled_nodes.items():
+            links = value['links']
+            nodes = list(set([data[0] for data in links] + [data[1] for data in links]))
+            reconciled_nodes[key]['nodes'] = nodes
 
-            if key[1] not in reconciled_nodes:
-                reconciled_nodes[key[1]]["nodes"] = set()
-                for item in value:
-                    reconciled_nodes[key[1]]["nodes"].add(item[1])
-            else:
-                if "nodes" not in reconciled_nodes[key[1]]:
-                    reconciled_nodes[key[1]]["nodes"] = set()
-                    for item in value:
-                        reconciled_nodes[key[1]]["nodes"].add(item[1])
-                else:
-                    for item in value:
-                        reconciled_nodes[key[1]]["nodes"].add(item[1])
+        # for key, value in dict_clusters_pairs.items():
+        #
+        #     if key[0] not in reconciled_nodes:
+        #         reconciled_nodes[key[0]] = {"nodes": set()}
+        #         for item in value:
+        #             reconciled_nodes[key[0]]["nodes"].add(item[0])
+        #     else:
+        #         if "nodes" not in reconciled_nodes[key[0]]:
+        #             reconciled_nodes[key[0]]["nodes"] = set()
+        #             for item in value:
+        #                 reconciled_nodes[key[0]]["nodes"].add(item[0])
+        #         else:
+        #             for item in value:
+        #                 reconciled_nodes[key[0]]["nodes"].add(item[0])
+        #
+        #     if key[1] not in reconciled_nodes:
+        #         reconciled_nodes[key[1]] = {"nodes": set()}
+        #         for item in value:
+        #             reconciled_nodes[key[1]]["nodes"].add(item[1])
+        #     else:
+        #         if "nodes" not in reconciled_nodes[key[1]]:
+        #             reconciled_nodes[key[1]]["nodes"] = set()
+        #             for item in value:
+        #                 reconciled_nodes[key[1]]["nodes"].add(item[1])
+        #         else:
+        #             for item in value:
+        #                 reconciled_nodes[key[1]]["nodes"].add(item[1])
 
         # ***********************************************************
         # 2.3 COMPUTING THE DERIVED RECONCILIATION STRENGTHS
         # ***********************************************************
         print "*** COMPUTING THE DERIVED STRENGTHS ***"
         for key in reconciled_nodes.keys():
-            reconciled_nodes[key]['nodes'] = list(reconciled_nodes[key]['nodes'])
+            # reconciled_nodes[key]['nodes'] = list(reconciled_nodes[key]['nodes'])
             derive_reconciliation(key, detail=True)
             # print key
         # derive_reconciliation('P1935396683', detail=True)
@@ -4165,9 +4961,9 @@ def list_extended_clusters(graph, reconciled_name, clusters_dictionary, related_
         # BUILDING UP CLUSTER DATA
         related_graph_mane = Ut.get_uri_local_name_plus(related_linkset)
         c_data = []
-        for key, cluster in reconciled_nodes.items():
-            strengths = cluster['strengths']
-            for link in cluster['links']:
+        for key, reconciled in reconciled_nodes.items():
+            strengths = reconciled['strengths']
+            for link in reconciled['links']:
                 c_data += [(link[0], link[1], strengths[Ut.get_key(link[0], link[1])])]
 
         Ut.print_list(c_data)
@@ -4311,6 +5107,7 @@ def shortest_paths_lite(link_network, start_node, end_node, strengths=None):
     # print "GRAPH-1:", g.__str__()
     # print "\t\t\v ", start_node, "AND", end_node
     result = nx.shortest_path(g, source=start_node, target=end_node)
+    diameter = len(result) - 1
     # print "RESULT-1:", result
     results = []
 
@@ -4692,16 +5489,16 @@ def list_extended_clusters_long(serialised_path, related_linkset):
 
                     if node2cluster[sub] < node2cluster[obj]:
                         if (node2cluster[sub], node2cluster[obj]) in dict_clusters_pairs.keys():
-                            dict_clusters_pairs[(node2cluster[sub], node2cluster[obj])].add((sub,obj))
+                            dict_clusters_pairs[(node2cluster[sub], node2cluster[obj])].add((sub, obj))
                             # s
                         else:
-                            dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])] = set([(sub,obj)])
+                            dict_clusters_pairs[(node2cluster[sub],node2cluster[obj])] = set([(sub, obj)])
                     else:
                         if (node2cluster[obj],node2cluster[sub]) in dict_clusters_pairs.keys():
-                            dict_clusters_pairs[(node2cluster[obj], node2cluster[sub])].add((sub,obj))
+                            dict_clusters_pairs[(node2cluster[obj], node2cluster[sub])].add((sub, obj))
                             # s.add((sub,obj))
                         else:
-                            dict_clusters_pairs[(node2cluster[obj], node2cluster[sub])] = set([(sub,obj)])
+                            dict_clusters_pairs[(node2cluster[obj], node2cluster[sub])] = set([(sub, obj)])
 
                     # if node2cluster[sub] < node2cluster[obj]:
                     #     if (node2cluster[sub],node2cluster[obj]) in pre_extended_pair_clusters:
@@ -5230,731 +6027,3 @@ TO DELETE FROM THE FILE
 
 
 # links_clustering("", limit=1000)
-
-
-
-
-def links_list_clustering(data, serialisation_dir, reconciled_name=None, stop_at=None):
-
-    # THIS FUNCTION CLUSTERS NODE OF A GRAPH BASED ON THE ASSUMPTION THAT THE NODE ARE "SAME AS".
-    # ONCE THE CLUSTER IS COMPUTED, THE IDEA IS TO SERIALISE IT SO THAT IT WOULD NOT NEED TO BE
-    # RECOMPUTED AGAIN WHEN REQUESTED FOR. THE SERIALISED CLUSTER IS LINKED TO THE GENERIC METADATA
-    # OF THE GRAPH
-
-    print Ut.headings("LINK LIST CLUSTERING...")
-
-    if os.path.isdir(serialisation_dir) is False:
-        os.mkdir(serialisation_dir)
-
-    clusters = {}
-    extension_dict = {}
-
-    # **************************************************************************************************
-    # 0. CHECK IF THE ALIGNMENT HAS A TRIPLE DOCUMENTING WHETHER IT CLUSTER WAS SERIALISED
-    # **************************************************************************************************
-
-    # **************************************************************************************************
-    # 1. THE CLUSTER HAS ALREADY BEEN SERIALIZED => IT JUST NEED TO BE DE-SERIALISED
-    # **************************************************************************************************
-
-    # **************************************************************************************************
-    # 2. THE CLUSTER HAS NOT BEEN SERIALIZED YET
-    # RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
-    # **************************************************************************************************
-    if True:
-
-        print "\n>>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. " \
-              "\n>>> *** MAYBE TIME FOR A COFFEE?. ***"
-
-        count = 0
-        # THE ROOT KEEPS TRACK OF THE CLUSTER A PARTICULAR NODE BELONGS TOO
-        root = dict()
-        # THE CLUSTERS DICTIONARY
-        clusters = dict()
-        # THE DICTIONARY MAPPING EACH NODE TO ITS CLUSTER
-        root_mtx = {}
-        clusters_mtx = {}
-
-        hashed_name = data.__str__()
-        # EXAMPLE
-        #   P1832892825 	{
-        #       'nodes': set(['<http://www.grid.ac/institutes/grid.449957.2>',
-        #                     '<http://risis.eu/eter_2014/resource/NL0028>']),
-
-        #       'strengths': {('<http://risis.eu/eter_2014/resource/NL0028>',
-        #                  '<http://www.grid.ac/institutes/grid.449957.2>'): ['1', '1']},
-
-        #       'links': set([('<http://risis.eu/eter_2014/resource/NL0028>',
-        #                  '<http://www.grid.ac/institutes/grid.449957.2>')])
-        # }
-
-        # **************************************************************************************************
-        # HELPER FUNCTIONS
-        # **************************************************************************************************
-        def merge_d_matrices(parent, pop_parent):
-
-            # COPYING LESSER MATRIX TO BIGGER MATRIX
-
-            index = parent[St.row]
-            pop_row = pop_parent[St.row]
-            cur_mxd = parent[St.matrix_d]
-            pop_mxd = pop_parent[St.matrix_d]
-            # position_add = clusters[parent][St.row] - 1
-
-            # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
-            # print "\tADD VALUE: {}".format(position_add)
-
-            # COPY MATRIX
-            # print "\tPOP HEADER: {}".format(pop_mx[0][:])
-            for row in range(1, pop_row):
-
-                # ADD HEADER IF NOT ALREADY IN
-                # print "\tCURRENT HEADER ADDED: {}".format(cur_mx[0:])
-                if pop_mxd[(row, 0)] not in cur_mxd:
-                    pop_item_row = pop_mxd[(row, 0)]
-                    cur_mxd[(index, 0)] = pop_item_row
-                    cur_mxd[(0, index)] = pop_item_row
-                    index += 1
-                    parent[St.row] = index
-                    # print "\tHEADER ADDED: {}".format(pop_item_row)
-
-                    # FOR THAT HEADER, COPY THE SUB-MATRIX
-                    for col in range(1, pop_row):
-
-                        # THE HEADER ARE ALREADY IN THERE
-                        if (row, col) in pop_mxd and pop_mxd[(row, col)] != 0:
-                            # find header in current matrix
-                            for col_item in range(1, len(cur_mxd)):
-                                if (0, col_item) in cur_mxd and (0, col) in pop_mxd and \
-                                                cur_mxd[(0, col_item)] == pop_mxd[(0, col)]:
-                                    # print "\tIN2 ({}, {})".format(index - 1, col_item)
-                                    cur_mxd[(index - 1, col_item)] = 1
-
-        def cluster_helper_mtx(counter, annotate=False):
-
-            counter += 1
-            # child_1 = subject.n3().strip()
-            # child_2 = obj.n3().strip()
-            child_1 = subject.strip()
-            child_2 = t_object.strip()
-
-            # DATE CREATION
-            # date = "{}".format(datetime.datetime.today().strftime(_format))
-
-            # CHECK WHETHER A CHILD HAS A PARENT
-            has_parent_1 = True if child_1 in root_mtx else False
-            has_parent_2 = True if child_2 in root_mtx else False
-            # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
-
-            # 1. START BOTH CHILD ARE ORPHANS
-            if has_parent_1 is False and has_parent_2 is False:
-
-                # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-
-                # GENERATE THE PARENT
-                # hash_value = hash(date + str(count) + graph)
-                hash_value = hash(child_1 + child_2 + hashed_name)
-                parent = "{}".format(str(hash_value).replace("-", "N")) if str(
-                    hash_value).startswith("-") \
-                    else "P{}".format(hash_value)
-
-                # ASSIGN A PARENT TO BOTH CHILD
-                root[child_1] = parent
-                root[child_2] = parent
-
-                # CREATE A CLUSTER
-                if parent not in clusters:
-                    # MATRIX
-                    # mx = matrix(matrix_size, matrix_size)
-                    mxd = dict()
-                    # ROW
-                    # mx[0][1] = child_1
-                    # mx[0][2] = child_2
-
-                    mxd[(0, 1)] = child_1
-                    mxd[(0, 2)] = child_2
-
-                    # COLUMNS
-                    # mx[1][0] = child_1
-                    # mx[2][0] = child_2
-
-                    mxd[(1, 0)] = child_1
-                    mxd[(2, 0)] = child_2
-
-                    # RELATION
-                    # mx[1][2] = 1
-                    # mx[2][1] = 1
-                    mxd[(2, 1)] = 1
-
-                    clusters[parent] = {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
-                    if annotate:
-                        clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
-
-                # print "\tPOSITION: {}".format(3)
-                # print "\tIT WILL BE PRINTED AT: ({}, {})".format(2, 1)
-
-            # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
-            elif has_parent_1 is True and has_parent_2 is True:
-
-                # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
-                if root_mtx[child_1] == root_mtx[child_2]:
-                    # print "CLUSTER SIZE IS {} BUT THERE IS NOTHING TO DO\n".format(len(clusters))
-                    # print "\nSAME PARENTS {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-                    # cur_mx = clusters[root[child_1]][St.matrix]
-                    cur_mxd = clusters[root[child_1]][St.matrix_d]
-
-                    row_1 = 0
-                    row_2 = 0
-
-                    # FIND ROW
-                    # row_1 = clusters[root[child_1]][St.row]
-                    # for row in range(1, clusters[root[child_1]][St.row]):
-                    #     if cur_mx[row][0] == child_1:
-                    #         row_1 = row
-                    #
-                    # for col in range(1, clusters[root[child_1]][St.row]):
-                    #     if cur_mx[0][col] == child_2:
-                    #         row_2 = col
-
-                    for row in range(1, clusters[root[child_1]][St.row]):
-                        if (row, 0) in cur_mxd and cur_mxd[(row, 0)] == child_1:
-                            row_1 = row
-
-                    for col in range(1, clusters[root[child_1]][St.row]):
-                        if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
-                            row_2 = col
-
-                    # row_2 = clusters[root[child_2]][St.row]
-
-                    # print "\tPOSITIONS: {} | {}".format(row_2, row_1)
-                    # cur_mx[row_2][row_1] = 1
-                    cur_mxd[(row_2, row_1)] = 1
-
-                    if annotate:
-                        clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1, child_2)
-
-                    # COPY THE SUB-MATRIX
-                    # for col in range(1, row_1):
-                    #     if cur_mx[0][col] == child_2:
-                    #         print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
-                    #         print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
-                    #         cur_mx[row_1 - 1][col] = 1
-
-                    # continue
-                    return counter
-
-                # THE PARENT WITH THE MOST CHILD GET THE CHILD OF THE OTHER PARENT
-                # fFETCHING THE RESOURCES IN THE CLUSTER (CHILDREN)
-                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-
-                children_1 = (clusters_mtx[root_mtx[child_1]])[St.children]
-                children_2 = (clusters_mtx[root_mtx[child_2]])[St.children]
-
-                # 2.2 CHOOSE A PARENT
-                if len(children_1) >= len(children_2):
-                    # print "\tPARENT 1"
-                    parent = root_mtx[child_1]
-                    pop_parent = root_mtx[child_2]
-                    # root[child_2] = parent
-
-                else:
-                    # print "\tPARENT 2"
-                    parent = root_mtx[child_2]
-                    pop_parent = root_mtx[child_1]
-                    # root[child_1] = parent
-
-                # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
-                for offspring in clusters_mtx[pop_parent][St.children]:
-                    root_mtx[offspring] = parent
-                    clusters_mtx[parent][St.children] += [offspring]
-
-                # MERGE CURRENT WITH LESSER (CHILDREN) MATRICES, ANNOTATE AND POOP LESSER (CHILDREN) MATRICES
-                merge_d_matrices(clusters_mtx[parent], clusters_mtx[pop_parent])
-
-                if annotate:
-                    clusters_mtx[parent][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
-                cluster_helper_mtx(count)
-                # cluster_helper(count)
-
-                # COPYING LESSER MATRIX TO BIGGER MATRIX
-                # index = clusters[parent][St.row]
-                # pop_row = clusters[pop_parent][St.row]
-                # cur_mx = clusters[parent][St.matrix]
-                # pop_mx = clusters[pop_parent][St.matrix]
-                # # position_add = clusters[parent][St.row] - 1
-                #
-                # print "\tPOSITION: {} | POSITION POP: {}".format(index, pop_row)
-                # # print "\tADD VALUE: {}".format(position_add)
-                #
-                # # # ADD HEADER
-                # # for x in range(1, pop_index):
-                # #     cur_mx[0][index - 1 + x] = pop_mx[0][x]
-                # #     cur_mx[index - 1 + x][0] = pop_mx[0][x]
-                # #     clusters[parent][St.row] += 1
-                #
-                # # COPY MATRIX
-                # print "\tPOP HEADER: {}".format(pop_mx[0][:])
-                # for row in range(1, pop_row):
-                #
-                #     # ADD HEADER IF NOT ALREADY IN
-                #     # print "\tCURREENT HEADER ADDED: {}".format(cur_mx[0:])
-                #     if pop_mx[row][0] not in cur_mx[0:]:
-                #         pop_item_row = pop_mx[row][0]
-                #         cur_mx[index][0] = pop_item_row
-                #         cur_mx[0][index] = pop_item_row
-                #         index += 1
-                #         clusters[parent][St.row] = index
-                #         print "\tHEADER ADDED: {}".format(pop_item_row)
-                #
-                #
-                #         # FOR THAT HEADER, COPY THE SUB-MATRIX
-                #         for col in range(1, pop_row):
-                #
-                #             # THE HEADER IS NOT IN
-                #             if pop_mx[row][col] != 0 and pop_mx[row][0] not in cur_mx[1:-1]:
-                #                 print "\tIN ({}, {})".format(index-1, col )
-                #                 # index += 1
-                #                 # clusters[parent][St.row] = index
-                #
-                #             # THE HEADER ARE ALREADY IN THERE
-                #             if pop_mx[row][col] != 0:
-                #                 # find header in current matrix
-                #                 for col_item in range(1, len(cur_mx[1:-1])):
-                #                     if cur_mx[0][col_item] == pop_mx[0][col]:
-                #                         print "\tIN2 ({}, {})".format(index-1, col_item)
-                # cur_mx[row + position_add][col + position_add] = pop_mx[row][col]
-
-                # cur_mx[0][position_add+ row] = pop_mx[row][0]
-
-                # cur_mx[y + position_add][x + position_add] = pop_mx[y][x]
-
-                # POP THE PARENT WITH THE LESSER CHILD
-
-                if annotate:
-                    clusters_mtx[parent][St.annotate] += clusters_mtx[pop_parent][St.annotate]
-                clusters_mtx.pop(pop_parent)
-
-            # 3. ONE CHILD [CHILD 1] HAVE A PARENT OF HIS OWN
-            elif has_parent_1 is True:
-
-                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
-                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-
-                parent = root[child_1]
-                root[child_2] = parent
-                clusters[parent][St.children] += [child_2]
-                # print "\t>>> {} is in root {}".format(child_2, child_2 in root)
-
-                # cur_mx = clusters[parent][St.matrix]
-                cur_mxd = clusters[parent][St.matrix_d]
-                row_1 = clusters[parent][St.row]
-
-                # ADD HEADER
-                # cur_mx[row_1][0] = child_2
-                # cur_mx[0][row_1] = child_2
-
-                cur_mxd[(row_1, 0)] = child_2
-                cur_mxd[(0, row_1)] = child_2
-
-                # INCREMENT POSITION
-                row_1 += 1
-                # print "\tPOSITION: {}".format(row_1)
-                clusters[parent][St.row] = row_1
-
-                # COPY MATRIX
-                # for col in range(1, row_1):
-                #     # print cur_mx[0][x], child_1
-                #     if cur_mx[0][col] == child_1:
-                #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
-                #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_1 - 1, col)
-                #         # cur_mx[position_1 - 1][x] = 1
-                #         cur_mx[row_1 - 1][col] = 1
-                #         clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
-                #             child_1, child_2)
-
-                for col in range(1, row_1):
-                    if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_1:
-                        cur_mxd[(row_1 - 1, col)] = 1
-                        if annotate:
-                            clusters[root[child_1]][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
-                                child_1, child_2)
-
-            # 4. ONE CHILD [CHILD 2] HAVE A PARENT OF HIS OWN
-            elif has_parent_2 is True:
-
-                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
-                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-
-                parent = root[child_2]
-                root[child_1] = parent
-                clusters[parent][St.children] += [child_1]
-                # print "\t>>> {} is in root {}".format(child_1, child_1 in root)
-
-                # cur_mx = clusters[parent][St.matrix]
-                cur_mxd = clusters[parent][St.matrix_d]
-                row_2 = clusters[parent][St.row]
-
-                # ADD HEADER
-                # print row_2
-                # cur_mx[row_2][0] = child_1
-                # cur_mx[0][row_2] = child_1
-
-                cur_mxd[(row_2, 0)] = child_1
-                cur_mxd[(0, row_2)] = child_1
-
-                # INCREMENT POSITION
-                row_2 += 1
-                # print "\tPOSITION: {}".format(row_2)
-                clusters[parent][St.row] = row_2
-
-                # COPY MATRIX
-                # for col in range(1, row_2):
-                #     # print cur_mx[0][x], child_1
-                #     if cur_mx[0][col] == child_2:
-                #         # print "\tFOUND: {} AT POSITION: {}".format(cur_mx[0][col], col)
-                #         # print "\tIT WILL BE PRINTED AT: ({}, {})".format(row_2 - 1, col)
-                #         # cur_mx[position_2 - 1][x] = 1
-                #         cur_mx[row_2 - 1][col] = 1
-                #         clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
-                #             child_2, child_1)
-
-                for col in range(1, row_2):
-                    if (0, col) in cur_mxd and cur_mxd[(0, col)] == child_2:
-                        cur_mxd[(row_2 - 1, col)] = 1
-                        if annotate:
-                            clusters[root[child_1]][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
-                                child_2, child_1)
-
-            return counter
-
-        def cluster_helper_set(counter, annotate=False):
-
-            counter += 1
-            # child_1 = subject.strip()
-            # child_2 = obj.strip()
-
-            child_1 = subject.strip()
-            child_2 = t_object.strip()
-            child_1 = child_1 if Ut.is_nt_format(child_1) else "<{}>".format(child_1)
-            child_2 = child_2 if Ut.is_nt_format(child_2) else "<{}>".format(child_2)
-
-            # DATE CREATION
-            the_date = "{}".format(datetime.datetime.today().strftime(_format))
-
-            # CHECK WHETHER A CHILD HAS A PARENT
-            has_parent_1 = True if child_1 in root else False
-            has_parent_2 = True if child_2 in root else False
-            # print "\n{}|{} Has Parents {}|{}".format(child_1, child_2, has_parent_1, has_parent_2)
-
-            # *******************************************
-            # 1. START BOTH CHILD ARE ORPHANS
-            # *******************************************
-            if has_parent_1 is False and has_parent_2 is False:
-
-                # print "\nSTART {}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-
-                # GENERATE THE PARENT
-                hash_value = hash(the_date + str(count) + hashed_name)
-                parent = "{}".format(str(hash_value).replace("-", "N")) if str(
-                    hash_value).startswith("-") \
-                    else "P{}".format(hash_value)
-
-                # ASSIGN A PARENT TO BOTH CHILD
-                root[child_1] = parent
-                root[child_2] = parent
-
-                # THE SUBJECT AND OBJECT LINK
-                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
-
-                # THE CLUSTER COMPOSED OF NODES, LINKS AND STRENGTHS
-                key_1 = "key_{}".format(str(hash(link)).replace("-", "N"))
-                clusters[parent] = {
-                    'nodes': set([child_1, child_2]), 'links': set([link]), 'strengths': {key_1: strength}}
-                # print "1",clusters[parent]
-
-                # print parent, child_1, child_2
-                if annotate:
-                    clusters[parent][St.annotate] = "\n\tSTART {} | {}".format(child_1, child_2)
-
-            # *******************************************
-            # 2. BOTH CHILD HAVE A PARENT OF THEIR OWN
-            # *******************************************
-            elif has_parent_1 is True and has_parent_2 is True:
-
-                # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
-                if root[child_1] != root[child_2]:
-
-                    parent1 = root[child_1]
-                    parent2 = root[child_2]
-                    # root2[child_2] = parent1
-
-                    if annotate:
-                        clusters[parent1][St.annotate] += "\n\tCHOOSE A PARENT {} | {}".format(child_1, child_2)
-                    # print parent1, parent2
-
-                    if parent2 in clusters:
-                        # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
-                        # check this
-                        for child in clusters[parent2]['nodes']:
-                            root[child] = parent1
-
-                        # print 'before', clusters2[parent1]['nodes']
-                        # RE-ASSIGNING THE NODES OF CHILD 2
-                        clusters[parent1]['nodes'] = clusters[parent1]['nodes'].union(clusters[parent2]['nodes'])
-                        # RE-ASSIGNING THE LINKS OF CHILD 2
-
-                        clusters[parent1]['links'] = clusters[parent1]['links'].union(clusters[parent2]['links'])
-
-                        # RE-ASSIGNING THE STRENGTHS OF CHILD 2
-                        for i_key, link_strengths in clusters[parent2]['strengths'].items():
-                            if i_key not in clusters[parent1]['strengths']:
-                                clusters[parent1]['strengths'][i_key] = link_strengths
-                            else:
-                                clusters[parent1]['strengths'][i_key] += link_strengths
-
-                        # print 'after', clusters2[parent1]['nodes']
-
-                        # add the current link (child_1, child_2)
-                        link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
-                        clusters[parent1]['links'].add(link)
-
-                        # link_hash = str(hash(link))
-                        link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
-                        if link_hash in clusters[parent1]['strengths']:
-                            clusters[parent1]['strengths'][link_hash] += strength
-                        else:
-                            clusters[parent1]['strengths'][link_hash] = strength
-
-                        clusters.pop(parent2)
-                else:
-                    parent = root[child_1]
-                    link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
-                    clusters[parent]['links'].add(link)
-
-                    # link_hash = str(hash(link))
-                    link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
-                    if link_hash in clusters[parent]['strengths']:
-                        clusters[parent]['strengths'][link_hash] += strength
-                    else:
-                        clusters[parent]['strengths'][link_hash] = strength
-
-                    if annotate:
-                        clusters[root[child_1]][St.annotate] += "\n\tSAME PARENTS {} | {}".format(child_1, child_2)
-
-            # *******************************************
-            # 3. BOTH CHILD HAVE DIFFERENT PARENTS
-            # *******************************************
-            elif has_parent_1 is True:
-
-                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
-                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-
-                parent = root[child_1]
-                root[child_2] = parent
-
-                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
-                clusters[parent]['links'].add(link)
-                clusters[parent]['nodes'].add(child_2)
-
-                # link_hash = str(hash(link))
-                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
-                if link_hash in clusters[parent]['strengths']:
-                    clusters[parent]['strengths'][link_hash] += strength
-                else:
-                    clusters[parent]['strengths'][link_hash] = strength
-
-                if annotate:
-                    clusters[parent][St.annotate] += "\n\tONLY 1 {} HAS A PARENT COMPARED TO {}".format(
-                                child_1, child_2)
-
-            # *******************************************
-            # 4. BOTH CHILD HAVE DIFFERENT PARENTS
-            # *******************************************
-            elif has_parent_2 is True:
-
-                # THE CHILD WITH NO PARENT IS ASSIGNED TO THE PARENT OF THE CHILD WITH PARENT
-                # print "\n{}:{} | {}:{}".format(child_1, has_parent_1, child_2, has_parent_2)
-
-                parent = root[child_2]
-                root[child_1] = parent
-
-                link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
-                clusters[parent]['links'].add(link)
-                clusters[parent]['nodes'].add(child_1)
-
-                # link_hash = str(hash(link))
-                link_hash = "key_{}".format(str(hash(link)).replace("-", "N"))
-                if link_hash in clusters[parent]['strengths']:
-                    clusters[parent]['strengths'][link_hash] += strength
-                else:
-                    clusters[parent]['strengths'][link_hash] = strength
-
-                if annotate:
-                    clusters[parent][St.annotate] += "\n\tONLY 2 {} HAS A PARENT COMPARED TO {}".format(
-                                child_2, child_1)
-
-            return counter
-
-        # **************************************************************************************************
-        # RUNNING THE LINK CLUSTER ALGORITHM
-        # **************************************************************************************************
-        try:
-
-            standard = 50000
-            check = 1
-            iteration = 1
-            size = len(data)
-
-            # **************************************************************************************************
-            print "\n1. THE GRAPH IS OF {} LINKS".format(size)
-            # **************************************************************************************************
-            if len(data) == 0:
-                print "\n\t>>> NO ITERATION AS THE GRAPH IS EMPTY OR STARDOG IS OFF!!!"
-                return {}
-
-            # **************************************************************************************************
-            print "\n2. ITERATING THROUGH THE GRAPH OF SIZE {}".format(len(data))
-            # **************************************************************************************************
-            start = time.time()
-            for connection in data:
-
-                subject, t_object, strength = connection[0], connection[1], connection[2]
-
-                # CALLING THE MAIN HELPER FUNCTION
-                count = cluster_helper_set(count, annotate=False)
-
-                # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN EVERY STANDARD ITERATIONS
-                if iteration == check:
-                    print "\tRESOURCE {:>10}:   {}    =    {}".format(count, subject, t_object)
-                    check += standard
-                iteration += 1
-                # print strength
-                # break
-            diff = datetime.timedelta(seconds=time.time() - start)
-            print "\t{} triples clustered in {}".format(size, diff)
-            # COMPARING HELPERS
-            # for subject, predicate, obj in g:
-            #
-            #     count = cluster_helper_set(count, annotate=False)
-            #     # count_mtx = cluster_helper_mtx(count_mtx)
-            #     if iteration == check:
-            #         print "\tRESOURCE {:>10}:   {} {}".format(count, subject.n3(), obj)
-            #         check = check + standard
-            #     iteration += 1
-
-            # sizes = set()
-            # sizes2 = set()
-            # for p, c in clusters.items():
-            #     # {St.children: [child_1, child_2], St.matrix: None, St.row: 3, St.matrix_d: mxd}
-            #     # print c
-            #     mdx = c[St.matrix_d]
-            #     countLinks = 0
-            #     for x, y in mdx.items():
-            #         if y == 1:
-            #             countLinks += 1
-            #     sizes.add((len(c[St.children]), countLinks))
-            # for p, c in clusters2.items():
-            #     sizes2.add((len(c['nodes']), len(c['links'])))
-            #
-            # sizes = sorted(sizes)
-            # sizes2 = sorted(sizes2)
-            # print 'Clusters sizes:', '\n', sizes, '\n', sizes2
-            # **************************************************************************************************
-            print "\n3. NUMBER OF CLUSTER FOUND: {}".format(len(clusters))
-            # **************************************************************************************************
-
-            # for (key, val) in clusters.items():
-            #     print key, "\t", val
-
-            # for (key, val) in root.items():
-            #     print key, "\t", val
-
-            # **************************************************************************************************
-            print "\n4. PROCESSING THE CLUSTERS FOR UNIQUE ID AND PREPARING FOR SERIALISATION"
-            # **************************************************************************************************
-            new_clusters = dict()
-            start = time.time()
-            for (key, data) in clusters.items():
-
-                # RESETTING THE CLUSTER ID
-                smallest_hash = ""
-                for node in data['nodes']:
-                    # CREATE THE HASHED ID AS THE CLUSTER NAME
-                    hashed = hash(node)
-                    if hashed <= smallest_hash:
-                        smallest_hash = hashed
-
-                # CREATE A NE KEY
-                new_key = "{}".format(str(smallest_hash).replace("-", "N")) if str(
-                    smallest_hash).startswith("-") else "P{}".format(smallest_hash)
-
-                # CONVERTING SET TO LIST AS AST OR JASON DO NOT DEAL WITH SET
-                new_clusters[new_key] = {'nodes': [], 'strengths': [], 'links': []}
-                new_clusters[new_key]['nodes'] = list(data['nodes'])
-                new_clusters[new_key]['strengths'] = data['strengths']
-                new_clusters[new_key]['links'] = list(data['links'])
-
-                # UPDATE THE ROOT WITH THE NEW KEY
-                for node in data['nodes']:
-                    root[node] = new_key
-
-            returned = {'clusters': new_clusters, 'node2cluster_id': root}
-            # returned_hashed = str(hash(returned.__str__()))
-            # returned_hashed = returned_hashed.replace("-", "Cluster_N") if returned_hashed.startswith("-")\
-            #     else "Cluster_P{}".format(returned_hashed)
-
-            if len(new_clusters) != 0 and len(root) != 0:
-
-                # SERIALISATION
-                # **************************************************************************************************
-                print "\n5. SERIALISING THE DICTIONARIES..."
-                # **************************************************************************************************
-                s_file_1 = os.path.join(serialisation_dir, "{}-reconciled-1.txt".format(reconciled_name))
-                s_file_2 = os.path.join(serialisation_dir, "{}-reconciled-2.txt".format(reconciled_name))
-                with open(s_file_1, 'wb') as writer:
-
-                    cluster_limit = 1000
-                    counting = 0
-                    sub_cluster = {}
-
-                    for key, value in new_clusters.items():
-                        counting += 1
-                        sub_cluster[key] = value
-
-                        if counting == cluster_limit:
-                            writer.write(sub_cluster.__str__() + "\n")
-                            sub_cluster = {}
-                            counting = 0
-
-                    if counting != 0:
-                        writer.write(sub_cluster.__str__() + "\n")
-
-                with open(s_file_2, 'wb') as writer:
-                    writer.write(returned['node2cluster_id'].__str__())
-
-                # **************************************************************************************************
-                print "\n6. SAVING THE HASH OF CLUSTERS TO THE TRIPLE STORE AS: {}".format(reconciled_name)
-                # **************************************************************************************************
-
-
-                # **************************************************************************************************
-                print "\n7. SERIALISATION IS COMPLETED..."
-                # **************************************************************************************************
-                diff = datetime.timedelta(seconds=time.time() - start)
-                print "\t{} triples serialised in {}".format(size, diff)
-
-                print "\nJOB DONE!!!\nDATA RETURNED TO THE CLIENT SIDE TO BE PROCESSED FOR DISPLAY\n"
-
-            else:
-                print "THE RETURNED DICTIONARY IS EMPTY."
-
-            # print clusters
-            # print new_clusters
-
-            return new_clusters
-
-        except Exception as err:
-            traceback.print_exc()
-            print err.message
-            return clusters
-
