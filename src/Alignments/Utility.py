@@ -54,6 +54,13 @@ def activation(activated, function, heading):
 
 
 def headings(message, line=True):
+
+    split = message.split("\n")
+    if len(split) > 0:
+        message = ""
+        for data in split:
+            message += "\n{:^116}".format(data)
+
     _format = "It is %a %b %d %Y %H:%M:%S"
     date = datetime.datetime.today()
     if line is True:
@@ -61,9 +68,9 @@ def headings(message, line=True):
                 "--------------------------------------------------------------"
     else:
         _line = ""
-    return "\n{0}\n{2:>117}\n{1:>{3}}\n{0}".format(
-        _line, message if str(message).startswith("\n") is False else message[1:],
-        date.strftime(_format), 117 if str(message).startswith("\n") is False else "")
+    return "\n{0}\n{2:>116}\n{1:^{3}}\n{0}".format(
+        _line, message[1:] if str(message).startswith("\n") is True else  message,
+        date.strftime(_format), 116)
 
 
 def zip_dir(file_path, zip_name):
@@ -605,7 +612,7 @@ def serialize_dict(directory, dictionary, name, cluster_limit=1000):
     print "\tSERIALIZING DICTIONARY OF SIZE: {}...".format(len(dictionary))
     start = time.time()
 
-    with open(join(directory, "SerializedCluster_{}".format(name)), 'wb') as writer:
+    with open(join(directory, "Serialized_{}".format(name)), 'wb') as writer:
 
         counting = 0
         sub_cluster = {}
@@ -620,8 +627,8 @@ def serialize_dict(directory, dictionary, name, cluster_limit=1000):
                 sub_cluster = {}
                 counting = 0
 
-            print "\n\tFINISH READING LINE {} IN {}".format(
-                counting, datetime.timedelta(seconds=time.time() - start_2))
+            # print "\n\tFINISH READING LINE {} IN {}".format(
+            #     counting, datetime.timedelta(seconds=time.time() - start_2))
 
         if counting != 0:
             writer.write(sub_cluster.__str__() + "\n")
@@ -630,7 +637,7 @@ def serialize_dict(directory, dictionary, name, cluster_limit=1000):
 
 
 def de_serialise_dict(serialised_directory_path, name):
-    print "\tREADING FROM SERIALISED FILE..."
+    # print "\tREADING FROM SERIALISED FILE..."
     line_count = 0
     reading_start = time.time()
     with open(join(serialised_directory_path, "{}".format(name)), 'rb') as s_file_1:
@@ -639,9 +646,9 @@ def de_serialise_dict(serialised_directory_path, name):
             line_count += 1
             reading_start_2 = time.time()
             dictionary.update(ast.literal_eval(line))
-            print "\n\tFINISH READING LINE {} IN {}".format(
-                line_count, datetime.timedelta(seconds=time.time() - reading_start_2))
-    print "\tDONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
+            print "\t\tFINISH READING LINE {} IN {}".format(
+                line_count, datetime.timedelta(seconds=time.time() - reading_start_2)), "\r",
+    print "\tDONE READING THE FILE IN {}\n".format(datetime.timedelta(seconds=time.time() - reading_start))
     return dictionary
 
 
@@ -1571,9 +1578,9 @@ def get_resource_value(resources, targets):
 
 
 def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
-                     positive_ground_truth=0, observations=0, latex=False, zero_rule=True, code=1):
+                     positive_ground_truth=0, observations=0, latex=False, zero_rule=True, code=True):
 
-    # CODE IS JUST FOR THE ZERO RULE
+    # CODE IS JUST FOR THE ZERO RULE. zero_rule=False ==> code=False
     # OBSERVATIONS IS THE TOTAL OF ITEMS IN THE GROUND TRUTH
     confusion_zero = []
 
@@ -1583,13 +1590,13 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
             confusion_zero += confusion_matrix(
                 true_p=positive_ground_truth, false_p=observations - positive_ground_truth, true_n=0, false_n=0,
                 positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False,
-                code=0)
+                code=False)
 
         else:
             confusion_zero += confusion_matrix(
                 true_p=0, false_p=0, true_n=observations - positive_ground_truth, false_n=positive_ground_truth,
                 positive_ground_truth=positive_ground_truth, observations=observations, latex=latex, zero_rule=False,
-                code=0)
+                code=False)
 
     # else:
     #     confusion_zero = [("-", "-", "-", "-")]
@@ -1646,8 +1653,8 @@ def confusion_matrix(true_p=0, false_p=0, true_n=0, false_n=0,
     confusion.write("{:>19}|{:^32} |\n".format("", "{} GROUND TRUTHS".format(observations)))
 
     # LINE 2
-    bae_1 = "*** ZERO RULE ***" if code == 0 else ""
-    bae_2 = "*** BASE LINE ***" if code == 0 else ""
+    bae_1 = "*** ZERO RULE ***" if code == False else ""
+    bae_2 = "*** BASE LINE ***" if code == False else ""
 
     # if zero_rule is True:
     #     print confusion_zero[0]
@@ -1903,7 +1910,7 @@ def print_dict(data_dict, comment="", return_print=False):
     for key, value in data_dict.items():
         try:
             print "ITEM KEY: {1:<{0}}  ITEM SIZE: {2:<6} ITEM: {3}".format(
-                max_length, key, len(value) if type(value) is not int else 1, str(value))
+                max_length, key, len(value) if type(value) is not int and type(value) is not float else 1, str(value))
 
         except IOError:
             print "PROBLEM!!!"

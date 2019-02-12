@@ -2748,31 +2748,18 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # EXTRACTING DATA FROM THE HASHED DICTIONARY FILE
             # reconciled-
             # *************************************************
+
             try:
-                print "\tREADING FROM SERIALISED FILE..."
 
                 # DE-SERIALISING THE MAIN DICTIONARY OF CLUSTER
+                print "\n\tREADING FROM SERIALISED FILE 1..."
                 clusters = Ut.de_serialise_dict(
-                    serialised_directory_path=serialisation_dir, name="{}-1.txt".format(serialised_hash))
+                    serialised_directory_path=serialisation_dir, name="Serialized_{}-1.txt".format(serialised_hash))
 
                 # DE-SERIALISING THE ROOT DICTIONARY SUPPORTING THE MAIN DICTIONARY OF CLUSTERS
+                print "\tREADING FROM SERIALISED FILE 2..."
                 node2cluster_id = Ut.de_serialise_dict(
-                    serialised_directory_path=serialisation_dir, name="{}-2.txt".format(serialised_hash))
-
-                # line_count = 0
-                # reading_start = time.time()
-                # with open(os.path.join(serialisation_dir, "{}-1.txt".format(serialised_hash)), 'rb') as s_file_1:
-                #     clusters = {}
-                #     for line in s_file_1:
-                #         line_count += 1
-                #         reading_start_2 = time.time()
-                #         clusters.update(ast.literal_eval(line))
-                #         print "\n\tFINISH READING LINE {} IN {}".format(
-                #             line_count, datetime.timedelta(seconds=time.time() - reading_start_2))
-                # print "\tDONE READING THE FILE IN {}".format(datetime.timedelta(seconds=time.time() - reading_start))
-                #
-                # with open(os.path.join(serialisation_dir, "{}-2.txt".format(serialised_hash)), 'rb') as s_file_2:
-                #     serialised_node2cluster_id = s_file_2.read()
+                    serialised_directory_path=serialisation_dir, name="Serialized_{}-2.txt".format(serialised_hash))
 
             except (IOError, ValueError):
                 print "\nRE-RUNNING IT ALL BECAUSE THE SERIALISED FILE [{}].txt COULD NOT BE FOUND.".format(
@@ -3627,6 +3614,7 @@ def links_list_clustering(data, serialisation_dir, reconciled_name=None, stop_at
     # 2. THE CLUSTER HAS NOT BEEN SERIALIZED YET
     # RUN THE CLUSTER FUNCTION AND SERIALISED IT IN THE GENERIC METADATA
     # **************************************************************************************************
+
     if True:
 
         print "\n>>> THE CLUSTER HAS NEVER BEEN SERIALISED, WAIT WHILE WE CREATE IT. " \

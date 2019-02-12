@@ -1579,7 +1579,7 @@ def get_cluster_rsc_strengths(resources, alignments, limit=500000, stop_at=None)
     response_dic = dict()
 
     try:
-        print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION WITH LIMIT {}.".format(limit)
+        print "\tCOUNTING THE NUMBER OF TRIPLES TO EXPECT FOR THE OFFSET ITERATION WITH PAGE LIMIT OF {}.".format(limit)
         start = time.time()
         result_count_resp = sparql_xml_to_matrix(cluster_rsc_strengths_query(resources, alignments, count=True))
         result_count = 0
@@ -1641,7 +1641,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
     comment_offset = "# " if offset is None else ""
 
     #checkStrength = graph_exists(from_alignment2singleton(alignments))
-    ask_strenght = """
+    ask_strength = """
     PREFIX prov: <{1}>
     PREFIX ll: <{2}>
     ASK {{
@@ -1656,7 +1656,7 @@ def cluster_rsc_strengths_query(resources, alignments, limit=None, offset=None, 
             }}
         }}
     """.format(from_alignment2singleton(alignments),Ns.prov,Ns.alivocab)
-    checkStrength = boolean_endpoint_response(ask_strenght)
+    checkStrength = boolean_endpoint_response(ask_strength)
 
     comment_singleton = "# " if checkStrength is False else ""
 

@@ -4,11 +4,13 @@ import time
 import datetime
 import networkx as nx
 import cStringIO as Buffer
+from os import mkdir
+from os.path import isdir
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
 import Alignments.Settings as St
 import Alignments.NameSpace as Ns
-# import Alignments.UserActivities.Clustering as Cls
+import Alignments.UserActivities.Clustering as Cls
 # import matplotlib.pyplot as plt
 # import Alignments.Server_Settings as Srv
 
@@ -18,6 +20,7 @@ def sigmoid(x):
     # return x / float(math.fabs(x) + 1)
     # return math.exp(x) / (math.exp(x) + 10)
     return x / float(math.fabs(x) + 1.6)
+# print sigmoid(1), sigmoid(60), sigmoid(100)
 
 
 # DRAWING THE NETWORK WITH MATPLOT
@@ -189,7 +192,12 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
 
     """
     :param graph: THE GRAPH TO EVALUATE
+                  IT IS THE LIST OF EDGES MODELLED AS TUPLES
+
     :param strengths: STRENGTH OF THE GRAPHS'S EDGES
+                      IT IS A DICTIONARY WHERE THE KEY IS PROVIDED WITH THE
+                      FUNCTION get_key(node_1, node_2) FROM THE UTILITY FILE
+
     :param alt_keys: IF GIVEN, IS THE KEY MAPPING OF GHE COMPUTED KEY HERE AND THE REAL KEY.
     AN EXAMPLE CA BE FOUND IN THE FUNCTION cluster_d_test IN THIS CODE
     :return:
@@ -228,6 +236,7 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
 
         # MAXIMUM WEIGHT FROM THE LIST OF WEIGHTS AVAILABLE FOR THE CURRENT EDGE
         if strength_key in strengths:
+            # print "strengths[strength_key] = ", strengths[strength_key]
             strength_value = max(strengths[strength_key])
 
             # g.add_edges_from([(edge[0], edge[1], {'capacity': 12, 'weight': 2 - float(strength_value)})])
@@ -264,15 +273,18 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
         diameter = nx.diameter(g)
 
         # NETWORK METRIC ELEMENTS
-        normalised_closure = round(float(edge_discovered) / float(edge_derived), 3)
-        normalised_bridge = round(float(bridges / float(len(nodes) - 1)), 3)
+        # try:
+        normalised_closure = round(float(edge_discovered) / float(edge_derived), 3) if edge_derived != 0 else 0
+        normalised_bridge = round(float(bridges / float(len(nodes) - 1)), 3) if nodes > 1 else 0
         normalised_diameter = round((float(diameter - 1) / float(len(nodes) - 2)), 3) \
-            if len(nodes) > 2 else float(diameter - 1)
+            if len(nodes) > 2 else (float(diameter - 1) if diameter >= 1 else 0)
+        # except:
+        #     print "AN ERROR WITH THE COMPUTATION OF THE METRIC...."
 
         # FINAL NORMALISATION (NORMALISATION USED FOR NON WEIGHTED METRIC COMPUTATION)
         nb_used = round(sigmoid(bridges) if sigmoid(bridges) > normalised_bridge else normalised_bridge, 3)
-        nd_used = round(sigmoid(diameter - 1) if sigmoid(diameter - 1) > normalised_diameter else normalised_diameter,
-                        3)
+        nd_used = round(
+            sigmoid(diameter - 1) if sigmoid(diameter - 1) > normalised_diameter else normalised_diameter, 3)
         nc_used = round(1 - normalised_closure, 2)
 
         # THE METRICS NEGATIVE IMPACTS
@@ -290,9 +302,9 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
         print "GRAPH", g, "NODES", node_count, "EDGE DISCOVERED:", edge_discovered
         print error.message
 
-    """""""""""""""""""""""""""""""""""""""
-    WEIGHTED METRIC COMPUTATIONS OPTION 1
-    """""""""""""""""""""""""""""""""""""""
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    WEIGHTED METRIC COMPUTATIONS OPTION 1: AVERAGE AND MINIMUM
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
     max_strengths = {}
     min_strength = 1
@@ -300,9 +312,11 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
 
     if strengths is not None:
 
+        # MAXIMUM WEIGHT FOR EACH EDGE
         for key, val in strengths.items():
             max_strengths[key] = float(max(val))
 
+        # MINIMUM WEIGHT IN THE CLUSTER
         min_strength = 0
         if len(strengths.items()) > 0:
             min_strength = min(strengths.items(), key=lambda strength_tuple: max(strength_tuple[1]))
@@ -310,13 +324,13 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
 
         average_strength = 0
         if len(max_strengths) > 0:
-            average_strength = sum(max_strengths.values()) / len(max_strengths)
+            average_strength = sum(max_strengths.values()) / float(len(max_strengths))
 
     weighted_eq = round(estimated_quality * min_strength, 3), round(estimated_quality * average_strength, 3)
 
-    """""""""""""""""""""""""""""""""""""""
-    WEIGHTED METRIC COMPUTATIONS OPTION 2
-    """""""""""""""""""""""""""""""""""""""
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    WEIGHTED METRIC COMPUTATIONS OPTION 2: ALL INTEGRATED / COMPLETE
+    """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
     biggest_cost = 0
     weighted_bridges = 0
@@ -349,7 +363,7 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
             # UPDATING THE BIGGEST COST
             biggest_cost = curr_cost if curr_cost > biggest_cost else biggest_cost
 
-        # THE WEIGHTED DIAMETER IS THEM THE BIGGEST SHORTEST PATH COST
+        # THE WEIGHTED DIAMETER IS THEN THE BIGGEST SHORTEST PATH COST
         weighted_diameter = biggest_cost
 
         # NORMALISING THE DIAMETER
@@ -360,9 +374,12 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
         weighted_normalised_diameter = 1 if weighted_normalised_diameter > 1 else weighted_normalised_diameter
 
         # FIRST NORMALISATION
-        weighted_normalised_bridge = round(float(weighted_bridges / float(len(nodes) - 1)), 3)
+        weighted_normalised_bridge = round(float(weighted_bridges / float(len(nodes) - 1)), 3) if nodes > 1 else 0
         weighted_edge_discovered = g.size(weight="weight")
-        weighted_closure = round(float(weighted_edge_discovered) / float(edge_derived), 3)
+        print "\tEDGE = {} WEIGHTED EDGE = {} AND DIAMETER = {} ON A GEAPH ON {} NODES".format(
+            g.size(), weighted_edge_discovered, diameter, len(nodes))
+
+        weighted_closure = round(float(weighted_edge_discovered) / float(edge_derived), 3) if edge_derived != 0 else 0
 
         # SECOND NORMALISATION
         weighted_nb_used = round(sigmoid(weighted_bridges) if sigmoid(weighted_bridges) > weighted_normalised_bridge
@@ -415,6 +432,8 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
     # elif bridges > 0:
     #     analysis_builder.write("\n\nDiagnose : NEED BRIDGE INVESTIGATION")
 
+    # AUTOMATED DECISION FOR WEIGHTED IMPACT RESULT
+    # *********************************************
     weighted_quality = {}
     # hyper_parameter_1 = 0.1
     # hyper_parameter_2 = 0.25
@@ -436,6 +455,8 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
     else:
         weighted_quality["bcd"] = "BAD [{}]".format(weighted_eq_2)
 
+    # AUTOMATED DECISION FOR NON WEIGHTED IMPACT RESULT
+    # *************************************************
     if impact <= hyper_parameter_1:
         # analysis_builder.write("\n\nInterpretation: GOOD")
         auto_decision = "GOOD [{}]".format(1 - impact)
@@ -459,6 +480,8 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
         analysis_builder.write(
             "\n{:25} : The network is NOT A GOOD representation of a unique real world object".format("INTERPRETATION"))
 
+    # DECISION SUPPORT EXPLAINING WHY A DECISION IS TAKEN
+    # ***************************************************
     if bridges > 0:
         # analysis_builder.write("\n\nEvidence: NEED BRIDGE INVESTIGATION")
         analysis_builder.write(" BECAUSE it needs a bridge investigation")
@@ -473,12 +496,12 @@ def metric(graph, strengths=None, alt_keys=None, hyper_parameter_1 = 0.1, hyper_
         # analysis_builder.write("\n\nEvidence:  LESS INTERMEDIATES AND NO BRIDGE")
         analysis_builder.write(" and BECAUSE there are less intermediate(s) and no bridge")
 
-    analysis_builder.write("\n{:23} : Bridges [{}]   Diameter [{}]   Closure [{}/{} = {}]".format(
-        "NETWORK METRICS USED", nb_used, nd_used, edge_discovered, edge_derived, nc_used))
+    analysis_builder.write("\n{:33} : Bridges [{}]   Diameter [{}]   Closure [{}/{} = {}]".format(
+        "NON WEIGHTED NETWORK METRICS USED", nb_used, nd_used, edge_discovered, edge_derived, nc_used))
 
-    analysis_builder.write("\n{:23} : Bridges [{}]   Diameter [{}]   Closure [{}/{} = {}]"
+    analysis_builder.write("\n{:33} : Bridges [{}]   Diameter [{}]   Closure [{}/{} = {}]"
                            "   impact: [{}]   quality: [{}]".
-                           format("NETWORK METRICS USED", weighted_nb_used, weighted_nd_used,
+                           format("WEIGHTED NETWORK METRICS USED", weighted_nb_used, weighted_nd_used,
                                   round(weighted_edge_discovered, 3), edge_derived, weighted_nc_used,
                                   weighted_impact, 1 - weighted_impact))
 
@@ -1108,6 +1131,10 @@ def cluster_d_test(serialisation_dir, linkset, network_size=3, network_size_max=
                    constraint_targets=None, constraint_text="", directory=None, greater_equal=True, print_it=False,
                    limit=None, only_good=False, activated=False):
 
+
+    if directory and isdir(directory) is False:
+        mkdir(directory)
+
     """
     :param serialisation_dir:
     :param linkset:
@@ -1130,10 +1157,21 @@ def cluster_d_test(serialisation_dir, linkset, network_size=3, network_size_max=
     # FOR CONSTRAINTS TO WORK, IT SHOULD NOT BE NONE
 
     # network = []
-    print "\nLINK NETWORK INVESTIGATION"
+    print """\nLINK NETWORK INVESTIGATION
+    >>> THIS FUNCTION GETS/CREATES THE CLUSTERS OF A LENS.
+        1. FIRST, THE MAIN FOLDER IS CREATED. FOR EXAMPLE: APPROXIMATE-TRIAL-3-00.
+            2. WITHIN THE MAIN FOLDER, A FOLDER IS CREATED TO DOCUMENT CLUSTERS OF A PARTICULAR SIZE.
+                3. WITHIN A CLUSTER OF A PARTICULAR SIZE, A FOLDER IS CREATED BASED ON THE LENS NAME.
+                    4. WITHING THE LENS NAME FOLDER, A FINAL FOLDER IS CREATD FOR EACH CLUSTER OF SIZE 4 FOR EXAMPLE.
+                        5. FINALLY, WITH THE LAST FOLDER, TWO FILES ARE SAVED:
+                            - THE PDF PICTURE OF CLUSTER
+                            - THE DISAMBIGUATION FILE
+            6. AT THE OF THE RUN, WITHIN THE FOLDER OF CLUSTERS OF THE SAME SIZE,
+            A VALIDATION SHEET IS PRODUCED FOR ALL CLUSTERS OF THAT PARTICULAR SIZE.
+    >>> THIS DETAILED CLUSTERING AND CLUSTER DOCUMENTATION MAKES THE RUN OF THIS FUNCTION EXPENSIVE."""
 
     if activated is False:
-        print "\nTHE FUNCTION [cluster_d_test] NOT ACTIVATED\n"
+        print "\t>>> THE FUNCTION [cluster_d_test] IN ~ UseActivities\plots.py IS NOT ACTIVATED.\n"
         return ""
 
     elif network_size > network_size_max and greater_equal is False:
@@ -1260,7 +1298,7 @@ def cluster_d_test(serialisation_dir, linkset, network_size=3, network_size_max=
                     # GENERAL INFO 1: RESOURCES INVOLVED
                     child_list += "\t{}\n".format(child)
 
-                    # LIST OF RESOURCES IN THE CLUTER
+                    # LIST OF RESOURCES IN THE CLUSTER
                     use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
                     resources += "\n\t\t\t\t{}".format(use)
                     if len(child) > uri_size:
@@ -1337,7 +1375,7 @@ def cluster_d_test(serialisation_dir, linkset, network_size=3, network_size_max=
                         # 'WEIGHTED': weighted_quality
                         decision = metric(network, cluster_val["strengths"], alt_keys=alt_keys)
                         automated_decision = decision["AUTOMATED_DECISION"]
-                        weighted_decision = decision['WEIGHTED']
+                        weighted_decision = decision['WEIGHTED_DECISION']
                         if only_good is True and automated_decision.startswith("GOOD") is not True:
                             count_2 -= 1
                             continue
@@ -1401,12 +1439,17 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
                  constraint_text="", directory=None, greater_equal=True, limit=None, only_good=False, disambiguate=True,
                  activated=False):
 
+
+    # print "TARGETS:", len(targets)
+    # print "CONSTRAINT TARGET:",  len(constraint_targets)
+    # print "CONSTRAINT TEXT:", constraint_text
+
     """
     :param serialisation_dir:
     :param linkset:
     :param network_size:
     :param network_size_max:
-    :param targets: DATA CONCERNING INFORMATION ABOUT ALL TARGETS (GRAPHS) IN THE ALIGNMNET SUC AS:
+    :param targets: DATA CONCERNING INFORMATION ABOUT ALL TARGETS (GRAPHS) IN THE ALIGNMENT SUC AS:
                     grid_main_dict = {St.graph: grid_GRAPH,
                     St.data: [{St.entity_datatype: grid_org_type, St.properties: grid_link_org_props}]}
     :param constraint_targets:
@@ -1426,7 +1469,7 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
     print "\nLINK NETWORK INVESTIGATION"
 
     if activated is False:
-        print "\tTHE FUNCTION I NOT ACTIVATED"
+        print "\tTHE FUNCTION [cluster_eval] IS NOT ACTIVATED"
         return ""
     elif network_size > network_size_max and greater_equal is False:
         print "\t[network_size] SHOULD BE SMALLER THAN [network_size_max]"
@@ -1492,12 +1535,17 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
                         c_builder.write("""
        || LCASE(STR(?constraint)) = "{}" """.format(text[i].strip()))
                 c_builder.write(")")
+        # print resources
 
         # # THE RESULT OF THE QUERY ABOUT THE LINKED RESOURCES
         constraint = Qry.cluster_rsc_strengths_query(resources, linkset)
+        # print constraint
+
         constraint = constraint.replace("# CONSTRAINTS IF ANY", c_builder.getvalue())
+        # print constraint
         # print query
         constraint_response = Qry.sparql_xml_to_matrix(constraint)
+        # print constraint_response[St.result]
         if constraint_response[St.result] is None:
             return False
         return True
@@ -1547,17 +1595,24 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
                 # 2: FETCHING THE CORRESPONDENTS
                 smallest_hash = float('inf')
 
-                # CREATE THE HASHED ID AS THE CLUSTER NAME
+                # NAME AND RESOURCE LIST FOR CONSTRAINTS
                 for child in children:
+
+                    # CREATE THE HASHED ID AS THE CLUSTER NAME
                     hashed = hash(child)
                     if hashed <= smallest_hash:
                         smallest_hash = hashed
+
+                    # LIST OF RESOURCES IN THE CLUSTER
+                    use = "<{}>".format(child) if Ut.is_nt_format(child) is not True else child
+                    resources += "\n\t\t\t\t{}".format(use)
 
                 # MAKE SURE THE FILE NAME OF THE CLUSTER IS ALWAYS THE SAME
                 file_name = "{}".format(str(smallest_hash).replace("-", "N")) if str(
                     smallest_hash).startswith("-") \
                     else "P{}".format(smallest_hash)
 
+                # print cluster, check_constraint()
                 if constraint_targets is not None and check_constraint() is False:
                     continue
 
@@ -1580,6 +1635,7 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
                 # SETTING THE DIRECTORY
                 print "{} / {}".format(count_overall_clusters, len(clusters_0))
                 info2 = "CLUSTER [{}] NAME [{}] SIZE [{}]".format(count_overall_clusters, file_name, cluster_size)
+
                 if directory:
 
                     if network:
@@ -1588,9 +1644,14 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
                         # *****************************
                         # 'WEIGHTED': weighted_quality
                         print "{:>5} {}".format(count_clusters_of_interest, info2)
+
+                        # ********************************************************************
                         decision = metric(network, cluster_val["strengths"], alt_keys=alt_keys)
+                        # *********************************************************************
+
                         automated_decision = decision["AUTOMATED_DECISION"]
-                        weighted_decision = decision['WEIGHTED']
+                        weighted_decision = decision['WEIGHTED_DECISION']
+
                         if only_good is True and automated_decision.startswith("GOOD") is not True:
                             count_clusters_of_interest -= 1
                             continue
@@ -1616,8 +1677,8 @@ def cluster_eval(serialisation_dir, linkset, network_size=3, network_size_max=3,
                     Ut.write_2_disc(file_directory=tmp_directory, file_name="{}_ClusterSheet".format(curr_network_size),
                                     data=sheet_builder.getvalue(), extension="txt")
 
-            # if count_2 == 2:
-            #     break
+            # # if count_2 == 2:
+            # #     break
 
         and_grater = " AND GRATER" if greater_equal is True else ""
         print "\n>>> FOUND: {} CLUSTERS OF SIZE {}{}".format(count_clusters_of_interest, curr_network_size, and_grater)
@@ -1856,3 +1917,23 @@ def compute_all(serialisation_dir, linkset, network_size=3, network_size_max=3, 
             return "{}\t{}".format(curr_network_size, count_2)
 
         print "JOB DONE IN {:<14}".format(str(datetime.timedelta(seconds=time.time() - begin)))
+
+
+# # EXAMPLE 1
+# graph = [("node-1", "node-2"), ("node-2", "node-3"), ("node-3", "node-4"), ("node-4", "node-5"), ("node-5", "node-1")]
+# strengths = {}
+# for edge in graph:
+#     strengths[Ut.get_key(edge[0], edge[1])] = [1]
+# Ut.print_dict(metric(graph=graph, strengths=strengths))
+#
+# # EXAMPLE 2
+# graph_2 = [("node-1", "node-2"), ("node-2", "node-4"), ("node-4", "node-5"),
+#          ("node-5", "node-1"), ("node-5", "node-2"), ("node-4", "node-1")]
+# strengths_list = [1, 0.9, 0.77, 0.63, 0.63, 0.9]
+# strengths_2 = {}
+# i = 0
+# for edge in graph_2:
+#     strengths_2[Ut.get_key(edge[0], edge[1])] = [strengths_list[i]]
+#     print edge[0], edge[1], "->", strengths_list[i]
+#     i += 1
+# Ut.print_dict(metric(graph=graph_2, strengths=strengths_2))
