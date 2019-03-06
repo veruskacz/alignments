@@ -3277,7 +3277,8 @@ function cluster_load_predicates(rq_uri, source)
                     var elems = elem.getElementsByClassName('list-group-item');
                     for (i = 0; i < elems.length; i++) {
                         if ( ($(elems[i]).attr('pred_uri') == pred_uri)
-                                 && ($(elems[i]).attr('graph_uri') == graph_uri) )
+                                 && ($(elems[i]).attr('graph_uri') == graph_uri)
+                                 && ($(elems[i]).attr('type_uri') == type_uri ) )
                         {
                           check = true;
                           break;
@@ -5523,7 +5524,8 @@ function get_list_of_predicates(graph_uri, graph_label, type_uri, type_label, to
                 var elems = elem.getElementsByClassName('list-group-item');
                 for (i = 0; i < elems.length; i++) {
                     if ( ($(elems[i]).attr('pred_uri') == pred_uri)
-                             && ($(elems[i]).attr('graph_uri') == graph_uri) )
+                             && ($(elems[i]).attr('graph_uri') == graph_uri)
+                             && ($(elems[i]).attr('type_uri') == type_uri) )
                     {
                       check = true;
                       break;
@@ -5901,6 +5903,16 @@ function calculateDatasetCluster(th)
                     $('#cluster_id_col').html(obj2.graph.id + '<b>' + '</br>Confidence: ' + String(obj2.graph.confidence) + '</b></br>' + obj2.graph.messageConf);
                     $('#cluster_metrics_col').html(obj2.graph.metrics);
                     $("#collapse_dataset_linking_stats_cluster_details").collapse("show");
+
+//                    var checkboxPlotWhite = document.getElementById($(list).attr('checkboxPlotWhite'));
+                    if (document.getElementById("checkboxPlotWhite").checked) {
+
+                          document.getElementById( 'cluster_metrics_col' ).style.backgroundColor = 'white';
+                          document.getElementById( 'cluster_plot_row' ).style.backgroundColor = 'white';
+                          document.getElementById( 'graph_cluster' ).style.backgroundColor = 'white';
+                          document.getElementById( 'cluster_plot_col' ).style.height = "80em";
+                          document.getElementById( 'graph_cluster' ).style.height = "1600";
+                    }
 
                     $('#graph_cluster').html('');
                     plotClusterGraph(obj2.graph);

@@ -103,6 +103,9 @@
                 <a id="link_collapse_dataset_linking_stats_cluster"
              data-toggle="collapse" href="#collapse_dataset_linking_stats_cluster">
               <span class="badge alert-info"><strong>+</strong></span></a>Dataset Clusters
+              <br> <div class="checkbox-inline" ><label>
+                            <input type="checkbox" id="checkboxPlotWhite"> Plot white backgrounnd </label>
+                            </div>
           </div>
           <div class="col-md-8 text-right">
             <table align="right">
@@ -240,12 +243,12 @@
             <div class="panel-body" >
 
 
-            <div class="row" style="background-color:#FFFFE0;" >
+            <div id="cluster_metrics_row" class="row"  style="background-color:#FFFFE0;" >
                 <div class="col-md-12" id="cluster_metrics_col" >
                 </div>
             </div>
-            <div class="row" style="background-color:#FFFFE0;" >
-                <div class="col-md-12" style='height: 40em; width:100%, scroll: both; overflow: auto;' >
+            <div id="cluster_plot_row" class="row" style="background-color:#FFFFE0;" >
+                <div id="cluster_plot_col" class="col-md-12" style='height: 40em; width:100%, scroll: both; overflow: auto;' >
 
                 <style>
                 .links line {
