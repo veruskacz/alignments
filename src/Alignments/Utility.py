@@ -24,6 +24,7 @@ import Alignments.Settings as St
 import Alignments.Server_Settings as Svr
 from os.path import isfile, join
 from unidecode import unidecode
+from hashlib import md5
 from kitchen.text.converters import to_bytes, to_unicode
 # write_to_path = "C:\Users\Al\Dropbox\Linksets\ExactName"
 
@@ -37,6 +38,11 @@ mac_weird_name = "darwin"
     GENERIC FUNCTIONS
 """
 #################################################################
+
+def hasher(string):
+    h = md5()
+    h.update(bytes(string.__str__()))
+    return "H{}".format(h.hexdigest()[:15])
 
 
 def is_windows():

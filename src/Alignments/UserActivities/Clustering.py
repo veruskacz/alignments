@@ -11,6 +11,7 @@ import Alignments.UserActivities.ExportAlignment as Exp
 from Alignments.Query import sparql_xml_to_matrix as sparql2matrix
 import Alignments.Query as Qry
 import Alignments.Utility as Ut
+from Alignments.Utility import hasher as hash
 # from Alignments.UserActivities.Plots import metric
 # import cStringIO as buffer
 # import Alignments.UserActivities.Plots as Plt
@@ -650,7 +651,7 @@ def cluster_values_plus_old(rq_uri, g_cluster, properties, distinct_values=True,
     return response
 
 
-def cluster_values_plus(rq_uri, g_cluster, targets, distinct_values=True, display=False, limit_resources=100):
+def cluster_values_plus(rq_uri, g_cluster, targets, distinct_values=True, display=False, limit_resources=250):
 
     """
     :param rq_uri: CLUSTER RESEARCH QUESTION
@@ -2710,14 +2711,14 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
         delete_serialised_clusters(graph)
 
     # **************************************************************************************************
-    # 0. CHECK IF THE ALIGNMENT HAS A TRIPLE DOCUMENTING WHETHER IT CLUSTER WAS SERIALISED
+    # 0. CHECK IF THE ALIGNMENT HAS A TRIPLE DOCUMENTING WHETHER THE CLUSTER WAS SERIALISED
     # **************************************************************************************************
-    ask = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
+    is_serialised = "ASK {{ <{}>  <{}serialisedClusters> ?dictionary .}}".format(graph, Ns.alivocab)
 
     # **************************************************************************************************
     # 1. THE CLUSTER HAS ALREADY BEEN SERIALIZED => IT JUST NEED TO BE DE-SERIALISED
     # **************************************************************************************************
-    if Qry.boolean_endpoint_response(ask) == "true":
+    if Qry.boolean_endpoint_response(is_serialised) == "true":
 
         print ">>> THE CLUSTER HAS ALREADY BEEN SERIALISED, WAIT A SEC WHILE WE FETCH IT."
 
@@ -2787,7 +2788,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                     graph, reconciled_name=serialised_hash, clusters_dictionary=de_serialised,
                     related_linkset=related_linkset, serialisation_dir=serialisation_dir)
 
-            # EXTEND THE GIVEN CLUSTER
+            # EXTEND THE GIVEN CLUSTER(WHEN THE UI WANT TO SEE A CLUSTER WITH EXTENSION)
             elif cluster2extend_id is not None and related_linkset is not None:
                 if cluster2extend_id in clusters:
                     """
@@ -3269,7 +3270,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
             # *******************************************
             elif has_parent_1 is True and has_parent_2 is True:
 
-                # 2.1 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
+                # 2.1 BOTH CHILD DO NOT HAVE THE SAME PARENT
                 if root[child_1] != root[child_2]:
 
                     parent1 = root[child_1]
@@ -3281,16 +3282,17 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                     # print parent1, parent2
 
                     if parent2 in clusters:
-                        # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
+
                         # check this
+                        # ALL CHILD OF PARENT (SMALL) ARE REASSIGNED A NEW PARENT
                         for child in clusters[parent2]['nodes']:
                             root[child] = parent1
 
                         # print 'before', clusters2[parent1]['nodes']
                         # RE-ASSIGNING THE NODES OF CHILD 2
                         clusters[parent1]['nodes'] = clusters[parent1]['nodes'].union(clusters[parent2]['nodes'])
-                        # RE-ASSIGNING THE LINKS OF CHILD 2
 
+                        # RE-ASSIGNING THE LINKS OF CHILD 2
                         clusters[parent1]['links'] = clusters[parent1]['links'].union(clusters[parent2]['links'])
 
                         # RE-ASSIGNING THE STRENGTHS OF CHILD 2
@@ -3314,6 +3316,8 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                             clusters[parent1]['strengths'][link_hash] = strength
 
                         clusters.pop(parent2)
+
+                # 2.2 BOTH CHILD HAVE THE SAME PARENT, DO NOTHING
                 else:
                     parent = root[child_1]
                     link = (child_1, child_2) if child_1 < child_2 else (child_2, child_1)
@@ -3435,7 +3439,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                 # CALLING THE MAIN HELPER FUNCTION
                 count = cluster_helper_set(count, annotate=False)
 
-                # PRINTING THE CREATED CLUSTERS ON THE SERVER SCREEN EVERY STANDARD ITERATIONS
+                # PRINT EVERY STANDARD (X) ITERATION THE CREATED CLUSTERS ON THE SERVER SCREEN EVERY STANDARD ITERATIONS
                 if iteration == check:
                     print "\tRESOURCE {:>10}:   {}    =    {}".format(count, subject, t_object)
                     check += standard
@@ -3496,7 +3500,7 @@ def links_clustering(graph, serialisation_dir, cluster2extend_id=None,
                     if hashed <= smallest_hash:
                         smallest_hash = hashed
 
-                # CREATE A NE KEY
+                # CREATE A NEW KEY
                 new_key = "{}".format(str(smallest_hash).replace("-", "N")) if str(
                     smallest_hash).startswith("-") else "P{}".format(smallest_hash)
 
@@ -4598,6 +4602,7 @@ def list_extended_clusters(
                                 remain += 1
                                 strength = max(investigated["strengths"][key_2]) * max(
                                     investigated["strengths"][key_1])
+                                
                                 if detail:
                                     print "\t>> Keys {} * {} = {}".format(
                                         investigated["strengths"][key_1], investigated["strengths"][key_2], strength)
@@ -4940,11 +4945,11 @@ def list_extended_clusters(
         print "*** COMPUTING THE DERIVED STRENGTHS ***"
         for key in reconciled_nodes.keys():
             # reconciled_nodes[key]['nodes'] = list(reconciled_nodes[key]['nodes'])
-            derive_reconciliation(key, detail=True)
+            derive_reconciliation(key, detail=False)
             # print key
         # derive_reconciliation('P1935396683', detail=True)
         # derive_reconciliation('N1096153044', detail=True)
-        Ut.print_dict(reconciled_nodes)
+        # Ut.print_dict(reconciled_nodes)
 
         # BUILDING UP CLUSTER DATA
         related_graph_mane = Ut.get_uri_local_name_plus(related_linkset)
@@ -4954,7 +4959,7 @@ def list_extended_clusters(
             for link in reconciled['links']:
                 c_data += [(link[0], link[1], strengths[Ut.get_key(link[0], link[1])])]
 
-        Ut.print_list(c_data)
+        # Ut.print_list(c_data)
 
         links_list_clustering(c_data, serialisation_dir, reconciled_name=reconciled_name, stop_at=None)
 

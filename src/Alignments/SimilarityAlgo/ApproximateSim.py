@@ -329,7 +329,9 @@ def edit_distance(token_x, token_y):
 
 
 # print edit_distance("Porto".lower(), "Parma".lower())
-
+# print edit_distance("Frank van Harmelen".lower(), "F. van Harmelen".lower())
+# print edit_distance("van Harmelen".lower(), "F. van Harmelen".lower())
+# print edit_distance("van Harmelen".lower(), "Fank van Harmelen".lower())
 
 # pattern = str("[{}]".format(str("\.\-\,\+'\?;()").strip())).replace(" ", "")
 # temp = re.sub(pattern, "", "aL. KOUDOUSS-KAR; INE, (LE+VOILA?ICI)")
@@ -342,7 +344,7 @@ def edit_distance(token_x, token_y):
 
 def prefixed_inverted_index(
         specs, theta, reorder=True, stop_words_string=None, stop_symbols_string=None,
-        expands=False, is_source=True, linkset2expand=None, check_file=False):
+        expands=False, is_source=True, linkset2expand=None, check_file=False, strict=False):
 
     #################################################################
     # BACKGROUND
@@ -536,14 +538,14 @@ def prefixed_inverted_index(
             included = len(in_tokens) - (int(threshold * len(in_tokens)) - 1)
 
             # UPDATE THE TOKENS WITH THEIR FREQUENCY
-            # print "1", in_tokens
+            print "\n", in_row, in_tokens
             for n in range(len(in_tokens)):
                 # print value + " | +" + tokens[i]
                 in_tokens[n] = [in_tokens[n], tf[in_tokens[n]]]
 
             # SORT THE TOKENS BASED ON THEIR FREQUENCY OF OCCURRENCES
             in_tokens = sorted(in_tokens, key=itemgetter(1))
-            # print "{} {}".format(in_row, in_tokens)
+            print "\t{} => INCLUDE: {}".format(in_tokens, included)
             # print "2", in_tokens
 
             # INSERTING included TOKENS IN THE INVERTED INDEX
@@ -905,7 +907,7 @@ def prefixed_inverted_index(
         universe_tf = get_tf_2([src_dataset, trg_dataset])
 
     # print "\t\tTHE SOURCE DATASET CONTAINS {} POTENTIAL TERMS.".format(len(src_tf) - 1)
-    print "\tTHE UNIVERSE OF TOKENS CONTAINS {} POTENTIAL TERMS.".format(len(universe_tf) - 1)
+    print "\tTHE UNIVERSE OF TOKENS CONTAINS {} POTENTIAL TERMS.".format(len(universe_tf))
     print "\tTHE TARGET DATASET CONTAINS {} POTENTIAL CANDIDATES.".format(len(trg_dataset) - 1)
     t_tf = time()
     print "\t>>> In {}.\n\t>>> Elapse time: {}".format(t_tf - t_load, t_load - start)
@@ -921,6 +923,8 @@ def prefixed_inverted_index(
     #################################################################
 
     print "\n5. COMPUTE THE SIMILARITY BASED ON THE INVERTED INDEX"
+    print "UNIVERSE OF TOKEN:", universe_tf
+    print "TARGET FREQUENCIES:", Ut.print_dict(trg_inv_index)
 
     # ITERATE THROUGH THE SOURCE DATASET
     for row in range(1, len(src_dataset)):
@@ -934,6 +938,7 @@ def prefixed_inverted_index(
         # GO TO THE NEXT SOURCE TOKEN IF THE CURRENT TOKEN IS EMPTY
         if not src_input.strip():
             continue
+        print "\nSOURCE INPUT:", src_input
 
         # TOKENIZE SOURCE INPUT
         tokens_src = src_input.split(" ")
@@ -942,17 +947,16 @@ def prefixed_inverted_index(
         # TOKENS IN THE CURRENT PREDICATE VALUE
         curr_index = set()
         tokens = get_tokens_to_include(src_input, theta, universe_tf)
-        # print tokens
+        print "TOKENS TO INCLUDE", tokens
 
         # GET THE INDEX WHERE A TOKEN IN THE CURRENT INSTANCE CAN BE FOUND
         for token in tokens:
-            # print token
-            # print trg_inv_index
+            print "\tTOKEN:", token
+            print "\t\tTARGET INVERTED INDEX", trg_inv_index
             if token[0] in trg_inv_index:
                 curr_index = curr_index.union(set(trg_inv_index[token[0]]))
 
         # COMPUTE THE SIMILARITY FOR THESE OCCURRENCES
-        # print dataset[row][1], curr_index
         for idx in curr_index:
 
             trg_uri = trg_dataset[idx][0].strip()
@@ -976,7 +980,7 @@ def prefixed_inverted_index(
             # TOKENIZE TARGET INPUT AND PROCESS IT ACCORDINGLY
             # print "TARGET BEFOREE PROCESS: {}".format(trg_dataset[idx][1])
             trg_input = process_input(trg_dataset[idx][1])
-            # print "TARGET AFTER PROCESS: {}".format(trg_input)
+            print "\tTARGET AFTER PROCESS: {}".format(trg_input)
 
             # GO TO THE NEXT TARGET TOKEN IF THE CURRENT TOKEN IS EMPTY
             if not trg_input.strip():
@@ -1026,17 +1030,23 @@ def prefixed_inverted_index(
             for i in range(len(token2include)):
                 # print token2include[i], token2include[i] in tokens_2
                 to_use = tokens_2_sorted[:len(token2include)]
-                if token2include[i] in to_use:
-                    "DO NOTHING"
-                else:
+
+                if strict is False:
                     value_1 += token2include[i][0] + " "
                     value_2 += to_use[i][0] + " "
+                else:
+                    if token2include[i] in to_use:
+                        "DO NOTHING"
+                    else:
+                        value_1 += token2include[i][0] + " "
+                        value_2 += to_use[i][0] + " "
 
             value_1 = (value_1.replace(" - ", "") if value_1 != " - " else value_1).strip()
             value_2 = (value_2.replace(" - ", "") if value_2 != " - " else value_2).strip()
 
             # COMPUTE ONLY IF BOTH STRING ARE NOT EMPTY
             sim = edit_distance(value_1, value_2) if value_1 and value_2 else 0
+            print "\t\t{} ~ {} = {} ".format(value_1, value_2, sim)
 
             # print u"COMPARING         :", "{} and {} outputted: {}".format(to_bytes(value_1), to_bytes(value_2), sim)
             # if row == 560000:
@@ -1050,7 +1060,7 @@ def prefixed_inverted_index(
             #         to_bytes(value_1), to_bytes(value_2), sim)
 
             # IF IMPORTANT BIGGER THAN THRESHOLD CONTINUE
-            if sim >= theta * 0.75:
+            if sim >= theta * 0.5:
 
                 if debug is True:
                     writer.write("\nSOURCE:{} TARGET:{}".format(str(row), str(idx)))
@@ -1592,13 +1602,17 @@ def refine_approx(
         # TARGET PREDICATE VALUE
         graph <{2}>
         {{
-            ?obj {4} ?trg_value .
+            ?obj {4} ?trg_label .
+            # LOWER CASE OF THE VALUE
+            BIND(lcase(str(?trg_label)) as ?trg_value)
         }}
 
         # SOURCE PREDICATE VALUE
         graph <{1}>
         {{
-            ?sub {3} ?src_value .
+            ?sub {3} ?src_label .
+            # LOWER CASE OF THE VALUE
+            BIND(lcase(str(?src_label)) as ?src_value)
         }}
 
         # LINKSET

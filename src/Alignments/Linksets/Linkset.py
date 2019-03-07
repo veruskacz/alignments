@@ -494,6 +494,7 @@ def set_refined_name(specs):
         specs[St.refined_name] = "refined_{}_{}".format(specs[St.mechanism], full_hashed)
 
     specs[St.refined] = specs[St.linkset].replace(specs[St.linkset_name], specs[St.refined_name])
+    specs[St.refined] = specs[St.refined].replace("/lens/", "/linkset/")
     print "\t-  specs[St.refined]",  specs[St.refined]
 
 
