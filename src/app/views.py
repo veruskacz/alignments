@@ -2073,9 +2073,13 @@ def refineAlignment():
                 stop_words = request.args.get('stop_words', '')
                 stop_symbols = request.args.get('stop_symbols', '')
 
+
                 print threshold, stop_words, stop_symbols
-                result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words,
-                                        stop_symbols_string=stop_symbols)
+                # result = prefixed_inverted_index(specs, threshold, stop_words_string=stop_words,
+                #                         stop_symbols_string=stop_symbols)
+
+                result = refine_approx(specs, threshold, stop_words_string=stop_words, stop_symbols_string=stop_symbols)
+
 
             elif specs['mechanism'] == 'geoSim':
                 # result = None
